@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="view-transition" content="same-origin" />
+  <title>LabSync – Faculty Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script src="auth-check.js"></script>
+  <style>
+    .menu-item:hover {
+      background-color: #F3F4F6;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .sched-spinner {
+      animation: spin 1s linear infinite;
+    }
+  </style>
+  </head>
+
+<body data-page="faculty-management">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn" title="Dashboard" onclick="window.location.href='it-head-dashboard.html'">
+        <i data-lucide="home" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Room Status" onclick="window.location.href='it-head-room-status.html'">
+        <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='it-head-pc-reports.html'">
+        <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="My Schedule" onclick="window.location.href='it-head-my-schedule.html'">
+        <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
+      </button>
+      
+      <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;"></div>
+
+      <button class="sidebar-btn" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+        <i data-lucide="calendar" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn active" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+        <i data-lucide="users" style="width:24px;height:24px;"></i>
+      </button>
+    </nav>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <button class="sidebar-btn" title="Help" onclick="openHelpModal()">
+        <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Logout" onclick="handleLogout()">
+        <i data-lucide="log-out" style="width:24px;height:24px;"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Scroll Clue -->
+  <div id="sidebarScrollClue" style="position:fixed;bottom:16px;left:30px;z-index:105;color:var(--primary-teal);pointer-events:none;transition:opacity 0.3s ease;">
+    <i data-lucide="chevron-down" style="width:20px;height:20px;animation:bounce 2s infinite;"></i>
+  </div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-logos" style="display:flex;align-items:center;gap:14px;">
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Logo" style="height:40px;width:auto;object-fit:contain;">
+        <div style="width:1px;height:32px;background:var(--border-light);"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
+      </div>
+      <nav class="header-nav">
+        <button class="nav-item" onclick="window.location.href='it-head-dashboard.html'">Dashboard</button>
+        <button class="nav-item" onclick="window.location.href='it-head-room-status.html'">Room Status</button>
+        <button class="nav-item" onclick="window.location.href='it-head-pc-reports.html'">PC Reports</button>
+        <button class="nav-item" onclick="window.location.href='it-head-my-schedule.html'">My Schedule</button>
+        <span class="nav-divider" style="color: var(--border-light); margin: 0 8px;">|</span>
+        <button class="nav-item" onclick="window.location.href='master-schedule.html'">Master Schedule</button>
+        <button class="nav-item active" onclick="window.location.href='faculty-management.html'">Faculty Management</button>
+      </nav>
+      <div class="header-right">
+        <button class="notif-btn" title="Notifications">
+          <i data-lucide="bell" style="width:16px;height:16px;"></i>
+          <span class="notif-dot"></span>
+        </button>
+        <div class="profile-dropdown">
+          <div class="avatar">U</div>
+          <div class="profile-info">
+            <span class="profile-name">User</span>
+            <span class="profile-role">IT Dept. Head</span>
+          </div>
+          <button class="chevron-btn">
+            <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content" style="overflow-y:auto;">
+
+      <!-- Title + Clock -->
+      <div class="greeting-row" style="margin-bottom:16px;">
+        <div class="greeting-left">
+          <h1 class="greeting-title" id="greetingText">Faculty Management</h1>
+          <p class="greeting-sub" id="greetingSub">Manage faculty members, assignments, and departmental information.</p>
+        </div>
+        <div class="clock-block">
+          <div class="clock-time" id="clockTime">--:--:-- --</div>
+          <div class="clock-date" id="clockDate">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="fm-toolbar" style="margin-bottom:20px;">
+        <div class="fm-search-row">
+          <div class="fm-search">
+            <i data-lucide="search" style="width:15px;height:15px;color:#94A3B8;flex-shrink:0;"></i>
+            <input id="faculty-search" type="text" placeholder="Search faculty by name, email, or department..." />
+          </div>
+          <div style="position: relative; display: inline-block;">
+            <button class="fm-filter-btn" id="filter-btn" style="display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="sliders-horizontal" style="width:14px;height:14px;"></i>
+              Filter
+            </button>
+            <div id="filter-dropdown" style="display: none; position: absolute; left: 0; top: 100%; background: #fff; border: 1px solid #E5E7EB; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); width: 180px; z-index: 100; padding: 6px 0; margin-top: 4px; font-family: var(--font-body);">
+              <div class="filter-item" onclick="filterFaculty('all')" style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; font-weight: 600; background: none;">
+                All Roles <i data-lucide="check" style="width: 14px; height: 14px; color: var(--primary-teal); flex-shrink: 0;"></i>
+              </div>
+              <div class="filter-item" onclick="filterFaculty('head')" style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; background: none;">
+                IT Dept. Head <i data-lucide="check" style="width: 14px; height: 14px; color: var(--primary-teal); display: none; flex-shrink: 0;"></i>
+              </div>
+              <div class="filter-item" onclick="filterFaculty('faculty')" style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; background: none;">
+                Faculty <i data-lucide="check" style="width: 14px; height: 14px; color: var(--primary-teal); display: none; flex-shrink: 0;"></i>
+              </div>
+              <div class="filter-item" onclick="filterFaculty('mis')" style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; background: none;">
+                MIS Staff <i data-lucide="check" style="width: 14px; height: 14px; color: var(--primary-teal); display: none; flex-shrink: 0;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="fm-add-btn" id="add-faculty-btn">
+          <i data-lucide="user-plus" style="width:16px;height:16px;"></i>
+          Add Faculty
+        </button>
+      </div>
+
+      <!-- Faculty Grid -->
+      <div class="faculty-grid" id="faculty-grid">
+
+        <div class="ui-empty-state">
+          <div class="ui-empty-icon">
+            <i data-lucide="users" style="width:24px;height:24px;"></i>
+          </div>
+          <p>No faculty records yet. Add faculty or sync your directory to see members here.</p>
+        </div>
+
+      </div><!-- /faculty-grid -->
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Sidebar scroll clue
+    const sidebar = document.querySelector('.sidebar');
+    const scrollClue = document.getElementById('sidebarScrollClue');
+    if (sidebar.scrollHeight <= sidebar.clientHeight) scrollClue.style.display = 'none';
+    sidebar.addEventListener('scroll', () => {
+      scrollClue.style.opacity = sidebar.scrollTop > 10 ? '0' : '1';
+    });
+
+    // Load faculty members on page load
+    async function loadFacultyMembers() {
+      try {
+        const response = await fetch('/api/faculty', { credentials: 'include' });
+        if (!response.ok) {
+          console.error('Failed to fetch faculty:', response.status);
+          return;
+        }
+        const faculty = await response.json();
+        window.allFacultyMembers = faculty;
+        
+        const grid = document.getElementById('faculty-grid');
+        
+        if (faculty.length === 0) {
+          grid.innerHTML = `
+            <div class="ui-empty-state">
+              <div class="ui-empty-icon">
+                <i data-lucide="users" style="width:24px;height:24px;"></i>
+              </div>
+              <p>No faculty records yet. Add faculty or sync your directory to see members here.</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+        // Sort so the IT Head is always first
+        faculty.sort((a, b) => {
+            const aIsBoss = a.Role && a.Role.toLowerCase().includes('head');
+            const bIsBoss = b.Role && b.Role.toLowerCase().includes('head');
+            if (aIsBoss && !bIsBoss) return -1;
+            if (!aIsBoss && bIsBoss) return 1;
+            return a.Name.localeCompare(b.Name);
+        });
+
+        grid.innerHTML = faculty.map(member => {
+          const isBoss = member.Role && member.Role.toLowerCase().includes('head');
+          
+          const borderStyle = isBoss 
+            ? '' 
+            : 'border: 1px solid #E5E7EB; box-shadow: 0 1px 3px rgba(0,0,0,0.05);';
+            
+          const avatarGradient = 'background: linear-gradient(135deg, var(--primary-teal) 0%, var(--accent-blue) 100%);';
+
+          const crownIcon = isBoss 
+            ? `<div class="boss-crown"><i data-lucide="crown" style="width:18px;height:18px;"></i></div>` 
+            : '';
+
+          const roleTag = isBoss 
+            ? `<div class="boss-role"><i data-lucide="shield-check" style="width:13px;height:13px;"></i> ${member.Role}</div>`
+            : `<div style="font-size:12px;color:#6B7280;line-height:1.4;">${member.Role || 'Faculty'}</div>`;
+
+          const avatarContent = member.Profile_Photo
+            ? `<img src="${member.Profile_Photo}" alt="${member.Name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+            : member.Name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+          return `
+          <div class="faculty-card ${isBoss ? 'boss-card' : ''}" data-role="${member.Role ? member.Role.toLowerCase() : 'faculty'}" data-name="${member.Name.toLowerCase()}" data-dept="${member.Email.toLowerCase()}" style="background:#fff;border-radius:12px;padding:20px 18px;transition:all 0.3s ease;position:relative;${borderStyle}">
+            
+            ${crownIcon}
+
+            <!-- Top: Avatar + Name + Status + Menu -->
+            <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">
+              <div style="width:50px;height:50px;border-radius:50%;${avatarGradient}display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;font-family:var(--font-display);flex-shrink:0;overflow:hidden;">
+                ${avatarContent}
+              </div>
+              
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:16px;font-weight:700;color:#1F2937;margin-bottom:2px;font-family:var(--font-display);">${member.Name}</div>
+                ${roleTag}
+              </div>
+              
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="background:#D1FAE5;color:#065F46;font-size:10px;font-weight:700;padding:3px 9px;border-radius:4px;letter-spacing:0.3px;">Active</span>
+                <div style="position: relative;">
+                  <button class="faculty-menu-btn" onclick="toggleMenu(event, 'menu-${member.User_ID || member.Name.replace(/\s+/g, '')}')">
+                    <i data-lucide="more-vertical" style="width:16px;height:16px;"></i>
+                  </button>
+                  <div id="menu-${member.User_ID || member.Name.replace(/\s+/g, '')}" class="faculty-dropdown-menu">
+                    <div class="menu-item" onclick="viewFacultySchedule('${member.Name.replace(/'/g, "\\'")}')"><i data-lucide="calendar" style="width:15px;height:15px;"></i> View Schedule</div>
+                    <div class="menu-item" onclick="changeFacultyRole('${member.User_ID}', '${member.Name.replace(/'/g, "\\'")}', '${member.Role.replace(/'/g, "\\'")}')"><i data-lucide="shield" style="width:15px;height:15px;"></i> Change Role</div>
+                    <div class="menu-divider"></div>
+                    <div class="menu-item" onclick="confirmDeleteFaculty('${member.User_ID}', '${member.Name.replace(/'/g, "\\'")}')" style="color: #EF4444;"><i data-lucide="user-x" style="width:15px;height:15px;color:#EF4444;"></i> Remove Faculty</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Contact Info -->
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#6B7280;">
+                <i data-lucide="mail" style="width:15px;height:15px;color:#9CA3AF;flex-shrink:0;"></i>
+                <span>${member.Email}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#6B7280;">
+                <i data-lucide="phone" style="width:15px;height:15px;color:#9CA3AF;flex-shrink:0;"></i>
+                <span>+63 912 345 6789</span>
+              </div>
+            </div>
+            
+          </div>
+        `;
+        }).join('');
+        
+        lucide.createIcons();
+      } catch (error) {
+        console.error('Error loading faculty:', error);
+      }
+    }
+    
+    // Load faculty on page load
+    loadFacultyMembers();
+
+    // Close all dropdown menus
+    function closeAllMenus() {
+      document.querySelectorAll('.faculty-dropdown-menu').forEach(menu => {
+        menu.style.display = 'none';
+      });
+      const filterDropdown = document.getElementById('filter-dropdown');
+      if (filterDropdown) filterDropdown.style.display = 'none';
+    }
+
+    // Toggle specific menu
+    window.toggleMenu = function(event, menuId) {
+      event.stopPropagation();
+      const menu = document.getElementById(menuId);
+      const isVisible = menu.style.display === 'block';
+      closeAllMenus();
+      if (!isVisible && menu) {
+        menu.style.display = 'block';
+      }
+    };
+
+    // Close menu when clicking outside
+    document.addEventListener('click', () => {
+      closeAllMenus();
+    });
+
+    // Filter dropdown toggle
+    const filterBtn = document.getElementById('filter-btn');
+    const filterDropdown = document.getElementById('filter-dropdown');
+    
+    if (filterBtn && filterDropdown) {
+      filterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isShowing = filterDropdown.style.display === 'block';
+        closeAllMenus();
+        filterDropdown.style.display = isShowing ? 'none' : 'block';
+      });
+    }
+
+    // Filter and search unified logic
+    let currentFilter = 'all';
+
+    window.filterFaculty = function(role) {
+      currentFilter = role;
+      
+      // Update UI list checkmarks
+      document.querySelectorAll('.filter-item').forEach(item => {
+        item.style.fontWeight = '500';
+        const icon = item.querySelector('i');
+        if (icon) icon.style.display = 'none';
+      });
+      
+      // Find selected item
+      const activeItem = document.querySelector(`.filter-item[onclick*="'${role}'"]`);
+      if (activeItem) {
+        activeItem.style.fontWeight = '600';
+        const icon = activeItem.querySelector('i');
+        if (icon) icon.style.display = 'block';
+      }
+
+      applySearchAndFilter();
+    };
+
+    function applySearchAndFilter() {
+      const q = document.getElementById('faculty-search').value.toLowerCase().trim();
+      
+      document.querySelectorAll('.faculty-card').forEach(card => {
+        const name = card.dataset.name || '';
+        const email = card.dataset.dept || '';
+        const role = card.dataset.role || '';
+        
+        const matchesSearch = name.includes(q) || email.includes(q);
+        let matchesFilter = false;
+        
+        if (currentFilter === 'all') {
+          matchesFilter = true;
+        } else if (currentFilter === 'head') {
+          matchesFilter = role.includes('head');
+        } else if (currentFilter === 'faculty') {
+          matchesFilter = role === 'faculty';
+        } else if (currentFilter === 'mis') {
+          matchesFilter = role.includes('mis');
+        }
+        
+        card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+      });
+    }
+
+    document.getElementById('faculty-search').addEventListener('input', applySearchAndFilter);
+
+    // Add Faculty modal
+    document.getElementById('add-faculty-btn').addEventListener('click', () => {
+      showAddFacultyModal();
+    });
+
+
+    
+    function showAddFacultyModal() {
+      const modal = document.createElement('div');
+      modal.id = 'add-faculty-modal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;';
+      
+      modal.innerHTML = `
+        <div style="background:#fff;border-radius:16px;width:90%;max-width:500px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+            <h2 style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text-dark);margin:0;">Add New Faculty</h2>
+            <button id="close-modal" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="x" style="width:20px;height:20px;color:var(--text-mid);"></i>
+            </button>
+          </div>
+          
+          <form id="add-faculty-form" style="display:flex;flex-direction:column;gap:20px;">
+            <div>
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Full Name *</label>
+              <input type="text" id="faculty-name" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:8px;font-size:14px;font-family:var(--font-body);outline:none;transition:border-color 0.2s;" placeholder="e.g. Juan Dela Cruz">
+            </div>
+            
+            <div>
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Email Address *</label>
+              <input type="email" id="faculty-email" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:8px;font-size:14px;font-family:var(--font-body);outline:none;transition:border-color 0.2s;" placeholder="e.g. juan.delacruz@bsu.edu.ph">
+            </div>
+            
+            <div class="alert-info-box">
+              <i data-lucide="info"></i>
+              <p>A temporary password will be auto-generated and sent to the faculty member's email address.</p>
+            </div>
+            
+            <div style="display:flex;gap:12px;margin-top:8px;">
+              <button type="button" id="cancel-btn" style="flex:1;padding:12px;border:1px solid var(--border-light);background:#fff;border-radius:8px;font-size:14px;font-weight:600;color:var(--text-mid);cursor:pointer;transition:all 0.2s;font-family:var(--font-body);">Cancel</button>
+              <button type="submit" style="flex:1;padding:12px;border:none;background:var(--primary-teal);color:#fff;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(30,187,215,0.3);font-family:var(--font-body);">Add Faculty</button>
+            </div>
+          </form>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      lucide.createIcons();
+      
+      // Focus on first input
+      setTimeout(() => document.getElementById('faculty-name').focus(), 100);
+      
+      // Close handlers
+      document.getElementById('close-modal').addEventListener('click', () => modal.remove());
+      document.getElementById('cancel-btn').addEventListener('click', () => modal.remove());
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+      });
+      
+      // Form submit
+      document.getElementById('add-faculty-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = {
+          name: document.getElementById('faculty-name').value.trim(),
+          email: document.getElementById('faculty-email').value.trim(),
+          role: 'Faculty'
+        };
+        
+        try {
+          const response = await fetch('/api/faculty/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(formData)
+          });
+          
+          const result = await response.json();
+          
+          if (response.ok) {
+            alert(`Faculty member added successfully!\n\nLogin credentials have been sent to ${formData.email}`);
+            modal.remove();
+            loadFacultyMembers();
+          } else {
+            console.error('Add faculty failed:', response.status, result);
+            alert('Error: ' + (result.error || 'Failed to add faculty'));
+          }
+        } catch (error) {
+          console.error('Error adding faculty:', error);
+          alert('Failed to add faculty. Please try again.');
+        }
+      });
+    }
+
+    // View specific faculty schedule
+    async function viewFacultySchedule(profName) {
+      const modal = document.createElement('div');
+      modal.id = 'schedule-view-modal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;transition:opacity 0.25s ease;';
+      
+      modal.innerHTML = `
+        <div class="sched-modal-dialog">
+          <div class="sched-modal-header">
+            <div>
+              <h2 class="sched-modal-title">Faculty Schedule</h2>
+              <p class="sched-modal-subtitle">Weekly class assignments for <strong>${profName}</strong></p>
+            </div>
+            <button id="close-sched-modal" class="sched-modal-close-btn">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+          
+          <div id="sched-modal-body" style="padding:28px;overflow-y:auto;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;">
+            <div class="sched-spinner" style="border: 3px solid #E5E7EB; border-top: 3px solid #1EBBD7; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom:12px;"></div>
+            <span style="font-family:var(--font-body);font-size:14px;color:#6B7280;">Loading schedule data from all rooms...</span>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.querySelector('div').style.transform = 'translateY(0)';
+      }, 10);
+      
+      lucide.createIcons();
+      
+      const closeModal = () => {
+        modal.style.opacity = '0';
+        modal.querySelector('div').style.transform = 'translateY(20px)';
+        setTimeout(() => modal.remove(), 250);
+      };
+      document.getElementById('close-sched-modal').addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      
+      try {
+        const labsRes = await fetch('/api/laboratories');
+        if (!labsRes.ok) throw new Error('Failed to load labs');
+        const labs = await labsRes.json();
+        
+        let allSchedules = [];
+        await Promise.all(labs.map(async (lab) => {
+          try {
+            const sRes = await fetch(`/api/schedules/room/${lab.Room_Number}`);
+            if (sRes.ok) {
+              const roomScheds = await sRes.json();
+              roomScheds.forEach(s => {
+                s.Room_Number = lab.Room_Number;
+                s.Building = lab.Building;
+              });
+              allSchedules = allSchedules.concat(roomScheds);
+            }
+          } catch (err) {
+            console.error('Error fetching schedules:', lab.Room_Number, err);
+          }
+        }));
+        
+        const searchName = profName.toLowerCase().trim();
+        const profSchedules = allSchedules.filter(s => {
+          const pName = (s.professor || s.ProfessorName || '').toLowerCase().trim();
+          return pName.includes(searchName) || searchName.includes(pName);
+        });
+        
+        const body = document.getElementById('sched-modal-body');
+        body.style.display = 'block';
+        body.style.alignItems = 'initial';
+        body.style.justifyContent = 'initial';
+        body.innerHTML = '';
+        
+        if (profSchedules.length === 0) {
+          body.innerHTML = `
+            <div class="sched-modal-empty">
+              <div class="sched-modal-empty-icon">
+                <i data-lucide="calendar"></i>
+              </div>
+              <h3 class="sched-modal-empty-title">No Active Assignments</h3>
+              <p class="sched-modal-empty-desc">This faculty member is not currently assigned to teach in any computer laboratories.</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+        
+        const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        profSchedules.sort((a, b) => {
+          const dayA = a.day || a.Day_of_Week;
+          const dayB = b.day || b.Day_of_Week;
+          const indexA = daysOrder.indexOf(dayA);
+          const indexB = daysOrder.indexOf(dayB);
+          if (indexA !== indexB) return indexA - indexB;
+          return (a.startTime || a.Start_Time || '').localeCompare(b.startTime || b.Start_Time || '');
+        });
+        
+        function formatTime(t) {
+          if (!t) return '--';
+          let [h, m] = t.split(':');
+          h = parseInt(h);
+          const ampm = h >= 12 ? 'PM' : 'AM';
+          h = h % 12 || 12;
+          return `${h}:${m} ${ampm}`;
+        }
+        
+        let html = `<div style="display:flex;flex-direction:column;gap:18px;font-family:var(--font-body);">`;
+        let currentDay = '';
+        
+        profSchedules.forEach(s => {
+          const day = s.day || s.Day_of_Week;
+          if (day !== currentDay) {
+            currentDay = day;
+            html += `<div class="sched-modal-day-divider">${currentDay}</div>`;
+          }
+          
+          const subj = s.subject || s.Subject_Name || 'Class';
+          const sec = s.section || s.Section || 'N/A';
+          const rm = s.Room_Number;
+          const bldg = s.Building || 'Laboratory';
+          const start = formatTime(s.startTime || s.Start_Time);
+          const end = formatTime(s.endTime || s.End_Time);
+          
+          html += `
+            <div class="sched-modal-card">
+              <div>
+                <div style="font-size:15px;font-weight:700;color:var(--text-dark);margin-bottom:3px;font-family:var(--font-display);">${subj}</div>
+                <div style="display:flex;align-items:center;gap:14px;font-size:12.5px;color:var(--text-mid);">
+                  <span style="display:flex;align-items:center;gap:4px;"><i data-lucide="users" style="width:14px;height:14px;color:var(--text-muted);"></i> Section: <strong>${sec}</strong></span>
+                  <span style="display:flex;align-items:center;gap:4px;"><i data-lucide="map-pin" style="width:14px;height:14px;color:var(--text-muted);"></i> ${bldg} Rm ${rm}</span>
+                </div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;">
+                <div style="font-size:13.5px;font-weight:600;color:var(--text-dark);display:flex;align-items:center;gap:5px;justify-content:flex-end;"><i data-lucide="clock" style="width:14px;height:14px;color:var(--primary-teal);"></i> ${start} - ${end}</div>
+                <span class="rc-badge in-progress" style="margin-top:4px;display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;">Scheduled</span>
+              </div>
+            </div>
+          `;
+        });
+        
+        html += `</div>`;
+        body.innerHTML = html;
+        lucide.createIcons();
+      } catch (error) {
+        console.error(error);
+        const body = document.getElementById('sched-modal-body');
+        body.innerHTML = `
+          <div style="text-align:center;padding:30px 10px;color:#EF4444;font-family:var(--font-body);">
+            <i data-lucide="alert-circle" style="width:36px;height:36px;margin-bottom:12px;"></i>
+            <p style="margin:0;font-size:14px;font-weight:600;">Failed to load schedule. Please try again.</p>
+          </div>
+        `;
+        lucide.createIcons();
+      }
+    }
+
+    // Change faculty role with PUT request
+    function changeFacultyRole(userId, name, currentRole) {
+      const modal = document.createElement('div');
+      modal.id = 'role-edit-modal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;transition:opacity 0.25s ease;';
+      
+      modal.innerHTML = `
+        <div style="background:#fff;border-radius:18px;width:90%;max-width:440px;padding:28px;box-shadow:0 20px 40px rgba(0,0,0,0.2);transform:translateY(20px);transition:transform 0.25s ease;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h2 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:#1F2937;margin:0;">Change Faculty Role</h2>
+            <button id="close-role-modal" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="x" style="width:18px;height:18px;color:#9CA3AF;"></i>
+            </button>
+          </div>
+          
+          <p style="margin:0 0 20px 0;font-size:14px;color:#4B5563;font-family:var(--font-body);line-height:1.5;">
+            Update the administrative permissions and role for <strong>${name}</strong>.
+          </p>
+          
+          <form id="change-role-form" style="display:flex;flex-direction:column;gap:18px;font-family:var(--font-body);">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Select Role</label>
+              <select id="role-select" style="width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:8px;font-size:14px;outline:none;background:#FAFAFB;font-family:var(--font-body);cursor:pointer;">
+                <option value="Faculty" ${currentRole === 'Faculty' ? 'selected' : ''}>Faculty (Regular Lecturer)</option>
+                <option value="IT Dept. Head" ${currentRole.includes('Head') ? 'selected' : ''}>IT Dept. Head (Administrator)</option>
+                <option value="MIS Staff" ${currentRole === 'MIS Staff' ? 'selected' : ''}>MIS Staff (Support)</option>
+              </select>
+            </div>
+            
+            <div class="alert-info-box">
+              <i data-lucide="info"></i>
+              <p>Upgrading a user to Department Head grants them access to master schedule overrides and faculty roster updates.</p>
+            </div>
+            
+            <div style="display:flex;gap:12px;margin-top:8px;">
+              <button type="button" id="cancel-role-btn" style="flex:1;padding:12px;border:1px solid #E5E7EB;background:#fff;border-radius:8px;font-size:14px;font-weight:600;color:#4B5563;cursor:pointer;transition:all 0.2s;">Cancel</button>
+              <button type="submit" style="flex:1;padding:12px;border:none;background:var(--primary-teal);color:#fff;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(30,187,215,0.3);">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.querySelector('div').style.transform = 'translateY(0)';
+      }, 10);
+      
+      lucide.createIcons();
+      
+      const closeModal = () => {
+        modal.style.opacity = '0';
+        modal.querySelector('div').style.transform = 'translateY(20px)';
+        setTimeout(() => modal.remove(), 250);
+      };
+      
+      document.getElementById('close-role-modal').addEventListener('click', closeModal);
+      document.getElementById('cancel-role-btn').addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      
+      document.getElementById('change-role-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newRole = document.getElementById('role-select').value;
+        
+        const executeUpdate = async () => {
+          try {
+            const response = await fetch(`/api/faculty/${userId}/role`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ role: newRole })
+            });
+            
+            if (response.ok) {
+              closeModal();
+              loadFacultyMembers();
+              
+              // If transferring leadership to a new IT Dept Head, demote the current user visually in real-time
+              if (newRole === 'IT Dept. Head') {
+                // Instantly update top-right profile details
+                const profileRoleEl = document.querySelector('.profile-role');
+                if (profileRoleEl) {
+                  profileRoleEl.textContent = 'Faculty';
+                }
+                
+                // Instantly update cached user object
+                const cachedUser = localStorage.getItem('user');
+                if (cachedUser) {
+                  try {
+                    const userObj = JSON.parse(cachedUser);
+                    userObj.role = 'Faculty';
+                    localStorage.setItem('user', JSON.stringify(userObj));
+                  } catch (e) {
+                    console.error('Error updating cached user:', e);
+                  }
+                }
+                
+                showSuccessGreetingModal(name);
+              }
+            } else {
+              alert('Failed to update role. Please try again.');
+            }
+          } catch (err) {
+            console.error(err);
+            alert('Error updating role.');
+          }
+        };
+
+        // If transferring Department Head leadership to someone else, confirm first to prevent misclick!
+        if (newRole === 'IT Dept. Head' && !currentRole.includes('Head')) {
+          // Temporarily hide main selection modal
+          modal.style.display = 'none';
+          
+          showTransferConfirmation(
+            // On confirm: run update
+            () => {
+              executeUpdate();
+            },
+            // On cancel: restore select modal
+            () => {
+              modal.style.display = 'flex';
+            }
+          );
+        } else {
+          executeUpdate();
+        }
+      });
+
+      // Confirm transfer dialog helper
+      function showTransferConfirmation(onConfirm, onCancel) {
+        const confirmModal = document.createElement('div');
+        confirmModal.id = 'transfer-confirm-modal';
+        confirmModal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1100;opacity:0;transition:opacity 0.25s ease;';
+        
+        confirmModal.innerHTML = `
+          <div style="background:#fff;border-radius:18px;width:90%;max-width:440px;padding:32px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3);transform:translateY(20px);transition:transform 0.25s ease;text-align:center;">
+            <div style="width:60px;height:60px;background:#FEF3C7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px auto;color:#D97706;">
+              <i data-lucide="shield-alert" style="width:30px;height:30px;"></i>
+            </div>
+            
+            <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:#1F2937;margin:0 0 10px 0;">Transfer Department Leadership?</h3>
+            
+            <p style="margin:0 0 24px 0;font-size:14px;color:#4B5563;font-family:var(--font-body);line-height:1.55;">
+              You are about to transfer the **IT Department Head** role to <strong>${name}</strong>.<br><br>
+              <strong style="color:#D97706;">Warning:</strong> This will promote them to the main admin slot and re-assign system privileges. Are you sure you want to proceed?
+            </p>
+            
+            <div style="display:flex;gap:12px;font-family:var(--font-body);">
+              <button id="btn-cancel-transfer" style="flex:1;padding:12px;border:1px solid #E5E7EB;background:#fff;border-radius:8px;font-size:14px;font-weight:600;color:#4B5563;cursor:pointer;transition:all 0.2s;">No, Cancel</button>
+              <button id="btn-confirm-transfer" style="flex:1;padding:12px;border:none;background:#D97706;color:#fff;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(217,119,6,0.3);">Yes, Transfer</button>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(confirmModal);
+        setTimeout(() => {
+          confirmModal.style.opacity = '1';
+          confirmModal.querySelector('div').style.transform = 'translateY(0)';
+        }, 10);
+        
+        lucide.createIcons();
+        
+        document.getElementById('btn-cancel-transfer').addEventListener('click', () => {
+          confirmModal.style.opacity = '0';
+          confirmModal.querySelector('div').style.transform = 'translateY(20px)';
+          setTimeout(() => {
+            confirmModal.remove();
+            onCancel();
+          }, 250);
+        });
+        
+        document.getElementById('btn-confirm-transfer').addEventListener('click', () => {
+          confirmModal.style.opacity = '0';
+          confirmModal.querySelector('div').style.transform = 'translateY(20px)';
+          setTimeout(() => {
+            confirmModal.remove();
+            onConfirm();
+          }, 250);
+        });
+      }
+
+      // Celebratory Greeting success modal
+      function showSuccessGreetingModal(newName) {
+        // Find the current head's name from our loaded faculty list before the transfer
+        const currentHead = (window.allFacultyMembers || []).find(m => m.Role && m.Role.toLowerCase().includes('head'));
+        const currentHeadName = currentHead ? currentHead.Name : 'Department Head';
+
+        const successModal = document.createElement('div');
+        successModal.id = 'success-greeting-modal';
+        successModal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1200;opacity:0;transition:opacity 0.3s ease;';
+        
+        successModal.innerHTML = `
+          <div class="sched-modal-dialog" style="max-width:520px;padding:36px 32px;text-align:center;position:relative;overflow:hidden;">
+            
+            <div style="position:absolute;top:0;left:0;width:100%;height:6px;background:var(--gradient-primary);"></div>
+            
+            <div class="heart-container">
+              <i data-lucide="heart" style="width:36px;height:36px;fill:#EF4444;animation:pulse 1.5s infinite;"></i>
+            </div>
+            
+            <h2 style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text-dark);margin:0 0 10px 0;">Thank You for Your Leadership!</h2>
+            
+            <div style="font-size:14.5px;color:var(--text-mid);font-family:var(--font-body);line-height:1.6;margin-bottom:28px;">
+              <p style="margin:0 0 16px 0;">The IT Department Head role has been successfully transferred to <strong>Prof. ${newName}</strong>.</p>
+              
+              <div class="tribute-card">
+                <span style="display:block;font-size:11px;font-weight:800;color:#B45309;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">A Tribute of Gratitude</span>
+                <span style="font-size:14.5px;font-weight:500;color:#78350F;line-height:1.6;display:block;">
+                  "We extend our heartfelt gratitude to <strong>Prof. ${currentHeadName}</strong> for your exceptional leadership, vision, and dedicated service as our Department Head. Thank you for your guidance and for making a lasting difference in our department!"
+                </span>
+                <div style="margin-top:12px;display:flex;align-items:center;gap:6px;font-size:12.5px;color:#D97706;font-weight:700;">
+                  <i data-lucide="award" style="width:16px;height:16px;"></i> Dedicated Service & Leadership
+                </div>
+              </div>
+              
+              <div class="successor-card">
+                <div style="background:#14B8A6;color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i data-lucide="user-check" style="width:16px;height:16px;"></i>
+                </div>
+                <div>
+                  <span style="display:block;font-size:11px;color:#0D9488;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Successor</span>
+                  <span style="font-size:13.5px;color:#0f766e;font-weight:700;">Prof. ${newName} is now active as the new IT Dept. Head.</span>
+                </div>
+              </div>
+            </div>
+            
+            <button id="btn-close-success" style="width:100%;padding:14px;border:none;background:linear-gradient(135deg, #1EBBD7 0%, #0EA5E9 100%);color:#fff;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.25s;box-shadow:0 6px 20px rgba(14,165,233,0.3);" onmouseover="this.style.transform='translateY(-1px)';" onmouseout="this.style.transform='none';">
+              Wonderful, Thank you!
+            </button>
+          </div>
+        `;
+        
+        document.body.appendChild(successModal);
+        setTimeout(() => {
+          successModal.style.opacity = '1';
+          successModal.querySelector('div').style.transform = 'scale(1)';
+        }, 10);
+        
+        lucide.createIcons();
+        
+        document.getElementById('btn-close-success').addEventListener('click', () => {
+          successModal.style.opacity = '0';
+          successModal.querySelector('div').style.transform = 'scale(0.9)';
+          setTimeout(() => {
+            successModal.remove();
+            // Redirect the demoted Department Head to their new regular Faculty landing page
+            window.location.href = 'index.html';
+          }, 250);
+        });
+      }
+    }
+
+    // Confirm and Delete faculty
+    function confirmDeleteFaculty(userId, name) {
+      const modal = document.createElement('div');
+      modal.id = 'delete-confirm-modal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;transition:opacity 0.25s ease;';
+      
+      modal.innerHTML = `
+        <div style="background:#fff;border-radius:18px;width:90%;max-width:400px;padding:28px;box-shadow:0 20px 40px rgba(0,0,0,0.2);transform:translateY(20px);transition:transform 0.25s ease;text-align:center;">
+          <div style="width:56px;height:56px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px auto;color:#EF4444;">
+            <i data-lucide="user-x" style="width:28px;height:28px;"></i>
+          </div>
+          
+          <h2 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:#1F2937;margin:0 0 10px 0;">Remove Faculty Member</h2>
+          
+          <p style="margin:0 0 24px 0;font-size:14px;color:#6B7280;font-family:var(--font-body);line-height:1.5;">
+            Are you sure you want to remove <strong>${name}</strong>? This action will revoke their login access and clear their schedule assignments.
+          </p>
+          
+          <div style="display:flex;gap:12px;font-family:var(--font-body);">
+            <button id="cancel-delete-btn" style="flex:1;padding:12px;border:1px solid #E5E7EB;background:#fff;border-radius:8px;font-size:14px;font-weight:600;color:#4B5563;cursor:pointer;transition:all 0.2s;">Cancel</button>
+            <button id="confirm-delete-btn" style="flex:1;padding:12px;border:none;background:#EF4444;color:#fff;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(239,68,68,0.25);">Remove</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.querySelector('div').style.transform = 'translateY(0)';
+      }, 10);
+      
+      lucide.createIcons();
+      
+      const closeModal = () => {
+        modal.style.opacity = '0';
+        modal.querySelector('div').style.transform = 'translateY(20px)';
+        setTimeout(() => modal.remove(), 250);
+      };
+      
+      document.getElementById('cancel-delete-btn').addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      
+      document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+        try {
+          const response = await fetch(`/api/faculty/${userId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+          });
+          
+          if (response.ok) {
+            closeModal();
+            loadFacultyMembers();
+          } else {
+            alert('Failed to remove faculty member.');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error removing faculty.');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
+

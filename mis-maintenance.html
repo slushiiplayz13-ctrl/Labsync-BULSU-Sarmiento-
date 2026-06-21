@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync - Maintenance Tracker</title>
+  <meta name="view-transition" content="same-origin" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script src="auth-check.js"></script>
+  <style>
+    /* Status Badges */
+    .status-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .status-badge.pending {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+    .status-badge.in-progress {
+      background: #DBEAFE;
+      color: #2563EB;
+    }
+    .status-badge.resolved {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    /* Priority Badges */
+    .priority-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .priority-badge.high {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+    .priority-badge.medium {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+    .priority-badge.low {
+      background: #EFF6FF;
+      color: #2563EB;
+    }
+
+    .btn-table-action {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-body);
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-table-action.process {
+      background: var(--primary-teal-light);
+      color: var(--primary-teal);
+    }
+    .btn-table-action.process:hover {
+      background: var(--primary-teal);
+      color: #FFFFFF;
+    }
+    .btn-table-action.resolve {
+      background: #D1FAE5;
+      color: #059669;
+    }
+    .btn-table-action.resolve:hover {
+      background: #059669;
+      color: #FFFFFF;
+    }
+    .btn-table-action.delete {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+    .btn-table-action.delete:hover {
+      background: #DC2626;
+      color: #FFFFFF;
+    }
+  </style>
+</head>
+
+<body data-page="mis-maintenance">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn" title="Dashboard" onclick="window.location.href='mis-staff-dashboard.html'">
+        <i data-lucide="home" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='mis-pc-reports.html'">
+        <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn active" title="Maintenance Tracker" onclick="window.location.href='mis-maintenance.html'">
+        <i data-lucide="wrench" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="QR Generator" onclick="window.location.href='mis-qr-generator.html'">
+        <i data-lucide="qr-code" style="width:24px;height:24px;"></i>
+      </button>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-bottom">
+      <button class="sidebar-btn" title="Help" onclick="openHelpModal()">
+        <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Logout" onclick="handleLogout()">
+        <i data-lucide="log-out" style="width:24px;height:24px;"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Scroll Clue for Sidebar -->
+  <div id="sidebarScrollClue"
+    style="position: fixed; bottom: 16px; left: 30px; z-index: 105; color: var(--primary-teal); pointer-events: none; transition: opacity 0.3s ease;">
+    <i data-lucide="chevron-down" style="width: 20px; height: 20px; animation: bounce 2s infinite;"></i>
+  </div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+
+    <!-- HEADER -->
+    <header class="header">
+
+      <!-- Logos -->
+      <div class="header-logos" style="display: flex; align-items: center; gap: 14px;">
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo"
+          style="height: 40px; width: auto; object-fit: contain;">
+        <div class="logo-divider" style="width: 1px; height: 32px; background: var(--border-light);"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
+      </div>
+
+      <!-- Center Nav -->
+      <nav class="header-nav">
+        <button class="nav-item" onclick="window.location.href='mis-staff-dashboard.html'">Dashboard</button>
+        <button class="nav-item" onclick="window.location.href='mis-pc-reports.html'">PC Reports</button>
+        <button class="nav-item active" onclick="window.location.href='mis-maintenance.html'">Maintenance Tracker</button>
+        <button class="nav-item" onclick="window.location.href='mis-qr-generator.html'">QR Generator</button>
+      </nav>
+
+      <!-- Right Profile -->
+      <div class="header-right">
+        <button class="notif-btn" title="Notifications">
+          <i data-lucide="bell" style="width:16px;height:16px;"></i>
+          <span class="notif-dot"></span>
+        </button>
+
+        <div class="profile-dropdown">
+          <div class="avatar">VN</div>
+          <div class="profile-info">
+            <span class="profile-name">Violeta Nicolas</span>
+            <span class="profile-role">MIS Staff</span>
+          </div>
+          <button class="chevron-btn">
+            <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- Greeting + Clock Row -->
+      <div class="greeting-row">
+        <div class="greeting-left">
+          <h1 class="greeting-title" id="greetingText">Maintenance Tracker</h1>
+          <p class="greeting-sub" id="greetingSub">Track and manage maintenance tasks for IT laboratories.</p>
+        </div>
+        <div class="clock-block">
+          <div class="clock-time" id="clockTime">--:--:-- --</div>
+          <div class="clock-date" id="clockDate">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Main Content Card -->
+      <div class="dashboard-card" style="padding: 24px; display: flex; flex-direction: column; gap: 24px; overflow-y: auto;">
+        
+        <!-- Top Stats Row -->
+        <div style="display: flex; gap: 16px; width: 100%; overflow-x: auto; padding-bottom: 4px;">
+          <!-- Card 1 -->
+          <div style="flex: 1; min-width: 150px; border-radius: 12px; padding: 20px; background: linear-gradient(135deg, #4A8C9E, #D1E5E8); color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #D1E5E8;">
+            <div style="font-size: 13.5px; font-weight: 500; margin-bottom: 4px; opacity: 0.9;">Total Tickets</div>
+            <div id="stat-total" style="font-size: 32px; font-weight: 700; line-height: 1;">0</div>
+          </div>
+          <!-- Card 2 -->
+          <div style="flex: 1; min-width: 140px; border-radius: 12px; padding: 20px; background: #fff; border: 1px solid var(--border-light); color: var(--text-dark);">
+            <div style="font-size: 13.5px; font-weight: 600; margin-bottom: 4px; color: var(--text-mid);">Reported</div>
+            <div id="stat-pending" style="font-size: 32px; font-weight: 700; line-height: 1;">0</div>
+          </div>
+          <!-- Card 3 -->
+          <div style="flex: 1; min-width: 140px; border-radius: 12px; padding: 20px; background: #FAF5FF; border: 1px solid #E9D5FF; color: #A855F7;">
+            <div style="font-size: 13.5px; font-weight: 600; margin-bottom: 4px;">Evaluation</div>
+            <div id="stat-eval" style="font-size: 32px; font-weight: 700; line-height: 1;">0</div>
+          </div>
+          <!-- Card 4 -->
+          <div style="flex: 1; min-width: 140px; border-radius: 12px; padding: 20px; background: #EFF6FF; border: 1px solid #BFDBFE; color: #3B82F6;">
+            <div style="font-size: 13.5px; font-weight: 600; margin-bottom: 4px;">In Progress</div>
+            <div id="stat-inprogress" style="font-size: 32px; font-weight: 700; line-height: 1;">0</div>
+          </div>
+          <!-- Card 5 -->
+          <div style="flex: 1; min-width: 140px; border-radius: 12px; padding: 20px; background: #F0FDF4; border: 1px solid #BBF7D0; color: #16A34A;">
+            <div style="font-size: 13.5px; font-weight: 600; margin-bottom: 4px;">Resolved</div>
+            <div id="stat-resolved" style="font-size: 32px; font-weight: 700; line-height: 1;">0</div>
+          </div>
+        </div>
+
+        <!-- Controls Row -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <!-- Left Controls -->
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-mid); margin-left: 8px;">Active Laboratory Maintenance Tickets</span>
+          </div>
+          
+          <!-- Right Controls -->
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="search-box" style="position: relative; width: 280px;">
+              <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94A3B8;"></i>
+              <input type="text" id="maintenanceSearchInput" placeholder="Search by PC, Room, or Issue Details..." style="width: 100%; padding: 8px 12px 8px 36px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 13px; outline: none; font-family: var(--font-body);">
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container" style="overflow-x: auto; flex: 1; min-height: 200px;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead style="position: sticky; top: 0; background: var(--bg-white); z-index: 10;">
+              <tr>
+                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Ticket ID</th>
+                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Time</th>
+                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Lab Room</th>
+                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">PC ID</th>
+                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Issue Type / Details</th>
+                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Priority</th>
+                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Current Step</th>
+                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light); text-align: center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dynamicMaintenanceRows">
+              <tr>
+                <td colspan="8" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+                  Loading maintenance tickets...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    const sidebar = document.querySelector('.sidebar');
+    const scrollClue = document.getElementById('sidebarScrollClue');
+    
+    // Hide arrow if it's not scrollable
+    if (sidebar.scrollHeight <= sidebar.clientHeight) {
+      scrollClue.style.display = 'none';
+    }
+
+    // Hide arrow when scrolled
+    sidebar.addEventListener('scroll', () => {
+      if (sidebar.scrollTop > 10) {
+        scrollClue.style.opacity = '0';
+      } else {
+        scrollClue.style.opacity = '1';
+      }
+    });
+
+    // ─── DYNAMIC MAINTENANCE LOADING & TRACKING ──────────────────────
+    let maintenanceReports = [];
+
+    async function loadMaintenanceData() {
+      try {
+        const response = await fetch('/api/reports');
+        if (!response.ok) throw new Error('Failed to fetch reports');
+        maintenanceReports = await response.json();
+        
+        // Calculate & display stats
+        calculateStats(maintenanceReports);
+        
+        // Render rows
+        renderTableRows(maintenanceReports);
+      } catch (error) {
+        console.error('Error loading maintenance data:', error);
+        document.getElementById('dynamicMaintenanceRows').innerHTML = `
+          <tr>
+            <td colspan="8" style="padding: 40px; text-align: center; color: #EF4444; font-weight: 600;">
+              Failed to load maintenance tickets. Please check server.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function calculateStats(reports) {
+      const total = reports.length;
+      const pending = reports.filter(r => r.Status === 'Pending').length;
+      const inProgress = reports.filter(r => r.Status === 'In Progress').length;
+      const resolved = reports.filter(r => r.Status === 'Resolved').length;
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-pending').textContent = pending;
+      document.getElementById('stat-eval').textContent = '0'; // static evaluation badge
+      document.getElementById('stat-inprogress').textContent = inProgress;
+      document.getElementById('stat-resolved').textContent = resolved;
+    }
+
+    function renderTableRows(reports) {
+      const tbody = document.getElementById('dynamicMaintenanceRows');
+      if (reports.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+              No PC reports available. Reports will appear here when submitted.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = reports.map(report => {
+        // Format Date
+        const dateObj = new Date(report.Date_Reported);
+        const formattedDate = dateObj.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        // Extract issue type
+        const issueMatch = report.Issue_Description.match(/\[Issues: ([^\]]+)\]/);
+        const issueType = issueMatch ? issueMatch[1] : 'Others';
+
+        // Extract clean description (remarks)
+        const remarksMatch = report.Issue_Description.match(/Remarks: (.*)$/);
+        const cleanRemarks = remarksMatch ? remarksMatch[1] : report.Issue_Description;
+
+        // Build actions
+        let actionsHtml = '';
+        if (report.Status === 'Pending') {
+          actionsHtml = `
+            <button class="btn-table-action process" onclick="updateReportStatus(${report.Report_ID}, 'In Progress')">
+              <i data-lucide="play" style="width:12px;height:12px;"></i>Process
+            </button>
+          `;
+        } else if (report.Status === 'In Progress') {
+          actionsHtml = `
+            <button class="btn-table-action resolve" onclick="updateReportStatus(${report.Report_ID}, 'Resolved')">
+              <i data-lucide="check" style="width:12px;height:12px;"></i>Resolve
+            </button>
+          `;
+        } else if (report.Status === 'Resolved') {
+          actionsHtml = `
+            <span style="font-size:12px; font-weight:600; color:#059669; margin-right: 8px;">Completed</span>
+          `;
+        }
+
+        return `
+          <tr style="border-bottom: 1px solid var(--border-light);">
+            <td style="padding: 14px 16px; font-weight: 700; color: var(--primary-teal); font-size: 13px;">LS-TKT-${report.Report_ID}</td>
+            <td style="padding: 14px 16px; font-size: 13px; color: var(--text-mid); font-weight: 500;">${formattedDate}</td>
+            <td style="padding: 14px 16px; font-size: 13px; color: var(--text-dark); font-weight: 600;">Room ${report.Room_Number}</td>
+            <td style="padding: 14px 16px; font-size: 13px; color: var(--text-dark); font-weight: 600;">PC ${report.PC_Number}</td>
+            <td style="padding: 14px 16px; font-size: 13px; color: var(--text-mid); font-weight: 500; max-width: 350px;">
+              <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">
+                ${
+                  issueType.split(',').map(t => t.trim()).filter(Boolean).map(t => {
+                    if (t.toLowerCase() === 'none' || t.toLowerCase() === 'others') {
+                      return `<span style="font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px; background:#F1F5F9; color:#64748B; display:inline-flex; align-items:center; gap:2px;"><i data-lucide="check" style="width:10px;height:10px;color:#10B981;"></i>None</span>`;
+                    }
+                    return `<span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5; display:inline-flex; align-items:center; gap:2px;"><i data-lucide="alert-triangle" style="width:10px;height:10px;color:#EF4444;"></i>${t}</span>`;
+                  }).join('')
+                }
+              </div>
+              <div style="font-size:12.5px; font-weight:600; color:#1E293B; line-height:1.4; white-space:normal; background:#FAFDFE; border-left:3px solid var(--primary-teal); padding:6px 10px; border-radius:4px;" title="${cleanRemarks}">
+                ${cleanRemarks}
+              </div>
+            </td>
+            <td style="padding: 14px 16px;">
+              <span class="priority-badge ${report.Priority_Level.toLowerCase()}">${report.Priority_Level}</span>
+            </td>
+            <td style="padding: 14px 16px;">
+              <span class="status-badge ${report.Status.toLowerCase().replace(' ', '-')}">${report.Status}</span>
+            </td>
+            <td style="padding: 14px 16px; text-align: center;">
+              <div style="display: flex; align-items: center; justify-content: center;">
+                ${actionsHtml}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // Live search
+    document.getElementById('maintenanceSearchInput').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      if (!query) {
+        renderTableRows(maintenanceReports);
+        return;
+      }
+
+      const filtered = maintenanceReports.filter(report => {
+        return (
+          report.Student_Name.toLowerCase().includes(query) ||
+          report.Room_Number.toString().toLowerCase().includes(query) ||
+          report.PC_Number.toString().toLowerCase().includes(query) ||
+          report.Issue_Description.toLowerCase().includes(query) ||
+          report.Priority_Level.toLowerCase().includes(query) ||
+          report.Status.toLowerCase().includes(query)
+        );
+      });
+
+      renderTableRows(filtered);
+    });
+
+    // Update status
+    async function updateReportStatus(reportId, newStatus) {
+      if (!confirm(`Set Ticket LS-TKT-${reportId} status to '${newStatus}'?`)) return;
+
+      try {
+        const response = await fetch(`/api/reports/${reportId}/status`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        if (response.ok) {
+          await loadMaintenanceData();
+        } else {
+          const err = await response.json();
+          alert('Error: ' + err.error);
+        }
+      } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Failed to update ticket status.');
+      }
+    }
+
+    // Delete report
+    async function deleteReport(reportId) {
+      if (!confirm(`Permanently delete Ticket LS-TKT-${reportId}?`)) return;
+
+      try {
+        const response = await fetch(`/api/reports/${reportId}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          await loadMaintenanceData();
+        } else {
+          const err = await response.json();
+          alert('Error: ' + err.error);
+        }
+      } catch (error) {
+        console.error('Error deleting report:', error);
+        alert('Failed to delete ticket.');
+      }
+    }
+
+    // Load data on start
+    document.addEventListener('DOMContentLoaded', loadMaintenanceData);
+  </script>
+</body>
+</html>
+

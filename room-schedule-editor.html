@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync – IT Dept Head Room Schedule</title>
+  <meta name="view-transition" content="same-origin" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script src="auth-check.js"></script>
+  
+  
+  <style>
+    /* View Mode Styles */
+    body.view-mode #create-block-panel {
+      display: none !important;
+    }
+    body.view-mode #add-time-row {
+      display: none !important;
+    }
+    body.view-mode .delete-time-btn {
+      display: none !important;
+    }
+    body.view-mode .editor-drop-zone {
+      border: 1px solid transparent !important;
+      background: transparent !important;
+      color: transparent !important; /* Hide Drop text */
+    }
+    body.view-mode .editor-drop-zone.has-block {
+      border: none !important;
+      background: transparent !important;
+    }
+    body.view-mode .schedule-block {
+      cursor: default !important;
+      transform: none !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+    }
+    body.view-mode .editable-time {
+      pointer-events: none !important;
+      background: transparent !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      color: var(--text-dark) !important;
+    }
+    body.view-mode .editable-time::-webkit-calendar-picker-indicator,
+    body.view-mode .editable-time::-webkit-inner-spin-button,
+    body.view-mode .editable-time::-webkit-clear-button {
+      display: none !important;
+    }
+    body.view-mode .editor-time-cell {
+      padding: 10px 0 !important;
+      justify-content: center !important;
+    }
+
+    /* Delete Block Button Styles */
+    .editor-drop-zone.has-block {
+      font-size: 0 !important;
+    }
+    .schedule-block {
+      position: relative;
+    }
+    .delete-block-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.2s ease;
+      color: white;
+      padding: 0;
+      z-index: 10;
+    }
+    .schedule-block:hover .delete-block-btn {
+      opacity: 1;
+    }
+    .delete-block-btn:hover {
+      background: rgba(239, 68, 68, 0.8) !important;
+    }
+    body.view-mode .delete-block-btn {
+      display: none !important;
+    }
+
+    #blocks-container {
+      min-height: 150px;
+      border: 2px dashed #E2E8F0;
+      border-radius: 12px;
+      padding: 12px;
+      background-color: #FAFAFA;
+      transition: all 0.2s ease;
+    }
+    #blocks-container.drag-over {
+      background-color: var(--primary-teal-light) !important;
+      border-color: var(--primary-teal) !important;
+    }
+
+    /* Unsaved Changes Confirmation Modal Styles */
+    .confirm-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .confirm-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .confirm-modal-container {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border-light);
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .confirm-modal-overlay.active .confirm-modal-container {
+      transform: scale(1) translateY(0);
+    }
+    .confirm-modal-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .confirm-modal-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--primary-teal-light);
+      color: var(--primary-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .confirm-modal-icon i {
+      width: 22px;
+      height: 22px;
+    }
+    .confirm-modal-header h3 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0;
+    }
+    .confirm-modal-body p {
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-mid);
+      margin: 0 0 24px 0;
+    }
+    .confirm-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .confirm-btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .confirm-btn-cancel {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1.5px solid var(--border-light);
+    }
+    .confirm-btn-cancel:hover {
+      background: var(--border-light);
+      color: var(--text-dark);
+    }
+    .confirm-btn-discard {
+      background: #FEF2F2;
+      color: #EF4444;
+      border: 1.5px solid #FEE2E2;
+    }
+    .confirm-btn-discard:hover {
+      background: #FEE2E2;
+      border-color: #FCA5A5;
+    }
+    .confirm-btn-save {
+      background: var(--primary-teal);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3);
+    }
+    .confirm-btn-save:hover {
+      background: #17a3bc;
+      box-shadow: 0 6px 16px rgba(30, 187, 215, 0.4);
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+
+  </style>
+</head>
+
+
+<body data-page="schedule-editor">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+  <aside class="sidebar">
+
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn" title="Dashboard" onclick="window.location.href='it-head-dashboard.html'">
+        <i data-lucide="home" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Room Status" onclick="window.location.href='it-head-room-status.html'">
+        <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='it-head-pc-reports.html'">
+        <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="My Schedule" onclick="window.location.href='it-head-my-schedule.html'">
+        <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
+      </button>
+      
+      <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;"></div>
+
+      <button class="sidebar-btn active" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+        <i data-lucide="calendar" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+        <i data-lucide="users" style="width:24px;height:24px;"></i>
+      </button>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-bottom">
+      <button class="sidebar-btn" title="Help">
+        <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Logout" onclick="window.location.href='login.html'">
+        <i data-lucide="log-out" style="width:24px;height:24px;"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Scroll Clue for Sidebar -->
+  <div id="sidebarScrollClue" style="position: fixed; bottom: 16px; left: 36px; z-index: 105; color: var(--primary-teal); pointer-events: none; transition: opacity 0.3s ease;">
+    <i data-lucide="chevron-down" style="width: 20px; height: 20px; animation: bounce 2s infinite;"></i>
+  </div>
+  <!-- ── MAIN WRAPPER ─────────────────────────────────────────── -->
+  <div class="main-wrapper">
+
+    <!-- HEADER -->
+    <header class="header">
+
+      <!-- Logos -->
+      <div class="header-logos" style="display: flex; align-items: center; gap: 14px;">
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo"
+          style="height: 40px; width: auto; object-fit: contain;">
+        <div class="logo-divider" style="width: 1px; height: 32px; background: var(--border-light);"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
+      </div>
+
+      <!-- Center Nav -->
+      <nav class="header-nav">
+        <button class="nav-item" onclick="window.location.href='it-head-dashboard.html'">Dashboard</button>
+        <button class="nav-item" onclick="window.location.href='it-head-room-status.html'">Room Status</button>
+        <button class="nav-item" onclick="window.location.href='it-head-pc-reports.html'">PC Reports</button>
+        <button class="nav-item" onclick="window.location.href='it-head-my-schedule.html'">My Schedule</button>
+        <span class="nav-divider" style="color: var(--border-light); margin: 0 8px;">|</span>
+        <button class="nav-item active" onclick="window.location.href='master-schedule.html'">Master Schedule</button>
+        <button class="nav-item" onclick="window.location.href='faculty-management.html'">Faculty Management</button>
+      </nav>
+
+      <!-- Right Profile -->
+      <div class="header-right">
+        <button class="notif-btn" title="Notifications">
+          <i data-lucide="bell" style="width:16px;height:16px;"></i>
+          <span class="notif-dot"></span>
+        </button>
+
+        <div class="profile-dropdown">
+          <div class="avatar">SG</div>
+          <div class="profile-info">
+            <span class="profile-name">Santi Guevarra</span>
+            <span class="profile-role">IT Dept. Head</span>
+          </div>
+          <button class="chevron-btn">
+            <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content" style="overflow-y: auto;">
+
+      <!-- PRINT HEADER REMOVED -->
+      <!-- Greeting + Clock Row -->
+      <div class="greeting-row" style="margin-bottom: 24px;">
+        <div class="greeting-left">
+          <h1 class="greeting-title" id="greetingText">Master Schedule Overview</h1>
+          <p class="greeting-sub" id="greetingSub">Comprehensive view of all laboratory schedules and faculty assignments.</p>
+        </div>
+        <div class="clock-block">
+          <div class="clock-time" id="clockTime">--:--:-- --</div>
+          <div class="clock-date" id="clockDate">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Custom Editor Header -->
+      <div class="schedule-editor-header">
+        <div class="seh-left" style="gap: 20px;">
+          <button class="back-btn" id="editor-back-btn" title="Back to Master Schedule" style="width: 44px; height: 44px;">
+            <i data-lucide="chevron-left" style="width: 24px; height: 24px;"></i>
+          </button>
+          <div>
+            <h1 style="font-size: 24px; font-weight: 800; color: var(--text-dark); margin-bottom: 2px; font-family: var(--font-display); letter-spacing: -0.5px;">Room 204 Schedule</h1>
+            <p style="font-size: 14px; color: #94A3B8; font-weight: 500;">Building B</p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button id="print-schedule-btn" onclick="preparePrint()" style="display: flex; align-items: center; gap: 8px; background: transparent; color: var(--primary-teal); border: 2px solid var(--primary-teal); padding: 12px 24px; border-radius: 24px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s;">
+            <i data-lucide="printer" style="width: 18px; height: 18px;"></i>
+            Print Schedule
+          </button>
+          <button id="save-schedule-btn" class="btn-primary" style="display: flex; align-items: center; gap: 8px; background: var(--primary-teal); color: #fff; border: none; padding: 12px 24px; border-radius: 24px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3); transition: all 0.2s;">
+            <i data-lucide="save" style="width: 18px; height: 18px;"></i>
+            Save Schedule
+          </button>
+        </div>
+      </div>
+
+      <!-- Term Selector Panel Removed (now placed inside the table header) -->
+
+      <div class="editor-layout-container" style="display: flex; gap: 24px; align-items: stretch; flex-shrink: 0;">
+        
+        <!-- Left Panel: Create Block -->
+        <div id="create-block-panel" style="width: 320px; padding: 24px; display: flex; flex-direction: column; flex-shrink: 0; background: var(--bg-white); border: 1px solid #E2E8F0; border-radius: 12px; min-height: 550px;">
+          <h3 style="font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="plus" style="width: 18px; height: 18px; color: var(--primary-teal);"></i>
+            Create Schedule Block
+          </h3>
+          
+          <div style="margin-bottom: 24px;">
+            <label class="editor-label" style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px;">SUBJECT</label>
+            <input type="text" class="editor-select" id="block-subject" placeholder="Enter subject name">
+            
+            <label class="editor-label" style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px;">PROFESSOR</label>
+            <div class="custom-select-wrapper" id="professor-wrapper" style="width: 100%; margin-bottom: 16px;">
+              <div class="custom-select-trigger" style="width: 100%; height: 45px; box-sizing: border-box; padding: 12px 16px; font-size: 14px; border: 1.5px solid var(--border-light); border-radius: 8px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                <span style="color: #94A3B8;">Select Professor</span>
+                <i data-lucide="chevron-down"></i>
+              </div>
+              <div class="custom-select-dropdown" style="width: 100%;"></div>
+            </div>
+            
+            <label class="editor-label" style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px;">SECTION</label>
+            <input type="text" class="editor-select" id="block-section" placeholder="Enter section" style="margin-bottom: 24px;">
+          </div>
+          
+          <button id="create-block-btn" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; background: var(--primary-teal); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(30,187,215,0.35);" onmouseover="this.style.background='#17a3bc';this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 18px rgba(30,187,215,0.45)'" onmouseout="this.style.background='var(--primary-teal)';this.style.transform='none';this.style.boxShadow='0 4px 14px rgba(30,187,215,0.35)'">
+            <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Create Block
+          </button>
+
+          <div style="margin-top: 32px; border-top: 1px solid var(--border-light); padding-top: 24px;">
+            <h4 style="font-size: 13px; font-weight: 700; color: var(--text-dark); margin-bottom: 16px;">Available Blocks (<span id="available-count">0</span>)</h4>
+            <div id="blocks-container" style="display: flex; flex-direction: column; gap: 12px;">
+              <p id="no-blocks-msg" style="font-size: 11.5px; color: #94A3B8; font-weight: 500; text-align: center; line-height: 1.5;">No blocks created yet. Create a block to start scheduling.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Panel: Schedule Table -->
+        <div class="dashboard-card" style="flex: 1; padding: 0; overflow: visible !important; border-radius: 12px; position: relative;">
+          <!-- Header -->
+          <div class="schedule-header" style="background: var(--primary-teal); color: white; padding: 12px 24px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; font-size: 15px; border-radius: 12px 12px 0 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i data-lucide="calendar" style="width: 20px; height: 20px;"></i> Weekly Schedule – Room 204
+            </div>
+            
+            <!-- In-Header Selector Panel -->
+            <div class="schedule-selectors" style="display: flex; align-items: center; gap: 16px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">AY:</span>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <div class="custom-select-wrapper header-select" id="academic-year-start-wrapper" style="width: 80px;">
+                    <div class="custom-select-trigger" style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
+                      <span>Select</span>
+                      <i data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
+                  </div>
+                  <span style="color: rgba(255, 255, 255, 0.75); font-size: 12px; font-weight: 600;">–</span>
+                  <div class="custom-select-wrapper header-select" id="academic-year-end-wrapper" style="width: 80px;">
+                    <div class="custom-select-trigger" style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
+                      <span>Select</span>
+                      <i data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Sem:</span>
+                <div class="custom-select-wrapper header-select" id="semester-wrapper" style="width: 135px;">
+                  <div class="custom-select-trigger" style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
+                    <span>1st Semester</span>
+                    <i data-lucide="chevron-down"></i>
+                  </div>
+                  <div class="custom-select-dropdown" style="color: var(--text-dark);">
+                    <div class="custom-select-option selected" data-value="1st Semester">1st Semester</div>
+                    <div class="custom-select-option" data-value="2nd Semester">2nd Semester</div>
+                    <div class="custom-select-option" data-value="Summer">Summer</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="editor-table-wrap">
+            <table class="editor-table">
+              <thead>
+                <tr>
+                  <th style="width: 16%; color: #94A3B8; font-weight: 600; font-size: 12px;">Time</th>
+                  <th style="width: 14%; font-size: 13px;">Monday</th>
+                  <th style="width: 14%; font-size: 13px;">Tuesday</th>
+                  <th style="width: 14%; font-size: 13px;">Wednesday</th>
+                  <th style="width: 14%; font-size: 13px;">Thursday</th>
+                  <th style="width: 14%; font-size: 13px;">Friday</th>
+                  <th style="width: 14%; font-size: 13px;">Saturday</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- 7:00 AM -->
+                <tr>
+                  <td>
+                    <div class="editor-time-cell" style="padding: 10px 12px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                      <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <input type="time" value="07:00" step="1800" class="editable-time" style="font-size: 13.5px; color: var(--text-dark); font-weight: 600; outline: none; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 6px 10px; background: #fff; cursor: pointer; transition: all 0.2s; font-family: var(--font-body);" onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px var(--primary-teal-glow)';" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+                        <input type="time" value="08:30" step="1800" class="editable-time" style="font-size: 13.5px; color: var(--text-dark); font-weight: 600; outline: none; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 6px 10px; background: #fff; cursor: pointer; transition: all 0.2s; font-family: var(--font-body);" onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px var(--primary-teal-glow)';" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+                      </div>
+                      <button class="delete-time-btn" onclick="deleteTimeSlot(this)" style="background: transparent; border: none; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; transition: all 0.2s; padding: 0; flex-shrink: 0;" onmouseover="this.style.background='#FEE2E2'; this.querySelector('i').style.color='#EF4444';" onmouseout="this.style.background='transparent'; this.querySelector('i').style.color='#94A3B8';">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px; color: #94A3B8; transition: color 0.2s;"></i>
+                      </button>
+                    </div>
+                  </td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                </tr>
+                <!-- 8:30 AM -->
+                <tr>
+                  <td>
+                    <div class="editor-time-cell" style="padding: 10px 12px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                      <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <input type="time" value="08:30" step="1800" class="editable-time" style="font-size: 13.5px; color: var(--text-dark); font-weight: 600; outline: none; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 6px 10px; background: #fff; cursor: pointer; transition: all 0.2s; font-family: var(--font-body);" onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px var(--primary-teal-glow)';" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+                        <input type="time" value="10:00" step="1800" class="editable-time" style="font-size: 13.5px; color: var(--text-dark); font-weight: 600; outline: none; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 6px 10px; background: #fff; cursor: pointer; transition: all 0.2s; font-family: var(--font-body);" onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px var(--primary-teal-glow)';" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+                      </div>
+                      <button class="delete-time-btn" onclick="deleteTimeSlot(this)" style="background: transparent; border: none; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; transition: all 0.2s; padding: 0; flex-shrink: 0;" onmouseover="this.style.background='#FEE2E2'; this.querySelector('i').style.color='#EF4444';" onmouseout="this.style.background='transparent'; this.querySelector('i').style.color='#94A3B8';">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px; color: #94A3B8; transition: color 0.2s;"></i>
+                      </button>
+                    </div>
+                  </td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                </tr>
+                <!-- 10:00 AM -->
+                <tr>
+                  <td>
+                    <div class="editor-time-cell" style="padding: 10px 12px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                      <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <input type="time" value="10:00" step="1800" class="editable-time" style="font-size: 13.5px; color: var(--text-dark); font-weight: 600; outline: none; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 6px 10px; background: #fff; cursor: pointer; transition: all 0.2s; font-family: var(--font-body);" onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px var(--primary-teal-glow)';" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+                        <input type="time" value="11:30" step="1800" class="editable-time" style="font-size: 13.5px; color: var(--text-dark); font-weight: 600; outline: none; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 6px 10px; background: #fff; cursor: pointer; transition: all 0.2s; font-family: var(--font-body);" onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px var(--primary-teal-glow)';" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+                      </div>
+                      <button class="delete-time-btn" onclick="deleteTimeSlot(this)" style="background: transparent; border: none; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; transition: all 0.2s; padding: 0; flex-shrink: 0;" onmouseover="this.style.background='#FEE2E2'; this.querySelector('i').style.color='#EF4444';" onmouseout="this.style.background='transparent'; this.querySelector('i').style.color='#94A3B8';">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px; color: #94A3B8; transition: color 0.2s;"></i>
+                      </button>
+                    </div>
+                  </td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                </tr>
+                <!-- 11:30 AM -->
+                <tr>
+                  <td>
+                    <div class="editor-time-cell" style="padding: 10px 12px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                      <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <input type="time" value="11:30" step="1800" class="editable-time" style="font-size: 13.5px; color: var(--text-dark); font-weight: 600; outline: none; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 6px 10px; background: #fff; cursor: pointer; transition: all 0.2s; font-family: var(--font-body);" onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px var(--primary-teal-glow)';" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+                        <input type="time" value="13:00" step="1800" class="editable-time" style="font-size: 13.5px; color: var(--text-dark); font-weight: 600; outline: none; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 6px 10px; background: #fff; cursor: pointer; transition: all 0.2s; font-family: var(--font-body);" onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px var(--primary-teal-glow)';" onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+                      </div>
+                      <button class="delete-time-btn" onclick="deleteTimeSlot(this)" style="background: transparent; border: none; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; transition: all 0.2s; padding: 0; flex-shrink: 0;" onmouseover="this.style.background='#FEE2E2'; this.querySelector('i').style.color='#EF4444';" onmouseout="this.style.background='transparent'; this.querySelector('i').style.color='#94A3B8';">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px; color: #94A3B8; transition: color 0.2s;"></i>
+                      </button>
+                    </div>
+                  </td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                  <td><div class="editor-drop-zone">Drop</div></td>
+                </tr>
+                <tr id="add-time-row">
+                  <td style="padding: 12px 16px;">
+                    <button id="add-time-slot-btn" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 6px; background: transparent; color: var(--primary-teal); border: 1.5px dashed var(--border-light); padding: 8px 0; border-radius: 8px; font-family: var(--font-body); font-weight: 600; font-size: 11.5px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--primary-teal)'; this.style.backgroundColor='var(--primary-teal-light)';" onmouseout="this.style.borderColor='var(--border-light)'; this.style.backgroundColor='transparent';">
+                      <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Time
+                    </button>
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+      </div>
+
+      <!-- PRINT FOOTER REMOVED -->
+    </main>
+  </div>
+
+
+  <!-- Unsaved Changes Confirmation Modal -->
+  <div id="unsavedChangesModal" class="confirm-modal-overlay" style="display: none;">
+    <div class="confirm-modal-container">
+      <div class="confirm-modal-header">
+        <div class="confirm-modal-icon">
+          <i data-lucide="help-circle"></i>
+        </div>
+        <h3>Unsaved Changes</h3>
+      </div>
+      <div class="confirm-modal-body">
+        <p>You have made changes to the schedule. Would you like to save your changes before leaving this page?</p>
+      </div>
+      <div class="confirm-modal-footer">
+        <button id="confirm-cancel-btn" class="confirm-btn confirm-btn-cancel">Cancel</button>
+        <button id="confirm-discard-btn" class="confirm-btn confirm-btn-discard">Discard Changes</button>
+        <button id="confirm-save-btn" class="confirm-btn confirm-btn-save">Save & Leave</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="room-schedule-editor.js"></script>
+</body>
+</html>
+

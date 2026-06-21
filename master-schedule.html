@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync – IT Dept Head Master Schedule</title>
+  <meta name="view-transition" content="same-origin" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script src="auth-check.js"></script>
+  
+
+</head>
+
+<body data-page="master-schedule">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+  <aside class="sidebar">
+
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn" title="Dashboard" onclick="window.location.href='it-head-dashboard.html'">
+        <i data-lucide="home" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Room Status" onclick="window.location.href='it-head-room-status.html'">
+        <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='it-head-pc-reports.html'">
+        <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="My Schedule" onclick="window.location.href='it-head-my-schedule.html'">
+        <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
+      </button>
+
+      <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;">
+      </div>
+
+      <button class="sidebar-btn active" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+        <i data-lucide="calendar" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+        <i data-lucide="users" style="width:24px;height:24px;"></i>
+      </button>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-bottom">
+      <button class="sidebar-btn" title="Help">
+        <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Logout" onclick="window.location.href='login.html'">
+        <i data-lucide="log-out" style="width:24px;height:24px;"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Scroll Clue for Sidebar -->
+  <div id="sidebarScrollClue"
+    style="position: fixed; bottom: 16px; left: 36px; z-index: 105; color: var(--primary-teal); pointer-events: none; transition: opacity 0.3s ease;">
+    <i data-lucide="chevron-down" style="width: 20px; height: 20px; animation: bounce 2s infinite;"></i>
+  </div>
+  <!-- ── MAIN WRAPPER ─────────────────────────────────────────── -->
+  <div class="main-wrapper">
+
+    <!-- HEADER -->
+    <header class="header">
+
+      <!-- Logos -->
+      <div class="header-logos" style="display: flex; align-items: center; gap: 14px;">
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo"
+          style="height: 40px; width: auto; object-fit: contain;">
+        <div class="logo-divider" style="width: 1px; height: 32px; background: var(--border-light);"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
+      </div>
+
+      <!-- Center Nav -->
+      <nav class="header-nav">
+        <button class="nav-item" onclick="window.location.href='it-head-dashboard.html'">Dashboard</button>
+        <button class="nav-item" onclick="window.location.href='it-head-room-status.html'">Room Status</button>
+        <button class="nav-item" onclick="window.location.href='it-head-pc-reports.html'">PC Reports</button>
+        <button class="nav-item" onclick="window.location.href='it-head-my-schedule.html'">My Schedule</button>
+        <span class="nav-divider" style="color: var(--border-light); margin: 0 8px;">|</span>
+        <button class="nav-item active" onclick="window.location.href='master-schedule.html'">Master Schedule</button>
+        <button class="nav-item" onclick="window.location.href='faculty-management.html'">Faculty Management</button>
+      </nav>
+
+      <!-- Right Profile -->
+      <div class="header-right">
+        <button class="notif-btn" title="Notifications">
+          <i data-lucide="bell" style="width:16px;height:16px;"></i>
+          <span class="notif-dot"></span>
+        </button>
+
+        <div class="profile-dropdown">
+          <div class="avatar">U</div>
+          <div class="profile-info">
+            <span class="profile-name">User</span>
+            <span class="profile-role">IT Dept. Head</span>
+          </div>
+          <button class="chevron-btn">
+            <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content" style="overflow-y: auto;">
+
+      <!-- Greeting + Clock Row -->
+      <div class="greeting-row">
+        <div class="greeting-left">
+          <h1 class="greeting-title" id="greetingText">Master Schedule Overview</h1>
+          <p class="greeting-sub" id="greetingSub">Comprehensive view of all laboratory schedules and faculty
+            assignments.</p>
+        </div>
+        <div class="clock-block">
+          <div class="clock-time" id="clockTime">--:--:-- --</div>
+          <div class="clock-date" id="clockDate">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Term Selector Panel Removed (now inside bulk print modal) -->
+
+      <!-- Room Selection Section -->
+      <div class="room-selection-header" style="margin-top: 32px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2
+            style="font-size: 20px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; font-family: var(--font-display);">
+            Select Laboratory Room</h2>
+          <p style="font-size: 13.5px; color: var(--text-light); font-weight: 500;">Choose a room to create or edit its
+            schedule</p>
+        </div>
+        <button id="downloadAllSchedulesBtn"
+          style="padding: 10px 20px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
+          onclick="printAllSchedules()"
+          onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)';"
+          onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none';">
+          <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+          Download All Schedules
+        </button>
+      </div>
+
+      <div class="room-selection-grid">
+        <!-- Add Room Card -->
+        <div class="room-select-card" id="addRoomCardBtn"
+          style="border: 2px dashed var(--border-light); background: transparent; box-shadow: none; cursor: pointer;">
+          <div class="rsc-icon"
+            style="background: transparent; color: var(--primary-teal); border: 2px dashed var(--primary-teal);">
+            <i data-lucide="plus" style="width: 36px; height: 36px;"></i>
+          </div>
+          <div class="rsc-title" style="color: var(--primary-teal);">Add Room</div>
+          <div class="rsc-subtitle">Create new lab schedule</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Add Room Modal -->
+  <div id="addRoomModal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
+    <div class="modal-content"
+      style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">Add
+            New Room</h2>
+          <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Enter the laboratory details below</p>
+        </div>
+        <button id="closeModalBtn"
+          style="background: var(--bg-body); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-light); transition: all 0.2s;"
+          onmouseover="this.style.background='#e2e8f0'; this.style.color='var(--text-dark)';"
+          onmouseout="this.style.background='var(--bg-body)'; this.style.color='var(--text-light)';">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label
+          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Room
+          Number</label>
+        <input type="text" id="roomNumberInput" placeholder="e.g. 204"
+          style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
+          onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
+          onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+      </div>
+
+      <div style="margin-bottom: 32px;">
+        <label
+          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Building</label>
+        <div style="position: relative;">
+          <select id="buildingSelect"
+            style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; appearance: none; background: #fff; transition: all 0.2s; box-sizing: border-box; cursor: pointer;"
+            onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
+            onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+            <option value="Bldg. B" selected>Bldg. B</option>
+            <option value="Bldg. E">Bldg. E</option>
+          </select>
+          <i data-lucide="chevron-down"
+            style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-light); pointer-events: none;"></i>
+        </div>
+      </div>
+
+      <button id="submitRoomBtn"
+        style="width: 100%; padding: 14px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
+        onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(30, 187, 215, 0.45)';"
+        onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(30, 187, 215, 0.35)';">
+        <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+        Create Room
+      </button>
+    </div>
+  </div>
+
+  <!-- Download Modal -->
+  <div id="downloadModal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
+    <div class="modal-content"
+      style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">Download Schedules</h2>
+          <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Select academic year and semester to download</p>
+        </div>
+        <button id="closeDownloadModalBtn"
+          style="background: var(--bg-body); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-light); transition: all 0.2s;"
+          onmouseover="this.style.background='#e2e8f0'; this.style.color='var(--text-dark)';"
+          onmouseout="this.style.background='var(--bg-body)'; this.style.color='var(--text-light)';">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <!-- Academic Year selectors -->
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Academic Year</label>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="custom-select-wrapper" id="academic-year-start-wrapper" style="flex: 1;">
+            <div class="custom-select-trigger">
+              <span>Select</span>
+              <i data-lucide="chevron-down"></i>
+            </div>
+            <div class="custom-select-dropdown"></div>
+          </div>
+          <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">–</span>
+          <div class="custom-select-wrapper" id="academic-year-end-wrapper" style="flex: 1;">
+            <div class="custom-select-trigger">
+              <span>Select</span>
+              <i data-lucide="chevron-down"></i>
+            </div>
+            <div class="custom-select-dropdown"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Semester selector -->
+      <div style="margin-bottom: 32px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Semester</label>
+        <div class="custom-select-wrapper" id="semester-wrapper" style="width: 100%;">
+          <div class="custom-select-trigger">
+            <span>1st Semester</span>
+            <i data-lucide="chevron-down"></i>
+          </div>
+          <div class="custom-select-dropdown">
+            <div class="custom-select-option selected" data-value="1st Semester">1st Semester</div>
+            <div class="custom-select-option" data-value="2nd Semester">2nd Semester</div>
+            <div class="custom-select-option" data-value="Summer">Summer</div>
+          </div>
+        </div>
+      </div>
+
+      <button id="confirmDownloadBtn"
+        style="width: 100%; padding: 14px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
+        onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(30, 187, 215, 0.45)';"
+        onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(30, 187, 215, 0.35)';">
+        <i data-lucide="printer" style="width: 18px; height: 18px;"></i>
+        Print All Schedules
+      </button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    function initCustomSelect(wrapperId, onChangeCallback) {
+      const wrapper = document.getElementById(wrapperId);
+      if (!wrapper) return;
+      const trigger = wrapper.querySelector('.custom-select-trigger');
+      const display = trigger.querySelector('span');
+      const optionsContainer = wrapper.querySelector('.custom-select-dropdown');
+
+      // Set initial value from pre-selected option if dataset.value is not already set
+      if (!wrapper.dataset.value) {
+        const selectedOpt = optionsContainer.querySelector('.custom-select-option.selected');
+        if (selectedOpt) {
+          wrapper.dataset.value = selectedOpt.dataset.value;
+          display.textContent = selectedOpt.textContent;
+        }
+      }
+
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = wrapper.classList.contains('open');
+        document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+          if (w !== wrapper) w.classList.remove('open');
+        });
+        wrapper.classList.toggle('open', !isOpen);
+      });
+
+      optionsContainer.addEventListener('click', (e) => {
+        const option = e.target.closest('.custom-select-option');
+        if (!option) return;
+
+        const val = option.dataset.value;
+        const text = option.textContent;
+
+        display.textContent = text;
+        wrapper.dataset.value = val;
+
+        optionsContainer.querySelectorAll('.custom-select-option.selected').forEach(o => {
+          o.classList.remove('selected');
+        });
+        option.classList.add('selected');
+
+        wrapper.classList.remove('open');
+        if (onChangeCallback) onChangeCallback(val);
+      });
+    }
+
+    function setCustomSelectValue(wrapperId, value) {
+      const wrapper = document.getElementById(wrapperId);
+      if (!wrapper) return;
+      const display = wrapper.querySelector('.custom-select-trigger span');
+      const optionsContainer = wrapper.querySelector('.custom-select-dropdown');
+      
+      wrapper.dataset.value = value;
+      optionsContainer.querySelectorAll('.custom-select-option').forEach(opt => {
+        const isMatch = String(opt.dataset.value) === String(value);
+        opt.classList.toggle('selected', isMatch);
+        if (isMatch) display.textContent = opt.textContent;
+      });
+    }
+
+    function populateCustomYearSelectors(startWrapperId, endWrapperId, defaultAY = '2025-2026', onChangeCallback) {
+      const startWrapper = document.getElementById(startWrapperId);
+      const endWrapper = document.getElementById(endWrapperId);
+      if (!startWrapper || !endWrapper) return;
+
+      const startOptions = startWrapper.querySelector('.custom-select-dropdown');
+      const endOptions = endWrapper.querySelector('.custom-select-dropdown');
+
+      const currentYear = new Date().getFullYear();
+      const years = [];
+      for (let y = currentYear; y <= currentYear + 10; y++) {
+        years.push(y);
+      }
+
+      startOptions.innerHTML = '';
+      endOptions.innerHTML = '';
+
+      const parts = defaultAY.split('-');
+      const defaultStart = parts[0] || '2025';
+      const defaultEnd = parts[1] || '2026';
+
+      years.forEach(y => {
+        const optStart = document.createElement('div');
+        optStart.className = 'custom-select-option' + (String(y) === String(defaultStart) ? ' selected' : '');
+        optStart.dataset.value = y;
+        optStart.textContent = y;
+        startOptions.appendChild(optStart);
+
+        const optEnd = document.createElement('div');
+        optEnd.className = 'custom-select-option' + (String(y + 1) === String(defaultEnd) ? ' selected' : '');
+        optEnd.dataset.value = y + 1;
+        optEnd.textContent = y + 1;
+        endOptions.appendChild(optEnd);
+      });
+
+      startWrapper.querySelector('.custom-select-trigger span').textContent = defaultStart;
+      startWrapper.dataset.value = defaultStart;
+
+      endWrapper.querySelector('.custom-select-trigger span').textContent = defaultEnd;
+      endWrapper.dataset.value = defaultEnd;
+
+      initCustomSelect(startWrapperId, (val) => {
+        const startVal = parseInt(val);
+        setCustomSelectValue(endWrapperId, String(startVal + 1));
+        if (onChangeCallback) onChangeCallback();
+      });
+
+      initCustomSelect(endWrapperId, () => {
+        if (onChangeCallback) onChangeCallback();
+      });
+    }
+
+    // Close custom selects on outer click
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+        w.classList.remove('open');
+      });
+    });
+
+    const sidebar = document.querySelector('.sidebar');
+    const scrollClue = document.getElementById('sidebarScrollClue');
+
+    // Hide arrow if it's not scrollable
+    if (sidebar.scrollHeight <= sidebar.clientHeight) {
+      scrollClue.style.display = 'none';
+    }
+
+    // Hide arrow when scrolled
+    sidebar.addEventListener('scroll', () => {
+      if (sidebar.scrollTop > 10) {
+        scrollClue.style.opacity = '0';
+      } else {
+        scrollClue.style.opacity = '1';
+      }
+    });
+
+    // Add Room Modal Logic
+    const addRoomModal = document.getElementById('addRoomModal');
+    const modalContent = addRoomModal.querySelector('.modal-content');
+    const addRoomCardBtn = document.getElementById('addRoomCardBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const submitRoomBtn = document.getElementById('submitRoomBtn');
+
+    function openModal() {
+      addRoomModal.style.display = 'flex';
+      // Trigger reflow
+      void addRoomModal.offsetWidth;
+      addRoomModal.style.opacity = '1';
+      modalContent.style.transform = 'translateY(0)';
+      document.getElementById('roomNumberInput').focus();
+    }
+
+    function closeModal() {
+      addRoomModal.style.opacity = '0';
+      modalContent.style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        addRoomModal.style.display = 'none';
+        document.getElementById('roomNumberInput').value = '';
+        document.getElementById('buildingSelect').value = 'Bldg. B';
+      }, 300);
+    }
+
+    addRoomCardBtn.addEventListener('click', openModal);
+    closeModalBtn.addEventListener('click', closeModal);
+
+    addRoomModal.addEventListener('click', (e) => {
+      if (e.target === addRoomModal) closeModal();
+    });
+
+    // Load existing rooms from database
+    async function loadRooms() {
+      try {
+        const res = await fetch('/api/laboratories');
+        if (res.status === 401) {
+          console.error('Authentication required to load rooms.');
+          return;
+        }
+        if (!res.ok) throw new Error('Failed to fetch rooms');
+        const rooms = await res.json();
+
+        const grid = document.querySelector('.room-selection-grid');
+        // Clear all except the "Add Room" card
+        const cards = grid.querySelectorAll('.room-select-card:not(#addRoomCardBtn)');
+        cards.forEach(c => c.remove());
+
+        rooms.forEach(room => {
+          const newCard = document.createElement('div');
+          newCard.className = 'room-select-card';
+          newCard.onclick = () => {
+            window.location.href = `room-schedule-editor.html?room=${room.Room_Number}&bldg=${encodeURIComponent(room.Building)}`;
+          };
+
+          newCard.innerHTML = `
+            <div class="rsc-icon">
+              <i data-lucide="monitor" style="width: 36px; height: 36px;"></i>
+            </div>
+            <div class="rsc-title">Room ${room.Room_Number}</div>
+            <div class="rsc-subtitle">${room.Building}</div>
+          `;
+
+          grid.appendChild(newCard);
+          if (typeof lucide !== 'undefined') lucide.createIcons({ root: newCard });
+        });
+      } catch (err) {
+        console.error('Error loading rooms:', err);
+      }
+    }
+
+    // Call on page load
+    const currentYear = new Date().getFullYear();
+    populateCustomYearSelectors('academic-year-start-wrapper', 'academic-year-end-wrapper', `${currentYear}-${currentYear + 1}`);
+    initCustomSelect('semester-wrapper');
+    loadRooms();
+
+    // Download Modal Logic
+    const downloadModal = document.getElementById('downloadModal');
+    const downloadModalContent = downloadModal.querySelector('.modal-content');
+    const downloadAllSchedulesBtn = document.getElementById('downloadAllSchedulesBtn');
+    const closeDownloadModalBtn = document.getElementById('closeDownloadModalBtn');
+    const confirmDownloadBtn = document.getElementById('confirmDownloadBtn');
+
+    function openDownloadModal() {
+      downloadModal.style.display = 'flex';
+      // Trigger reflow
+      void downloadModal.offsetWidth;
+      downloadModal.style.opacity = '1';
+      downloadModalContent.style.transform = 'translateY(0)';
+      if (typeof lucide !== 'undefined') lucide.createIcons({ root: downloadModal });
+    }
+
+    function closeDownloadModal() {
+      downloadModal.style.opacity = '0';
+      downloadModalContent.style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        downloadModal.style.display = 'none';
+      }, 300);
+    }
+
+    if (downloadAllSchedulesBtn) {
+      downloadAllSchedulesBtn.onclick = (e) => {
+        e.preventDefault();
+        openDownloadModal();
+      };
+    }
+
+    if (closeDownloadModalBtn) {
+      closeDownloadModalBtn.addEventListener('click', closeDownloadModal);
+    }
+
+    downloadModal.addEventListener('click', (e) => {
+      if (e.target === downloadModal) closeDownloadModal();
+    });
+
+    if (confirmDownloadBtn) {
+      confirmDownloadBtn.addEventListener('click', () => {
+        const startYear = document.getElementById('academic-year-start-wrapper').dataset.value || String(currentYear);
+        const endYear = document.getElementById('academic-year-end-wrapper').dataset.value || String(currentYear + 1);
+        const ay = `${startYear}-${endYear}`;
+        const sem = document.getElementById('semester-wrapper').dataset.value || '1st Semester';
+        window.open(`print-all-schedules.html?academicYear=${encodeURIComponent(ay)}&semester=${encodeURIComponent(sem)}`, '_blank');
+        closeDownloadModal();
+      });
+    }
+
+    window.printAllSchedules = function() {
+      openDownloadModal();
+    };
+
+    // Handle form submission
+    submitRoomBtn.addEventListener('click', async () => {
+      const roomNum = document.getElementById('roomNumberInput').value.trim();
+      const bldg = document.getElementById('buildingSelect').value;
+      const input = document.getElementById('roomNumberInput');
+
+      if (!roomNum) {
+        // Simple shake animation for validation
+        input.style.borderColor = '#ef4444';
+        setTimeout(() => input.style.borderColor = 'var(--primary-teal)', 1000);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/laboratories/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ roomNumber: roomNum, building: bldg })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || 'Failed to add room');
+          input.style.borderColor = '#ef4444';
+          setTimeout(() => input.style.borderColor = 'var(--primary-teal)', 1000);
+          return;
+        }
+
+        // Refresh rooms list
+        loadRooms();
+        closeModal();
+      } catch (err) {
+        console.error('Error adding room:', err);
+        alert('An unexpected error occurred.');
+      }
+    });
+
+
+  </script>
+</body>
+
+</html>

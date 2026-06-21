@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync – Professor Dashboard</title>
+  <meta name="view-transition" content="same-origin" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script src="auth-check.js"></script>
+  <style>
+    .schedule-columns {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(130px, 1fr));
+      gap: 14px;
+      overflow-x: auto;
+      min-width: 800px;
+    }
+    .day-column {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 250px;
+      background: #F8FAFC;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 12px;
+      transition: all 0.2s ease;
+    }
+    .day-column.highlight-day {
+      border-color: var(--primary-teal);
+      background: var(--primary-teal-light);
+      box-shadow: 0 4px 12px var(--primary-teal-glow);
+    }
+    .day-header {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-mid);
+      text-align: center;
+      padding: 8px;
+      background: var(--bg-white);
+      border-radius: 10px;
+      margin-bottom: 4px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+    }
+    .day-column.highlight-day .day-header {
+      background: var(--primary-teal);
+      color: #fff;
+      border-color: var(--primary-teal);
+    }
+    .sg-cell.filled {
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body data-page="my-schedule">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+  <aside class="sidebar">
+
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn" title="Home" onclick="window.location.href='index.html'">
+        <i data-lucide="home" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Lab Rooms" onclick="window.location.href='room-status.html'">
+        <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='pc-reports.html'">
+        <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn active" title="My Schedule" onclick="window.location.href='my-schedule.html'">
+        <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
+      </button>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-bottom">
+      <button class="sidebar-btn" title="Help" onclick="openHelpModal()">
+        <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Logout" onclick="handleLogout()">
+        <i data-lucide="log-out" style="width:24px;height:24px;"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN WRAPPER ─────────────────────────────────────────── -->
+  <div class="main-wrapper">
+
+    <!-- HEADER -->
+    <header class="header">
+
+      <!-- Logos -->
+      <div class="header-logos" style="display: flex; align-items: center; gap: 14px;">
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo"
+          style="height: 40px; width: auto; object-fit: contain;">
+        <div class="logo-divider" style="width: 1px; height: 32px; background: var(--border-light);"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
+      </div>
+
+      <!-- Center Nav -->
+      <nav class="header-nav">
+        <button class="nav-item" onclick="window.location.href='index.html'">Dashboard</button>
+        <button class="nav-item" onclick="window.location.href='room-status.html'">Room Status</button>
+        <button class="nav-item" onclick="window.location.href='pc-reports.html'">PC Reports</button>
+        <button class="nav-item active" onclick="window.location.href='my-schedule.html'">My Schedule</button>
+      </nav>
+
+      <!-- Right Profile -->
+      <div class="header-right">
+        <button class="notif-btn" title="Notifications">
+          <i data-lucide="bell" style="width:16px;height:16px;"></i>
+          <span class="notif-dot"></span>
+        </button>
+
+        <div class="profile-dropdown">
+          <div class="avatar">U</div>
+          <div class="profile-info">
+            <span class="profile-name">User</span>
+            <span class="profile-role">Professor</span>
+          </div>
+          <button class="chevron-btn">
+            <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- Greeting + Clock Row -->
+      <div class="greeting-row">
+        <div class="greeting-left">
+          <h1 class="greeting-title" id="greetingText">My Schedule</h1>
+          <p class="greeting-sub" id="greetingSub">View your complete weekly teaching schedule and class assignments.</p>
+        </div>
+        <div class="clock-block">
+          <div class="clock-time" id="clockTime">--:--:-- --</div>
+          <div class="clock-date" id="clockDate">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Main Content Card -->
+      <div class="dashboard-card" style="padding: 0; overflow: visible !important; border-radius: 12px; position: relative; display: flex; flex-direction: column;">
+          <!-- Header -->
+          <div class="schedule-header" style="background: var(--primary-teal); color: white; padding: 12px 24px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; font-size: 15px; border-radius: 12px 12px 0 0; flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i data-lucide="calendar" style="width: 20px; height: 20px;"></i> My Weekly Schedule
+            </div>
+            
+            <!-- In-Header Selector Panel -->
+            <div class="schedule-selectors" style="display: flex; align-items: center; gap: 16px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">AY:</span>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <div class="custom-select-wrapper header-select" id="academic-year-start-wrapper" style="width: 80px;">
+                    <div class="custom-select-trigger" style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
+                      <span>Select</span>
+                      <i data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
+                  </div>
+                  <span style="color: rgba(255, 255, 255, 0.75); font-size: 12px; font-weight: 600;">–</span>
+                  <div class="custom-select-wrapper header-select" id="academic-year-end-wrapper" style="width: 80px;">
+                    <div class="custom-select-trigger" style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
+                      <span>Select</span>
+                      <i data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Sem:</span>
+                <div class="custom-select-wrapper header-select" id="semester-wrapper" style="width: 135px;">
+                  <div class="custom-select-trigger" style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
+                    <span>1st Semester</span>
+                    <i data-lucide="chevron-down"></i>
+                  </div>
+                  <div class="custom-select-dropdown" style="color: var(--text-dark);">
+                    <div class="custom-select-option selected" data-value="1st Semester">1st Semester</div>
+                    <div class="custom-select-option" data-value="2nd Semester">2nd Semester</div>
+                    <div class="custom-select-option" data-value="Summer">Summer</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="schedule-container" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+            <div class="ui-empty-state">
+              <div class="ui-empty-icon">
+                <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
+              </div>
+              <p>Loading your schedule...</p>
+            </div>
+          </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Custom Dropdown Selector Helpers
+    function initCustomSelect(wrapperId, onChangeCallback) {
+      const wrapper = document.getElementById(wrapperId);
+      if (!wrapper) return;
+      const trigger = wrapper.querySelector('.custom-select-trigger');
+      const display = trigger.querySelector('span');
+      const optionsContainer = wrapper.querySelector('.custom-select-dropdown');
+
+      if (!wrapper.dataset.value) {
+        const selectedOpt = optionsContainer.querySelector('.custom-select-option.selected');
+        if (selectedOpt) {
+          wrapper.dataset.value = selectedOpt.dataset.value;
+          display.textContent = selectedOpt.textContent;
+        }
+      }
+
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = wrapper.classList.contains('open');
+        document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+          if (w !== wrapper) w.classList.remove('open');
+        });
+        wrapper.classList.toggle('open', !isOpen);
+      });
+
+      optionsContainer.addEventListener('click', (e) => {
+        const option = e.target.closest('.custom-select-option');
+        if (!option) return;
+
+        const val = option.dataset.value;
+        const text = option.textContent;
+        display.textContent = text;
+        wrapper.dataset.value = val;
+
+        optionsContainer.querySelectorAll('.custom-select-option.selected').forEach(o => {
+          o.classList.remove('selected');
+        });
+        option.classList.add('selected');
+
+        wrapper.classList.remove('open');
+        if (onChangeCallback) onChangeCallback(val);
+      });
+    }
+
+    function setCustomSelectValue(wrapperId, value) {
+      const wrapper = document.getElementById(wrapperId);
+      if (!wrapper) return;
+      const display = wrapper.querySelector('.custom-select-trigger span');
+      const optionsContainer = wrapper.querySelector('.custom-select-dropdown');
+      
+      wrapper.dataset.value = value;
+      optionsContainer.querySelectorAll('.custom-select-option').forEach(opt => {
+        const isMatch = String(opt.dataset.value) === String(value);
+        opt.classList.toggle('selected', isMatch);
+        if (isMatch) display.textContent = opt.textContent;
+      });
+    }
+
+    function populateCustomYearSelectors(startWrapperId, endWrapperId, defaultAY, onChangeCallback) {
+      const startWrapper = document.getElementById(startWrapperId);
+      const endWrapper = document.getElementById(endWrapperId);
+      if (!startWrapper || !endWrapper) return;
+
+      const startOptions = startWrapper.querySelector('.custom-select-dropdown');
+      const endOptions = endWrapper.querySelector('.custom-select-dropdown');
+
+      const currentYear = new Date().getFullYear();
+      const years = [];
+      for (let y = currentYear - 1; y <= currentYear + 10; y++) {
+        years.push(y);
+      }
+
+      startOptions.innerHTML = '';
+      endOptions.innerHTML = '';
+
+      const parts = defaultAY.split('-');
+      const defaultStart = parts[0] || String(currentYear);
+      const defaultEnd = parts[1] || String(currentYear + 1);
+
+      years.forEach(y => {
+        const optStart = document.createElement('div');
+        optStart.className = 'custom-select-option' + (String(y) === String(defaultStart) ? ' selected' : '');
+        optStart.dataset.value = y;
+        optStart.textContent = y;
+        startOptions.appendChild(optStart);
+
+        const optEnd = document.createElement('div');
+        optEnd.className = 'custom-select-option' + (String(y + 1) === String(defaultEnd) ? ' selected' : '');
+        optEnd.dataset.value = y + 1;
+        optEnd.textContent = y + 1;
+        endOptions.appendChild(optEnd);
+      });
+
+      startWrapper.querySelector('.custom-select-trigger span').textContent = defaultStart;
+      startWrapper.dataset.value = defaultStart;
+
+      endWrapper.querySelector('.custom-select-trigger span').textContent = defaultEnd;
+      endWrapper.dataset.value = defaultEnd;
+
+      initCustomSelect(startWrapperId, (val) => {
+        const startVal = parseInt(val);
+        setCustomSelectValue(endWrapperId, String(startVal + 1));
+        if (onChangeCallback) onChangeCallback();
+      });
+
+      initCustomSelect(endWrapperId, () => {
+        if (onChangeCallback) onChangeCallback();
+      });
+    }
+
+    // Load Schedule
+    async function loadUserSchedule() {
+      const container = document.getElementById('schedule-container');
+      if (!container) return;
+
+      container.innerHTML = `
+        <div class="ui-empty-state">
+          <div class="ui-empty-icon">
+            <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
+          </div>
+          <p>Loading your schedule...</p>
+        </div>
+      `;
+      if (typeof lucide !== 'undefined') lucide.createIcons({ root: container });
+
+      try {
+        const startYear = document.getElementById('academic-year-start-wrapper').dataset.value || '2026';
+        const endYear = document.getElementById('academic-year-end-wrapper').dataset.value || '2027';
+        const ay = `${startYear}-${endYear}`;
+        const sem = document.getElementById('semester-wrapper').dataset.value || '1st Semester';
+
+        const res = await fetch(`/api/schedules/user?academicYear=${encodeURIComponent(ay)}&semester=${encodeURIComponent(sem)}`);
+        if (!res.ok) throw new Error('Failed to fetch schedule');
+        const schedules = await res.json();
+        
+        if (schedules.length === 0) {
+          container.innerHTML = `
+            <div class="ui-empty-state">
+              <div class="ui-empty-icon">
+                <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
+              </div>
+              <p>No weekly schedule loaded for ${ay} ${sem}. Your teaching blocks will appear here when data is synced.</p>
+            </div>
+          `;
+          if (typeof lucide !== 'undefined') lucide.createIcons({ root: container });
+          return;
+        }
+
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayShortNames = {
+          'Monday': 'MON',
+          'Tuesday': 'TUE',
+          'Wednesday': 'WED',
+          'Thursday': 'THU',
+          'Friday': 'FRI',
+          'Saturday': 'SAT'
+        };
+
+        const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+
+        function formatTime12(timeStr) {
+          if (!timeStr) return '';
+          const parts = timeStr.split(':');
+          let hour = parseInt(parts[0], 10);
+          const minute = parts[1];
+          const ampm = hour >= 12 ? 'PM' : 'AM';
+          hour = hour % 12;
+          hour = hour ? hour : 12;
+          return `${hour}:${minute} ${ampm}`;
+        }
+
+        let html = '<div class="schedule-columns">';
+
+        days.forEach(day => {
+          const isToday = day === todayName;
+          const dayScheds = schedules.filter(s => s.Day_of_Week === day);
+          
+          // Sort schedules chronologically by start time
+          dayScheds.sort((a, b) => (a.Start_Time || '').localeCompare(b.Start_Time || ''));
+
+          html += `
+            <div class="day-column ${isToday ? 'highlight-day' : ''}">
+              <div class="day-header">${dayShortNames[day]}</div>
+          `;
+
+          if (dayScheds.length === 0) {
+            html += `
+              <div style="flex: 1; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--border-light); border-radius: 12px; padding: 12px; color: var(--text-muted); font-size: 11.5px; font-weight: 500; text-align: center; min-height: 80px; background: rgba(255,255,255,0.4);">
+                No classes
+              </div>
+            `;
+          } else {
+            dayScheds.forEach(s => {
+              const start = formatTime12(s.Start_Time);
+              const end = formatTime12(s.End_Time);
+              
+              let colorClass = 'subject-intro'; // default
+              const subj = (s.Subject_Name || '').toLowerCase();
+              if (subj.includes('web')) colorClass = 'subject-webdev';
+              else if (subj.includes('net')) colorClass = 'subject-network';
+              else if (subj.includes('cap')) colorClass = 'subject-capstone';
+              else if (subj.includes('prog')) colorClass = 'subject-prog';
+
+              html += `
+                <div class="sg-cell filled ${colorClass}" style="min-height: auto; gap: 6px; padding: 12px;">
+                  <div style="font-size: 11px; font-weight: 700; opacity: 0.85; display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                    <i data-lucide="clock" style="width: 12px; height: 12px;"></i> ${start} - ${end}
+                  </div>
+                  <div class="sg-room"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> RM ${s.Room_Number || ''}</div>
+                  <div class="sg-class">${s.Section || ''}</div>
+                  <div class="sg-code">${s.Subject_Name || ''}</div>
+                </div>
+              `;
+            });
+          }
+
+          html += `</div>`;
+        });
+
+        html += `</div>
+        <div class="schedule-legend" style="margin-top: 20px;">
+          <div class="sl-title">SUBJECTS:</div>
+          <div class="sl-item"><div class="dot network"></div> Network Admin</div>
+          <div class="sl-item"><div class="dot webdev"></div> Web Dev</div>
+          <div class="sl-item"><div class="dot capstone"></div> Capstone</div>
+          <div class="sl-item"><div class="dot prog"></div> Programming</div>
+          <div class="sl-item"><div class="dot intro"></div> Intro to Computing</div>
+        </div>`;
+        container.innerHTML = html;
+        if (typeof lucide !== 'undefined') lucide.createIcons({ root: container });
+        
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Load selectors and initial schedule
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentYear = new Date().getFullYear();
+      populateCustomYearSelectors('academic-year-start-wrapper', 'academic-year-end-wrapper', `${currentYear}-${currentYear + 1}`, () => {
+        loadUserSchedule();
+      });
+
+      initCustomSelect('semester-wrapper', () => {
+        loadUserSchedule();
+      });
+
+      // Close custom selects on outer click
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+          w.classList.remove('open');
+        });
+      });
+
+      loadUserSchedule();
+    });
+  </script>
+
+  <script src="script.js"></script>
+</body>
+</html>

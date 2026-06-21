@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync - MIS Staff Dashboard</title>
+  <meta name="view-transition" content="same-origin" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script src="auth-check.js"></script>
+</head>
+
+<body data-page="mis-dashboard">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn active" title="Dashboard" onclick="window.location.href='mis-staff-dashboard.html'">
+        <i data-lucide="home" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='mis-pc-reports.html'">
+        <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Maintenance Tracker" onclick="window.location.href='mis-maintenance.html'">
+        <i data-lucide="wrench" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="QR Generator" onclick="window.location.href='mis-qr-generator.html'">
+        <i data-lucide="qr-code" style="width:24px;height:24px;"></i>
+      </button>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-bottom">
+      <button class="sidebar-btn" title="Help" onclick="openHelpModal()">
+        <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Logout" onclick="handleLogout()">
+        <i data-lucide="log-out" style="width:24px;height:24px;"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Scroll Clue for Sidebar -->
+  <div id="sidebarScrollClue"
+    style="position: fixed; bottom: 16px; left: 30px; z-index: 105; color: var(--primary-teal); pointer-events: none; transition: opacity 0.3s ease;">
+    <i data-lucide="chevron-down" style="width: 20px; height: 20px; animation: bounce 2s infinite;"></i>
+  </div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+
+    <!-- HEADER -->
+    <header class="header">
+
+      <!-- Logos -->
+      <div class="header-logos" style="display: flex; align-items: center; gap: 14px;">
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo"
+          style="height: 40px; width: auto; object-fit: contain;">
+        <div class="logo-divider" style="width: 1px; height: 32px; background: var(--border-light);"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
+      </div>
+
+      <!-- Center Nav -->
+      <nav class="header-nav">
+        <button class="nav-item active" onclick="window.location.href='mis-staff-dashboard.html'">Dashboard</button>
+        <button class="nav-item" onclick="window.location.href='mis-pc-reports.html'">PC Reports</button>
+        <button class="nav-item" onclick="window.location.href='mis-maintenance.html'">Maintenance Tracker</button>
+        <button class="nav-item" onclick="window.location.href='mis-qr-generator.html'">QR Generator</button>
+      </nav>
+
+      <!-- Right Profile -->
+      <div class="header-right">
+        <button class="notif-btn" title="Notifications">
+          <i data-lucide="bell" style="width:16px;height:16px;"></i>
+          <span class="notif-dot"></span>
+        </button>
+
+        <div class="profile-dropdown">
+          <div class="avatar">VN</div>
+          <div class="profile-info">
+            <span class="profile-name">Violeta Nicolas</span>
+            <span class="profile-role">MIS Staff</span>
+          </div>
+          <button class="chevron-btn">
+            <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- Greeting + Clock Row -->
+      <div class="greeting-row">
+        <div class="greeting-left">
+          <h1 class="greeting-title" id="greetingText">Good Evening, Violeta!</h1>
+          <p class="greeting-sub" id="greetingSub">Manage system-wide hardware reports, administrative tasks, and the
+            technical integrity of all IT laboratory spaces.</p>
+        </div>
+        <div class="clock-block">
+          <div class="clock-time" id="clockTime">--:--:-- --</div>
+          <div class="clock-date" id="clockDate">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Main Content Card -->
+      <div class="dashboard-card">
+      <!-- Dashboard Overview -->
+      <div class="dashboard-overview">
+        
+        <!-- Stats Grid -->
+        <div class="stats-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+          <!-- Stat 1 -->
+          <div class="stat-card" style="background: var(--primary-teal-light); border-color: rgba(30, 187, 215, 0.1); flex-direction: row; align-items: center; gap: 16px; padding: 16px;">
+            <div class="stat-icon" style="background: #D1F4FA; color: var(--primary-teal); border-radius: 12px; width: 48px; height: 48px; flex-shrink: 0;">
+              <i data-lucide="users" style="width: 24px; height: 24px;"></i>
+            </div>
+            <div>
+              <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;">
+                <span style="font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--text-dark); line-height: 1;">0</span>
+                <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">| 0 Active</span>
+              </div>
+              <div style="font-size: 13px; font-weight: 600; color: var(--text-mid);">System Connectivity</div>
+            </div>
+          </div>
+
+          <!-- Stat 2 -->
+          <div class="stat-card" style="background: #FFFBEB; border-color: rgba(251, 191, 36, 0.2); flex-direction: row; align-items: center; gap: 16px; padding: 16px;">
+            <div class="stat-icon" style="background: #FEF3C7; color: #F59E0B; border-radius: 12px; width: 48px; height: 48px; flex-shrink: 0;">
+              <i data-lucide="alert-triangle" style="width: 24px; height: 24px;"></i>
+            </div>
+            <div>
+              <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;">
+                <span style="font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--text-dark); line-height: 1;">0</span>
+                <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">| 0 Total</span>
+              </div>
+              <div style="font-size: 13px; font-weight: 600; color: var(--text-mid);">Pending PC Reports</div>
+            </div>
+          </div>
+
+          <!-- Stat 3 -->
+          <div class="stat-card" style="background: #FEF2F2; border-color: rgba(248, 113, 113, 0.2); flex-direction: row; align-items: center; gap: 16px; padding: 16px;">
+            <div class="stat-icon" style="background: #FEE2E2; color: #EF4444; border-radius: 12px; width: 48px; height: 48px; flex-shrink: 0;">
+              <i data-lucide="wrench" style="width: 24px; height: 24px;"></i>
+            </div>
+            <div>
+              <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;">
+                <span style="font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--text-dark); line-height: 1;">0</span>
+                <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">In-Progress</span>
+              </div>
+              <div style="font-size: 13px; font-weight: 600; color: var(--text-mid);">Active Maintenance</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="dashboard-main-grid" style="margin-top: 16px;">
+          
+          <!-- Left: Recent PC Reports -->
+          <div class="content-card" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 16px;">
+            <div class="section-header" style="margin-bottom: 0;">
+              <div class="sh-left">
+                <div>
+                  <h3 style="font-size: 18px; margin-bottom: 4px;">Recent PC Reports</h3>
+                  <p style="font-size: 13px;">Track and manage all reported issues</p>
+                </div>
+              </div>
+              <div>
+                <a href="mis-pc-reports.html" style="color: var(--primary-teal); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">View All <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i></a>
+              </div>
+            </div>
+
+            <!-- Search Box -->
+            <div class="search-box" style="position: relative;">
+              <i data-lucide="search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
+              <input type="text" class="search-input" placeholder="Search by ticket ID, room, or issue type...">
+            </div>
+
+            <!-- Table -->
+            <div class="table-container" style="overflow-x: auto; overflow-y: auto; flex: 1; min-height: 150px;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead style="position: sticky; top: 0; background: var(--bg-white); z-index: 10;">
+                  <tr>
+                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">TICKET ID</th>
+                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">DATE & TIME</th>
+                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">LAB ROOM</th>
+                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">PC ID</th>
+                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">ISSUE TYPE</th>
+                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">STATUS</th>
+                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: right;">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+                      No PC reports available. Reports will appear here when submitted.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-light);">
+              <div style="font-size: 13px; color: var(--text-muted);">
+                Showing <strong style="color: var(--text-dark);">0</strong> of <strong style="color: var(--text-dark);">0</strong> reports
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button style="padding: 8px 16px; border: 1px solid var(--border-light); background: #fff; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-mid); cursor: not-allowed; opacity: 0.5; transition: all var(--transition);" disabled>Previous</button>
+                <button style="padding: 8px 16px; border: none; background: var(--primary-teal); border-radius: 20px; font-size: 13px; font-weight: 600; color: #fff; cursor: not-allowed; opacity: 0.5; box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3); transition: all var(--transition);" disabled>Next</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right: Activity Feed -->
+          <div class="content-card" style="padding: 16px 20px; display: flex; flex-direction: column;">
+            <div class="section-header" style="margin-bottom: 16px;">
+              <div class="sh-left">
+                <div>
+                  <h3 style="font-size: 18px; margin-bottom: 4px;">System Activity Feed</h3>
+                  <p style="font-size: 13px;">Recent system updates and alerts</p>
+                </div>
+              </div>
+            </div>
+
+            <div style="flex: 1; position: relative; margin-left: 8px;">
+              <!-- Vertical line -->
+              <div style="position: absolute; left: 4px; top: 8px; bottom: 0; width: 2px; background: var(--border-light); z-index: 0;"></div>
+              
+              <!-- Items -->
+              <div style="display: flex; flex-direction: column; gap: 24px; position: relative; z-index: 1;">
+                
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px;">
+                  No recent activity. System updates will appear here.
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+
+    
+    // Sidebar scroll clue
+    const sidebar = document.querySelector('.sidebar');
+    const scrollClue = document.getElementById('sidebarScrollClue');
+    if (sidebar.scrollHeight <= sidebar.clientHeight) scrollClue.style.display = 'none';
+    sidebar.addEventListener('scroll', () => {
+      scrollClue.style.opacity = sidebar.scrollTop > 10 ? '0' : '1';
+    });
+
+    // Dynamic greeting for MIS Staff
+    function updateMISGreeting() {
+      const now = new Date();
+      const h = now.getHours();
+      const greet = h < 12 ? 'Good Morning' : h < 18 ? 'Good Afternoon' : 'Good Evening';
+      const greetingEl = document.getElementById('greetingText');
+      if (greetingEl) greetingEl.textContent = greet + ', Violeta!';
+      const subEl = document.getElementById('greetingSub');
+      if (subEl) subEl.textContent = 'Manage system-wide hardware reports, administrative tasks, and the technical integrity of all IT laboratory spaces.';
+    }
+    updateMISGreeting();
+  </script>
+</body>
+
+</html>

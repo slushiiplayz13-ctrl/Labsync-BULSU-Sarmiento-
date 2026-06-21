@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LabSync - Sign In</title>
+  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script>
+    (function applyAccessibilitySettings() {
+      const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
+      if (savedContrast) {
+        document.documentElement.classList.add('high-contrast');
+      }
+    })();
+
+    (async function checkSession() {
+      try {
+        const response = await fetch('/api/user/current');
+        if (response.ok) {
+          const user = await response.json();
+          if (user && user.role) {
+            if (user.role.toLowerCase().includes('head')) {
+              window.location.replace('it-head-dashboard.html');
+              return;
+            } else if (user.role === 'MIS Staff') {
+              window.location.replace('mis-staff-dashboard.html');
+              return;
+            } else {
+              window.location.replace('index.html');
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Session check failed:', e);
+      }
+      const antiFlash = document.getElementById('auth-anti-flash');
+      if (antiFlash) antiFlash.remove();
+    })();
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+
+<body>
+  <div class="bg-blob-1"></div>
+  <div class="bg-blob-2"></div>
+
+  <header>
+    <div class="header-left">
+      <img src="assets/bsu-sarmiento-logo.png" alt="BSU Logo" class="bsu-logo">
+      <div class="divider"></div>
+      <img src="assets/labsync-logo.png" alt="LabSync Logo" class="labsync-logo">
+    </div>
+    <div class="header-right">
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="left-content">
+      <h1>Sign In to<br>LabSync</h1>
+      <p>Access your lab schedules and resources in one place.</p>
+    </div>
+
+    <div class="login-card">
+      <img src="assets/labsync-logo.png" alt="LabSync Logo" class="card-logo">
+
+      <div class="form-group">
+        <input type="email" id="email" placeholder="Enter Email" autocomplete="username">
+        <button type="button" id="emailClear" class="form-icon input-icon-btn" aria-label="Clear email" hidden>
+          <i data-lucide="x-circle" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+        <button type="button" id="passwordToggle" class="form-icon input-icon-btn" aria-label="Show password"
+          aria-pressed="false">
+          <i data-lucide="eye-off" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <a href="#" class="forgot-link">Recover Password ?</a>
+
+      <button class="submit-btn" id="loginBtn">Sign In</button>
+
+      <div class="footer-text">© 2026 LabSync. All right reserved.</div>
+    </div>
+  </main>
+
+  <!-- Recover Password Modal -->
+  <div id="recoverModal" class="modal-overlay">
+    <div class="modal-card">
+      <button type="button" class="modal-close-btn" id="closeRecoverModalBtn" aria-label="Close recovery modal">&times;</button>
+      <h2>Recover Password</h2>
+      <p>Enter the email address associated with your account, and we'll send you a link to reset your password.</p>
+      
+      <div class="form-group" style="width: 100%; margin-bottom: 20px;">
+        <input type="email" id="recoverEmail" placeholder="Enter Email" autocomplete="email">
+      </div>
+      
+      <button class="submit-btn" id="sendRecoverBtn">Send Recovery Link</button>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Recover Password Modal Controller
+    (function () {
+      const forgotLink = document.querySelector('.forgot-link');
+      const recoverModal = document.getElementById('recoverModal');
+      const closeRecoverModalBtn = document.getElementById('closeRecoverModalBtn');
+      const sendRecoverBtn = document.getElementById('sendRecoverBtn');
+      const recoverEmailInput = document.getElementById('recoverEmail');
+      const emailInput = document.getElementById('email');
+
+      if (!forgotLink || !recoverModal || !closeRecoverModalBtn || !sendRecoverBtn || !recoverEmailInput) return;
+
+      // Open Modal
+      forgotLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Pre-fill email if they already typed it in the login form
+        if (emailInput && emailInput.value.trim()) {
+          recoverEmailInput.value = emailInput.value.trim();
+        }
+        recoverModal.classList.add('active');
+        recoverEmailInput.focus();
+      });
+
+      // Close Modal function
+      function closeModal() {
+        recoverModal.classList.remove('active');
+        recoverEmailInput.value = '';
+      }
+
+      closeRecoverModalBtn.addEventListener('click', closeModal);
+
+      // Close Modal when clicking outside the card
+      recoverModal.addEventListener('click', (e) => {
+        if (e.target === recoverModal) {
+          closeModal();
+        }
+      });
+
+      // Handle Submit
+      sendRecoverBtn.addEventListener('click', async () => {
+        const email = recoverEmailInput.value.trim();
+        if (!email) {
+          alert("Please enter your email address.");
+          return;
+        }
+
+        // Simple email validation regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          alert("Please enter a valid email address.");
+          return;
+        }
+
+        // Show loading state
+        sendRecoverBtn.disabled = true;
+        sendRecoverBtn.textContent = "Sending link...";
+        sendRecoverBtn.style.opacity = "0.7";
+
+        try {
+          const response = await fetch('/api/auth/recover-password', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert(data.message || "Recovery email sent successfully!");
+            closeModal();
+          } else {
+            alert(data.error || "Failed to send recovery link.");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Failed to connect to the server. Please check your connection.");
+        } finally {
+          sendRecoverBtn.disabled = false;
+          sendRecoverBtn.textContent = "Send Recovery Link";
+          sendRecoverBtn.style.opacity = "1";
+        }
+      });
+    })();
+
+    (function () {
+      const emailInput = document.getElementById('email');
+      const emailClear = document.getElementById('emailClear');
+      if (!emailInput || !emailClear) return;
+
+      function syncEmailClearVisibility() {
+        const hasText = emailInput.value.trim().length > 0;
+        emailClear.hidden = !hasText;
+      }
+
+      emailClear.addEventListener('click', () => {
+        emailInput.value = '';
+        emailInput.focus();
+        syncEmailClearVisibility();
+      });
+
+      emailInput.addEventListener('input', syncEmailClearVisibility);
+      emailInput.addEventListener('change', syncEmailClearVisibility);
+      emailInput.addEventListener('focus', syncEmailClearVisibility);
+      syncEmailClearVisibility();
+    })();
+
+    (function () {
+      const passwordInput = document.getElementById('password');
+      const passwordToggle = document.getElementById('passwordToggle');
+      if (!passwordInput || !passwordToggle) return;
+
+      passwordToggle.addEventListener('click', () => {
+        const isHidden = passwordInput.type === 'password';
+        passwordInput.type = isHidden ? 'text' : 'password';
+        passwordToggle.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+        passwordToggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        passwordToggle.innerHTML =
+          '<i data-lucide="' + (isHidden ? 'eye' : 'eye-off') + '" style="width: 18px; height: 18px;"></i>';
+        lucide.createIcons();
+      });
+    })();
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        alert("Please enter both email and password.");
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+
+        if (response.ok) {
+          // Store user details in localStorage so other pages can use them
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          alert(data.message);
+          
+          // Route based on role
+          if (data.user.role && data.user.role.toLowerCase().includes('head')) {
+            window.location.href = 'it-head-dashboard.html';
+          } else if (data.user.role === 'MIS Staff') {
+            window.location.href = 'mis-staff-dashboard.html';
+          } else {
+            window.location.href = 'index.html';
+          }
+
+        } else {
+          alert(data.error || "Login failed");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Server connection failed. Is the server running?");
+      }
+    });
+  </script>
+</body>
+
+</html>

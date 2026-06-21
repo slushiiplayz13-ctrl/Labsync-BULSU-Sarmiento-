@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync - QR Generator</title>
+  <meta name="view-transition" content="same-origin" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script src="auth-check.js"></script>
+  <style>
+    @media print {
+      body > *:not(#printArea) {
+        display: none !important;
+      }
+      body {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      #printArea {
+        display: block !important;
+      }
+      .qr-print-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+        padding: 20px;
+      }
+      .qr-sticker {
+        padding: 20px;
+        text-align: center;
+        border: 1px dashed #ccc;
+        page-break-inside: avoid;
+        background: white;
+      }
+      .qr-sticker img { max-width: 150px; height: auto; }
+      .qr-sticker h2 { margin: 10px 0 5px; color: #333; font-size: 18px; font-family: sans-serif; }
+      .qr-sticker p { margin: 0; color: #666; font-size: 12px; font-family: sans-serif; }
+    }
+    .pc-modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .pc-modal {
+      background: white;
+      padding: 32px;
+      border-radius: 16px;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      font-family: var(--font-body);
+    }
+    .pc-modal h3 {
+      font-family: var(--font-display);
+      color: var(--primary-teal);
+      margin: 0 0 16px 0;
+      font-size: 24px;
+    }
+    .pc-modal input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border-light);
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 24px;
+      box-sizing: border-box;
+    }
+    .pc-modal input:focus {
+      border-color: var(--primary-teal);
+    }
+    .pc-modal-actions {
+      display: flex; gap: 12px; justify-content: flex-end;
+    }
+    .pc-modal-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-body);
+      transition: all 0.2s;
+    }
+    .pc-modal-btn.cancel {
+      background: var(--bg-card);
+      color: var(--text-mid);
+    }
+    .pc-modal-btn.cancel:hover { background: #e2e8f0; }
+    .pc-modal-btn.add {
+      background: var(--primary-teal);
+      color: white;
+    }
+    .pc-modal-btn.add:hover { background: #189ca8; }
+  </style>
+</head>
+
+<body data-page="mis-qr-generator">
+  <div id="printArea" style="display: none;"></div>
+
+  <!-- Add PC Modal -->
+  <div id="addPcModalOverlay" class="pc-modal-overlay">
+    <div class="pc-modal">
+      <h3>Add New PC</h3>
+      <input type="text" id="newPcNumberInput" placeholder="Enter PC Number (e.g., 1, 2, 3...)" />
+      <div class="pc-modal-actions">
+        <button class="pc-modal-btn cancel" onclick="closeAddPcModal()">Cancel</button>
+        <button class="pc-modal-btn add" onclick="submitAddPc()">Add PC</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn" title="Dashboard" onclick="window.location.href='mis-staff-dashboard.html'">
+        <i data-lucide="home" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='mis-pc-reports.html'">
+        <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Maintenance Tracker" onclick="window.location.href='mis-maintenance.html'">
+        <i data-lucide="wrench" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn active" title="QR Generator" onclick="window.location.href='mis-qr-generator.html'">
+        <i data-lucide="qr-code" style="width:24px;height:24px;"></i>
+      </button>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-bottom">
+      <button class="sidebar-btn" title="Help">
+        <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
+      </button>
+      <button class="sidebar-btn" title="Logout" onclick="window.location.href='login.html'">
+        <i data-lucide="log-out" style="width:24px;height:24px;"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Scroll Clue for Sidebar -->
+  <div id="sidebarScrollClue"
+    style="position: fixed; bottom: 16px; left: 30px; z-index: 105; color: var(--primary-teal); pointer-events: none; transition: opacity 0.3s ease;">
+    <i data-lucide="chevron-down" style="width: 20px; height: 20px; animation: bounce 2s infinite;"></i>
+  </div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+
+    <!-- HEADER -->
+    <header class="header">
+      <!-- Logos -->
+      <div class="header-logos" style="display: flex; align-items: center; gap: 14px;">
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo"
+          style="height: 40px; width: auto; object-fit: contain;">
+        <div class="logo-divider" style="width: 1px; height: 32px; background: var(--border-light);"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
+      </div>
+
+      <!-- Center Nav -->
+      <nav class="header-nav">
+        <button class="nav-item" onclick="window.location.href='mis-staff-dashboard.html'">Dashboard</button>
+        <button class="nav-item" onclick="window.location.href='mis-pc-reports.html'">PC Reports</button>
+        <button class="nav-item" onclick="window.location.href='mis-maintenance.html'">Maintenance Tracker</button>
+        <button class="nav-item active" onclick="window.location.href='mis-qr-generator.html'">QR Generator</button>
+      </nav>
+
+      <!-- Right Profile -->
+      <div class="header-right">
+        <button class="notif-btn" title="Notifications">
+          <i data-lucide="bell" style="width:16px;height:16px;"></i>
+          <span class="notif-dot"></span>
+        </button>
+
+        <div class="profile-dropdown">
+          <div class="avatar">VN</div>
+          <div class="profile-info">
+            <span class="profile-name">Violeta Nicolas</span>
+            <span class="profile-role">MIS Staff</span>
+          </div>
+          <button class="chevron-btn">
+            <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content" style="overflow-y: auto;">
+
+      <!-- Greeting + Clock Row -->
+      <div class="greeting-row">
+        <div class="greeting-left">
+          <h1 class="greeting-title" id="greetingText">QR Generator</h1>
+          <p class="greeting-sub" id="greetingSub">Generate QR codes for IT laboratory assets.</p>
+        </div>
+        <div class="clock-block">
+          <div class="clock-time" id="clockTime">--:--:-- --</div>
+          <div class="clock-date" id="clockDate">Loading…</div>
+        </div>
+      </div>
+
+      <!-- VIEW 1: ROOM SELECTION -->
+      <div id="roomSelectionView">
+        <div style="margin-top: 32px; margin-bottom: 24px;">
+          <h2
+            style="font-size: 20px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; font-family: var(--font-display);">
+            Select Laboratory Room
+          </h2>
+          <p style="font-size: 13.5px; color: var(--text-light); font-weight: 500;">
+            Choose a room to view and generate QR codes for its PCs
+          </p>
+        </div>
+
+        <div class="room-selection-grid" id="dynamicRoomGrid">
+          <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-mid);">
+            Loading rooms...
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: PC GRID -->
+      <div id="pcGridView" style="display: none; padding-top: 16px;">
+
+        <!-- Controls Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <button class="back-btn" onclick="showRoomSelection()">
+              <i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>
+            </button>
+            <h2 id="selectedRoomTitle"
+              style="font-size: 26px; font-weight: 800; color: var(--primary-teal); font-family: var(--font-display);">
+              Room 204</h2>
+          </div>
+          <button class="generate-all-btn" onclick="generateAllQR()">
+            <i data-lucide="qr-code" style="width: 18px; height: 18px;"></i>
+            Generate QR ALL PC
+          </button>
+        </div>
+
+        <!-- PCs Container -->
+        <div id="dynamicPCGrid"
+          style="border: 2px solid var(--primary-teal); border-radius: 16px; padding: 24px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    const sidebar = document.querySelector('.sidebar');
+    const scrollClue = document.getElementById('sidebarScrollClue');
+
+    if (sidebar.scrollHeight <= sidebar.clientHeight) {
+      scrollClue.style.display = 'none';
+    }
+
+    sidebar.addEventListener('scroll', () => {
+      if (sidebar.scrollTop > 10) {
+        scrollClue.style.opacity = '0';
+      } else {
+        scrollClue.style.opacity = '1';
+      }
+    });
+
+    // View Toggles
+    let currentRoomId = null;
+    let currentRoomNumber = null;
+    let currentPCs = [];
+
+    function showPCGrid(roomId, roomNumber) {
+      currentRoomId = roomId;
+      currentRoomNumber = roomNumber;
+      document.getElementById('roomSelectionView').style.display = 'none';
+      document.getElementById('pcGridView').style.display = 'block';
+      document.getElementById('selectedRoomTitle').textContent = `Room ${roomNumber}`;
+      loadPCs(roomId);
+    }
+
+    function showRoomSelection() {
+      document.getElementById('roomSelectionView').style.display = 'block';
+      document.getElementById('pcGridView').style.display = 'none';
+      currentRoomId = null;
+      currentRoomNumber = null;
+      currentPCs = [];
+    }
+
+    async function loadPCs(roomId) {
+      const grid = document.getElementById('dynamicPCGrid');
+      grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px;">Loading PCs...</div>';
+      
+      try {
+        const response = await fetch(`/api/laboratories/${roomId}/pcs`);
+        if (!response.ok) throw new Error('Failed to load PCs');
+        
+        currentPCs = await response.json();
+        renderPCGrid();
+      } catch (error) {
+        console.error('Error loading PCs:', error);
+        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #EF4444;">Failed to load PCs</div>';
+      }
+    }
+
+    function renderPCGrid() {
+      const grid = document.getElementById('dynamicPCGrid');
+      grid.innerHTML = '';
+
+      currentPCs.forEach(pc => {
+        const card = document.createElement('div');
+        card.className = 'pc-qr-card';
+        card.style.position = 'relative';
+        card.innerHTML = `
+          <button class="delete-pc-btn" onclick="deletePC(${pc.PC_ID})" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: #EF4444; cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.2s;" title="Delete PC">
+            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+          </button>
+          <div class="pc-qr-dot"></div>
+          <div class="pc-qr-title">PC ${pc.PC_Number}</div>
+          <button class="pc-qr-btn" onclick="generateQR(${pc.PC_ID})">
+            <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i>
+            Generate QR
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+
+      // Add PC button
+      const addCard = document.createElement('div');
+      addCard.className = 'pc-qr-card';
+      addCard.style.cssText = 'border: 2px dashed var(--border-light); background: transparent; box-shadow: none; cursor: pointer; transition: all 0.2s;';
+      addCard.onclick = () => addPC(currentRoomId);
+      addCard.innerHTML = `
+        <div style="background: transparent; color: var(--primary-teal); border: 2px dashed var(--primary-teal); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+          <i data-lucide="plus" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div class="pc-qr-title" style="font-size: 18px; color: var(--primary-teal);">Add PC</div>
+      `;
+      grid.appendChild(addCard);
+
+      lucide.createIcons();
+    }
+
+    let pendingAddRoomId = null;
+
+    function addPC(roomId) {
+      pendingAddRoomId = roomId;
+      document.getElementById('newPcNumberInput').value = '';
+      document.getElementById('addPcModalOverlay').style.display = 'flex';
+      document.getElementById('newPcNumberInput').focus();
+    }
+
+    function closeAddPcModal() {
+      document.getElementById('addPcModalOverlay').style.display = 'none';
+      pendingAddRoomId = null;
+    }
+
+    async function submitAddPc() {
+      const pcNumber = document.getElementById('newPcNumberInput').value.trim();
+      if (!pcNumber) {
+        alert('Please enter a PC number.');
+        return;
+      }
+      
+      const roomId = pendingAddRoomId;
+      closeAddPcModal();
+      
+      try {
+        const response = await fetch(`/api/laboratories/${roomId}/pcs/add`, { 
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ pcNumber })
+        });
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || 'Failed to add PC');
+        }
+        await loadPCs(roomId);
+      } catch (error) {
+        console.error('Error adding PC:', error);
+        alert(error.message);
+      }
+    }
+
+    async function deletePC(pcId) {
+      if (!confirm('Are you sure you want to delete this PC?')) return;
+      try {
+        const response = await fetch(`/api/pcs/${pcId}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Failed to delete PC');
+        await loadPCs(currentRoomId);
+      } catch (error) {
+        console.error('Error deleting PC:', error);
+        alert('Failed to delete PC');
+      }
+    }
+
+    async function generateQR(pcId) {
+      try {
+        const response = await fetch(`/api/pcs/${pcId}/qrcode`);
+        if (!response.ok) throw new Error('Failed to generate QR');
+        
+        const data = await response.json();
+        
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = `
+          <div class="qr-print-grid">
+            <div class="qr-sticker">
+              <img src="${data.qrCode}" alt="QR Code" />
+              <h2>Room ${data.roomNumber} - PC ${data.pcNumber}</h2>
+              <p>Scan to report an issue</p>
+            </div>
+          </div>
+        `;
+        
+        setTimeout(() => {
+          window.print();
+          printArea.innerHTML = '';
+        }, 100);
+      } catch (error) {
+        console.error('Error generating QR:', error);
+        alert('Failed to generate QR code');
+      }
+    }
+
+    async function generateAllQR() {
+      if (currentPCs.length === 0) {
+        alert('No PCs in this room yet.');
+        return;
+      }
+      
+      try {
+        const promises = currentPCs.map(pc => fetch(`/api/pcs/${pc.PC_ID}/qrcode`).then(res => res.json()));
+        const qrDataList = await Promise.all(promises);
+        
+        let stickersHtml = qrDataList.map(data => `
+          <div class="qr-sticker">
+            <img src="${data.qrCode}" alt="QR Code" />
+            <h2>Room ${data.roomNumber} - PC ${data.pcNumber}</h2>
+            <p>Scan to report an issue</p>
+          </div>
+        `).join('');
+
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = `
+          <div class="qr-print-grid">
+            ${stickersHtml}
+          </div>
+        `;
+
+        setTimeout(() => {
+          window.print();
+          printArea.innerHTML = '';
+        }, 100);
+      } catch (error) {
+        console.error('Error generating all QRs:', error);
+        alert('Failed to generate QR codes');
+      }
+    }
+
+    async function loadRooms() {
+      try {
+        const grid = document.getElementById('dynamicRoomGrid');
+        if (!grid) return;
+        
+        const response = await fetch('/api/laboratories');
+        if (!response.ok) throw new Error('Failed to load rooms');
+        
+        const rooms = await response.json();
+        
+        if (rooms.length === 0) {
+          grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-mid);">No rooms available. Please wait for the IT Dept Head to add rooms.</div>';
+          return;
+        }
+
+        grid.innerHTML = '';
+        rooms.forEach(room => {
+          const card = document.createElement('div');
+          card.className = 'room-select-card';
+          card.onclick = () => showPCGrid(room.Room_ID, room.Room_Number);
+          
+          card.innerHTML = `
+            <div class="rsc-icon">${room.Room_Number}</div>
+            <div class="rsc-title">Room ${room.Room_Number}</div>
+            <div class="rsc-subtitle">${room.Building || 'Unknown Building'}</div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Error loading rooms:', error);
+        const grid = document.getElementById('dynamicRoomGrid');
+        if (grid) {
+          grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #EF4444;">Failed to load rooms. Please try again later.</div>';
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadRooms);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,9 @@
+/* ================================================================
+   LabSync – Unified CSS Compile Entry  |  style.css
+   ================================================================ */
+
+@import url('css/variables.css');
+@import url('css/reset.css');
+@import url('css/layouts.css');
+@import url('css/components.css');
+@import url('css/responsive.css');

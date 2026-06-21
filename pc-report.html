@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    (function applyAccessibilitySettings() {
+      const savedScale = localStorage.getItem('labsync-text-scale') || 'normal';
+      const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
+      
+      document.documentElement.classList.add('text-scale-' + savedScale);
+      if (savedContrast) {
+        document.documentElement.classList.add('high-contrast');
+      }
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync – Computer Laboratory Monitoring Form</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    /* ─── CSS VARIABLES ─────────────────────────────────────────────── */
+    :root {
+      --primary-teal: #1EBBD7;
+      --primary-teal-light: #EBF8FA;
+      --primary-teal-hover: #17a2bc;
+      --text-dark: #0F172A;
+      --text-mid: #475569;
+      --text-muted: #94A3B8;
+      --bg-page: #F8FAFC;
+      --border-light: #E2E8F0;
+      
+      --status-working: #22C55E;
+      --status-working-fade: #DCFCE7;
+      --status-issue: #EF4444;
+      --status-issue-fade: #FEE2E2;
+      
+      --font-display: 'Poppins', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      --radius-card: 24px;
+    }
+
+    /* Accessibility: Text Scaling */
+    html.text-scale-small { zoom: 0.9; }
+    html.text-scale-normal { zoom: 1; }
+    html.text-scale-large { zoom: 1.1; }
+    html.text-scale-xlarge { zoom: 1.2; }
+
+    /* Accessibility: High Contrast Dark Mode */
+    html.high-contrast {
+      --primary-teal: #00A3C4;
+      --primary-teal-light: #1A2E35;
+      --primary-teal-hover: #008EA6;
+      --text-dark: #F8FAFC;
+      --text-mid: #CBD5E1;
+      --text-muted: #64748B;
+      --bg-page: #0B0F19;
+      --border-light: #374151;
+      --bg-card: #111827;
+    }
+    html.high-contrast body {
+      background: #0B0F19 !important;
+      color: #F8FAFC !important;
+    }
+    html.high-contrast .form-card {
+      background: #111827 !important;
+      border-color: #374151 !important;
+    }
+    html.high-contrast .equipment-card {
+      background: #111827 !important;
+      border-color: #374151 !important;
+      color: #F8FAFC !important;
+    }
+    html.high-contrast .equipment-card.status-working {
+      background: #111827 !important;
+    }
+    html.high-contrast .equipment-card.status-issue {
+      background: #1f1212 !important;
+      border-color: rgba(239, 68, 68, 0.4) !important;
+    }
+    html.high-contrast .status-btn:not(.active) {
+      color: #64748B;
+    }
+    html.high-contrast .status-btn:not(.active):hover {
+      background: #1F2937;
+      color: #F8FAFC;
+    }
+    html.high-contrast .input-field,
+    html.high-contrast .remarks-textarea {
+      background: #1F2937 !important;
+      border-color: #374151 !important;
+      color: #F8FAFC !important;
+    }
+    html.high-contrast .input-field:focus,
+    html.high-contrast .remarks-textarea:focus {
+      background: #111827 !important;
+      border-color: #00A3C4 !important;
+    }
+    html.high-contrast .checkbox-custom {
+      background: #111827 !important;
+      border-color: #64748B !important;
+    }
+    html.high-contrast .confirm-row.checked .checkbox-custom {
+      background: #00A3C4 !important;
+      border-color: #00A3C4 !important;
+    }
+    html.high-contrast .confirm-text {
+      color: #CBD5E1 !important;
+    }
+    html.high-contrast .success-card {
+      background: #111827 !important;
+      color: #F8FAFC !important;
+    }
+    html.high-contrast .success-text {
+      color: #CBD5E1 !important;
+    }
+    html.high-contrast .form-title {
+      background: none !important;
+      -webkit-text-fill-color: #F8FAFC !important;
+      color: #F8FAFC !important;
+    }
+    html.high-contrast .info-item {
+      color: #00A3C4 !important;
+    }
+    html.high-contrast .info-header-box {
+      background: #1A2E35 !important;
+      border-color: rgba(0, 163, 196, 0.25) !important;
+    }
+    html.high-contrast .eq-controls {
+      background: #0B0F19 !important;
+    }
+    html.high-contrast .success-btn {
+      background: #00A3C4 !important;
+      color: #ffffff !important;
+    }
+    html.high-contrast .success-btn:hover {
+      background: #008EA6 !important;
+    }
+
+    /* --- High Contrast / Dark Mode Logo Overrides --- */
+    html.high-contrast img[src*="labsync-logo"] {
+      content: url("assets/labsync-logo - dark mode.png") !important;
+    }
+
+    html.high-contrast img[src*="bsu-sarmiento-logo"] {
+      filter: drop-shadow(0px 0px 4px rgba(255, 255, 255, 0.65)) !important;
+    }
+
+
+    /* ─── RESET ──────────────────────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: radial-gradient(circle at 0% 0%, rgba(30, 187, 215, 0.08) 0%, transparent 35%),
+                  radial-gradient(circle at 100% 100%, rgba(14, 165, 201, 0.06) 0%, transparent 45%),
+                  #F8FAFC;
+      background-attachment: fixed;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 12px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── MAIN APP CONTAINER ─────────────────────────────────────────── */
+    .app-container {
+      width: 100%;
+      max-width: 580px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── HEADER ─────────────────────────────────────────────────────── */
+    .brand-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .brand-logos {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-img {
+      height: 48px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .logo-divider {
+      width: 2px;
+      height: 32px;
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 99px;
+    }
+
+    .form-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      color: #0F172A;
+      letter-spacing: -0.3px;
+      background: linear-gradient(135deg, #0F172A, #1E293B);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ─── FORM CARD ──────────────────────────────────────────────────── */
+    .form-card {
+      background: #FFFFFF;
+      border-radius: var(--radius-card);
+      width: 100%;
+      padding: 24px 16px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.01);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .form-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #1EBBD7, #0EA5C9);
+    }
+
+    /* ─── INFO HEADER BOX ────────────────────────────────────────────── */
+    .info-header-box {
+      border: 1px solid rgba(30, 187, 215, 0.25);
+      border-radius: 16px;
+      background: rgba(30, 187, 215, 0.04);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      width: 100%;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #0E7490;
+      font-size: 13.5px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .info-item svg,
+    .info-item .lucide {
+      color: var(--primary-teal);
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .info-divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(30, 187, 215, 0.2);
+      flex-shrink: 0;
+    }
+
+    /* ─── INPUTS ─────────────────────────────────────────────────────── */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      flex: 1;
+      width: 100%;
+    }
+
+    .input-wrapper svg,
+    .input-wrapper .lucide {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      width: 18px;
+      height: 18px;
+      transition: color var(--transition);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 14px 18px 14px 48px;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--text-dark);
+      background: #F8FAFC;
+      outline: none;
+      transition: all var(--transition);
+    }
+
+    .input-field:focus {
+      background: #FFFFFF;
+      border-color: var(--primary-teal);
+      box-shadow: 0 0 0 4px rgba(30, 187, 215, 0.15);
+    }
+
+    .input-field:focus + svg,
+    .input-field:focus + .lucide {
+      color: var(--primary-teal);
+    }
+
+    .input-field::placeholder {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* ─── EQUIPMENT STATUS SECTION ───────────────────────────────────── */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: var(--primary-teal);
+      border-radius: 4px;
+    }
+
+    .equipment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .equipment-card {
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FFFFFF;
+      transition: all var(--transition);
+    }
+
+    .equipment-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
+    }
+
+    /* Equipment highlight states */
+    .equipment-card.status-working {
+      border-color: var(--border-light);
+      background: #FFFFFF;
+    }
+
+    .equipment-card.status-working .eq-icon-wrapper {
+      background: var(--primary-teal-light);
+      color: var(--primary-teal);
+    }
+
+    .equipment-card.status-issue {
+      border-color: rgba(239, 68, 68, 0.25);
+      background: #FFFDFD;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.02);
+    }
+
+    .equipment-card.status-issue .eq-icon-wrapper {
+      background: var(--status-issue-fade);
+      color: var(--status-issue);
+    }
+
+    .eq-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-dark);
+    }
+
+    .eq-icon-wrapper {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--primary-teal-light);
+      color: var(--primary-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all var(--transition);
+    }
+
+    .eq-icon-wrapper svg,
+    .eq-icon-wrapper .lucide {
+      width: 20px;
+      height: 20px;
+    }
+
+    .eq-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .eq-controls {
+      display: flex;
+      background: #F1F5F9;
+      padding: 4px;
+      border-radius: 99px;
+      gap: 4px;
+    }
+
+    .status-btn {
+      border: none;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+      background: transparent;
+      transition: all var(--transition);
+      user-select: none;
+    }
+
+    .status-btn:not(.active):hover {
+      background: #E2E8F0;
+      color: var(--text-dark);
+    }
+
+    /* Green Working Active */
+    .status-btn.working-btn.active {
+      background: var(--status-working);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+    }
+
+    /* Red Issue Active */
+    .status-btn.issue-btn.active {
+      background: var(--status-issue);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    }
+
+    /* ─── REMARKS ────────────────────────────────────────────────────── */
+    .remarks-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .textarea-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .textarea-wrapper svg,
+    .textarea-wrapper .lucide {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      color: var(--text-muted);
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+      transition: color var(--transition);
+      z-index: 10;
+    }
+
+    .remarks-textarea {
+      width: 100%;
+      height: 90px;
+      padding: 14px 18px 14px 48px;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      color: var(--text-dark);
+      resize: none;
+      outline: none;
+      background: #F8FAFC;
+      transition: all var(--transition);
+    }
+
+    .remarks-textarea:focus {
+      background: #FFFFFF;
+      border-color: var(--primary-teal);
+      box-shadow: 0 0 0 4px rgba(30, 187, 215, 0.15);
+    }
+
+    .remarks-textarea:focus + svg,
+    .remarks-textarea:focus + .lucide {
+      color: var(--primary-teal);
+    }
+
+    .remarks-textarea::placeholder {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* ─── CONFIRMATION ────────────────────────────────────────────────── */
+    .confirm-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-custom {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: transparent;
+      background: #FFFFFF;
+      flex-shrink: 0;
+      transition: all var(--transition);
+      margin-top: 1px;
+    }
+
+    .confirm-row:hover .checkbox-custom {
+      border-color: var(--primary-teal);
+    }
+
+    .checkbox-custom svg,
+    .checkbox-custom .lucide {
+      width: 14px;
+      height: 14px;
+      stroke-width: 3px;
+    }
+
+    .confirm-row.checked .checkbox-custom {
+      border-color: var(--primary-teal);
+      background: var(--primary-teal);
+      color: #FFFFFF;
+      transform: scale(1.05);
+    }
+
+    .confirm-text {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-mid);
+      line-height: 1.5;
+    }
+
+    /* ─── SUBMIT BUTTON ──────────────────────────────────────────────── */
+    .submit-btn {
+      width: 100%;
+      border: none;
+      background: var(--primary-teal);
+      color: #FFFFFF;
+      padding: 16px;
+      border-radius: 14px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 4px 14px rgba(30, 187, 215, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .submit-btn:hover {
+      background: var(--primary-teal-hover);
+      box-shadow: 0 6px 18px rgba(30, 187, 215, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 10px rgba(30, 187, 215, 0.25);
+    }
+
+    .submit-btn:disabled {
+      background: #E2E8F0;
+      color: #94A3B8;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ─── SUCCESS OVERLAY ────────────────────────────────────────────── */
+    .success-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .success-card {
+      background: #FFFFFF;
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      animation: modalScale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes modalScale {
+      from { transform: scale(0.9) translateY(20px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .success-icon-wrapper {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--status-working-fade);
+      color: var(--status-working);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px auto;
+      font-size: 32px;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+    }
+
+    .success-icon-wrapper svg,
+    .success-icon-wrapper .lucide {
+      width: 36px;
+      height: 36px;
+      stroke-width: 3px;
+    }
+
+    .success-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .success-text {
+      font-size: 14px;
+      color: var(--text-mid);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .ticket-badge {
+      background: var(--primary-teal-light);
+      color: var(--primary-teal);
+      border: 1px dashed var(--primary-teal);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      display: inline-block;
+      margin-bottom: 24px;
+    }
+
+    .success-btn {
+      width: 100%;
+      background: var(--text-dark);
+      color: #FFFFFF;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+
+    .success-btn:hover {
+      background: #1E293B;
+    }
+
+    /* ─── RESPONSIVE ADJUSTMENTS ─────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .brand-header {
+        margin-bottom: 24px;
+        gap: 12px;
+      }
+      .logo-img {
+        height: 38px;
+      }
+      .logo-divider {
+        height: 24px;
+      }
+      .form-title {
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+      .info-header-box {
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 2px;
+        padding: 10px 6px;
+      }
+      .info-item {
+        font-size: 10.5px;
+        gap: 3px;
+      }
+      .info-item svg,
+      .info-item .lucide {
+        width: 13px;
+        height: 13px;
+      }
+      .info-divider {
+        display: block;
+        height: 14px;
+        background: rgba(30, 187, 215, 0.15);
+      }
+      .equipment-card {
+        padding: 12px;
+        gap: 8px;
+      }
+      .eq-name {
+        font-size: 12.5px;
+      }
+      .eq-icon-wrapper {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+      }
+      .eq-icon-wrapper svg,
+      .eq-icon-wrapper .lucide {
+        width: 16px;
+        height: 16px;
+      }
+      .eq-controls {
+        padding: 2px;
+      }
+      .status-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding: 48px;
+      }
+      
+      .app-container {
+        max-width: 720px;
+      }
+      
+      .brand-header {
+        margin-bottom: 36px;
+      }
+      
+      .form-card {
+        padding: 40px;
+        gap: 32px;
+      }
+      
+      /* Make inputs row side by side */
+      .input-group {
+        flex-direction: row;
+        gap: 16px;
+      }
+      
+      .input-field {
+        flex: 1;
+      }
+      
+      /* 2 Column Grid for Equipment Status on Tablet */
+      .equipment-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+    }
+
+    .form-bottom-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .form-left-col,
+    .form-right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+    }
+
+    @media (min-width: 1024px) {
+      .app-container {
+        max-width: 960px;
+      }
+      
+      .form-card {
+        padding: 48px 40px;
+        gap: 36px;
+      }
+
+      .info-header-box {
+        max-width: 640px;
+        margin: 0 auto;
+      }
+      
+      .form-bottom-layout {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 48px;
+        align-items: start;
+      }
+      
+      .form-right-col {
+        position: sticky;
+        top: 32px;
+      }
+      
+      .remarks-textarea {
+        min-height: 160px;
+      }
+
+      /* On Desktop, revert to 1 column for equipment since we split the card */
+      .equipment-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <!-- Brand Header -->
+    <header class="brand-header">
+      <div class="brand-logos">
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo" class="logo-img" />
+        <div class="logo-divider"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" class="logo-img" />
+      </div>
+      <h1 class="form-title">Computer Laboratory Monitoring Form</h1>
+    </header>
+
+    <!-- Main Report Card -->
+    <main class="form-card">
+
+      <!-- Dynamic Info Header Card -->
+      <section class="info-header-box">
+        <div class="info-item">
+          <i data-lucide="home"></i>
+          <span id="room-display">Loading...</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-item">
+          <i data-lucide="calendar"></i>
+          <span id="current-date">-- --, ----</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-item">
+          <i data-lucide="monitor"></i>
+          <span id="pc-display">Loading...</span>
+        </div>
+      </section>
+      <!-- Student Credentials -->
+      <section class="input-group">
+        <div class="input-wrapper">
+          <input type="text" id="student-name" class="input-field" placeholder="Student Full Name (LN, FN, MI)" required />
+          <i data-lucide="user"></i>
+        </div>
+        <div class="input-wrapper">
+          <input type="text" id="student-section" class="input-field" placeholder="Program & Section (e.g., BSIT 3A)" required />
+          <i data-lucide="graduation-cap"></i>
+        </div>
+      </section>
+
+      <!-- Bottom Layout split in two columns on Desktop -->
+      <div class="form-bottom-layout">
+        
+        <!-- Left Column: Equipment list -->
+        <div class="form-left-col">
+          <!-- Equipment Status List -->
+          <section class="equipment-section">
+            <h2 class="section-title">Equipment Status</h2>
+            <p style="font-size:12px; color:var(--text-muted); font-weight:500; margin-bottom:14px;">Toggle status to 'Issue' if any device is not working.</p>
+            
+            <div class="equipment-list">
+              
+              <!-- All-in-One PC/ Laptop -->
+              <div class="equipment-card status-working" data-component="PC/Laptop">
+                <div class="eq-left">
+                  <div class="eq-icon-wrapper">
+                    <i data-lucide="laptop"></i>
+                  </div>
+                  <span class="eq-name">All-in-One PC/ Laptop</span>
+                </div>
+                <div class="eq-controls">
+                  <button class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
+                    <i data-lucide="check" style="width:12px;height:12px;"></i>Working
+                  </button>
+                  <button class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
+                    <i data-lucide="x" style="width:12px;height:12px;"></i>Issue
+                  </button>
+                </div>
+              </div>
+
+              <!-- Monitor -->
+              <div class="equipment-card status-working" data-component="Monitor">
+                <div class="eq-left">
+                  <div class="eq-icon-wrapper">
+                    <i data-lucide="monitor"></i>
+                  </div>
+                  <span class="eq-name">Monitor</span>
+                </div>
+                <div class="eq-controls">
+                  <button class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
+                    <i data-lucide="check" style="width:12px;height:12px;"></i>Working
+                  </button>
+                  <button class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
+                    <i data-lucide="x" style="width:12px;height:12px;"></i>Issue
+                  </button>
+                </div>
+              </div>
+
+              <!-- System Unit -->
+              <div class="equipment-card status-working" data-component="System Unit">
+                <div class="eq-left">
+                  <div class="eq-icon-wrapper">
+                    <i data-lucide="cpu"></i>
+                  </div>
+                  <span class="eq-name">System Unit</span>
+                </div>
+                <div class="eq-controls">
+                  <button class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
+                    <i data-lucide="check" style="width:12px;height:12px;"></i>Working
+                  </button>
+                  <button class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
+                    <i data-lucide="x" style="width:12px;height:12px;"></i>Issue
+                  </button>
+                </div>
+              </div>
+
+              <!-- Keyboard -->
+              <div class="equipment-card status-working" data-component="Keyboard">
+                <div class="eq-left">
+                  <div class="eq-icon-wrapper">
+                    <i data-lucide="keyboard"></i>
+                  </div>
+                  <span class="eq-name">Keyboard</span>
+                </div>
+                <div class="eq-controls">
+                  <button class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
+                    <i data-lucide="check" style="width:12px;height:12px;"></i>Working
+                  </button>
+                  <button class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
+                    <i data-lucide="x" style="width:12px;height:12px;"></i>Issue
+                  </button>
+                </div>
+              </div>
+
+              <!-- Mouse -->
+              <div class="equipment-card status-working" data-component="Mouse">
+                <div class="eq-left">
+                  <div class="eq-icon-wrapper">
+                    <i data-lucide="mouse"></i>
+                  </div>
+                  <span class="eq-name">Mouse</span>
+                </div>
+                <div class="eq-controls">
+                  <button class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
+                    <i data-lucide="check" style="width:12px;height:12px;"></i>Working
+                  </button>
+                  <button class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
+                    <i data-lucide="x" style="width:12px;height:12px;"></i>Issue
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </section>
+        </div>
+
+        <!-- Right Column: Remarks + Submission -->
+        <div class="form-right-col">
+          <!-- Remarks -->
+          <section class="remarks-group">
+            <h2 class="section-title">Remarks</h2>
+            <div class="textarea-wrapper">
+              <textarea id="remarks" class="remarks-textarea" placeholder="Additional Details (Briefly describe the issue)"></textarea>
+              <i data-lucide="message-square"></i>
+            </div>
+          </section>
+
+          <!-- Confirmation Checkbox -->
+          <section class="confirm-row" onclick="toggleCheckbox()">
+            <div class="checkbox-custom" id="custom-checkbox">
+              <i data-lucide="check"></i>
+            </div>
+            <span class="confirm-text">I confirm that I am using this PC and the report is accurate.</span>
+          </section>
+
+          <!-- Submit -->
+          <button class="submit-btn" id="submit-button" onclick="handleSubmit()" disabled>
+            Submit Report
+          </button>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Success Modal Overlay -->
+  <div class="success-overlay" id="success-modal">
+    <div class="success-card">
+      <div class="success-icon-wrapper">
+        <i data-lucide="check-circle-2"></i>
+      </div>
+      <h3 class="success-title">Report Submitted!</h3>
+      <p class="success-text">Thank you! Your issue report has been registered. The MIS team will review the system shortly.</p>
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700; margin-bottom:4px;">Ticket Reference ID</div>
+        <div class="ticket-badge" id="ticket-id">LS-TKT-99120</div>
+      </div>
+      <button class="success-btn" onclick="closeSuccessModal()">Close Form</button>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Component status tracking
+    const componentStates = {
+      "PC/Laptop": "working",
+      "Monitor": "working",
+      "System Unit": "working",
+      "Keyboard": "working",
+      "Mouse": "working"
+    };
+
+    let isConfirmed = false;
+
+    // Toggle equipment status pills
+    function toggleStatus(button, statusValue) {
+      const card = button.closest('.equipment-card');
+      const componentName = card.dataset.component;
+      const controls = card.querySelector('.eq-controls');
+      
+      // Update state
+      componentStates[componentName] = statusValue;
+      
+      // Update active class on buttons
+      controls.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      // Update card border and status highlight
+      card.classList.remove('status-working', 'status-issue');
+      if (statusValue === 'working') {
+        card.classList.add('status-working');
+      } else if (statusValue === 'issue') {
+        card.classList.add('status-issue');
+      }
+    }
+
+    // Toggle custom checkbox
+    function toggleCheckbox() {
+      const checkbox = document.getElementById('custom-checkbox');
+      const confirmRow = document.querySelector('.confirm-row');
+      const submitBtn = document.getElementById('submit-button');
+      
+      isConfirmed = !isConfirmed;
+      
+      if (isConfirmed) {
+        confirmRow.classList.add('checked');
+        checkbox.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;stroke-width:3px;color:#fff;"></i>';
+        submitBtn.removeAttribute('disabled');
+      } else {
+        confirmRow.classList.remove('checked');
+        checkbox.innerHTML = '';
+        submitBtn.setAttribute('disabled', 'true');
+      }
+      lucide.createIcons();
+    }
+
+    // Parse URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room') || 'N/A';
+    const pcParam = urlParams.get('pc') || 'N/A';
+
+    document.getElementById('room-display').textContent = roomParam !== 'N/A' ? `Room ${roomParam}` : 'Select Room';
+    document.getElementById('pc-display').textContent = pcParam !== 'N/A' ? `PC Unit ${pcParam}` : 'Select PC';
+
+    // Show date dynamically
+    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    const currentDateFormatted = new Date().toLocaleDateString('en-US', dateOptions);
+    document.getElementById('current-date').textContent = currentDateFormatted;
+
+    // Form Submission
+    async function handleSubmit() {
+      const studentNameInput = document.getElementById('student-name').value.trim();
+      const studentSectionInput = document.getElementById('student-section').value.trim();
+      const remarksInput = document.getElementById('remarks').value.trim();
+      const submitBtn = document.getElementById('submit-button');
+
+      if (!studentNameInput) {
+        alert('Please fill out your Full Name.');
+        return;
+      }
+      if (!studentSectionInput) {
+        alert('Please fill out your Program & Section.');
+        return;
+      }
+
+      submitBtn.setAttribute('disabled', 'true');
+      submitBtn.innerHTML = 'Submitting...';
+
+      try {
+        const response = await fetch('/api/reports/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            roomNumber: roomParam,
+            pcNumber: pcParam,
+            studentName: studentNameInput,
+            studentSection: studentSectionInput,
+            components: componentStates,
+            remarks: remarksInput
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // Show Success Modal
+          document.getElementById('ticket-id').textContent = result.ticketId || `LS-TKT-${Math.floor(10000 + Math.random() * 90000)}`;
+          document.getElementById('success-modal').style.display = 'flex';
+        } else {
+          alert('Error submitting report: ' + (result.error || 'Please try again later.'));
+          submitBtn.removeAttribute('disabled');
+          submitBtn.innerHTML = 'Submit Report';
+        }
+      } catch (error) {
+        console.error('Error submitting report:', error);
+        alert('Connection error. Failed to send report.');
+        submitBtn.removeAttribute('disabled');
+        submitBtn.innerHTML = 'Submit Report';
+      }
+    }
+
+    function closeSuccessModal() {
+      document.getElementById('success-modal').style.display = 'none';
+      // Reset input fields
+      document.getElementById('student-name').value = '';
+      document.getElementById('student-section').value = '';
+      document.getElementById('remarks').value = '';
+      // Reset checkbox
+      if (isConfirmed) toggleCheckbox();
+    }
+
+    // Initialize Lucide Icons
+    lucide.createIcons();
+  </script>
+</body>
+
+</html>

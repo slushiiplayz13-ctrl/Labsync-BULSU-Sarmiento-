@@ -1,0 +1,898 @@
+/* ================================================================
+   LabSync – Design Tokens & Variables  |  css/variables.css
+   ================================================================ */
+
+:root {
+  --primary-teal: #1EBBD7;
+  --primary-teal-light: #E8F9FC;
+  --primary-teal-hover: #17a2bc;
+  --primary-teal-glow: rgba(30, 187, 215, 0.18);
+  --accent-blue: #0EA5C9;
+  --text-dark: #0F172A;
+  --text-mid: #475569;
+  --text-muted: #94A3B8;
+  --text-light: #64748B;
+  --bg-page: #ffffff;
+  --bg-white: #FFFFFF;
+  --bg-card: #F8FAFC;
+  --bg-body: var(--bg-card);
+  --border-light: #E2E8F0;
+  --sidebar-width: 80px;
+  --header-height: 80px;
+  --radius-pill: 999px;
+  --radius-card: 24px;
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08), 0 1px 4px rgba(15, 23, 42, 0.04);
+  --shadow-header: 0 1px 0 var(--border-light), 0 2px 8px rgba(15, 23, 42, 0.04);
+  --font-display: 'Poppins', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Accessibility: Text Scaling */
+html.text-scale-small {
+  zoom: 0.9;
+}
+
+html.text-scale-normal {
+  zoom: 1;
+}
+
+html.text-scale-large {
+  zoom: 1.1;
+}
+
+html.text-scale-xlarge {
+  zoom: 1.2;
+}
+
+/* Accessibility: High Contrast Dark Mode */
+html.high-contrast {
+  --primary-teal: #00A3C4;
+  --primary-teal-light: #1A2E35;
+  --primary-teal-hover: #008EA6;
+  --primary-teal-glow: rgba(0, 163, 196, 0.25);
+  --accent-blue: #0284C7;
+  --text-dark: #F8FAFC;
+  --text-mid: #CBD5E1;
+  --text-muted: #64748B;
+  --text-light: #94A3B8;
+  --bg-page: #111827;
+  --bg-white: #111827;
+  --bg-card: #1F2937;
+  --bg-body: var(--bg-card);
+  --border-light: #374151;
+}
+
+/* High Contrast Global UI Overrides */
+html.high-contrast,
+html.high-contrast body {
+  background: var(--bg-page) !important;
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .sidebar,
+html.high-contrast .header,
+html.high-contrast .profile-dropdown,
+html.high-contrast .content-card,
+html.high-contrast .dashboard-card {
+  border-color: var(--border-light) !important;
+}
+
+/* Blanket Text Accessibility Overrides */
+html.high-contrast h1,
+html.high-contrast h2,
+html.high-contrast h3,
+html.high-contrast h4,
+html.high-contrast h5,
+html.high-contrast h6,
+html.high-contrast label,
+html.high-contrast strong,
+html.high-contrast th,
+html.high-contrast td {
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast p,
+html.high-contrast .greeting-sub,
+html.high-contrast .editor-label,
+html.high-contrast .editor-time-cell,
+html.high-contrast .editor-drop-zone,
+html.high-contrast .timeline-text,
+html.high-contrast .timeline-time,
+html.high-contrast .fc-stat-label,
+html.high-contrast .sl-item {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .text-muted,
+html.high-contrast .clock-date {
+  color: var(--text-muted) !important;
+}
+
+/* Hardcoded White Backgrounds Overrides */
+html.high-contrast .back-btn,
+html.high-contrast .fm-search,
+html.high-contrast .fm-filter-btn,
+html.high-contrast .faculty-card,
+html.high-contrast .custom-select-trigger,
+html.high-contrast .custom-select-dropdown,
+html.high-contrast .toggle-btn.active,
+html.high-contrast .editor-table th,
+html.high-contrast #profile-menu,
+html.high-contrast #notif-menu,
+html.high-contrast #account-settings-modal>div,
+html.high-contrast #accessibility-settings-modal>div,
+html.high-contrast #help-modal>div {
+  background: var(--bg-white) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+/* Modal Internal Sections Overrides */
+html.high-contrast #account-settings-modal div[style*="background:#FAFAFA"],
+html.high-contrast #account-settings-modal div[style*="background:#FAFAFA"],
+html.high-contrast #accessibility-settings-modal div[style*="background:#FAFAFA"],
+html.high-contrast #accessibility-settings-modal div[style*="background:#F8FAFC"],
+html.high-contrast #help-modal div[style*="background:#F8FAFC"] {
+  background: var(--bg-card) !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#F0F9FF"] {
+  background: var(--primary-teal-light) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast #account-settings-modal input[style*="background:#F5F5F5"],
+html.high-contrast #account-settings-modal button[style*="background:#F5F5F5"],
+html.high-contrast #accessibility-settings-modal button[style*="background:#F5F5F5"],
+html.high-contrast #help-modal button[style*="background:#F5F5F5"] {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast #account-settings-modal label,
+html.high-contrast #accessibility-settings-modal label {
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast #switch-slider {
+  background-color: var(--border-light) !important;
+}
+
+html.high-contrast #contrast-toggle:checked+#switch-slider {
+  background-color: var(--primary-teal) !important;
+}
+
+/* Inputs, Textareas, Selects */
+html.high-contrast .input-group input,
+html.high-contrast .input-field,
+html.high-contrast .remarks-textarea,
+html.high-contrast .editor-select,
+html.high-contrast .fm-search input {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .input-group input:focus,
+html.high-contrast .input-field:focus,
+html.high-contrast .remarks-textarea:focus,
+html.high-contrast .editor-select:focus,
+html.high-contrast .fm-search input:focus {
+  background: var(--bg-white) !important;
+  border-color: var(--primary-teal) !important;
+}
+
+html.high-contrast input::placeholder,
+html.high-contrast textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Specific elements like timeline/list emptystate */
+html.high-contrast .ui-empty-state {
+  background: var(--bg-card) !important;
+  color: var(--text-muted) !important;
+}
+
+html.high-contrast .notif-btn {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .notif-btn:hover {
+  background: var(--primary-teal-light) !important;
+}
+
+/* Room Status Lab Cards Overrides */
+html.high-contrast .lab-card.green-theme {
+  background: linear-gradient(135deg, #14532D 0%, #064E3B 100%) !important;
+  border-color: #065F46 !important;
+}
+
+html.high-contrast .lab-card.orange-theme {
+  background: linear-gradient(135deg, #78350F 0%, #451A03 100%) !important;
+  border-color: #92400E !important;
+}
+
+html.high-contrast .lab-card.red-theme {
+  background: linear-gradient(135deg, #881337 0%, #4C0519 100%) !important;
+  border-color: #9F1239 !important;
+}
+
+html.high-contrast .lab-card * {
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .lab-card .ld-row span {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .lab-card .badge {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.high-contrast .lab-card.green-theme .badge {
+  color: #4ADE80 !important;
+}
+
+html.high-contrast .lab-card.green-theme .badge::before {
+  background: #4ADE80 !important;
+}
+
+html.high-contrast .lab-card.orange-theme .badge {
+  color: #FB923C !important;
+}
+
+html.high-contrast .lab-card.orange-theme .badge::before {
+  background: #FB923C !important;
+}
+
+html.high-contrast .lab-card.red-theme .badge {
+  color: #F87171 !important;
+}
+
+html.high-contrast .lab-card.red-theme .badge::before {
+  background: #F87171 !important;
+}
+
+html.high-contrast .lab-card.green-theme .teal-text {
+  color: #4ADE80 !important;
+}
+
+html.high-contrast .lab-card.orange-theme .teal-text {
+  color: #FB923C !important;
+}
+
+html.high-contrast .lab-card.red-theme .teal-text {
+  color: #F87171 !important;
+}
+
+/* Schedule cells in high contrast */
+html.high-contrast .subject-network {
+  background: #155E75 !important;
+}
+
+html.high-contrast .subject-network * {
+  color: #E0F2FE !important;
+}
+
+html.high-contrast .subject-webdev {
+  background: #1E40AF !important;
+}
+
+html.high-contrast .subject-webdev * {
+  color: #EFF6FF !important;
+}
+
+html.high-contrast .subject-capstone {
+  background: #6B21A8 !important;
+}
+
+html.high-contrast .subject-capstone * {
+  color: #FAF5FF !important;
+}
+
+html.high-contrast .subject-prog {
+  background: #166534 !important;
+}
+
+html.high-contrast .subject-prog * {
+  color: #F0FDF4 !important;
+}
+
+html.high-contrast .subject-intro {
+  background: #92400E !important;
+}
+
+html.high-contrast .subject-intro * {
+  color: #FEF3C7 !important;
+}
+
+/* Timeline text overrides */
+html.high-contrast .tc-title {
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .timeline-item.active .tc-title,
+html.high-contrast .timeline-item.future .tc-title {
+  color: var(--primary-teal) !important;
+}
+
+html.high-contrast .tc-meta,
+html.high-contrast .timeline-item.active .tc-meta,
+html.high-contrast .timeline-item.future .tc-meta {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .time-marker {
+  border-color: var(--bg-white) !important;
+  box-shadow: 0 0 0 1px var(--border-light) !important;
+}
+
+/* Faculty Filter Dropdown High Contrast Overrides */
+html.high-contrast #filter-dropdown {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.high-contrast .filter-item {
+  color: var(--text-dark) !important;
+  background: transparent !important;
+}
+
+html.high-contrast .filter-item:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+
+/* ================================================================
+   High Contrast / Dark Mode Additions & Visual Hotfixes
+   ================================================================ */
+
+/* Account Settings Left Navigation Sidebar Override */
+html.high-contrast #account-settings-modal div[style*="background:#F8FAFC"],
+html.high-contrast #account-settings-modal div[style*="background: #F8FAFC"] {
+  background: var(--bg-card) !important;
+}
+
+/* Dynamic Modals in Faculty Management, Account Settings, etc. */
+html.high-contrast #add-faculty-modal>div,
+html.high-contrast #schedule-view-modal>div,
+html.high-contrast #role-edit-modal>div,
+html.high-contrast #transfer-confirm-modal>div,
+html.high-contrast #success-greeting-modal>div,
+html.high-contrast #delete-confirm-modal>div,
+html.high-contrast #email-confirm-modal>div,
+html.high-contrast #account-settings-modal>div,
+html.high-contrast #accessibility-settings-modal>div,
+html.high-contrast #help-modal>div,
+html.high-contrast .confirm-modal-container {
+  background: var(--bg-white) !important;
+  color: var(--text-dark) !important;
+  border: 1px solid var(--border-light) !important;
+}
+
+/* Modal Headers & Notifications Dropdown Header Gradients */
+html.high-contrast div[style*="background:linear-gradient"],
+html.high-contrast div[style*="background: linear-gradient"] {
+  background: linear-gradient(135deg, var(--primary-teal-light) 0%, var(--bg-white) 100%) !important;
+  border-bottom-color: var(--border-light) !important;
+}
+
+/* Unread Notification Items background in High Contrast */
+html.high-contrast .notif-item {
+  border-bottom-color: var(--border-light) !important;
+}
+
+html.high-contrast .notif-item:hover {
+  background: var(--bg-card) !important;
+}
+
+html.high-contrast .notif-item.unread {
+  background: var(--primary-teal-light) !important;
+}
+
+html.high-contrast .notif-item.unread:hover {
+  background: rgba(0, 163, 196, 0.2) !important;
+}
+
+html.high-contrast .notif-icon-resolved {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34D399 !important;
+}
+
+html.high-contrast .notif-icon-high {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #F87171 !important;
+}
+
+html.high-contrast .notif-icon-warning {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #F59E0B !important;
+}
+
+html.high-contrast .notif-icon-occupancy {
+  background: rgba(14, 165, 233, 0.15) !important;
+  color: #38BDF8 !important;
+}
+
+html.high-contrast .notif-icon-default {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-muted) !important;
+}
+
+/* Hardcoded White/Light Buttons in Modals */
+html.high-contrast button[style*="background:#fffblanket"],
+/* dummy to keep pattern if needed */
+html.high-contrast button[style*="background:#fff"],
+html.high-contrast button[style*="background: #fff"],
+html.high-contrast button[style*="background:#ffffff"],
+html.high-contrast button[style*="background: #ffffff"],
+html.high-contrast button[style*="background:#F5F5F5"],
+html.high-contrast button[style*="background: #F5F5F5"],
+html.high-contrast button.confirm-btn-cancel,
+html.high-contrast button.btn-close,
+html.high-contrast .modal-close-btn,
+html.high-contrast #cancel-settings-btn,
+html.high-contrast #remove-photo-btn,
+html.high-contrast #close-settings-modal,
+html.high-contrast #close-accessibility-modal,
+html.high-contrast #cancel-email-confirm {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast button[style*="background:#fff"]:hover,
+html.high-contrast button[style*="background: #fff"]:hover,
+html.high-contrast button[style*="background:#ffffff"]:hover,
+html.high-contrast button[style*="background: #ffffff"]:hover,
+html.high-contrast button[style*="background:#F5F5F5"]:hover,
+html.high-contrast button[style*="background: #F5F5F5"]:hover,
+html.high-contrast button.confirm-btn-cancel:hover,
+html.high-contrast button.btn-close:hover,
+html.high-contrast .modal-close-btn:hover,
+html.high-contrast #cancel-settings-btn:hover,
+html.high-contrast #remove-photo-btn:hover,
+html.high-contrast #close-settings-modal:hover,
+html.high-contrast #close-accessibility-modal:hover,
+html.high-contrast #cancel-email-confirm:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+
+/* Accessibility Done Button global styles with hover state */
+#close-accessibility-settings-btn {
+  background: var(--primary-teal) !important;
+  color: #ffffff !important;
+  border: none !important;
+  transition: background var(--transition) !important;
+}
+
+#close-accessibility-settings-btn:hover {
+  background: var(--primary-teal-hover) !important;
+  color: #ffffff !important;
+}
+
+
+/* Inputs, Selects, Textareas general overrides in High Contrast */
+html.high-contrast input:not(.submit-btn),
+html.high-contrast select,
+html.high-contrast textarea {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+/* Faculty Card Inline style overrides */
+html.high-contrast .faculty-card div[style*="color:#1F2937"] {
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .faculty-card div[style*="color:#6B7280"] {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .faculty-card i[style*="color:#9CA3AF"] {
+  color: var(--text-muted) !important;
+}
+
+/* Custom Time Picker high contrast overrides */
+html.high-contrast .ctp-display {
+  background: var(--bg-white) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .ctp-dropdown {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .ctp-option {
+  color: var(--text-dark) !important;
+  background: transparent !important;
+}
+
+html.high-contrast .ctp-option:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+
+html.high-contrast .ctp-option.selected {
+  background: var(--primary-teal) !important;
+  color: #fff !important;
+}
+
+/* Schedule Editor Blocks Container overrides */
+html.high-contrast #blocks-container {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+}
+
+/* PC Reports Page Details overrides */
+html.high-contrast .form-title {
+  background: none !important;
+  -webkit-text-fill-color: var(--text-dark) !important;
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .info-item {
+  color: var(--primary-teal) !important;
+}
+
+html.high-contrast .info-header-box {
+  background: var(--primary-teal-light) !important;
+  border-color: rgba(0, 163, 196, 0.25) !important;
+}
+
+html.high-contrast .eq-controls {
+  background: var(--bg-page) !important;
+}
+
+html.high-contrast .success-btn {
+  background: var(--primary-teal) !important;
+  color: #ffffff !important;
+}
+
+html.high-contrast .success-btn:hover {
+  background: var(--primary-teal-hover) !important;
+}
+
+/* Badge and Metadata/Remarks Box overrides in PC Reports */
+html.high-contrast span[style*="background:#F1F5F9"],
+html.high-contrast span[style*="background: #F1F5F9"] {
+  background: var(--bg-card) !important;
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast div[style*="background:#FAFDFE"],
+html.high-contrast div[style*="background: #FAFDFE"] {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+}
+
+/* PC Reports Page Completed Modal */
+html.high-contrast .modal-container {
+  background: var(--bg-white) !important;
+  border: 1px solid var(--border-light) !important;
+}
+
+html.high-contrast .modal-header {
+  background: var(--bg-white) !important;
+  border-bottom-color: var(--border-light) !important;
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .modal-body {
+  background: var(--bg-page) !important;
+}
+
+/* ================================================================
+   Dark Mode UI Fixes: Account Settings, PC Reports, My Schedule
+   ================================================================ */
+
+/* --- 1. Account Settings Panel --- */
+html.high-contrast #account-settings-form {
+  background: var(--bg-white) !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#F0F9FF"],
+html.high-contrast #account-settings-modal div[style*="background: #F0F9FF"] {
+  background: rgba(14, 165, 233, 0.15) !important;
+  border-color: rgba(14, 165, 233, 0.3) !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#F0F9FF"] p,
+html.high-contrast #account-settings-modal div[style*="background: #F0F9FF"] p {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#F0F9FF"] i,
+html.high-contrast #account-settings-modal div[style*="background: #F0F9FF"] i {
+  color: #38BDF8 !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#FEF3C7"],
+html.high-contrast #account-settings-modal div[style*="background: #FEF3C7"] {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#FEF3C7"] p,
+html.high-contrast #account-settings-modal div[style*="background: #FEF3C7"] p {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#FEF3C7"] div[style*="color:#92400E"],
+html.high-contrast #account-settings-modal div[style*="background: #FEF3C7"] div[style*="color:#92400E"] {
+  color: #FBBF24 !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#FEF3C7"] i,
+html.high-contrast #account-settings-modal div[style*="background: #FEF3C7"] i {
+  color: #FBBF24 !important;
+}
+
+html.high-contrast #panel-qrcode p {
+  color: var(--text-mid) !important;
+}
+
+/* --- 2. PC Reports --- */
+html.high-contrast .report-card {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .status-badge.pending,
+html.high-contrast .priority-badge.medium {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #F59E0B !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+html.high-contrast .status-badge.in-progress,
+html.high-contrast .priority-badge.low {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #60A5FA !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+html.high-contrast .status-badge.resolved {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34D399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+html.high-contrast .priority-badge.high {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #F87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+html.high-contrast div[style*="background:#E8F9FC"],
+html.high-contrast div[style*="background: #E8F9FC"] {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+
+html.high-contrast span[style*="background:#FEE2E2"],
+html.high-contrast span[style*="background: #FEE2E2"] {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #F87171 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+html.high-contrast .toggle-completed-btn {
+  background: var(--bg-card) !important;
+  color: var(--primary-teal) !important;
+  border-color: var(--primary-teal) !important;
+}
+
+html.high-contrast .toggle-completed-btn:hover {
+  background: var(--primary-teal-light) !important;
+}
+
+html.high-contrast div[style*="background:#D1FAE5"],
+html.high-contrast div[style*="background: #D1FAE5"] {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34D399 !important;
+}
+
+/* --- 3. My Schedule --- */
+html.high-contrast .day-column {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast div[style*="background: rgba(255,255,255,0.4)"],
+html.high-contrast div[style*="background:rgba(255,255,255,0.4)"] {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-muted) !important;
+}
+
+html.high-contrast .sg-cell.empty {
+  background: var(--bg-card) !important;
+}
+
+html.high-contrast .custom-select-wrapper.header-select .custom-select-trigger {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .custom-select-wrapper.header-select .custom-select-trigger:hover,
+html.high-contrast .custom-select-wrapper.header-select.open .custom-select-trigger {
+  background: var(--primary-teal-light) !important;
+  border-color: var(--primary-teal) !important;
+  color: var(--primary-teal) !important;
+}
+
+/* --- 4. Faculty Management --- */
+html.high-contrast .boss-role {
+  color: var(--primary-teal) !important;
+}
+
+/* --- Help & Support Modal High Contrast Overrides --- */
+html.high-contrast .help-modal-footer {
+  background: var(--bg-card) !important;
+  border-top-color: var(--border-light) !important;
+}
+
+html.high-contrast .help-feature-card.theme-blue {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #93C5FD !important;
+}
+html.high-contrast .help-feature-card.theme-blue .help-feat-title {
+  color: #60A5FA !important;
+}
+
+html.high-contrast .help-feature-card.theme-indigo {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: #C7D2FE !important;
+}
+html.high-contrast .help-feature-card.theme-indigo .help-feat-title {
+  color: #818CF8 !important;
+}
+
+html.high-contrast .help-feature-card.theme-amber {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #FDE68A !important;
+}
+html.high-contrast .help-feature-card.theme-amber .help-feat-title {
+  color: #FBBF24 !important;
+}
+
+html.high-contrast .help-feature-card.theme-green {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #A7F3D0 !important;
+}
+html.high-contrast .help-feature-card.theme-green .help-feat-title {
+  color: #34D399 !important;
+}
+
+html.high-contrast .help-support-box {
+  background: linear-gradient(135deg, rgba(0, 163, 196, 0.15) 0%, var(--bg-card) 100%) !important;
+  border-color: rgba(0, 163, 196, 0.3) !important;
+}
+
+html.high-contrast .help-support-item span.highlight {
+  color: var(--primary-teal) !important;
+}
+
+/* --- Alert Notice Boxes High Contrast Overrides --- */
+html.high-contrast .alert-info-box {
+  background: rgba(14, 165, 233, 0.15) !important;
+  border-color: rgba(14, 165, 233, 0.3) !important;
+}
+html.high-contrast .alert-info-box i,
+html.high-contrast .alert-info-box svg {
+  color: #38BDF8 !important;
+}
+html.high-contrast .alert-info-box p {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .alert-warning-box {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+html.high-contrast .alert-warning-box i,
+html.high-contrast .alert-warning-box svg {
+  color: #FBBF24 !important;
+}
+html.high-contrast .alert-warning-box .alert-title {
+  color: var(--text-dark) !important;
+}
+html.high-contrast .alert-warning-box .alert-desc {
+  color: var(--text-mid) !important;
+}
+
+/* --- Faculty Actions Dropdown Menu High Contrast Overrides --- */
+html.high-contrast .faculty-dropdown-menu {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+}
+html.high-contrast .faculty-dropdown-menu .menu-item {
+  color: var(--text-dark) !important;
+  background: transparent !important;
+}
+html.high-contrast .faculty-dropdown-menu .menu-item:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+html.high-contrast .faculty-dropdown-menu .menu-item i,
+html.high-contrast .faculty-dropdown-menu .menu-item svg {
+  color: var(--text-muted) !important;
+}
+html.high-contrast .faculty-dropdown-menu .menu-item:hover i,
+html.high-contrast .faculty-dropdown-menu .menu-item:hover svg {
+  color: var(--primary-teal) !important;
+}
+/* Ensure the Remove Faculty / danger items remain red in high contrast dark mode */
+html.high-contrast .faculty-dropdown-menu .menu-item[style*="color: #EF4444"],
+html.high-contrast .faculty-dropdown-menu .menu-item[style*="color:#EF4444"] {
+  color: #F87171 !important;
+}
+html.high-contrast .faculty-dropdown-menu .menu-item[style*="color: #EF4444"] i,
+html.high-contrast .faculty-dropdown-menu .menu-item[style*="color:#EF4444"] i {
+  color: #F87171 !important;
+}
+html.high-contrast .faculty-dropdown-menu .menu-divider {
+  background: var(--border-light) !important;
+}
+
+/* --- Faculty Schedule View & Success Modals High Contrast Overrides --- */
+html.high-contrast .sched-modal-header {
+  background: var(--bg-card) !important;
+  border-bottom-color: var(--border-light) !important;
+}
+html.high-contrast .sched-modal-card {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+  border-left-color: var(--primary-teal) !important;
+}
+html.high-contrast .sched-modal-card:hover {
+  background: var(--bg-card) !important;
+}
+html.high-contrast .sched-modal-card * {
+  color: var(--text-dark) !important;
+}
+html.high-contrast .sched-modal-empty-icon {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+html.high-contrast .heart-container {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #F87171 !important;
+}
+html.high-contrast .tribute-card {
+  background: rgba(245, 158, 11, 0.1) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+html.high-contrast .tribute-card * {
+  color: var(--text-dark) !important;
+}
+html.high-contrast .successor-card {
+  background: rgba(20, 184, 166, 0.1) !important;
+  border-color: rgba(20, 184, 166, 0.3) !important;
+}
+html.high-contrast .successor-card * {
+  color: var(--text-dark) !important;
+}
+
+/* --- High Contrast / Dark Mode Logo Overrides --- */
+html.high-contrast img[src="assets/labsync-logo.png"],
+html.high-contrast img.labsync-logo,
+html.high-contrast img.card-logo {
+  content: url("../assets/labsync-logo - dark mode.png") !important;
+}
+
+html.high-contrast img[src*="bsu-sarmiento-logo"],
+html.high-contrast img.bsu-logo {
+  filter: drop-shadow(0px 0px 4px rgba(255, 255, 255, 0.65)) !important;
+}

@@ -1,0 +1,252 @@
+/* =================================================================
+   LabSync – Global Responsive & Media Queries |  css/responsive.css
+   ================================================================= */
+
+/* ─── Tablet and Mobile Viewports (Max Width: 1024px) ───────────── */
+@media (max-width: 1024px) {
+  /* Scroll & Wrapper Mechanics */
+  body {
+    height: auto !important;
+    overflow: auto !important;
+  }
+  .main-wrapper {
+    margin-left: 0 !important;
+    padding-top: 70px !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding-bottom: 80px !important; /* Prevent bottom navigation overlap */
+  }
+  .page-content {
+    padding: 16px !important;
+    overflow: visible !important;
+    min-height: calc(100vh - 70px);
+    height: auto !important;
+  }
+
+  /* Header Customization */
+  .header {
+    height: 70px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .header-nav {
+    display: none !important; /* Hide central navigation link row, bottom nav takes over */
+  }
+  .logo-labsync-text {
+    font-size: 15px !important;
+  }
+  .profile-info {
+    display: none !important; /* Hide profile textual descriptors to prevent header clutter */
+  }
+
+  /* Bottom Navigation Bar Conversion */
+  .sidebar {
+    position: fixed !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    height: 64px !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border-light) !important;
+    padding: 0 16px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    z-index: 1000 !important;
+    gap: 0 !important;
+    box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.05) !important;
+  }
+  .sidebar-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    gap: 0 !important;
+    flex: 1 !important;
+    flex-wrap: nowrap !important;
+  }
+  .sidebar-btn {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  /* De-clutter bottom navigation and remove sidebar-only items */
+  .sidebar-logo, 
+  .sidebar-spacer, 
+  .sidebar-bottom, 
+  #sidebarScrollClue, 
+  .sidebar-divider {
+    display: none !important;
+  }
+
+  /* Modals & Dialogs */
+  .modal-container {
+    width: 95% !important;
+    max-height: 90vh !important;
+  }
+
+  /* Schedule Editor Stack Layout */
+  .editor-layout-container {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  #create-block-panel {
+    width: 100% !important;
+    min-height: auto !important;
+  }
+  .editor-table {
+    min-width: 800px !important;
+  }
+
+  /* Schedule Scroll Container */
+  #schedule-container {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ─── Mobile Viewports (Max Width: 768px) ────────────────────────── */
+@media (max-width: 768px) {
+  /* Title and clock layout stacking */
+  .greeting-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    text-align: left !important;
+  }
+  .clock-block {
+    align-self: flex-start !important;
+  }
+
+  /* Structural grids mapping to single column */
+  .room-selection-grid,
+  .faculty-grid,
+  .reports-list,
+  .rooms-grid,
+  .analytics-row,
+  .dashboard-row,
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Responsive Containers and Cards */
+  .dashboard-card {
+    padding: 16px !important;
+  }
+  
+  /* Tables horizontally scrollable to prevent boundary clipping */
+  .table-responsive,
+  table-container {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+  }
+  
+  /* Form structural components */
+  .form-row,
+  .modal-row {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* Weekly Schedule Header & Selectors */
+  .schedule-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+    height: auto !important;
+  }
+  .schedule-selectors {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  /* Faculty Management Toolbar */
+  .fm-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .fm-search-row {
+    flex-direction: row !important;
+    width: 100% !important;
+  }
+  .fm-search {
+    flex: 1 !important;
+    width: auto !important;
+  }
+  .fm-add-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* PC Reports Header & Controls */
+  .reports-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .reports-controls {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+  }
+  .reports-controls .search-box {
+    width: 100% !important;
+  }
+  .reports-controls .toggle-completed-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Room Selection Header & Buttons */
+  .room-selection-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+  #downloadAllSchedulesBtn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Modals Content scaling for master-schedule and faculty-management */
+  #addRoomModal .modal-content,
+  #downloadModal .modal-content,
+  .modal-content {
+    width: 90% !important;
+    max-width: 420px !important;
+    padding: 24px !important;
+  }
+}
+
+/* ─── Extra Small Mobile Viewports (Max Width: 480px) ────────────── */
+@media (max-width: 480px) {
+  /* Scale down header logos and hide secondary logos */
+  .header-logos img[src*="bsu"] {
+    display: none !important;
+  }
+  .header-logos > div {
+    display: none !important; /* hide the divider */
+  }
+  .header-logos img[src*="labsync"] {
+    height: 32px !important;
+  }
+  .header-logos {
+    gap: 0 !important;
+  }
+}
+

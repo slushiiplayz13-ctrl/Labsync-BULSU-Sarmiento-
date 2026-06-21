@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Room Assignment Print Preview</title>
+  <!-- Google Fonts for Actions panel styling to keep it looking premium -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script src="auth-check.js"></script>
+  <style>
+    /* Simulated A4 Page for Screen Preview */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f1f5f9;
+        margin: 0;
+        padding: 40px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .print-actions {
+        width: 8.5in;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        background: #ffffff;
+        padding: 14px 28px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+        box-sizing: border-box;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    .actions-left h1 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+    }
+    .actions-left p {
+        font-size: 12px;
+        color: #64748b;
+        margin: 4px 0 0 0;
+    }
+    
+    .actions-right {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-action {
+        padding: 10px 20px;
+        font-size: 13.5px;
+        font-weight: 600;
+        border-radius: 10px;
+        cursor: pointer;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-print {
+        background-color: #1ebbd7;
+        color: white;
+        box-shadow: 0 4px 12px rgba(30, 187, 215, 0.2);
+    }
+    .btn-print:hover {
+        background-color: #17a3bc;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(30, 187, 215, 0.3);
+    }
+    .btn-close {
+        background-color: #f1f5f9;
+        color: #475569;
+    }
+    .btn-close:hover {
+        background-color: #e2e8f0;
+        color: #0f172a;
+    }
+
+    .document-page {
+        background-color: #ffffff;
+        width: 8.5in;
+        min-height: 11in;
+        padding: 0.5in;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        box-sizing: border-box;
+        position: relative;
+    }
+
+    /* Header Layout */
+    .print-header-container {
+        position: relative;
+        text-align: center;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .logo-placeholder {
+        width: 60px;
+        height: 60px;
+        border: 2px dashed #ccc;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: #999;
+    }
+    .header-text h1 { font-size: 14px; margin: 0; text-transform: uppercase; font-weight: normal; color: black; }
+    .header-text h2 { font-size: 16px; margin: 2px 0; font-weight: bold; color: black; }
+    .header-text p { font-size: 12px; margin: 2px 0; color: black; }
+    
+    .print-room-title-block { position: relative; text-align: center; font-weight: bold; margin-bottom: 15px; color: black; min-height: 25px; }
+    .print-room-title-block span { position: absolute; left: 0; top: 5px; font-size: 11px; }
+    .print-room-title-block h3 { display: inline-block; font-size: 18px; border-bottom: 2px solid #000; padding-bottom: 2px; margin: 0; }
+    
+    /* Schedule Table Styling */
+    .print-table { width: 100%; border-collapse: collapse; font-size: 10px; text-align: center; margin-bottom: 20px; }
+    .print-table th, .print-table td { border: 1px solid #000; padding: 4px 2px; height: 20px; vertical-align: middle; color: black; }
+    .print-table th { background-color: #f2f2f2 !important; font-weight: bold; font-size: 11px; -webkit-print-color-adjust: exact !important; color: black; }
+    .print-table .time-col { background-color: #b4c6e7 !important; font-weight: bold; width: 14%; -webkit-print-color-adjust: exact !important; color: black; white-space: nowrap; }
+    
+    /* Class detail block formatting */
+    .class-box { display: flex; flex-direction: column; justify-content: center; height: 100%; line-height: 1.2; color: black; }
+    .class-box .subject { font-weight: bold; }
+    .class-box .section { font-size: 9px; }
+    .class-box .instructor { text-transform: uppercase; font-size: 9px; margin-top: 2px;}
+    .bg-yellow { background-color: #fff2cc !important; font-weight: bold; color: black; -webkit-print-color-adjust: exact !important;}
+    .bg-gray { background-color: #e3e3e3 !important; color: black; -webkit-print-color-adjust: exact !important;}
+    
+    /* Footer */
+    .print-footer-container { margin-top: 50px; display: flex; justify-content: space-between; font-size: 11px; padding: 0 20px; color: black; }
+    .signature-block { width: 200px; }
+    .signature-line { margin-top: 40px; border-top: 1px solid #000; padding-top: 5px; }
+    .sign-name { font-weight: bold; }
+
+    /* Print Overrides */
+    @media print {
+        body {
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .print-actions {
+            display: none !important;
+        }
+        .document-page {
+            box-shadow: none;
+            padding: 0;
+            width: 100%;
+            min-height: auto;
+        }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen-Only Actions Ribbon -->
+  <div class="print-actions">
+      <div class="actions-left">
+          <h1 id="actions-title">Schedule Print Preview</h1>
+          <p id="actions-subtitle">Review and verify before printing</p>
+      </div>
+      <div class="actions-right">
+          <button class="btn-action btn-close" onclick="window.close()">Close</button>
+          <button class="btn-action btn-print" onclick="window.print()">Print Document</button>
+      </div>
+  </div>
+
+  <!-- A4 Print Layout Sheet -->
+  <div class="document-page">
+      <div class="print-header-container">
+          <!-- Left Logo: BULSU Logo.png (Scaled up and shifted inwards) -->
+          <img src="assets/BULSU%20Logo.png" alt="BulSU Logo" style="position: absolute; left: 120px; top: 50%; transform: translateY(-50%); height: 75px; width: auto; object-fit: contain;">
+
+          <div class="header-text" style="text-align: center; margin: 0 200px;">
+              <h1 style="font-size: 13px; margin: 0; text-transform: uppercase; font-weight: normal; color: black;">Republic of the Philippines</h1>
+              <h2 style="font-size: 15px; margin: 2px 0; font-weight: bold; color: black; margin-top: 4px;">Bulacan State University</h2>
+              <p style="font-size: 11px; margin: 2px 0; color: black;">City of Malolos</p>
+              <p style="font-weight: bold; margin-top: 8px; font-size: 13px; color: black; letter-spacing: 0.5px;">ROOM ASSIGNMENT</p>
+              <p id="print-ay-sem" style="font-size: 11px; margin: 2px 0; color: black; margin-top: 4px;">Academic Year: 2025-2026 1st SEMESTER</p>
+          </div>
+
+          <!-- Right Logos: BSU Sarmiento (Scaled up and shifted inwards) -->
+          <div style="position: absolute; right: 120px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 10px;">
+              <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Campus Logo" style="height: 65px; width: auto; object-fit: contain;">
+          </div>
+      </div>
+
+      <div class="print-room-title-block">
+          <span style="float: left; font-size: 11px; font-weight: bold; margin-top: 5px;">BLDG. AND ROOM NO.:</span>
+          <h3 id="print-room-title">BLDG B. RM 203</h3>
+      </div>
+
+      <table class="print-table">
+          <thead>
+              <tr>
+                  <th style="width: 14%;">Time</th>
+                  <th style="width: 5%;">Sunday</th>
+                  <th style="width: 13.5%;">Monday</th>
+                  <th style="width: 13.5%;">Tuesday</th>
+                  <th style="width: 13.5%;">Wednesday</th>
+                  <th style="width: 13.5%;">Thursday</th>
+                  <th style="width: 13.5%;">Friday</th>
+                  <th style="width: 13.5%;">Saturday</th>
+              </tr>
+          </thead>
+          <tbody id="print-tbody">
+              <!-- Dynamically Populated -->
+          </tbody>
+      </table>
+
+      <div class="print-footer-container">
+          <div class="signature-block">
+              <p style="margin: 0;">Prepared by:</p>
+              <div class="signature-line">
+                  <span class="sign-name">ELENITA T. CAPARIÑO</span><br>
+                  <span>Program Chair</span>
+              </div>
+          </div>
+          
+          <!-- Sleek Center Brand Stamp -->
+          <div class="footer-brand" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; opacity: 0.95; align-self: flex-end; padding-bottom: 5px;">
+              <span style="font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #475569; font-weight: bold;">Generated by</span>
+              <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 28px; width: auto; object-fit: contain;">
+          </div>
+          
+          <div class="signature-block" style="text-align: right;">
+              <p style="text-align: left; margin: 0; margin-left: 40px;">Approved by:</p>
+              <div class="signature-line" style="text-align: left; margin-left: 40px;">
+                  <span class="sign-name">DR. MARICEL BALIGOD</span><br>
+                  <span>Campus Dean</span>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 1. Get room and building info from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomNum = urlParams.get('room') || '204';
+        const bldgName = urlParams.get('bldg') || 'Building B';
+
+        const academicYear = urlParams.get('academicYear') || '2025-2026';
+        const semester = urlParams.get('semester') || '1st Semester';
+
+        // Set page document title and header titles
+        document.title = `Room Assignment - ${bldgName.toUpperCase()} RM ${roomNum}`;
+        document.getElementById('print-room-title').textContent = `${bldgName.toUpperCase()} RM ${roomNum}`;
+        document.getElementById('actions-title').textContent = `${bldgName.toUpperCase()} RM ${roomNum} - Print Preview`;
+        document.getElementById('actions-subtitle').textContent = `BulSU schedule print format ready`;
+        document.getElementById('print-ay-sem').textContent = `Academic Year: ${academicYear} ${semester.toUpperCase()}`;
+
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        let rawSchedules = [];
+
+        // 2. State loading strategy: check localStorage first for previewing unsaved editor state, fallback to database
+        const localDataString = localStorage.getItem('print_schedule_data');
+        if (localDataString) {
+            try {
+                const parsed = JSON.parse(localDataString);
+                // Ensure it is for the current room we requested
+                if (String(parsed.roomNum) === String(roomNum)) {
+                    rawSchedules = parsed.scheduleData;
+                    console.log('Loaded schedule data from local draft storage:', rawSchedules);
+                    // Clear the localStorage entry so it doesn't linger
+                    localStorage.removeItem('print_schedule_data');
+                }
+            } catch (err) {
+                console.error('Failed to parse localStorage print data:', err);
+            }
+        }
+
+        // If local draft data wasn't found or was for a different room, fetch from database API
+        if (rawSchedules.length === 0) {
+            try {
+                const res = await fetch(`/api/schedules/room/${roomNum}`);
+                if (res.ok) {
+                    rawSchedules = await res.json();
+                    console.log('Loaded schedule data from database API:', rawSchedules);
+                } else {
+                    console.error('Failed to load room schedule from API');
+                }
+            } catch (err) {
+                console.error('API fetch error:', err);
+            }
+        }
+
+        // 3. Normalize the schedules so that properties map perfectly regardless of source
+        const scheduleData = rawSchedules.map(s => ({
+            day: s.day || s.Day_of_Week,
+            startTime: (s.startTime || s.Start_Time || '').substring(0, 5),
+            endTime: (s.endTime || s.End_Time || '').substring(0, 5),
+            subject: s.subject || s.Subject_Name || '',
+            professor: s.professor || s.ProfessorName || '',
+            section: s.section || s.Section || ''
+        }));
+
+        // 4. Generate 30-minute intervals from 7:00 AM (07:00) to 9:00 PM (21:00)
+        const times = [];
+        for (let h = 7; h <= 20; h++) {
+            times.push(`${h.toString().padStart(2, '0')}:00`);
+            times.push(`${h.toString().padStart(2, '0')}:30`);
+        }
+        times.push('21:00'); // final upper limit boundary
+
+        // 5. Initialize layout grid [time slot index][day index]
+        const grid = Array.from({ length: times.length - 1 }, () => Array(7).fill(null));
+
+        scheduleData.forEach(s => {
+            const startIndex = times.indexOf(s.startTime);
+            const endIndex = times.indexOf(s.endTime);
+            const dayIndex = days.indexOf(s.day);
+            
+            if (startIndex !== -1 && endIndex !== -1 && dayIndex !== -1 && endIndex > startIndex) {
+                grid[startIndex][dayIndex] = {
+                    type: 'block',
+                    rowspan: endIndex - startIndex,
+                    data: s
+                };
+                for (let i = startIndex + 1; i < endIndex; i++) {
+                    grid[i][dayIndex] = { type: 'skip' };
+                }
+            }
+        });
+
+        // 6. Build the DOM Table Rows dynamically with correct rowspans
+        let tbodyHtml = '';
+        for (let r = 0; r < times.length - 1; r++) {
+            tbodyHtml += '<tr>';
+            
+            function formatTime(t) {
+                let [h, m] = t.split(':');
+                h = parseInt(h);
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                h = h % 12 || 12;
+                return `${h}:${m} ${ampm}`;
+            }
+            
+            const startStr = formatTime(times[r]);
+            const endStr = formatTime(times[r+1]);
+            tbodyHtml += `<td class="time-col">${startStr} - ${endStr}</td>`;
+            
+            for (let c = 0; c < 7; c++) {
+                const cell = grid[r][c];
+                if (!cell) {
+                    tbodyHtml += '<td></td>';
+                } else if (cell.type === 'block') {
+                    let bgClass = '';
+                    if (cell.data.subject.toUpperCase().includes('BINDTECH')) {
+                        bgClass = 'bg-yellow';
+                    }
+                    
+                    tbodyHtml += `<td rowspan="${cell.rowspan}" class="${bgClass}">
+                        <div class="class-box">
+                            <span class="subject">${cell.data.subject}</span>
+                            <span class="section">${cell.data.section}</span>
+                            <span class="instructor">${cell.data.professor}</span>
+                        </div>
+                    </td>`;
+                }
+            }
+            tbodyHtml += '</tr>';
+        }
+
+        const printTbody = document.getElementById('print-tbody');
+        if (printTbody) {
+            printTbody.innerHTML = tbodyHtml;
+        }
+
+        // 7. Auto-trigger print prompt after rendering completes
+        setTimeout(() => {
+            window.print();
+        }, 500);
+    });
+  </script>
+</body>
+</html>
