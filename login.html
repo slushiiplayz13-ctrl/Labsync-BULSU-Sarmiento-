@@ -65,7 +65,7 @@
       <img src="assets/labsync-logo.png" alt="LabSync Logo" class="labsync-logo">
     </div>
     <div class="header-right">
-      <a href="#">About</a>
+      <a href="#" id="aboutLink">About</a>
       <a href="#">Contact</a>
     </div>
   </header>
@@ -114,6 +114,86 @@
       </div>
       
       <button class="submit-btn" id="sendRecoverBtn">Send Recovery Link</button>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div id="aboutModal" class="modal-overlay">
+    <div class="modal-card about-modal-card">
+      <button type="button" class="modal-close-btn" id="closeAboutModalBtn" aria-label="Close about modal">&times;</button>
+      
+      <div class="about-header">
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" class="about-logo">
+        <p class="about-tagline">Laboratory Management & Monitoring System</p>
+      </div>
+
+      <div class="about-body">
+        <section class="about-section">
+          <h3>About the System</h3>
+          <p>
+            LabSync is a unified, smart scheduling and monitoring system built specifically for the Computer Laboratories of <strong>Bulacan State University - Sarmiento Campus</strong>. By integrating real-time scheduling, digitized PC issue reporting via QR codes, and seamless communication channels between Faculty, IT Department Heads, and MIS Staff, LabSync aims to optimize laboratory uptime and streamline academic operations.
+          </p>
+        </section>
+
+        <section class="about-section">
+          <h3>The Development Team</h3>
+          <div class="devs-grid">
+            <div class="dev-card">
+              <div class="dev-avatar-wrapper">
+                <img src="assets/Devs%20Photos/Esplana,%20Charl%20Jay.jpg" alt="Charl Jay Esplana" class="dev-avatar">
+              </div>
+              <span class="dev-name">Charl Jay Esplana</span>
+              <div class="dev-roles-list">
+                <span class="dev-role-badge">Back-End Developer</span>
+              </div>
+            </div>
+            <div class="dev-card">
+              <div class="dev-avatar-wrapper">
+                <img src="assets/Devs%20Photos/Gabito,%20Andrei.jpg" alt="Andrei Gabito" class="dev-avatar">
+              </div>
+              <span class="dev-name">Andrei Gabito</span>
+              <div class="dev-roles-list">
+                <span class="dev-role-badge">Project Manager</span>
+                <span class="dev-role-badge">System Analyst</span>
+                <span class="dev-role-badge">Front-End Developer</span>
+              </div>
+            </div>
+            <div class="dev-card">
+              <div class="dev-avatar-wrapper">
+                <img src="assets/Devs%20Photos/Guevarra,%20Ira.jpeg" alt="Ira Guevarra" class="dev-avatar">
+              </div>
+              <span class="dev-name">Ira Guevarra</span>
+              <div class="dev-roles-list">
+                <span class="dev-role-badge">QA Tester</span>
+                <span class="dev-role-badge">Documentation Specialist</span>
+              </div>
+            </div>
+            <div class="dev-card">
+              <div class="dev-avatar-wrapper">
+                <img src="assets/Devs%20Photos/Naranjo,%20Nickaela.JPG" alt="Nickaela Naranjo" class="dev-avatar">
+              </div>
+              <span class="dev-name">Nickaela Naranjo</span>
+              <div class="dev-roles-list">
+                <span class="dev-role-badge">Back-End Developer</span>
+                <span class="dev-role-badge">Documentation Specialist</span>
+              </div>
+            </div>
+            <div class="dev-card">
+              <div class="dev-avatar-wrapper">
+                <img src="assets/Devs%20Photos/Santos%20Rhale.jpg" alt="Rhale Santos" class="dev-avatar">
+              </div>
+              <span class="dev-name">Rhale Santos</span>
+              <div class="dev-roles-list">
+                <span class="dev-role-badge">IoT & Hardware Developer</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="about-footer">
+        © 2026 LabSync • BulSU Sarmiento Campus
+      </div>
     </div>
   </div>
 
@@ -201,6 +281,32 @@
           sendRecoverBtn.disabled = false;
           sendRecoverBtn.textContent = "Send Recovery Link";
           sendRecoverBtn.style.opacity = "1";
+        }
+      });
+    })();
+
+    // About Modal Controller
+    (function () {
+      const aboutLink = document.getElementById('aboutLink');
+      const aboutModal = document.getElementById('aboutModal');
+      const closeAboutModalBtn = document.getElementById('closeAboutModalBtn');
+
+      if (!aboutLink || !aboutModal || !closeAboutModalBtn) return;
+
+      aboutLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        aboutModal.classList.add('active');
+      });
+
+      function closeModal() {
+        aboutModal.classList.remove('active');
+      }
+
+      closeAboutModalBtn.addEventListener('click', closeModal);
+
+      aboutModal.addEventListener('click', (e) => {
+        if (e.target === aboutModal) {
+          closeModal();
         }
       });
     })();

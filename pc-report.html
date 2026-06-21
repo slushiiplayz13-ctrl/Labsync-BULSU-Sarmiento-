@@ -164,6 +164,43 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      scrollbar-width: thin;
+      scrollbar-color: #CBD5E1 transparent;
+    }
+
+    html.high-contrast * {
+      scrollbar-color: #374151 transparent;
+    }
+
+    /* Custom WebKit Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 99px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    html.high-contrast ::-webkit-scrollbar-thumb {
+      background: #374151;
+    }
+
+    html.high-contrast ::-webkit-scrollbar-thumb:hover {
+      background: #4B5563;
     }
 
     body {
