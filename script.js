@@ -609,20 +609,6 @@ function openAccountSettings() {
                     <p class="alert-title">Security Tip</p>
                     <p class="alert-desc">Use a strong password with at least 8 characters, including numbers and symbols.</p>
                   </div>
-                </div>ary-teal)'" onmouseleave="this.style.color='#CBD5E1'">
-                        <i data-lucide="eye" style="width:18px;height:18px;"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Security Tip Box -->
-                <div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:12px;padding:16px;display:flex;gap:12px;margin-top:8px;">
-                  <i data-lucide="shield-check" style="width:18px;height:18px;color:#F59E0B;flex-shrink:0;margin-top:2px;"></i>
-                  <div>
-                    <p style="margin:0 0 4px 0;font-size:12px;font-weight:600;color:#92400E;">Security Tip</p>
-                    <p style="margin:0;font-size:11px;color:#92400E;line-height:1.5;">Use a strong password with at least 8 characters, including numbers and symbols.</p>
-                  </div>
                 </div>
               </div>
             </div>

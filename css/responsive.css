@@ -2,6 +2,27 @@
    LabSync – Global Responsive & Media Queries |  css/responsive.css
    ================================================================= */
 
+/* ─── Laptop Screen Adjustments (Max Width: 1366px) ───────────── */
+@media (max-width: 1366px) {
+  .nav-item {
+    padding: 6px 12px !important;
+    font-size: 12.5px !important;
+  }
+  .nav-divider {
+    display: none !important;
+  }
+  .header-nav {
+    gap: 3px !important;
+  }
+}
+
+/* ─── Compact Desktop Screen Adjustments (Max Width: 1200px) ───── */
+@media (max-width: 1200px) {
+  .header-nav {
+    display: none !important;
+  }
+}
+
 /* ─── Tablet and Mobile Viewports (Max Width: 1024px) ───────────── */
 @media (max-width: 1024px) {
   /* Scroll & Wrapper Mechanics */
