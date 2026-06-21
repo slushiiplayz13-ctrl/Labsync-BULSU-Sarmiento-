@@ -95,6 +95,28 @@
   .sidebar-btn {
     width: 40px !important;
     height: 40px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  .sidebar-btn.active {
+    background: transparent !important;
+    color: var(--primary-teal) !important;
+    box-shadow: none !important;
+    position: relative !important;
+  }
+  .sidebar-btn.active::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 5px !important;
+    height: 5px !important;
+    background: var(--primary-teal) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 8px var(--primary-teal) !important;
   }
   /* De-clutter bottom navigation and remove sidebar-only items */
   .sidebar-logo, 
@@ -166,7 +188,7 @@
   
   /* Tables horizontally scrollable to prevent boundary clipping */
   .table-responsive,
-  table-container {
+  .table-container {
     width: 100% !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
@@ -270,4 +292,32 @@
     gap: 0 !important;
   }
 }
+
+/* ─── Mobile Viewports (Max Width: 600px) ────────────────────────── */
+@media (max-width: 600px) {
+  /* Stack stats grid cards into a single spacious column */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  
+  /* Scale down greeting and clock text to fit without overwhelming vertical space */
+  .greeting-left .greeting-title {
+    font-size: 20px !important;
+  }
+  
+  .greeting-left .greeting-sub {
+    font-size: 11.5px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .clock-time {
+    font-size: 22px !important;
+  }
+  
+  .clock-date {
+    font-size: 11px !important;
+  }
+}
+
 
