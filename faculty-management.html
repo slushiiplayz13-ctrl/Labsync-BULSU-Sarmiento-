@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="view-transition" content="same-origin" />
   <title>LabSync – Faculty Management</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -258,9 +259,11 @@
                   </button>
                   <div id="menu-${member.User_ID || member.Name.replace(/\s+/g, '')}" class="faculty-dropdown-menu">
                     <div class="menu-item" onclick="viewFacultySchedule('${member.Name.replace(/'/g, "\\'")}')"><i data-lucide="calendar" style="width:15px;height:15px;"></i> View Schedule</div>
+                    ${isBoss ? '' : `
                     <div class="menu-item" onclick="changeFacultyRole('${member.User_ID}', '${member.Name.replace(/'/g, "\\'")}', '${member.Role.replace(/'/g, "\\'")}')"><i data-lucide="shield" style="width:15px;height:15px;"></i> Change Role</div>
                     <div class="menu-divider"></div>
                     <div class="menu-item" onclick="confirmDeleteFaculty('${member.User_ID}', '${member.Name.replace(/'/g, "\\'")}')" style="color: #EF4444;"><i data-lucide="user-x" style="width:15px;height:15px;color:#EF4444;"></i> Remove Faculty</div>
+                    `}
                   </div>
                 </div>
               </div>
@@ -274,7 +277,7 @@
               </div>
               <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#6B7280;">
                 <i data-lucide="phone" style="width:15px;height:15px;color:#9CA3AF;flex-shrink:0;"></i>
-                <span>+63 912 345 6789</span>
+                <span>${member.Phone || 'Not specified'}</span>
               </div>
             </div>
             

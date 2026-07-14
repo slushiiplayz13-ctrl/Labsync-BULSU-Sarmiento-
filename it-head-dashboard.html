@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LabSync – IT Dept Head Dashboard</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <meta name="view-transition" content="same-origin" />
 
   <!-- Google Fonts -->
@@ -18,7 +19,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
   <!-- External Stylesheet -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=1.0.3" />
   <style id="auth-anti-flash">body { display: none !important; }</style>
   <script src="auth-check.js"></script>
 </head>
@@ -136,56 +137,80 @@
         
         <!-- Stats Grid -->
         <div class="stats-grid">
-          <div class="stat-card">
+          <!-- Total Lab Rooms -->
+          <div class="stat-card theme-blue">
             <div class="stat-header">
-              <div>
+              <div class="stat-info">
                 <div class="stat-value blue-text">—</div>
                 <div class="stat-title">Total Lab Rooms</div>
               </div>
-              <div class="stat-icon blue">
-                <i data-lucide="monitor" style="width:24px;height:24px;"></i>
+              <div class="stat-icon">
+                <i data-lucide="monitor"></i>
               </div>
             </div>
-            <div class="stat-meta">No data loaded</div>
+            <div class="stat-meta-container">
+              <span class="stat-meta">No data loaded</span>
+            </div>
+            <div class="stat-watermark">
+              <i data-lucide="monitor"></i>
+            </div>
           </div>
 
-          <div class="stat-card">
+          <!-- Available Labs -->
+          <div class="stat-card theme-green">
             <div class="stat-header">
-              <div>
+              <div class="stat-info">
                 <div class="stat-value green-text">—</div>
                 <div class="stat-title">Available Labs</div>
               </div>
-              <div class="stat-icon green">
-                <i data-lucide="check-circle" style="width:24px;height:24px;"></i>
+              <div class="stat-icon">
+                <i data-lucide="check-circle"></i>
               </div>
             </div>
-            <div class="stat-meta">No data loaded</div>
+            <div class="stat-meta-container">
+              <span class="stat-meta">No data loaded</span>
+            </div>
+            <div class="stat-watermark">
+              <i data-lucide="check-circle"></i>
+            </div>
           </div>
 
-          <div class="stat-card">
+          <!-- Pending PC Reports -->
+          <div class="stat-card theme-orange">
             <div class="stat-header">
-              <div>
+              <div class="stat-info">
                 <div class="stat-value orange-text">—</div>
                 <div class="stat-title">Pending PC Reports</div>
               </div>
-              <div class="stat-icon orange">
-                <i data-lucide="alert-circle" style="width:24px;height:24px;"></i>
+              <div class="stat-icon">
+                <i data-lucide="alert-circle"></i>
               </div>
             </div>
-            <div class="stat-meta">No data loaded</div>
+            <div class="stat-meta-container">
+              <span class="stat-meta">No data loaded</span>
+            </div>
+            <div class="stat-watermark">
+              <i data-lucide="alert-circle"></i>
+            </div>
           </div>
 
-          <div class="stat-card">
+          <!-- Classes Today -->
+          <div class="stat-card theme-purple">
             <div class="stat-header">
-              <div>
-                <div class="stat-value" style="color: #8B5CF6;">—</div>
+              <div class="stat-info">
+                <div class="stat-value">—</div>
                 <div class="stat-title">Classes Today</div>
               </div>
-              <div class="stat-icon" style="background: #A78BFA; box-shadow: 0 4px 14px rgba(167, 139, 250, 0.35);">
-                <i data-lucide="calendar-clock" style="width:24px;height:24px;"></i>
+              <div class="stat-icon">
+                <i data-lucide="calendar-clock"></i>
               </div>
             </div>
-            <div class="stat-meta">No data loaded</div>
+            <div class="stat-meta-container">
+              <span class="stat-meta">No data loaded</span>
+            </div>
+            <div class="stat-watermark">
+              <i data-lucide="calendar-clock"></i>
+            </div>
           </div>
         </div>
 
@@ -200,7 +225,12 @@
                   <i data-lucide="book-open" style="width:22px;height:22px;"></i>
                 </div>
                 <div>
-                  <h3>My Laboratories</h3>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <h3>My Laboratories</h3>
+                    <span class="scroll-hint-badge" style="display: none; align-items: center; gap: 4px; font-size: 10px; color: var(--primary-teal); background: var(--primary-teal-light); padding: 2px 8px; border-radius: 99px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                      <i data-lucide="chevrons-up-down" style="width: 11px; height: 11px;"></i> Scrollable
+                    </span>
+                  </div>
                   <p>Real-time room status</p>
                 </div>
               </div>
@@ -253,7 +283,7 @@
     </main>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=1.0.2"></script>
   <script>
     const sidebar = document.querySelector('.sidebar');
     const scrollClue = document.getElementById('sidebarScrollClue');

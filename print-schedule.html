@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Room Assignment Print Preview</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <!-- Google Fonts for Actions panel styling to keep it looking premium -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,7 +24,7 @@
     }
     
     .print-actions {
-        width: 8.5in;
+        width: 8.27in;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -86,10 +87,15 @@
         color: #0f172a;
     }
 
+    @page {
+        size: A4 portrait;
+        margin: 0.5in;
+    }
+
     .document-page {
         background-color: #ffffff;
-        width: 8.5in;
-        min-height: 11in;
+        width: 8.27in;
+        min-height: 11.69in;
         padding: 0.5in;
         box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
         box-sizing: border-box;
@@ -127,23 +133,23 @@
     .print-room-title-block h3 { display: inline-block; font-size: 18px; border-bottom: 2px solid #000; padding-bottom: 2px; margin: 0; }
     
     /* Schedule Table Styling */
-    .print-table { width: 100%; border-collapse: collapse; font-size: 10px; text-align: center; margin-bottom: 20px; }
-    .print-table th, .print-table td { border: 1px solid #000; padding: 4px 2px; height: 20px; vertical-align: middle; color: black; }
+    .print-table { width: 100%; border-collapse: collapse; font-size: 9.5px; text-align: center; margin-bottom: 20px; }
+    .print-table th, .print-table td { border: 1px solid #000; padding: 2px; height: 18px; vertical-align: middle; color: black; }
     .print-table th { background-color: #f2f2f2 !important; font-weight: bold; font-size: 11px; -webkit-print-color-adjust: exact !important; color: black; }
-    .print-table .time-col { background-color: #b4c6e7 !important; font-weight: bold; width: 14%; -webkit-print-color-adjust: exact !important; color: black; white-space: nowrap; }
+    .print-table .time-col { background-color: #b4c6e7 !important; font-weight: bold; width: 14%; -webkit-print-color-adjust: exact !important; color: black; white-space: nowrap; font-size: 9px; }
     
     /* Class detail block formatting */
-    .class-box { display: flex; flex-direction: column; justify-content: center; height: 100%; line-height: 1.2; color: black; }
-    .class-box .subject { font-weight: bold; }
-    .class-box .section { font-size: 9px; }
-    .class-box .instructor { text-transform: uppercase; font-size: 9px; margin-top: 2px;}
+    .class-box { display: flex; flex-direction: column; justify-content: center; height: 100%; line-height: 1.1; color: black; }
+    .class-box .subject { font-weight: bold; font-size: 9.5px; }
+    .class-box .section { font-size: 8.5px; }
+    .class-box .instructor { text-transform: uppercase; font-size: 8.5px; margin-top: 1px;}
     .bg-yellow { background-color: #fff2cc !important; font-weight: bold; color: black; -webkit-print-color-adjust: exact !important;}
     .bg-gray { background-color: #e3e3e3 !important; color: black; -webkit-print-color-adjust: exact !important;}
     
     /* Footer */
-    .print-footer-container { margin-top: 50px; display: flex; justify-content: space-between; font-size: 11px; padding: 0 20px; color: black; }
+    .print-footer-container { margin-top: 25px; display: flex; justify-content: space-between; font-size: 11px; padding: 0 20px; color: black; }
     .signature-block { width: 200px; }
-    .signature-line { margin-top: 40px; border-top: 1px solid #000; padding-top: 5px; }
+    .signature-line { margin-top: 30px; border-top: 1px solid #000; padding-top: 5px; }
     .sign-name { font-weight: bold; }
 
     /* Print Overrides */
@@ -161,6 +167,8 @@
             padding: 0;
             width: 100%;
             min-height: auto;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
     }
   </style>
@@ -226,7 +234,7 @@
           <div class="signature-block">
               <p style="margin: 0;">Prepared by:</p>
               <div class="signature-line">
-                  <span class="sign-name">ELENITA T. CAPARIÑO</span><br>
+                  <span class="sign-name" id="print-program-chair">ELENITA T. CAPARIÑO</span><br>
                   <span>Program Chair</span>
               </div>
           </div>
@@ -240,7 +248,7 @@
           <div class="signature-block" style="text-align: right;">
               <p style="text-align: left; margin: 0; margin-left: 40px;">Approved by:</p>
               <div class="signature-line" style="text-align: left; margin-left: 40px;">
-                  <span class="sign-name">DR. MARICEL BALIGOD</span><br>
+                  <span class="sign-name" id="print-campus-dean">DR. MARICEL BALIGOD</span><br>
                   <span>Campus Dean</span>
               </div>
           </div>
@@ -249,6 +257,22 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
+        // Fetch and display dynamic signatures
+        try {
+            const settingsRes = await fetch('/api/settings');
+            if (settingsRes.ok) {
+                const settings = await settingsRes.json();
+                if (settings.program_chair) {
+                    document.getElementById('print-program-chair').textContent = settings.program_chair.toUpperCase();
+                }
+                if (settings.campus_dean) {
+                    document.getElementById('print-campus-dean').textContent = settings.campus_dean.toUpperCase();
+                }
+            }
+        } catch (err) {
+            console.error('Failed to load dynamic signatures:', err);
+        }
+
         // 1. Get room and building info from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const roomNum = urlParams.get('room') || '204';

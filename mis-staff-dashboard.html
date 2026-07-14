@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LabSync - MIS Staff Dashboard</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <meta name="view-transition" content="same-origin" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -119,46 +120,52 @@
       <div class="dashboard-overview">
         
         <!-- Stats Grid -->
-        <div class="stats-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+        <div class="stats-grid mis-stats" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
           <!-- Stat 1 -->
-          <div class="stat-card" style="background: var(--primary-teal-light); border-color: rgba(30, 187, 215, 0.1); flex-direction: row; align-items: center; gap: 16px; padding: 16px;">
-            <div class="stat-icon" style="background: #D1F4FA; color: var(--primary-teal); border-radius: 12px; width: 48px; height: 48px; flex-shrink: 0;">
-              <i data-lucide="users" style="width: 24px; height: 24px;"></i>
-            </div>
-            <div>
-              <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;">
-                <span style="font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--text-dark); line-height: 1;">0</span>
-                <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">| 0 Active</span>
+          <div class="stat-card theme-blue">
+            <div class="stat-header">
+              <div class="stat-info">
+                <div class="stat-value">0 <span class="stat-sub-val">| 0 Active</span></div>
+                <div class="stat-title">System Connectivity</div>
               </div>
-              <div style="font-size: 13px; font-weight: 600; color: var(--text-mid);">System Connectivity</div>
+              <div class="stat-icon">
+                <i data-lucide="users"></i>
+              </div>
+            </div>
+            <div class="stat-watermark">
+              <i data-lucide="users"></i>
             </div>
           </div>
 
           <!-- Stat 2 -->
-          <div class="stat-card" style="background: #FFFBEB; border-color: rgba(251, 191, 36, 0.2); flex-direction: row; align-items: center; gap: 16px; padding: 16px;">
-            <div class="stat-icon" style="background: #FEF3C7; color: #F59E0B; border-radius: 12px; width: 48px; height: 48px; flex-shrink: 0;">
-              <i data-lucide="alert-triangle" style="width: 24px; height: 24px;"></i>
-            </div>
-            <div>
-              <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;">
-                <span style="font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--text-dark); line-height: 1;">0</span>
-                <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">| 0 Total</span>
+          <div class="stat-card theme-orange">
+            <div class="stat-header">
+              <div class="stat-info">
+                <div class="stat-value">0 <span class="stat-sub-val">| 0 Total</span></div>
+                <div class="stat-title">Pending PC Reports</div>
               </div>
-              <div style="font-size: 13px; font-weight: 600; color: var(--text-mid);">Pending PC Reports</div>
+              <div class="stat-icon">
+                <i data-lucide="alert-triangle"></i>
+              </div>
+            </div>
+            <div class="stat-watermark">
+              <i data-lucide="alert-triangle"></i>
             </div>
           </div>
 
           <!-- Stat 3 -->
-          <div class="stat-card" style="background: #FEF2F2; border-color: rgba(248, 113, 113, 0.2); flex-direction: row; align-items: center; gap: 16px; padding: 16px;">
-            <div class="stat-icon" style="background: #FEE2E2; color: #EF4444; border-radius: 12px; width: 48px; height: 48px; flex-shrink: 0;">
-              <i data-lucide="wrench" style="width: 24px; height: 24px;"></i>
-            </div>
-            <div>
-              <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;">
-                <span style="font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--text-dark); line-height: 1;">0</span>
-                <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">In-Progress</span>
+          <div class="stat-card theme-red">
+            <div class="stat-header">
+              <div class="stat-info">
+                <div class="stat-value">0 <span class="stat-sub-val">In-Progress</span></div>
+                <div class="stat-title">Active Maintenance</div>
               </div>
-              <div style="font-size: 13px; font-weight: 600; color: var(--text-mid);">Active Maintenance</div>
+              <div class="stat-icon">
+                <i data-lucide="wrench"></i>
+              </div>
+            </div>
+            <div class="stat-watermark">
+              <i data-lucide="wrench"></i>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>All Room Assignments Print Preview</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <!-- Google Fonts for Actions panel styling to keep it looking premium -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,7 +14,7 @@
   <style id="auth-anti-flash">body { display: none !important; }</style>
   <script src="auth-check.js"></script>
   <style>
-    /* Simulated A4 Page for Screen Preview */
+    /* Simulated Folio Page for Screen Preview */
     body {
         font-family: Arial, sans-serif;
         background-color: #f1f5f9;
@@ -25,7 +26,7 @@
     }
     
     .print-actions {
-        width: 8.5in;
+        width: 8.27in;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -89,7 +90,7 @@
     }
 
     @page {
-        size: 8.5in 13in; /* Mexico Legal / Long Bond */
+        size: A4 portrait;
         margin: 0;
     }
 
@@ -100,10 +101,10 @@
     
     .document-page {
         background-color: #ffffff;
-        width: 8.5in;
-        height: 12.9in; /* Slightly less than 13in to prevent double page breaks */
-        max-height: 12.9in;
-        padding: 0.4in 0.5in;
+        width: 8.27in;
+        height: 11.5in; /* Slightly less than 11.69in to prevent double page breaks */
+        max-height: 11.5in;
+        padding: 0.4in 0.5in; /* Restored padding */
         box-sizing: border-box;
         position: relative;
         overflow: hidden;
@@ -200,7 +201,7 @@
       </div>
   </div>
 
-  <div id="pages-container" style="width: 8.5in; margin: 0 auto; background: white;">
+  <div id="pages-container" style="width: 8.27in; margin: 0 auto; background: white;">
       <div style="padding: 40px; color: #64748b; font-family: 'Plus Jakarta Sans', sans-serif; text-align: center;">Loading schedules...</div>
   </div>
 
@@ -210,6 +211,21 @@
         const urlParams = new URLSearchParams(window.location.search);
         const academicYear = urlParams.get('academicYear') || '2025-2026';
         const semester = urlParams.get('semester') || '1st Semester';
+        
+        let programChair = "ELENITA T. CAPARIÑO";
+        let campusDean = "DR. MARICEL BALIGOD";
+
+        // Fetch dynamic signature settings
+        try {
+            const settingsRes = await fetch('/api/settings');
+            if (settingsRes.ok) {
+                const settings = await settingsRes.json();
+                if (settings.program_chair) programChair = settings.program_chair.toUpperCase();
+                if (settings.campus_dean) campusDean = settings.campus_dean.toUpperCase();
+            }
+        } catch (err) {
+            console.error('Failed to fetch signature settings:', err);
+        }
         
         try {
             // 1. Fetch all rooms
@@ -360,7 +376,7 @@
                         <div class="signature-block">
                             <p style="margin: 0;">Prepared by:</p>
                             <div class="signature-line">
-                                <span class="sign-name">ELENITA T. CAPARIÑO</span><br>
+                                <span class="sign-name">${programChair}</span><br>
                                 <span>Program Chair</span>
                             </div>
                         </div>
@@ -371,7 +387,7 @@
                         <div class="signature-block" style="text-align: right;">
                             <p style="text-align: left; margin: 0; margin-left: 40px;">Approved by:</p>
                             <div class="signature-line" style="text-align: left; margin-left: 40px;">
-                                <span class="sign-name">DR. MARICEL BALIGOD</span><br>
+                                <span class="sign-name">${campusDean}</span><br>
                                 <span>Campus Dean</span>
                             </div>
                         </div>
@@ -401,7 +417,7 @@
                     filename:     'All_Lab_Schedules.pdf',
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2, useCORS: true, logging: false },
-                    jsPDF:        { unit: 'in', format: [8.5, 13], orientation: 'portrait' }, // Long Bond size
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }, // A4 size
                     pagebreak:    { mode: 'legacy' }
                 };
 

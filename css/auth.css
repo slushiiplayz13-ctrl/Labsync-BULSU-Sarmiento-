@@ -457,8 +457,11 @@ html.high-contrast .reset-card {
   background: #111827;
   border: 1px solid #374151;
 }
+html.high-contrast .left-content p {
+  color: #CBD5E1;
+}
 html.high-contrast .forgot-link {
-  color: #64748B;
+  color: #94A3B8;
 }
 html.high-contrast .forgot-link:hover {
   color: var(--primary-teal);
@@ -475,7 +478,7 @@ html.high-contrast .form-group input:focus {
   border-color: var(--primary-teal);
 }
 html.high-contrast .footer-text {
-  color: #374151;
+  color: #475569;
 }
 html.high-contrast .bg-blob-1,
 html.high-contrast .bg-blob-2 {
@@ -489,7 +492,7 @@ html.high-contrast .modal-card h2 {
   color: var(--text-dark);
 }
 html.high-contrast .modal-card p {
-  color: #64748B;
+  color: #CBD5E1;
 }
 html.high-contrast .header-right a {
   color: #CBD5E1;
@@ -586,7 +589,7 @@ html.high-contrast img.bsu-logo {
 
 /* Additional reset-password High Contrast overrides */
 html.high-contrast .back-link {
-  color: #64748B;
+  color: #94A3B8;
 }
 html.high-contrast .back-link:hover {
   color: var(--primary-teal);
@@ -595,7 +598,7 @@ html.high-contrast .status-title {
   color: var(--text-dark);
 }
 html.high-contrast .status-message {
-  color: #64748B;
+  color: #CBD5E1;
 }
 
 /* About Modal Styles */

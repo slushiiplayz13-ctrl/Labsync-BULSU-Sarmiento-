@@ -87,6 +87,39 @@ async function initializeDatabase() {
                 console.error('Error adding Phone column:', err);
             }
         }
+
+        try {
+            await db.query('ALTER TABLE schedules ADD COLUMN Color_Theme VARCHAR(50) NULL');
+            console.log('Added Color_Theme column to schedules table.');
+        } catch (err) {
+            if (err.code !== 'ER_DUP_FIELDNAME') {
+                console.error('Error adding Color_Theme column to schedules:', err);
+            }
+        }
+
+        // Initialize system_settings table
+        try {
+            await db.query(`
+                CREATE TABLE IF NOT EXISTS system_settings (
+                    Setting_Key VARCHAR(50) PRIMARY KEY,
+                    Setting_Value VARCHAR(255) NOT NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+            `);
+            console.log('Created system_settings table (if not exists).');
+
+            // Insert defaults if empty
+            const [rows] = await db.query('SELECT COUNT(*) as count FROM system_settings');
+            if (rows[0].count === 0) {
+                await db.query(`
+                    INSERT INTO system_settings (Setting_Key, Setting_Value) VALUES
+                    ('program_chair', 'ELENITA T. CAPARIÑO'),
+                    ('campus_dean', 'DR. MARICEL BALIGOD')
+                `);
+                console.log('Seeded default values into system_settings.');
+            }
+        } catch (err) {
+            console.error('Error initializing system_settings table:', err);
+        }
     } catch (err) {
         console.error('Database initialization failed:', err);
     }
@@ -393,6 +426,57 @@ app.get('/api/auth/check', (req, res) => {
         res.json({ authenticated: true, userId: req.session.userId });
     } else {
         res.json({ authenticated: false });
+    }
+});
+
+// GET all system settings (authenticated users only)
+app.get('/api/settings', requireAuth, async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT Setting_Key, Setting_Value FROM system_settings');
+        // Convert to key-value object
+        const settings = {};
+        rows.forEach(row => {
+            settings[row.Setting_Key] = row.Setting_Value;
+        });
+        res.json(settings);
+    } catch (err) {
+        console.error('Error fetching system settings:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// POST update system settings (Admin / Dept Head privilege)
+app.post('/api/settings', requireAuth, async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        let role = req.session.userRole;
+        if (!role) {
+            const [users] = await db.query('SELECT Role FROM users WHERE User_ID = ?', [userId]);
+            if (users.length > 0) {
+                role = users[0].Role;
+            }
+        }
+
+        // Only allow IT Heads or MIS Staff to modify system settings
+        const isAuthorized = role && (role.toLowerCase().includes('head') || role === 'MIS Staff');
+        if (!isAuthorized) {
+            return res.status(403).json({ error: 'Privilege required: Only administrators can modify system settings.' });
+        }
+
+        const settings = req.body; // e.g. { program_chair: '...', campus_dean: '...' }
+        
+        for (const [key, value] of Object.entries(settings)) {
+            await db.query(`
+                INSERT INTO system_settings (Setting_Key, Setting_Value) 
+                VALUES (?, ?) 
+                ON DUPLICATE KEY UPDATE Setting_Value = ?
+            `, [key, value, value]);
+        }
+
+        res.json({ message: 'System settings updated successfully.' });
+    } catch (err) {
+        console.error('Error updating system settings:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -780,8 +864,8 @@ app.post('/api/schedules/save', async (req, res) => {
                 const userId = users.length > 0 ? users[0].User_ID : null;
 
                 await db.query(
-                    'INSERT INTO schedules (User_ID, Room_ID, Subject_Name, Section, Day_of_Week, Start_Time, End_Time, Academic_Year, Semester) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    [userId, roomId, sched.subject, sched.section, sched.day, sched.startTime, sched.endTime, ay, sem]
+                    'INSERT INTO schedules (User_ID, Room_ID, Subject_Name, Section, Day_of_Week, Start_Time, End_Time, Academic_Year, Semester, Color_Theme) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [userId, roomId, sched.subject, sched.section, sched.day, sched.startTime, sched.endTime, ay, sem, sched.colorTheme]
                 );
             }
         }
@@ -793,6 +877,67 @@ app.post('/api/schedules/save', async (req, res) => {
     }
 });
 
+
+
+// Check if a professor is already scheduled in another room at the same time
+app.get('/api/schedules/check-professor-conflict', async (req, res) => {
+    try {
+        const { professorName, day, startTime, endTime, academicYear, semester, excludeRoomNumber } = req.query;
+        if (!professorName || !day || !startTime || !endTime) {
+            return res.status(400).json({ error: 'Missing required parameters' });
+        }
+
+        const currentYear = new Date().getFullYear();
+        const ay = academicYear || `${currentYear}-${currentYear + 1}`;
+        const sem = semester || '1st Semester';
+
+        // Find user by name
+        const [users] = await db.query('SELECT User_ID FROM users WHERE Name = ?', [professorName]);
+        if (users.length === 0) {
+            return res.json({ conflict: false }); // No professor found, no DB conflict
+        }
+        const userId = users[0].User_ID;
+
+        // Check if there is an overlapping schedule in any room (optionally excluding excludeRoomNumber)
+        let query = `
+            SELECT s.*, l.Room_Number
+            FROM schedules s
+            JOIN laboratories l ON s.Room_ID = l.Room_ID
+            WHERE s.User_ID = ? AND s.Day_of_Week = ? AND s.Academic_Year = ? AND s.Semester = ?
+        `;
+        const params = [userId, day, ay, sem];
+
+        if (excludeRoomNumber) {
+            query += ` AND l.Room_Number != ?`;
+            params.push(excludeRoomNumber);
+        }
+
+        const [schedules] = await db.query(query, params);
+
+        // Filter overlaps (s.Start_Time < endTime AND s.End_Time > startTime)
+        const overlaps = schedules.filter(s => {
+            const start1 = s.Start_Time.substring(0, 5);
+            const end1 = s.End_Time.substring(0, 5);
+            const maxStart = start1 > startTime ? start1 : startTime;
+            const minEnd = end1 < endTime ? end1 : endTime;
+            return maxStart < minEnd;
+        });
+
+        if (overlaps.length > 0) {
+            return res.json({
+                conflict: true,
+                conflictingRoom: overlaps[0].Room_Number,
+                startTime: overlaps[0].Start_Time.substring(0, 5),
+                endTime: overlaps[0].End_Time.substring(0, 5)
+            });
+        }
+
+        res.json({ conflict: false });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 
 // Get schedule for a specific room

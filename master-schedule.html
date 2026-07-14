@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LabSync – IT Dept Head Master Schedule</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <meta name="view-transition" content="same-origin" />
 
   <!-- Google Fonts -->
@@ -145,14 +146,23 @@
           <p style="font-size: 13.5px; color: var(--text-light); font-weight: 500;">Choose a room to create or edit its
             schedule</p>
         </div>
-        <button id="downloadAllSchedulesBtn"
-          style="padding: 10px 20px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
-          onclick="printAllSchedules()"
-          onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)';"
-          onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none';">
-          <i data-lucide="download" style="width: 18px; height: 18px;"></i>
-          Download All Schedules
-        </button>
+        <div style="display: flex; gap: 12px;">
+          <button id="openSignatureSettingsBtn"
+            style="padding: 10px 20px; background: var(--bg-white); color: var(--text-mid); border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;"
+            onmouseover="this.style.background='var(--primary-teal-light)'; this.style.borderColor='var(--primary-teal)'; this.style.color='var(--primary-teal)'; this.querySelector('i').style.color='var(--primary-teal)';"
+            onmouseout="this.style.background='var(--bg-white)'; this.style.borderColor='var(--border-light)'; this.style.color='var(--text-mid)'; this.querySelector('i').style.color='var(--primary-teal)';">
+            <i data-lucide="settings" style="width: 18px; height: 18px; color: var(--primary-teal); transition: all 0.2s;"></i>
+            Signature Settings
+          </button>
+          <button id="downloadAllSchedulesBtn"
+            style="padding: 10px 20px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
+            onclick="printAllSchedules()"
+            onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)';"
+            onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none';">
+            <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+            Download All Schedules
+          </button>
+        </div>
       </div>
 
       <div class="room-selection-grid">
@@ -226,6 +236,61 @@
     </div>
   </div>
 
+  <!-- Edit Room Modal -->
+  <div id="editRoomModal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
+    <div class="modal-content"
+      style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">Edit Room</h2>
+          <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Update the laboratory details below</p>
+        </div>
+        <button id="closeEditModalBtn"
+          style="background: var(--bg-body); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-light); transition: all 0.2s;"
+          onmouseover="this.style.background='#e2e8f0'; this.style.color='var(--text-dark)';"
+          onmouseout="this.style.background='var(--bg-body)'; this.style.color='var(--text-light)';">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="editRoomIdInput">
+
+      <div style="margin-bottom: 20px;">
+        <label
+          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Room Number</label>
+        <input type="text" id="editRoomNumberInput" placeholder="e.g. 204"
+          style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
+          onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
+          onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+      </div>
+
+      <div style="margin-bottom: 32px;">
+        <label
+          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Building</label>
+        <div style="position: relative;">
+          <select id="editBuildingSelect"
+            style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; appearance: none; background: #fff; transition: all 0.2s; box-sizing: border-box; cursor: pointer;"
+            onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
+            onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+            <option value="Bldg. B">Bldg. B</option>
+            <option value="Bldg. E">Bldg. E</option>
+          </select>
+          <i data-lucide="chevron-down"
+            style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-light); pointer-events: none;"></i>
+        </div>
+      </div>
+
+      <button id="submitEditRoomBtn"
+        style="width: 100%; padding: 14px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
+        onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(30, 187, 215, 0.45)';"
+        onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(30, 187, 215, 0.35)';">
+        <i data-lucide="check" style="width: 18px; height: 18px;"></i>
+        Save Changes
+      </button>
+    </div>
+  </div>
+
   <!-- Download Modal -->
   <div id="downloadModal"
     style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
@@ -292,142 +357,72 @@
     </div>
   </div>
 
+  <!-- Signature Settings Modal -->
+  <div id="signatureSettingsModal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
+    <div class="modal-content"
+      style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">Signature Settings</h2>
+          <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Update names for printed schedules</p>
+        </div>
+        <button id="closeSignatureModalBtn"
+          style="background: var(--bg-body); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-light); transition: all 0.2s;"
+          onmouseover="this.style.background='#e2e8f0'; this.style.color='var(--text-dark)';"
+          onmouseout="this.style.background='var(--bg-body)'; this.style.color='var(--text-light)';">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Program Chair Name</label>
+        <input type="text" id="programChairInput" placeholder="ELENITA T. CAPARIÑO"
+          style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
+          onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
+          onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+      </div>
+
+      <div style="margin-bottom: 32px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Campus Dean Name</label>
+        <input type="text" id="campusDeanInput" placeholder="DR. MARICEL BALIGOD"
+          style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
+          onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
+          onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
+      </div>
+
+      <button id="saveSignatureBtn"
+        style="width: 100%; padding: 14px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
+        onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(30, 187, 215, 0.45)';"
+        onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(30, 187, 215, 0.35)';">
+        <i data-lucide="check" style="width: 18px; height: 18px;"></i>
+        Save Settings
+      </button>
+    </div>
+  </div>
+
   <script src="script.js"></script>
   <script>
-    function initCustomSelect(wrapperId, onChangeCallback) {
-      const wrapper = document.getElementById(wrapperId);
-      if (!wrapper) return;
-      const trigger = wrapper.querySelector('.custom-select-trigger');
-      const display = trigger.querySelector('span');
-      const optionsContainer = wrapper.querySelector('.custom-select-dropdown');
 
-      // Set initial value from pre-selected option if dataset.value is not already set
-      if (!wrapper.dataset.value) {
-        const selectedOpt = optionsContainer.querySelector('.custom-select-option.selected');
-        if (selectedOpt) {
-          wrapper.dataset.value = selectedOpt.dataset.value;
-          display.textContent = selectedOpt.textContent;
-        }
-      }
-
-      trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isOpen = wrapper.classList.contains('open');
-        document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
-          if (w !== wrapper) w.classList.remove('open');
-        });
-        wrapper.classList.toggle('open', !isOpen);
-      });
-
-      optionsContainer.addEventListener('click', (e) => {
-        const option = e.target.closest('.custom-select-option');
-        if (!option) return;
-
-        const val = option.dataset.value;
-        const text = option.textContent;
-
-        display.textContent = text;
-        wrapper.dataset.value = val;
-
-        optionsContainer.querySelectorAll('.custom-select-option.selected').forEach(o => {
-          o.classList.remove('selected');
-        });
-        option.classList.add('selected');
-
-        wrapper.classList.remove('open');
-        if (onChangeCallback) onChangeCallback(val);
-      });
-    }
-
-    function setCustomSelectValue(wrapperId, value) {
-      const wrapper = document.getElementById(wrapperId);
-      if (!wrapper) return;
-      const display = wrapper.querySelector('.custom-select-trigger span');
-      const optionsContainer = wrapper.querySelector('.custom-select-dropdown');
-      
-      wrapper.dataset.value = value;
-      optionsContainer.querySelectorAll('.custom-select-option').forEach(opt => {
-        const isMatch = String(opt.dataset.value) === String(value);
-        opt.classList.toggle('selected', isMatch);
-        if (isMatch) display.textContent = opt.textContent;
-      });
-    }
-
-    function populateCustomYearSelectors(startWrapperId, endWrapperId, defaultAY = '2025-2026', onChangeCallback) {
-      const startWrapper = document.getElementById(startWrapperId);
-      const endWrapper = document.getElementById(endWrapperId);
-      if (!startWrapper || !endWrapper) return;
-
-      const startOptions = startWrapper.querySelector('.custom-select-dropdown');
-      const endOptions = endWrapper.querySelector('.custom-select-dropdown');
-
-      const currentYear = new Date().getFullYear();
-      const years = [];
-      for (let y = currentYear; y <= currentYear + 10; y++) {
-        years.push(y);
-      }
-
-      startOptions.innerHTML = '';
-      endOptions.innerHTML = '';
-
-      const parts = defaultAY.split('-');
-      const defaultStart = parts[0] || '2025';
-      const defaultEnd = parts[1] || '2026';
-
-      years.forEach(y => {
-        const optStart = document.createElement('div');
-        optStart.className = 'custom-select-option' + (String(y) === String(defaultStart) ? ' selected' : '');
-        optStart.dataset.value = y;
-        optStart.textContent = y;
-        startOptions.appendChild(optStart);
-
-        const optEnd = document.createElement('div');
-        optEnd.className = 'custom-select-option' + (String(y + 1) === String(defaultEnd) ? ' selected' : '');
-        optEnd.dataset.value = y + 1;
-        optEnd.textContent = y + 1;
-        endOptions.appendChild(optEnd);
-      });
-
-      startWrapper.querySelector('.custom-select-trigger span').textContent = defaultStart;
-      startWrapper.dataset.value = defaultStart;
-
-      endWrapper.querySelector('.custom-select-trigger span').textContent = defaultEnd;
-      endWrapper.dataset.value = defaultEnd;
-
-      initCustomSelect(startWrapperId, (val) => {
-        const startVal = parseInt(val);
-        setCustomSelectValue(endWrapperId, String(startVal + 1));
-        if (onChangeCallback) onChangeCallback();
-      });
-
-      initCustomSelect(endWrapperId, () => {
-        if (onChangeCallback) onChangeCallback();
-      });
-    }
-
-    // Close custom selects on outer click
-    document.addEventListener('click', () => {
-      document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
-        w.classList.remove('open');
-      });
-    });
 
     const sidebar = document.querySelector('.sidebar');
     const scrollClue = document.getElementById('sidebarScrollClue');
 
     // Hide arrow if it's not scrollable
-    if (sidebar.scrollHeight <= sidebar.clientHeight) {
-      scrollClue.style.display = 'none';
-    }
-
-    // Hide arrow when scrolled
-    sidebar.addEventListener('scroll', () => {
-      if (sidebar.scrollTop > 10) {
-        scrollClue.style.opacity = '0';
-      } else {
-        scrollClue.style.opacity = '1';
+    if (sidebar && scrollClue) {
+      if (sidebar.scrollHeight <= sidebar.clientHeight) {
+        scrollClue.style.display = 'none';
       }
-    });
+
+      // Hide arrow when scrolled
+      sidebar.addEventListener('scroll', () => {
+        if (sidebar.scrollTop > 10) {
+          scrollClue.style.opacity = '0';
+        } else {
+          scrollClue.style.opacity = '1';
+        }
+      });
+    }
 
     // Add Room Modal Logic
     const addRoomModal = document.getElementById('addRoomModal');
@@ -462,6 +457,80 @@
       if (e.target === addRoomModal) closeModal();
     });
 
+    // Edit Room Modal Logic
+    const editRoomModal = document.getElementById('editRoomModal');
+    const editModalContent = editRoomModal.querySelector('.modal-content');
+    const closeEditModalBtn = document.getElementById('closeEditModalBtn');
+    const submitEditRoomBtn = document.getElementById('submitEditRoomBtn');
+
+    function openEditModal(room) {
+      document.getElementById('editRoomIdInput').value = room.Room_ID;
+      document.getElementById('editRoomNumberInput').value = room.Room_Number;
+      document.getElementById('editBuildingSelect').value = room.Building;
+
+      editRoomModal.style.display = 'flex';
+      // Trigger reflow
+      void editRoomModal.offsetWidth;
+      editRoomModal.style.opacity = '1';
+      editModalContent.style.transform = 'translateY(0)';
+      document.getElementById('editRoomNumberInput').focus();
+      if (typeof lucide !== 'undefined') lucide.createIcons({ root: editRoomModal });
+    }
+
+    function closeEditModal() {
+      editRoomModal.style.opacity = '0';
+      editModalContent.style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        editRoomModal.style.display = 'none';
+        document.getElementById('editRoomIdInput').value = '';
+        document.getElementById('editRoomNumberInput').value = '';
+      }, 300);
+    }
+
+    closeEditModalBtn.addEventListener('click', closeEditModal);
+    editRoomModal.addEventListener('click', (e) => {
+      if (e.target === editRoomModal) closeEditModal();
+    });
+
+    submitEditRoomBtn.addEventListener('click', async () => {
+      const roomId = document.getElementById('editRoomIdInput').value;
+      const roomNum = document.getElementById('editRoomNumberInput').value.trim();
+      const bldg = document.getElementById('editBuildingSelect').value;
+      const input = document.getElementById('editRoomNumberInput');
+
+      if (!roomNum) {
+        input.style.borderColor = '#ef4444';
+        setTimeout(() => input.style.borderColor = 'var(--primary-teal)', 1000);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/laboratories/${roomId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ roomNumber: roomNum, building: bldg })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || 'Failed to update room');
+          input.style.borderColor = '#ef4444';
+          setTimeout(() => input.style.borderColor = 'var(--primary-teal)', 1000);
+          return;
+        }
+
+        // Refresh rooms list
+        loadRooms();
+        closeEditModal();
+      } catch (err) {
+        console.error('Error updating room:', err);
+        alert('An unexpected error occurred.');
+      }
+    });
+
     // Load existing rooms from database
     async function loadRooms() {
       try {
@@ -486,12 +555,24 @@
           };
 
           newCard.innerHTML = `
+            <button class="room-edit-btn" title="Edit Room">
+              <i data-lucide="edit-2" style="width: 16px; height: 16px;"></i>
+            </button>
             <div class="rsc-icon">
               <i data-lucide="monitor" style="width: 36px; height: 36px;"></i>
             </div>
             <div class="rsc-title">Room ${room.Room_Number}</div>
             <div class="rsc-subtitle">${room.Building}</div>
           `;
+
+          // Bind click handler for edit button
+          const editBtn = newCard.querySelector('.room-edit-btn');
+          if (editBtn) {
+            editBtn.onclick = (e) => {
+              e.stopPropagation();
+              openEditModal(room);
+            };
+          }
 
           grid.appendChild(newCard);
           if (typeof lucide !== 'undefined') lucide.createIcons({ root: newCard });
@@ -503,8 +584,12 @@
 
     // Call on page load
     const currentYear = new Date().getFullYear();
-    populateCustomYearSelectors('academic-year-start-wrapper', 'academic-year-end-wrapper', `${currentYear}-${currentYear + 1}`);
-    initCustomSelect('semester-wrapper');
+    if (window.populateCustomYearSelectors) {
+      window.populateCustomYearSelectors('academic-year-start-wrapper', 'academic-year-end-wrapper', `${currentYear}-${currentYear + 1}`);
+    }
+    if (window.initCustomSelect) {
+      window.initCustomSelect('semester-wrapper');
+    }
     loadRooms();
 
     // Download Modal Logic
@@ -601,7 +686,96 @@
       }
     });
 
+    // Signature Settings Modal Logic
+    const signatureSettingsModal = document.getElementById('signatureSettingsModal');
+    const openSignatureSettingsBtn = document.getElementById('openSignatureSettingsBtn');
+    const closeSignatureModalBtn = document.getElementById('closeSignatureModalBtn');
+    const saveSignatureBtn = document.getElementById('saveSignatureBtn');
+    const programChairInput = document.getElementById('programChairInput');
+    const campusDeanInput = document.getElementById('campusDeanInput');
 
+    async function openSignatureModal() {
+      // Fetch current settings
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const settings = await res.json();
+          programChairInput.value = settings.program_chair || '';
+          campusDeanInput.value = settings.campus_dean || '';
+        }
+      } catch (err) {
+        console.error('Failed to fetch signature settings:', err);
+      }
+
+      signatureSettingsModal.style.display = 'flex';
+      // Trigger reflow
+      void signatureSettingsModal.offsetWidth;
+      signatureSettingsModal.style.opacity = '1';
+      signatureSettingsModal.querySelector('.modal-content').style.transform = 'translateY(0)';
+      if (typeof lucide !== 'undefined') lucide.createIcons({ root: signatureSettingsModal });
+    }
+
+    function closeSignatureModal() {
+      signatureSettingsModal.style.opacity = '0';
+      signatureSettingsModal.querySelector('.modal-content').style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        signatureSettingsModal.style.display = 'none';
+      }, 300);
+    }
+
+    if (openSignatureSettingsBtn) {
+      openSignatureSettingsBtn.addEventListener('click', openSignatureModal);
+    }
+
+    if (closeSignatureModalBtn) {
+      closeSignatureModalBtn.addEventListener('click', closeSignatureModal);
+    }
+
+    signatureSettingsModal.addEventListener('click', (e) => {
+      if (e.target === signatureSettingsModal) closeSignatureModal();
+    });
+
+    if (saveSignatureBtn) {
+      saveSignatureBtn.addEventListener('click', async () => {
+        const chair = programChairInput.value.trim();
+        const dean = campusDeanInput.value.trim();
+
+        if (!chair || !dean) {
+          alert('Both signature fields are required.');
+          return;
+        }
+
+        saveSignatureBtn.disabled = true;
+        saveSignatureBtn.textContent = 'Saving...';
+
+        try {
+          const res = await fetch('/api/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              program_chair: chair,
+              campus_dean: dean
+            })
+          });
+
+          if (res.ok) {
+            closeSignatureModal();
+          } else {
+            const data = await res.json();
+            alert(data.error || 'Failed to save settings');
+          }
+        } catch (err) {
+          console.error('Error saving signature settings:', err);
+          alert('An error occurred while saving.');
+        } finally {
+          saveSignatureBtn.disabled = false;
+          saveSignatureBtn.innerHTML = '<i data-lucide="check" style="width: 18px; height: 18px;"></i>Save Settings';
+          if (typeof lucide !== 'undefined') lucide.createIcons({ root: saveSignatureBtn });
+        }
+      });
+    }
   </script>
 </body>
 

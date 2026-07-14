@@ -224,36 +224,79 @@ html.high-contrast .lab-card * {
   color: var(--text-dark) !important;
 }
 
-html.high-contrast .lab-card .ld-row span {
+html.high-contrast .lab-card .ld-row > span:not(.flip-hint-badge) {
   color: var(--text-mid) !important;
 }
 
-html.high-contrast .lab-card .badge {
-  background: rgba(255, 255, 255, 0.15) !important;
+/* Ensure the icon inherits the parent color in high-contrast mode for consistent layout styling */
+html.high-contrast .lab-card .ld-icon {
+  color: inherit !important;
 }
 
-html.high-contrast .lab-card.green-theme .badge {
+html.high-contrast .lab-card .badge.green {
   color: #4ADE80 !important;
+  background: rgba(16, 185, 129, 0.2) !important;
 }
 
-html.high-contrast .lab-card.green-theme .badge::before {
+html.high-contrast .lab-card .badge.green::before {
   background: #4ADE80 !important;
 }
 
-html.high-contrast .lab-card.orange-theme .badge {
+html.high-contrast .lab-card .badge.orange {
   color: #FB923C !important;
+  background: rgba(245, 158, 11, 0.2) !important;
 }
 
-html.high-contrast .lab-card.orange-theme .badge::before {
+html.high-contrast .lab-card .badge.orange::before {
   background: #FB923C !important;
 }
 
-html.high-contrast .lab-card.red-theme .badge {
+html.high-contrast .lab-card .badge.red {
   color: #F87171 !important;
+  background: rgba(239, 68, 68, 0.2) !important;
 }
 
-html.high-contrast .lab-card.red-theme .badge::before {
+html.high-contrast .lab-card .badge.red::before {
   background: #F87171 !important;
+}
+
+/* PC Reports text visibility overrides inside status card in high contrast */
+html.high-contrast .lab-card .pc-reports-title {
+  color: #FB923C !important;
+}
+
+html.high-contrast .lab-card .active-pc-problems-list div {
+  color: #FB923C !important;
+}
+
+html.high-contrast .lab-card .active-pc-problems-list span {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .lab-card .pc-badge-tag {
+  background: rgba(249, 115, 22, 0.2) !important;
+  color: #FB923C !important;
+}
+
+/* Visible hover highlight for laboratory cards in high-contrast mode */
+html.high-contrast .lab-card.green-theme:hover {
+  border-color: #10B981 !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2) !important;
+}
+
+html.high-contrast .lab-card.orange-theme:hover {
+  border-color: #FB923C !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2) !important;
+}
+
+html.high-contrast .lab-card.red-theme:hover {
+  border-color: #EF4444 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Inactive/Muted texts override in high contrast */
+html.high-contrast .lab-card .muted-text {
+  color: var(--text-muted) !important;
 }
 
 html.high-contrast .lab-card.green-theme .teal-text {
@@ -861,6 +904,16 @@ html.high-contrast .sched-modal-card:hover {
 }
 html.high-contrast .sched-modal-card * {
   color: var(--text-dark) !important;
+}
+html.high-contrast .sched-modal-card .rc-badge.in-progress {
+  background: rgba(59, 130, 246, 0.16) !important;
+  color: #60A5FA !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+html.high-contrast .sched-modal-card .rc-badge.pending {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #FBBF24 !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
 }
 html.high-contrast .sched-modal-empty-icon {
   background: var(--primary-teal-light) !important;

@@ -219,7 +219,9 @@ function initNotifications() {
   const headerRight = document.querySelector('.header-right');
   const notifBtn = document.querySelector('.notif-btn');
   if (!headerRight || !notifBtn) return;
-  
+
+  let isInitialLoad = true;
+
   // 1. Create notifications dropdown element if it doesn't exist
   let notifMenu = document.getElementById('notif-menu');
   if (!notifMenu) {
@@ -242,11 +244,20 @@ function initNotifications() {
     headerRight.appendChild(notifMenu);
     lucide.createIcons();
   }
-  
+
+  // Create notifications toast container if it doesn't exist
+  let toastContainer = document.getElementById('notif-toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'notif-toast-container';
+    toastContainer.className = 'notif-toast-container';
+    headerRight.appendChild(toastContainer);
+  }
+
   const notifList = document.getElementById('notif-list');
   const notifDot = document.querySelector('.notif-dot');
   const clearNotifBtn = document.getElementById('clear-notif-btn');
-  
+
   // Helper to format date relatively
   function getRelativeTime(dateString) {
     const date = new Date(dateString);
@@ -264,8 +275,8 @@ function initNotifications() {
     return `${diffDays} days ago`;
   }
 
-  // Helper to map type to styled UI element
-  function createNotificationItem(notif, isUnread) {
+  // Helper to map type to styled UI details
+  function getNotificationDetails(notif) {
     let iconName = 'bell';
     let iconClass = 'notif-icon-default';
     let title = 'System Update';
@@ -289,10 +300,34 @@ function initNotifications() {
       title = 'Laboratory Accessed';
       text = `${notif.description} (${notif.detail}) unlocked Room ${notif.room_number} via ${notif.status}.`;
     }
+    return { iconName, iconClass, title, text };
+  }
+
+  // Helper to handle navigation clicking
+  function handleNotificationClick(notif) {
+    if (notif.type === 'report') {
+      const isMis = document.querySelector('.profile-role')?.textContent.trim() === 'MIS Staff';
+      const isHead = document.querySelector('.profile-role')?.textContent.trim().toLowerCase().includes('head');
+      if (isMis) {
+        window.location.href = 'mis-maintenance.html';
+      } else if (isHead) {
+        window.location.href = 'it-head-pc-reports.html';
+      } else {
+        window.location.href = 'pc-reports.html';
+      }
+    } else {
+      const isHead = document.querySelector('.profile-role')?.textContent.trim().toLowerCase().includes('head');
+      window.location.href = isHead ? 'it-head-room-status.html' : 'room-status.html';
+    }
+  }
+
+  // Helper to map type to styled UI element
+  function createNotificationItem(notif, isUnread) {
+    const { iconName, iconClass, title, text } = getNotificationDetails(notif);
 
     const item = document.createElement('div');
     item.className = `notif-item${isUnread ? ' unread' : ''}`;
-    
+
     item.innerHTML = `
       <div class="notif-icon-box ${iconClass}">
         <i data-lucide="${iconName}"></i>
@@ -308,33 +343,99 @@ function initNotifications() {
     `;
 
     item.addEventListener('click', () => {
-      if (notif.type === 'report') {
-        const isMis = document.querySelector('.profile-role')?.textContent.trim() === 'MIS Staff';
-        const isHead = document.querySelector('.profile-role')?.textContent.trim().toLowerCase().includes('head');
-        if (isMis) {
-          window.location.href = 'mis-maintenance.html';
-        } else if (isHead) {
-          window.location.href = 'it-head-pc-reports.html';
-        } else {
-          window.location.href = 'pc-reports.html';
-        }
-      } else {
-        const isHead = document.querySelector('.profile-role')?.textContent.trim().toLowerCase().includes('head');
-        window.location.href = isHead ? 'it-head-room-status.html' : 'room-status.html';
-      }
+      handleNotificationClick(notif);
     });
 
     return item;
   }
 
+  // Show a small auto-dismissing toast placed relative to the bell button
+  function showNotificationToast(notif) {
+    const { iconName, iconClass, title, text } = getNotificationDetails(notif);
+
+    // Dynamically position the toast container to center the arrow on the bell button
+    const notifBtnRect = notifBtn.getBoundingClientRect();
+    const rightOffset = window.innerWidth - (notifBtnRect.left + notifBtnRect.width / 2);
+    toastContainer.style.right = `${rightOffset - 21}px`;
+
+    const card = document.createElement('div');
+    card.className = 'notif-toast-card';
+
+    card.innerHTML = `
+      <div class="notif-icon-box ${iconClass}">
+        <i data-lucide="${iconName}"></i>
+      </div>
+      <div class="notif-toast-content">
+        <div class="notif-toast-header-row">
+          <span class="notif-toast-title">${title}</span>
+          <button class="notif-toast-close-btn" title="Close">&times;</button>
+        </div>
+        <p class="notif-toast-message">${text}</p>
+      </div>
+    `;
+
+    // Click on card navigates to relevant dashboard page
+    card.addEventListener('click', () => {
+      handleNotificationClick(notif);
+    });
+
+    // Close button dismisses toast card immediately
+    const closeBtn = card.querySelector('.notif-toast-close-btn');
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismissToast(card);
+    });
+
+    toastContainer.appendChild(card);
+    lucide.createIcons();
+
+    // Setup auto-dismiss and hover pause behaviors
+    let dismissTimeout;
+    function startTimeout() {
+      dismissTimeout = setTimeout(() => {
+        dismissToast(card);
+      }, 6000);
+    }
+
+    card.addEventListener('mouseenter', () => {
+      if (dismissTimeout) clearTimeout(dismissTimeout);
+    });
+
+    card.addEventListener('mouseleave', () => {
+      dismissTimeout = setTimeout(() => {
+        dismissToast(card);
+      }, 3000); // 3 more seconds of life when mouse leaves
+    });
+
+    startTimeout();
+  }
+
+  function dismissToast(card) {
+    card.classList.add('fade-out');
+    card.addEventListener('transitionend', () => {
+      card.remove();
+    });
+  }
+
   async function loadNotifications() {
     try {
-      const response = await fetch('/api/notifications', { credentials: 'include' });
+      // Use cache-busting timestamp to prevent browser cache
+      const response = await fetch(`/api/notifications?_=${Date.now()}`, { credentials: 'include' });
       if (!response.ok) return;
       const notifications = await response.json();
-      
+
       const lastRead = localStorage.getItem('last_read_notifications');
       let unreadCount = 0;
+
+      // Load already toasted keys from localStorage
+      let toastedKeys = [];
+      try {
+        toastedKeys = JSON.parse(localStorage.getItem('shown_notification_toasts') || '[]');
+        if (!Array.isArray(toastedKeys)) toastedKeys = [];
+      } catch (e) {
+        toastedKeys = [];
+      }
+      const newToastedKeys = [...toastedKeys];
 
       notifList.innerHTML = '';
 
@@ -355,12 +456,32 @@ function initNotifications() {
         if (isUnread) unreadCount++;
         const item = createNotificationItem(notif, isUnread);
         notifList.appendChild(item);
+
+        // Check if notification is new/unread and has not been toasted yet
+        const key = `${notif.type}-${notif.id}-${notif.status}`;
+
+        if (isUnread && !toastedKeys.includes(key)) {
+          if (!isInitialLoad) {
+            showNotificationToast(notif);
+          }
+          newToastedKeys.push(key);
+        } else if (!toastedKeys.includes(key)) {
+          // Track it so we don't try to show it in the future
+          newToastedKeys.push(key);
+        }
       });
+
+      // Keep only last 50 keys to prevent localStorage bloat
+      if (newToastedKeys.length > 50) {
+        newToastedKeys.splice(0, newToastedKeys.length - 50);
+      }
+      localStorage.setItem('shown_notification_toasts', JSON.stringify(newToastedKeys));
 
       if (notifDot) {
         notifDot.style.display = unreadCount > 0 ? 'block' : 'none';
       }
 
+      isInitialLoad = false;
       lucide.createIcons();
     } catch (err) {
       console.error('Error loading notifications:', err);
@@ -370,11 +491,17 @@ function initNotifications() {
   notifBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const isShowing = notifMenu.style.display === 'block';
-    
+
     const profileMenu = document.getElementById('profile-menu');
     if (profileMenu) profileMenu.style.display = 'none';
 
     if (!isShowing) {
+      // Align the dropdown under the bell button dynamically
+      const notifBtnRect = notifBtn.getBoundingClientRect();
+      const rightOffset = window.innerWidth - (notifBtnRect.left + notifBtnRect.width / 2);
+      const calculatedRight = rightOffset - 190;
+      notifMenu.style.right = `${Math.max(20, calculatedRight)}px`;
+
       notifMenu.style.display = 'block';
       loadNotifications();
     } else {
@@ -393,8 +520,15 @@ function initNotifications() {
     notifMenu.style.display = 'none';
   });
 
+  // Reposition toast container dynamically on window resize
+  window.addEventListener('resize', () => {
+    const notifBtnRect = notifBtn.getBoundingClientRect();
+    const rightOffset = window.innerWidth - (notifBtnRect.left + notifBtnRect.width / 2);
+    toastContainer.style.right = `${rightOffset - 21}px`;
+  });
+
   loadNotifications();
-  setInterval(loadNotifications, 30000);
+  setInterval(loadNotifications, 3000); // Poll every 3 seconds for near-instantaneous live updates
 }
 
 // Bind click events to Help buttons dynamically
@@ -1426,4 +1560,191 @@ async function loadDashboardStatsAndLabs() {
     }
   }
 }
+
+// ── Custom Beautiful Select Dropdown Helpers ─────────────────────────────────
+
+window.initCustomSelect = function(wrapperId, onChangeCallback) {
+  const wrapper = typeof wrapperId === 'string' ? document.getElementById(wrapperId) : wrapperId;
+  if (!wrapper) {
+    console.error(`Custom select wrapper not found: ${wrapperId}`);
+    return;
+  }
+
+  const trigger = wrapper.querySelector('.custom-select-trigger');
+  const dropdown = wrapper.querySelector('.custom-select-dropdown');
+  if (!trigger || !dropdown) return;
+
+  // Toggle dropdown on trigger click
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    
+    // Close other open custom-select-wrappers
+    document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+      if (w !== wrapper) {
+        w.classList.remove('open');
+      }
+    });
+    
+    wrapper.classList.toggle('open');
+  });
+
+  // Handle option selection
+  const options = dropdown.querySelectorAll('.custom-select-option');
+  
+  function setupOptionListener(opt) {
+    if (opt.dataset.listenerAdded) return;
+    opt.dataset.listenerAdded = 'true';
+
+    opt.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const val = opt.getAttribute('data-value') !== null ? opt.getAttribute('data-value') : opt.textContent.trim();
+      wrapper.dataset.value = val;
+
+      const triggerSpan = trigger.querySelector('span');
+      if (triggerSpan) {
+        triggerSpan.textContent = opt.textContent.trim();
+      }
+
+      options.forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+
+      wrapper.classList.remove('open');
+
+      if (typeof onChangeCallback === 'function') {
+        onChangeCallback(val);
+      }
+    });
+  }
+
+  options.forEach(setupOptionListener);
+
+  // Setup observer for dynamic option additions (e.g. professors list from API)
+  const observer = new MutationObserver(() => {
+    const currentOpts = dropdown.querySelectorAll('.custom-select-option');
+    currentOpts.forEach(setupOptionListener);
+  });
+  observer.observe(dropdown, { childList: true });
+
+  // Close dropdown on click outside
+  if (!window.customSelectGlobalListenerAdded) {
+    window.customSelectGlobalListenerAdded = true;
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+        w.classList.remove('open');
+      });
+    });
+  }
+};
+
+window.setCustomSelectValue = function(wrapperId, value) {
+  const wrapper = typeof wrapperId === 'string' ? document.getElementById(wrapperId) : wrapperId;
+  if (!wrapper) return;
+
+  const trigger = wrapper.querySelector('.custom-select-trigger');
+  const dropdown = wrapper.querySelector('.custom-select-dropdown');
+  if (!trigger || !dropdown) return;
+
+  const triggerSpan = trigger.querySelector('span');
+
+  if (!value) {
+    wrapper.dataset.value = '';
+    const options = dropdown.querySelectorAll('.custom-select-option');
+    options.forEach(o => o.classList.remove('selected'));
+    return;
+  }
+
+  const options = dropdown.querySelectorAll('.custom-select-option');
+  let found = false;
+  options.forEach(opt => {
+    const val = opt.getAttribute('data-value') !== null ? opt.getAttribute('data-value') : opt.textContent.trim();
+    if (val === value) {
+      found = true;
+      opt.classList.add('selected');
+      if (triggerSpan) {
+        triggerSpan.textContent = opt.textContent.trim();
+      }
+      wrapper.dataset.value = value;
+    } else {
+      opt.classList.remove('selected');
+    }
+  });
+
+  if (!found) {
+    wrapper.dataset.value = value;
+    if (triggerSpan) {
+      triggerSpan.textContent = value;
+    }
+  }
+};
+
+window.populateCustomYearSelectors = function(startWrapperId, endWrapperId, initialAY, onChangeCallback) {
+  const startWrapper = document.getElementById(startWrapperId);
+  const endWrapper = document.getElementById(endWrapperId);
+  if (!startWrapper || !endWrapper) return;
+
+  const startDropdown = startWrapper.querySelector('.custom-select-dropdown');
+  const endDropdown = endWrapper.querySelector('.custom-select-dropdown');
+  if (!startDropdown || !endDropdown) return;
+
+  // Generate range: currentYear - 3 to currentYear + 5
+  const currentYear = new Date().getFullYear();
+  const startYearRange = [];
+  const endYearRange = [];
+
+  for (let y = currentYear - 3; y <= currentYear + 5; y++) {
+    startYearRange.push(y);
+    endYearRange.push(y + 1);
+  }
+
+  // Populate start year
+  startDropdown.innerHTML = '';
+  startYearRange.forEach(y => {
+    const opt = document.createElement('div');
+    opt.className = 'custom-select-option';
+    opt.dataset.value = String(y);
+    opt.textContent = String(y);
+    startDropdown.appendChild(opt);
+  });
+
+  // Populate end year
+  endDropdown.innerHTML = '';
+  endYearRange.forEach(y => {
+    const opt = document.createElement('div');
+    opt.className = 'custom-select-option';
+    opt.dataset.value = String(y);
+    opt.textContent = String(y);
+    endDropdown.appendChild(opt);
+  });
+
+  // Parse initial values
+  let initialStartVal = String(currentYear);
+  let initialEndVal = String(currentYear + 1);
+  if (initialAY && initialAY.includes('-')) {
+    const parts = initialAY.split('-');
+    initialStartVal = parts[0];
+    initialEndVal = parts[1];
+  }
+
+  // Initialize custom select widgets
+  window.initCustomSelect(startWrapperId, (val) => {
+    const startYearNum = parseInt(val, 10);
+    if (!isNaN(startYearNum)) {
+      window.setCustomSelectValue(endWrapperId, String(startYearNum + 1));
+    }
+    if (typeof onChangeCallback === 'function') {
+      onChangeCallback();
+    }
+  });
+
+  window.initCustomSelect(endWrapperId, () => {
+    if (typeof onChangeCallback === 'function') {
+      onChangeCallback();
+    }
+  });
+
+  // Set initial selected values
+  window.setCustomSelectValue(startWrapperId, initialStartVal);
+  window.setCustomSelectValue(endWrapperId, initialEndVal);
+};
+
 
