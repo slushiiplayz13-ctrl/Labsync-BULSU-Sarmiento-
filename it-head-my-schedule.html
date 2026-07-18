@@ -21,6 +21,14 @@
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css" />
   <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script>
+    (function applyAccessibilitySettings() {
+      const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
+      if (savedContrast) {
+        document.documentElement.classList.add('high-contrast');
+      }
+    })();
+  </script>
   <script src="auth-check.js"></script>
   <style>
     .schedule-columns {
@@ -91,11 +99,15 @@
       
       <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;"></div>
 
-      <button class="sidebar-btn" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+      <button class="sidebar-btn desktop-only-btn" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
         <i data-lucide="calendar" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+      <button class="sidebar-btn desktop-only-btn" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
         <i data-lucide="users" style="width:24px;height:24px;"></i>
+      </button>
+      <div class="mobile-only-divider" style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;"></div>
+      <button class="sidebar-btn mobile-only-btn" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
+        <i data-lucide="folder-cog" style="width:24px;height:24px;"></i>
       </button>
     </nav>
 
@@ -188,22 +200,12 @@
             <div class="schedule-selectors" style="display: flex; align-items: center; gap: 16px;">
               <div style="display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">AY:</span>
-                <div style="display: flex; align-items: center; gap: 4px;">
-                  <div class="custom-select-wrapper header-select" id="academic-year-start-wrapper" style="width: 80px;">
-                    <div class="custom-select-trigger" style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
-                      <span>Select</span>
-                      <i data-lucide="chevron-down"></i>
-                    </div>
-                    <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
+                <div class="custom-select-wrapper header-select" id="academic-year-wrapper" style="width: 125px;">
+                  <div class="custom-select-trigger" style="padding: 5px 10px; font-size: 12.5px; border-radius: 6px; height: auto;">
+                    <span>Select</span>
+                    <i data-lucide="chevron-down"></i>
                   </div>
-                  <span style="color: rgba(255, 255, 255, 0.75); font-size: 12px; font-weight: 600;">–</span>
-                  <div class="custom-select-wrapper header-select" id="academic-year-end-wrapper" style="width: 80px;">
-                    <div class="custom-select-trigger" style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
-                      <span>Select</span>
-                      <i data-lucide="chevron-down"></i>
-                    </div>
-                    <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
-                  </div>
+                  <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
                 </div>
               </div>
               

@@ -59,7 +59,65 @@ window.loadUserSchedule = async function() {
       return `${hour}:${minute} ${ampm}`;
     }
 
-    let html = '<div class="schedule-columns">';
+    const totalClasses = schedules.length;
+
+    // Color palettes for dynamic subject cards and legend dots
+    const subjectColorPalettes = [
+      { name: 'blue', class: 'subject-webdev', dot: '#3B82F6', bg: 'linear-gradient(135deg, #1D4ED8 0%, #1E3A8A 100%)', color: '#EFF6FF' },
+      { name: 'amber', class: 'subject-intro', dot: '#F59E0B', bg: 'linear-gradient(135deg, #B45309 0%, #78350F 100%)', color: '#FEF3C7' },
+      { name: 'cyan', class: 'subject-network', dot: '#06B6D4', bg: 'linear-gradient(135deg, #0E7490 0%, #155E75 100%)', color: '#E0F2FE' },
+      { name: 'purple', class: 'subject-capstone', dot: '#A855F7', bg: 'linear-gradient(135deg, #7E22CE 0%, #581C87 100%)', color: '#FAF5FF' },
+      { name: 'emerald', class: 'subject-prog', dot: '#22C55E', bg: 'linear-gradient(135deg, #15803D 0%, #14532D 100%)', color: '#F0FDF4' },
+      { name: 'rose', class: 'subject-rose', dot: '#F43F5E', bg: 'linear-gradient(135deg, #BE123C 0%, #881337 100%)', color: '#FFE4E6' },
+      { name: 'indigo', class: 'subject-indigo', dot: '#6366F1', bg: 'linear-gradient(135deg, #4338CA 0%, #312E81 100%)', color: '#E0E7FF' },
+      { name: 'orange', class: 'subject-orange', dot: '#EA580C', bg: 'linear-gradient(135deg, #C2410C 0%, #7C2D12 100%)', color: '#FFEDD5' }
+    ];
+
+    // Build dynamic map of subjects present in user's schedule
+    const subjectMap = new Map();
+    let paletteIdx = 0;
+
+    schedules.forEach(s => {
+      const name = (s.Subject_Name || 'General Subject').trim();
+      if (!subjectMap.has(name)) {
+        const lower = name.toLowerCase();
+        let selectedPalette;
+        if (lower.includes('web')) selectedPalette = subjectColorPalettes[0];
+        else if (lower.includes('net')) selectedPalette = subjectColorPalettes[2];
+        else if (lower.includes('cap')) selectedPalette = subjectColorPalettes[3];
+        else if (lower.includes('prog')) selectedPalette = subjectColorPalettes[4];
+        else if (lower.includes('data') || lower.includes('db') || lower.includes('base')) selectedPalette = subjectColorPalettes[7];
+        else if (lower.includes('intro') || lower.includes('itc')) selectedPalette = subjectColorPalettes[1];
+        else {
+          selectedPalette = subjectColorPalettes[paletteIdx % subjectColorPalettes.length];
+          paletteIdx++;
+        }
+        subjectMap.set(name, selectedPalette);
+      }
+    });
+
+    const escapeHtml = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    let html = `
+    <!-- Top Filter & Legend Toolbar -->
+    <div class="schedule-filter-bar">
+      <div class="sf-left">
+        <span class="sf-badge"><i data-lucide="layers"></i> ${totalClasses} Class${totalClasses === 1 ? '' : 'es'} Scheduled</span>
+      </div>
+      <div class="schedule-legend">
+        <span class="sl-title">SUBJECTS:</span>
+        <div class="sl-item active" data-filter="all"><div class="dot all-dot"></div> All</div>
+        ${Array.from(subjectMap.entries()).map(([subjName, palette]) => `
+          <div class="sl-item" data-filter="${escapeHtml(subjName)}">
+            <div class="dot" style="background: ${palette.dot}; box-shadow: 0 0 0 3px ${palette.dot}33;"></div> ${escapeHtml(subjName)}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Schedule Day Columns -->
+    <div class="schedule-columns">
+    `;
 
     days.forEach(day => {
       const isToday = day === todayName;
@@ -68,37 +126,39 @@ window.loadUserSchedule = async function() {
       // Sort schedules chronologically by start time
       dayScheds.sort((a, b) => (a.Start_Time || '').localeCompare(b.Start_Time || ''));
 
+      const isEmpty = dayScheds.length === 0;
       html += `
-        <div class="day-column ${isToday ? 'highlight-day' : ''}">
-          <div class="day-header">${dayShortNames[day]}</div>
+        <div class="day-column ${isToday ? 'highlight-day' : ''} ${isEmpty ? 'empty-day' : ''}">
+          <div class="day-header">
+            <span>${dayShortNames[day]}</span>
+            ${isToday ? '<span class="today-pill">TODAY</span>' : ''}
+          </div>
       `;
 
       if (dayScheds.length === 0) {
         html += `
-          <div style="flex: 1; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--border-light); border-radius: 12px; padding: 12px; color: var(--text-muted); font-size: 11.5px; font-weight: 500; text-align: center; min-height: 80px; background: rgba(255,255,255,0.4);">
-            No classes
+          <div class="empty-day-box">
+            <i data-lucide="coffee"></i>
+            <span>No classes</span>
           </div>
         `;
       } else {
         dayScheds.forEach(s => {
           const start = formatTime12(s.Start_Time);
           const end = formatTime12(s.End_Time);
-          
-          let colorClass = 'subject-intro'; // default
-          const subj = (s.Subject_Name || '').toLowerCase();
-          if (subj.includes('web')) colorClass = 'subject-webdev';
-          else if (subj.includes('net')) colorClass = 'subject-network';
-          else if (subj.includes('cap')) colorClass = 'subject-capstone';
-          else if (subj.includes('prog')) colorClass = 'subject-prog';
+          const subjName = (s.Subject_Name || 'General Subject').trim();
+          const palette = subjectMap.get(subjName) || subjectColorPalettes[0];
 
           html += `
-            <div class="sg-cell filled ${colorClass}" style="min-height: auto; gap: 6px; padding: 12px;">
-              <div style="font-size: 11px; font-weight: 700; opacity: 0.85; display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
-                <i data-lucide="clock" style="width: 12px; height: 12px;"></i> ${start} - ${end}
+            <div class="sg-cell filled ${palette.class}" data-subject-name="${escapeHtml(subjName)}" style="background: ${palette.bg} !important; color: ${palette.color} !important;">
+              <div class="sg-time-badge">
+                <i data-lucide="clock"></i> ${start} – ${end}
               </div>
-              <div class="sg-room"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> RM ${s.Room_Number || ''}</div>
-              <div class="sg-class">${s.Section || ''}</div>
-              <div class="sg-code">${s.Subject_Name || ''}</div>
+              <div class="sg-main-info">
+                <span class="sg-room-badge"><i data-lucide="map-pin"></i> RM ${s.Room_Number || ''}</span>
+                <span class="sg-section-badge">${s.Section || ''}</span>
+              </div>
+              <div class="sg-title">${escapeHtml(subjName)}</div>
             </div>
           `;
         });
@@ -107,17 +167,61 @@ window.loadUserSchedule = async function() {
       html += `</div>`;
     });
 
-    html += `</div>
-    <div class="schedule-legend" style="margin-top: 20px;">
-      <div class="sl-title">SUBJECTS:</div>
-      <div class="sl-item"><div class="dot network"></div> Network Admin</div>
-      <div class="sl-item"><div class="dot webdev"></div> Web Dev</div>
-      <div class="sl-item"><div class="dot capstone"></div> Capstone</div>
-      <div class="sl-item"><div class="dot prog"></div> Programming</div>
-      <div class="sl-item"><div class="dot intro"></div> Intro to Computing</div>
-    </div>`;
+    html += `</div>`;
     container.innerHTML = html;
     if (window.lucide) lucide.createIcons({ root: container });
+
+    // Interactive Subject Filter Logic
+    let currentFilter = 'all';
+    const legendItems = container.querySelectorAll('.sl-item');
+    const cells = container.querySelectorAll('.sg-cell.filled');
+
+    legendItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const selectedFilter = item.dataset.filter;
+        
+        if (currentFilter === selectedFilter && selectedFilter !== 'all') {
+          currentFilter = 'all';
+        } else {
+          currentFilter = selectedFilter;
+        }
+
+        // Highlight active legend filter item
+        legendItems.forEach(el => {
+          if (el.dataset.filter === currentFilter) {
+            el.classList.add('active');
+            el.style.opacity = '1';
+          } else {
+            el.classList.remove('active');
+            el.style.opacity = currentFilter === 'all' ? '1' : '0.45';
+          }
+        });
+
+        // Filter schedule cards
+        cells.forEach(cell => {
+          const cellSubj = cell.dataset.subjectName;
+          if (currentFilter === 'all' || cellSubj === currentFilter) {
+            cell.style.opacity = '1';
+            cell.style.filter = 'none';
+            if (currentFilter !== 'all') {
+              cell.style.transform = 'scale(1.03)';
+              cell.style.boxShadow = '0 10px 28px rgba(0, 0, 0, 0.3), 0 0 0 2px var(--primary-teal)';
+              cell.style.zIndex = '10';
+            } else {
+              cell.style.transform = 'none';
+              cell.style.boxShadow = '';
+              cell.style.zIndex = '1';
+            }
+          } else {
+            cell.style.opacity = '0.2';
+            cell.style.filter = 'grayscale(60%)';
+            cell.style.transform = 'scale(0.97)';
+            cell.style.boxShadow = 'none';
+            cell.style.zIndex = '1';
+          }
+        });
+      });
+    });
     
   } catch (err) {
     console.error(err);
@@ -127,7 +231,7 @@ window.loadUserSchedule = async function() {
 document.addEventListener('DOMContentLoaded', () => {
   const currentYear = new Date().getFullYear();
   if (window.populateCustomYearSelectors) {
-    window.populateCustomYearSelectors('academic-year-start-wrapper', 'academic-year-end-wrapper', `${currentYear}-${currentYear + 1}`, () => {
+    window.populateCustomYearSelectors('academic-year-wrapper', `${currentYear}-${currentYear + 1}`, () => {
       window.loadUserSchedule();
     });
   }

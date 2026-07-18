@@ -197,6 +197,43 @@ main {
   object-fit: contain;
 }
 
+/* Inline Card Error Banner */
+.login-error-banner {
+  width: 100%;
+  background: #FEF2F2;
+  border: 1.5px solid #FCA5A5;
+  color: #991B1B;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  animation: loginErrorSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-error-banner i,
+.login-error-banner svg {
+  width: 18px;
+  height: 18px;
+  color: #EF4444;
+  flex-shrink: 0;
+}
+
+@keyframes loginErrorSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Form */
 .form-group {
   width: 100%;
@@ -305,13 +342,29 @@ main {
 
 /* ─── RESPONSIVE BREAKPOINTS (Mobile & Tablet Support) ───────────── */
 @media (max-width: 1024px) {
+  html, body {
+    overflow-x: hidden !important;
+  }
   body {
     height: auto !important;
     min-height: 100vh;
-    overflow: auto !important;
+    overflow-y: auto !important;
   }
   header {
-    padding: 20px 24px !important;
+    padding: 16px 20px !important;
+  }
+  .header-left {
+    gap: 0 !important;
+  }
+  .header-left img.bsu-logo {
+    height: 42px !important;
+  }
+  .divider {
+    height: 34px !important;
+    margin: 0 3px 0 11px !important;
+  }
+  .header-left img.labsync-logo {
+    height: 46px !important;
   }
   main {
     flex-direction: column !important;

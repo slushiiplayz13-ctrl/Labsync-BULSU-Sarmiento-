@@ -2,6 +2,114 @@
    LabSync – Professor Dashboard  |  script.js
    ================================================================ */
 
+// =========================================================
+// Global UI Toast Notification System for LabSync
+// =========================================================
+window.showToast = function(message, type = 'success', title = null) {
+  if (!message) return;
+
+  let container = document.getElementById('labsync-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'labsync-toast-container';
+    container.style.cssText = `
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 999999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+      max-width: calc(100vw - 32px);
+    `;
+    const targetParent = document.body || document.documentElement;
+    if (targetParent) targetParent.appendChild(container);
+  }
+
+  const isError = type === 'error' || (typeof message === 'string' && (message.toLowerCase().includes('failed') || message.toLowerCase().includes('error') || message.toLowerCase().includes('invalid')));
+  const isWarning = type === 'warning';
+  const isInfo = type === 'info';
+
+  const iconName = isError ? 'alert-triangle' : (isWarning ? 'alert-circle' : (isInfo ? 'info' : 'check-circle-2'));
+  const iconColor = isError ? '#EF4444' : (isWarning ? '#F59E0B' : (isInfo ? '#3B82F6' : '#1EBBD7'));
+  const iconBg = isError ? 'rgba(239, 68, 68, 0.12)' : (isWarning ? 'rgba(245, 158, 11, 0.12)' : (isInfo ? 'rgba(59, 130, 246, 0.12)' : 'rgba(30, 187, 215, 0.12)'));
+  const borderColor = isError ? 'rgba(239, 68, 68, 0.25)' : (isWarning ? 'rgba(245, 158, 11, 0.25)' : (isInfo ? 'rgba(59, 130, 246, 0.25)' : 'rgba(30, 187, 215, 0.3)'));
+  const defaultTitle = isError ? 'Notice' : (isWarning ? 'Warning' : (isInfo ? 'Information' : 'Success'));
+  const toastTitle = title || defaultTitle;
+
+  const card = document.createElement('div');
+  card.className = 'labsync-toast-card';
+  card.style.cssText = `
+    pointer-events: auto;
+    background: #ffffff;
+    border: 1.5px solid ${borderColor};
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(0, 0, 0, 0.05);
+    min-width: 280px;
+    max-width: 380px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: var(--font-body, sans-serif);
+  `;
+
+  if (document.documentElement.classList.contains('high-contrast')) {
+    card.style.background = '#1E293B';
+    card.style.color = '#F8FAFC';
+  }
+
+  function escapeToastHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  card.innerHTML = `
+    <div style="width: 34px; height: 34px; min-width: 34px; border-radius: 50%; background: ${iconBg}; color: ${iconColor}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;">
+      <i data-lucide="${iconName}" style="width: 18px; height: 18px;"></i>
+    </div>
+    <div style="flex: 1; min-width: 0;">
+      <div style="font-size: 13.5px; font-weight: 700; color: var(--text-dark, #0F172A); margin-bottom: 2px; font-family: var(--font-display, sans-serif); display: flex; align-items: center; justify-content: space-between;">
+        <span>${escapeToastHtml(toastTitle)}</span>
+        <button class="labsync-toast-close" style="background: none; border: none; font-size: 16px; color: var(--text-muted, #94A3B8); cursor: pointer; padding: 0 4px; line-height: 1; margin-left: 8px;">&times;</button>
+      </div>
+      <div style="font-size: 12.5px; color: var(--text-mid, #475569); line-height: 1.4; word-break: break-word;">${escapeToastHtml(message)}</div>
+    </div>
+  `;
+
+  container.appendChild(card);
+  if (window.lucide && lucide.createIcons) lucide.createIcons({ root: card });
+
+  requestAnimationFrame(() => {
+    card.style.opacity = '1';
+    card.style.transform = 'translateY(0) scale(1)';
+  });
+
+  function removeToast() {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(-12px) scale(0.95)';
+    setTimeout(() => card.remove(), 350);
+  }
+
+  const closeBtn = card.querySelector('.labsync-toast-close');
+  if (closeBtn) closeBtn.addEventListener('click', removeToast);
+
+  setTimeout(removeToast, 3800);
+};
+
+// Override browser native alert to use LabSync UI Toast
+window.alert = function(msg) {
+  if (window.showToast) {
+    const isErr = typeof msg === 'string' && (msg.toLowerCase().includes('failed') || msg.toLowerCase().includes('error') || msg.toLowerCase().includes('invalid'));
+    window.showToast(msg, isErr ? 'error' : 'success');
+  } else {
+    console.log('[LabSync Alert]:', msg);
+  }
+};
+
 // ── Apply Accessibility Settings Immediately ──────────────────────
 (function applyAccessibilitySettings() {
   const savedScale = localStorage.getItem('labsync-text-scale') || 'normal';
@@ -20,7 +128,9 @@
 })();
 
 // ── Initialize Lucide Icons ──────────────────────────────────────
-lucide.createIcons();
+if (typeof lucide !== 'undefined' && lucide.createIcons) {
+  lucide.createIcons();
+}
 
 // ── Constants ────────────────────────────────────────────────────
 const DAYS = [
@@ -178,6 +288,10 @@ function initProfileDropdown() {
         <i data-lucide="eye" style="width:16px;height:16px;"></i>
         Accessibility Settings
       </button>
+      <button onclick="openHelpModal()" class="profile-menu-item profile-help-btn">
+        <i data-lucide="circle-help" style="width:16px;height:16px;"></i>
+        Help Center
+      </button>
       <div class="profile-menu-divider"></div>
       <button onclick="handleLogout()" class="profile-menu-item logout">
         <i data-lucide="log-out" style="width:16px;height:16px;"></i>
@@ -297,8 +411,16 @@ function initNotifications() {
     } else if (notif.type === 'occupancy') {
       iconName = 'key-round';
       iconClass = 'notif-icon-occupancy';
-      title = 'Laboratory Accessed';
-      text = `${notif.description} (${notif.detail}) unlocked Room ${notif.room_number} via ${notif.status}.`;
+      if (notif.status === 'Key Taken') {
+        title = 'Laboratory Key Taken';
+        text = `Room Key for Room ${notif.room_number} was taken from the holder.`;
+      } else if (notif.status === 'Key Returned') {
+        title = 'Laboratory Key Returned';
+        text = `Room Key for Room ${notif.room_number} was returned (Room Secured).`;
+      } else {
+        title = 'Laboratory Accessed';
+        text = `${notif.description} (${notif.detail}) unlocked Room ${notif.room_number} via ${notif.status}.`;
+      }
     }
     return { iconName, iconClass, title, text };
   }
@@ -483,6 +605,14 @@ function initNotifications() {
 
       isInitialLoad = false;
       lucide.createIcons();
+
+      // Real-time cards and timeline refresh
+      if (document.body.dataset.page === 'dashboard' || document.body.dataset.page === 'room-status') {
+        loadDashboardStatsAndLabs();
+      }
+      if (document.body.dataset.page === 'room-status') {
+        loadRoomStatusActivityLog();
+      }
     } catch (err) {
       console.error('Error loading notifications:', err);
     }
@@ -550,6 +680,9 @@ function initCommon() {
   initHelpButtons();
   if (document.body.dataset.page === 'dashboard') {
     initDashboard();
+  } else if (document.body.dataset.page === 'room-status') {
+    loadDashboardStatsAndLabs();
+    loadRoomStatusActivityLog();
   }
 }
 
@@ -616,7 +749,7 @@ function openAccountSettings() {
   modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px;';
   
   modal.innerHTML = `
-    <div style="background:#fff;border-radius:20px;width:100%;max-width:900px;height:85vh;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;">
+    <div class="settings-modal-content-box" style="background:#fff;border-radius:20px;width:100%;max-width:900px;height:85vh;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;">
       <!-- Header -->
       <div style="padding:28px 32px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%);flex-shrink:0;">
         <div>
@@ -629,9 +762,9 @@ function openAccountSettings() {
       </div>
       
       <!-- Body Split View -->
-      <div style="flex:1; display:flex; min-height:0; position:relative; overflow:hidden;">
+      <div class="settings-modal-body" style="flex:1; display:flex; min-height:0; position:relative; overflow:hidden;">
         <!-- Left Sidebar Navigation -->
-        <div style="width:240px; border-right:1px solid var(--border-light); background:#F8FAFC; padding:24px 16px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; overflow-y:auto;">
+        <div class="settings-modal-sidebar" style="width:240px; border-right:1px solid var(--border-light); background:#F8FAFC; padding:24px 16px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; overflow-y:auto;">
           <button type="button" class="settings-tab-btn active" onclick="switchSettingsTab('profile', this)">
             <i data-lucide="user" style="width:18px;height:18px;"></i>
             Profile Details
@@ -647,8 +780,8 @@ function openAccountSettings() {
         </div>
 
         <!-- Right Content Area (Form wrapper) -->
-        <form id="account-settings-form" style="flex:1; display:flex; flex-direction:column; min-height:0; background:#fff; margin:0;">
-          <div style="flex:1; overflow-y:auto; padding:32px 40px;">
+        <form id="account-settings-form" class="settings-modal-form" style="flex:1; display:flex; flex-direction:column; min-height:0; background:#fff; margin:0;">
+          <div class="settings-modal-scroll" style="flex:1; overflow-y:auto; padding:32px 40px;">
             
             <!-- PANEL 1: PROFILE DETAILS -->
             <div id="panel-profile" class="settings-tab-panel" style="display:block;">
@@ -684,6 +817,7 @@ function openAccountSettings() {
                     <div>
                       <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Email Address</label>
                       <input type="email" id="settings-email" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;" placeholder="your.email@bsu.edu.ph">
+                      <div id="settings-email-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Invalid email address (e.g., user@domain.com)</div>
                     </div>
                     <div>
                       <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Mobile Number *</label>
@@ -775,8 +909,8 @@ function openAccountSettings() {
       </div>
 
       <!-- Footer (Fixed bottom) -->
-      <div style="padding:20px 32px;border-top:1px solid var(--border-light);background:#FAFAFA;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
-        <p style="font-size:12px;color:var(--text-muted);margin:0;">Last updated: Never</p>
+      <div class="settings-modal-footer" style="padding:20px 32px;border-top:1px solid var(--border-light);background:#FAFAFA;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+        <p id="settings-last-updated" style="font-size:12px;color:var(--text-muted);margin:0;">Last updated: Loading...</p>
         <div style="display:flex;gap:12px;">
           <button type="button" id="cancel-settings-btn" style="padding:12px 24px;border:1px solid var(--border-light);background:#fff;border-radius:10px;font-size:14px;font-weight:600;color:var(--text-mid);cursor:pointer;transition:all 0.2s;font-family:var(--font-body);">Cancel</button>
           <button type="submit" form="account-settings-form" style="padding:12px 32px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(30,187,215,0.3);font-family:var(--font-body);display:flex;align-items:center;gap:8px;">
@@ -870,6 +1004,45 @@ function openAccountSettings() {
     });
   });
   
+  // Live email validation
+  const isValidEmail = (email) => {
+    if (!email || typeof email !== 'string') return false;
+    const cleanEmail = email.trim().toLowerCase();
+    const basicRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$/;
+    if (!basicRegex.test(cleanEmail)) return false;
+    if (cleanEmail.includes('..') || cleanEmail.includes('@.') || cleanEmail.includes('.@')) return false;
+
+    const parts = cleanEmail.split('@');
+    if (parts.length !== 2) return false;
+    const domainParts = parts[1].split('.');
+    if (domainParts.length < 2) return false;
+
+    const fullTld = domainParts.slice(1).join('.');
+    const mainTld = domainParts[domainParts.length - 1];
+
+    const validTLDs = new Set([
+      'com', 'org', 'net', 'edu', 'gov', 'mil', 'io', 'co', 'info', 'biz', 'me', 'tv', 'xyz', 'online', 'site', 'store', 'tech', 'app', 'dev',
+      'ph', 'edu.ph', 'com.ph', 'gov.ph', 'org.ph', 'net.ph',
+      'us', 'uk', 'ca', 'au', 'jp', 'cn', 'in', 'de', 'fr', 'br', 'ru', 'sg', 'my'
+    ]);
+
+    return validTLDs.has(fullTld) || validTLDs.has(mainTld);
+  };
+  const settingsEmailInput = document.getElementById('settings-email');
+  const emailErrDiv = document.getElementById('settings-email-error');
+  if (settingsEmailInput && emailErrDiv) {
+    settingsEmailInput.addEventListener('input', () => {
+      const val = settingsEmailInput.value.trim();
+      if (val && !isValidEmail(val)) {
+        settingsEmailInput.style.borderColor = '#EF4444';
+        emailErrDiv.style.display = 'block';
+      } else {
+        settingsEmailInput.style.borderColor = 'var(--border-light)';
+        emailErrDiv.style.display = 'none';
+      }
+    });
+  }
+
   // Form submit
   document.getElementById('account-settings-form').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -900,6 +1073,17 @@ function openAccountSettings() {
     const profilePhoto = (photoImg && photoImg.style.display === 'block') ? photoImg.src : null;
     const initialEmail = document.getElementById('settings-email').dataset.initialEmail || '';
     const newEmail = document.getElementById('settings-email').value.trim();
+
+    if (!isValidEmail(newEmail)) {
+      alert('Security Warning: Invalid email address format!\n\nPlease enter a valid email address (e.g., name@example.com). Random letters or malformed email strings are not allowed.');
+      if (settingsEmailInput) {
+        settingsEmailInput.focus();
+        settingsEmailInput.style.borderColor = '#EF4444';
+        if (emailErrDiv) emailErrDiv.style.display = 'block';
+      }
+      return;
+    }
+
     const isEmailChanging = newEmail.toLowerCase() !== initialEmail.toLowerCase();
  
     const executeUpdate = async () => {
@@ -918,17 +1102,47 @@ function openAccountSettings() {
           })
         });
         
-        const result = await response.json();
+        let result = {};
+        try {
+          result = await response.json();
+        } catch (e) {
+          result = { error: 'Server error (HTTP ' + response.status + '). Please try again.' };
+        }
+
         if (response.ok) {
-          alert(result.message || 'Account updated successfully!');
+          try {
+            localStorage.setItem('labsync_last_updated', new Date().toISOString());
+          } catch(e) {}
+          
+          if (window.showToast) {
+            window.showToast(result.message || 'Account updated successfully!');
+          } else {
+            alert(result.message || 'Account updated successfully!');
+          }
+
           modal.remove();
-          location.reload();
+
+          // Dynamically update UI elements across the page without jarring reload
+          const profileNameEls = document.querySelectorAll('.user-name, .profile-name, #user-name-display, .user-profile-name');
+          profileNameEls.forEach(el => {
+            if (el && name) el.textContent = name;
+          });
+
+          if (profilePhoto) {
+            const avatarImgs = document.querySelectorAll('.user-avatar img, .profile-avatar img, #user-avatar-img');
+            avatarImgs.forEach(img => {
+              if (img) {
+                img.src = profilePhoto;
+                img.style.display = 'block';
+              }
+            });
+          }
         } else {
           alert('Error: ' + (result.error || 'Failed to update account'));
         }
       } catch (error) {
-        console.error('Error:', error);
-        alert('Failed to update account. Please try again.');
+        console.error('Error updating account:', error);
+        alert('Failed to update account. Please check your connection or try again.');
       }
     };
  
@@ -938,6 +1152,26 @@ function openAccountSettings() {
       executeUpdate();
     }
   });
+}
+
+function formatLastUpdatedTime(timestampStr) {
+  if (!timestampStr) return 'Never';
+  const date = new Date(timestampStr);
+  if (isNaN(date.getTime())) return 'Never';
+
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMin = Math.floor(diffMs / (1000 * 60));
+  const diffHrs = Math.floor(diffMin / 60);
+  const diffDays = Math.floor(diffHrs / 24);
+
+  if (diffMin < 1) return 'Just now';
+  if (diffMin < 60) return `${diffMin} min${diffMin > 1 ? 's' : ''} ago`;
+  if (diffHrs < 24) return `${diffHrs} hour${diffHrs > 1 ? 's' : ''} ago`;
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 async function loadAccountSettingsData() {
@@ -952,6 +1186,12 @@ async function loadAccountSettingsData() {
       const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
       document.getElementById('avatar-initials').textContent = initials;
       
+      const lastUpdatedEl = document.getElementById('settings-last-updated');
+      if (lastUpdatedEl) {
+        const lastUpdated = user.updatedAt || user.updated_at || user.last_updated || localStorage.getItem('labsync_last_updated');
+        lastUpdatedEl.textContent = `Last updated: ${formatLastUpdatedTime(lastUpdated)}`;
+      }
+
       if (user.profilePhoto) {
         const photoImg = document.getElementById('profile-photo-img');
         const avatarInitials = document.getElementById('avatar-initials');
@@ -1029,19 +1269,19 @@ function openAccessibilitySettings() {
         </div>
 
         <!-- High Contrast Mode Option -->
-        <div style="display:flex;align-items:center;justify-content:between;background:#F8FAFC;padding:16px 20px;border-radius:12px;border:1px solid var(--border-light);justify-content:space-between;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:36px;height:36px;border-radius:50%;background:rgba(30, 187, 215, 0.1);color:var(--primary-teal);display:flex;align-items:center;justify-content:center;">
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;padding:16px 20px;border-radius:12px;border:1px solid var(--border-light);gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+            <div style="width:36px;height:36px;min-width:36px;border-radius:50%;background:rgba(30, 187, 215, 0.1);color:var(--primary-teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
               <i data-lucide="contrast" style="width:18px;height:18px;"></i>
             </div>
-            <div>
+            <div style="flex:1;min-width:0;">
               <span style="display:block;font-size:14px;font-weight:700;color:var(--text-dark);">High Contrast Theme</span>
-              <span style="font-size:11px;color:var(--text-muted);">Use dark contrast theme for low light or visual assistance</span>
+              <span style="font-size:11px;color:var(--text-muted);display:block;line-height:1.35;">Use dark contrast theme for low light or visual assistance</span>
             </div>
           </div>
-          <label class="accessibility-switch" style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+          <label class="accessibility-switch" style="position:relative;display:inline-block;width:48px;height:26px;min-width:48px;flex-shrink:0;cursor:pointer;margin-left:8px;">
             <input type="checkbox" id="contrast-toggle" style="opacity:0;width:0;height:0;" onchange="toggleAccessibilityContrast(this.checked)" ${isContrast ? 'checked' : ''}>
-            <span style="position:absolute;top:0;left:0;right:0;bottom:0;background-color:#CBD5E1;transition:.3s;border-radius:24px;" id="switch-slider"></span>
+            <span style="position:absolute;top:0;left:0;right:0;bottom:0;background-color:#CBD5E1;transition:.3s ease;border-radius:26px;" id="switch-slider"></span>
           </label>
         </div>
 
@@ -1062,14 +1302,37 @@ function openAccessibilitySettings() {
     styleSheet = document.createElement('style');
     styleSheet.id = 'accessibility-switch-styles';
     styleSheet.innerHTML = `
+      .accessibility-switch {
+        width: 48px !important;
+        height: 26px !important;
+        min-width: 48px !important;
+        flex-shrink: 0 !important;
+      }
+      #switch-slider {
+        position: absolute !important;
+        top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+        background-color: #CBD5E1;
+        border-radius: 26px !important;
+        transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        box-sizing: border-box !important;
+      }
       #switch-slider::before {
-        position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%;
+        position: absolute !important;
+        content: "" !important;
+        height: 20px !important;
+        width: 20px !important;
+        left: 3px !important;
+        top: 3px !important;
+        background-color: #ffffff !important;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        border-radius: 50% !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) !important;
       }
       #contrast-toggle:checked + #switch-slider {
-        background-color: var(--primary-teal);
+        background-color: var(--primary-teal) !important;
       }
       #contrast-toggle:checked + #switch-slider::before {
-        transform: translateX(20px);
+        transform: translateX(22px) !important;
       }
     `;
     document.head.appendChild(styleSheet);
@@ -1538,6 +1801,10 @@ async function loadDashboardStatsAndLabs() {
                 <span>Active Class:</span>
                 <strong class="teal-text">${room.Current_Class || 'None'}</strong>
               </div>
+              <div class="ld-row">
+                <span>Key Status:</span>
+                <strong style="color: ${room.Key_Status === 'Absent' ? '#ef4444' : '#10b981'};">${room.Key_Status || 'Present'}</strong>
+              </div>
             </div>
           </div>
         `;
@@ -1677,74 +1944,318 @@ window.setCustomSelectValue = function(wrapperId, value) {
   }
 };
 
-window.populateCustomYearSelectors = function(startWrapperId, endWrapperId, initialAY, onChangeCallback) {
-  const startWrapper = document.getElementById(startWrapperId);
-  const endWrapper = document.getElementById(endWrapperId);
-  if (!startWrapper || !endWrapper) return;
+window.populateCustomYearSelectors = function(arg1, arg2, arg3, arg4) {
+  let targetId = 'academic-year-wrapper';
+  let initAY = `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+  let callback = null;
 
-  const startDropdown = startWrapper.querySelector('.custom-select-dropdown');
-  const endDropdown = endWrapper.querySelector('.custom-select-dropdown');
-  if (!startDropdown || !endDropdown) return;
+  if (typeof arg1 === 'string' && document.getElementById(arg1)) {
+    targetId = arg1;
+  }
 
-  // Generate range: currentYear - 3 to currentYear + 5
+  if (typeof arg2 === 'string' && /^\d{4}-\d{4}$/.test(arg2)) {
+    initAY = arg2;
+    if (typeof arg3 === 'function') callback = arg3;
+  } else if (typeof arg3 === 'string' && /^\d{4}-\d{4}$/.test(arg3)) {
+    initAY = arg3;
+    if (typeof arg4 === 'function') callback = arg4;
+  } else if (typeof arg2 === 'function') {
+    callback = arg2;
+  }
+
+  let wrapper = document.getElementById(targetId) || document.getElementById('academic-year-wrapper') || document.getElementById('academic-year-start-wrapper');
+  if (!wrapper) return;
+
+  const dropdown = wrapper.querySelector('.custom-select-dropdown');
+  if (!dropdown) return;
+
   const currentYear = new Date().getFullYear();
-  const startYearRange = [];
-  const endYearRange = [];
+  const yearOptions = [];
 
-  for (let y = currentYear - 3; y <= currentYear + 5; y++) {
-    startYearRange.push(y);
-    endYearRange.push(y + 1);
+  for (let y = currentYear; y <= currentYear + 6; y++) {
+    yearOptions.push(`${y}-${y + 1}`);
   }
 
-  // Populate start year
-  startDropdown.innerHTML = '';
-  startYearRange.forEach(y => {
+  dropdown.innerHTML = '';
+  yearOptions.forEach(ay => {
+    const displayLabel = ay.replace('-', '–');
     const opt = document.createElement('div');
     opt.className = 'custom-select-option';
-    opt.dataset.value = String(y);
-    opt.textContent = String(y);
-    startDropdown.appendChild(opt);
+    opt.dataset.value = ay;
+    opt.textContent = displayLabel;
+    dropdown.appendChild(opt);
   });
 
-  // Populate end year
-  endDropdown.innerHTML = '';
-  endYearRange.forEach(y => {
-    const opt = document.createElement('div');
-    opt.className = 'custom-select-option';
-    opt.dataset.value = String(y);
-    opt.textContent = String(y);
-    endDropdown.appendChild(opt);
-  });
-
-  // Parse initial values
-  let initialStartVal = String(currentYear);
-  let initialEndVal = String(currentYear + 1);
-  if (initialAY && initialAY.includes('-')) {
-    const parts = initialAY.split('-');
-    initialStartVal = parts[0];
-    initialEndVal = parts[1];
+  if (!/^\d{4}-\d{4}$/.test(initAY)) {
+    initAY = `${currentYear}-${currentYear + 1}`;
   }
 
-  // Initialize custom select widgets
-  window.initCustomSelect(startWrapperId, (val) => {
-    const startYearNum = parseInt(val, 10);
-    if (!isNaN(startYearNum)) {
-      window.setCustomSelectValue(endWrapperId, String(startYearNum + 1));
-    }
-    if (typeof onChangeCallback === 'function') {
-      onChangeCallback();
+  window.initCustomSelect(wrapper.id, () => {
+    if (typeof callback === 'function') {
+      callback();
     }
   });
 
-  window.initCustomSelect(endWrapperId, () => {
-    if (typeof onChangeCallback === 'function') {
-      onChangeCallback();
-    }
-  });
-
-  // Set initial selected values
-  window.setCustomSelectValue(startWrapperId, initialStartVal);
-  window.setCustomSelectValue(endWrapperId, initialEndVal);
+  window.setCustomSelectValue(wrapper.id, initAY);
 };
+
+// Fetch and load occupancy access events on room status timeline
+async function loadRoomStatusActivityLog() {
+  const timelineList = document.querySelector('.timeline-list');
+  if (!timelineList) return;
+
+  timelineList.innerHTML = `
+    <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
+      <div class="ui-empty-icon">
+        <i data-lucide="loader-2" class="animate-spin" style="width:24px;height:24px;"></i>
+      </div>
+      <p>Loading recent activities...</p>
+    </div>
+  `;
+  if (window.lucide) lucide.createIcons({ root: timelineList });
+
+  try {
+    const res = await fetch('/api/notifications');
+    if (!res.ok) throw new Error('Failed to load activities');
+    const activities = await res.json();
+
+    // Filter only occupancy log notifications
+    const occupancyLogs = activities.filter(a => a.type === 'occupancy');
+
+    if (occupancyLogs.length === 0) {
+      timelineList.innerHTML = `
+        <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
+          <div class="ui-empty-icon">
+            <i data-lucide="clock-4" style="width:24px;height:24px;"></i>
+          </div>
+          <p>No activity yet. Recent room events will appear here when available.</p>
+        </div>
+      `;
+      if (window.lucide) lucide.createIcons({ root: timelineList });
+      return;
+    }
+
+    let html = '';
+    occupancyLogs.forEach(log => {
+      let activityText = '';
+      if (log.status === 'Key Taken') {
+        activityText = `Room key for Room ${log.room_number} was taken from the holder.`;
+      } else if (log.status === 'Key Returned') {
+        activityText = `Room key for Room ${log.room_number} was returned (Room Secured).`;
+      } else {
+        activityText = `Unlocked Room ${log.room_number} via ${log.status}.`;
+      }
+
+      html += `
+        <div class="timeline-item" style="display:flex;gap:16px;margin-bottom:20px;position:relative;">
+          <div class="timeline-badge" style="width:40px;height:40px;border-radius:50%;background:#E8F9FC;color:#1EBBD7;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:2;">
+            <i data-lucide="key-round" style="width:18px;height:18px;"></i>
+          </div>
+          <div class="timeline-panel" style="flex:1;background:var(--bg-white, #fff);border:1px solid var(--border-light, #e2e8f0);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+            <div class="timeline-heading" style="margin-bottom:6px;">
+              <h4 class="timeline-title" style="font-family:var(--font-display);font-size:14.5px;font-weight:700;color:var(--text-dark, #1e293b);margin:0;">${log.description}</h4>
+              <p style="margin:2px 0 0 0;font-size:12px;color:var(--text-light, #64748b);display:flex;align-items:center;gap:4px;">
+                <i data-lucide="clock" style="width:12px;height:12px;"></i>
+                <span>${getRelativeTime(log.time)}</span>
+                <span style="color:var(--border-light, #cbd5e1);">•</span>
+                <span>${log.detail}</span>
+              </p>
+            </div>
+            <div class="timeline-body" style="font-family:var(--font-body);font-size:13.5px;color:var(--text-mid, #475569);line-height:1.5;">
+              <p style="margin:0;">${activityText}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    timelineList.innerHTML = html;
+    if (window.lucide) lucide.createIcons({ root: timelineList });
+    if (window.lucide) lucide.createIcons({ root: timelineList });
+  } catch (err) {
+    console.error('Error loading room status activities:', err);
+    timelineList.innerHTML = `
+      <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
+        <div class="ui-empty-icon" style="background:#FEE2E2;color:#EF4444;">
+          <i data-lucide="alert-circle"></i>
+        </div>
+        <p>Failed to load activity logs.</p>
+      </div>
+    `;
+    if (window.lucide) lucide.createIcons({ root: timelineList });
+  }
+}
+
+// ── Combined Admin Navigation Menu (Master Schedule + Faculty) ────────────
+function toggleAdminMenu(event, btnEl) {
+  event.preventDefault();
+  event.stopPropagation();
+  
+  // Close any existing menus first
+  const existingMenu = document.getElementById('admin-floating-menu');
+  if (existingMenu) {
+    existingMenu.remove();
+    // If clicking the same button that opened it, just close and return
+    if (existingMenu.dataset.triggeredBy === btnEl.title || existingMenu.dataset.triggeredBy === btnEl.textContent) {
+      return;
+    }
+  }
+
+  // Create menu container
+  const menu = document.createElement('div');
+  menu.id = 'admin-floating-menu';
+  menu.dataset.triggeredBy = btnEl.title || btnEl.textContent;
+  
+  // Opaque premium styling matching brand
+  menu.style.cssText = `
+    position: fixed;
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 16px -6px rgba(15, 23, 42, 0.08);
+    padding: 6px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 180px;
+    animation: adminMenuFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  `;
+  
+  // High contrast mode override
+  if (document.documentElement.classList.contains('high-contrast')) {
+    menu.style.background = '#1e293b';
+    menu.style.borderColor = '#374151';
+  }
+
+  // Inject keyframe style if not already exists
+  if (!document.getElementById('admin-menu-keyframes')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'admin-menu-keyframes';
+    styleEl.innerHTML = `
+      @keyframes adminMenuFadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(styleEl);
+  }
+
+  // Check if current page is active to highlight
+  const isMasterActive = window.location.pathname.includes('master-schedule.html') || window.location.pathname.includes('room-schedule-editor.html');
+  const isFacultyActive = window.location.pathname.includes('faculty-management.html');
+
+  menu.innerHTML = `
+    <button onclick="window.location.href='master-schedule.html'" class="admin-menu-item ${isMasterActive ? 'active' : ''}" style="
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-dark, #0F172A);
+      font-size: 13.5px;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      font-family: var(--font-body);
+      transition: all 0.2s;
+    ">
+      <i data-lucide="calendar" style="width:16px;height:16px;color:${isMasterActive ? 'var(--primary-teal)' : '#64748B'};"></i>
+      Master Schedule
+    </button>
+    <button onclick="window.location.href='faculty-management.html'" class="admin-menu-item ${isFacultyActive ? 'active' : ''}" style="
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-dark, #0F172A);
+      font-size: 13.5px;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      font-family: var(--font-body);
+      transition: all 0.2s;
+    ">
+      <i data-lucide="users" style="width:16px;height:16px;color:${isFacultyActive ? 'var(--primary-teal)' : '#64748B'};"></i>
+      Faculty Management
+    </button>
+  `;
+
+  document.body.appendChild(menu);
+  if (window.lucide) lucide.createIcons();
+
+  // Highlight hovering styles via stylesheet or inline dynamically
+  const items = menu.querySelectorAll('.admin-menu-item');
+  items.forEach(item => {
+    item.addEventListener('mouseenter', () => {
+      item.style.background = 'var(--primary-teal-light)';
+      item.style.color = 'var(--primary-teal)';
+    });
+    item.addEventListener('mouseleave', () => {
+      if (!item.classList.contains('active')) {
+        item.style.background = 'transparent';
+        item.style.color = 'var(--text-dark, #0F172A)';
+      } else {
+        item.style.background = 'var(--primary-teal-light)';
+        item.style.color = 'var(--primary-teal)';
+      }
+    });
+    if (item.classList.contains('active')) {
+      item.style.background = 'var(--primary-teal-light)';
+      item.style.color = 'var(--primary-teal)';
+      item.style.fontWeight = '600';
+    }
+  });
+
+  // Calculate position
+  const rect = btnEl.getBoundingClientRect();
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+  const menuWidth = 180;
+  const menuHeight = 88;
+
+  // Let's determine positioning:
+  // 1. If it's a mobile bottom nav:
+  if (screenWidth <= 1024 && rect.bottom > screenHeight - 100) {
+    let left = rect.left + (rect.width / 2) - (menuWidth / 2);
+    left = Math.max(8, left);
+    if (left + menuWidth > screenWidth - 8) {
+      left = screenWidth - menuWidth - 8;
+    }
+    menu.style.top = `${rect.top - menuHeight - 8}px`;
+    menu.style.left = `${left}px`;
+  }
+  // 2. If it's a desktop sidebar (left of screen):
+  else if (rect.left < 100) {
+    menu.style.left = `${rect.right + 12}px`;
+    menu.style.top = `${rect.top + (rect.height / 2) - (menuHeight / 2)}px`;
+  }
+  // 3. If it's the header menu (top of screen):
+  else {
+    let left = rect.left + (rect.width / 2) - (menuWidth / 2);
+    left = Math.max(8, left);
+    if (left + menuWidth > screenWidth - 8) {
+      left = screenWidth - menuWidth - 8;
+    }
+    menu.style.top = `${rect.bottom + 8}px`;
+    menu.style.left = `${left}px`;
+  }
+
+  // Dismiss listeners
+  const closeHandler = function(e) {
+    if (!menu.contains(e.target) && e.target !== btnEl && !btnEl.contains(e.target)) {
+      menu.remove();
+      document.removeEventListener('click', closeHandler);
+    }
+  };
+  document.addEventListener('click', closeHandler);
+}
 
 

@@ -20,6 +20,14 @@
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css" />
   <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script>
+    (function applyAccessibilitySettings() {
+      const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
+      if (savedContrast) {
+        document.documentElement.classList.add('high-contrast');
+      }
+    })();
+  </script>
   <script src="auth-check.js"></script>
   
   
@@ -242,7 +250,7 @@
       width: 100%;
       border: 1px solid var(--border-light);
       border-radius: 20px;
-      background: #ffffff;
+      background: var(--bg-white);
       box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
       overflow-x: auto;
       box-sizing: border-box;
@@ -251,7 +259,7 @@
     .calendar-grid-header {
       display: flex;
       border-bottom: 2px solid var(--border-light);
-      background: #F8FAFC;
+      background: var(--bg-card);
       border-top-left-radius: 20px;
       border-top-right-radius: 20px;
       position: sticky;
@@ -286,14 +294,14 @@
       position: relative;
       height: 1080px; /* 24 slots * 45px */
       box-sizing: border-box;
-      background: #ffffff;
+      background: var(--bg-white);
     }
     
     .grid-time-column {
       flex: 0 0 70px;
       min-width: 70px;
       height: 100%;
-      background: #F8FAFC;
+      background: var(--bg-card);
       border-right: 1px solid var(--border-light);
       position: relative;
       box-sizing: border-box;
@@ -312,7 +320,7 @@
       font-size: 11px;
       font-weight: 700;
       color: var(--text-mid);
-      border-bottom: 1px dashed rgba(226, 232, 240, 0.6);
+      border-bottom: 1px dashed var(--border-light);
       box-sizing: border-box;
     }
     
@@ -323,7 +331,7 @@
       position: relative;
       border-left: 1px solid var(--border-light);
       box-sizing: border-box;
-      background-image: linear-gradient(to bottom, transparent 44px, rgba(226, 232, 240, 0.4) 44px, rgba(226, 232, 240, 0.4) 45px);
+      background-image: linear-gradient(to bottom, transparent 44px, var(--border-light) 44px, var(--border-light) 45px);
       background-size: 100% 45px;
       transition: background-color 0.2s ease;
     }
@@ -642,11 +650,15 @@
       
       <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;"></div>
 
-      <button class="sidebar-btn active" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+      <button class="sidebar-btn desktop-only-btn active" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
         <i data-lucide="calendar" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+      <button class="sidebar-btn desktop-only-btn" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
         <i data-lucide="users" style="width:24px;height:24px;"></i>
+      </button>
+      <div class="mobile-only-divider" style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;"></div>
+      <button class="sidebar-btn mobile-only-btn active" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
+        <i data-lucide="folder-cog" style="width:24px;height:24px;"></i>
       </button>
     </nav>
 
@@ -739,7 +751,7 @@
             <p style="font-size: 14px; color: #94A3B8; font-weight: 500;">Building B</p>
           </div>
         </div>
-        <div style="display: flex; gap: 12px;">
+        <div class="seh-actions" style="display: flex; gap: 12px;">
           <button id="print-schedule-btn" onclick="preparePrint()" style="display: flex; align-items: center; gap: 8px; background: transparent; color: var(--primary-teal); border: 2px solid var(--primary-teal); padding: 12px 24px; border-radius: 24px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s;">
             <i data-lucide="printer" style="width: 20px; height: 20px;"></i>
             Print Schedule
@@ -762,28 +774,34 @@
             Create Schedule Block
           </h3>
           
-          <div style="margin-bottom: 24px;">
-            <label class="editor-label" style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px;">SUBJECT</label>
-            <input type="text" class="editor-select" id="block-subject" placeholder="Enter subject name">
-            
-            <label class="editor-label" style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px;">PROFESSOR</label>
-            <div class="custom-select-wrapper" id="professor-wrapper" style="width: 100%; margin-bottom: 16px;">
-              <div class="custom-select-trigger" style="width: 100%; height: 45px; box-sizing: border-box; padding: 12px 16px; font-size: 14px; border: 1.5px solid var(--border-light); border-radius: 8px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
-                <span style="color: #94A3B8;">Select Professor</span>
-                <i data-lucide="chevron-down"></i>
-              </div>
-              <div class="custom-select-dropdown" style="width: 100%;"></div>
+          <div class="editor-form-grid" style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px;">
+            <div class="editor-field-group" style="display: flex; flex-direction: column; width: 100%;">
+              <label class="editor-label" style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px; display: block;">SUBJECT</label>
+              <input type="text" class="editor-select" id="block-subject" placeholder="Enter subject name" style="width: 100%; box-sizing: border-box;">
             </div>
             
-            <label class="editor-label" style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px;">SECTION</label>
-            <input type="text" class="editor-select" id="block-section" placeholder="Enter section" style="margin-bottom: 24px;">
+            <div class="editor-field-group" style="display: flex; flex-direction: column; width: 100%;">
+              <label class="editor-label" style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px; display: block;">PROFESSOR</label>
+              <div class="custom-select-wrapper" id="professor-wrapper" style="width: 100%;">
+                <div class="custom-select-trigger" style="width: 100%; height: 45px; box-sizing: border-box; padding: 12px 16px; font-size: 14px; border: 1.5px solid var(--border-light); border-radius: 8px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                  <span style="color: #94A3B8;">Select Professor</span>
+                  <i data-lucide="chevron-down"></i>
+                </div>
+                <div class="custom-select-dropdown" style="width: 100%;"></div>
+              </div>
+            </div>
+            
+            <div class="editor-field-group" style="display: flex; flex-direction: column; width: 100%;">
+              <label class="editor-label" style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px; display: block;">SECTION</label>
+              <input type="text" class="editor-select" id="block-section" placeholder="Enter section" style="width: 100%; box-sizing: border-box;">
+            </div>
           </div>
           
           <button id="create-block-btn" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; background: var(--primary-teal); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(30,187,215,0.35);" onmouseover="this.style.background='#17a3bc';this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 18px rgba(30,187,215,0.45)'" onmouseout="this.style.background='var(--primary-teal)';this.style.transform='none';this.style.boxShadow='0 4px 14px rgba(30,187,215,0.35)'">
             <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Create Block
           </button>
 
-          <div style="margin-top: 32px; border-top: 1px solid var(--border-light); padding-top: 24px;">
+          <div class="available-blocks-section" style="margin-top: 32px; border-top: 1px solid var(--border-light); padding-top: 24px;">
             <h4 style="font-size: 13px; font-weight: 700; color: var(--text-dark); margin-bottom: 16px;">Available Blocks (<span id="available-count">0</span>)</h4>
             <div id="blocks-container" style="display: flex; flex-direction: column; gap: 12px;">
               <p id="no-blocks-msg" style="font-size: 11.5px; color: #94A3B8; font-weight: 500; text-align: center; line-height: 1.5;">No blocks created yet. Create a block to start scheduling.</p>
@@ -803,22 +821,12 @@
             <div class="schedule-selectors" style="display: flex; align-items: center; gap: 16px;">
               <div style="display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">AY:</span>
-                <div style="display: flex; align-items: center; gap: 4px;">
-                  <div class="custom-select-wrapper header-select" id="academic-year-start-wrapper" style="width: 80px;">
-                    <div class="custom-select-trigger" style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
-                      <span>Select</span>
-                      <i data-lucide="chevron-down"></i>
-                    </div>
-                    <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
+                <div class="custom-select-wrapper header-select" id="academic-year-wrapper" style="width: 125px;">
+                  <div class="custom-select-trigger" style="padding: 5px 10px; font-size: 12.5px; border-radius: 6px; height: auto;">
+                    <span>Select</span>
+                    <i data-lucide="chevron-down"></i>
                   </div>
-                  <span style="color: rgba(255, 255, 255, 0.75); font-size: 12px; font-weight: 600;">–</span>
-                  <div class="custom-select-wrapper header-select" id="academic-year-end-wrapper" style="width: 80px;">
-                    <div class="custom-select-trigger" style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
-                      <span>Select</span>
-                      <i data-lucide="chevron-down"></i>
-                    </div>
-                    <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
-                  </div>
+                  <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
                 </div>
               </div>
               

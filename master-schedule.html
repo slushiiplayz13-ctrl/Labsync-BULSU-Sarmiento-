@@ -21,6 +21,14 @@
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css" />
   <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script>
+    (function applyAccessibilitySettings() {
+      const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
+      if (savedContrast) {
+        document.documentElement.classList.add('high-contrast');
+      }
+    })();
+  </script>
   <script src="auth-check.js"></script>
   
 
@@ -48,11 +56,15 @@
       <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;">
       </div>
 
-      <button class="sidebar-btn active" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+      <button class="sidebar-btn desktop-only-btn active" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
         <i data-lucide="calendar" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+      <button class="sidebar-btn desktop-only-btn" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
         <i data-lucide="users" style="width:24px;height:24px;"></i>
+      </button>
+      <div class="mobile-only-divider" style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;"></div>
+      <button class="sidebar-btn mobile-only-btn active" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
+        <i data-lucide="folder-cog" style="width:24px;height:24px;"></i>
       </button>
     </nav>
 
@@ -204,7 +216,7 @@
         <label
           style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Room
           Number</label>
-        <input type="text" id="roomNumberInput" placeholder="e.g. 204"
+        <input type="text" id="roomNumberInput" placeholder="e.g. 204" pattern="[0-9]*" inputmode="numeric"
           style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
           onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
           onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
@@ -213,16 +225,15 @@
       <div style="margin-bottom: 32px;">
         <label
           style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Building</label>
-        <div style="position: relative;">
-          <select id="buildingSelect"
-            style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; appearance: none; background: #fff; transition: all 0.2s; box-sizing: border-box; cursor: pointer;"
-            onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
-            onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
-            <option value="Bldg. B" selected>Bldg. B</option>
-            <option value="Bldg. E">Bldg. E</option>
-          </select>
-          <i data-lucide="chevron-down"
-            style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-light); pointer-events: none;"></i>
+        <div class="custom-select-wrapper" id="building-select-wrapper" style="width: 100%;">
+          <div class="custom-select-trigger" style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; background: var(--bg-white); color: var(--text-dark); cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
+            <span>Bldg. B</span>
+            <i data-lucide="chevron-down" style="width: 18px; height: 18px; color: var(--text-light);"></i>
+          </div>
+          <div class="custom-select-dropdown" style="color: var(--text-dark);">
+            <div class="custom-select-option selected" data-value="Bldg. B">Bldg. B</div>
+            <div class="custom-select-option" data-value="Bldg. E">Bldg. E</div>
+          </div>
         </div>
       </div>
 
@@ -259,7 +270,7 @@
       <div style="margin-bottom: 20px;">
         <label
           style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Room Number</label>
-        <input type="text" id="editRoomNumberInput" placeholder="e.g. 204"
+        <input type="text" id="editRoomNumberInput" placeholder="e.g. 204" pattern="[0-9]*" inputmode="numeric"
           style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
           onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
           onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
@@ -268,26 +279,34 @@
       <div style="margin-bottom: 32px;">
         <label
           style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Building</label>
-        <div style="position: relative;">
-          <select id="editBuildingSelect"
-            style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; appearance: none; background: #fff; transition: all 0.2s; box-sizing: border-box; cursor: pointer;"
-            onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
-            onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
-            <option value="Bldg. B">Bldg. B</option>
-            <option value="Bldg. E">Bldg. E</option>
-          </select>
-          <i data-lucide="chevron-down"
-            style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-light); pointer-events: none;"></i>
+        <div class="custom-select-wrapper" id="edit-building-select-wrapper" style="width: 100%;">
+          <div class="custom-select-trigger" style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; background: var(--bg-white); color: var(--text-dark); cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
+            <span>Bldg. B</span>
+            <i data-lucide="chevron-down" style="width: 18px; height: 18px; color: var(--text-light);"></i>
+          </div>
+          <div class="custom-select-dropdown" style="color: var(--text-dark);">
+            <div class="custom-select-option selected" data-value="Bldg. B">Bldg. B</div>
+            <div class="custom-select-option" data-value="Bldg. E">Bldg. E</div>
+          </div>
         </div>
       </div>
 
-      <button id="submitEditRoomBtn"
-        style="width: 100%; padding: 14px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
-        onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(30, 187, 215, 0.45)';"
-        onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(30, 187, 215, 0.35)';">
-        <i data-lucide="check" style="width: 18px; height: 18px;"></i>
-        Save Changes
-      </button>
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button id="deleteRoomBtn" type="button"
+          style="flex: 1; padding: 14px; background: transparent; color: #ef4444; border: 1.5px solid #fecaca; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px;"
+          onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#fca5a5'; this.style.transform='translateY(-1px)';"
+          onmouseout="this.style.background='transparent'; this.style.borderColor='#fecaca'; this.style.transform='none';">
+          <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+          Delete
+        </button>
+        <button id="submitEditRoomBtn" type="button"
+          style="flex: 1.8; padding: 14px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
+          onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(30, 187, 215, 0.45)';"
+          onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(30, 187, 215, 0.35)';">
+          <i data-lucide="check" style="width: 18px; height: 18px;"></i>
+          Save Changes
+        </button>
+      </div>
     </div>
   </div>
 
@@ -309,25 +328,15 @@
         </button>
       </div>
 
-      <!-- Academic Year selectors -->
+      <!-- Academic Year selector -->
       <div style="margin-bottom: 20px;">
         <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Academic Year</label>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div class="custom-select-wrapper" id="academic-year-start-wrapper" style="flex: 1;">
-            <div class="custom-select-trigger">
-              <span>Select</span>
-              <i data-lucide="chevron-down"></i>
-            </div>
-            <div class="custom-select-dropdown"></div>
+        <div class="custom-select-wrapper" id="academic-year-wrapper" style="width: 100%;">
+          <div class="custom-select-trigger">
+            <span>Select</span>
+            <i data-lucide="chevron-down"></i>
           </div>
-          <span style="color: var(--text-muted); font-size: 14px; font-weight: 600;">–</span>
-          <div class="custom-select-wrapper" id="academic-year-end-wrapper" style="flex: 1;">
-            <div class="custom-select-trigger">
-              <span>Select</span>
-              <i data-lucide="chevron-down"></i>
-            </div>
-            <div class="custom-select-dropdown"></div>
-          </div>
+          <div class="custom-select-dropdown"></div>
         </div>
       </div>
 
@@ -377,7 +386,7 @@
 
       <div style="margin-bottom: 20px;">
         <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Program Chair Name</label>
-        <input type="text" id="programChairInput" placeholder="ELENITA T. CAPARIÑO"
+        <input type="text" id="programChairInput" placeholder=""
           style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
           onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
           onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
@@ -385,7 +394,7 @@
 
       <div style="margin-bottom: 32px;">
         <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Campus Dean Name</label>
-        <input type="text" id="campusDeanInput" placeholder="DR. MARICEL BALIGOD"
+        <input type="text" id="campusDeanInput" placeholder=""
           style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
           onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
           onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
@@ -446,7 +455,7 @@
       setTimeout(() => {
         addRoomModal.style.display = 'none';
         document.getElementById('roomNumberInput').value = '';
-        document.getElementById('buildingSelect').value = 'Bldg. B';
+        if (window.setCustomSelectValue) window.setCustomSelectValue('building-select-wrapper', 'Bldg. B');
       }, 300);
     }
 
@@ -466,7 +475,9 @@
     function openEditModal(room) {
       document.getElementById('editRoomIdInput').value = room.Room_ID;
       document.getElementById('editRoomNumberInput').value = room.Room_Number;
-      document.getElementById('editBuildingSelect').value = room.Building;
+      if (window.setCustomSelectValue) {
+        window.setCustomSelectValue('edit-building-select-wrapper', room.Building || 'Bldg. B');
+      }
 
       editRoomModal.style.display = 'flex';
       // Trigger reflow
@@ -492,10 +503,107 @@
       if (e.target === editRoomModal) closeEditModal();
     });
 
+    // Enforce numeric only inputs
+    const restrictToNumeric = (inputElement) => {
+      if (!inputElement) return;
+      inputElement.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '');
+      });
+      inputElement.addEventListener('keypress', (e) => {
+        if (!/[0-9]/.test(e.key)) {
+          e.preventDefault();
+        }
+      });
+    };
+
+    restrictToNumeric(document.getElementById('roomNumberInput'));
+    restrictToNumeric(document.getElementById('editRoomNumberInput'));
+
+    // Custom confirmation modal for room deletion
+    function showDeleteRoomConfirmation(roomId, roomNum) {
+      const modal = document.createElement('div');
+      modal.id = 'delete-confirm-modal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1100;opacity:0;transition:opacity 0.25s ease;';
+      
+      modal.innerHTML = `
+        <div style="background:var(--bg-white);color:var(--text-dark);border:1px solid var(--border-light);border-radius:18px;width:90%;max-width:400px;padding:28px;box-shadow:0 20px 40px rgba(0,0,0,0.3);transform:translateY(20px);transition:transform 0.25s ease;text-align:center;">
+          <div style="width:56px;height:56px;background:rgba(239,68,68,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px auto;color:#EF4444;">
+            <i data-lucide="trash-2" style="width:28px;height:28px;"></i>
+          </div>
+          
+          <h2 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 10px 0;">Delete Laboratory Room</h2>
+          
+          <p style="margin:0 0 24px 0;font-size:14px;color:var(--text-mid);font-family:var(--font-body);line-height:1.5;">
+            Are you sure you want to delete <strong>Room ${roomNum}</strong>? This action will permanently remove the laboratory and all associated schedules and PC units.
+          </p>
+          
+          <div style="display:flex;gap:12px;font-family:var(--font-body);">
+            <button id="cancel-delete-room-btn" style="flex:1;padding:12px;border:1px solid var(--border-light);background:var(--bg-card);border-radius:8px;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;transition:all 0.2s;">Cancel</button>
+            <button id="confirm-delete-room-btn" style="flex:1;padding:12px;border:none;background:#EF4444;color:#fff;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(239,68,68,0.25);">Delete</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.querySelector('div').style.transform = 'translateY(0)';
+      }, 10);
+      
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons({ root: modal });
+      }
+      
+      const closeConfirmModal = () => {
+        modal.style.opacity = '0';
+        modal.querySelector('div').style.transform = 'translateY(20px)';
+        setTimeout(() => modal.remove(), 250);
+      };
+      
+      document.getElementById('cancel-delete-room-btn').addEventListener('click', closeConfirmModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeConfirmModal();
+      });
+      
+      document.getElementById('confirm-delete-room-btn').addEventListener('click', async () => {
+        try {
+          const res = await fetch(`/api/laboratories/${roomId}`, {
+            method: 'DELETE'
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            alert(data.error || 'Failed to delete room');
+            return;
+          }
+
+          closeConfirmModal();
+          loadRooms();
+          closeEditModal();
+        } catch (err) {
+          console.error('Error deleting room:', err);
+          alert('An unexpected error occurred.');
+        }
+      });
+    }
+
+    // Handle room deletion trigger
+    const deleteRoomBtn = document.getElementById('deleteRoomBtn');
+    if (deleteRoomBtn) {
+      deleteRoomBtn.addEventListener('click', () => {
+        const roomId = document.getElementById('editRoomIdInput').value;
+        const roomNum = document.getElementById('editRoomNumberInput').value.trim();
+
+        if (!roomId) return;
+        showDeleteRoomConfirmation(roomId, roomNum);
+      });
+    }
+
     submitEditRoomBtn.addEventListener('click', async () => {
       const roomId = document.getElementById('editRoomIdInput').value;
       const roomNum = document.getElementById('editRoomNumberInput').value.trim();
-      const bldg = document.getElementById('editBuildingSelect').value;
+      const bldg = document.getElementById('edit-building-select-wrapper')?.dataset.value || document.getElementById('editBuildingSelect')?.value || 'Bldg. B';
       const input = document.getElementById('editRoomNumberInput');
 
       if (!roomNum) {
@@ -585,10 +693,12 @@
     // Call on page load
     const currentYear = new Date().getFullYear();
     if (window.populateCustomYearSelectors) {
-      window.populateCustomYearSelectors('academic-year-start-wrapper', 'academic-year-end-wrapper', `${currentYear}-${currentYear + 1}`);
+      window.populateCustomYearSelectors('academic-year-wrapper', `${currentYear}-${currentYear + 1}`);
     }
     if (window.initCustomSelect) {
       window.initCustomSelect('semester-wrapper');
+      window.initCustomSelect('building-select-wrapper');
+      window.initCustomSelect('edit-building-select-wrapper');
     }
     loadRooms();
 
@@ -633,10 +743,9 @@
 
     if (confirmDownloadBtn) {
       confirmDownloadBtn.addEventListener('click', () => {
-        const startYear = document.getElementById('academic-year-start-wrapper').dataset.value || String(currentYear);
-        const endYear = document.getElementById('academic-year-end-wrapper').dataset.value || String(currentYear + 1);
-        const ay = `${startYear}-${endYear}`;
-        const sem = document.getElementById('semester-wrapper').dataset.value || '1st Semester';
+        const ayWrapper = document.getElementById('academic-year-wrapper') || document.getElementById('academic-year-start-wrapper');
+        const ay = ayWrapper ? (ayWrapper.dataset.value || `${currentYear}-${currentYear + 1}`) : `${currentYear}-${currentYear + 1}`;
+        const sem = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
         window.open(`print-all-schedules.html?academicYear=${encodeURIComponent(ay)}&semester=${encodeURIComponent(sem)}`, '_blank');
         closeDownloadModal();
       });
@@ -646,10 +755,9 @@
       openDownloadModal();
     };
 
-    // Handle form submission
     submitRoomBtn.addEventListener('click', async () => {
       const roomNum = document.getElementById('roomNumberInput').value.trim();
-      const bldg = document.getElementById('buildingSelect').value;
+      const bldg = document.getElementById('building-select-wrapper')?.dataset.value || document.getElementById('buildingSelect')?.value || 'Bldg. B';
       const input = document.getElementById('roomNumberInput');
 
       if (!roomNum) {

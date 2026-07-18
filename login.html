@@ -6,7 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LabSync - Sign In</title>
   <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
-  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <style id="auth-anti-flash">
+    body {
+      display: none !important;
+    }
+  </style>
   <script>
     (function applyAccessibilitySettings() {
       const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
@@ -50,6 +54,7 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="script.js"></script>
 
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="css/auth.css" />
@@ -77,8 +82,13 @@
       <p>Access your lab schedules and resources in one place.</p>
     </div>
 
-    <div class="login-card">
+    <form class="login-card" id="loginForm" onsubmit="event.preventDefault(); return false;">
       <img src="assets/labsync-logo.png" alt="LabSync Logo" class="card-logo">
+
+      <div id="loginErrorMessage" class="login-error-banner" style="display: none;">
+        <i data-lucide="alert-circle" style="width: 18px; height: 18px; color: #EF4444; flex-shrink: 0;"></i>
+        <span id="loginErrorText"></span>
+      </div>
 
       <div class="form-group">
         <input type="email" id="email" placeholder="Enter Email" autocomplete="username">
@@ -97,23 +107,24 @@
 
       <a href="#" class="forgot-link">Recover Password ?</a>
 
-      <button class="submit-btn" id="loginBtn">Sign In</button>
+      <button type="submit" class="submit-btn" id="loginBtn">Sign In</button>
 
       <div class="footer-text">© 2026 LabSync. All right reserved.</div>
-    </div>
+    </form>
   </main>
 
   <!-- Recover Password Modal -->
   <div id="recoverModal" class="modal-overlay">
     <div class="modal-card">
-      <button type="button" class="modal-close-btn" id="closeRecoverModalBtn" aria-label="Close recovery modal">&times;</button>
+      <button type="button" class="modal-close-btn" id="closeRecoverModalBtn"
+        aria-label="Close recovery modal">&times;</button>
       <h2>Recover Password</h2>
       <p>Enter the email address associated with your account, and we'll send you a link to reset your password.</p>
-      
+
       <div class="form-group" style="width: 100%; margin-bottom: 20px;">
         <input type="email" id="recoverEmail" placeholder="Enter Email" autocomplete="email">
       </div>
-      
+
       <button class="submit-btn" id="sendRecoverBtn">Send Recovery Link</button>
     </div>
   </div>
@@ -121,8 +132,9 @@
   <!-- About Modal -->
   <div id="aboutModal" class="modal-overlay">
     <div class="modal-card about-modal-card">
-      <button type="button" class="modal-close-btn" id="closeAboutModalBtn" aria-label="Close about modal">&times;</button>
-      
+      <button type="button" class="modal-close-btn" id="closeAboutModalBtn"
+        aria-label="Close about modal">&times;</button>
+
       <div class="about-header">
         <img src="assets/labsync-logo.png" alt="LabSync Logo" class="about-logo">
         <p class="about-tagline">Laboratory Management & Monitoring System</p>
@@ -132,7 +144,11 @@
         <section class="about-section">
           <h3>About the System</h3>
           <p>
-            LabSync is a unified, smart scheduling and monitoring system built specifically for the Computer Laboratories of <strong>Bulacan State University - Sarmiento Campus</strong>. By integrating real-time scheduling, digitized PC issue reporting via QR codes, and seamless communication channels between Faculty, IT Department Heads, and MIS Staff, LabSync aims to optimize laboratory uptime and streamline academic operations.
+            LabSync is a unified, smart scheduling and monitoring system built specifically for the Computer
+            Laboratories of <strong>Bulacan State University - Sarmiento Campus</strong>. By integrating real-time
+            scheduling, digitized PC issue reporting via QR codes, and seamless communication channels between Faculty,
+            IT Department Heads, and MIS Staff, LabSync aims to optimize laboratory uptime and streamline academic
+            operations.
           </p>
         </section>
 
@@ -350,12 +366,35 @@
       });
     })();
 
-    document.getElementById('loginBtn').addEventListener('click', async () => {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+    function showLoginError(msg) {
+      const banner = document.getElementById('loginErrorMessage');
+      const textSpan = document.getElementById('loginErrorText');
+      if (banner && textSpan) {
+        textSpan.textContent = msg;
+        banner.style.display = 'flex';
+        if (window.lucide && lucide.createIcons) lucide.createIcons({ root: banner });
+      }
+    }
+
+    function hideLoginError() {
+      const banner = document.getElementById('loginErrorMessage');
+      if (banner) {
+        banner.style.display = 'none';
+      }
+    }
+
+    async function performLogin(e) {
+      if (e) e.preventDefault();
+      hideLoginError();
+
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = passwordInput ? passwordInput.value : '';
 
       if (!email || !password) {
-        alert("Please enter both email and password.");
+        showLoginError("Please enter both email and password.");
         return;
       }
 
@@ -367,16 +406,13 @@
           },
           body: JSON.stringify({ email, password })
         });
-        
+
         const data = await response.json();
 
         if (response.ok) {
-          // Store user details in localStorage so other pages can use them
           localStorage.setItem('user', JSON.stringify(data.user));
-          
-          alert(data.message);
-          
-          // Route based on role
+          hideLoginError();
+
           if (data.user.role && data.user.role.toLowerCase().includes('head')) {
             window.location.href = 'it-head-dashboard.html';
           } else if (data.user.role === 'MIS Staff') {
@@ -384,15 +420,60 @@
           } else {
             window.location.href = 'index.html';
           }
-
         } else {
-          alert(data.error || "Login failed");
+          showLoginError(data.error || "Login failed");
         }
       } catch (err) {
         console.error(err);
-        alert("Server connection failed. Is the server running?");
+        showLoginError("Server connection failed. Is the server running?");
+      }
+    }
+
+    // Reset button state on page show / back button navigation
+    window.addEventListener('pageshow', () => {
+      const loginBtn = document.getElementById('loginBtn');
+      if (loginBtn) {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Sign In";
       }
     });
+
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+      loginForm.addEventListener('submit', performLogin);
+    }
+
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+      loginBtn.addEventListener('click', performLogin);
+    }
+
+    const emailField = document.getElementById('email');
+    const passwordField = document.getElementById('password');
+
+    if (emailField) {
+      emailField.addEventListener('input', hideLoginError);
+      emailField.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (passwordField) {
+            passwordField.focus();
+          } else {
+            performLogin(e);
+          }
+        }
+      });
+    }
+
+    if (passwordField) {
+      passwordField.addEventListener('input', hideLoginError);
+      passwordField.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          performLogin(e);
+        }
+      });
+    }
   </script>
 </body>
 

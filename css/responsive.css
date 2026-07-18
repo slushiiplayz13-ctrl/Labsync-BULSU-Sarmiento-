@@ -1,30 +1,25 @@
-/* =================================================================
-   LabSync – Global Responsive & Media Queries |  css/responsive.css
-   ================================================================= */
-
-/* ─── Laptop Screen Adjustments (Max Width: 1366px) ───────────── */
-@media (max-width: 1366px) {
-  .nav-item {
-    padding: 6px 12px !important;
-    font-size: 12.5px !important;
-  }
-  .nav-divider {
-    display: none !important;
-  }
-  .header-nav {
-    gap: 3px !important;
-  }
+/* Sidebar Button Responsiveness (Desktop vs Mobile) */
+.sidebar-btn.mobile-only-btn {
+  display: none !important;
 }
-
-/* ─── Compact Desktop Screen Adjustments (Max Width: 1200px) ───── */
-@media (max-width: 1200px) {
-  .header-nav {
-    display: none !important;
-  }
+.sidebar-btn.desktop-only-btn {
+  display: inline-flex !important;
+}
+.mobile-only-divider {
+  display: none !important;
 }
 
 /* ─── Tablet and Mobile Viewports (Max Width: 1024px) ───────────── */
 @media (max-width: 1024px) {
+  .sidebar-btn.mobile-only-btn {
+    display: flex !important;
+  }
+  .sidebar-btn.desktop-only-btn {
+    display: none !important;
+  }
+  .mobile-only-divider {
+    display: block !important;
+  }
   /* Scroll & Wrapper Mechanics */
   body {
     height: auto !important;
@@ -35,7 +30,7 @@
     padding-top: 70px !important;
     height: auto !important;
     overflow: visible !important;
-    padding-bottom: 80px !important; /* Prevent bottom navigation overlap */
+    padding-bottom: 90px !important; /* Prevent bottom navigation overlap */
   }
   .page-content {
     padding: 16px !important;
@@ -59,6 +54,35 @@
   .profile-info {
     display: none !important; /* Hide profile textual descriptors to prevent header clutter */
   }
+  .profile-dropdown {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    box-shadow: none !important;
+  }
+  .profile-dropdown .chevron-btn,
+  .profile-dropdown button {
+    display: none !important;
+  }
+  .header-right {
+    gap: 10px !important;
+  }
+  .notif-btn {
+    width: 42px !important;
+    height: 42px !important;
+  }
+  .profile-dropdown .avatar {
+    width: 38px !important;
+    height: 38px !important;
+    border: 2px solid var(--border-light) !important;
+  }
+  html.high-contrast .profile-dropdown .avatar {
+    border-color: var(--primary-teal) !important;
+  }
+  .profile-help-btn {
+    display: flex !important;
+  }
 
   /* Bottom Navigation Bar Conversion */
   .sidebar {
@@ -68,19 +92,22 @@
     right: 0 !important;
     top: auto !important;
     width: 100% !important;
-    height: 64px !important;
+    height: 70px !important;
     background: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid var(--border-light) !important;
-    padding: 0 16px !important;
+    padding: 0 !important;
     display: flex !important;
     flex-direction: row !important;
-    justify-content: space-around !important;
+    justify-content: center !important;
     align-items: center !important;
     z-index: 1000 !important;
     gap: 0 !important;
     box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.05) !important;
+  }
+  html.high-contrast .sidebar {
+    background: var(--bg-white) !important;
   }
   .sidebar-nav {
     display: flex !important;
@@ -91,32 +118,60 @@
     gap: 0 !important;
     flex: 1 !important;
     flex-wrap: nowrap !important;
+    overflow: hidden !important;
   }
   .sidebar-btn {
-    width: 40px !important;
-    height: 40px !important;
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    padding: 4px 0 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
+    color: var(--text-muted) !important;
+    position: relative !important;
+  }
+  .sidebar-btn i,
+  .sidebar-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+    color: var(--text-muted) !important;
+    transition: color var(--transition);
   }
   .sidebar-btn.active {
     background: transparent !important;
     color: var(--primary-teal) !important;
     box-shadow: none !important;
-    position: relative !important;
+  }
+  .sidebar-btn.active i,
+  .sidebar-btn.active svg {
+    color: var(--primary-teal) !important;
+  }
+  .sidebar-btn::after {
+    content: attr(title) !important;
+    display: block !important;
+    font-size: 8.5px !important;
+    font-weight: 500 !important;
+    white-space: normal !important;
+    max-width: 100% !important;
+    text-align: center !important;
+    line-height: 1.1 !important;
+    font-family: var(--font-body) !important;
+    color: inherit !important;
+    opacity: 0.85;
+    transition: opacity var(--transition), font-weight var(--transition);
+    letter-spacing: -0.1px !important;
   }
   .sidebar-btn.active::after {
-    content: '' !important;
-    position: absolute !important;
-    bottom: 0px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 5px !important;
-    height: 5px !important;
-    background: var(--primary-teal) !important;
-    border-radius: 50% !important;
-    box-shadow: 0 0 8px var(--primary-teal) !important;
+    opacity: 1 !important;
+    font-weight: 600 !important;
   }
   /* De-clutter bottom navigation and remove sidebar-only items */
   .sidebar-logo, 
@@ -133,17 +188,167 @@
     max-height: 90vh !important;
   }
 
-  /* Schedule Editor Stack Layout */
+  /* Schedule Editor Header & Stack Layout */
+  .schedule-editor-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    padding: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .seh-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .seh-left > div {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .seh-left h1 {
+    font-size: 18px !important;
+    line-height: 1.3 !important;
+    margin-bottom: 2px !important;
+    word-break: break-word !important;
+  }
+
+  .seh-left p {
+    font-size: 12.5px !important;
+  }
+
+  .seh-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .seh-actions button,
+  #print-schedule-btn,
+  #save-schedule-btn {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    border-radius: 12px !important;
+    white-space: nowrap !important;
+    height: 44px !important;
+    min-width: 0 !important;
+  }
+
   .editor-layout-container {
     flex-direction: column !important;
     align-items: stretch !important;
+    gap: 16px !important;
   }
   #create-block-panel {
     width: 100% !important;
     min-height: auto !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+  }
+  #create-block-panel h3 {
+    margin-bottom: 16px !important;
+  }
+  .editor-form-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+  }
+  #create-block-btn {
+    margin-top: 4px !important;
+  }
+  .available-blocks-section {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-top: 1px solid var(--border-light) !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    padding: 16px 0 0 0 !important;
+    margin-top: 20px !important;
+    z-index: 1 !important;
+    box-sizing: border-box !important;
+  }
+  html.high-contrast .available-blocks-section {
+    background: transparent !important;
+  }
+  .available-blocks-section h4 {
+    font-size: 11px !important;
+    margin-bottom: 8px !important;
+    color: var(--text-dark) !important;
+    font-family: var(--font-display) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+  }
+  #blocks-container {
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    max-height: 200px !important;
+    padding: 4px !important;
+    gap: 8px !important;
+    background-color: transparent !important;
+  }
+  #blocks-container::-webkit-scrollbar {
+    height: 4px !important;
+  }
+  #blocks-container::-webkit-scrollbar-thumb {
+    background: rgba(30, 187, 215, 0.2) !important;
+    border-radius: 99px !important;
+  }
+  #blocks-container .schedule-block {
+    flex: 0 0 140px !important;
+    margin-bottom: 0 !important;
+    height: auto !important;
+    display: inline-flex !important;
+    vertical-align: top !important;
+  }
+  #no-blocks-msg {
+    margin: 10px auto !important;
+    width: 100% !important;
+    text-align: center !important;
+    font-size: 11px !important;
+  }
+  .calendar-grid-container {
+    margin-bottom: 160px !important;
   }
   .editor-table {
     min-width: 800px !important;
+  }
+
+  /* Sticky Time Axis Column on Horizontal Scroll */
+  .grid-header-cell:first-child {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 60 !important;
+    background: #F8FAFC !important;
+    border-right: 1px solid var(--border-light) !important;
+    box-shadow: 4px 0 8px rgba(15, 23, 42, 0.03) !important;
+  }
+  .grid-time-column {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 55 !important;
+    background: #F8FAFC !important;
+    border-right: 1px solid var(--border-light) !important;
+    box-shadow: 4px 0 8px rgba(15, 23, 42, 0.03) !important;
+  }
+  html.high-contrast .grid-header-cell:first-child,
+  html.high-contrast .grid-time-column {
+    background: #111827 !important;
+    border-right-color: #374151 !important;
   }
 
   /* Schedule Scroll Container */
@@ -156,20 +361,240 @@
 
 /* ─── Mobile Viewports (Max Width: 768px) ────────────────────────── */
 @media (max-width: 768px) {
-  /* Title and clock layout stacking */
+  /* Hide clock and date to clean up header and vertical space on mobile */
+  .clock-block {
+    display: none !important;
+  }
+  body[data-page="schedule-editor"] .greeting-row {
+    display: none !important;
+  }
   .greeting-row {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
     text-align: left !important;
   }
-  .clock-block {
-    align-self: flex-start !important;
+
+  /* Account Settings Mobile Layout Redesign (100x Better & Compact) */
+  #account-settings-modal {
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  .settings-modal-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    animation: settingsModalSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes settingsModalSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .settings-modal-body {
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  .settings-modal-sidebar {
+    width: 100% !important;
+    flex-direction: row !important;
+    border-right: none !important;
+    border-bottom: 1.5px solid var(--border-light) !important;
+    padding: 2px 12px !important;
+    gap: 4px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    background: var(--bg-white) !important;
+  }
+  html.high-contrast .settings-modal-sidebar {
+    background: #111827 !important;
+  }
+  .settings-modal-sidebar .settings-tab-btn {
+    width: auto !important;
+    padding: 12px 14px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    border-left: none !important;
+    border-bottom: 3px solid transparent !important;
+    border-radius: 0 !important;
+    justify-content: center !important;
+  }
+  .settings-modal-sidebar .settings-tab-btn.active {
+    background: transparent !important;
+    border-bottom-color: var(--primary-teal) !important;
+    color: var(--primary-teal) !important;
+    font-weight: 700 !important;
+  }
+  .settings-modal-scroll {
+    padding: 14px !important;
+    background: #F8FAFC !important;
+  }
+  html.high-contrast .settings-modal-scroll {
+    background: #0f172a !important;
+  }
+  .settings-tab-panel {
+    background: #FFFFFF !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 12px !important;
+    padding: 16px 14px !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02) !important;
+    box-sizing: border-box !important;
+  }
+  html.high-contrast .settings-tab-panel {
+    background: #1e293b !important;
+    border-color: #374151 !important;
+  }
+  .settings-tab-panel h3 {
+    font-size: 15px !important;
+  }
+  .settings-tab-panel p {
+    font-size: 11.5px !important;
+  }
+  .settings-tab-panel > div:first-of-type {
+    margin-bottom: 16px !important;
+  }
+  
+  /* Compact Form elements */
+  .settings-modal-scroll input,
+  .settings-modal-scroll select {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+  }
+  .settings-modal-scroll label {
+    font-size: 11.5px !important;
+    margin-bottom: 6px !important;
+  }
+  .settings-modal-scroll button[onclick*="togglePasswordVisibility"] {
+    right: 12px !important;
+  }
+  .settings-modal-scroll div[style*="display:flex; flex-direction:column; gap:20px"],
+  .settings-modal-scroll div[style*="display: flex; flex-direction: column; gap: 20px"],
+  .settings-modal-scroll div[style*="display:flex; flex-direction:column; gap: 20px"],
+  .settings-modal-scroll div[style*="display: flex; flex-direction: column; gap:20px"] {
+    gap: 12px !important;
+  }
+  .settings-modal-scroll div[style*="display:flex; gap:36px"],
+  .settings-modal-scroll div[style*="display: flex; gap: 36px"] {
+    gap: 16px !important;
+  }
+  
+  /* Compact Profile photo uploader card */
+  #panel-profile div[style*="width:190px"],
+  #panel-profile div[style*="width: 190px"] {
+    width: 100% !important;
+    max-width: 200px !important;
+    margin: 0 auto !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+    gap: 10px !important;
+  }
+  #profile-photo-preview {
+    width: 80px !important;
+    height: 80px !important;
+    font-size: 26px !important;
+    box-shadow: 0 4px 10px rgba(30, 187, 215, 0.15) !important;
+  }
+  #profile-photo-preview + input + button {
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+  }
+  #panel-profile > div[style*="display:flex"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 20px !important;
+  }
+  #panel-profile > div[style*="display:flex"] > div:first-child {
+    align-self: center !important;
+  }
+  
+  /* Compact QR code block container */
+  #panel-qrcode div[style*="display:flex; gap:32px"],
+  #panel-qrcode div[style*="display: flex; gap: 32px"] {
+    padding: 16px !important;
+    border-radius: 12px !important;
+    gap: 16px !important;
+    flex-direction: column !important;
+  }
+  #qr-code-container {
+    width: 130px !important;
+    height: 130px !important;
+    padding: 8px !important;
+    align-self: center !important;
+  }
+  #panel-qrcode div[style*="flex:1; min-width:240px"] {
+    min-width: 0 !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  #download-qr-btn {
+    align-self: center !important;
+    padding: 8px 16px !important;
+    font-size: 12px !important;
+  }
+  
+  /* Password field stacking */
+  #panel-security div[style*="grid-template-columns:1fr 1fr"],
+  #panel-security div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  
+  /* Compact Modal Header */
+  #account-settings-modal .settings-modal-content-box > div:first-child {
+    padding: 16px 20px !important;
+  }
+  #account-settings-modal .settings-modal-content-box > div:first-child h2 {
+    font-size: 18px !important;
+    margin-bottom: 2px !important;
+  }
+  #account-settings-modal .settings-modal-content-box > div:first-child p {
+    font-size: 11.5px !important;
+  }
+  #close-settings-modal {
+    padding: 6px !important;
+    border-radius: 6px !important;
+  }
+  #close-settings-modal i {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  
+  /* Modal Footer */
+  .settings-modal-footer {
+    padding: 14px 16px !important;
+    flex-direction: row !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    background: #FFFFFF !important;
+    border-top: 1px solid var(--border-light) !important;
+  }
+  html.high-contrast .settings-modal-footer {
+    background: #1e293b !important;
+    border-color: #374151 !important;
+  }
+  .settings-modal-footer p {
+    display: none !important;
+  }
+  .settings-modal-footer div {
+    display: flex !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+  .settings-modal-footer button {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 10px 14px !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+    height: 44px !important;
   }
 
   /* Structural grids mapping to single column */
-  .room-selection-grid,
-  .faculty-grid,
   .reports-list,
   .rooms-grid,
   .analytics-row,
@@ -179,6 +604,123 @@
   .grid-4 {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
+  }
+
+  /* 2-column layout for room selection grid & faculty grid on mobile & tablet to maximize space */
+  .room-selection-grid,
+  .faculty-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .room-select-card {
+    padding: 20px 12px !important;
+    border-radius: 14px !important;
+  }
+
+  .room-select-card .rsc-icon {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 14px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .room-select-card .rsc-icon i,
+  .room-select-card .rsc-icon svg {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .room-select-card .rsc-title {
+    font-size: 15px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .room-select-card .rsc-subtitle {
+    font-size: 11.5px !important;
+  }
+
+  .room-select-card .room-edit-btn {
+    width: 32px !important;
+    height: 32px !important;
+    top: 8px !important;
+    right: 8px !important;
+  }
+
+  .room-select-card .room-edit-btn i,
+  .room-select-card .room-edit-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  /* Responsive Faculty Cards for 2-column layout */
+  .faculty-card {
+    padding: 14px 12px !important;
+    border-radius: 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
+  .faculty-card > div[style*="display:flex"]:first-of-type,
+  .faculty-card > div[style*="display: flex"]:first-of-type {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+    position: relative !important;
+    padding-right: 36px !important;
+  }
+
+  .faculty-card div[style*="width:50px"],
+  .faculty-card div[style*="width: 50px"] {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    font-size: 15px !important;
+  }
+
+  .faculty-card div[style*="font-size:16px"],
+  .faculty-card div[style*="font-size: 16px"] {
+    font-size: 13.5px !important;
+    line-height: 1.25 !important;
+    margin-bottom: 2px !important;
+    word-break: break-word !important;
+  }
+
+  .faculty-card .boss-role {
+    font-size: 11px !important;
+  }
+
+  .faculty-card div[style*="gap:6px"],
+  .faculty-card div[style*="gap: 6px"] {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  .faculty-card div[style*="display:flex;flex-direction:column;gap:7px"],
+  .faculty-card div[style*="display: flex; flex-direction: column; gap: 7px"] {
+    gap: 5px !important;
+    margin-top: 4px !important;
+  }
+
+  .faculty-card div[style*="font-size:12px"],
+  .faculty-card div[style*="font-size: 12px"] {
+    font-size: 11px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .faculty-card div[style*="font-size:12px"] span,
+  .faculty-card div[style*="font-size: 12px"] span {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
   }
 
   /* Responsive Containers and Cards */
@@ -261,7 +803,13 @@
     align-items: stretch !important;
     gap: 16px !important;
   }
-  #downloadAllSchedulesBtn {
+  .room-selection-header div[style*="display: flex"],
+  .room-selection-header div[style*="display:flex"] {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  .room-selection-header button {
     width: 100% !important;
     justify-content: center !important;
   }
@@ -276,17 +824,16 @@
   }
 }
 
-/* ─── Extra Small Mobile Viewports (Max Width: 480px) ────────────── */
-@media (max-width: 480px) {
+/* ─── Extra Small Mobile Viewports (Max Width: 640px) ────────────── */
+@media (max-width: 640px) {
   /* Scale down header logos and hide secondary logos */
-  .header-logos img[src*="bsu"] {
+  .header-logos img[src*="bsu"],
+  .header-logos .logo-divider,
+  .header-logos div {
     display: none !important;
   }
-  .header-logos > div {
-    display: none !important; /* hide the divider */
-  }
   .header-logos img[src*="labsync"] {
-    height: 32px !important;
+    height: 34px !important;
   }
   .header-logos {
     gap: 0 !important;
@@ -295,10 +842,60 @@
 
 /* ─── Mobile Viewports (Max Width: 600px) ────────────────────────── */
 @media (max-width: 600px) {
-  /* Stack stats grid cards into a single spacious column */
+  /* Reclaim horizontal space on smaller devices */
+  .page-content {
+    padding: 12px 10px !important;
+  }
+  
+  .dashboard-card {
+    padding: 12px !important;
+    border-radius: 16px !important;
+  }
+
+  .content-card {
+    padding: 14px 12px !important;
+    border-radius: 14px !important;
+  }
+
+  /* 2x2 grid for stats cards to save vertical space on mobile */
   .stats-grid {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  
+  .stat-card {
+    padding: 12px 14px !important;
+    min-height: 90px !important;
+    border-radius: 16px !important;
+  }
+
+  .stat-value {
+    font-size: 26px !important;
+  }
+
+  .stat-title {
+    font-size: 9.5px !important;
+    letter-spacing: 0.4px !important;
+  }
+
+  .stat-icon {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+  }
+
+  .stat-icon i,
+  .stat-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .stat-meta-container {
+    margin-top: 4px !important;
+  }
+
+  .stat-meta {
+    font-size: 9px !important;
   }
   
   /* Scale down greeting and clock text to fit without overwhelming vertical space */
@@ -317,6 +914,168 @@
   
   .clock-date {
     font-size: 11px !important;
+  }
+
+  .modal-content {
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+}
+
+/* ─── Scale bottom nav items for extra small screens to fit 6 menus without overlap ─── */
+@media (max-width: 480px) {
+  .sidebar-btn::after {
+    font-size: 7.5px !important;
+    letter-spacing: -0.3px !important;
+  }
+  .sidebar-btn i,
+  .sidebar-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+/* ─── Sleek Custom Scrollbars for mobile table & schedule containers ─── */
+@media (max-width: 1024px) {
+  .table-responsive::-webkit-scrollbar,
+  .table-container::-webkit-scrollbar,
+  .calendar-grid-container::-webkit-scrollbar,
+  #schedule-container::-webkit-scrollbar {
+    height: 5px !important;
+  }
+  .table-responsive::-webkit-scrollbar-thumb,
+  .table-container::-webkit-scrollbar-thumb,
+  .calendar-grid-container::-webkit-scrollbar-thumb,
+  #schedule-container::-webkit-scrollbar-thumb {
+    background: rgba(30, 187, 215, 0.3) !important;
+    border-radius: 99px !important;
+  }
+  .table-responsive::-webkit-scrollbar-track,
+  .table-container::-webkit-scrollbar-track,
+  .calendar-grid-container::-webkit-scrollbar-track,
+  #schedule-container::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+}
+
+/* ─── Compact Schedule Layout on Mobile (Max Width: 768px) ─── */
+@media (max-width: 768px) {
+  .schedule-columns {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    gap: 12px !important;
+  }
+  .day-column {
+    min-height: auto !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+  }
+  .day-column.highlight-day {
+    border-width: 2px !important;
+  }
+  .day-column.empty-day {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 8px 16px !important;
+    background: rgba(248, 250, 252, 0.5) !important;
+  }
+  html.high-contrast .day-column.empty-day {
+    background: rgba(31, 41, 55, 0.4) !important;
+  }
+  .day-column.empty-day div:not(.day-header) {
+    display: none !important;
+  }
+  .day-column.empty-day .day-header {
+    margin-bottom: 0 !important;
+    font-size: 11px !important;
+    padding: 4px 10px !important;
+    box-shadow: none !important;
+    color: var(--text-light) !important;
+    background: var(--bg-card) !important;
+    border-color: var(--border-light) !important;
+  }
+  html.high-contrast .day-column.empty-day .day-header {
+    background: #111827 !important;
+  }
+  .day-column.empty-day::after {
+    content: 'No classes scheduled' !important;
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    color: var(--text-muted) !important;
+    font-family: var(--font-body) !important;
+  }
+
+  /* Scale down Weekly Editor Calendar Grid for mobile viewports */
+  .grid-header-cell {
+    flex: 1 0 110px !important;
+    min-width: 110px !important;
+    padding: 12px 4px !important;
+    font-size: 11px !important;
+  }
+  .grid-header-cell:first-child {
+    flex: 0 0 60px !important;
+    min-width: 60px !important;
+  }
+  .grid-day-column {
+    flex: 1 0 110px !important;
+    min-width: 110px !important;
+  }
+  .grid-time-column {
+    flex: 0 0 60px !important;
+    min-width: 60px !important;
+  }
+  .grid-time-label {
+    font-size: 9.5px !important;
+    padding-top: 4px !important;
+  }
+  .grid-card {
+    padding: 6px 8px !important;
+    border-radius: 8px !important;
+    left: 4px !important;
+    right: 4px !important;
+  }
+  .grid-card-title {
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
+  }
+  .grid-card-section,
+  .grid-card-prof {
+    font-size: 8px !important;
+    margin-top: 1px !important;
+  }
+  .grid-card-time {
+    font-size: 8px !important;
+  }
+  .grid-card-time-text {
+    font-size: 8px !important;
+  }
+  .card-info-icon {
+    width: 10px !important;
+    height: 10px !important;
+  }
+  /* Prevent full-page horizontal scrolling by keeping container constrained and scrolling inner contents */
+  .calendar-grid-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+  }
+  .calendar-grid-header,
+  .calendar-grid-body {
+    min-width: 720px !important;
+  }
+  
+  /* Prevent whole body overflow */
+  body[data-page="schedule-editor"] {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  body[data-page="schedule-editor"] .main-wrapper,
+  body[data-page="schedule-editor"] .page-content {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
   }
 }
 

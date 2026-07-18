@@ -97,6 +97,15 @@ async function initializeDatabase() {
             }
         }
 
+        try {
+            await db.query("ALTER TABLE laboratories ADD COLUMN Key_Status VARCHAR(20) DEFAULT 'Present'");
+            console.log('Added Key_Status column to laboratories table.');
+        } catch (err) {
+            if (err.code !== 'ER_DUP_FIELDNAME') {
+                console.error('Error adding Key_Status column to laboratories:', err);
+            }
+        }
+
         // Initialize system_settings table
         try {
             await db.query(`
@@ -125,6 +134,35 @@ async function initializeDatabase() {
     }
 }
 initializeDatabase();
+
+// Helper function to validate email format and TLD
+function isValidEmailFormat(email) {
+    if (!email || typeof email !== 'string') return false;
+    const cleanEmail = email.trim().toLowerCase();
+    
+    // Basic structural check
+    const basicRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$/;
+    if (!basicRegex.test(cleanEmail)) return false;
+    
+    // Prevent double dots or dot right next to @
+    if (cleanEmail.includes('..') || cleanEmail.includes('@.') || cleanEmail.includes('.@')) return false;
+
+    const parts = cleanEmail.split('@');
+    if (parts.length !== 2) return false;
+    const domainParts = parts[1].split('.');
+    if (domainParts.length < 2) return false;
+
+    const fullTld = domainParts.slice(1).join('.');
+    const mainTld = domainParts[domainParts.length - 1];
+
+    const validTLDs = new Set([
+        'com', 'org', 'net', 'edu', 'gov', 'mil', 'io', 'co', 'info', 'biz', 'me', 'tv', 'xyz', 'online', 'site', 'store', 'tech', 'app', 'dev',
+        'ph', 'edu.ph', 'com.ph', 'gov.ph', 'org.ph', 'net.ph',
+        'us', 'uk', 'ca', 'au', 'jp', 'cn', 'in', 'de', 'fr', 'br', 'ru', 'sg', 'my'
+    ]);
+
+    return validTLDs.has(fullTld) || validTLDs.has(mainTld);
+}
 
 // Email transporter configuration
 const transporter = nodemailer.createTransport({
@@ -363,18 +401,23 @@ async function sendEmailVerificationEmail(recipientEmail, recipientName, verific
     }
 }
 
-// Trust proxy for secure cookies behind reverse proxies (like Heroku, Render, Nginx)
-if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
-}
+// Trust proxy for secure cookies behind reverse proxies (like Ngrok, Heroku, Render, Nginx)
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(cors({
-    origin: process.env.APP_URL || 'http://localhost:3000',
+    origin: function(origin, callback) {
+        // Allow requests with no origin (mobile/curl), localhost, ngrok tunnels, or matching APP_URL
+        if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('ngrok') || (process.env.APP_URL && origin === process.env.APP_URL)) {
+            callback(null, true);
+        } else {
+            callback(null, true);
+        }
+    },
     credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Session configuration
 app.use(session({
@@ -382,7 +425,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Set false so HTTP/HTTPS over ngrok works smoothly without dropping cookies
         maxAge: 24 * 60 * 60 * 1000
     }
 }));
@@ -483,8 +526,8 @@ app.post('/api/settings', requireAuth, async (req, res) => {
 // Password recovery endpoints
 app.post('/api/auth/recover-password', async (req, res) => {
     const { email } = req.body;
-    if (!email) {
-        return res.status(400).json({ error: 'Email is required.' });
+    if (!email || !isValidEmailFormat(email)) {
+        return res.status(400).json({ error: 'Please enter a valid email address (e.g., user@domain.com).' });
     }
 
     try {
@@ -577,6 +620,9 @@ app.post('/api/auth/reset-password', async (req, res) => {
 // Login endpoint
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
+    if (!email || !isValidEmailFormat(email)) {
+        return res.status(400).json({ error: 'Please enter a valid email address format (e.g., user@domain.com).' });
+    }
     try {
         const [users] = await db.query('SELECT * FROM users WHERE Email = ?', [email]);
 
@@ -616,6 +662,10 @@ app.post('/api/login', async (req, res) => {
 // Faculty management endpoint
 app.post('/api/faculty/add', requireAuth, async (req, res) => {
     const { name, email, department, role } = req.body;
+
+    if (!email || !isValidEmailFormat(email)) {
+        return res.status(400).json({ error: 'Invalid email address. Please enter a valid email (e.g., user@domain.com).' });
+    }
 
     try {
         // Check if email already exists
@@ -715,9 +765,40 @@ app.delete('/api/faculty/:userId', requireAuth, async (req, res) => {
 
 // --- Laboratories Endpoints ---
 // Get all laboratories
+// Get all laboratories with real-time status and active classes computed dynamically
 app.get('/api/laboratories', async (req, res) => {
     try {
         const [rooms] = await db.query('SELECT * FROM laboratories ORDER BY Room_Number');
+        
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const today = days[new Date().getDay()];
+        const nowTime = new Date().toTimeString().split(' ')[0]; // 'HH:MM:SS'
+
+        for (let room of rooms) {
+            // Find if there's any class scheduled right now in this room
+            const [schedules] = await db.query(
+                `SELECT s.Subject_Name, s.Section, u.Name as ProfessorName 
+                 FROM schedules s
+                 LEFT JOIN users u ON s.User_ID = u.User_ID
+                 WHERE s.Room_ID = ? AND s.Day_of_Week = ? AND ? BETWEEN s.Start_Time AND s.End_Time`,
+                [room.Room_ID, today, nowTime]
+            );
+
+            if (schedules.length > 0) {
+                room.Current_Status = 'In Use';
+                room.Current_Class = `${schedules[0].Subject_Name} (${schedules[0].Section})`;
+            } else {
+                // If key is Absent (taken), the room is occupied/Claimed. If Key is Present, it is Available.
+                if (room.Key_Status === 'Absent') {
+                    room.Current_Status = 'Claimed';
+                    room.Current_Class = 'Open Lab Session';
+                } else {
+                    room.Current_Status = 'Available';
+                    room.Current_Class = 'None';
+                }
+            }
+        }
+
         res.json(rooms);
     } catch (err) {
         console.error(err);
@@ -728,6 +809,13 @@ app.get('/api/laboratories', async (req, res) => {
 // Add new laboratory room
 app.post('/api/laboratories/add', async (req, res) => {
     const { roomNumber, building } = req.body;
+
+    if (!roomNumber) {
+        return res.status(400).json({ error: 'Room number is required' });
+    }
+    if (!/^\d+$/.test(roomNumber)) {
+        return res.status(400).json({ error: 'Room number must contain only numbers.' });
+    }
 
     try {
         // Check for duplicates
@@ -742,6 +830,50 @@ app.post('/api/laboratories/add', async (req, res) => {
         );
 
         res.json({ message: 'Room added successfully', roomId: result.insertId });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Update a laboratory room
+app.put('/api/laboratories/:roomId', async (req, res) => {
+    const { roomId } = req.params;
+    const { roomNumber, building } = req.body;
+
+    if (!roomNumber) {
+        return res.status(400).json({ error: 'Room number is required' });
+    }
+    if (!/^\d+$/.test(roomNumber)) {
+        return res.status(400).json({ error: 'Room number must contain only numbers.' });
+    }
+
+    try {
+        // Check if room number is already taken by another room
+        const [existing] = await db.query('SELECT * FROM laboratories WHERE Room_Number = ? AND Room_ID != ?', [roomNumber, roomId]);
+        if (existing.length > 0) {
+            return res.status(400).json({ error: 'Room number already exists' });
+        }
+
+        await db.query(
+            'UPDATE laboratories SET Room_Number = ?, Building = ? WHERE Room_ID = ?',
+            [roomNumber, building, roomId]
+        );
+
+        res.json({ message: 'Room updated successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Delete a laboratory room
+app.delete('/api/laboratories/:roomId', async (req, res) => {
+    const { roomId } = req.params;
+
+    try {
+        await db.query('DELETE FROM laboratories WHERE Room_ID = ?', [roomId]);
+        res.json({ message: 'Room deleted successfully' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Internal server error' });
@@ -1046,6 +1178,10 @@ app.put('/api/user/update', requireAuth, async (req, res) => {
         let emailChangeRequested = false;
         if (email && email.trim().toLowerCase() !== user.Email.toLowerCase()) {
             const newEmailTrim = email.trim();
+            if (!isValidEmailFormat(newEmailTrim)) {
+                return res.status(400).json({ error: 'Invalid email address format. Please enter a valid email (e.g., user@domain.com).' });
+            }
+
             // Check if email is already in use by another user
             const [existingUsers] = await db.query('SELECT 1 FROM users WHERE Email = ? AND User_ID != ?', [newEmailTrim, userId]);
             if (existingUsers.length > 0) {
@@ -1309,6 +1445,80 @@ app.post('/api/qrcode/scan', async (req, res) => {
     }
 });
 
+// Log occupancy access (from hardware device)
+app.post('/api/occupancy/log', async (req, res) => {
+    const { qrString, roomNumber, authMethod, keyEvent } = req.body;
+
+    try {
+        if (!roomNumber) {
+            return res.status(400).json({ error: 'roomNumber is required.' });
+        }
+
+        // 1. Resolve Laboratory Room
+        const [rooms] = await db.query(
+            'SELECT Room_ID FROM laboratories WHERE Room_Number = ?',
+            [roomNumber]
+        );
+        if (rooms.length === 0) {
+            return res.status(404).json({ error: `Room ${roomNumber} not found.` });
+        }
+        const room = rooms[0];
+
+        // 2. Handle Key Events
+        if (keyEvent) {
+            const status = (keyEvent === 'Key Returned') ? 'Present' : 'Absent';
+            await db.query(
+                'UPDATE laboratories SET Key_Status = ? WHERE Room_ID = ?',
+                [status, room.Room_ID]
+            );
+
+            // Log it in the occupancy_log table (User_ID is NULL for generic key events)
+            await db.query(
+                'INSERT INTO occupancy_log (User_ID, Room_ID, Access_Time, Auth_Method) VALUES (NULL, ?, NOW(), ?)',
+                [room.Room_ID, keyEvent]
+            );
+
+            return res.json({
+                message: `Key status updated to ${status} successfully.`,
+                room: roomNumber,
+                keyStatus: status
+            });
+        }
+
+        // 3. Handle QR Code Scan (existing logic)
+        if (!qrString) {
+            return res.status(400).json({ error: 'qrString or keyEvent is required.' });
+        }
+
+        // 1. Resolve User
+        const [users] = await db.query(
+            'SELECT User_ID, Name, Role FROM users WHERE ID_QR_String = ?',
+            [qrString]
+        );
+        if (users.length === 0) {
+            return res.status(404).json({ error: 'User not found for the provided QR code.' });
+        }
+        const user = users[0];
+
+        // 3. Insert into occupancy_log
+        await db.query(
+            'INSERT INTO occupancy_log (User_ID, Room_ID, Access_Time, Auth_Method) VALUES (?, ?, NOW(), ?)',
+            [user.User_ID, room.Room_ID, authMethod || 'QR Code']
+        );
+
+        res.json({
+            message: 'Access logged successfully.',
+            user: {
+                name: user.Name,
+                role: user.Role
+            }
+        });
+    } catch (err) {
+        console.error('Error logging occupancy access:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // --- PC Reports & Maintenance Endpoints ---
 
 // Submit a student PC report
@@ -1456,20 +1666,27 @@ app.get('/api/notifications', requireAuth, async (req, res) => {
         }
 
         if (role === 'MIS Staff') {
-            // MIS Staff sees all PC reports
+            // MIS Staff sees all PC reports and occupancy logs
             const [reports] = await db.query(`
-                SELECT 'report' AS type, m.Report_ID AS id, m.Date_Reported AS time, m.Status AS status, 
+                (SELECT 'report' AS type, m.Report_ID AS id, m.Date_Reported AS time, m.Status AS status, 
                        p.PC_Number AS pc_number, r.Room_Number AS room_number, m.Issue_Description AS description, 
                        m.Student_Name AS detail, m.Priority_Level AS priority
                 FROM maintenance m
                 JOIN lab_units p ON m.PC_ID = p.PC_ID
-                JOIN laboratories r ON p.Room_ID = r.Room_ID
-                ORDER BY m.Date_Reported DESC
+                JOIN laboratories r ON p.Room_ID = r.Room_ID)
+                UNION ALL
+                (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
+                       NULL AS pc_number, r.Room_Number AS room_number, IFNULL(u.Name, 'Room Key') AS description,
+                       IFNULL(u.Role, 'System') AS detail, NULL AS priority
+                FROM occupancy_log o
+                LEFT JOIN users u ON o.User_ID = u.User_ID
+                JOIN laboratories r ON o.Room_ID = r.Room_ID)
+                ORDER BY time DESC
                 LIMIT 15
             `);
             return res.json(reports);
         } else {
-            // Faculty & Dept Head only see PC reports for their assigned rooms (based on schedules)
+            // Faculty & Dept Head only see PC reports and occupancy logs for their assigned rooms (based on schedules)
             const [schedules] = await db.query('SELECT DISTINCT Room_ID FROM schedules WHERE User_ID = ?', [userId]);
             
             if (schedules.length === 0) {
@@ -1479,16 +1696,24 @@ app.get('/api/notifications', requireAuth, async (req, res) => {
             const roomIds = schedules.map(s => s.Room_ID);
 
             const [reports] = await db.query(`
-                SELECT 'report' AS type, m.Report_ID AS id, m.Date_Reported AS time, m.Status AS status, 
+                (SELECT 'report' AS type, m.Report_ID AS id, m.Date_Reported AS time, m.Status AS status, 
                        p.PC_Number AS pc_number, r.Room_Number AS room_number, m.Issue_Description AS description, 
                        m.Student_Name AS detail, m.Priority_Level AS priority
                 FROM maintenance m
                 JOIN lab_units p ON m.PC_ID = p.PC_ID
                 JOIN laboratories r ON p.Room_ID = r.Room_ID
-                WHERE r.Room_ID IN (?)
-                ORDER BY m.Date_Reported DESC
+                WHERE r.Room_ID IN (?))
+                UNION ALL
+                (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
+                       NULL AS pc_number, r.Room_Number AS room_number, IFNULL(u.Name, 'Room Key') AS description,
+                       IFNULL(u.Role, 'System') AS detail, NULL AS priority
+                FROM occupancy_log o
+                LEFT JOIN users u ON o.User_ID = u.User_ID
+                JOIN laboratories r ON o.Room_ID = r.Room_ID
+                WHERE r.Room_ID IN (?))
+                ORDER BY time DESC
                 LIMIT 15
-            `, [roomIds]);
+            `, [roomIds, roomIds]);
 
             return res.json(reports);
         }

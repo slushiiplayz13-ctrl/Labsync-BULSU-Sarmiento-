@@ -949,3 +949,211 @@ html.high-contrast img[src*="bsu-sarmiento-logo"],
 html.high-contrast img.bsu-logo {
   filter: drop-shadow(0px 0px 4px rgba(255, 255, 255, 0.65)) !important;
 }
+
+/* --- Master Schedule & Room Schedule Editor Dark Mode / High Contrast Overrides --- */
+
+html.high-contrast .room-select-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.high-contrast .room-select-card:hover {
+  background: var(--bg-card) !important;
+  border-color: var(--primary-teal) !important;
+  box-shadow: 0 12px 24px var(--primary-teal-glow) !important;
+}
+
+html.high-contrast .room-select-card .rsc-title {
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .room-select-card .rsc-subtitle {
+  color: var(--text-muted) !important;
+}
+
+html.high-contrast .room-edit-btn {
+  background: #2D3748 !important;
+  color: #F8FAFC !important;
+  border-color: #4A5568 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.high-contrast .room-edit-btn i,
+html.high-contrast .room-edit-btn svg {
+  color: #F8FAFC !important;
+  stroke: #F8FAFC !important;
+}
+
+html.high-contrast .room-edit-btn:hover {
+  background: var(--primary-teal) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary-teal) !important;
+  box-shadow: 0 4px 14px var(--primary-teal-glow) !important;
+}
+
+html.high-contrast .room-edit-btn:hover i,
+html.high-contrast .room-edit-btn:hover svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+html.high-contrast .modal-content {
+  background: var(--bg-white) !important;
+  color: var(--text-dark) !important;
+  border: 1px solid var(--border-light) !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.high-contrast .modal-content h2,
+html.high-contrast .modal-content h3,
+html.high-contrast .modal-content h4 {
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .modal-content p,
+html.high-contrast .modal-content label {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .modal-content select,
+html.high-contrast #buildingSelect,
+html.high-contrast #editBuildingSelect {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast select option {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast #closeModalBtn,
+html.high-contrast #closeEditModalBtn,
+html.high-contrast #closeDownloadModalBtn,
+html.high-contrast #closeSignatureModalBtn {
+  background: var(--bg-card) !important;
+  color: var(--text-muted) !important;
+}
+
+html.high-contrast #closeModalBtn:hover,
+html.high-contrast #closeEditModalBtn:hover,
+html.high-contrast #closeDownloadModalBtn:hover,
+html.high-contrast #closeSignatureModalBtn:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+
+html.high-contrast #openSignatureSettingsBtn {
+  background: var(--bg-card) !important;
+  color: var(--text-mid) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast #openSignatureSettingsBtn:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+  border-color: var(--primary-teal) !important;
+}
+
+html.high-contrast #deleteRoomBtn {
+  background: transparent !important;
+  color: #F87171 !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+html.high-contrast #deleteRoomBtn:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: #F87171 !important;
+}
+
+html.high-contrast .custom-select-trigger {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .custom-select-dropdown {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.high-contrast .custom-select-option {
+  color: var(--text-dark) !important;
+  background: transparent !important;
+}
+
+html.high-contrast .custom-select-option:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+
+html.high-contrast .custom-select-option.selected {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+  font-weight: 700 !important;
+}
+
+/* Calendar Schedule Grid Dark Mode Overrides */
+html.high-contrast .calendar-grid-container {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.high-contrast .calendar-grid-header {
+  background: var(--bg-card) !important;
+  border-bottom-color: var(--border-light) !important;
+}
+
+html.high-contrast .grid-header-cell {
+  color: var(--text-dark) !important;
+  border-left-color: var(--border-light) !important;
+}
+
+html.high-contrast .grid-header-cell:first-child {
+  color: var(--text-muted) !important;
+}
+
+html.high-contrast .calendar-grid-body {
+  background: var(--bg-white) !important;
+}
+
+html.high-contrast .grid-time-column {
+  background: var(--bg-card) !important;
+  border-right-color: var(--border-light) !important;
+}
+
+html.high-contrast .grid-time-label {
+  color: var(--text-mid) !important;
+  border-bottom: 1px dashed var(--border-light) !important;
+}
+
+html.high-contrast .grid-day-column {
+  border-left-color: var(--border-light) !important;
+  background-image: linear-gradient(to bottom, transparent 44px, var(--border-light) 44px, var(--border-light) 45px) !important;
+}
+
+html.high-contrast #create-block-panel {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .sl-item {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .sl-item:hover {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .sl-item.active {
+  background: var(--bg-card) !important;
+  border-color: var(--primary-teal) !important;
+  color: var(--primary-teal) !important;
+  box-shadow: 0 4px 14px rgba(0, 163, 196, 0.25) !important;
+}

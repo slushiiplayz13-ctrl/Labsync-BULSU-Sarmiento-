@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.pendingAction = null;
   window.revertSelectCallback = null;
 
-  window.populateCustomYearSelectors('academic-year-start-wrapper', 'academic-year-end-wrapper', initialAY, () => {
+  window.populateCustomYearSelectors('academic-year-wrapper', initialAY, () => {
     loadRoomSchedule();
   });
 
@@ -50,10 +50,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Weekly snapping & resizing parameters
-  const SLOT_HEIGHT = 45; // 45px per 30-min slot
+  const SLOT_HEIGHT = window.innerWidth <= 768 ? 30 : 45; // Dynamically scale grid on mobile viewports
   const START_HOUR = 7;
   const END_HOUR = 19;
   const TOTAL_SLOTS = 24; // 12 hours from 7am to 7pm
+
+  // Dynamically update container and labels heights and positions for mobile scale
+  const gridBody = document.querySelector('.calendar-grid-body');
+  if (gridBody) {
+    gridBody.style.height = `${TOTAL_SLOTS * SLOT_HEIGHT}px`;
+  }
+  document.querySelectorAll('.grid-day-column').forEach(col => {
+    col.style.backgroundSize = `100% ${SLOT_HEIGHT}px`;
+    col.style.backgroundImage = `linear-gradient(to bottom, transparent ${SLOT_HEIGHT - 1}px, rgba(226, 232, 240, 0.4) ${SLOT_HEIGHT - 1}px, rgba(226, 232, 240, 0.4) ${SLOT_HEIGHT}px)`;
+  });
+  document.querySelectorAll('.grid-time-label').forEach((label, idx) => {
+    label.style.top = `${idx * SLOT_HEIGHT}px`;
+    label.style.height = `${SLOT_HEIGHT}px`;
+  });
 
   // Customizable premium glassmorphic color themes
   const COLOR_PALETTES = {

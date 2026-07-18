@@ -47,11 +47,15 @@
       
       <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;"></div>
 
-      <button class="sidebar-btn" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+      <button class="sidebar-btn desktop-only-btn" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
         <i data-lucide="calendar" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn active" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+      <button class="sidebar-btn desktop-only-btn active" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
         <i data-lucide="users" style="width:24px;height:24px;"></i>
+      </button>
+      <div class="mobile-only-divider" style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;"></div>
+      <button class="sidebar-btn mobile-only-btn active" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
+        <i data-lucide="folder-cog" style="width:24px;height:24px;"></i>
       </button>
     </nav>
     <div class="sidebar-spacer"></div>
@@ -238,12 +242,13 @@
           return `
           <div class="faculty-card ${isBoss ? 'boss-card' : ''}" data-role="${member.Role ? member.Role.toLowerCase() : 'faculty'}" data-name="${member.Name.toLowerCase()}" data-dept="${member.Email.toLowerCase()}" style="background:#fff;border-radius:12px;padding:20px 18px;transition:all 0.3s ease;position:relative;${borderStyle}">
             
-            ${crownIcon}
-
             <!-- Top: Avatar + Name + Status + Menu -->
             <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">
-              <div style="width:50px;height:50px;border-radius:50%;${avatarGradient}display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;font-family:var(--font-display);flex-shrink:0;overflow:hidden;">
-                ${avatarContent}
+              <div style="position:relative;flex-shrink:0;display:inline-block;" class="faculty-avatar-wrap">
+                <div style="width:50px;height:50px;border-radius:50%;${avatarGradient}display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;font-family:var(--font-display);overflow:hidden;">
+                  ${avatarContent}
+                </div>
+                ${crownIcon}
               </div>
               
               <div style="flex:1;min-width:0;">
@@ -252,7 +257,6 @@
               </div>
               
               <div style="display:flex;align-items:center;gap:6px;">
-                <span style="background:#D1FAE5;color:#065F46;font-size:10px;font-weight:700;padding:3px 9px;border-radius:4px;letter-spacing:0.3px;">Active</span>
                 <div style="position: relative;">
                   <button class="faculty-menu-btn" onclick="toggleMenu(event, 'menu-${member.User_ID || member.Name.replace(/\s+/g, '')}')">
                     <i data-lucide="more-vertical" style="width:16px;height:16px;"></i>
@@ -272,11 +276,11 @@
             <!-- Contact Info -->
             <div style="display:flex;flex-direction:column;gap:7px;">
               <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#6B7280;">
-                <i data-lucide="mail" style="width:15px;height:15px;color:#9CA3AF;flex-shrink:0;"></i>
+                <i data-lucide="mail" style="width:15px;height:15px;color:var(--primary-teal);flex-shrink:0;"></i>
                 <span>${member.Email}</span>
               </div>
               <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#6B7280;">
-                <i data-lucide="phone" style="width:15px;height:15px;color:#9CA3AF;flex-shrink:0;"></i>
+                <i data-lucide="phone" style="width:15px;height:15px;color:var(--primary-teal);flex-shrink:0;"></i>
                 <span>${member.Phone || 'Not specified'}</span>
               </div>
             </div>
@@ -413,6 +417,7 @@
             <div>
               <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Email Address *</label>
               <input type="email" id="faculty-email" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:8px;font-size:14px;font-family:var(--font-body);outline:none;transition:border-color 0.2s;" placeholder="e.g. juan.delacruz@bsu.edu.ph">
+              <div id="faculty-email-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Invalid email address (e.g., user@domain.com)</div>
             </div>
             
             <div class="alert-info-box">
@@ -441,6 +446,46 @@
         if (e.target === modal) modal.remove();
       });
       
+      // Live email validation
+      const emailInput = document.getElementById('faculty-email');
+      const emailErrDiv = document.getElementById('faculty-email-error');
+      const isValidEmail = (email) => {
+        if (!email || typeof email !== 'string') return false;
+        const cleanEmail = email.trim().toLowerCase();
+        const basicRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$/;
+        if (!basicRegex.test(cleanEmail)) return false;
+        if (cleanEmail.includes('..') || cleanEmail.includes('@.') || cleanEmail.includes('.@')) return false;
+
+        const parts = cleanEmail.split('@');
+        if (parts.length !== 2) return false;
+        const domainParts = parts[1].split('.');
+        if (domainParts.length < 2) return false;
+
+        const fullTld = domainParts.slice(1).join('.');
+        const mainTld = domainParts[domainParts.length - 1];
+
+        const validTLDs = new Set([
+          'com', 'org', 'net', 'edu', 'gov', 'mil', 'io', 'co', 'info', 'biz', 'me', 'tv', 'xyz', 'online', 'site', 'store', 'tech', 'app', 'dev',
+          'ph', 'edu.ph', 'com.ph', 'gov.ph', 'org.ph', 'net.ph',
+          'us', 'uk', 'ca', 'au', 'jp', 'cn', 'in', 'de', 'fr', 'br', 'ru', 'sg', 'my'
+        ]);
+
+        return validTLDs.has(fullTld) || validTLDs.has(mainTld);
+      };
+
+      if (emailInput && emailErrDiv) {
+        emailInput.addEventListener('input', () => {
+          const val = emailInput.value.trim();
+          if (val && !isValidEmail(val)) {
+            emailInput.style.borderColor = '#EF4444';
+            emailErrDiv.style.display = 'block';
+          } else {
+            emailInput.style.borderColor = 'var(--border-light)';
+            emailErrDiv.style.display = 'none';
+          }
+        });
+      }
+
       // Form submit
       document.getElementById('add-faculty-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -450,6 +495,16 @@
           email: document.getElementById('faculty-email').value.trim(),
           role: 'Faculty'
         };
+        
+        if (!isValidEmail(formData.email)) {
+          alert('Security Warning: Invalid email address format!\n\nPlease enter a valid email address (e.g., name@example.com). Random letters or malformed email strings are not allowed.');
+          if (emailInput) {
+            emailInput.focus();
+            emailInput.style.borderColor = '#EF4444';
+            if (emailErrDiv) emailErrDiv.style.display = 'block';
+          }
+          return;
+        }
         
         try {
           const response = await fetch('/api/faculty/add', {
@@ -658,11 +713,17 @@
           <form id="change-role-form" style="display:flex;flex-direction:column;gap:18px;font-family:var(--font-body);">
             <div>
               <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Select Role</label>
-              <select id="role-select" style="width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:8px;font-size:14px;outline:none;background:#FAFAFB;font-family:var(--font-body);cursor:pointer;">
-                <option value="Faculty" ${currentRole === 'Faculty' ? 'selected' : ''}>Faculty (Regular Lecturer)</option>
-                <option value="IT Dept. Head" ${currentRole.includes('Head') ? 'selected' : ''}>IT Dept. Head (Administrator)</option>
-                <option value="MIS Staff" ${currentRole === 'MIS Staff' ? 'selected' : ''}>MIS Staff (Support)</option>
-              </select>
+              <div class="custom-select-wrapper" id="role-select-wrapper" style="width: 100%;">
+                <div class="custom-select-trigger" style="width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-light); border-radius: 8px; font-family: var(--font-body); font-size: 14px; background: var(--bg-white); color: var(--text-dark); cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
+                  <span>${currentRole === 'Faculty' ? 'Faculty (Regular Lecturer)' : (currentRole.includes('Head') ? 'IT Dept. Head (Administrator)' : 'MIS Staff (Support)')}</span>
+                  <i data-lucide="chevron-down" style="width: 18px; height: 18px; color: var(--text-light);"></i>
+                </div>
+                <div class="custom-select-dropdown" style="color: var(--text-dark);">
+                  <div class="custom-select-option ${currentRole === 'Faculty' ? 'selected' : ''}" data-value="Faculty">Faculty (Regular Lecturer)</div>
+                  <div class="custom-select-option ${currentRole.includes('Head') ? 'selected' : ''}" data-value="IT Dept. Head">IT Dept. Head (Administrator)</div>
+                  <div class="custom-select-option ${currentRole === 'MIS Staff' ? 'selected' : ''}" data-value="MIS Staff">MIS Staff (Support)</div>
+                </div>
+              </div>
             </div>
             
             <div class="alert-info-box">
@@ -685,6 +746,9 @@
       }, 10);
       
       lucide.createIcons();
+      if (window.initCustomSelect) {
+        window.initCustomSelect('role-select-wrapper');
+      }
       
       const closeModal = () => {
         modal.style.opacity = '0';
@@ -700,7 +764,7 @@
       
       document.getElementById('change-role-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const newRole = document.getElementById('role-select').value;
+        const newRole = document.getElementById('role-select-wrapper')?.dataset.value || document.getElementById('role-select')?.value || 'Faculty';
         
         const executeUpdate = async () => {
           try {
@@ -897,19 +961,19 @@
       modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;transition:opacity 0.25s ease;';
       
       modal.innerHTML = `
-        <div style="background:#fff;border-radius:18px;width:90%;max-width:400px;padding:28px;box-shadow:0 20px 40px rgba(0,0,0,0.2);transform:translateY(20px);transition:transform 0.25s ease;text-align:center;">
-          <div style="width:56px;height:56px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px auto;color:#EF4444;">
+        <div style="background:var(--bg-white);color:var(--text-dark);border:1px solid var(--border-light);border-radius:18px;width:90%;max-width:400px;padding:28px;box-shadow:0 20px 40px rgba(0,0,0,0.3);transform:translateY(20px);transition:transform 0.25s ease;text-align:center;">
+          <div style="width:56px;height:56px;background:rgba(239,68,68,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px auto;color:#EF4444;">
             <i data-lucide="user-x" style="width:28px;height:28px;"></i>
           </div>
           
-          <h2 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:#1F2937;margin:0 0 10px 0;">Remove Faculty Member</h2>
+          <h2 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 10px 0;">Remove Faculty Member</h2>
           
-          <p style="margin:0 0 24px 0;font-size:14px;color:#6B7280;font-family:var(--font-body);line-height:1.5;">
+          <p style="margin:0 0 24px 0;font-size:14px;color:var(--text-mid);font-family:var(--font-body);line-height:1.5;">
             Are you sure you want to remove <strong>${name}</strong>? This action will revoke their login access and clear their schedule assignments.
           </p>
           
           <div style="display:flex;gap:12px;font-family:var(--font-body);">
-            <button id="cancel-delete-btn" style="flex:1;padding:12px;border:1px solid #E5E7EB;background:#fff;border-radius:8px;font-size:14px;font-weight:600;color:#4B5563;cursor:pointer;transition:all 0.2s;">Cancel</button>
+            <button id="cancel-delete-btn" style="flex:1;padding:12px;border:1px solid var(--border-light);background:var(--bg-card);border-radius:8px;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;transition:all 0.2s;">Cancel</button>
             <button id="confirm-delete-btn" style="flex:1;padding:12px;border:none;background:#EF4444;color:#fff;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(239,68,68,0.25);">Remove</button>
           </div>
         </div>
