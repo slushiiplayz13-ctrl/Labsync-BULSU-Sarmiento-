@@ -710,7 +710,7 @@ app.post('/api/faculty/add', requireAuth, async (req, res) => {
 app.get('/api/faculty', async (req, res) => {
     try {
         const [faculty] = await db.query(
-            'SELECT User_ID, Name, Email, Role, Profile_Photo FROM users WHERE Role IN ("Faculty", "IT Head", "IT Dept. Head", "IT Dept Head") ORDER BY Name'
+            'SELECT User_ID, Name, Email, Role, Profile_Photo, Phone FROM users WHERE Role IN ("Faculty", "IT Head", "IT Dept. Head", "IT Dept Head") ORDER BY Name'
         );
         res.json(faculty);
     } catch (err) {
@@ -1445,13 +1445,16 @@ app.post('/api/qrcode/scan', async (req, res) => {
     }
 });
 
+// In-memory store for recent room claim scans: { roomNumber: { userId, userName, role, timestamp } }
+const recentRoomClaims = {};
+
 // Log occupancy access (from hardware device)
 app.post('/api/occupancy/log', async (req, res) => {
     const { qrString, roomNumber, authMethod, keyEvent } = req.body;
 
     try {
         if (!roomNumber) {
-            return res.status(400).json({ error: 'roomNumber is required.' });
+            return res.status(400).json({ error: 'roomNumber is required.', lcdLine1: 'Error', lcdLine2: 'No Room Num' });
         }
 
         // 1. Resolve Laboratory Room
@@ -1460,11 +1463,11 @@ app.post('/api/occupancy/log', async (req, res) => {
             [roomNumber]
         );
         if (rooms.length === 0) {
-            return res.status(404).json({ error: `Room ${roomNumber} not found.` });
+            return res.status(404).json({ error: `Room ${roomNumber} not found.`, lcdLine1: 'Error', lcdLine2: 'Invalid Room' });
         }
         const room = rooms[0];
 
-        // 2. Handle Key Events
+        // 2. Handle Key Events (Key Taken / Key Returned)
         if (keyEvent) {
             const status = (keyEvent === 'Key Returned') ? 'Present' : 'Absent';
             await db.query(
@@ -1472,50 +1475,85 @@ app.post('/api/occupancy/log', async (req, res) => {
                 [status, room.Room_ID]
             );
 
-            // Log it in the occupancy_log table (User_ID is NULL for generic key events)
+            let claimUserId = null;
+            let claimUserName = null;
+
+            if (keyEvent === 'Key Taken') {
+                const claim = recentRoomClaims[roomNumber];
+                // Check if a professor claimed this room within the last 15 minutes
+                if (claim && (Date.now() - claim.timestamp < 15 * 60 * 1000)) {
+                    claimUserId = claim.userId;
+                    claimUserName = claim.userName;
+                }
+            } else if (keyEvent === 'Key Returned') {
+                delete recentRoomClaims[roomNumber];
+            }
+
+            // Log event in occupancy_log (with claimUserId associated if registered)
             await db.query(
-                'INSERT INTO occupancy_log (User_ID, Room_ID, Access_Time, Auth_Method) VALUES (NULL, ?, NOW(), ?)',
-                [room.Room_ID, keyEvent]
+                'INSERT INTO occupancy_log (User_ID, Room_ID, Access_Time, Auth_Method) VALUES (?, ?, NOW(), ?)',
+                [claimUserId, room.Room_ID, keyEvent]
             );
+
+            let lcdLine1 = 'Key Take Reg!';
+            let lcdLine2 = claimUserName ? claimUserName.substring(0, 16) : 'System Updated';
+
+            if (keyEvent === 'Key Returned') {
+                lcdLine1 = 'Key Returned!';
+                lcdLine2 = 'Room Secured';
+            }
 
             return res.json({
                 message: `Key status updated to ${status} successfully.`,
                 room: roomNumber,
-                keyStatus: status
+                keyStatus: status,
+                registeredUser: claimUserName || null,
+                lcdLine1,
+                lcdLine2
             });
         }
 
-        // 3. Handle QR Code Scan (existing logic)
+        // 3. Handle QR Code Scan (Register Professor & Room Claim)
         if (!qrString) {
-            return res.status(400).json({ error: 'qrString or keyEvent is required.' });
+            return res.status(400).json({ error: 'qrString or keyEvent is required.', lcdLine1: 'Scan Error', lcdLine2: 'Missing QR' });
         }
 
-        // 1. Resolve User
+        // Resolve User
         const [users] = await db.query(
             'SELECT User_ID, Name, Role FROM users WHERE ID_QR_String = ?',
             [qrString]
         );
         if (users.length === 0) {
-            return res.status(404).json({ error: 'User not found for the provided QR code.' });
+            return res.status(404).json({ error: 'User not found for the provided QR code.', lcdLine1: 'Access Denied!', lcdLine2: 'Invalid QR Code' });
         }
         const user = users[0];
 
-        // 3. Insert into occupancy_log
+        // Store active claim session for this room
+        recentRoomClaims[roomNumber] = {
+            userId: user.User_ID,
+            userName: user.Name,
+            role: user.Role,
+            timestamp: Date.now()
+        };
+
+        // Insert scan into occupancy_log
         await db.query(
             'INSERT INTO occupancy_log (User_ID, Room_ID, Access_Time, Auth_Method) VALUES (?, ?, NOW(), ?)',
             [user.User_ID, room.Room_ID, authMethod || 'QR Code']
         );
 
         res.json({
-            message: 'Access logged successfully.',
+            message: 'Professor QR verified. Awaiting key retrieval.',
             user: {
                 name: user.Name,
                 role: user.Role
-            }
+            },
+            lcdLine1: 'Scan Confirmed!',
+            lcdLine2: 'You May Take Key'
         });
     } catch (err) {
         console.error('Error logging occupancy access:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error', lcdLine1: 'System Error', lcdLine2: 'Try Again' });
     }
 });
 

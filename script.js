@@ -413,13 +413,17 @@ function initNotifications() {
       iconClass = 'notif-icon-occupancy';
       if (notif.status === 'Key Taken') {
         title = 'Laboratory Key Taken';
-        text = `Room Key for Room ${notif.room_number} was taken from the holder.`;
+        if (notif.description && notif.description !== 'Room Key') {
+          text = `Room Key for Room ${notif.room_number} was taken by ${notif.description} (Registered to System).`;
+        } else {
+          text = `Room Key for Room ${notif.room_number} was taken from the holder.`;
+        }
       } else if (notif.status === 'Key Returned') {
         title = 'Laboratory Key Returned';
         text = `Room Key for Room ${notif.room_number} was returned (Room Secured).`;
       } else {
-        title = 'Laboratory Accessed';
-        text = `${notif.description} (${notif.detail}) unlocked Room ${notif.room_number} via ${notif.status}.`;
+        title = 'QR Identity Verified';
+        text = `${notif.description} verified QR code identity (Ready to take key).`;
       }
     }
     return { iconName, iconClass, title, text };
@@ -2039,11 +2043,15 @@ async function loadRoomStatusActivityLog() {
     occupancyLogs.forEach(log => {
       let activityText = '';
       if (log.status === 'Key Taken') {
-        activityText = `Room key for Room ${log.room_number} was taken from the holder.`;
+        if (log.description && log.description !== 'Room Key') {
+          activityText = `Room key for Room ${log.room_number} taken by ${log.description} (Registered to system).`;
+        } else {
+          activityText = `Room key for Room ${log.room_number} was taken from the holder.`;
+        }
       } else if (log.status === 'Key Returned') {
         activityText = `Room key for Room ${log.room_number} was returned (Room Secured).`;
       } else {
-        activityText = `Unlocked Room ${log.room_number} via ${log.status}.`;
+        activityText = `QR Code verified for ${log.description} (Awaiting key retrieval).`;
       }
 
       html += `

@@ -69,6 +69,7 @@ This file summarizes the current state of the LabSync IoT device wiring, softwar
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoJson.h>
 
+// LCD Configuration
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 bool lcdDetected = false;
 
@@ -78,33 +79,40 @@ const char* password = "POOHLIEPOGI";
 
 // Server Configuration
 const char* serverUrl = "http://192.168.100.59:3000/api/occupancy/log";
-const char* roomNumber = "204"; 
+const char* roomNumber = "204";
 
-// Key Sensor Configuration (6.35mm jack socket)
-#define KEY_PIN 14 // Pin D14 on the ESP32
-bool lastKeyState = true; // Tracks the last key presence state (true = Present, false = Absent)
+// GM65 pins
+#define GM65_RX_PIN 27 // Connects to Scanner TX (Black wire)
+#define GM65_TX_PIN 26 // Connects to Scanner RX (Yellow wire)
+
+// Key Sensor Pin (6.35mm jack socket on Pin 14)
+#define KEY_PIN 14 
+bool lastKeyState = true; // true = Present, false = Absent
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(1000);
   Serial.println("\n==================================");
   Serial.println("  LabSync Device Booting...");
   Serial.println("==================================");
 
-  // Scan I2C Bus to find the LCD address
+  // Scan I2C Bus for LCD
   Wire.begin();
-  byte count = 0;
+  Serial.println("Scanning I2C Bus for LCD...");
   byte foundAddress = 0;
-
   for (byte i = 8; i < 120; i++) {
     Wire.beginTransmission(i);
     if (Wire.endTransmission() == 0) {
+      Serial.print("-> Found I2C Device at: 0x");
+      Serial.println(i, HEX);
       foundAddress = i;
-      count++;
     }
   }
 
-  if (count > 0 && foundAddress != 0) {
+  // Initialize LCD if detected
+  if (foundAddress != 0) {
+    Serial.print("LCD Screen detected successfully at 0x");
+    Serial.println(foundAddress, HEX);
     lcd = LiquidCrystal_I2C(foundAddress, 16, 2);
     lcd.init();
     lcd.backlight();
@@ -114,35 +122,42 @@ void setup() {
     lcd.setCursor(0, 1);
     lcd.print("Wi-Fi...");
     lcdDetected = true;
+  } else {
+    Serial.println("WARNING: No LCD Screen found.");
   }
 
-  // Initialize GM65 Scanner at 9600 baud on pins 27 and 26
-  Serial2.begin(9600, SERIAL_8N1, 27, 26); 
+  // Initialize GM65 Scanner on Serial2
+  Serial2.begin(9600, SERIAL_8N1, GM65_RX_PIN, GM65_TX_PIN); 
 
-  // Initialize Key Sensor Pin (using internal pull-up)
+  // Initialize Key Sensor Pin
   pinMode(KEY_PIN, INPUT_PULLUP);
   lastKeyState = (digitalRead(KEY_PIN) == LOW); 
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
+  Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
+    Serial.print(".");
   }
   Serial.println("\nConnected to Wi-Fi!");
 
   if (lcdDetected) {
     showReadyScreen();
   }
+  
+  Serial.println("==================================");
+  Serial.println("  Ready! Scan a QR code now.");
+  Serial.println("==================================\n");
 }
 
 void showReadyScreen() {
   if (lcdDetected) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("LabSync Room ");
-    lcd.print(roomNumber);
+    lcd.print("  LabSync System  ");
     lcd.setCursor(0, 1);
-    lcd.print("Ready to Scan!");
+    lcd.print(" Ready to Scan! ");
   }
 }
 
@@ -151,6 +166,8 @@ void sendScanToServer(String scannedToken) {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Verifying...");
+    lcd.setCursor(0, 1);
+    lcd.print("Please wait...");
   }
 
   if (WiFi.status() == WL_CONNECTED) {
@@ -159,31 +176,65 @@ void sendScanToServer(String scannedToken) {
     http.addHeader("Content-Type", "application/json");
 
     String jsonPayload = "{\"qrString\":\"" + scannedToken + "\",\"roomNumber\":\"" + String(roomNumber) + "\",\"authMethod\":\"QR Code\"}";
+
+    Serial.print("Sending QR Token to server: ");
+    Serial.println(scannedToken);
+    
     int httpResponseCode = http.POST(jsonPayload);
 
     if (httpResponseCode == 200) {
       String response = http.getString();
+      Serial.print("Server Response: ");
+      Serial.println(response);
+
       StaticJsonDocument<300> doc;
-      deserializeJson(doc, response);
-      String userName = doc["user"]["name"].as<String>();
+      DeserializationError error = deserializeJson(doc, response);
+
+      String line1 = "Scan Confirmed!";
+      String line2 = "You May Take Key";
+
+      if (!error) {
+        if (doc.containsKey("lcdLine1")) {
+          line1 = doc["lcdLine1"].as<String>();
+        }
+        if (doc.containsKey("lcdLine2")) {
+          line2 = doc["lcdLine2"].as<String>();
+        }
+      }
 
       if (lcdDetected) {
         lcd.clear();
         lcd.setCursor(0, 0);
-        lcd.print("Access Granted!");
+        lcd.print(line1.substring(0, 16));
         lcd.setCursor(0, 1);
-        lcd.print(userName.substring(0, 16));
+        lcd.print(line2.substring(0, 16));
       }
-    } else {
+
+      Serial.println("Scan Confirmed. Displaying instruction to take key.");
+    } 
+    else {
       if (lcdDetected) {
         lcd.clear();
         lcd.setCursor(0, 0);
         lcd.print("Access Denied!");
+        lcd.setCursor(0, 1);
+        lcd.print("Invalid QR Code");
       }
+
+      Serial.print("Access Denied. HTTP Code: ");
+      Serial.println(httpResponseCode);
     }
     http.end();
+  } else {
+    if (lcdDetected) {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Wi-Fi Error!");
+    }
+    Serial.println("Wi-Fi Disconnected!");
   }
-  delay(3000);
+
+  delay(3500);
   showReadyScreen();
 }
 
@@ -195,29 +246,49 @@ void sendKeyStatusToServer(bool present) {
 
     String statusStr = present ? "Key Returned" : "Key Taken";
     String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + String(roomNumber) + "\"}";
-    http.POST(jsonPayload);
+    int httpResponseCode = http.POST(jsonPayload);
+
+    if (httpResponseCode == 200) {
+      String response = http.getString();
+      StaticJsonDocument<300> doc;
+      DeserializationError error = deserializeJson(doc, response);
+
+      String line1 = error ? (present ? "Key Returned!" : "Key Take Reg!") : doc["lcdLine1"].as<String>();
+      String line2 = error ? (present ? "Room Secured" : "System Updated") : doc["lcdLine2"].as<String>();
+
+      if (lcdDetected) {
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print(line1.substring(0, 16));
+        lcd.setCursor(0, 1);
+        lcd.print(line2.substring(0, 16));
+      }
+    }
     http.end();
   }
 }
 
 void loop() {
-  // 1. Listen to GM65 Scanner
+  // 1. Listen for GM65 QR Scanner data
   if (Serial2.available() > 0) {
     delay(150);
     String scannedCode = "";
     while (Serial2.available() > 0) {
-      char c = Serial2.read();
+      char c = (char)Serial2.read();
       if (c >= 32 && c <= 126) {
         scannedCode += c;
       }
     }
     scannedCode.trim();
+
     if (scannedCode.length() > 0) {
+      Serial.print("QR Code Detected: ");
+      Serial.println(scannedCode);
       sendScanToServer(scannedCode);
     }
   }
 
-  // 2. Listen to Key Sensor (6.35mm jack socket on Pin 14)
+  // 2. Listen to Key Sensor (Pin D14)
   bool currentPinState = digitalRead(KEY_PIN);
   bool currentKeyState = (currentPinState == LOW); 
 
@@ -225,24 +296,6 @@ void loop() {
     delay(100); // Debounce
     if ((digitalRead(KEY_PIN) == LOW) == currentKeyState) {
       lastKeyState = currentKeyState;
-
-      if (currentKeyState) {
-        if (lcdDetected) {
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print("Key Returned!");
-          lcd.setCursor(0, 1);
-          lcd.print("Room Secured");
-        }
-      } else {
-        if (lcdDetected) {
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print("Key Taken!");
-          lcd.setCursor(0, 1);
-          lcd.print("Room Active");
-        }
-      }
 
       sendKeyStatusToServer(currentKeyState);
       delay(3000);
