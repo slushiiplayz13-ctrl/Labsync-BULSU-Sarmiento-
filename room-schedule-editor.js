@@ -33,6 +33,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRoomSchedule();
   });
 
+  function getSelectedAcademicYear() {
+    const wrapper = document.getElementById('academic-year-wrapper') || document.getElementById('academic-year-start-wrapper');
+    if (wrapper && wrapper.dataset && wrapper.dataset.value) {
+      return wrapper.dataset.value;
+    }
+    const currentYear = new Date().getFullYear();
+    return `${currentYear}-${currentYear + 1}`;
+  }
+
   window.initCustomSelect('semester-wrapper', () => {
     loadRoomSchedule();
   });
@@ -141,10 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
   async function checkProfessorConflict(professorName, day, startTime, endTime) {
     if (!professorName || professorName === 'Not specified') return { conflict: false };
     
-    const startYear = document.getElementById('academic-year-start-wrapper').dataset.value || '2025';
-    const endYear = document.getElementById('academic-year-end-wrapper').dataset.value || '2026';
-    const academicYear = `${startYear}-${endYear}`;
-    const semester = document.getElementById('semester-wrapper').dataset.value || '1st Semester';
+    const academicYear = getSelectedAcademicYear();
+    const semester = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
     
     try {
       const url = `/api/schedules/check-professor-conflict?professorName=${encodeURIComponent(professorName)}&day=${encodeURIComponent(day)}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}&academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}&excludeRoomNumber=${encodeURIComponent(roomNum)}`;
@@ -467,10 +474,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const startYear = document.getElementById('academic-year-start-wrapper').dataset.value || '2025';
-    const endYear = document.getElementById('academic-year-end-wrapper').dataset.value || '2026';
-    const academicYear = `${startYear}-${endYear}`;
-    const semester = document.getElementById('semester-wrapper').dataset.value || '1st Semester';
+    const academicYear = getSelectedAcademicYear();
+    const semester = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
 
     const res = await fetch('/api/schedules/save', {
       method: 'POST',
@@ -750,10 +755,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fetch and Load saved schedule items
   async function loadRoomSchedule() {
     try {
-      const startYear = document.getElementById('academic-year-start-wrapper').dataset.value || '2025';
-      const endYear = document.getElementById('academic-year-end-wrapper').dataset.value || '2026';
-      const academicYear = `${startYear}-${endYear}`;
-      const semester = document.getElementById('semester-wrapper').dataset.value || '1st Semester';
+      const academicYear = getSelectedAcademicYear();
+      const semester = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
 
       const res = await fetch(`/api/schedules/room/${roomNum}?academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}`);
       if (!res.ok) return;
@@ -826,10 +829,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    const startYear = document.getElementById('academic-year-start-wrapper').dataset.value || '2025';
-    const endYear = document.getElementById('academic-year-end-wrapper').dataset.value || '2026';
-    const academicYear = `${startYear}-${endYear}`;
-    const semester = document.getElementById('semester-wrapper').dataset.value || '1st Semester';
+    const academicYear = getSelectedAcademicYear();
+    const semester = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
 
     const printPayload = {
       roomNum: roomNum,
