@@ -14,7 +14,11 @@
     rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="style.css" />
-  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <style id="auth-anti-flash">
+    body {
+      display: none !important;
+    }
+  </style>
   <script src="auth-check.js"></script>
 </head>
 
@@ -26,13 +30,10 @@
       <button class="sidebar-btn active" title="Dashboard" onclick="window.location.href='mis-staff-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='mis-pc-reports.html'">
-        <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
-      </button>
       <button class="sidebar-btn" title="Maintenance Tracker" onclick="window.location.href='mis-maintenance.html'">
         <i data-lucide="wrench" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="QR Generator" onclick="window.location.href='mis-qr-generator.html'">
+      <button class="sidebar-btn" title="PC & QR Management" onclick="window.location.href='mis-qr-generator.html'">
         <i data-lucide="qr-code" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -72,9 +73,8 @@
       <!-- Center Nav -->
       <nav class="header-nav">
         <button class="nav-item active" onclick="window.location.href='mis-staff-dashboard.html'">Dashboard</button>
-        <button class="nav-item" onclick="window.location.href='mis-pc-reports.html'">PC Reports</button>
         <button class="nav-item" onclick="window.location.href='mis-maintenance.html'">Maintenance Tracker</button>
-        <button class="nav-item" onclick="window.location.href='mis-qr-generator.html'">QR Generator</button>
+        <button class="nav-item" onclick="window.location.href='mis-qr-generator.html'">PC & QR Management</button>
       </nav>
 
       <!-- Right Profile -->
@@ -87,7 +87,7 @@
         <div class="profile-dropdown">
           <div class="avatar">VN</div>
           <div class="profile-info">
-            <span class="profile-name">Violeta Nicolas</span>
+            <span class="profile-name">MIS Staff</span>
             <span class="profile-role">MIS Staff</span>
           </div>
           <button class="chevron-btn">
@@ -104,7 +104,7 @@
       <!-- Greeting + Clock Row -->
       <div class="greeting-row">
         <div class="greeting-left">
-          <h1 class="greeting-title" id="greetingText">Good Evening, Violeta!</h1>
+          <h1 class="greeting-title" id="greetingText">Good Evening, MIS Staff!</h1>
           <p class="greeting-sub" id="greetingSub">Manage system-wide hardware reports, administrative tasks, and the
             technical integrity of all IT laboratory spaces.</p>
         </div>
@@ -116,157 +116,183 @@
 
       <!-- Main Content Card -->
       <div class="dashboard-card">
-      <!-- Dashboard Overview -->
-      <div class="dashboard-overview">
-        
-        <!-- Stats Grid -->
-        <div class="stats-grid mis-stats" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
-          <!-- Stat 1 -->
-          <div class="stat-card theme-blue">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value">0 <span class="stat-sub-val">| 0 Active</span></div>
-                <div class="stat-title">System Connectivity</div>
-              </div>
-              <div class="stat-icon">
-                <i data-lucide="users"></i>
-              </div>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="users"></i>
-            </div>
-          </div>
+        <!-- Dashboard Overview -->
+        <div class="dashboard-overview">
 
-          <!-- Stat 2 -->
-          <div class="stat-card theme-orange">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value">0 <span class="stat-sub-val">| 0 Total</span></div>
-                <div class="stat-title">Pending PC Reports</div>
+          <!-- Stats Grid -->
+          <div class="stats-grid mis-stats" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+            <!-- Stat 1 -->
+            <div class="stat-card theme-blue">
+              <div class="stat-header">
+                <div class="stat-info">
+                  <div class="stat-value">0 <span class="stat-pill-badge">Across 0 Rooms</span></div>
+                  <div class="stat-title">Registered PC Units</div>
+                </div>
+                <div class="stat-icon">
+                  <i data-lucide="monitor"></i>
+                </div>
               </div>
-              <div class="stat-icon">
+              <div class="stat-watermark">
+                <i data-lucide="monitor"></i>
+              </div>
+            </div>
+
+            <!-- Stat 2 -->
+            <div class="stat-card theme-orange">
+              <div class="stat-header">
+                <div class="stat-info">
+                  <div class="stat-value">0 <span class="stat-pill-badge">0 Total Tickets</span></div>
+                  <div class="stat-title">Pending PC Reports</div>
+                </div>
+                <div class="stat-icon">
+                  <i data-lucide="alert-triangle"></i>
+                </div>
+              </div>
+              <div class="stat-watermark">
                 <i data-lucide="alert-triangle"></i>
               </div>
             </div>
-            <div class="stat-watermark">
-              <i data-lucide="alert-triangle"></i>
-            </div>
-          </div>
 
-          <!-- Stat 3 -->
-          <div class="stat-card theme-red">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value">0 <span class="stat-sub-val">In-Progress</span></div>
-                <div class="stat-title">Active Maintenance</div>
+            <!-- Stat 3 -->
+            <div class="stat-card theme-red">
+              <div class="stat-header">
+                <div class="stat-info">
+                  <div class="stat-value">0 <span class="stat-pill-badge">In Progress</span></div>
+                  <div class="stat-title">Active Maintenance</div>
+                </div>
+                <div class="stat-icon">
+                  <i data-lucide="wrench"></i>
+                </div>
               </div>
-              <div class="stat-icon">
+              <div class="stat-watermark">
                 <i data-lucide="wrench"></i>
               </div>
             </div>
-            <div class="stat-watermark">
-              <i data-lucide="wrench"></i>
+          </div>
+
+          <!-- Main Grid -->
+          <div class="dashboard-main-grid" style="margin-top: 16px;">
+
+            <!-- Left: Recent PC Reports -->
+            <div class="content-card" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 16px;">
+              <div class="section-header" style="margin-bottom: 0;">
+                <div class="sh-left">
+                  <div>
+                    <h3 style="font-size: 18px; margin-bottom: 4px;">Recent PC Reports</h3>
+                    <p style="font-size: 13px;">Track and manage all reported issues</p>
+                  </div>
+                </div>
+                <div>
+                  <a href="mis-maintenance.html"
+                    style="color: var(--primary-teal); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">View
+                    All <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i></a>
+                </div>
+              </div>
+
+              <!-- Search Box -->
+              <div class="search-box" style="position: relative;">
+                <i data-lucide="search"
+                  style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
+                <input type="text" class="search-input" placeholder="Search by ticket ID, room, or issue type...">
+              </div>
+
+              <!-- Table -->
+              <div class="table-container" style="overflow-x: auto; overflow-y: auto; flex: 1; min-height: 150px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                  <thead style="position: sticky; top: 0; background: var(--bg-white); z-index: 10;">
+                    <tr>
+                      <th
+                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                        TICKET ID</th>
+                      <th
+                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                        DATE & TIME</th>
+                      <th
+                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                        LAB ROOM</th>
+                      <th
+                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                        PC ID</th>
+                      <th
+                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                        ISSUE TYPE</th>
+                      <th
+                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                        STATUS</th>
+                      <th
+                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: right;">
+                        ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="7"
+                        style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+                        No PC reports available. Reports will appear here when submitted.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-light);">
+                <div style="font-size: 13px; color: var(--text-muted);">
+                  Showing <strong style="color: var(--text-dark);">0</strong> of <strong
+                    style="color: var(--text-dark);">0</strong> reports
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button
+                    style="padding: 8px 16px; border: 1px solid var(--border-light); background: #fff; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-mid); cursor: not-allowed; opacity: 0.5; transition: all var(--transition);"
+                    disabled>Previous</button>
+                  <button
+                    style="padding: 8px 16px; border: none; background: var(--primary-teal); border-radius: 20px; font-size: 13px; font-weight: 600; color: #fff; cursor: not-allowed; opacity: 0.5; box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3); transition: all var(--transition);"
+                    disabled>Next</button>
+                </div>
+              </div>
+
             </div>
+
+            <!-- Right: Activity Feed -->
+            <div class="content-card" style="padding: 16px 20px; display: flex; flex-direction: column;">
+              <div class="section-header" style="margin-bottom: 16px;">
+                <div class="sh-left">
+                  <div>
+                    <h3 style="font-size: 18px; margin-bottom: 4px;">System Activity Feed</h3>
+                    <p style="font-size: 13px;">Recent system updates and alerts</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style="flex: 1; position: relative; margin-left: 8px;">
+                <!-- Vertical line -->
+                <div
+                  style="position: absolute; left: 4px; top: 8px; bottom: 0; width: 2px; background: var(--border-light); z-index: 0;">
+                </div>
+
+                <!-- Items -->
+                <div style="display: flex; flex-direction: column; gap: 24px; position: relative; z-index: 1;">
+
+                  <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px;">
+                    No recent activity. System updates will appear here.
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
-
-        <!-- Main Grid -->
-        <div class="dashboard-main-grid" style="margin-top: 16px;">
-          
-          <!-- Left: Recent PC Reports -->
-          <div class="content-card" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 16px;">
-            <div class="section-header" style="margin-bottom: 0;">
-              <div class="sh-left">
-                <div>
-                  <h3 style="font-size: 18px; margin-bottom: 4px;">Recent PC Reports</h3>
-                  <p style="font-size: 13px;">Track and manage all reported issues</p>
-                </div>
-              </div>
-              <div>
-                <a href="mis-pc-reports.html" style="color: var(--primary-teal); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">View All <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i></a>
-              </div>
-            </div>
-
-            <!-- Search Box -->
-            <div class="search-box" style="position: relative;">
-              <i data-lucide="search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
-              <input type="text" class="search-input" placeholder="Search by ticket ID, room, or issue type...">
-            </div>
-
-            <!-- Table -->
-            <div class="table-container" style="overflow-x: auto; overflow-y: auto; flex: 1; min-height: 150px;">
-              <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                <thead style="position: sticky; top: 0; background: var(--bg-white); z-index: 10;">
-                  <tr>
-                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">TICKET ID</th>
-                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">DATE & TIME</th>
-                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">LAB ROOM</th>
-                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">PC ID</th>
-                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">ISSUE TYPE</th>
-                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">STATUS</th>
-                    <th style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: right;">ACTION</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
-                      No PC reports available. Reports will appear here when submitted.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Pagination -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-light);">
-              <div style="font-size: 13px; color: var(--text-muted);">
-                Showing <strong style="color: var(--text-dark);">0</strong> of <strong style="color: var(--text-dark);">0</strong> reports
-              </div>
-              <div style="display: flex; gap: 8px;">
-                <button style="padding: 8px 16px; border: 1px solid var(--border-light); background: #fff; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-mid); cursor: not-allowed; opacity: 0.5; transition: all var(--transition);" disabled>Previous</button>
-                <button style="padding: 8px 16px; border: none; background: var(--primary-teal); border-radius: 20px; font-size: 13px; font-weight: 600; color: #fff; cursor: not-allowed; opacity: 0.5; box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3); transition: all var(--transition);" disabled>Next</button>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Right: Activity Feed -->
-          <div class="content-card" style="padding: 16px 20px; display: flex; flex-direction: column;">
-            <div class="section-header" style="margin-bottom: 16px;">
-              <div class="sh-left">
-                <div>
-                  <h3 style="font-size: 18px; margin-bottom: 4px;">System Activity Feed</h3>
-                  <p style="font-size: 13px;">Recent system updates and alerts</p>
-                </div>
-              </div>
-            </div>
-
-            <div style="flex: 1; position: relative; margin-left: 8px;">
-              <!-- Vertical line -->
-              <div style="position: absolute; left: 4px; top: 8px; bottom: 0; width: 2px; background: var(--border-light); z-index: 0;"></div>
-              
-              <!-- Items -->
-              <div style="display: flex; flex-direction: column; gap: 24px; position: relative; z-index: 1;">
-                
-                <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px;">
-                  No recent activity. System updates will appear here.
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
       </div>
 
     </main>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=1.0.5"></script>
   <script>
 
-    
+
     // Sidebar scroll clue
     const sidebar = document.querySelector('.sidebar');
     const scrollClue = document.getElementById('sidebarScrollClue');
@@ -281,7 +307,7 @@
       const h = now.getHours();
       const greet = h < 12 ? 'Good Morning' : h < 18 ? 'Good Afternoon' : 'Good Evening';
       const greetingEl = document.getElementById('greetingText');
-      if (greetingEl) greetingEl.textContent = greet + ', Violeta!';
+      if (greetingEl) greetingEl.textContent = greet + ', MIS Staff!';
       const subEl = document.getElementById('greetingSub');
       if (subEl) subEl.textContent = 'Manage system-wide hardware reports, administrative tasks, and the technical integrity of all IT laboratory spaces.';
     }

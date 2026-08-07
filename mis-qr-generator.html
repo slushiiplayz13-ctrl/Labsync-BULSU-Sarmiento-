@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LabSync - QR Generator</title>
+  <title>LabSync - PC & QR Management</title>
   <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <meta name="view-transition" content="same-origin" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -113,12 +113,72 @@
 
   <!-- Add PC Modal -->
   <div id="addPcModalOverlay" class="pc-modal-overlay">
-    <div class="pc-modal">
-      <h3>Add New PC</h3>
-      <input type="text" id="newPcNumberInput" placeholder="Enter PC Number (e.g., 1, 2, 3...)" />
-      <div class="pc-modal-actions">
-        <button class="pc-modal-btn cancel" onclick="closeAddPcModal()">Cancel</button>
-        <button class="pc-modal-btn add" onclick="submitAddPc()">Add PC</button>
+    <div class="pc-modal" style="max-width: 460px; width: 100%; border-radius: 16px; padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h3 style="margin: 0; font-size: 20px; font-weight: 700; font-family: var(--font-display); color: var(--text-dark);">Add PCs to Room</h3>
+          <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-light);" id="addPcRoomSubtitle">Add computer units to room</p>
+        </div>
+        <button onclick="closeAddPcModal()" style="background: none; border: none; cursor: pointer; color: var(--text-light); padding: 4px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <!-- Prominent Mode Switcher Tabs -->
+      <div style="display: flex; gap: 8px; margin-bottom: 20px; background: #F1F5F9; padding: 4px; border-radius: 10px;">
+        <button type="button" id="tabModeSimple" onclick="selectAddMode('simple')" style="flex: 1; padding: 10px 12px; border: none; background: #fff; color: var(--primary-teal); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font-body); display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); transition: all 0.2s;">
+          <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i> Quick Add (Quantity)
+        </button>
+        <button type="button" id="tabModeCustom" onclick="selectAddMode('custom')" style="flex: 1; padding: 10px 14px; border: none; background: transparent; color: var(--text-mid); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font-body); display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+          <i data-lucide="hash" style="width: 16px; height: 16px;"></i> Specific PC Number
+        </button>
+      </div>
+
+      <!-- Option A: Simple Quantity Mode -->
+      <div id="addPcSimpleSection" style="display: block;">
+        <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px;">How many PCs do you want to add?</label>
+        
+        <!-- Quantity Input with Stepper -->
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <button type="button" onclick="adjustCount(-1)" style="width: 44px; height: 44px; padding: 0; border: 1.5px solid var(--border-light); background: var(--bg-body); border-radius: 10px; cursor: pointer; color: var(--text-dark); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Decrease">
+            <i data-lucide="minus" style="width: 18px; height: 18px;"></i>
+          </button>
+          <input type="number" id="pcCountInput" min="1" max="100" value="30" style="flex: 1; height: 44px; box-sizing: border-box; text-align: center; border: 1.5px solid var(--border-light); border-radius: 10px; font-size: 16px; font-weight: 700; color: var(--primary-teal); outline: none;" oninput="updateSimplePreview()">
+          <button type="button" onclick="adjustCount(1)" style="width: 44px; height: 44px; padding: 0; border: 1.5px solid var(--border-light); background: var(--bg-body); border-radius: 10px; cursor: pointer; color: var(--text-dark); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Increase">
+            <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+
+        <!-- Quick Presets -->
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <button type="button" onclick="setCountPreset(1)" class="pc-preset-btn" style="flex: 1; padding: 8px 6px; border: 1px solid var(--border-light); background: #fff; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-mid);">1 PC</button>
+          <button type="button" onclick="setCountPreset(10)" class="pc-preset-btn" style="flex: 1; padding: 8px 6px; border: 1px solid var(--border-light); background: #fff; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-mid);">10 PCs</button>
+          <button type="button" onclick="setCountPreset(20)" class="pc-preset-btn" style="flex: 1; padding: 8px 6px; border: 1px solid var(--border-light); background: #fff; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-mid);">20 PCs</button>
+          <button type="button" onclick="setCountPreset(30)" class="pc-preset-btn" style="flex: 1; padding: 8px 6px; border: 1px solid var(--border-light); background: #fff; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-mid);">30 PCs</button>
+        </div>
+
+        <!-- Live Preview Hint -->
+        <div id="simplePreviewBox" style="font-size: 12.5px; color: var(--primary-teal); font-weight: 600; background: rgba(30,187,215,0.08); padding: 10px 14px; border-radius: 10px; display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+          <i data-lucide="info" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+          <span id="simplePreviewText">Will add PC 1 through PC 30</span>
+        </div>
+      </div>
+
+      <!-- Option B: Specific PC Number Section -->
+      <div id="addPcCustomSection" style="display: none; margin-bottom: 16px;">
+        <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Enter Specific PC Number</label>
+        <input type="number" id="newPcNumberInput" min="1" max="999" placeholder="Enter PC Number (e.g., 5, 12, 24...)" style="width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1.5px solid var(--border-light); border-radius: 10px; font-size: 14px; outline: none; margin-bottom: 6px; font-weight: 600; transition: border-color 0.2s;" oninput="validateSpecificPcInput()" />
+        <div id="specificPcErrorMsg" style="display: none; font-size: 12px; color: #EF4444; font-weight: 600; margin-bottom: 8px; align-items: center; gap: 6px; background: #FEF2F2; padding: 8px 12px; border-radius: 8px;">
+          <i data-lucide="alert-circle" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+          <span id="specificPcErrorText">This PC number already exists in this room.</span>
+        </div>
+        <p style="font-size: 11.5px; color: var(--text-light); margin: 0 0 12px 0;">Adds a single PC unit with this specific number to the room.</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="pc-modal-actions" style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px;">
+        <button class="pc-modal-btn cancel" onclick="closeAddPcModal()" style="padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-light); background: #f8fafc; font-weight: 600; cursor: pointer;">Cancel</button>
+        <button class="pc-modal-btn add" id="submitAddPcBtn" onclick="submitAddPc()" style="padding: 10px 24px; border-radius: 8px; border: none; background: var(--primary-teal); color: #fff; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(30,187,215,0.35);">Add PCs</button>
       </div>
     </div>
   </div>
@@ -129,13 +189,10 @@
       <button class="sidebar-btn" title="Dashboard" onclick="window.location.href='mis-staff-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='mis-pc-reports.html'">
-        <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
-      </button>
       <button class="sidebar-btn" title="Maintenance Tracker" onclick="window.location.href='mis-maintenance.html'">
         <i data-lucide="wrench" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn active" title="QR Generator" onclick="window.location.href='mis-qr-generator.html'">
+      <button class="sidebar-btn active" title="PC & QR Management" onclick="window.location.href='mis-qr-generator.html'">
         <i data-lucide="qr-code" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -143,10 +200,10 @@
     <div class="sidebar-spacer"></div>
 
     <div class="sidebar-bottom">
-      <button class="sidebar-btn" title="Help">
+      <button class="sidebar-btn" title="Help" onclick="openHelpModal()">
         <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Logout" onclick="window.location.href='login.html'">
+      <button class="sidebar-btn" title="Logout" onclick="handleLogout()">
         <i data-lucide="log-out" style="width:24px;height:24px;"></i>
       </button>
     </div>
@@ -174,9 +231,8 @@
       <!-- Center Nav -->
       <nav class="header-nav">
         <button class="nav-item" onclick="window.location.href='mis-staff-dashboard.html'">Dashboard</button>
-        <button class="nav-item" onclick="window.location.href='mis-pc-reports.html'">PC Reports</button>
         <button class="nav-item" onclick="window.location.href='mis-maintenance.html'">Maintenance Tracker</button>
-        <button class="nav-item active" onclick="window.location.href='mis-qr-generator.html'">QR Generator</button>
+        <button class="nav-item active" onclick="window.location.href='mis-qr-generator.html'">PC & QR Management</button>
       </nav>
 
       <!-- Right Profile -->
@@ -189,7 +245,7 @@
         <div class="profile-dropdown">
           <div class="avatar">VN</div>
           <div class="profile-info">
-            <span class="profile-name">Violeta Nicolas</span>
+            <span class="profile-name">MIS Staff</span>
             <span class="profile-role">MIS Staff</span>
           </div>
           <button class="chevron-btn">
@@ -205,8 +261,8 @@
       <!-- Greeting + Clock Row -->
       <div class="greeting-row">
         <div class="greeting-left">
-          <h1 class="greeting-title" id="greetingText">QR Generator</h1>
-          <p class="greeting-sub" id="greetingSub">Generate QR codes for IT laboratory assets.</p>
+          <h1 class="greeting-title" id="greetingText">PC & QR Management</h1>
+          <p class="greeting-sub" id="greetingSub">Manage computer units and generate QR stickers for laboratory assets.</p>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime">--:--:-- --</div>
@@ -262,7 +318,7 @@
     </main>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=1.0.5"></script>
   <script>
     const sidebar = document.querySelector('.sidebar');
     const scrollClue = document.getElementById('sidebarScrollClue');
@@ -326,10 +382,9 @@
         card.className = 'pc-qr-card';
         card.style.position = 'relative';
         card.innerHTML = `
-          <button class="delete-pc-btn" onclick="deletePC(${pc.PC_ID})" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: #EF4444; cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.2s;" title="Delete PC">
-            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+          <button class="delete-pc-btn" onclick="deletePC(${pc.PC_ID})" title="Delete PC ${pc.PC_Number}">
+            <i data-lucide="trash-2"></i>
           </button>
-          <div class="pc-qr-dot"></div>
           <div class="pc-qr-title">PC ${pc.PC_Number}</div>
           <button class="pc-qr-btn" onclick="generateQR(${pc.PC_ID})">
             <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i>
@@ -356,12 +411,154 @@
     }
 
     let pendingAddRoomId = null;
+    let isCustomMode = false;
+
+    function parsePcInputString(inputStr) {
+      if (!inputStr) return [];
+      const parts = inputStr.split(',').map(s => s.trim()).filter(s => s);
+      const result = new Set();
+      
+      parts.forEach(part => {
+        const rangeMatch = part.match(/^(\d+)\s*(?:-|to)\s*(\d+)$/i);
+        if (rangeMatch) {
+          const start = parseInt(rangeMatch[1], 10);
+          const end = parseInt(rangeMatch[2], 10);
+          if (!isNaN(start) && !isNaN(end)) {
+            const min = Math.min(start, end);
+            const max = Math.max(start, end);
+            for (let i = min; i <= max; i++) {
+              result.add(i.toString());
+            }
+            return;
+          }
+        }
+        
+        const singleNum = part.replace(/[^\d]/g, '');
+        if (singleNum) {
+          result.add(parseInt(singleNum, 10).toString());
+        }
+      });
+
+      return Array.from(result).sort((a, b) => parseInt(a) - parseInt(b));
+    }
+
+    function selectAddMode(mode) {
+      isCustomMode = (mode === 'custom');
+      const tabSimple = document.getElementById('tabModeSimple');
+      const tabCustom = document.getElementById('tabModeCustom');
+      const simpleSection = document.getElementById('addPcSimpleSection');
+      const customSection = document.getElementById('addPcCustomSection');
+      const submitBtn = document.getElementById('submitAddPcBtn');
+
+      if (isCustomMode) {
+        tabCustom.style.background = '#fff';
+        tabCustom.style.color = 'var(--primary-teal)';
+        tabCustom.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
+
+        tabSimple.style.background = 'transparent';
+        tabSimple.style.color = 'var(--text-mid)';
+        tabSimple.style.boxShadow = 'none';
+
+        simpleSection.style.display = 'none';
+        customSection.style.display = 'block';
+        if (submitBtn) submitBtn.textContent = 'Add PCs';
+        document.getElementById('newPcNumberInput').focus();
+      } else {
+        tabSimple.style.background = '#fff';
+        tabSimple.style.color = 'var(--primary-teal)';
+        tabSimple.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
+
+        tabCustom.style.background = 'transparent';
+        tabCustom.style.color = 'var(--text-mid)';
+        tabCustom.style.boxShadow = 'none';
+
+        simpleSection.style.display = 'block';
+        customSection.style.display = 'none';
+        updateSimplePreview();
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons({ root: document.getElementById('addPcModalOverlay') });
+    }
 
     function addPC(roomId) {
       pendingAddRoomId = roomId;
       document.getElementById('newPcNumberInput').value = '';
+
+      let highestNum = 0;
+      if (currentPCs && currentPCs.length > 0) {
+        currentPCs.forEach(p => {
+          const num = parseInt(p.PC_Number, 10);
+          if (!isNaN(num) && num > highestNum) highestNum = num;
+        });
+      }
+
+      const defaultAdd = highestNum > 0 ? 10 : 30;
+      const countInput = document.getElementById('pcCountInput');
+      countInput.value = defaultAdd;
+      countInput.dataset.startNum = (highestNum + 1).toString();
+
+      const subtitle = document.getElementById('addPcRoomSubtitle');
+      if (subtitle && currentRoomNumber) {
+        subtitle.textContent = `Room ${currentRoomNumber} • Currently has ${currentPCs.length} PC(s)`;
+      }
+
+      selectAddMode('simple');
       document.getElementById('addPcModalOverlay').style.display = 'flex';
-      document.getElementById('newPcNumberInput').focus();
+      if (typeof lucide !== 'undefined') lucide.createIcons({ root: document.getElementById('addPcModalOverlay') });
+    }
+
+    function adjustCount(delta) {
+      const input = document.getElementById('pcCountInput');
+      let val = (parseInt(input.value) || 0) + delta;
+      if (val < 1) val = 1;
+      if (val > 100) val = 100;
+      input.value = val;
+      updateSimplePreview();
+    }
+
+    function setCountPreset(num) {
+      document.getElementById('pcCountInput').value = num;
+      updateSimplePreview();
+    }
+
+    function updateSimplePreview() {
+      const countInput = document.getElementById('pcCountInput');
+      const count = parseInt(countInput.value) || 0;
+      const startNum = parseInt(countInput.dataset.startNum) || 1;
+      const endNum = startNum + count - 1;
+      const textEl = document.getElementById('simplePreviewText');
+      const submitBtn = document.getElementById('submitAddPcBtn');
+
+      if (count <= 0) {
+        if (textEl) textEl.textContent = 'Please enter how many PCs to add';
+        if (submitBtn) submitBtn.textContent = 'Add PCs';
+        return;
+      }
+
+      if (count === 1) {
+        if (textEl) textEl.textContent = `Will add PC ${startNum}`;
+        if (submitBtn) submitBtn.textContent = `Add 1 PC`;
+      } else {
+        if (textEl) textEl.textContent = `Will add PC ${startNum} through PC ${endNum} (${count} PCs)`;
+        if (submitBtn) submitBtn.textContent = `Add ${count} PCs`;
+      }
+    }
+
+    function toggleCustomListInput() {
+      isCustomMode = !isCustomMode;
+      const simpleSection = document.getElementById('addPcSimpleSection');
+      const customSection = document.getElementById('addPcCustomSection');
+      const submitBtn = document.getElementById('submitAddPcBtn');
+
+      if (isCustomMode) {
+        simpleSection.style.display = 'none';
+        customSection.style.display = 'block';
+        if (submitBtn) submitBtn.textContent = 'Add PCs';
+        document.getElementById('newPcNumberInput').focus();
+      } else {
+        simpleSection.style.display = 'block';
+        customSection.style.display = 'none';
+        updateSimplePreview();
+      }
     }
 
     function closeAddPcModal() {
@@ -369,32 +566,128 @@
       pendingAddRoomId = null;
     }
 
+    function validateSpecificPcInput() {
+      const inputEl = document.getElementById('newPcNumberInput');
+      const errorEl = document.getElementById('specificPcErrorMsg');
+      const errorTextEl = document.getElementById('specificPcErrorText');
+      const submitBtn = document.getElementById('submitAddPcBtn');
+      
+      if (!inputEl || !isCustomMode) return true;
+
+      const val = inputEl.value.trim();
+      if (!val) {
+        if (errorEl) errorEl.style.display = 'none';
+        inputEl.style.borderColor = 'var(--border-light)';
+        if (submitBtn) submitBtn.disabled = false;
+        return true;
+      }
+
+      const existingMatch = currentPCs && currentPCs.find(pc => pc.PC_Number.toString().trim() === val);
+      if (existingMatch) {
+        if (errorTextEl) errorTextEl.textContent = `PC ${val} already exists in Room ${currentRoomNumber || ''}. Please enter a unique PC number.`;
+        if (errorEl) {
+          errorEl.style.display = 'flex';
+          if (typeof lucide !== 'undefined') lucide.createIcons({ root: errorEl });
+        }
+        inputEl.style.borderColor = '#EF4444';
+        if (submitBtn) submitBtn.disabled = true;
+        return false;
+      } else {
+        if (errorEl) errorEl.style.display = 'none';
+        inputEl.style.borderColor = 'var(--primary-teal)';
+        if (submitBtn) submitBtn.disabled = false;
+        return true;
+      }
+    }
+
     async function submitAddPc() {
-      const pcNumber = document.getElementById('newPcNumberInput').value.trim();
-      if (!pcNumber) {
-        alert('Please enter a PC number.');
+      let pcNumbers = [];
+
+      if (!isCustomMode) {
+        const countInput = document.getElementById('pcCountInput');
+        const count = parseInt(countInput.value) || 0;
+        const startNum = parseInt(countInput.dataset.startNum) || 1;
+
+        if (count <= 0) {
+          alert('Please enter a valid number of PCs to add.');
+          return;
+        }
+        if (count > 100) {
+          alert('Maximum 100 PCs can be added at one time.');
+          return;
+        }
+
+        for (let i = 0; i < count; i++) {
+          pcNumbers.push((startNum + i).toString());
+        }
+      } else {
+        if (!validateSpecificPcInput()) {
+          return;
+        }
+        const rawVal = document.getElementById('newPcNumberInput').value.trim();
+        const pcNum = parseInt(rawVal, 10);
+        if (isNaN(pcNum) || pcNum <= 0) {
+          alert('Please enter a valid PC number.');
+          return;
+        }
+        pcNumbers = [pcNum.toString()];
+      }
+
+      const roomId = pendingAddRoomId;
+      if (!roomId) {
+        alert('Room ID error. Please re-select the room.');
         return;
       }
-      
-      const roomId = pendingAddRoomId;
-      closeAddPcModal();
-      
+
+      const submitBtn = document.getElementById('submitAddPcBtn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Adding...';
+      }
+
       try {
-        const response = await fetch(`/api/laboratories/${roomId}/pcs/add`, { 
+        let response = await fetch(`/api/laboratories/${roomId}/pcs/add-bulk`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ pcNumber })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pcNumbers })
         });
+
+        // Sequential fallback if /add-bulk returns 404 (e.g. server running old code)
+        if (response.status === 404) {
+          let addedCount = 0;
+          for (const pcNumber of pcNumbers) {
+            try {
+              const singleRes = await fetch(`/api/laboratories/${roomId}/pcs/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pcNumber })
+              });
+              if (singleRes.ok) addedCount++;
+            } catch (e) {}
+          }
+          closeAddPcModal();
+          await loadPCs(roomId);
+          if (window.showToast) window.showToast(`Added ${addedCount} PC(s) successfully!`);
+          return;
+        }
+
         if (!response.ok) {
           const errData = await response.json();
-          throw new Error(errData.error || 'Failed to add PC');
+          throw new Error(errData.error || 'Failed to add PCs');
         }
+
+        const data = await response.json();
+        closeAddPcModal();
         await loadPCs(roomId);
+        if (window.showToast) window.showToast(data.message);
       } catch (error) {
-        console.error('Error adding PC:', error);
-        alert(error.message);
+        console.error('Error adding PCs:', error);
+        alert(error.message || 'Failed to add PCs');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Add PCs';
+        }
       }
     }
 

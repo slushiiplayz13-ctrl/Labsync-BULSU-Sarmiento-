@@ -4,7 +4,7 @@
         const response = await fetch('/api/user/current', {
             credentials: 'include'
         });
-        
+
         if (!response.ok) {
             // Not authenticated, redirect to login
             window.location.replace('/login.html');
@@ -18,16 +18,16 @@
 
         // Categorize the current page
         const isMisPage = page.startsWith('mis-');
-        const isItHeadPage = page.startsWith('it-head-') || 
-                             page === 'master-schedule.html' || 
-                             page === 'room-schedule-editor.html' || 
-                             page === 'faculty-management.html' ||
-                             page === 'print-all-schedules.html' ||
-                             page === 'print-schedule.html';
-        const isFacultyPage = page === 'index.html' || 
-                              page === 'room-status.html' || 
-                              page === 'pc-reports.html' || 
-                              page === 'my-schedule.html';
+        const isItHeadPage = page.startsWith('it-head-') ||
+            page === 'master-schedule.html' ||
+            page === 'room-schedule-editor.html' ||
+            page === 'faculty-management.html' ||
+            page === 'print-all-schedules.html' ||
+            page === 'print-schedule.html';
+        const isFacultyPage = page === 'index.html' ||
+            page === 'room-status.html' ||
+            page === 'pc-reports.html' ||
+            page === 'my-schedule.html';
 
         let authorized = false;
 

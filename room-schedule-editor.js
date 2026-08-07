@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (card.id === excludeCardId) continue;
       const cardStart = parseFloat(card.dataset.start);
       const cardEnd = parseFloat(card.dataset.end);
-      
+
       // Overlap condition: max(start1, start2) < min(end1, end2)
       const maxStart = Math.max(startSlot, cardStart);
       const minEnd = Math.min(endSlot, cardEnd);
@@ -149,10 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Query backend to check if a professor is already scheduled at this time elsewhere
   async function checkProfessorConflict(professorName, day, startTime, endTime) {
     if (!professorName || professorName === 'Not specified') return { conflict: false };
-    
+
     const academicYear = getSelectedAcademicYear();
     const semester = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
-    
+
     try {
       const url = `/api/schedules/check-professor-conflict?professorName=${encodeURIComponent(professorName)}&day=${encodeURIComponent(day)}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}&academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}&excludeRoomNumber=${encodeURIComponent(roomNum)}`;
       const res = await fetch(url);
@@ -171,40 +171,75 @@ document.addEventListener('DOMContentLoaded', () => {
       placeholderEl = document.createElement('div');
       placeholderEl.className = 'grid-card-placeholder';
     }
-    
+
     const startTime = slotsToTime(slotIndex);
     const endTime = slotsToTime(slotIndex + durationSlots);
     placeholderEl.textContent = `${formatTimeLabel(startTime)} - ${formatTimeLabel(endTime)}`;
-    
+
     placeholderEl.style.top = `${slotIndex * SLOT_HEIGHT}px`;
     placeholderEl.style.height = `${durationSlots * SLOT_HEIGHT}px`;
-    
+
     if (placeholderEl.parentNode !== col) {
       col.appendChild(placeholderEl);
     }
   }
 
-  // Helper to apply dynamic style variables from COLOR_PALETTES map
+  function hexToRgb(hex) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex.split('').map(c => c + c).join('');
+    }
+    const num = parseInt(hex, 16);
+    return {
+      r: (num >> 16) & 255,
+      g: (num >> 8) & 255,
+      b: num & 255
+    };
+  }
+
+  function customColorToPalette(hex) {
+    const { r, g, b } = hexToRgb(hex);
+    const textR = Math.floor(r * 0.4);
+    const textG = Math.floor(g * 0.4);
+    const textB = Math.floor(b * 0.4);
+    const textHex = `#${((1 << 24) + (textR << 16) + (textG << 8) + textB).toString(16).slice(1)}`;
+
+    return {
+      bg: `rgba(${r}, ${g}, ${b}, 0.08)`,
+      border: `rgba(${r}, ${g}, ${b}, 0.3)`,
+      accent: hex,
+      text: textHex,
+      label: 'Custom Color'
+    };
+  }
+
+  // Helper to apply dynamic style variables from COLOR_PALETTES map or custom hex
   function applyCardColor(card, colorName) {
-    const palette = COLOR_PALETTES[colorName] || COLOR_PALETTES.Default;
+    let palette;
+    if (colorName && colorName.startsWith('#')) {
+      palette = customColorToPalette(colorName);
+    } else {
+      palette = COLOR_PALETTES[colorName] || COLOR_PALETTES.Default;
+    }
     card.dataset.color = colorName;
     card.style.backgroundColor = palette.bg;
     card.style.border = `1.5px solid ${palette.border}`;
     card.style.borderLeft = `5px solid ${palette.accent}`;
     card.style.color = palette.text;
-    
+
     const title = card.querySelector('.grid-card-title');
     if (title) title.style.color = palette.text;
-    
+
     const sec = card.querySelector('.grid-card-section');
     if (sec) sec.style.color = `${palette.text}bf`;
-    
+
     const prof = card.querySelector('.grid-card-prof');
     if (prof) prof.style.color = `${palette.text}bf`;
-    
+
     const time = card.querySelector('.grid-card-time');
     if (time) time.style.color = palette.accent;
   }
+
 
   function removePlaceholder() {
     if (placeholderEl) {
@@ -218,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const start = parseFloat(card.dataset.start);
     const end = parseFloat(card.dataset.end);
     const span = end - start;
-    
+
     card.classList.remove('span-1', 'span-2', 'span-3-plus');
     if (span <= 1) {
       card.classList.add('span-1');
@@ -234,21 +269,20 @@ document.addEventListener('DOMContentLoaded', () => {
   function createGridCard(dbId, subject, professor, section, startTime = '08:30', endTime = '10:00', colorTheme = 'Default') {
     const card = document.createElement('div');
     card.className = 'grid-card';
-    card.title = "Click to view details";
     card.draggable = true;
     blockCounter++;
     card.id = dbId ? `card-db-${dbId}` : `card-new-${blockCounter}`;
-    
+
     const startSlot = timeToSlots(startTime);
     const endSlot = timeToSlots(endTime);
     const duration = endSlot - startSlot;
-    
+
     card.dataset.start = startSlot;
     card.dataset.end = endSlot;
     card.style.top = `${startSlot * SLOT_HEIGHT}px`;
     card.style.height = `${duration * SLOT_HEIGHT}px`;
     updateCardSpanClass(card);
-    
+
     card.innerHTML = `
       <div class="grid-card-details">
         <div class="grid-card-title" title="${subject}">${subject}</div>
@@ -257,65 +291,72 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <div class="grid-card-time">
         <span class="grid-card-time-text">${formatShortTime(startTime)} - ${formatShortTime(endTime)}</span>
-        <i class="card-info-icon" data-lucide="info" style="width: 13px; height: 13px; opacity: 0.55; transition: opacity 0.2s;"></i>
+        <div class="card-info-icon" role="button" title="Click to view details & edit color">
+          <i data-lucide="info"></i>
+        </div>
       </div>
       <div class="grid-card-resize-handle"></div>
     `;
 
+
+
     applyCardColor(card, colorTheme);
 
-    // Click listener to open detail modal
+    // Click listener: open detail modal ONLY when clicking the info icon
     card.addEventListener('click', (e) => {
-      if (e.target.classList.contains('grid-card-resize-handle')) return;
-      openCardDetailModal(card);
+      if (e.target.closest('.card-info-icon')) {
+        e.stopPropagation();
+        openCardDetailModal(card);
+      }
     });
-    
+
+
     // Resize Listener
     const handle = card.querySelector('.grid-card-resize-handle');
-    
+
     function initResize(e) {
       if (document.body.classList.contains('view-mode')) return;
       e.stopPropagation();
       e.preventDefault();
-      
+
       const startY = e.clientY || (e.touches && e.touches[0].clientY);
       const startHeight = card.offsetHeight;
       const startTop = card.offsetTop;
       const day = card.closest('.grid-day-column').dataset.day;
-      
+
       const originalEndSlot = parseFloat(card.dataset.end);
-      
+
       function doResize(moveEvt) {
         const currentY = moveEvt.clientY || (moveEvt.touches && moveEvt.touches[0].clientY);
         const dy = currentY - startY;
-        
+
         // Calculate new height, snap to SLOT_HEIGHT
         let newHeight = startHeight + dy;
         newHeight = Math.round(newHeight / SLOT_HEIGHT) * SLOT_HEIGHT;
         if (newHeight < SLOT_HEIGHT) newHeight = SLOT_HEIGHT;
-        
+
         // Check bounds (cannot exceed 7:00 PM)
         const proposedEndSlot = (startTop + newHeight) / SLOT_HEIGHT;
         if (proposedEndSlot > TOTAL_SLOTS) {
           return; // exceed max slots boundary
         }
-        
+
         // Overlap Collision Check (Local Room)
         const startSlot = startTop / SLOT_HEIGHT;
         if (checkOverlap(day, startSlot, proposedEndSlot, card.id)) {
           return; // Collision detected, stop resizing further down
         }
-        
+
         card.style.height = `${newHeight}px`;
         card.dataset.end = proposedEndSlot;
         updateCardSpanClass(card);
-        
+
         // Update Time display inside card
         const tStart = slotsToTime(startSlot);
         const tEnd = slotsToTime(proposedEndSlot);
         card.querySelector('.grid-card-time-text').textContent = `${formatShortTime(tStart)} - ${formatShortTime(tEnd)}`;
       }
-      
+
       async function stopResize() {
         document.removeEventListener('mousemove', doResize);
         document.removeEventListener('mouseup', stopResize);
@@ -331,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const profCheck = await checkProfessorConflict(professor, day, tStart, tEnd);
         if (profCheck.conflict) {
           alert(`Schedule Conflict: Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${formatTimeLabel(profCheck.startTime)} to ${formatTimeLabel(profCheck.endTime)} on ${day}.`);
-          
+
           // Revert Resize
           card.style.height = `${(originalEndSlot - startSlot) * SLOT_HEIGHT}px`;
           card.dataset.end = originalEndSlot;
@@ -341,16 +382,16 @@ document.addEventListener('DOMContentLoaded', () => {
           window.isDirty = true;
         }
       }
-      
+
       document.addEventListener('mousemove', doResize);
       document.addEventListener('mouseup', stopResize);
       document.addEventListener('touchmove', doResize, { passive: false });
       document.addEventListener('touchend', stopResize);
     }
-    
+
     handle.addEventListener('mousedown', initResize);
     handle.addEventListener('touchstart', initResize, { passive: false });
-    
+
     // Drag Start Listener
     card.addEventListener('dragstart', (e) => {
       if (document.body.classList.contains('view-mode')) {
@@ -359,16 +400,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       e.dataTransfer.setData('text/plain', card.id);
       setTimeout(() => card.classList.add('dragging'), 0);
+      if (professor) {
+        loadProfessorGhostSchedule(professor);
+      }
     });
-    
+
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging');
+      restoreDefaultOrClearGhost();
     });
-    
+
     if (typeof lucide !== 'undefined') {
       lucide.createIcons({ root: card });
     }
-    
+
     return card;
   }
 
@@ -380,16 +425,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const subject = card.querySelector('.grid-card-title').textContent;
       const section = card.querySelector('.grid-card-section').textContent.replace('Sec: ', '');
       const professor = card.querySelector('.grid-card-prof').textContent;
-      
+
       const trayBlock = convertToTrayBlock(subject, professor, section);
       blocksContainer.appendChild(trayBlock);
-      
+
       card.remove();
       window.isDirty = true;
-      
+
       const emptyMsg = document.getElementById('no-blocks-msg');
       if (emptyMsg) emptyMsg.remove();
-      
+
       updateBlockCount();
     }
   }
@@ -409,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <i data-lucide="x" style="width: 14px; height: 14px; pointer-events: none;"></i>
       </button>
     `;
-    
+
     block.addEventListener('dragstart', (e) => {
       if (document.body.classList.contains('view-mode')) {
         e.preventDefault();
@@ -417,17 +462,22 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       e.dataTransfer.setData('text/plain', block.id);
       setTimeout(() => block.classList.add('dragging'), 0);
+      if (professor) {
+        loadProfessorGhostSchedule(professor);
+      }
     });
 
     block.addEventListener('dragend', () => {
       block.classList.remove('dragging');
       updateBlockCount();
+      restoreDefaultOrClearGhost();
     });
-    
+
+
     if (typeof lucide !== 'undefined') {
       lucide.createIcons({ root: block });
     }
-    
+
     return block;
   }
 
@@ -447,21 +497,21 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let day of days) {
       const col = document.querySelector(`.grid-day-column[data-day="${day}"]`);
       if (!col) continue;
-      
+
       const cards = col.querySelectorAll('.grid-card');
       for (let card of cards) {
         const subject = card.querySelector('.grid-card-title').textContent;
         const section = card.querySelector('.grid-card-section').textContent.replace('Sec: ', '');
         const professor = card.querySelector('.grid-card-prof').textContent;
-        
+
         const startSlot = parseFloat(card.dataset.start);
         const endSlot = parseFloat(card.dataset.end);
-        
+
         const startTime = slotsToTime(startSlot);
         const endTime = slotsToTime(endSlot);
 
         const colorTheme = card.dataset.color || 'Default';
-        
+
         scheduleData.push({
           subject: subject,
           professor: professor,
@@ -480,8 +530,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const res = await fetch('/api/schedules/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        roomNumber: roomNum, 
+      body: JSON.stringify({
+        roomNumber: roomNum,
         schedules: scheduleData,
         academicYear,
         semester
@@ -522,13 +572,175 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Initialize custom select
       window.initCustomSelect('professor-wrapper', (val) => {
-        triggerText.style.color = 'var(--text-dark)';
+        if (val) {
+          triggerText.style.color = 'var(--text-dark)';
+          loadProfessorGhostSchedule(val);
+        } else {
+          triggerText.style.color = '#94A3B8';
+          clearGhostBlocks();
+        }
       });
     } catch (err) {
       console.error('Error loading professors:', err);
     }
   }
+
+  // Remove existing ghost cards from the grid
+  function clearGhostBlocks() {
+    document.querySelectorAll('.grid-card-ghost').forEach(el => el.remove());
+  }
+
+  // Load and display ghost blocks for selected professor across all rooms
+  async function loadProfessorGhostSchedule(professorName) {
+    clearGhostBlocks();
+    if (!professorName || professorName === 'Not specified') return;
+
+    const academicYear = getSelectedAcademicYear();
+    const semester = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
+
+    try {
+      const url = `/api/schedules/professor?professorName=${encodeURIComponent(professorName)}&academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}&excludeRoomNumber=${encodeURIComponent(roomNum)}`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const schedules = await res.json();
+
+
+      schedules.forEach(s => {
+        const day = s.Day_of_Week;
+        const col = document.querySelector(`.grid-day-column[data-day="${day}"]`);
+        if (!col) return;
+
+        const startTime = s.Start_Time.substring(0, 5);
+        const endTime = s.End_Time.substring(0, 5);
+
+        const startSlot = timeToSlots(startTime);
+        const endSlot = timeToSlots(endTime);
+        const duration = endSlot - startSlot;
+
+        // Exclude schedules in the current room (already rendered as regular cards)
+        if (String(s.Room_Number) === String(roomNum)) return;
+
+        const ghostEl = document.createElement('div');
+        ghostEl.className = 'grid-card-ghost';
+        ghostEl.style.top = `${startSlot * SLOT_HEIGHT}px`;
+        ghostEl.style.height = `${duration * SLOT_HEIGHT}px`;
+
+        const roomBadgeText = `Occupied (Rm ${s.Room_Number})`;
+
+
+        ghostEl.innerHTML = `
+          <div>
+            <div class="ghost-badge">
+              <i data-lucide="lock" style="width:10px;height:10px;"></i>
+              ${roomBadgeText}
+            </div>
+            <div class="ghost-title" title="${s.Subject_Name || 'Class'}">${s.Subject_Name || 'Occupied Slot'}</div>
+          </div>
+          <div class="ghost-sub">
+            <span>${s.Section ? 'Sec: ' + s.Section + ' • ' : ''}${formatShortTime(startTime)} - ${formatShortTime(endTime)}</span>
+          </div>
+        `;
+
+        col.appendChild(ghostEl);
+      });
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    } catch (err) {
+      console.error('Error loading professor ghost schedule:', err);
+    }
+  }
+
+  function restoreDefaultOrClearGhost() {
+    const selectedProf = document.getElementById('professor-wrapper')?.dataset.value;
+    if (selectedProf) {
+      loadProfessorGhostSchedule(selectedProf);
+    } else {
+      clearGhostBlocks();
+    }
+  }
+
+  function getBlockProfessorName(element) {
+    if (!element) return '';
+    if (element.classList.contains('schedule-block')) {
+      const divs = element.querySelectorAll('div');
+      return divs[1] ? divs[1].textContent.trim() : '';
+    } else if (element.classList.contains('grid-card')) {
+      const profEl = element.querySelector('.grid-card-prof');
+      return profEl ? profEl.textContent.trim() : '';
+    }
+    return '';
+  }
+
+  async function loadCurriculumSubjects() {
+    const subjectWrapper = document.getElementById('subject-select-dropdown');
+    
+    try {
+      const res = await fetch('/api/curriculum');
+      if (!res.ok) return;
+      const subjects = await res.json();
+
+      if (subjectWrapper) {
+        subjectWrapper.innerHTML = '';
+        if (subjects.length === 0) {
+          subjectWrapper.innerHTML = '<div style="padding: 10px 14px; font-size: 13px; color: #94A3B8;">No imported curriculum found. Type manually.</div>';
+          return;
+        }
+
+        subjects.forEach(s => {
+          const item = document.createElement('div');
+          const fullLabel = s.Subject_Code ? `${s.Subject_Code} - ${s.Subject_Name}` : s.Subject_Name;
+          item.className = 'custom-select-option';
+          item.style.cssText = 'padding: 10px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #f1f5f9; color: var(--text-dark);';
+          item.textContent = fullLabel;
+          item.onmouseover = () => item.style.background = 'var(--primary-teal-light)';
+          item.onmouseout = () => item.style.background = 'transparent';
+          item.onclick = (e) => {
+            e.stopPropagation();
+            const input = document.getElementById('block-subject');
+            if (input) input.value = fullLabel;
+            subjectWrapper.style.display = 'none';
+          };
+          subjectWrapper.appendChild(item);
+        });
+      }
+    } catch (err) {
+      console.error('Error loading curriculum subjects:', err);
+    }
+  }
+
+  const blockSubjectInput = document.getElementById('block-subject');
+  if (blockSubjectInput) {
+    blockSubjectInput.addEventListener('input', () => {
+      const filter = blockSubjectInput.value.toLowerCase().trim();
+      const dropdown = document.getElementById('subject-select-dropdown');
+      if (!dropdown) return;
+
+      const items = dropdown.querySelectorAll('.custom-select-option');
+      let matchCount = 0;
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (!filter || text.includes(filter)) {
+          item.style.display = 'block';
+          matchCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      dropdown.style.display = matchCount > 0 ? 'block' : 'none';
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('subject-select-dropdown');
+    const input = document.getElementById('block-subject');
+    if (dropdown && input && !dropdown.contains(e.target) && e.target !== input) {
+      dropdown.style.display = 'none';
+    }
+  });
+
   loadProfessors();
+  loadCurriculumSubjects();
+
 
   const createBtn = document.getElementById('create-block-btn');
   const subjectSelect = document.getElementById('block-subject');
@@ -550,16 +762,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       window.isDirty = true;
-      
+
       const emptyMsg = document.getElementById('no-blocks-msg');
       if (emptyMsg) emptyMsg.remove();
 
       const block = convertToTrayBlock(subject, professor, section);
       blocksContainer.appendChild(block);
       updateBlockCount();
-      
+
       subjectSelect.value = "";
       window.setCustomSelectValue('professor-wrapper', '');
+      clearGhostBlocks();
       const triggerText = professorSelect.querySelector('.custom-select-trigger span');
       if (triggerText) {
         triggerText.textContent = 'Select Professor';
@@ -569,7 +782,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  window.deleteBlock = function(event, btn) {
+
+  window.deleteBlock = function (event, btn) {
     event.stopPropagation();
     const block = btn.closest('.schedule-block');
     if (block) {
@@ -635,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const rect = col.getBoundingClientRect();
       const dropY = e.clientY - rect.top;
-      
+
       // Snap drop offset to nearest 30-min slot (SLOT_HEIGHT = 45px)
       let slotIndex = Math.round(dropY / SLOT_HEIGHT);
       if (slotIndex < 0) slotIndex = 0;
@@ -764,8 +978,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       resetTableToDefault();
 
+      const selectedProf = document.getElementById('professor-wrapper')?.dataset.value;
       if (schedules.length === 0) {
         window.isDirty = false;
+        if (selectedProf) loadProfessorGhostSchedule(selectedProf);
         return;
       }
 
@@ -789,16 +1005,21 @@ document.addEventListener('DOMContentLoaded', () => {
         col.appendChild(card);
       });
 
+      if (selectedProf) {
+        loadProfessorGhostSchedule(selectedProf);
+      }
+
       if (typeof lucide !== 'undefined') lucide.createIcons();
       window.isDirty = false;
     } catch (err) {
+
       console.error('Error loading schedule:', err);
     }
   }
 
   loadRoomSchedule();
 
-  window.preparePrint = function() {
+  window.preparePrint = function () {
     const urlParams = new URLSearchParams(window.location.search);
     const roomNum = urlParams.get('room') || '204';
     const bldgName = urlParams.get('bldg') || 'Building B';
@@ -845,14 +1066,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Mode Toggling
   const saveBtn = document.getElementById('save-schedule-btn');
   let isViewMode = false;
-  
+
   if (saveBtn) {
     saveBtn.addEventListener('click', async () => {
       if (!isViewMode) {
         try {
           const saved = await saveCurrentSchedule();
           if (!saved) return;
-        } catch(e) {
+        } catch (e) {
           console.error('Failed to save', e);
           alert('Failed to save the schedule. Please try again.');
           return;
@@ -992,11 +1213,17 @@ document.addEventListener('DOMContentLoaded', () => {
       ghostElement.style.zIndex = '10000';
       ghostElement.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
       ghostElement.style.transform = 'scale(1.03)';
-      
+
       document.body.appendChild(ghostElement);
       block.classList.add('dragging');
       document.body.classList.add('dragging-active');
+
+      const profName = getBlockProfessorName(block);
+      if (profName) {
+        loadProfessorGhostSchedule(profName);
+      }
     }, { passive: false });
+
 
     document.addEventListener('touchmove', function (e) {
       if (!draggedElement) return;
@@ -1055,11 +1282,13 @@ document.addEventListener('DOMContentLoaded', () => {
       draggedElement.classList.remove('dragging');
       document.body.classList.remove('dragging-active');
       removePlaceholder();
+      restoreDefaultOrClearGhost();
 
       if (ghostElement) {
         ghostElement.remove();
         ghostElement = null;
       }
+
 
       if (activeDropZone) {
         activeDropZone.classList.remove('drag-over');
@@ -1082,7 +1311,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const emptyMsg = document.getElementById('no-blocks-msg');
             if (emptyMsg) emptyMsg.remove();
           }
-        } 
+        }
         // If dropped onto a day column
         else if (col.classList.contains('grid-day-column')) {
           const rect = col.getBoundingClientRect();
@@ -1125,11 +1354,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.isDirty = true;
               }
             }
-          } 
+          }
           // Case B: Dragging card to another column or within same column
           else if (block.classList.contains('grid-card')) {
             const durationSlots = parseFloat(block.dataset.end) - parseFloat(block.dataset.start);
-            
+
             if (slotIndex + durationSlots > TOTAL_SLOTS) {
               slotIndex = TOTAL_SLOTS - durationSlots;
             }
@@ -1214,19 +1443,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const dot = document.createElement('button');
         dot.className = 'color-dot';
         dot.style.backgroundColor = COLOR_PALETTES[themeName].accent;
-        dot.style.width = '24px';
-        dot.style.height = '24px';
-        dot.style.borderRadius = '50%';
-        dot.style.cursor = 'pointer';
         dot.style.border = themeName === currentColor ? '3px solid #0F172A' : '1.5px solid rgba(15, 23, 42, 0.15)';
-        dot.style.padding = '0';
         dot.title = COLOR_PALETTES[themeName].label;
 
         dot.addEventListener('click', () => {
           applyCardColor(card, themeName);
           window.isDirty = true;
           // Highlight selected dot
-          modalColorPicker.querySelectorAll('.color-dot').forEach(el => {
+          modalColorPicker.querySelectorAll('.color-dot, .color-wheel-btn').forEach(el => {
             el.style.border = '1.5px solid rgba(15, 23, 42, 0.15)';
           });
           dot.style.border = '3px solid #0F172A';
@@ -1234,7 +1458,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
         modalColorPicker.appendChild(dot);
       });
+
+      // Add Custom Color Wheel Picker Button
+      const customWheelWrapper = document.createElement('div');
+      customWheelWrapper.className = 'color-wheel-btn';
+      customWheelWrapper.title = 'Custom Color Wheel';
+      const isCustomColor = currentColor.startsWith('#');
+      if (isCustomColor) customWheelWrapper.classList.add('selected-theme');
+
+      customWheelWrapper.innerHTML = `<i data-lucide="palette" style="width: 11px; height: 11px; color: #475569; pointer-events: none;"></i>`;
+
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.value = isCustomColor ? currentColor : '#1EBBD7';
+
+      const applyCustom = (hexVal) => {
+        applyCardColor(card, hexVal);
+        window.isDirty = true;
+        modalColorPicker.querySelectorAll('.color-dot, .color-wheel-btn').forEach(el => {
+          el.style.border = '1.5px solid rgba(15, 23, 42, 0.15)';
+          el.classList.remove('selected-theme');
+        });
+        customWheelWrapper.classList.add('selected-theme');
+      };
+
+      colorInput.addEventListener('input', (e) => applyCustom(e.target.value));
+      colorInput.addEventListener('change', (e) => applyCustom(e.target.value));
+
+      customWheelWrapper.appendChild(colorInput);
+      modalColorPicker.appendChild(customWheelWrapper);
     }
+
+
+
 
     // Open Modal
     detailModal.style.display = 'flex';

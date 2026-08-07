@@ -1,5 +1,5 @@
 // ── Shared Schedule Logic for User Schedules ─────────────────────────
-window.loadUserSchedule = async function() {
+window.loadUserSchedule = async function () {
   const container = document.getElementById('schedule-container');
   if (!container) return;
 
@@ -22,7 +22,7 @@ window.loadUserSchedule = async function() {
     const res = await fetch(`/api/schedules/user?academicYear=${encodeURIComponent(ay)}&semester=${encodeURIComponent(sem)}`);
     if (!res.ok) throw new Error('Failed to fetch schedule');
     const schedules = await res.json();
-    
+
     if (schedules.length === 0) {
       container.innerHTML = `
         <div class="ui-empty-state">
@@ -96,6 +96,15 @@ window.loadUserSchedule = async function() {
       }
     });
 
+    window.latestUserSchedules = schedules.map(s => {
+      const palette = subjectMap.get((s.Subject_Name || 'General Subject').trim());
+      return {
+        ...s,
+        bg: palette ? palette.bg : 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+        color: palette ? palette.color : '#FFFFFF'
+      };
+    });
+
     const escapeHtml = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     let html = `
@@ -122,7 +131,7 @@ window.loadUserSchedule = async function() {
     days.forEach(day => {
       const isToday = day === todayName;
       const dayScheds = schedules.filter(s => s.Day_of_Week === day);
-      
+
       // Sort schedules chronologically by start time
       dayScheds.sort((a, b) => (a.Start_Time || '').localeCompare(b.Start_Time || ''));
 
@@ -131,11 +140,12 @@ window.loadUserSchedule = async function() {
         <div class="day-column ${isToday ? 'highlight-day' : ''} ${isEmpty ? 'empty-day' : ''}">
           <div class="day-header">
             <span>${dayShortNames[day]}</span>
-            ${isToday ? '<span class="today-pill">TODAY</span>' : ''}
+            ${isToday ? '<span class="today-tag">TODAY</span>' : ''}
           </div>
+          <div class="day-classes">
       `;
 
-      if (dayScheds.length === 0) {
+      if (isEmpty) {
         html += `
           <div class="empty-day-box">
             <i data-lucide="coffee"></i>
@@ -164,7 +174,7 @@ window.loadUserSchedule = async function() {
         });
       }
 
-      html += `</div>`;
+      html += `</div></div>`;
     });
 
     html += `</div>`;
@@ -179,7 +189,7 @@ window.loadUserSchedule = async function() {
     legendItems.forEach(item => {
       item.addEventListener('click', () => {
         const selectedFilter = item.dataset.filter;
-        
+
         if (currentFilter === selectedFilter && selectedFilter !== 'all') {
           currentFilter = 'all';
         } else {
@@ -222,7 +232,7 @@ window.loadUserSchedule = async function() {
         });
       });
     });
-    
+
   } catch (err) {
     console.error(err);
   }

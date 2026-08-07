@@ -129,6 +129,21 @@ async function initializeDatabase() {
         } catch (err) {
             console.error('Error initializing system_settings table:', err);
         }
+
+        // Initialize curriculum table
+        try {
+            await db.query(`
+                CREATE TABLE IF NOT EXISTS curriculum (
+                    Curriculum_ID INT AUTO_INCREMENT PRIMARY KEY,
+                    Subject_Code VARCHAR(50) NULL,
+                    Subject_Name VARCHAR(255) NOT NULL,
+                    Created_At DATETIME DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+            `);
+            console.log('Created curriculum table (if not exists).');
+        } catch (err) {
+            console.error('Error initializing curriculum table:', err);
+        }
     } catch (err) {
         console.error('Database initialization failed:', err);
     }
@@ -139,11 +154,11 @@ initializeDatabase();
 function isValidEmailFormat(email) {
     if (!email || typeof email !== 'string') return false;
     const cleanEmail = email.trim().toLowerCase();
-    
+
     // Basic structural check
     const basicRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$/;
     if (!basicRegex.test(cleanEmail)) return false;
-    
+
     // Prevent double dots or dot right next to @
     if (cleanEmail.includes('..') || cleanEmail.includes('@.') || cleanEmail.includes('.@')) return false;
 
@@ -406,7 +421,7 @@ app.set('trust proxy', 1);
 
 // Middleware
 app.use(cors({
-    origin: function(origin, callback) {
+    origin: function (origin, callback) {
         // Allow requests with no origin (mobile/curl), localhost, ngrok tunnels, or matching APP_URL
         if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('ngrok') || (process.env.APP_URL && origin === process.env.APP_URL)) {
             callback(null, true);
@@ -507,7 +522,7 @@ app.post('/api/settings', requireAuth, async (req, res) => {
         }
 
         const settings = req.body; // e.g. { program_chair: '...', campus_dean: '...' }
-        
+
         for (const [key, value] of Object.entries(settings)) {
             await db.query(`
                 INSERT INTO system_settings (Setting_Key, Setting_Value) 
@@ -538,7 +553,7 @@ app.post('/api/auth/recover-password', async (req, res) => {
 
         const user = users[0];
         const token = crypto.randomBytes(32).toString('hex');
-        
+
         // Expiry in 1 hour
         const expiry = new Date();
         expiry.setHours(expiry.getHours() + 1);
@@ -729,10 +744,10 @@ app.put('/api/faculty/:userId/role', requireAuth, async (req, res) => {
             await db.query(
                 'UPDATE users SET Role = "Faculty" WHERE Role IN ("IT Head", "IT Dept. Head", "IT Dept Head")'
             );
-            
+
             // 2. Promote the target user to "IT Dept. Head"
             await db.query('UPDATE users SET Role = ? WHERE User_ID = ?', [role, userId]);
-            
+
             // 3. Update the currently logged-in user's role in their session
             if (req.session.userId) {
                 const [currentRows] = await db.query('SELECT Role FROM users WHERE User_ID = ?', [req.session.userId]);
@@ -769,7 +784,7 @@ app.delete('/api/faculty/:userId', requireAuth, async (req, res) => {
 app.get('/api/laboratories', async (req, res) => {
     try {
         const [rooms] = await db.query('SELECT * FROM laboratories ORDER BY Room_Number');
-        
+
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const today = days[new Date().getDay()];
         const nowTime = new Date().toTimeString().split(' ')[0]; // 'HH:MM:SS'
@@ -896,17 +911,17 @@ app.post('/api/laboratories/:roomId/pcs/add', async (req, res) => {
     try {
         const { roomId } = req.params;
         const { pcNumber } = req.body;
-        
+
         if (!pcNumber) {
             return res.status(400).json({ error: 'PC Number is required' });
         }
-        
+
         // Check for duplicate PC number
         const [existing] = await db.query('SELECT PC_ID FROM lab_units WHERE Room_ID = ? AND PC_Number = ?', [roomId, pcNumber]);
         if (existing.length > 0) {
             return res.status(400).json({ error: 'This PC number already exists in this room.' });
         }
-        
+
         // Generate a QR string for the PC
         const qrString = `LABSYNC-PC-${roomId}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
@@ -916,6 +931,53 @@ app.post('/api/laboratories/:roomId/pcs/add', async (req, res) => {
         );
 
         res.json({ message: 'PC added successfully', pcId: result.insertId, pcNumber });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Bulk Add PCs to a room
+app.post('/api/laboratories/:roomId/pcs/add-bulk', async (req, res) => {
+    try {
+        const { roomId } = req.params;
+        let { pcNumbers } = req.body;
+
+        if (!pcNumbers || !Array.isArray(pcNumbers) || pcNumbers.length === 0) {
+            return res.status(400).json({ error: 'At least one PC number is required.' });
+        }
+
+        const cleanNumbers = Array.from(new Set(pcNumbers.map(n => n.toString().trim()).filter(n => n !== '')));
+        if (cleanNumbers.length === 0) {
+            return res.status(400).json({ error: 'Valid PC numbers are required.' });
+        }
+
+        const [existing] = await db.query('SELECT PC_Number FROM lab_units WHERE Room_ID = ?', [roomId]);
+        const existingSet = new Set(existing.map(p => p.PC_Number.toString().trim()));
+
+        const added = [];
+        const skipped = [];
+
+        for (const num of cleanNumbers) {
+            if (existingSet.has(num)) {
+                skipped.push(num);
+                continue;
+            }
+            const qrString = `LABSYNC-PC-${roomId}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+            await db.query(
+                'INSERT INTO lab_units (Room_ID, PC_Number, Condition_Status, PC_QR_String) VALUES (?, ?, ?, ?)',
+                [roomId, num, 'Functional', qrString]
+            );
+            added.push(num);
+        }
+
+        res.json({
+            message: `Added ${added.length} PC(s).` + (skipped.length > 0 ? ` (${skipped.length} duplicate numbers skipped)` : ''),
+            addedCount: added.length,
+            skippedCount: skipped.length,
+            added,
+            skipped
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Internal server error' });
@@ -939,7 +1001,7 @@ app.get('/api/pcs/:pcId/qrcode', async (req, res) => {
     try {
         const { pcId } = req.params;
         const [pcs] = await db.query(
-            'SELECT p.*, r.Room_Number FROM lab_units p JOIN laboratories r ON p.Room_ID = r.Room_ID WHERE p.PC_ID = ?', 
+            'SELECT p.*, r.Room_Number FROM lab_units p JOIN laboratories r ON p.Room_ID = r.Room_ID WHERE p.PC_ID = ?',
             [pcId]
         );
 
@@ -1071,6 +1133,51 @@ app.get('/api/schedules/check-professor-conflict', async (req, res) => {
     }
 });
 
+// Get all schedules for a specific professor across all rooms (optionally excluding a room)
+app.get('/api/schedules/professor', async (req, res) => {
+    try {
+        const { professorName, academicYear, semester, excludeRoomNumber } = req.query;
+        if (!professorName) {
+            return res.status(400).json({ error: 'Missing professorName' });
+        }
+
+        const currentYear = new Date().getFullYear();
+        const ay = academicYear || `${currentYear}-${currentYear + 1}`;
+        const sem = semester || '1st Semester';
+
+        const [users] = await db.query('SELECT User_ID FROM users WHERE Name = ?', [professorName]);
+        if (users.length === 0) {
+            return res.json([]);
+        }
+        const userId = users[0].User_ID;
+
+        let query = `
+            SELECT s.*, l.Room_Number, l.Building, u.Name as ProfessorName
+            FROM schedules s
+            JOIN laboratories l ON s.Room_ID = l.Room_ID
+            JOIN users u ON s.User_ID = u.User_ID
+            WHERE s.User_ID = ? AND s.Academic_Year = ? AND s.Semester = ?
+        `;
+        const params = [userId, ay, sem];
+
+        if (excludeRoomNumber) {
+            query += ` AND l.Room_Number != ?`;
+            params.push(excludeRoomNumber);
+        }
+
+        query += ` ORDER BY FIELD(s.Day_of_Week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), s.Start_Time`;
+
+        const [schedules] = await db.query(query, params);
+
+        res.json(schedules);
+    } catch (err) {
+        console.error('Error fetching professor schedule:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+
 
 // Get schedule for a specific room
 app.get('/api/schedules/room/:roomNumber', async (req, res) => {
@@ -1173,6 +1280,13 @@ app.put('/api/user/update', requireAuth, async (req, res) => {
         }
 
         const user = users[0];
+
+        // Restrict profile changes for shared MIS Staff account
+        if (user.Role === 'MIS Staff') {
+            if ((email && email.trim().toLowerCase() !== user.Email.toLowerCase()) || (name && name.trim() !== user.Name)) {
+                return res.status(403).json({ error: 'Name and email modifications are restricted for shared MIS Staff accounts.' });
+            }
+        }
 
         // Email change request logic
         let emailChangeRequested = false;
@@ -1584,7 +1698,7 @@ app.post('/api/reports/submit', async (req, res) => {
 
         // 3. Find components with issues
         const issueComponents = Object.keys(components).filter(key => components[key] === 'issue');
-        
+
         // 4. Construct Issue Description
         const desc = `[Program & Section: ${studentSection}] [Issues: ${issueComponents.join(', ') || 'None'}] Remarks: ${remarks || 'None'}`;
 
@@ -1704,29 +1818,22 @@ app.get('/api/notifications', requireAuth, async (req, res) => {
         }
 
         if (role === 'MIS Staff') {
-            // MIS Staff sees all PC reports and occupancy logs
+            // MIS Staff sees all PC reports and hardware maintenance notifications (excluding room key/occupancy logs)
             const [reports] = await db.query(`
-                (SELECT 'report' AS type, m.Report_ID AS id, m.Date_Reported AS time, m.Status AS status, 
+                SELECT 'report' AS type, m.Report_ID AS id, m.Date_Reported AS time, m.Status AS status, 
                        p.PC_Number AS pc_number, r.Room_Number AS room_number, m.Issue_Description AS description, 
                        m.Student_Name AS detail, m.Priority_Level AS priority
                 FROM maintenance m
                 JOIN lab_units p ON m.PC_ID = p.PC_ID
-                JOIN laboratories r ON p.Room_ID = r.Room_ID)
-                UNION ALL
-                (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
-                       NULL AS pc_number, r.Room_Number AS room_number, IFNULL(u.Name, 'Room Key') AS description,
-                       IFNULL(u.Role, 'System') AS detail, NULL AS priority
-                FROM occupancy_log o
-                LEFT JOIN users u ON o.User_ID = u.User_ID
-                JOIN laboratories r ON o.Room_ID = r.Room_ID)
-                ORDER BY time DESC
+                JOIN laboratories r ON p.Room_ID = r.Room_ID
+                ORDER BY m.Date_Reported DESC
                 LIMIT 15
             `);
             return res.json(reports);
         } else {
             // Faculty & Dept Head only see PC reports and occupancy logs for their assigned rooms (based on schedules)
             const [schedules] = await db.query('SELECT DISTINCT Room_ID FROM schedules WHERE User_ID = ?', [userId]);
-            
+
             if (schedules.length === 0) {
                 return res.json([]);
             }
@@ -1758,6 +1865,62 @@ app.get('/api/notifications', requireAuth, async (req, res) => {
     } catch (err) {
         console.error('Error fetching notifications:', err);
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// --- Curriculum API Endpoints ---
+
+// Get all curriculum subjects
+app.get('/api/curriculum', async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM curriculum ORDER BY Subject_Code ASC, Subject_Name ASC');
+        res.json(rows);
+    } catch (err) {
+        console.error('Error fetching curriculum:', err);
+        res.status(500).json({ error: 'Failed to fetch curriculum data.' });
+    }
+});
+
+// Import curriculum subjects (bulk replace or append)
+app.post('/api/curriculum/import', async (req, res) => {
+    const { subjects, mode } = req.body;
+    if (!Array.isArray(subjects) || subjects.length === 0) {
+        return res.status(400).json({ error: 'No subject items provided.' });
+    }
+
+    try {
+        if (mode !== 'append') {
+            await db.query('DELETE FROM curriculum');
+        }
+
+        for (const s of subjects) {
+            const code = (s.Subject_Code || s.code || '').toString().trim();
+            const name = (s.Subject_Name || s.name || s.title || '').toString().trim();
+
+            if (name) {
+                await db.query(
+                    'INSERT INTO curriculum (Subject_Code, Subject_Name) VALUES (?, ?)',
+                    [code, name]
+                );
+            }
+        }
+
+        const [updatedRows] = await db.query('SELECT * FROM curriculum ORDER BY Subject_Code ASC, Subject_Name ASC');
+        res.json({ message: 'Curriculum imported successfully.', count: updatedRows.length, curriculum: updatedRows });
+    } catch (err) {
+        console.error('Error importing curriculum:', err);
+        res.status(500).json({ error: 'Failed to import curriculum.' });
+    }
+});
+
+// Clear all curriculum entries
+app.delete('/api/curriculum', async (req, res) => {
+    try {
+        await db.query('DELETE FROM curriculum');
+        res.json({ message: 'Curriculum cleared successfully.' });
+    } catch (err) {
+        console.error('Error clearing curriculum:', err);
+        res.status(500).json({ error: 'Failed to clear curriculum.' });
     }
 });
 

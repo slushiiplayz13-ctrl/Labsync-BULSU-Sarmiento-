@@ -9,7 +9,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  overflow: hidden;
+  overflow-y: auto;
   min-height: 0;
   min-width: 0;
   max-width: 100%;
@@ -276,6 +276,7 @@ html.high-contrast .stat-card.theme-red {
   /* Premium text gradient */
   background: linear-gradient(135deg, var(--theme-color) 30%, var(--primary-teal) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   transition: transform 0.3s ease;
 }
@@ -283,6 +284,7 @@ html.high-contrast .stat-card.theme-red {
 html.high-contrast .stat-value {
   background: none !important;
   -webkit-background-clip: initial !important;
+  background-clip: initial !important;
   -webkit-text-fill-color: initial !important;
   color: var(--text-dark) !important;
 }
@@ -395,23 +397,76 @@ html.high-contrast .stat-meta {
 }
 
 .mis-stats .stat-card .stat-value {
-  font-size: 28px;
+  font-size: 30px;
+  font-weight: 800;
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  gap: 10px;
+  line-height: 1;
 }
 
-.mis-stats .stat-card .stat-sub-val {
+.mis-stats .stat-card .stat-sub-val,
+.mis-stats .stat-card .stat-pill-badge {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-muted);
-  -webkit-text-fill-color: var(--text-muted);
-  margin-left: 8px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
 }
 
-html.high-contrast .mis-stats .stat-card .stat-sub-val {
-  -webkit-text-fill-color: var(--text-muted) !important;
-  color: var(--text-muted) !important;
+.mis-stats .stat-card.theme-blue .stat-sub-val,
+.mis-stats .stat-card.theme-blue .stat-pill-badge {
+  background: rgba(30, 187, 215, 0.12);
+  color: #0E7490;
+  -webkit-text-fill-color: #0E7490;
+}
+
+.mis-stats .stat-card.theme-orange .stat-sub-val,
+.mis-stats .stat-card.theme-orange .stat-pill-badge {
+  background: rgba(245, 158, 11, 0.12);
+  color: #D97706;
+  -webkit-text-fill-color: #D97706;
+}
+
+.mis-stats .stat-card.theme-red .stat-sub-val,
+.mis-stats .stat-card.theme-red .stat-pill-badge {
+  background: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+  -webkit-text-fill-color: #DC2626;
+}
+
+html.high-contrast .mis-stats .stat-card.theme-blue .stat-sub-val,
+html.high-contrast .mis-stats .stat-card.theme-blue .stat-pill-badge {
+  background: rgba(30, 187, 215, 0.2) !important;
+  color: #38BDF8 !important;
+  -webkit-text-fill-color: #38BDF8 !important;
+}
+
+html.high-contrast .mis-stats .stat-card.theme-orange .stat-sub-val,
+html.high-contrast .mis-stats .stat-card.theme-orange .stat-pill-badge {
+  background: rgba(245, 158, 11, 0.2) !important;
+  color: #FBBF24 !important;
+  -webkit-text-fill-color: #FBBF24 !important;
+}
+
+html.high-contrast .mis-stats .stat-card.theme-red .stat-sub-val,
+html.high-contrast .mis-stats .stat-card.theme-red .stat-pill-badge {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #F87171 !important;
+  -webkit-text-fill-color: #F87171 !important;
+}
+
+html.high-contrast .mis-stats .stat-card.theme-green .stat-sub-val,
+html.high-contrast .mis-stats .stat-card.theme-green .stat-pill-badge {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34D399 !important;
+  -webkit-text-fill-color: #34D399 !important;
+}
+
+html.high-contrast .stat-title {
+  color: #CBD5E1 !important;
 }
 
 .stat-meta svg {
@@ -866,18 +921,23 @@ html.high-contrast .mis-stats .stat-card .stat-sub-val {
   background: linear-gradient(135deg, rgba(30, 187, 215, 0.07) 0%, rgba(14, 165, 201, 0.02) 100%);
   border: 1px solid rgba(30, 187, 215, 0.18);
   border-radius: 16px;
-  padding: 12px 16px;
+  padding: 14px 18px;
   box-shadow: 0 6px 16px -4px rgba(30, 187, 215, 0.08);
   margin-left: 4px;
+  width: calc(100% - 4px);
+  box-sizing: border-box;
 }
 
 .timeline-item.future .time-content {
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.01) 0%, rgba(15, 23, 42, 0.00) 100%);
   border: 1px dashed var(--border-light);
   border-radius: 16px;
-  padding: 12px 16px;
+  padding: 14px 18px;
   margin-left: 4px;
+  width: calc(100% - 4px);
+  box-sizing: border-box;
 }
+
 
 .tc-time {
   font-size: 11px;
@@ -1416,13 +1476,17 @@ html.high-contrast .mis-stats .stat-card .stat-sub-val {
   gap: 16px;
   overflow-x: auto;
   min-width: 800px;
+  flex: 1;
+  align-items: stretch;
 }
 
 .day-column {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 220px;
+  min-height: 480px;
+  height: 100%;
+  box-sizing: border-box;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 18px;
@@ -1430,6 +1494,7 @@ html.high-contrast .mis-stats .stat-card .stat-sub-val {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 }
+
 
 .day-column.highlight-day {
   border-color: var(--primary-teal);
@@ -1495,6 +1560,13 @@ html.high-contrast .mis-stats .stat-card .stat-sub-val {
   width: 20px;
   height: 20px;
   opacity: 0.4;
+}
+
+.day-classes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
 }
 
 .sg-cell.filled {
@@ -2056,13 +2128,41 @@ select.editor-select option {
 }
 
 .pc-qr-dot {
+  display: none !important;
+}
+
+.delete-pc-btn {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 8px;
-  height: 8px;
-  background: #bae6fd;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
+  background: #FEE2E2;
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 5;
+}
+
+.delete-pc-btn:hover {
+  background: #EF4444;
+  color: #FFFFFF;
+  border-color: #EF4444;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+.delete-pc-btn i,
+.delete-pc-btn svg,
+.delete-pc-btn .lucide {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.2px;
 }
 
 .pc-qr-title {
@@ -3896,6 +3996,7 @@ html.high-contrast .active-pc-problem-item:hover {
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
@@ -3947,4 +4048,65 @@ html.high-contrast .notif-toast-close-btn {
 
 html.high-contrast .notif-toast-close-btn:hover {
   color: var(--primary-teal) !important;
+}
+
+/* MIS Shared Department Account Banners */
+.banner-mis-notice.info {
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+}
+.banner-mis-notice.info .banner-icon {
+  color: #0284C7;
+}
+.banner-mis-notice.info .banner-title {
+  color: #0369A1;
+}
+.banner-mis-notice.info .banner-text {
+  color: #0C4A6E;
+}
+
+.banner-mis-notice.warning {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+}
+.banner-mis-notice.warning .banner-icon {
+  color: #DC2626;
+}
+.banner-mis-notice.warning .banner-title {
+  color: #991B1B;
+}
+.banner-mis-notice.warning .banner-text {
+  color: #7F1D1D;
+}
+
+/* High Contrast / Dark Mode Overrides for MIS Banners */
+html.high-contrast .banner-mis-notice.info {
+  background: rgba(14, 165, 233, 0.15) !important;
+  border-color: rgba(14, 165, 233, 0.35) !important;
+}
+html.high-contrast .banner-mis-notice.info .banner-icon,
+html.high-contrast .banner-mis-notice.info .banner-title,
+html.high-contrast .banner-mis-notice.info .banner-text {
+  color: #7DD3FC !important;
+}
+
+html.high-contrast .banner-mis-notice.warning {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+html.high-contrast .banner-mis-notice.warning .banner-icon,
+html.high-contrast .banner-mis-notice.warning .banner-title,
+html.high-contrast .banner-mis-notice.warning .banner-text {
+  color: #FCA5A5 !important;
+}
+
+/* Global Table Row Hover Handling */
+.table-container tbody tr {
+  transition: background 0.15s ease;
+}
+.table-container tbody tr:hover {
+  background: rgba(30, 187, 215, 0.05);
+}
+html.high-contrast .table-container tbody tr:hover {
+  background: rgba(30, 187, 215, 0.12) !important;
 }

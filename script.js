@@ -5,7 +5,7 @@
 // =========================================================
 // Global UI Toast Notification System for LabSync
 // =========================================================
-window.showToast = function(message, type = 'success', title = null) {
+window.showToast = function (message, type = 'success', title = null) {
   if (!message) return;
 
   let container = document.getElementById('labsync-toast-container');
@@ -101,7 +101,7 @@ window.showToast = function(message, type = 'success', title = null) {
 };
 
 // Override browser native alert to use LabSync UI Toast
-window.alert = function(msg) {
+window.alert = function (msg) {
   if (window.showToast) {
     const isErr = typeof msg === 'string' && (msg.toLowerCase().includes('failed') || msg.toLowerCase().includes('error') || msg.toLowerCase().includes('invalid'));
     window.showToast(msg, isErr ? 'error' : 'success');
@@ -114,11 +114,11 @@ window.alert = function(msg) {
 (function applyAccessibilitySettings() {
   const savedScale = localStorage.getItem('labsync-text-scale') || 'normal';
   const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
-  
+
   // Clean existing scale classes
   document.documentElement.classList.remove('text-scale-small', 'text-scale-normal', 'text-scale-large', 'text-scale-xlarge');
   document.documentElement.classList.add(`text-scale-${savedScale}`);
-  
+
   // Clean and set high contrast class
   if (savedContrast) {
     document.documentElement.classList.add('high-contrast');
@@ -157,10 +157,10 @@ function getGreeting(hour) {
 
 // ── Live Clock & Dynamic Greeting ────────────────────────────────
 function updateClock() {
-  const now  = new Date();
-  let   h    = now.getHours();
-  const m    = now.getMinutes();
-  const s    = now.getSeconds();
+  const now = new Date();
+  let h = now.getHours();
+  const m = now.getMinutes();
+  const s = now.getSeconds();
   const ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12 || 12;
 
@@ -169,31 +169,35 @@ function updateClock() {
     `${pad(h)}:${pad(m)}:${pad(s)} ${ampm}`;
 
   // Update date
-  const day  = DAYS[now.getDay()];
+  const day = DAYS[now.getDay()];
   const date = now.getDate();
-  const mon  = MONTHS[now.getMonth()];
-  const yr   = now.getFullYear();
+  const mon = MONTHS[now.getMonth()];
+  const yr = now.getFullYear();
   document.getElementById('clockDate').textContent =
     `${day}, ${mon} ${date}, ${yr}`;
 
   // Update greeting based on current hour ONLY if dashboard is active
   if (document.body.dataset.page === 'dashboard') {
     const greet = getGreeting(now.getHours());
-    
+
     // Get the name from the profile section dynamically
     const profileNameEl = document.querySelector('.profile-name');
     let firstName = 'User';
-    
+
     if (profileNameEl) {
       const fullName = profileNameEl.textContent.trim();
-      firstName = fullName.split(/\s+/)[0] || 'User';
+      if (fullName === 'MIS Staff' || fullName.startsWith('MIS ')) {
+        firstName = 'MIS Staff';
+      } else {
+        firstName = fullName.split(/\s+/)[0] || 'User';
+      }
     }
-    
+
     const greetingTextEl = document.getElementById('greetingText');
     if (greetingTextEl) {
       greetingTextEl.textContent = `${greet}, ${firstName}!`;
     }
-    
+
     const greetingSubEl = document.getElementById('greetingSub');
     if (greetingSubEl) {
       greetingSubEl.textContent = 'Here\'s an overview of your IT laboratories today.';
@@ -226,21 +230,21 @@ async function loadCurrentUser() {
       credentials: 'include'
     });
     const user = await response.json();
-    
+
     if (response.ok) {
       // Update profile name and role
       const profileNameEl = document.querySelector('.profile-name');
       const profileRoleEl = document.querySelector('.profile-role');
       const avatarEl = document.querySelector('.avatar');
-      
+
       if (profileNameEl) {
         profileNameEl.textContent = user.name || 'User';
       }
-      
+
       if (profileRoleEl) {
         profileRoleEl.textContent = user.role || 'User';
       }
-      
+
       // Update avatar initials or photo
       if (avatarEl) {
         if (user.profilePhoto) {
@@ -250,7 +254,7 @@ async function loadCurrentUser() {
           avatarEl.textContent = initials;
         }
       }
-      
+
       // Update greeting if on dashboard page
       if (document.body.dataset.page === 'dashboard') {
         updateClock(); // This will update the greeting with the correct name
@@ -273,7 +277,7 @@ function initProfileDropdown() {
   // Create dropdown menu if it doesn't exist
   const headerRight = document.querySelector('.header-right');
   if (!headerRight) return;
-  
+
   let profileMenu = document.getElementById('profile-menu');
   if (!profileMenu) {
     profileMenu = document.createElement('div');
@@ -301,11 +305,11 @@ function initProfileDropdown() {
     headerRight.appendChild(profileMenu);
     lucide.createIcons();
   }
-  
+
   // Add click handlers
   const profileDropdown = document.querySelector('.profile-dropdown');
   const chevronBtn = document.querySelector('.chevron-btn');
-  
+
   if (profileDropdown) {
     profileDropdown.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -313,7 +317,7 @@ function initProfileDropdown() {
       lucide.createIcons();
     });
   }
-  
+
   if (chevronBtn) {
     chevronBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -321,7 +325,7 @@ function initProfileDropdown() {
       lucide.createIcons();
     });
   }
-  
+
   // Close dropdown when clicking outside
   document.addEventListener('click', () => {
     profileMenu.style.display = 'none';
@@ -578,6 +582,11 @@ function initNotifications() {
       }
 
       notifications.forEach(notif => {
+        // Safeguard: MIS Staff only receives PC hardware report notifications
+        if (window.location.pathname.includes('mis-') && notif.type !== 'report') {
+          return;
+        }
+
         const isUnread = !lastRead || new Date(notif.time) > new Date(lastRead);
         if (isUnread) unreadCount++;
         const item = createNotificationItem(notif, isUnread);
@@ -613,6 +622,8 @@ function initNotifications() {
       // Real-time cards and timeline refresh
       if (document.body.dataset.page === 'dashboard' || document.body.dataset.page === 'room-status') {
         loadDashboardStatsAndLabs();
+      } else if (document.body.dataset.page === 'mis-dashboard') {
+        initMISDashboard();
       }
       if (document.body.dataset.page === 'room-status') {
         loadRoomStatusActivityLog();
@@ -684,6 +695,8 @@ function initCommon() {
   initHelpButtons();
   if (document.body.dataset.page === 'dashboard') {
     initDashboard();
+  } else if (document.body.dataset.page === 'mis-dashboard') {
+    initMISDashboard();
   } else if (document.body.dataset.page === 'room-status') {
     loadDashboardStatsAndLabs();
     loadRoomStatusActivityLog();
@@ -701,7 +714,7 @@ function showEmailChangeConfirmation(oldEmail, newEmail, onConfirm) {
   const overlay = document.createElement('div');
   overlay.id = 'email-confirm-modal';
   overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.4);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2100;';
-  
+
   overlay.innerHTML = `
     <div style="background:#fff;border-radius:20px;width:100%;max-width:440px;padding:32px;box-shadow:0 20px 50px rgba(0,0,0,0.1);text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px;font-family:var(--font-body);">
       <!-- Icon Container -->
@@ -728,15 +741,15 @@ function showEmailChangeConfirmation(oldEmail, newEmail, onConfirm) {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(overlay);
   if (window.lucide) window.lucide.createIcons();
-  
+
   // Handlers
   document.getElementById('cancel-email-confirm').addEventListener('click', () => {
     overlay.remove();
   });
-  
+
   document.getElementById('proceed-email-confirm').addEventListener('click', () => {
     overlay.remove();
     onConfirm();
@@ -747,11 +760,11 @@ function showEmailChangeConfirmation(oldEmail, newEmail, onConfirm) {
 function openAccountSettings() {
   const profileMenu = document.getElementById('profile-menu');
   if (profileMenu) profileMenu.style.display = 'none';
-  
+
   const modal = document.createElement('div');
   modal.id = 'account-settings-modal';
   modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px;';
-  
+
   modal.innerHTML = `
     <div class="settings-modal-content-box" style="background:#fff;border-radius:20px;width:100%;max-width:900px;height:85vh;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;">
       <!-- Header -->
@@ -784,7 +797,7 @@ function openAccountSettings() {
         </div>
 
         <!-- Right Content Area (Form wrapper) -->
-        <form id="account-settings-form" class="settings-modal-form" style="flex:1; display:flex; flex-direction:column; min-height:0; background:#fff; margin:0;">
+        <form id="account-settings-form" class="settings-modal-form" style="flex:1; display:flex; flex-direction:column; min-height:0; background:var(--bg-card); margin:0;">
           <div class="settings-modal-scroll" style="flex:1; overflow-y:auto; padding:32px 40px;">
             
             <!-- PANEL 1: PROFILE DETAILS -->
@@ -792,6 +805,15 @@ function openAccountSettings() {
               <div style="margin-bottom:28px;">
                 <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">Profile Details</h3>
                 <p style="font-size:12.5px;color:var(--text-mid);margin:0;">Update your personal details and profile photo</p>
+              </div>
+
+              <!-- Shared MIS Staff Account Notice Banner -->
+              <div id="mis-shared-account-banner" class="banner-mis-notice info" style="display:none; border-radius:12px; padding:14px 16px; margin-bottom:24px; align-items:flex-start; gap:12px;">
+                <i data-lucide="shield-alert" class="banner-icon" style="width:20px;height:20px;flex-shrink:0;margin-top:2px;"></i>
+                <div>
+                  <div class="banner-title" style="font-weight:700;font-size:13px;margin-bottom:2px;">Shared Department Account</div>
+                  <p class="banner-text" style="font-size:12px;margin:0;line-height:1.4;">This account is shared by all MIS Personnel. Profile information (Full Name, Email Address, Mobile Number) is restricted to maintain department access.</p>
+                </div>
               </div>
 
               <!-- Side-by-side: Photo Upload (Left) and Fields (Right) -->
@@ -807,7 +829,7 @@ function openAccountSettings() {
                     <i data-lucide="upload" style="width:14px;height:14px;"></i>
                     Upload Photo
                   </button>
-                  <button type="button" id="remove-photo-btn" style="padding:6px 12px;border:1px solid var(--border-light);background:#fff;color:var(--text-mid);border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);display:none;">Remove Photo</button>
+                  <button type="button" id="remove-photo-btn" style="padding:6px 12px;border:1px solid var(--border-light);background:var(--bg-card);color:var(--text-mid);border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);display:none;">Remove Photo</button>
                   <p style="font-size:10px;color:var(--text-muted);text-align:center;margin:0;line-height:1.4;">JPG, PNG or GIF<br>Max size: 2MB</p>
                 </div>
 
@@ -841,6 +863,15 @@ function openAccountSettings() {
               <div style="margin-bottom:28px;">
                 <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">Security & Login</h3>
                 <p style="font-size:12.5px;color:var(--text-mid);margin:0;">Update your account password to remain secure</p>
+              </div>
+
+              <!-- Shared Password Notice for MIS -->
+              <div id="mis-password-notice" class="banner-mis-notice warning" style="display:none; border-radius:12px; padding:14px 16px; margin-bottom:24px; align-items:flex-start; gap:12px;">
+                <i data-lucide="alert-triangle" class="banner-icon" style="width:20px;height:20px;flex-shrink:0;margin-top:2px;"></i>
+                <div>
+                  <div class="banner-title" style="font-weight:700;font-size:13px;margin-bottom:2px;">Shared Account Password Warning</div>
+                  <p class="banner-text" style="font-size:12px;margin:0;line-height:1.4;">Attention: Changing this password will update the login password for ALL MIS personnel using this shared department account.</p>
+                </div>
               </div>
 
               <div style="display:flex; flex-direction:column; gap:20px;">
@@ -925,15 +956,15 @@ function openAccountSettings() {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
   lucide.createIcons();
-  
+
   // Load user data and QR code
   loadAccountSettingsData();
-  
+
   // Tab switching helper
-  window.switchSettingsTab = function(tabName, btnEl) {
+  window.switchSettingsTab = function (tabName, btnEl) {
     document.querySelectorAll('.settings-tab-panel').forEach(p => p.style.display = 'none');
     const targetPanel = document.getElementById(`panel-${tabName}`);
     if (targetPanel) {
@@ -962,7 +993,7 @@ function openAccountSettings() {
   const photoImg = document.getElementById('profile-photo-img');
   const avatarInitials = document.getElementById('avatar-initials');
   const removePhotoBtn = document.getElementById('remove-photo-btn');
-  
+
   photoInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -980,7 +1011,7 @@ function openAccountSettings() {
       reader.readAsDataURL(file);
     }
   });
-  
+
   removePhotoBtn.addEventListener('click', () => {
     photoInput.value = '';
     photoImg.style.display = 'none';
@@ -988,14 +1019,14 @@ function openAccountSettings() {
     avatarInitials.style.display = 'block';
     removePhotoBtn.style.display = 'none';
   });
-  
+
   // Close handlers
   document.getElementById('close-settings-modal').addEventListener('click', () => modal.remove());
   document.getElementById('cancel-settings-btn').addEventListener('click', () => modal.remove());
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.remove();
   });
-  
+
   // Input focus effects
   document.querySelectorAll('input[type="text"], input[type="password"], input[type="email"], input[type="tel"]').forEach(input => {
     input.addEventListener('focus', () => {
@@ -1007,7 +1038,7 @@ function openAccountSettings() {
       input.style.boxShadow = 'none';
     });
   });
-  
+
   // Live email validation
   const isValidEmail = (email) => {
     if (!email || typeof email !== 'string') return false;
@@ -1054,7 +1085,7 @@ function openAccountSettings() {
     const currentPassword = document.getElementById('settings-current-password').value;
     const newPassword = document.getElementById('settings-new-password').value;
     const confirmPassword = document.getElementById('settings-confirm-password').value;
-    
+
     if (currentPassword || newPassword || confirmPassword) {
       if (!currentPassword) {
         alert('Please enter your current password');
@@ -1073,7 +1104,7 @@ function openAccountSettings() {
         return;
       }
     }
-    
+
     const profilePhoto = (photoImg && photoImg.style.display === 'block') ? photoImg.src : null;
     const initialEmail = document.getElementById('settings-email').dataset.initialEmail || '';
     const newEmail = document.getElementById('settings-email').value.trim();
@@ -1089,7 +1120,7 @@ function openAccountSettings() {
     }
 
     const isEmailChanging = newEmail.toLowerCase() !== initialEmail.toLowerCase();
- 
+
     const executeUpdate = async () => {
       try {
         const response = await fetch('/api/user/update', {
@@ -1105,7 +1136,7 @@ function openAccountSettings() {
             phone: document.getElementById('settings-phone').value.trim()
           })
         });
-        
+
         let result = {};
         try {
           result = await response.json();
@@ -1116,8 +1147,8 @@ function openAccountSettings() {
         if (response.ok) {
           try {
             localStorage.setItem('labsync_last_updated', new Date().toISOString());
-          } catch(e) {}
-          
+          } catch (e) { }
+
           if (window.showToast) {
             window.showToast(result.message || 'Account updated successfully!');
           } else {
@@ -1149,7 +1180,7 @@ function openAccountSettings() {
         alert('Failed to update account. Please check your connection or try again.');
       }
     };
- 
+
     if (isEmailChanging) {
       showEmailChangeConfirmation(initialEmail, newEmail, executeUpdate);
     } else {
@@ -1183,13 +1214,49 @@ async function loadAccountSettingsData() {
     const response = await fetch('/api/user/current', { credentials: 'include' });
     const user = await response.json();
     if (response.ok) {
-      document.getElementById('settings-name').value = user.name || '';
-      document.getElementById('settings-email').value = user.email || '';
-      document.getElementById('settings-email').dataset.initialEmail = user.email || '';
-      document.getElementById('settings-phone').value = user.phone || '';
+      const nameInput = document.getElementById('settings-name');
+      const emailInput = document.getElementById('settings-email');
+      const phoneInput = document.getElementById('settings-phone');
+
+      nameInput.value = user.name || '';
+      emailInput.value = user.email || '';
+      emailInput.dataset.initialEmail = user.email || '';
+      phoneInput.value = user.phone || '';
+
+      const isMisStaff = user.role === 'MIS Staff';
+      if (isMisStaff) {
+        if (nameInput) {
+          nameInput.readOnly = true;
+          nameInput.style.background = '#F8FAFC';
+          nameInput.style.cursor = 'not-allowed';
+          nameInput.title = 'Full Name is restricted for the shared MIS Staff account.';
+        }
+        if (emailInput) {
+          emailInput.readOnly = true;
+          emailInput.style.background = '#F8FAFC';
+          emailInput.style.cursor = 'not-allowed';
+          emailInput.title = 'Email Address is restricted for the shared MIS Staff account.';
+        }
+        if (phoneInput) {
+          phoneInput.readOnly = true;
+          phoneInput.style.background = '#F8FAFC';
+          phoneInput.style.cursor = 'not-allowed';
+          phoneInput.title = 'Mobile Number is restricted for the shared MIS Staff account.';
+        }
+
+        const photoUploadBtn = document.querySelector('button[onclick*="profile-photo-input"]');
+        if (photoUploadBtn) photoUploadBtn.style.display = 'none';
+
+        const misBanner = document.getElementById('mis-shared-account-banner');
+        if (misBanner) misBanner.style.display = 'flex';
+
+        const misPasswordNotice = document.getElementById('mis-password-notice');
+        if (misPasswordNotice) misPasswordNotice.style.display = 'flex';
+      }
+
       const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
       document.getElementById('avatar-initials').textContent = initials;
-      
+
       const lastUpdatedEl = document.getElementById('settings-last-updated');
       if (lastUpdatedEl) {
         const lastUpdated = user.updatedAt || user.updated_at || user.last_updated || localStorage.getItem('labsync_last_updated');
@@ -1204,11 +1271,11 @@ async function loadAccountSettingsData() {
           photoImg.src = user.profilePhoto;
           photoImg.style.display = 'block';
           avatarInitials.style.display = 'none';
-          removePhotoBtn.style.display = 'block';
+          if (!isMisStaff) removePhotoBtn.style.display = 'block';
         }
       }
     }
-    
+
     const qrResponse = await fetch('/api/user/qrcode', { credentials: 'include' });
     const qrData = await qrResponse.json();
     if (qrResponse.ok) {
@@ -1230,15 +1297,15 @@ async function loadAccountSettingsData() {
 function openAccessibilitySettings() {
   const profileMenu = document.getElementById('profile-menu');
   if (profileMenu) profileMenu.style.display = 'none';
-  
+
   const modal = document.createElement('div');
   modal.id = 'accessibility-settings-modal';
   modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px;';
-  
+
   // Retrieve saved settings
   const currentScale = localStorage.getItem('labsync-text-scale') || 'normal';
   const isContrast = localStorage.getItem('labsync-high-contrast') === 'true';
-  
+
   modal.innerHTML = `
     <div style="background:#fff;border-radius:20px;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;animation: modalScale 0.25s ease-out;">
       <!-- Header -->
@@ -1297,9 +1364,9 @@ function openAccessibilitySettings() {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
-  
+
   // Add Switch Slider CSS logic dynamically
   let styleSheet = document.getElementById('accessibility-switch-styles');
   if (!styleSheet) {
@@ -1341,12 +1408,12 @@ function openAccessibilitySettings() {
     `;
     document.head.appendChild(styleSheet);
   }
-  
+
   lucide.createIcons();
-  
+
   // Highlight active scale button
   updateScaleButtonHighlights(currentScale);
-  
+
   // Bind close events
   document.getElementById('close-accessibility-modal').addEventListener('click', () => modal.remove());
   document.getElementById('close-accessibility-settings-btn').addEventListener('click', () => modal.remove());
@@ -1373,20 +1440,20 @@ function updateScaleButtonHighlights(activeScale) {
   });
 }
 
-window.setAccessibilityScale = function(scale) {
+window.setAccessibilityScale = function (scale) {
   localStorage.setItem('labsync-text-scale', scale);
-  
+
   // Apply classes
   document.documentElement.classList.remove('text-scale-small', 'text-scale-normal', 'text-scale-large', 'text-scale-xlarge');
   document.documentElement.classList.add(`text-scale-${scale}`);
-  
+
   // Update UI highlights
   updateScaleButtonHighlights(scale);
 };
 
-window.toggleAccessibilityContrast = function(isChecked) {
+window.toggleAccessibilityContrast = function (isChecked) {
   localStorage.setItem('labsync-high-contrast', isChecked);
-  
+
   if (isChecked) {
     document.documentElement.classList.add('high-contrast');
   } else {
@@ -1396,59 +1463,169 @@ window.toggleAccessibilityContrast = function(isChecked) {
 
 // ── Help Modal ───────────────────────────────────────────────────
 async function openHelpModal() {
-  // Get current user role
+  // Get current user role and page path
   let userRole = 'Faculty';
+  const path = window.location.pathname;
+  const page = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+
   try {
     const response = await fetch('/api/user/current', { credentials: 'include' });
     const user = await response.json();
-    if (response.ok) userRole = user.role;
+    if (response.ok) userRole = user.role || 'Faculty';
   } catch (error) {
     console.error('Error fetching user role:', error);
   }
-  
+
+  const isMis = userRole === 'MIS Staff' || page.startsWith('mis-');
+  const isItHead = (userRole && userRole.toLowerCase().includes('head')) || page.startsWith('it-head-') || page === 'master-schedule.html' || page === 'faculty-management.html' || page === 'room-schedule-editor.html';
+
   const modal = document.createElement('div');
   modal.id = 'help-modal';
   modal.className = 'help-modal-overlay';
   
-  // Build Quick Start Guide based on role
-  let quickStartHTML = `
-    <div class="help-qs-card theme-teal">
-      <div class="help-qs-title">📊 Dashboard</div>
-      <p class="help-qs-text">View real-time lab status, your schedule, and pending PC reports at a glance.</p>
-    </div>
-    <div class="help-qs-card theme-blue">
-      <div class="help-qs-title">🖥️ Room Status</div>
-      <p class="help-qs-text">Monitor all laboratory rooms and their availability across campus.</p>
-    </div>
-    <div class="help-qs-card theme-warning">
-      <div class="help-qs-title">📝 PC Reports</div>
-      <p class="help-qs-text">Submit and track computer issues and maintenance requests for lab equipment.</p>
-    </div>
-    <div class="help-qs-card theme-purple">
-      <div class="help-qs-title">📅 My Schedule</div>
-      <p class="help-qs-text">View your complete weekly teaching schedule and class assignments.</p>
-    </div>`;
-  
-  // Add IT Head specific features
-  if (userRole && userRole.toLowerCase().includes('head')) {
-    quickStartHTML += `
-    <div class="help-qs-card theme-green">
-      <div class="help-qs-title">📆 Master Schedule</div>
-      <p class="help-qs-text">View and manage the complete laboratory schedule for all faculty members and classes.</p>
-    </div>
-    <div class="help-qs-card theme-pink">
-      <div class="help-qs-title">👥 Faculty Management</div>
-      <p class="help-qs-text">Add new faculty members, manage accounts, and send automated welcome emails with credentials.</p>
-    </div>`;
-  }
-  
-  // Add MIS Staff specific features
-  if (userRole === 'MIS Staff') {
-    quickStartHTML += `
-    <div class="help-qs-card theme-red">
-      <div class="help-qs-title">🔧 Maintenance Tracker</div>
-      <p class="help-qs-text">Track and manage all PC reports, maintenance requests, and equipment issues.</p>
-    </div>`;
+  let quickStartHTML = '';
+  let featuresHTML = '';
+
+  if (isMis) {
+    quickStartHTML = `
+      <div class="help-qs-card theme-teal">
+        <div class="help-qs-title">📊 Dashboard</div>
+        <p class="help-qs-text">Monitor active work orders, total registered PC counts, and recent student report submissions at a glance.</p>
+      </div>
+      <div class="help-qs-card theme-red">
+        <div class="help-qs-title">🛠️ Maintenance Tracker</div>
+        <p class="help-qs-text">Filter tickets by status (All, Pending, Resolved), view issue details, and mark broken PCs as resolved with 1 click.</p>
+      </div>
+      <div class="help-qs-card theme-blue">
+        <div class="help-qs-title">📱 PC & QR Management</div>
+        <p class="help-qs-text">Add or delete workstation units, inspect room-by-room lab health, and generate printable QR code stickers.</p>
+      </div>`;
+
+    featuresHTML = `
+      <div class="help-feature-card theme-indigo">
+        <div class="help-feat-title">
+          <i data-lucide="bell"></i>
+          Instant Ticket Alerts
+        </div>
+        <p class="help-feat-desc">Receive live notifications whenever students or faculty submit new hardware issue reports.</p>
+      </div>
+      <div class="help-feature-card theme-blue">
+        <div class="help-feat-title">
+          <i data-lucide="check-circle-2"></i>
+          1-Click Ticket Repair
+        </div>
+        <p class="help-feat-desc">Resolving a ticket updates the work order and restores the PC unit to Functional condition in the database.</p>
+      </div>
+      <div class="help-feature-card theme-purple">
+        <div class="help-feat-title">
+          <i data-lucide="qr-code"></i>
+          QR Sticker Generator
+        </div>
+        <p class="help-feat-desc">Export high-resolution QR stickers per laboratory room for fast workstation scanning.</p>
+      </div>
+      <div class="help-feature-card theme-amber">
+        <div class="help-feat-title">
+          <i data-lucide="shield-check"></i>
+          Shared Account Control
+        </div>
+        <p class="help-feat-desc">Securely manage shared department access credentials and profile security settings.</p>
+      </div>`;
+  } else if (isItHead) {
+    quickStartHTML = `
+      <div class="help-qs-card theme-teal">
+        <div class="help-qs-title">📊 IT Head Dashboard</div>
+        <p class="help-qs-text">Overview of overall lab usage, schedule publishing, and department activity.</p>
+      </div>
+      <div class="help-qs-card theme-green">
+        <div class="help-qs-title">📆 Master Schedule</div>
+        <p class="help-qs-text">View and manage the complete laboratory schedule for all faculty members and classes.</p>
+      </div>
+      <div class="help-qs-card theme-pink">
+        <div class="help-qs-title">👥 Faculty Management</div>
+        <p class="help-qs-text">Add new faculty members, manage accounts, and send automated credentials.</p>
+      </div>
+      <div class="help-qs-card theme-purple">
+        <div class="help-qs-title">✏️ Schedule Editor</div>
+        <p class="help-qs-text">Create and customize room schedule blocks with imported subject catalogs.</p>
+      </div>`;
+
+    featuresHTML = `
+      <div class="help-feature-card theme-blue">
+        <div class="help-feat-title">
+          <i data-lucide="file-spreadsheets"></i>
+          Curriculum Import
+        </div>
+        <p class="help-feat-desc">Bulk upload subject catalogs using Excel or CSV templates.</p>
+      </div>
+      <div class="help-feature-card theme-indigo">
+        <div class="help-feat-title">
+          <i data-lucide="printer"></i>
+          Schedule Export
+        </div>
+        <p class="help-feat-desc">Print and export laboratory schedules for department display.</p>
+      </div>
+      <div class="help-feature-card theme-amber">
+        <div class="help-feat-title">
+          <i data-lucide="shield-check"></i>
+          Secure Access
+        </div>
+        <p class="help-feat-desc">High-level administrative control over department scheduling.</p>
+      </div>
+      <div class="help-feature-card theme-green">
+        <div class="help-feat-title">
+          <i data-lucide="user-cog"></i>
+          Account Settings
+        </div>
+        <p class="help-feat-desc">Manage your profile, credentials, and department settings.</p>
+      </div>`;
+  } else {
+    quickStartHTML = `
+      <div class="help-qs-card theme-teal">
+        <div class="help-qs-title">📊 Dashboard</div>
+        <p class="help-qs-text">View real-time lab status, your schedule, and pending PC reports at a glance.</p>
+      </div>
+      <div class="help-qs-card theme-blue">
+        <div class="help-qs-title">🖥️ Room Status</div>
+        <p class="help-qs-text">Monitor all laboratory rooms and their availability across campus.</p>
+      </div>
+      <div class="help-qs-card theme-warning">
+        <div class="help-qs-title">📝 PC Reports</div>
+        <p class="help-qs-text">Submit and track computer issues and maintenance requests for lab equipment.</p>
+      </div>
+      <div class="help-qs-card theme-purple">
+        <div class="help-qs-title">📅 My Schedule</div>
+        <p class="help-qs-text">View your complete weekly teaching schedule and class assignments.</p>
+      </div>`;
+
+    featuresHTML = `
+      <div class="help-feature-card theme-blue">
+        <div class="help-feat-title">
+          <i data-lucide="qr-code"></i>
+          QR Code Access
+        </div>
+        <p class="help-feat-desc">Use your unique QR code for lab access and attendance tracking.</p>
+      </div>
+      <div class="help-feature-card theme-indigo">
+        <div class="help-feat-title">
+          <i data-lucide="bell"></i>
+          Real-time Updates
+        </div>
+        <p class="help-feat-desc">Get instant notifications about lab status changes and reports.</p>
+      </div>
+      <div class="help-feature-card theme-amber">
+        <div class="help-feat-title">
+          <i data-lucide="shield-check"></i>
+          Secure Access
+        </div>
+        <p class="help-feat-desc">Your account is protected with secure authentication.</p>
+      </div>
+      <div class="help-feature-card theme-green">
+        <div class="help-feat-title">
+          <i data-lucide="user-cog"></i>
+          Account Settings
+        </div>
+        <p class="help-feat-desc">Manage your profile, password, and QR code from your account.</p>
+      </div>`;
   }
   
   modal.innerHTML = `
@@ -1490,34 +1667,7 @@ async function openHelpModal() {
             Key Features
           </h3>
           <div class="help-features-grid">
-            <div class="help-feature-card theme-blue">
-              <div class="help-feat-title">
-                <i data-lucide="qr-code"></i>
-                QR Code Access
-              </div>
-              <p class="help-feat-desc">Use your unique QR code for lab access and attendance tracking.</p>
-            </div>
-            <div class="help-feature-card theme-indigo">
-              <div class="help-feat-title">
-                <i data-lucide="bell"></i>
-                Real-time Updates
-              </div>
-              <p class="help-feat-desc">Get instant notifications about lab status changes and reports.</p>
-            </div>
-            <div class="help-feature-card theme-amber">
-              <div class="help-feat-title">
-                <i data-lucide="shield-check"></i>
-                Secure Access
-              </div>
-              <p class="help-feat-desc">Your account is protected with secure authentication.</p>
-            </div>
-            <div class="help-feature-card theme-green">
-              <div class="help-feat-title">
-                <i data-lucide="user-cog"></i>
-                Account Settings
-              </div>
-              <p class="help-feat-desc">Manage your profile, password, and QR code from your account.</p>
-            </div>
+            ${featuresHTML}
           </div>
         </div>
         
@@ -1555,17 +1705,17 @@ async function openHelpModal() {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
   lucide.createIcons();
-  
+
   // Close handlers
   document.getElementById('close-help-modal').addEventListener('click', () => modal.remove());
   document.getElementById('close-help-btn').addEventListener('click', () => modal.remove());
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.remove();
   });
-  
+
   // Hover effect for close button
   const closeBtn = document.getElementById('close-help-modal');
   closeBtn.addEventListener('mouseenter', () => {
@@ -1577,10 +1727,10 @@ async function openHelpModal() {
 }
 
 // Global function to toggle password visibility
-window.togglePasswordVisibility = function(inputId, btnEl) {
+window.togglePasswordVisibility = function (inputId, btnEl) {
   const input = document.getElementById(inputId);
   if (!input) return;
-  
+
   const icon = btnEl.querySelector('i');
   if (input.type === 'password') {
     input.type = 'text';
@@ -1593,7 +1743,7 @@ window.togglePasswordVisibility = function(inputId, btnEl) {
       icon.setAttribute('data-lucide', 'eye');
     }
   }
-  
+
   // Re-create lucide icons for the button
   if (window.lucide) {
     window.lucide.createIcons({
@@ -1640,7 +1790,7 @@ async function loadDashboardSchedule() {
 
     // Filter for today
     const todaySchedules = schedules.filter(s => s.Day_of_Week === todayName);
-    
+
     // Sort chronologically
     todaySchedules.sort((a, b) => (a.Start_Time || '').localeCompare(b.Start_Time || ''));
 
@@ -1651,7 +1801,7 @@ async function loadDashboardSchedule() {
       classesTodayVal.textContent = todaySchedules.length;
     }
     if (classesTodayMeta) {
-      classesTodayMeta.textContent = todaySchedules.length > 0 
+      classesTodayMeta.textContent = todaySchedules.length > 0
         ? `${todaySchedules.length} session(s) scheduled`
         : 'No classes today';
     }
@@ -1708,18 +1858,32 @@ async function loadDashboardSchedule() {
       };
 
       html += `
-        <div class="${timeClass}">
+        <div class="${timeClass}" style="width: 100%; box-sizing: border-box;">
           <div class="time-marker"></div>
-          <div class="time-content">
-            <div class="tc-time">${formatTime12(s.Start_Time)} - ${formatTime12(s.End_Time)}</div>
-            <div class="tc-title">${s.Subject_Name || ''}</div>
-            <div class="tc-meta">RM ${s.Room_Number || ''} | ${s.Section || ''}</div>
+          <div class="time-content" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; box-sizing: border-box;">
+            <div class="tc-left" style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0;">
+              <div class="tc-time" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--primary-teal);">
+                <i data-lucide="clock" style="width:13px;height:13px;flex-shrink:0;"></i>
+                <span>${formatTime12(s.Start_Time)} – ${formatTime12(s.End_Time)}</span>
+              </div>
+              <div class="tc-title" style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-dark); margin: 2px 0;">${escapeHtml(s.Subject_Name || 'Class Session')}</div>
+            </div>
+            <div class="tc-right" style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="tc-room-badge" style="font-size: 12px; font-weight: 700; background: #E0F2FE; color: #0284C7; padding: 5px 11px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">
+                  <i data-lucide="map-pin" style="width:13px;height:13px;"></i> RM ${escapeHtml(s.Room_Number || 'TBA')}
+                </span>
+                ${s.Section ? `<span class="tc-section-badge" style="font-size: 11.5px; font-weight: 800; background: rgba(15, 23, 42, 0.06); color: var(--text-dark); padding: 5px 10px; border-radius: 8px;">${escapeHtml(s.Section)}</span>` : ''}
+              </div>
+              ${isActive ? '<span style="font-size: 11px; font-weight: 800; background: #DCFCE7; color: #15803D; padding: 5px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px;"><span style="width:7px;height:7px;border-radius:50%;background:#22C55E;box-shadow:0 0 0 3px rgba(34,197,94,0.25);"></span> ONGOING</span>' : (isFuture ? '<span style="font-size: 11px; font-weight: 800; background: #F1F5F9; color: #64748B; padding: 5px 12px; border-radius: 20px;">UPCOMING</span>' : '<span style="font-size: 11px; font-weight: 800; background: #F8FAFC; color: #94A3B8; padding: 5px 12px; border-radius: 20px;">COMPLETED</span>')}
+            </div>
           </div>
         </div>
       `;
     });
 
     timelineList.innerHTML = html;
+
     if (window.lucide) lucide.createIcons({ root: timelineList });
 
   } catch (err) {
@@ -1736,9 +1900,202 @@ async function loadDashboardSchedule() {
   }
 }
 
+async function initMISDashboard() {
+  if (document.body.dataset.page !== 'mis-dashboard') return;
+
+  try {
+    const [reportsRes, labsRes] = await Promise.all([
+      fetch('/api/reports'),
+      fetch('/api/laboratories')
+    ]);
+
+    let reports = [];
+    let labs = [];
+
+    if (reportsRes.ok) reports = await reportsRes.json();
+    if (labsRes.ok) labs = await labsRes.json();
+
+    // Fetch PC counts for all registered laboratories
+    let totalPcCount = 0;
+    if (labs.length > 0) {
+      try {
+        const pcPromises = labs.map(lab => fetch(`/api/laboratories/${lab.Room_ID}/pcs`).then(r => r.ok ? r.json() : []));
+        const pcResults = await Promise.all(pcPromises);
+        totalPcCount = pcResults.reduce((acc, pcs) => acc + pcs.length, 0);
+      } catch (e) {
+        console.warn('Could not fetch PC counts:', e);
+      }
+    }
+
+    const totalLabs = labs.length;
+    const pendingCount = reports.filter(r => r.Status === 'Pending').length;
+    const inProgressCount = reports.filter(r => r.Status === 'In Progress').length;
+    const totalReports = reports.length;
+
+    // 1. Stat 1 (Registered PC Units)
+    const stat1Title = document.querySelector('.mis-stats .stat-card.theme-blue .stat-title');
+    if (stat1Title) stat1Title.textContent = 'Registered PC Units';
+
+    const stat1Val = document.querySelector('.mis-stats .stat-card.theme-blue .stat-value');
+    if (stat1Val) {
+      stat1Val.innerHTML = `${totalPcCount} <span class="stat-pill-badge">Across ${totalLabs} Room${totalLabs !== 1 ? 's' : ''}</span>`;
+    }
+
+    // 2. Stat 2 (Pending PC Reports)
+    const stat2Val = document.querySelector('.mis-stats .stat-card.theme-orange .stat-value');
+    if (stat2Val) {
+      stat2Val.innerHTML = `${pendingCount} <span class="stat-pill-badge">${totalReports} Total Ticket${totalReports !== 1 ? 's' : ''}</span>`;
+    }
+
+    // 3. Stat 3 (Active Maintenance / In Progress)
+    const stat3Val = document.querySelector('.mis-stats .stat-card.theme-red .stat-value');
+    if (stat3Val) {
+      stat3Val.innerHTML = `${inProgressCount} <span class="stat-pill-badge">In Progress</span>`;
+    }
+
+    // Helper to parse issue description safely
+    function parseIssueDesc(desc) {
+      if (!desc) return { section: 'N/A', issues: 'Hardware Issue', remarks: '' };
+
+      const sectionMatch = desc.match(/\[Program & Section:\s*([^\]]+)\]/i);
+      const issuesMatch = desc.match(/\[Issues:\s*([^\]]+)\]/i);
+      const remarksMatch = desc.match(/Remarks:\s*(.*)$/is);
+
+      const section = sectionMatch ? sectionMatch[1].trim() : 'N/A';
+      const issues = issuesMatch ? issuesMatch[1].trim() : 'Hardware Issue';
+      let remarks = remarksMatch ? remarksMatch[1].trim() : '';
+
+      if (!remarks) {
+        if (!desc.includes('[') && !desc.includes(']')) {
+          remarks = desc.trim();
+        } else {
+          remarks = desc
+            .replace(/\[Program & Section:[^\]]+\]/gi, '')
+            .replace(/\[Issues:[^\]]+\]/gi, '')
+            .replace(/Remarks:/gi, '')
+            .trim();
+        }
+      }
+
+      return { section, issues, remarks: remarks || 'None' };
+    }
+
+    // 4. Populate Table of Recent PC Reports
+    const tbody = document.querySelector('.table-container table tbody');
+    if (tbody) {
+      if (reports.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+              No PC reports available. Reports will appear here when submitted.
+            </td>
+          </tr>
+        `;
+      } else {
+        const recentReports = reports.slice(0, 10);
+        tbody.innerHTML = recentReports.map(r => {
+          const dateObj = new Date(r.Date_Reported);
+          const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const parsed = parseIssueDesc(r.Issue_Description);
+
+          let statusBadge = '';
+          if (r.Status === 'Pending') {
+            statusBadge = '<span style="background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;">Pending</span>';
+          } else if (r.Status === 'In Progress') {
+            statusBadge = '<span style="background: #DBEAFE; color: #2563EB; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;">In Progress</span>';
+          } else {
+            statusBadge = '<span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;">Resolved</span>';
+          }
+
+          const sectionBadge = parsed.section && parsed.section !== 'N/A'
+            ? `<span style="font-size: 11px; font-weight: 700; color: #0E7490; background: #E0F2FE; padding: 3px 8px; border-radius: 99px; margin-left: 6px;">${parsed.section}</span>`
+            : '';
+
+          return `
+            <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.15s ease;">
+              <td style="padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--primary-teal); white-space: nowrap;">
+                <a href="mis-maintenance.html" style="color: inherit; text-decoration: none;">LS-TKT-${r.Report_ID}</a>
+              </td>
+              <td style="padding: 12px 16px; font-size: 12.5px; color: var(--text-mid); white-space: nowrap;">${dateStr}</td>
+              <td style="padding: 12px 16px; font-size: 13px; font-weight: 600; color: var(--text-dark); white-space: nowrap;">Room ${r.Room_Number}</td>
+              <td style="padding: 12px 16px; font-size: 13px; font-weight: 600; color: var(--text-dark); white-space: nowrap;">PC #${r.PC_Number}</td>
+              <td style="padding: 12px 16px; font-size: 12.5px; color: var(--text-dark);">
+                <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                  <span style="font-weight: 600; color: var(--text-dark);">${parsed.issues}</span>
+                  ${sectionBadge}
+                </div>
+              </td>
+              <td style="padding: 12px 16px; white-space: nowrap;">${statusBadge}</td>
+              <td style="padding: 12px 16px; text-align: right; white-space: nowrap;">
+                <a href="mis-maintenance.html" style="color: var(--primary-teal); font-size: 12.5px; font-weight: 600; text-decoration: none;">View</a>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    // 5. Update Table Footer (Remove redundant big View All button)
+    const paginationContainer = document.querySelector('.table-container + div');
+    if (paginationContainer) {
+      paginationContainer.innerHTML = `
+        <div style="font-size: 13px; color: var(--text-muted);">
+          Showing <strong style="color: var(--text-dark);">${Math.min(10, reports.length)}</strong> of <strong style="color: var(--text-dark);">${reports.length}</strong> reports
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button style="padding: 6px 14px; border: 1px solid var(--border-light); background: #fff; border-radius: 20px; font-size: 12.5px; font-weight: 600; color: var(--text-muted); cursor: not-allowed; opacity: 0.5;" disabled>Previous</button>
+          <button style="padding: 6px 14px; border: 1px solid var(--border-light); background: #fff; border-radius: 20px; font-size: 12.5px; font-weight: 600; color: var(--text-muted); cursor: not-allowed; opacity: 0.5;" disabled>Next</button>
+        </div>
+      `;
+    }
+
+    // 6. Populate Activity Feed
+    const activityFeedContainer = document.querySelector('.dashboard-main-grid .content-card:last-child > div:last-child > div:last-child');
+    if (activityFeedContainer) {
+      if (reports.length === 0) {
+        activityFeedContainer.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px;">
+            No recent activity. System updates will appear here.
+          </div>
+        `;
+      } else {
+        const recentFeed = reports.slice(0, 6);
+        activityFeedContainer.innerHTML = recentFeed.map(r => {
+          const timeAgo = formatLastUpdatedTime ? formatLastUpdatedTime(r.Date_Reported) : 'Recently';
+          return `
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+              <div style="width: 10px; height: 10px; border-radius: 50%; background: ${r.Status === 'Pending' ? '#F59E0B' : r.Status === 'In Progress' ? '#3B82F6' : '#10B981'}; margin-top: 4px; flex-shrink: 0;"></div>
+              <div style="flex: 1;">
+                <div style="font-size: 13px; font-weight: 600; color: var(--text-dark);">PC #${r.PC_Number} reported in Room ${r.Room_Number}</div>
+                <div style="font-size: 12px; color: var(--text-light); margin-top: 2px;">${r.Student_Name || 'Student'} • ${timeAgo}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // 7. Live search box filtering
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput && tbody) {
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase().trim();
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(query) ? '' : 'none';
+        });
+      });
+    }
+
+  } catch (err) {
+    console.error('Error loading MIS dashboard reports:', err);
+  }
+}
+
 async function loadDashboardStatsAndLabs() {
   const labsGrid = document.querySelector('.labs-grid');
-  
+
   try {
     // 1. Fetch laboratories
     const labsRes = await fetch('/api/laboratories');
@@ -1834,7 +2191,7 @@ async function loadDashboardStatsAndLabs() {
 
 // ── Custom Beautiful Select Dropdown Helpers ─────────────────────────────────
 
-window.initCustomSelect = function(wrapperId, onChangeCallback) {
+window.initCustomSelect = function (wrapperId, onChangeCallback) {
   const wrapper = typeof wrapperId === 'string' ? document.getElementById(wrapperId) : wrapperId;
   if (!wrapper) {
     console.error(`Custom select wrapper not found: ${wrapperId}`);
@@ -1848,20 +2205,20 @@ window.initCustomSelect = function(wrapperId, onChangeCallback) {
   // Toggle dropdown on trigger click
   trigger.addEventListener('click', (e) => {
     e.stopPropagation();
-    
+
     // Close other open custom-select-wrappers
     document.querySelectorAll('.custom-select-wrapper').forEach(w => {
       if (w !== wrapper) {
         w.classList.remove('open');
       }
     });
-    
+
     wrapper.classList.toggle('open');
   });
 
   // Handle option selection
   const options = dropdown.querySelectorAll('.custom-select-option');
-  
+
   function setupOptionListener(opt) {
     if (opt.dataset.listenerAdded) return;
     opt.dataset.listenerAdded = 'true';
@@ -1907,7 +2264,7 @@ window.initCustomSelect = function(wrapperId, onChangeCallback) {
   }
 };
 
-window.setCustomSelectValue = function(wrapperId, value) {
+window.setCustomSelectValue = function (wrapperId, value) {
   const wrapper = typeof wrapperId === 'string' ? document.getElementById(wrapperId) : wrapperId;
   if (!wrapper) return;
 
@@ -1948,7 +2305,7 @@ window.setCustomSelectValue = function(wrapperId, value) {
   }
 };
 
-window.populateCustomYearSelectors = function(arg1, arg2, arg3, arg4) {
+window.populateCustomYearSelectors = function (arg1, arg2, arg3, arg4) {
   let targetId = 'academic-year-wrapper';
   let initAY = `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
   let callback = null;
@@ -2098,7 +2455,7 @@ async function loadRoomStatusActivityLog() {
 function toggleAdminMenu(event, btnEl) {
   event.preventDefault();
   event.stopPropagation();
-  
+
   // Close any existing menus first
   const existingMenu = document.getElementById('admin-floating-menu');
   if (existingMenu) {
@@ -2113,7 +2470,7 @@ function toggleAdminMenu(event, btnEl) {
   const menu = document.createElement('div');
   menu.id = 'admin-floating-menu';
   menu.dataset.triggeredBy = btnEl.title || btnEl.textContent;
-  
+
   // Opaque premium styling matching brand
   menu.style.cssText = `
     position: fixed;
@@ -2129,7 +2486,7 @@ function toggleAdminMenu(event, btnEl) {
     min-width: 180px;
     animation: adminMenuFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   `;
-  
+
   // High contrast mode override
   if (document.documentElement.classList.contains('high-contrast')) {
     menu.style.background = '#1e293b';
@@ -2257,7 +2614,7 @@ function toggleAdminMenu(event, btnEl) {
   }
 
   // Dismiss listeners
-  const closeHandler = function(e) {
+  const closeHandler = function (e) {
     if (!menu.contains(e.target) && e.target !== btnEl && !btnEl.contains(e.target)) {
       menu.remove();
       document.removeEventListener('click', closeHandler);

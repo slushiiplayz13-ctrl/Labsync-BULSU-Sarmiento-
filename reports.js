@@ -1,19 +1,19 @@
 // ── Shared PC Issue Reports Logic ────────────────────────────────────
 window.allReports = [];
 
-window.parseIssueDescription = function(desc) {
+window.parseIssueDescription = function (desc) {
   if (!desc) {
     return { section: 'N/A', issues: 'None', remarks: 'No details provided.' };
   }
-  
+
   const sectionMatch = desc.match(/\[Program & Section:\s*([^\]]+)\]/i);
   const issuesMatch = desc.match(/\[Issues:\s*([^\]]+)\]/i);
   const remarksMatch = desc.match(/Remarks:\s*(.*)$/is);
-  
+
   const section = sectionMatch ? sectionMatch[1].trim() : 'N/A';
   const issues = issuesMatch ? issuesMatch[1].trim() : 'None';
   let remarks = remarksMatch ? remarksMatch[1].trim() : '';
-  
+
   if (!remarks) {
     if (!desc.includes('[') && !desc.includes(']')) {
       remarks = desc.trim();
@@ -25,13 +25,13 @@ window.parseIssueDescription = function(desc) {
         .trim();
     }
   }
-  
+
   if (!remarks) remarks = 'No remarks provided.';
-  
+
   return { section, issues, remarks };
 };
 
-window.loadReports = async function() {
+window.loadReports = async function () {
   try {
     const response = await fetch('/api/reports');
     if (!response.ok) throw new Error('Failed to load reports');
@@ -54,7 +54,7 @@ window.loadReports = async function() {
   }
 };
 
-window.renderSingleCard = function(report) {
+window.renderSingleCard = function (report) {
   // Format Date
   const dateObj = new Date(report.Date_Reported);
   const formattedDate = dateObj.toLocaleDateString('en-US', {
@@ -133,14 +133,13 @@ window.renderSingleCard = function(report) {
           <div style="margin-left: 2px;">
             <span style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; display:block; margin-bottom:4px;">Issues</span>
             <div style="display:flex; flex-wrap:wrap; gap:4px;">
-              ${
-                parsed.issues.split(',').map(comp => comp.trim()).filter(Boolean).map(comp => {
-                  if (comp.toLowerCase() === 'none' || comp.toLowerCase() === 'others') {
-                    return `<span style="display:inline-flex; align-items:center; gap:3px; font-size:10.5px; font-weight:600; padding:2.5px 6px; border-radius:4px; background:#F1F5F9; color:#64748B;"><i data-lucide="check" style="width:11px;height:11px;color:#10B981;"></i> None</span>`;
-                  }
-                  return `<span style="display:inline-flex; align-items:center; gap:3px; font-size:10.5px; font-weight:700; padding:2.5px 6px; border-radius:4px; background:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5;"><i data-lucide="alert-triangle" style="width:11px;height:11px;color:#EF4444;"></i> ${comp}</span>`;
-                }).join('')
-              }
+              ${parsed.issues.split(',').map(comp => comp.trim()).filter(Boolean).map(comp => {
+    if (comp.toLowerCase() === 'none' || comp.toLowerCase() === 'others') {
+      return `<span style="display:inline-flex; align-items:center; gap:3px; font-size:10.5px; font-weight:600; padding:2.5px 6px; border-radius:4px; background:#F1F5F9; color:#64748B;"><i data-lucide="check" style="width:11px;height:11px;color:#10B981;"></i> None</span>`;
+    }
+    return `<span style="display:inline-flex; align-items:center; gap:3px; font-size:10.5px; font-weight:700; padding:2.5px 6px; border-radius:4px; background:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5;"><i data-lucide="alert-triangle" style="width:11px;height:11px;color:#EF4444;"></i> ${comp}</span>`;
+  }).join('')
+    }
             </div>
           </div>
         </div>
@@ -161,10 +160,10 @@ window.renderSingleCard = function(report) {
   `;
 };
 
-window.renderReports = function(reports) {
+window.renderReports = function (reports) {
   const container = document.getElementById('dynamicReportsList');
   if (!container) return;
-  
+
   if (reports.length === 0) {
     container.innerHTML = `
       <div class="ui-empty-state">
@@ -241,7 +240,7 @@ window.renderReports = function(reports) {
   if (window.lucide) lucide.createIcons();
 };
 
-window.updateReportStatus = async function(reportId, newStatus) {
+window.updateReportStatus = async function (reportId, newStatus) {
   if (!confirm(`Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`)) return;
 
   try {
@@ -270,7 +269,7 @@ window.updateReportStatus = async function(reportId, newStatus) {
   }
 };
 
-window.deleteReport = async function(reportId) {
+window.deleteReport = async function (reportId) {
   if (!confirm(`Are you sure you want to permanently delete Ticket LS-TKT-${reportId}?`)) return;
 
   try {
@@ -295,11 +294,11 @@ window.deleteReport = async function(reportId) {
   }
 };
 
-window.openCompletedModal = function() {
+window.openCompletedModal = function () {
   const modal = document.getElementById('completedTicketsModal');
   const modalBody = document.getElementById('modalCompletedList');
   if (!modal || !modalBody) return;
-  
+
   const searchInput = document.getElementById('reportSearchInput');
   const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
   const resolvedReports = window.allReports.filter(r => {
@@ -332,12 +331,12 @@ window.openCompletedModal = function() {
       </div>
     `;
   }
-  
+
   modal.style.display = 'flex';
   if (window.lucide) lucide.createIcons();
 };
 
-window.closeCompletedModal = function() {
+window.closeCompletedModal = function () {
   const modal = document.getElementById('completedTicketsModal');
   if (modal) modal.style.display = 'none';
 };

@@ -10,95 +10,328 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="style.css" />
   <style id="auth-anti-flash">body { display: none !important; }</style>
   <script src="auth-check.js"></script>
   <style>
-    /* Status Badges */
-    .status-badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 99px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
+    /* Modern Stat Cards */
+    .maint-stat-card {
+      flex: 1;
+      min-width: 220px;
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
     }
-    .status-badge.pending {
+    .maint-stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08);
+    }
+    .maint-stat-card.total {
+      background: linear-gradient(135deg, #1EBBD7 0%, #0EA5C9 100%);
+      color: #FFFFFF;
+      box-shadow: 0 8px 20px -4px rgba(30, 187, 215, 0.35);
+    }
+    .maint-stat-card.pending {
+      background: #FFFFFF;
+      border: 1.5px solid #FDE68A;
+      box-shadow: 0 4px 16px -2px rgba(245, 158, 11, 0.08);
+    }
+    .maint-stat-card.resolved {
+      background: #FFFFFF;
+      border: 1.5px solid #A7F3D0;
+      box-shadow: 0 4px 16px -2px rgba(16, 185, 129, 0.08);
+    }
+
+    .stat-icon-wrapper {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .maint-stat-card.total .stat-icon-wrapper {
+      background: rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      backdrop-filter: blur(4px);
+    }
+    .maint-stat-card.pending .stat-icon-wrapper {
       background: #FEF3C7;
       color: #D97706;
     }
-    .status-badge.in-progress {
-      background: #DBEAFE;
-      color: #2563EB;
-    }
-    .status-badge.resolved {
+    .maint-stat-card.resolved .stat-icon-wrapper {
       background: #D1FAE5;
       color: #059669;
     }
 
-    /* Priority Badges */
-    .priority-badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
+    /* Filter Pills */
+    .filter-pill {
+      border: 1px solid var(--border-light);
+      background: #FFFFFF;
+      color: var(--text-mid);
+      padding: 6px 16px;
       border-radius: 99px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    .priority-badge.high {
-      background: #FEE2E2;
-      color: #DC2626;
-    }
-    .priority-badge.medium {
-      background: #FEF3C7;
-      color: #D97706;
-    }
-    .priority-badge.low {
-      background: #EFF6FF;
-      color: #2563EB;
-    }
-
-    .btn-table-action {
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 600;
       cursor: pointer;
-      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
       font-family: var(--font-body);
-      transition: all var(--transition);
+    }
+    .filter-pill:hover {
+      border-color: var(--primary-teal);
+      color: var(--primary-teal);
+      background: #F0FDFD;
+    }
+    .filter-pill.active {
+      background: var(--primary-teal);
+      color: #FFFFFF;
+      border-color: var(--primary-teal);
+      box-shadow: 0 3px 10px rgba(30, 187, 215, 0.3);
+    }
+
+    /* Table Enhancements */
+    .maint-table-wrapper {
+      background: #FFFFFF;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+    }
+    .maint-table th {
+      padding: 14px 18px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      background: #F8FAFC;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .maint-table td {
+      padding: 16px 18px;
+      vertical-align: middle;
+      border-bottom: 1px solid #F1F5F9;
+      font-size: 13px;
+    }
+    .maint-table tr:last-child td {
+      border-bottom: none;
+    }
+    .maint-table tr {
+      transition: background 0.15s ease;
+    }
+    .maint-table tr:hover {
+      background: #FAFDFE;
+    }
+
+    /* Ticket ID Badge */
+    .ticket-chip {
+      font-weight: 800;
+      font-family: monospace;
+      color: var(--primary-teal);
+      background: #E8F9FC;
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid #BCEEFA;
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
-    .btn-table-action.process {
-      background: var(--primary-teal-light);
-      color: var(--primary-teal);
-    }
-    .btn-table-action.process:hover {
+    .ticket-chip:hover {
       background: var(--primary-teal);
       color: #FFFFFF;
+      border-color: var(--primary-teal);
     }
-    .btn-table-action.resolve {
-      background: #D1FAE5;
-      color: #059669;
+
+    /* Component Tags */
+    .issue-tag {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
-    .btn-table-action.resolve:hover {
-      background: #059669;
-      color: #FFFFFF;
-    }
-    .btn-table-action.delete {
+    .issue-tag.bad {
       background: #FEE2E2;
       color: #DC2626;
+      border: 1px solid #FCA5A5;
     }
-    .btn-table-action.delete:hover {
-      background: #DC2626;
+    .issue-tag.ok {
+      background: #F1F5F9;
+      color: #64748B;
+    }
+
+    /* Remarks Quote Box */
+    .remarks-quote-box {
+      font-size: 13px;
+      color: var(--text-dark);
+      font-weight: 500;
+      background: var(--bg-body);
+      border-left: 3.5px solid var(--primary-teal);
+      padding: 8px 12px;
+      border-radius: 6px;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Status Badges with Pulse Dot */
+    .status-badge-pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 99px;
+    }
+    .status-badge-pulse.pending {
+      background: #FEF3C7;
+      color: #D97706;
+      border: 1px solid #FDE68A;
+    }
+    .status-badge-pulse.resolved {
+      background: #D1FAE5;
+      color: #059669;
+      border: 1px solid #A7F3D0;
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-badge-pulse.pending .pulse-dot {
+      background: #F59E0B;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+    }
+    .status-badge-pulse.resolved .pulse-dot {
+      background: #10B981;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+    }
+
+    /* Action Buttons */
+    .btn-resolve-ticket {
+      border: none;
+      background: linear-gradient(135deg, #10B981, #059669);
       color: #FFFFFF;
+      padding: 8px 18px;
+      border-radius: 99px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: var(--font-body);
+      white-space: nowrap;
+    }
+    .btn-resolve-ticket:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
+      background: linear-gradient(135deg, #059669, #047857);
+    }
+    .btn-resolve-ticket:active {
+      transform: translateY(0);
+    }
+    .completed-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #059669;
+      background: #ECFDF5;
+      padding: 6px 14px;
+      border-radius: 99px;
+      border: 1px solid #A7F3D0;
+    }
+
+    /* Read More Expand Button */
+    .btn-read-more {
+      background: none;
+      border: none;
+      color: var(--primary-teal);
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 2px 0 0 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-family: var(--font-body);
+    }
+    .btn-read-more:hover {
+      text-decoration: underline;
+    }
+
+    /* High Contrast / Dark Mode Overrides */
+    html.high-contrast .maint-table-wrapper {
+      background: var(--bg-card) !important;
+      border-color: var(--border-light) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+    html.high-contrast .maint-table th {
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: var(--text-muted) !important;
+      border-bottom-color: var(--border-light) !important;
+    }
+    html.high-contrast .maint-table td {
+      border-bottom-color: var(--border-light) !important;
+      color: var(--text-dark) !important;
+    }
+    html.high-contrast .maint-table tr:hover {
+      background: rgba(30, 187, 215, 0.08) !important;
+    }
+    html.high-contrast .ticket-chip {
+      background: rgba(30, 187, 215, 0.15) !important;
+      border-color: rgba(30, 187, 215, 0.3) !important;
+      color: var(--primary-teal) !important;
+    }
+    html.high-contrast .filter-pill {
+      background: var(--bg-card) !important;
+      color: var(--text-dark) !important;
+      border-color: var(--border-light) !important;
+    }
+    html.high-contrast .filter-pill.active {
+      background: var(--primary-teal) !important;
+      color: #FFFFFF !important;
+      border-color: var(--primary-teal) !important;
+    }
+    html.high-contrast #maintenanceSearchInput {
+      background: var(--bg-card) !important;
+      color: var(--text-dark) !important;
+      border-color: var(--border-light) !important;
+    }
+    html.high-contrast .remarks-quote-box {
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: var(--text-dark) !important;
+    }
+    html.high-contrast .completed-chip {
+      background: rgba(16, 185, 129, 0.15) !important;
+      color: #34D399 !important;
+      border-color: rgba(16, 185, 129, 0.3) !important;
     }
   </style>
 </head>
@@ -111,13 +344,10 @@
       <button class="sidebar-btn" title="Dashboard" onclick="window.location.href='mis-staff-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='mis-pc-reports.html'">
-        <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
-      </button>
       <button class="sidebar-btn active" title="Maintenance Tracker" onclick="window.location.href='mis-maintenance.html'">
         <i data-lucide="wrench" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="QR Generator" onclick="window.location.href='mis-qr-generator.html'">
+      <button class="sidebar-btn" title="PC & QR Management" onclick="window.location.href='mis-qr-generator.html'">
         <i data-lucide="qr-code" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -157,9 +387,8 @@
       <!-- Center Nav -->
       <nav class="header-nav">
         <button class="nav-item" onclick="window.location.href='mis-staff-dashboard.html'">Dashboard</button>
-        <button class="nav-item" onclick="window.location.href='mis-pc-reports.html'">PC Reports</button>
         <button class="nav-item active" onclick="window.location.href='mis-maintenance.html'">Maintenance Tracker</button>
-        <button class="nav-item" onclick="window.location.href='mis-qr-generator.html'">QR Generator</button>
+        <button class="nav-item" onclick="window.location.href='mis-qr-generator.html'">PC & QR Management</button>
       </nav>
 
       <!-- Right Profile -->
@@ -172,7 +401,7 @@
         <div class="profile-dropdown">
           <div class="avatar">VN</div>
           <div class="profile-info">
-            <span class="profile-name">Violeta Nicolas</span>
+            <span class="profile-name">MIS Staff</span>
             <span class="profile-role">MIS Staff</span>
           </div>
           <button class="chevron-btn">
@@ -184,13 +413,13 @@
     </header>
 
     <!-- PAGE CONTENT -->
-    <main class="page-content">
+    <main class="page-content" style="overflow-y: auto;">
 
       <!-- Greeting + Clock Row -->
       <div class="greeting-row">
         <div class="greeting-left">
           <h1 class="greeting-title" id="greetingText">Maintenance Tracker</h1>
-          <p class="greeting-sub" id="greetingSub">Track and manage maintenance tasks for IT laboratories.</p>
+          <p class="greeting-sub" id="greetingSub">Monitor, process, and resolve computer laboratory maintenance tickets.</p>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime">--:--:-- --</div>
@@ -199,102 +428,159 @@
       </div>
 
       <!-- Main Content Card -->
-      <div class="dashboard-card" style="padding: 24px; display: flex; flex-direction: column; gap: 24px; overflow-y: auto;">
+      <div class="dashboard-card" style="padding: 24px; display: flex; flex-direction: column; gap: 24px;">
         
-        <!-- Top Stats Row -->
-        <div style="display: flex; gap: 16px; width: 100%; overflow-x: auto; padding-bottom: 4px;">
+        <!-- Dashboard Summary Cards (Matching Dashboard Theme & Watermark Animations) -->
+        <div class="stats-grid mis-stats" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; width: 100%;">
           <!-- Card 1 -->
-          <div style="flex: 1; min-width: 150px; border-radius: 12px; padding: 20px; background: linear-gradient(135deg, #4A8C9E, #D1E5E8); color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #D1E5E8;">
-            <div style="font-size: 13.5px; font-weight: 500; margin-bottom: 4px; opacity: 0.9;">Total Tickets</div>
-            <div id="stat-total" style="font-size: 32px; font-weight: 700; line-height: 1;">0</div>
+          <div class="stat-card theme-blue">
+            <div class="stat-header">
+              <div class="stat-info">
+                <div class="stat-value"><span id="stat-total">0</span> <span class="stat-pill-badge">All Work Orders</span></div>
+                <div class="stat-title">Total Tickets</div>
+              </div>
+              <div class="stat-icon">
+                <i data-lucide="wrench"></i>
+              </div>
+            </div>
+            <div class="stat-watermark">
+              <i data-lucide="wrench"></i>
+            </div>
           </div>
+
           <!-- Card 2 -->
-          <div style="flex: 1; min-width: 140px; border-radius: 12px; padding: 20px; background: #fff; border: 1px solid var(--border-light); color: var(--text-dark);">
-            <div style="font-size: 13.5px; font-weight: 600; margin-bottom: 4px; color: var(--text-mid);">Reported</div>
-            <div id="stat-pending" style="font-size: 32px; font-weight: 700; line-height: 1;">0</div>
+          <div class="stat-card theme-orange">
+            <div class="stat-header">
+              <div class="stat-info">
+                <div class="stat-value"><span id="stat-pending">0</span> <span class="stat-pill-badge">Action Required</span></div>
+                <div class="stat-title">Pending Reports</div>
+              </div>
+              <div class="stat-icon">
+                <i data-lucide="clock"></i>
+              </div>
+            </div>
+            <div class="stat-watermark">
+              <i data-lucide="clock"></i>
+            </div>
           </div>
+
           <!-- Card 3 -->
-          <div style="flex: 1; min-width: 140px; border-radius: 12px; padding: 20px; background: #FAF5FF; border: 1px solid #E9D5FF; color: #A855F7;">
-            <div style="font-size: 13.5px; font-weight: 600; margin-bottom: 4px;">Evaluation</div>
-            <div id="stat-eval" style="font-size: 32px; font-weight: 700; line-height: 1;">0</div>
-          </div>
-          <!-- Card 4 -->
-          <div style="flex: 1; min-width: 140px; border-radius: 12px; padding: 20px; background: #EFF6FF; border: 1px solid #BFDBFE; color: #3B82F6;">
-            <div style="font-size: 13.5px; font-weight: 600; margin-bottom: 4px;">In Progress</div>
-            <div id="stat-inprogress" style="font-size: 32px; font-weight: 700; line-height: 1;">0</div>
-          </div>
-          <!-- Card 5 -->
-          <div style="flex: 1; min-width: 140px; border-radius: 12px; padding: 20px; background: #F0FDF4; border: 1px solid #BBF7D0; color: #16A34A;">
-            <div style="font-size: 13.5px; font-weight: 600; margin-bottom: 4px;">Resolved</div>
-            <div id="stat-resolved" style="font-size: 32px; font-weight: 700; line-height: 1;">0</div>
+          <div class="stat-card theme-green">
+            <div class="stat-header">
+              <div class="stat-info">
+                <div class="stat-value"><span id="stat-resolved">0</span> <span class="stat-pill-badge">Completed</span></div>
+                <div class="stat-title">Resolved Reports</div>
+              </div>
+              <div class="stat-icon">
+                <i data-lucide="check-circle"></i>
+              </div>
+            </div>
+            <div class="stat-watermark">
+              <i data-lucide="check-circle"></i>
+            </div>
           </div>
         </div>
 
         <!-- Controls Row -->
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-          <!-- Left Controls -->
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 13px; font-weight: 600; color: var(--text-mid); margin-left: 8px;">Active Laboratory Maintenance Tickets</span>
+          
+          <!-- Filter Pills -->
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button class="filter-pill active" id="filter-all" onclick="filterStatus('all')">
+              <i data-lucide="layers" style="width: 14px; height: 14px;"></i> All Tickets
+            </button>
+            <button class="filter-pill" id="filter-pending" onclick="filterStatus('pending')">
+              <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i> Pending
+            </button>
+            <button class="filter-pill" id="filter-resolved" onclick="filterStatus('resolved')">
+              <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i> Resolved
+            </button>
           </div>
           
-          <!-- Right Controls -->
+          <!-- Right Search Input -->
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div class="search-box" style="position: relative; width: 280px;">
-              <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94A3B8;"></i>
-              <input type="text" id="maintenanceSearchInput" placeholder="Search by PC, Room, or Issue Details..." style="width: 100%; padding: 8px 12px 8px 36px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 13px; outline: none; font-family: var(--font-body);">
+            <div class="search-box" style="position: relative; width: 320px;">
+              <i data-lucide="search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94A3B8;"></i>
+              <input type="text" id="maintenanceSearchInput" placeholder="Search by Ticket ID, Room, PC, or Details..." style="width: 100%; padding: 10px 14px 10px 38px; border: 1.5px solid var(--border-light); border-radius: 12px; font-size: 13px; outline: none; font-family: var(--font-body); transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary-teal)'" onblur="this.style.borderColor='var(--border-light)'">
             </div>
           </div>
         </div>
 
-        <!-- Table -->
-        <div class="table-container" style="overflow-x: auto; flex: 1; min-height: 200px;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left;">
-            <thead style="position: sticky; top: 0; background: var(--bg-white); z-index: 10;">
+        <!-- Table Container -->
+        <div class="maint-table-wrapper" style="overflow-x: auto; flex: 1; min-height: 250px;">
+          <table class="maint-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
               <tr>
-                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Ticket ID</th>
-                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Time</th>
-                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Lab Room</th>
-                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">PC ID</th>
-                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Issue Type / Details</th>
-                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Priority</th>
-                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light);">Current Step</th>
-                <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--text-dark); border-bottom: 1px solid var(--border-light); text-align: center;">Actions</th>
+                <th>Ticket ID</th>
+                <th>Date & Time</th>
+                <th>Lab Room</th>
+                <th>PC Unit</th>
+                <th>Issue Details & Remarks</th>
+                <th>Status</th>
+                <th style="text-align: center;">Actions</th>
               </tr>
             </thead>
             <tbody id="dynamicMaintenanceRows">
               <tr>
-                <td colspan="8" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+                <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
                   Loading maintenance tickets...
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
+
       </div>
     </main>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=1.0.5"></script>
   <script>
     const sidebar = document.querySelector('.sidebar');
     const scrollClue = document.getElementById('sidebarScrollClue');
     
-    // Hide arrow if it's not scrollable
-    if (sidebar.scrollHeight <= sidebar.clientHeight) {
-      scrollClue.style.display = 'none';
+    if (sidebar && scrollClue) {
+      if (sidebar.scrollHeight <= sidebar.clientHeight) {
+        scrollClue.style.display = 'none';
+      }
+      sidebar.addEventListener('scroll', () => {
+        if (sidebar.scrollTop > 10) {
+          scrollClue.style.opacity = '0';
+        } else {
+          scrollClue.style.opacity = '1';
+        }
+      });
     }
 
-    // Hide arrow when scrolled
-    sidebar.addEventListener('scroll', () => {
-      if (sidebar.scrollTop > 10) {
-        scrollClue.style.opacity = '0';
-      } else {
-        scrollClue.style.opacity = '1';
-      }
-    });
-
-    // ─── DYNAMIC MAINTENANCE LOADING & TRACKING ──────────────────────
     let maintenanceReports = [];
+    let activeFilter = 'all';
+
+    // Helper to parse issue description safely
+    function parseIssueDesc(desc) {
+      if (!desc) return { section: 'N/A', issues: 'Hardware Issue', remarks: '' };
+
+      const sectionMatch = desc.match(/\[Program & Section:\s*([^\]]+)\]/i);
+      const issuesMatch = desc.match(/\[Issues:\s*([^\]]+)\]/i);
+      const remarksMatch = desc.match(/Remarks:\s*(.*)$/is);
+
+      const section = sectionMatch ? sectionMatch[1].trim() : 'N/A';
+      const issues = issuesMatch ? issuesMatch[1].trim() : 'Hardware Issue';
+      let remarks = remarksMatch ? remarksMatch[1].trim() : '';
+
+      if (!remarks) {
+        if (!desc.includes('[') && !desc.includes(']')) {
+          remarks = desc.trim();
+        } else {
+          remarks = desc
+            .replace(/\[Program & Section:[^\]]+\]/gi, '')
+            .replace(/\[Issues:[^\]]+\]/gi, '')
+            .replace(/Remarks:/gi, '')
+            .trim();
+        }
+      }
+
+      return { section, issues, remarks: remarks || 'None' };
+    }
 
     async function loadMaintenanceData() {
       try {
@@ -302,17 +588,14 @@
         if (!response.ok) throw new Error('Failed to fetch reports');
         maintenanceReports = await response.json();
         
-        // Calculate & display stats
         calculateStats(maintenanceReports);
-        
-        // Render rows
-        renderTableRows(maintenanceReports);
+        applyFiltersAndRender();
       } catch (error) {
         console.error('Error loading maintenance data:', error);
         document.getElementById('dynamicMaintenanceRows').innerHTML = `
           <tr>
             <td colspan="8" style="padding: 40px; text-align: center; color: #EF4444; font-weight: 600;">
-              Failed to load maintenance tickets. Please check server.
+              Failed to load maintenance tickets. Please refresh or try again later.
             </td>
           </tr>
         `;
@@ -321,15 +604,47 @@
 
     function calculateStats(reports) {
       const total = reports.length;
-      const pending = reports.filter(r => r.Status === 'Pending').length;
-      const inProgress = reports.filter(r => r.Status === 'In Progress').length;
+      const pending = reports.filter(r => r.Status !== 'Resolved').length;
       const resolved = reports.filter(r => r.Status === 'Resolved').length;
 
-      document.getElementById('stat-total').textContent = total;
-      document.getElementById('stat-pending').textContent = pending;
-      document.getElementById('stat-eval').textContent = '0'; // static evaluation badge
-      document.getElementById('stat-inprogress').textContent = inProgress;
-      document.getElementById('stat-resolved').textContent = resolved;
+      if (document.getElementById('stat-total')) document.getElementById('stat-total').textContent = total;
+      if (document.getElementById('stat-pending')) document.getElementById('stat-pending').textContent = pending;
+      if (document.getElementById('stat-resolved')) document.getElementById('stat-resolved').textContent = resolved;
+    }
+
+    function filterStatus(status) {
+      activeFilter = status;
+      document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`filter-${status}`);
+      if (activeBtn) activeBtn.classList.add('active');
+      applyFiltersAndRender();
+    }
+
+    function applyFiltersAndRender() {
+      const searchVal = (document.getElementById('maintenanceSearchInput').value || '').toLowerCase().trim();
+
+      let filtered = maintenanceReports.filter(report => {
+        // Status filter
+        if (activeFilter === 'pending' && report.Status === 'Resolved') return false;
+        if (activeFilter === 'resolved' && report.Status !== 'Resolved') return false;
+
+        // Search filter
+        if (searchVal) {
+          const match =
+            report.Report_ID.toString().includes(searchVal) ||
+            report.Student_Name.toLowerCase().includes(searchVal) ||
+            report.Room_Number.toString().toLowerCase().includes(searchVal) ||
+            report.PC_Number.toString().toLowerCase().includes(searchVal) ||
+            report.Issue_Description.toLowerCase().includes(searchVal) ||
+            report.Priority_Level.toLowerCase().includes(searchVal) ||
+            report.Status.toLowerCase().includes(searchVal);
+          if (!match) return false;
+        }
+
+        return true;
+      });
+
+      renderTableRows(filtered);
     }
 
     function renderTableRows(reports) {
@@ -337,8 +652,8 @@
       if (reports.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="8" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
-              No PC reports available. Reports will appear here when submitted.
+            <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 13.5px;">
+              No maintenance tickets match the selected filter.
             </td>
           </tr>
         `;
@@ -346,7 +661,6 @@
       }
 
       tbody.innerHTML = reports.map(report => {
-        // Format Date
         const dateObj = new Date(report.Date_Reported);
         const formattedDate = dateObj.toLocaleDateString('en-US', {
           month: 'short',
@@ -355,94 +669,193 @@
           minute: '2-digit'
         });
 
-        // Extract issue type
-        const issueMatch = report.Issue_Description.match(/\[Issues: ([^\]]+)\]/);
-        const issueType = issueMatch ? issueMatch[1] : 'Others';
+        const parsed = parseIssueDesc(report.Issue_Description);
 
-        // Extract clean description (remarks)
-        const remarksMatch = report.Issue_Description.match(/Remarks: (.*)$/);
-        const cleanRemarks = remarksMatch ? remarksMatch[1] : report.Issue_Description;
-
-        // Build actions
         let actionsHtml = '';
-        if (report.Status === 'Pending') {
+        if (report.Status !== 'Resolved') {
           actionsHtml = `
-            <button class="btn-table-action process" onclick="updateReportStatus(${report.Report_ID}, 'In Progress')">
-              <i data-lucide="play" style="width:12px;height:12px;"></i>Process
+            <button class="btn-resolve-ticket" onclick="updateReportStatus(${report.Report_ID}, 'Resolved')">
+              <i data-lucide="check" style="width:14px;height:14px;"></i> Mark Resolved
             </button>
           `;
-        } else if (report.Status === 'In Progress') {
-          actionsHtml = `
-            <button class="btn-table-action resolve" onclick="updateReportStatus(${report.Report_ID}, 'Resolved')">
-              <i data-lucide="check" style="width:12px;height:12px;"></i>Resolve
-            </button>
-          `;
-        } else if (report.Status === 'Resolved') {
-          actionsHtml = `
-            <span style="font-size:12px; font-weight:600; color:#059669; margin-right: 8px;">Completed</span>
-          `;
+        } else {
+          actionsHtml = `<span class="completed-chip"><i data-lucide="check-check" style="width:13px;height:13px;"></i> Completed</span>`;
         }
 
+        const sectionChip = parsed.section && parsed.section !== 'N/A'
+          ? `<span style="font-size: 10.5px; font-weight: 700; color: #0E7490; background: #E0F2FE; border: 1px solid #BAE6FD; padding: 2px 7px; border-radius: 99px;">${parsed.section}</span>`
+          : '';
+
+        // Format component issues cleanly
+        const issueBadges = parsed.issues.split(',').map(t => t.trim()).filter(Boolean).map(t => {
+          if (t.toLowerCase() === 'none' || t.toLowerCase() === 'others') {
+            return `<span class="issue-tag ok"><i data-lucide="check-square" style="width:10px;height:10px;"></i> ${t}</span>`;
+          }
+          return `<span class="issue-tag bad"><i data-lucide="alert-triangle" style="width:10px;height:10px;"></i> ${t}</span>`;
+        }).join(' ');
+
+        const statusPill = report.Status === 'Resolved'
+          ? `<span class="status-badge-pulse resolved"><span class="pulse-dot"></span> Resolved</span>`
+          : `<span class="status-badge-pulse pending"><span class="pulse-dot"></span> Pending</span>`;
+
+        const isLongRemark = parsed.remarks && parsed.remarks.length > 70;
+        const readMoreBtn = isLongRemark
+          ? `<button class="btn-read-more" onclick="viewTicketModal(${report.Report_ID})">Expand <i data-lucide="maximize-2" style="width:11px;height:11px;"></i></button>`
+          : '';
+
         return `
-          <tr style="border-bottom: 1px solid var(--border-light);">
-            <td style="padding: 14px 16px; font-weight: 700; color: var(--primary-teal); font-size: 13px;">LS-TKT-${report.Report_ID}</td>
-            <td style="padding: 14px 16px; font-size: 13px; color: var(--text-mid); font-weight: 500;">${formattedDate}</td>
-            <td style="padding: 14px 16px; font-size: 13px; color: var(--text-dark); font-weight: 600;">Room ${report.Room_Number}</td>
-            <td style="padding: 14px 16px; font-size: 13px; color: var(--text-dark); font-weight: 600;">PC ${report.PC_Number}</td>
-            <td style="padding: 14px 16px; font-size: 13px; color: var(--text-mid); font-weight: 500; max-width: 350px;">
-              <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">
-                ${
-                  issueType.split(',').map(t => t.trim()).filter(Boolean).map(t => {
-                    if (t.toLowerCase() === 'none' || t.toLowerCase() === 'others') {
-                      return `<span style="font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px; background:#F1F5F9; color:#64748B; display:inline-flex; align-items:center; gap:2px;"><i data-lucide="check" style="width:10px;height:10px;color:#10B981;"></i>None</span>`;
-                    }
-                    return `<span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5; display:inline-flex; align-items:center; gap:2px;"><i data-lucide="alert-triangle" style="width:10px;height:10px;color:#EF4444;"></i>${t}</span>`;
-                  }).join('')
-                }
-              </div>
-              <div style="font-size:12.5px; font-weight:600; color:#1E293B; line-height:1.4; white-space:normal; background:#FAFDFE; border-left:3px solid var(--primary-teal); padding:6px 10px; border-radius:4px;" title="${cleanRemarks}">
-                ${cleanRemarks}
+          <tr>
+            <td style="white-space: nowrap;">
+              <span class="ticket-chip" onclick="viewTicketModal(${report.Report_ID})" title="Click to view full ticket details">
+                LS-TKT-${report.Report_ID}
+              </span>
+            </td>
+            <td style="white-space: nowrap; font-size: 12.5px; color: var(--text-mid); font-weight: 500;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="calendar" style="width:13px;height:13px;color:#94A3B8;"></i>
+                ${formattedDate}
               </div>
             </td>
-            <td style="padding: 14px 16px;">
-              <span class="priority-badge ${report.Priority_Level.toLowerCase()}">${report.Priority_Level}</span>
-            </td>
-            <td style="padding: 14px 16px;">
-              <span class="status-badge ${report.Status.toLowerCase().replace(' ', '-')}">${report.Status}</span>
-            </td>
-            <td style="padding: 14px 16px; text-align: center;">
-              <div style="display: flex; align-items: center; justify-content: center;">
-                ${actionsHtml}
+            <td style="white-space: nowrap; font-weight: 700; color: var(--text-dark);">
+              <div style="display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--primary-teal);"></i>
+                Room ${report.Room_Number}
               </div>
+            </td>
+            <td style="white-space: nowrap; font-weight: 700; color: var(--text-dark);">
+              <div style="display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="monitor" style="width:14px;height:14px;color:#64748B;"></i>
+                PC #${report.PC_Number}
+              </div>
+            </td>
+            <td style="min-width: 280px; max-width: 380px;">
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
+                ${issueBadges}
+                ${sectionChip}
+              </div>
+              <div class="remarks-quote-box">
+                "${parsed.remarks}"
+              </div>
+              ${readMoreBtn}
+            </td>
+            <td style="white-space: nowrap;">
+              ${statusPill}
+            </td>
+            <td style="text-align: center; white-space: nowrap;">
+              ${actionsHtml}
             </td>
           </tr>
         `;
       }).join('');
 
-      lucide.createIcons();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // View Ticket Details Modal
+    function viewTicketModal(reportId) {
+      const report = maintenanceReports.find(r => r.Report_ID === reportId);
+      if (!report) return;
+
+      const dateObj = new Date(report.Date_Reported);
+      const formattedDate = dateObj.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const parsed = parseIssueDesc(report.Issue_Description);
+
+      const issueBadges = parsed.issues.split(',').map(t => t.trim()).filter(Boolean).map(t => {
+        if (t.toLowerCase() === 'none' || t.toLowerCase() === 'others') {
+          return `<span class="issue-tag ok" style="font-size:12.5px;padding:5px 12px;"><i data-lucide="check-square" style="width:13px;height:13px;"></i> ${t}</span>`;
+        }
+        return `<span class="issue-tag bad" style="font-size:12.5px;padding:5px 12px;"><i data-lucide="alert-triangle" style="width:13px;height:13px;"></i> ${t}</span>`;
+      }).join(' ');
+
+      const existingModal = document.getElementById('ticket-details-modal');
+      if (existingModal) existingModal.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'ticket-details-modal';
+      modal.className = 'modal-backdrop active';
+      modal.style.zIndex = '1000';
+
+      let resolveBtnHtml = '';
+      if (report.Status !== 'Resolved') {
+        resolveBtnHtml = `
+          <button class="btn-resolve-ticket" style="padding:10px 20px;font-size:13px;" onclick="updateReportStatus(${report.Report_ID}, 'Resolved'); document.getElementById('ticket-details-modal').remove();">
+            <i data-lucide="check" style="width:16px;height:16px;"></i> Mark Resolved & Restored
+          </button>
+        `;
+      } else {
+        resolveBtnHtml = `<span class="completed-chip" style="font-size:13px;padding:8px 16px;"><i data-lucide="check-check" style="width:16px;height:16px;"></i> Work Order Completed</span>`;
+      }
+
+      modal.innerHTML = `
+        <div class="modal-card" style="max-width: 540px; width: 90%; border-radius: 20px; padding: 28px; background: var(--bg-card); border: 1px solid var(--border-light); box-shadow: 0 20px 50px rgba(0,0,0,0.25);">
+          <!-- Header -->
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; border-bottom:1px solid var(--border-light); padding-bottom:16px;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="ticket-chip" style="font-size:14px; padding:6px 14px;">LS-TKT-${report.Report_ID}</span>
+                <span class="status-badge-pulse ${report.Status === 'Resolved' ? 'resolved' : 'pending'}">
+                  <span class="pulse-dot"></span> ${report.Status}
+                </span>
+              </div>
+              <div style="font-size:13px; color:var(--text-mid); margin-top:6px; font-weight:500;">
+                Reported on ${formattedDate}
+              </div>
+            </div>
+            <button onclick="document.getElementById('ticket-details-modal').remove()" style="background:none; border:none; color:var(--text-mid); cursor:pointer; padding:4px;">
+              <i data-lucide="x" style="width:20px;height:20px;"></i>
+            </button>
+          </div>
+
+          <!-- Body Info -->
+          <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:rgba(30,187,215,0.06); padding:14px 16px; border-radius:12px; border:1px solid rgba(30,187,215,0.15);">
+              <div>
+                <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:2px;">Location & Unit</div>
+                <div style="font-size:14px; font-weight:800; color:var(--text-dark);">Room ${report.Room_Number} • PC #${report.PC_Number}</div>
+              </div>
+              <div>
+                <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:2px;">Reporter</div>
+                <div style="font-size:13.5px; font-weight:700; color:var(--text-dark);">${report.Student_Name || 'Student'} <span style="font-size:11px; color:#0E7490; background:#E0F2FE; padding:2px 6px; border-radius:99px; margin-left:4px;">${parsed.section}</span></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase;">Flagged Component Issues</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                ${issueBadges}
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase;">Complete Student Remarks</div>
+              <div style="font-size:13.5px; color:var(--text-dark); background:var(--bg-body); border-left:4px solid var(--primary-teal); padding:12px 16px; border-radius:8px; line-height:1.5; font-weight:500; max-height:200px; overflow-y:auto;">
+                "${parsed.remarks}"
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Actions -->
+          <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px; border-top:1px solid var(--border-light); padding-top:18px;">
+            <button onclick="document.getElementById('ticket-details-modal').remove()" style="padding:9px 18px; border:1px solid var(--border-light); background:var(--bg-card); color:var(--text-dark); border-radius:99px; font-size:13px; font-weight:600; cursor:pointer;">Close</button>
+            ${resolveBtnHtml}
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+      if (window.lucide) lucide.createIcons();
     }
 
     // Live search
-    document.getElementById('maintenanceSearchInput').addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      if (!query) {
-        renderTableRows(maintenanceReports);
-        return;
-      }
-
-      const filtered = maintenanceReports.filter(report => {
-        return (
-          report.Student_Name.toLowerCase().includes(query) ||
-          report.Room_Number.toString().toLowerCase().includes(query) ||
-          report.PC_Number.toString().toLowerCase().includes(query) ||
-          report.Issue_Description.toLowerCase().includes(query) ||
-          report.Priority_Level.toLowerCase().includes(query) ||
-          report.Status.toLowerCase().includes(query)
-        );
-      });
-
-      renderTableRows(filtered);
-    });
+    document.getElementById('maintenanceSearchInput').addEventListener('input', applyFiltersAndRender);
 
     // Update status
     async function updateReportStatus(reportId, newStatus) {
@@ -458,6 +871,7 @@
         });
 
         if (response.ok) {
+          if (window.showToast) window.showToast(`Ticket LS-TKT-${reportId} status updated to ${newStatus}`, 'success');
           await loadMaintenanceData();
         } else {
           const err = await response.json();
@@ -469,30 +883,8 @@
       }
     }
 
-    // Delete report
-    async function deleteReport(reportId) {
-      if (!confirm(`Permanently delete Ticket LS-TKT-${reportId}?`)) return;
-
-      try {
-        const response = await fetch(`/api/reports/${reportId}`, {
-          method: 'DELETE'
-        });
-
-        if (response.ok) {
-          await loadMaintenanceData();
-        } else {
-          const err = await response.json();
-          alert('Error: ' + err.error);
-        }
-      } catch (error) {
-        console.error('Error deleting report:', error);
-        alert('Failed to delete ticket.');
-      }
-    }
-
-    // Load data on start
     document.addEventListener('DOMContentLoaded', loadMaintenanceData);
   </script>
 </body>
-</html>
 
+</html>

@@ -148,10 +148,8 @@
               <div class="filter-item" onclick="filterFaculty('faculty')" style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; background: none;">
                 Faculty <i data-lucide="check" style="width: 14px; height: 14px; color: var(--primary-teal); display: none; flex-shrink: 0;"></i>
               </div>
-              <div class="filter-item" onclick="filterFaculty('mis')" style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; background: none;">
-                MIS Staff <i data-lucide="check" style="width: 14px; height: 14px; color: var(--primary-teal); display: none; flex-shrink: 0;"></i>
-              </div>
             </div>
+
           </div>
         </div>
         <button class="fm-add-btn" id="add-faculty-btn">
@@ -174,7 +172,7 @@
     </main>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=1.0.5"></script>
   <script>
     // Sidebar scroll clue
     const sidebar = document.querySelector('.sidebar');
@@ -715,14 +713,14 @@
               <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Select Role</label>
               <div class="custom-select-wrapper" id="role-select-wrapper" style="width: 100%;">
                 <div class="custom-select-trigger" style="width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-light); border-radius: 8px; font-family: var(--font-body); font-size: 14px; background: var(--bg-white); color: var(--text-dark); cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
-                  <span>${currentRole === 'Faculty' ? 'Faculty (Regular Lecturer)' : (currentRole.includes('Head') ? 'IT Dept. Head (Administrator)' : 'MIS Staff (Support)')}</span>
+                  <span>${currentRole === 'Faculty' ? 'Faculty (Regular Lecturer)' : 'IT Dept. Head (Administrator)'}</span>
                   <i data-lucide="chevron-down" style="width: 18px; height: 18px; color: var(--text-light);"></i>
                 </div>
                 <div class="custom-select-dropdown" style="color: var(--text-dark);">
                   <div class="custom-select-option ${currentRole === 'Faculty' ? 'selected' : ''}" data-value="Faculty">Faculty (Regular Lecturer)</div>
                   <div class="custom-select-option ${currentRole.includes('Head') ? 'selected' : ''}" data-value="IT Dept. Head">IT Dept. Head (Administrator)</div>
-                  <div class="custom-select-option ${currentRole === 'MIS Staff' ? 'selected' : ''}" data-value="MIS Staff">MIS Staff (Support)</div>
                 </div>
+
               </div>
             </div>
             

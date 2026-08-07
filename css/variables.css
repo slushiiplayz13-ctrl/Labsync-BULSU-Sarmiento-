@@ -46,6 +46,38 @@ html.text-scale-xlarge {
   zoom: 1.2;
 }
 
+/* Ensure scaled screens can scroll down without clipping */
+html.text-scale-large,
+html.text-scale-xlarge {
+  overflow-y: auto !important;
+}
+
+html.text-scale-large body,
+html.text-scale-xlarge body {
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow-y: auto !important;
+}
+
+html.text-scale-large .main-wrapper,
+html.text-scale-xlarge .main-wrapper {
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow: visible !important;
+}
+
+html.text-scale-large .page-content,
+html.text-scale-xlarge .page-content {
+  overflow-y: visible !important;
+  height: auto !important;
+}
+
+html.text-scale-large .dashboard-card,
+html.text-scale-xlarge .dashboard-card {
+  overflow: visible !important;
+  height: auto !important;
+}
+
 /* Accessibility: High Contrast Dark Mode */
 html.high-contrast {
   --primary-teal: #00A3C4;
@@ -55,8 +87,8 @@ html.high-contrast {
   --accent-blue: #0284C7;
   --text-dark: #F8FAFC;
   --text-mid: #CBD5E1;
-  --text-muted: #64748B;
-  --text-light: #94A3B8;
+  --text-muted: #94A3B8;
+  --text-light: #CBD5E1;
   --bg-page: #111827;
   --bg-white: #111827;
   --bg-card: #1F2937;
@@ -311,45 +343,11 @@ html.high-contrast .lab-card.red-theme .teal-text {
   color: #F87171 !important;
 }
 
-/* Schedule cells in high contrast */
-html.high-contrast .subject-network {
-  background: #155E75 !important;
-}
-
-html.high-contrast .subject-network * {
-  color: #E0F2FE !important;
-}
-
-html.high-contrast .subject-webdev {
-  background: #1E40AF !important;
-}
-
-html.high-contrast .subject-webdev * {
-  color: #EFF6FF !important;
-}
-
-html.high-contrast .subject-capstone {
-  background: #6B21A8 !important;
-}
-
-html.high-contrast .subject-capstone * {
-  color: #FAF5FF !important;
-}
-
-html.high-contrast .subject-prog {
-  background: #166534 !important;
-}
-
-html.high-contrast .subject-prog * {
-  color: #F0FDF4 !important;
-}
-
-html.high-contrast .subject-intro {
-  background: #92400E !important;
-}
-
-html.high-contrast .subject-intro * {
-  color: #FEF3C7 !important;
+/* Schedule cells in high contrast - preserve vibrant gradients & contrast */
+html.high-contrast .sg-cell.filled,
+html.high-contrast .canvas-class-block {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
 }
 
 /* Timeline text overrides */
@@ -418,9 +416,17 @@ html.high-contrast .confirm-modal-container {
 }
 
 /* Modal Headers & Notifications Dropdown Header Gradients */
-html.high-contrast div[style*="background:linear-gradient"],
-html.high-contrast div[style*="background: linear-gradient"] {
-  background: linear-gradient(135deg, var(--primary-teal-light) 0%, var(--bg-white) 100%) !important;
+html.high-contrast .modal div[style*="background:linear-gradient"],
+html.high-contrast .modal div[style*="background: linear-gradient"],
+html.high-contrast #accessibility-settings-modal div[style*="background:linear-gradient"],
+html.high-contrast #accessibility-settings-modal div[style*="background: linear-gradient"],
+html.high-contrast #account-settings-modal div[style*="background:linear-gradient"],
+html.high-contrast #account-settings-modal div[style*="background: linear-gradient"],
+html.high-contrast #help-modal div[style*="background:linear-gradient"],
+html.high-contrast #help-modal div[style*="background: linear-gradient"],
+html.high-contrast #notif-menu div[style*="background:linear-gradient"],
+html.high-contrast #notif-menu div[style*="background: linear-gradient"] {
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-white) 100%) !important;
   border-bottom-color: var(--border-light) !important;
 }
 

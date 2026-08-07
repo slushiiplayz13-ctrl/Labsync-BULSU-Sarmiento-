@@ -267,6 +267,7 @@
       letter-spacing: -0.3px;
       background: linear-gradient(135deg, #0F172A, #1E293B);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
@@ -298,24 +299,26 @@
     /* ─── INFO HEADER BOX ────────────────────────────────────────────── */
     .info-header-box {
       border: 1px solid rgba(30, 187, 215, 0.25);
-      border-radius: 16px;
+      border-radius: 99px;
       background: rgba(30, 187, 215, 0.04);
-      padding: 14px 20px;
-      display: flex;
-      justify-content: space-around;
+      padding: 12px 20px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) auto minmax(0, 1fr);
       align-items: center;
       width: 100%;
+      box-sizing: border-box;
     }
 
     .info-item {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
       color: #0E7490;
       font-size: 13.5px;
       font-weight: 600;
       white-space: nowrap;
+      overflow: hidden;
     }
 
     .info-item svg,
@@ -328,9 +331,10 @@
 
     .info-divider {
       width: 1px;
-      height: 20px;
-      background: rgba(30, 187, 215, 0.2);
+      height: 18px;
+      background: rgba(30, 187, 215, 0.25);
       flex-shrink: 0;
+      margin: 0 4px;
     }
 
     /* ─── INPUTS ─────────────────────────────────────────────────────── */
@@ -883,6 +887,184 @@
       flex-direction: column;
       gap: 24px;
       width: 100%;
+    }
+
+    .info-header-box {
+      border: 1px solid rgba(30, 187, 215, 0.25);
+      border-radius: 99px;
+      background: rgba(30, 187, 215, 0.04);
+      padding: 10px 16px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) auto minmax(0, 1fr);
+      align-items: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: #0E7490;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .info-item svg,
+    .info-item .lucide {
+      color: var(--primary-teal);
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .info-divider {
+      width: 1px;
+      height: 18px;
+      background: rgba(30, 187, 215, 0.25);
+      flex-shrink: 0;
+      margin: 0 4px;
+    }
+
+    /* ─── MOBILE RESPONSIVE ─────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      body {
+        padding: 16px 10px;
+      }
+
+      .brand-header {
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .brand-logos {
+        gap: 12px;
+      }
+
+      .logo-img {
+        height: 38px;
+      }
+
+      .logo-divider {
+        height: 24px;
+      }
+
+      .form-title {
+        font-size: 15.5px;
+        line-height: 1.3;
+      }
+
+      .form-card {
+        padding: 20px 12px;
+        gap: 20px;
+        border-radius: 20px;
+      }
+
+      .info-header-box {
+        padding: 9px 10px;
+        border-radius: 99px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) auto minmax(0, 1fr);
+        align-items: center;
+      }
+
+      .info-item {
+        font-size: 11.5px;
+        gap: 4px;
+        justify-content: center;
+      }
+
+      .info-item svg,
+      .info-item .lucide {
+        width: 14px;
+        height: 14px;
+      }
+
+      .info-divider {
+        height: 15px;
+        margin: 0 2px;
+        background: rgba(30, 187, 215, 0.25);
+      }
+
+      .equipment-card {
+        padding: 12px;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .eq-name {
+        font-size: 13px;
+      }
+
+      .eq-controls {
+        padding: 3px;
+      }
+
+      .status-btn {
+        padding: 5px 10px;
+        font-size: 11.5px;
+      }
+
+      .input-field {
+        padding: 12px 14px 12px 42px;
+        font-size: 13.5px;
+      }
+
+      .input-wrapper svg,
+      .input-wrapper .lucide {
+        left: 14px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    @media (max-width: 440px) {
+      .info-header-box {
+        padding: 8px 6px;
+        border-radius: 99px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) auto minmax(0, 1fr);
+        align-items: center;
+      }
+
+      .info-item {
+        font-size: 11px;
+        gap: 3px;
+        justify-content: center;
+      }
+
+      .info-item svg,
+      .info-item .lucide {
+        width: 13px;
+        height: 13px;
+      }
+
+      .info-divider {
+        display: block;
+        height: 14px;
+        margin: 0 1px;
+      }
+
+      .equipment-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .eq-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .status-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
     }
 
     @media (min-width: 1024px) {

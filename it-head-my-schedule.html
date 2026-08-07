@@ -20,6 +20,8 @@
 
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/schedule-studio.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style id="auth-anti-flash">body { display: none !important; }</style>
   <script>
     (function applyAccessibilitySettings() {
@@ -37,12 +39,16 @@
       gap: 14px;
       overflow-x: auto;
       min-width: 800px;
+      flex: 1;
+      align-items: stretch;
     }
     .day-column {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      min-height: 250px;
+      min-height: 480px;
+      height: 100%;
+      box-sizing: border-box;
       background: #F8FAFC;
       border: 1px solid var(--border-light);
       border-radius: 16px;
@@ -76,6 +82,7 @@
       cursor: pointer;
     }
   </style>
+
 </head>
 
 <body data-page="my-schedule">
@@ -189,7 +196,7 @@
       </div>
 
       <!-- Main Content Card -->
-      <div class="dashboard-card" style="padding: 0; overflow: visible !important; border-radius: 12px; position: relative; display: flex; flex-direction: column;">
+      <div class="dashboard-card" style="padding: 0; overflow: visible !important; border-radius: 12px; position: relative; display: flex; flex-direction: column; flex: 1;">
           <!-- Header -->
           <div class="schedule-header" style="background: var(--primary-teal); color: white; padding: 12px 24px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; font-size: 15px; border-radius: 12px 12px 0 0; flex-shrink: 0;">
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -198,6 +205,13 @@
             
             <!-- In-Header Selector Panel -->
             <div class="schedule-selectors" style="display: flex; align-items: center; gap: 16px;">
+              <button class="btn-schedule-studio" onclick="openScheduleStudio()" title="Custom Schedule Wallpaper & Card Generator">
+                <span class="studio-btn-icon-badge">
+                  <i data-lucide="palette" style="width:14px;height:14px;"></i>
+                </span>
+                <span>Schedule Studio</span>
+              </button>
+
               <div style="display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">AY:</span>
                 <div class="custom-select-wrapper header-select" id="academic-year-wrapper" style="width: 125px;">
@@ -226,7 +240,8 @@
             </div>
           </div>
           
-          <div id="schedule-container" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+          <div id="schedule-container" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; flex: 1;">
+
             <div class="ui-empty-state">
               <div class="ui-empty-icon">
                 <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
@@ -238,8 +253,9 @@
     </main>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=1.0.5"></script>
   <script src="schedule.js"></script>
+  <script src="js/schedule-studio.js"></script>
   <script>
     const sidebar = document.querySelector('.sidebar');
     const scrollClue = document.getElementById('sidebarScrollClue');
