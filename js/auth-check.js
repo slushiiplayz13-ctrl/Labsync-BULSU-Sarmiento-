@@ -1,5 +1,13 @@
 // Authentication & Role Authorization Check - Include this script in all protected pages
 (async function checkAuth() {
+    function revealPage() {
+        const antiFlash = document.getElementById('auth-anti-flash');
+        if (antiFlash) antiFlash.remove();
+    }
+
+    // Safety fallback: reveal page after 1.5s max to prevent permanent blank blue screen
+    const safetyTimer = setTimeout(revealPage, 1500);
+
     try {
         const response = await fetch('/api/user/current', {
             credentials: 'include'
@@ -14,7 +22,8 @@
         const user = await response.json();
         const role = user.role || '';
         const path = window.location.pathname;
-        const page = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+        let page = path.substring(path.lastIndexOf('/') + 1);
+        if (!page || page === '/') page = 'index.html';
 
         // Categorize the current page
         const isMisPage = page.startsWith('mis-');
@@ -32,10 +41,9 @@
         let authorized = false;
 
         if (role.toLowerCase().includes('head')) {
-            if (isItHeadPage) {
+            if (isItHeadPage || isFacultyPage) {
                 authorized = true;
             } else {
-                // IT Head on wrong page, redirect to their dashboard
                 window.location.replace('/it-head-dashboard.html');
                 return;
             }
@@ -43,28 +51,25 @@
             if (isMisPage) {
                 authorized = true;
             } else {
-                // MIS Staff on wrong page, redirect to their dashboard
                 window.location.replace('/mis-staff-dashboard.html');
                 return;
             }
         } else {
-            // Default: Faculty / other users
             if (isFacultyPage) {
                 authorized = true;
             } else {
-                // Faculty on wrong page, redirect to their dashboard
                 window.location.replace('/index.html');
                 return;
             }
         }
 
         if (authorized) {
-            // Authenticated and authorized, reveal the page content
-            const antiFlash = document.getElementById('auth-anti-flash');
-            if (antiFlash) antiFlash.remove();
+            clearTimeout(safetyTimer);
+            revealPage();
         }
     } catch (error) {
         console.error('Auth check failed:', error);
-        window.location.replace('/login.html');
+        clearTimeout(safetyTimer);
+        revealPage();
     }
 })();

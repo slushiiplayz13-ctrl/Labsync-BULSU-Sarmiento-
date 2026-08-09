@@ -102,7 +102,7 @@ window.renderSingleCard = function (report) {
 
       <!-- Card Body -->
       <div class="report-card-body">
-        <!-- Left Column: Asset, Reporter & Issues -->
+        <!-- Left Column: Asset, Issues & Reporter -->
         <div class="report-card-info">
           <!-- Location & PC -->
           <div style="display:flex; align-items:center; gap:8px;">
@@ -111,25 +111,25 @@ window.renderSingleCard = function (report) {
             </div>
             <div style="font-size:15px; font-weight:800; color:var(--text-dark);">Room ${report.Room_Number} – PC ${report.PC_Number}</div>
           </div>
-          
-          <!-- Reporter -->
-          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:13px; font-weight:600; color:var(--text-mid); margin-left:2px;">
-            <i data-lucide="user" style="width:14px;height:14px;color:var(--text-muted);"></i>
-            <span>${report.Student_Name}</span>
-            <span style="font-size:11px; font-weight:700; padding:2.5px 7px; border-radius:4px; background:#F1F5F9; color:var(--text-mid);">${parsed.section}</span>
-          </div>
 
-          <!-- Hardware Issues -->
+          <!-- Hardware Issues (Prominent & Larger) -->
           <div style="margin-left: 2px;">
-            <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:4px;">Issues</span>
-            <div style="display:flex; flex-wrap:wrap; gap:4px;">
+            <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:4px;">Reported Issue</span>
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
               ${parsed.issues.split(',').map(comp => comp.trim()).filter(Boolean).map(comp => {
                 if (comp.toLowerCase() === 'none' || comp.toLowerCase() === 'others') {
-                  return `<span style="display:inline-flex; align-items:center; gap:3px; font-size:11.5px; font-weight:600; padding:3px 8px; border-radius:6px; background:#F1F5F9; color:#64748B;"><i data-lucide="check" style="width:11px;height:11px;color:#10B981;"></i> None</span>`;
+                  return `<span class="issue-badge-none" style="display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600; padding:4px 10px; border-radius:8px; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0;"><i data-lucide="check-circle-2" style="width:13px;height:13px;color:#10B981;"></i> No Faults</span>`;
                 }
-                return `<span style="display:inline-flex; align-items:center; gap:3px; font-size:11.5px; font-weight:700; padding:3px 8px; border-radius:6px; background:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5;"><i data-lucide="alert-triangle" style="width:11px;height:11px;color:#EF4444;"></i> ${comp}</span>`;
+                return `<span class="issue-badge-fault" style="display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:800; padding:4px 11px; border-radius:8px; background:#FEF2F2; color:#DC2626; border:1.5px solid #FCA5A5; box-shadow:0 1px 3px rgba(220,38,38,0.08);"><i data-lucide="alert-triangle" style="width:14px;height:14px;color:#EF4444;"></i> ${comp}</span>`;
               }).join('')}
             </div>
+          </div>
+          
+          <!-- Reporter -->
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12.5px; font-weight:600; color:var(--text-mid); margin-left:2px;">
+            <i data-lucide="user" style="width:13.5px;height:13.5px;color:var(--text-muted);"></i>
+            <span>${report.Student_Name}</span>
+            <span style="font-size:11px; font-weight:700; padding:2px 7px; border-radius:4px; background:#F1F5F9; color:var(--text-mid);">${parsed.section}</span>
           </div>
         </div>
 

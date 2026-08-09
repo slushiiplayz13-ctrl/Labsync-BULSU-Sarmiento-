@@ -46,10 +46,11 @@ html.text-scale-xlarge {
   zoom: 1.2;
 }
 
-/* Ensure scaled screens can scroll down without clipping */
+/* Ensure scaled screens can scroll down without clipping or horizontal overflow */
 html.text-scale-large,
 html.text-scale-xlarge {
   overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 
 html.text-scale-large body,
@@ -57,13 +58,15 @@ html.text-scale-xlarge body {
   height: auto !important;
   min-height: 100vh !important;
   overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 
 html.text-scale-large .main-wrapper,
 html.text-scale-xlarge .main-wrapper {
   height: auto !important;
   min-height: 100vh !important;
-  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
 }
 
 html.text-scale-large .page-content,
@@ -1168,7 +1171,8 @@ html.high-contrast .custom-select-trigger {
   border-color: var(--border-light) !important;
 }
 
-html.high-contrast .custom-select-dropdown {
+html.high-contrast .custom-select-dropdown,
+html.high-contrast #subject-select-dropdown {
   background: var(--bg-card) !important;
   border-color: var(--border-light) !important;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;

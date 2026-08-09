@@ -14,9 +14,9 @@ window.loadUserSchedule = async function () {
   if (window.lucide) lucide.createIcons({ root: container });
 
   try {
-    const startYear = document.getElementById('academic-year-start-wrapper')?.dataset.value || '2026';
-    const endYear = document.getElementById('academic-year-end-wrapper')?.dataset.value || '2027';
-    const ay = `${startYear}-${endYear}`;
+    const ayWrapper = document.getElementById('academic-year-wrapper') || document.getElementById('academic-year-start-wrapper');
+    const currentYear = new Date().getFullYear();
+    const ay = ayWrapper?.dataset?.value || `${currentYear}-${currentYear + 1}`;
     const sem = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
 
     const res = await fetch(`/api/schedules/user?academicYear=${encodeURIComponent(ay)}&semester=${encodeURIComponent(sem)}`);

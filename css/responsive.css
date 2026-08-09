@@ -102,7 +102,7 @@
     flex-direction: row !important;
     justify-content: center !important;
     align-items: center !important;
-    z-index: 1000 !important;
+    z-index: 1500 !important;
     gap: 0 !important;
     box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.05) !important;
   }
@@ -118,7 +118,7 @@
     gap: 0 !important;
     flex: 1 !important;
     flex-wrap: nowrap !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
   .sidebar-btn {
     flex: 1 1 0% !important;
@@ -130,13 +130,15 @@
     align-items: center !important;
     justify-content: center !important;
     gap: 3px !important;
-    padding: 4px 0 !important;
+    padding: 4px 2px !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
     color: var(--text-muted) !important;
     position: relative !important;
+    cursor: pointer !important;
+    user-select: none !important;
   }
   .sidebar-btn i,
   .sidebar-btn svg {
@@ -159,7 +161,10 @@
     display: block !important;
     font-size: 8.5px !important;
     font-weight: 500 !important;
-    white-space: normal !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
     max-width: 100% !important;
     text-align: center !important;
     line-height: 1.1 !important;
@@ -657,9 +662,14 @@
   .faculty-card {
     padding: 14px 12px !important;
     border-radius: 14px !important;
-    display: flex !important;
+    display: flex;
     flex-direction: column !important;
     justify-content: space-between !important;
+  }
+  .faculty-card.hidden-card,
+  .faculty-card[style*="display: none"],
+  .faculty-card[style*="display:none"] {
+    display: none !important;
   }
 
   .faculty-card > div[style*="display:flex"]:first-of-type,
@@ -776,6 +786,12 @@
   .fm-add-btn {
     width: 100% !important;
     justify-content: center !important;
+  }
+  #filter-dropdown {
+    right: 0 !important;
+    left: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    box-sizing: border-box !important;
   }
 
   /* PC Reports Header & Controls */
@@ -919,6 +935,97 @@
   .modal-content {
     padding: 16px !important;
     border-radius: 16px !important;
+  }
+
+  /* Accessibility Modal Mobile Layout */
+  .accessibility-modal-card {
+    max-width: 100% !important;
+    max-height: 90vh !important;
+    box-sizing: border-box !important;
+  }
+  .accessibility-scale-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    padding: 8px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+  .accessibility-scale-btn {
+    padding: 10px 6px !important;
+    font-size: 13px !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Import Curriculum Modal Mobile Layout */
+  .import-modal-content {
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+    width: 94% !important;
+    max-height: 90vh !important;
+    box-sizing: border-box !important;
+  }
+  .import-modal-top-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+  }
+  .import-dropzone {
+    padding: 16px 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .dropzone-text-desktop {
+    display: none !important;
+  }
+  .dropzone-text-mobile {
+    display: block !important;
+  }
+  .import-sample-btn {
+    width: 100% !important;
+    padding: 10px 12px !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    box-sizing: border-box !important;
+  }
+  .import-sample-btn i,
+  .import-sample-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .import-table-container {
+    margin-bottom: 14px !important;
+    max-height: 200px !important;
+  }
+  .import-table-container th,
+  .import-table-container td {
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+  }
+  .import-modal-footer {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+  .import-footer-right {
+    flex-direction: column-reverse !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  .import-btn-save,
+  .import-btn-cancel,
+  .import-btn-clear {
+    width: 100% !important;
+    padding: 11px 12px !important;
+    text-align: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
   }
 }
 

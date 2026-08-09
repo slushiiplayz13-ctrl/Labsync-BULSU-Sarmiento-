@@ -1189,7 +1189,7 @@ html.high-contrast .stat-title {
 }
 
 .report-card-info {
-  width: 200px;
+  width: 220px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -2655,7 +2655,7 @@ select.editor-select option {
   border: 1.5px solid var(--border-light);
   border-radius: 8px;
   padding: 8px 12px;
-  background: #fff;
+  background: var(--bg-white);
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
@@ -2693,7 +2693,7 @@ select.editor-select option {
   width: 100%;
   max-height: 220px;
   overflow-y: auto;
-  background: #fff;
+  background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);

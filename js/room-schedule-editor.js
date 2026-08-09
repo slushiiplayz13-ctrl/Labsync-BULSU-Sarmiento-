@@ -690,10 +690,16 @@ document.addEventListener('DOMContentLoaded', () => {
           const item = document.createElement('div');
           const fullLabel = s.Subject_Code ? `${s.Subject_Code} - ${s.Subject_Name}` : s.Subject_Name;
           item.className = 'custom-select-option';
-          item.style.cssText = 'padding: 10px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #f1f5f9; color: var(--text-dark);';
+          item.style.cssText = 'padding: 10px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border-light); color: var(--text-dark);';
           item.textContent = fullLabel;
-          item.onmouseover = () => item.style.background = 'var(--primary-teal-light)';
-          item.onmouseout = () => item.style.background = 'transparent';
+          item.onmouseover = () => {
+            item.style.background = 'var(--primary-teal-light)';
+            item.style.color = 'var(--primary-teal)';
+          };
+          item.onmouseout = () => {
+            item.style.background = 'transparent';
+            item.style.color = 'var(--text-dark)';
+          };
           item.onclick = (e) => {
             e.stopPropagation();
             const input = document.getElementById('block-subject');

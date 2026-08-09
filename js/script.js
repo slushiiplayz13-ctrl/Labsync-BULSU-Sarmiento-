@@ -1307,9 +1307,9 @@ function openAccessibilitySettings() {
   const isContrast = localStorage.getItem('labsync-high-contrast') === 'true';
 
   modal.innerHTML = `
-    <div style="background:#fff;border-radius:20px;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;animation: modalScale 0.25s ease-out;">
+    <div class="accessibility-modal-card" style="background:#fff;border-radius:20px;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;animation: modalScale 0.25s ease-out;">
       <!-- Header -->
-      <div style="padding:24px 32px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%);">
+      <div class="accessibility-modal-header" style="padding:24px 32px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%);">
         <div>
           <h2 style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;display:flex;align-items:center;gap:10px;">
             <i data-lucide="eye" style="width:22px;height:22px;color:var(--primary-teal);"></i>
@@ -1323,7 +1323,7 @@ function openAccessibilitySettings() {
       </div>
       
       <!-- Content -->
-      <div style="padding:32px;display:flex;flex-direction:column;gap:28px;">
+      <div class="accessibility-modal-body" style="padding:32px;display:flex;flex-direction:column;gap:28px;">
         
         <!-- Text Size Option -->
         <div>
@@ -1331,11 +1331,11 @@ function openAccessibilitySettings() {
             <i data-lucide="type" style="width:16px;height:16px;color:var(--primary-teal);"></i>
             Adjust Text Size
           </label>
-          <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;background:#F8FAFC;padding:6px;border-radius:12px;border:1px solid var(--border-light);">
-            <button id="btn-scale-small" onclick="setAccessibilityScale('small')" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:11px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Small (90%)</button>
-            <button id="btn-scale-normal" onclick="setAccessibilityScale('normal')" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Normal</button>
-            <button id="btn-scale-large" onclick="setAccessibilityScale('large')" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:15px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Large</button>
-            <button id="btn-scale-xlarge" onclick="setAccessibilityScale('xlarge')" style="border:none;padding:10px;border-radius:8px;font-weight:700;font-size:17px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">X-Large</button>
+          <div class="accessibility-scale-grid" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;background:#F8FAFC;padding:6px;border-radius:12px;border:1px solid var(--border-light);">
+            <button id="btn-scale-small" onclick="setAccessibilityScale('small')" class="accessibility-scale-btn scale-small" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:11px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Small (90%)</button>
+            <button id="btn-scale-normal" onclick="setAccessibilityScale('normal')" class="accessibility-scale-btn scale-normal" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Normal</button>
+            <button id="btn-scale-large" onclick="setAccessibilityScale('large')" class="accessibility-scale-btn scale-large" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:15px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Large</button>
+            <button id="btn-scale-xlarge" onclick="setAccessibilityScale('xlarge')" class="accessibility-scale-btn scale-xlarge" style="border:none;padding:10px;border-radius:8px;font-weight:700;font-size:17px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">X-Large</button>
           </div>
         </div>
 
@@ -1359,7 +1359,7 @@ function openAccessibilitySettings() {
       </div>
 
       <!-- Footer -->
-      <div style="padding:20px 32px;border-top:1px solid var(--border-light);background:#FAFAFA;display:flex;justify-content:flex-end;">
+      <div class="accessibility-modal-footer" style="padding:20px 32px;border-top:1px solid var(--border-light);background:#FAFAFA;display:flex;justify-content:flex-end;">
         <button id="close-accessibility-settings-btn" style="padding:10px 24px;border:none;background:var(--primary-teal);color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);">Done</button>
       </div>
     </div>
@@ -1373,6 +1373,53 @@ function openAccessibilitySettings() {
     styleSheet = document.createElement('style');
     styleSheet.id = 'accessibility-switch-styles';
     styleSheet.innerHTML = `
+      .accessibility-modal-card {
+        max-height: 90vh !important;
+        box-sizing: border-box !important;
+      }
+      .accessibility-scale-grid {
+        box-sizing: border-box !important;
+        width: 100% !important;
+      }
+      .accessibility-scale-btn {
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      @media (max-width: 520px) {
+        #accessibility-settings-modal {
+          padding: 12px !important;
+        }
+        .accessibility-modal-card {
+          max-width: 100% !important;
+        }
+        .accessibility-modal-header {
+          padding: 16px 18px !important;
+        }
+        .accessibility-modal-body {
+          padding: 18px 14px !important;
+          gap: 20px !important;
+        }
+        .accessibility-modal-footer {
+          padding: 14px 18px !important;
+        }
+        .accessibility-scale-grid {
+          grid-template-columns: repeat(2, 1fr) !important;
+          gap: 8px !important;
+          padding: 8px !important;
+        }
+        .accessibility-scale-btn {
+          padding: 10px 6px !important;
+          font-size: 13px !important;
+        }
+      }
       .accessibility-switch {
         width: 48px !important;
         height: 26px !important;
@@ -1552,7 +1599,7 @@ async function openHelpModal() {
     featuresHTML = `
       <div class="help-feature-card theme-blue">
         <div class="help-feat-title">
-          <i data-lucide="file-spreadsheets"></i>
+          <i data-lucide="file-spreadsheet"></i>
           Curriculum Import
         </div>
         <p class="help-feat-desc">Bulk upload subject catalogs using Excel or CSV templates.</p>
@@ -2495,12 +2542,15 @@ function toggleAdminMenu(event, btnEl) {
     border: 1px solid var(--border-light);
     border-radius: 12px;
     box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 16px -6px rgba(15, 23, 42, 0.08);
-    padding: 6px;
+    padding: 5px;
     z-index: 10000;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    min-width: 180px;
+    gap: 3px;
+    width: max-content;
+    min-width: 150px;
+    max-width: calc(100vw - 24px);
+    box-sizing: border-box;
     animation: adminMenuFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   `;
 
@@ -2531,12 +2581,12 @@ function toggleAdminMenu(event, btnEl) {
     <button onclick="window.location.href='master-schedule.html'" class="admin-menu-item ${isMasterActive ? 'active' : ''}" style="
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
+      gap: 8px;
+      padding: 7px 10px;
       border: none;
       background: transparent;
       color: var(--text-dark, #0F172A);
-      font-size: 13.5px;
+      font-size: 11.5px;
       font-weight: 500;
       border-radius: 8px;
       cursor: pointer;
@@ -2544,19 +2594,21 @@ function toggleAdminMenu(event, btnEl) {
       text-align: left;
       font-family: var(--font-body);
       transition: all 0.2s;
+      white-space: nowrap;
+      box-sizing: border-box;
     ">
-      <i data-lucide="calendar" style="width:16px;height:16px;color:${isMasterActive ? 'var(--primary-teal)' : '#64748B'};"></i>
-      Master Schedule
+      <i data-lucide="calendar" style="width:14px;height:14px;flex-shrink:0;color:${isMasterActive ? 'var(--primary-teal)' : '#64748B'};"></i>
+      <span>Master Schedule</span>
     </button>
     <button onclick="window.location.href='faculty-management.html'" class="admin-menu-item ${isFacultyActive ? 'active' : ''}" style="
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
+      gap: 8px;
+      padding: 7px 10px;
       border: none;
       background: transparent;
       color: var(--text-dark, #0F172A);
-      font-size: 13.5px;
+      font-size: 11.5px;
       font-weight: 500;
       border-radius: 8px;
       cursor: pointer;
@@ -2564,9 +2616,11 @@ function toggleAdminMenu(event, btnEl) {
       text-align: left;
       font-family: var(--font-body);
       transition: all 0.2s;
+      white-space: nowrap;
+      box-sizing: border-box;
     ">
-      <i data-lucide="users" style="width:16px;height:16px;color:${isFacultyActive ? 'var(--primary-teal)' : '#64748B'};"></i>
-      Faculty Management
+      <i data-lucide="users" style="width:14px;height:14px;flex-shrink:0;color:${isFacultyActive ? 'var(--primary-teal)' : '#64748B'};"></i>
+      <span>Faculty Management</span>
     </button>
   `;
 
@@ -2596,36 +2650,40 @@ function toggleAdminMenu(event, btnEl) {
     }
   });
 
-  // Calculate position
+  // Calculate position dynamically based on document layout bounds & actual menu dimensions
   const rect = btnEl.getBoundingClientRect();
-  const screenWidth = window.innerWidth;
-  const screenHeight = window.innerHeight;
-  const menuWidth = 180;
-  const menuHeight = 88;
+  const screenWidth = document.documentElement.clientWidth || window.innerWidth;
+  const screenHeight = document.documentElement.clientHeight || window.innerHeight;
+  const actualMenuWidth = Math.ceil(menu.getBoundingClientRect().width) || menu.offsetWidth || 150;
+  const actualMenuHeight = Math.ceil(menu.getBoundingClientRect().height) || menu.offsetHeight || 75;
 
   // Let's determine positioning:
-  // 1. If it's a mobile bottom nav:
-  if (screenWidth <= 1024 && rect.bottom > screenHeight - 100) {
-    let left = rect.left + (rect.width / 2) - (menuWidth / 2);
-    left = Math.max(8, left);
-    if (left + menuWidth > screenWidth - 8) {
-      left = screenWidth - menuWidth - 8;
+  // 1. If it's a mobile bottom nav or near bottom of screen:
+  if (rect.bottom > screenHeight - 120 || (screenWidth <= 1024 && rect.top > screenHeight / 2)) {
+    menu.style.bottom = `${Math.max(8, screenHeight - rect.top + 8)}px`;
+    menu.style.top = 'auto';
+    if (rect.left + (rect.width / 2) > screenWidth / 2) {
+      const rightMargin = Math.max(12, screenWidth - rect.right);
+      menu.style.right = `${rightMargin}px`;
+      menu.style.left = 'auto';
+    } else {
+      let left = rect.left + (rect.width / 2) - (actualMenuWidth / 2);
+      left = Math.max(8, Math.min(left, screenWidth - actualMenuWidth - 8));
+      menu.style.left = `${left}px`;
+      menu.style.right = 'auto';
     }
-    menu.style.top = `${rect.top - menuHeight - 8}px`;
-    menu.style.left = `${left}px`;
   }
   // 2. If it's a desktop sidebar (left of screen):
   else if (rect.left < 100) {
+    let top = rect.top + (rect.height / 2) - (actualMenuHeight / 2);
+    top = Math.max(8, Math.min(top, screenHeight - actualMenuHeight - 8));
     menu.style.left = `${rect.right + 12}px`;
-    menu.style.top = `${rect.top + (rect.height / 2) - (menuHeight / 2)}px`;
+    menu.style.top = `${top}px`;
   }
   // 3. If it's the header menu (top of screen):
   else {
-    let left = rect.left + (rect.width / 2) - (menuWidth / 2);
-    left = Math.max(8, left);
-    if (left + menuWidth > screenWidth - 8) {
-      left = screenWidth - menuWidth - 8;
-    }
+    let left = rect.left + (rect.width / 2) - (actualMenuWidth / 2);
+    left = Math.max(8, Math.min(left, screenWidth - actualMenuWidth - 8));
     menu.style.top = `${rect.bottom + 8}px`;
     menu.style.left = `${left}px`;
   }
@@ -2637,7 +2695,9 @@ function toggleAdminMenu(event, btnEl) {
       document.removeEventListener('click', closeHandler);
     }
   };
-  document.addEventListener('click', closeHandler);
+  setTimeout(() => {
+    document.addEventListener('click', closeHandler);
+  }, 0);
 }
 
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -16,11 +16,8 @@
     rel="stylesheet" />
 
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-
-  <link rel="stylesheet" href="style.css" />
-  <style id="auth-anti-flash">body { display: none !important; }</style>
-  <script src="auth-check.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script src="js/auth-check.js"></script>
   <style>
     /* Status Badges */
     .status-badge {
@@ -189,6 +186,7 @@
       box-shadow: var(--shadow-md);
     }
   </style>
+  <link rel="stylesheet" href="style.css?v=1.0.3" />
 </head>
 
 <body data-page="pc-reports">
@@ -339,8 +337,8 @@
     </main>
   </div>
 
-  <script src="script.js?v=1.0.5"></script>
-  <script src="reports.js"></script>
+  <script src="js/script.js?v=1.0.5"></script>
+  <script src="js/reports.js"></script>
   <script>
     const sidebar = document.querySelector('.sidebar');
     const scrollClue = document.getElementById('sidebarScrollClue');

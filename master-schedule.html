@@ -17,12 +17,11 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <!-- SheetJS for Excel Parsing -->
+  <!-- SheetJS for Excel Parsing with CDN Fallback -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>if (typeof XLSX === 'undefined') document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>');</script>
 
-  <!-- External Stylesheet -->
-  <link rel="stylesheet" href="style.css" />
-  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <!-- External Stylesheet -->  <style id="auth-anti-flash">body { display: none !important; }</style>
   <script>
     (function applyAccessibilitySettings() {
       const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
@@ -31,9 +30,10 @@
       }
     })();
   </script>
-  <script src="auth-check.js"></script>
+  <script src="js/auth-check.js"></script>
   
 
+  <link rel="stylesheet" href="style.css?v=1.0.3" />
 </head>
 
 <body data-page="master-schedule">
@@ -422,50 +422,51 @@
   <!-- Import Curriculum Modal -->
   <div id="importCurriculumModal"
     style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
-    <div class="modal-content"
+    <div class="modal-content import-modal-content"
       style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 720px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
       
       <!-- Modal Header -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
+      <div class="import-modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
         <div>
-          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">Import Subjects</h2>
-          <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Upload subject catalog containing Subject Code and Subject Name</p>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display); margin: 0 0 4px 0;">Import Subjects</h2>
+          <p style="font-size: 13px; color: var(--text-light); margin: 0;">Upload subject catalog containing Subject Code and Subject Name</p>
         </div>
         <button id="closeImportCurriculumModalBtn"
           style="background: var(--bg-body); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-light); transition: all 0.2s;"
-          onmouseover="this.style.background='#e2e8f0'; this.style.color='var(--text-dark)';"
+          onmouseover="this.style.background='var(--border-light)'; this.style.color='var(--text-dark)';"
           onmouseout="this.style.background='var(--bg-body)'; this.style.color='var(--text-light)';">
           <i data-lucide="x" style="width: 18px; height: 18px;"></i>
         </button>
       </div>
 
       <!-- Upload Zone & Download Sample -->
-      <div style="display: flex; gap: 16px; margin-bottom: 20px; flex-shrink: 0; align-items: stretch;">
-        <div id="dropZone" style="flex: 1; border: 2px dashed var(--primary-teal); background: rgba(30, 187, 215, 0.05); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s;"
+      <div class="import-modal-top-row" style="display: flex; gap: 16px; margin-bottom: 20px; flex-shrink: 0; align-items: stretch;">
+        <div id="dropZone" class="import-dropzone" style="flex: 1; border: 2px dashed var(--primary-teal); background: rgba(30, 187, 215, 0.05); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s;"
              onclick="document.getElementById('curriculumFileInput').click();">
           <input type="file" id="curriculumFileInput" accept=".xlsx,.xls,.csv,.json,.txt" style="display: none;">
           <i data-lucide="upload-cloud" style="width: 32px; height: 32px; color: var(--primary-teal); margin-bottom: 8px;"></i>
-          <div style="font-size: 14px; font-weight: 600; color: var(--text-dark);">Click or Drag & Drop File</div>
+          <div class="dropzone-text-desktop" style="font-size: 14px; font-weight: 600; color: var(--text-dark);">Click or Drag & Drop File</div>
+          <div class="dropzone-text-mobile" style="font-size: 14px; font-weight: 600; color: var(--text-dark); display: none;">Tap to Upload File</div>
           <div style="font-size: 12px; color: var(--text-light); margin-top: 2px;">Supports Excel (.xlsx, .xls), CSV, or JSON format</div>
         </div>
 
-        <button id="downloadSampleCsvBtn" type="button"
+        <button id="downloadSampleCsvBtn" class="import-sample-btn" type="button"
           style="width: 180px; padding: 16px; background: var(--bg-body); border: 1.5px dashed var(--border-light); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.2s;"
-          onmouseover="this.style.borderColor='var(--primary-teal)'; this.style.background='#f0fdfa';"
+          onmouseover="this.style.borderColor='var(--primary-teal)'; this.style.background='var(--primary-teal-light)';"
           onmouseout="this.style.borderColor='var(--border-light)'; this.style.background='var(--bg-body)';">
-          <i data-lucide="file-spreadsheets" style="width: 24px; height: 24px; color: var(--primary-teal);"></i>
+          <i data-lucide="file-spreadsheet" style="width: 24px; height: 24px; color: var(--primary-teal);"></i>
           <span style="font-size: 12px; font-weight: 600; color: var(--text-dark);">Download Sample CSV</span>
         </button>
       </div>
 
       <!-- Preview Table Container -->
-      <div style="flex: 1; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 12px; margin-bottom: 20px; background: #fff;">
+      <div class="import-table-container" style="flex: 1; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 12px; margin-bottom: 20px; background: var(--bg-card);">
         <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
-          <thead style="position: sticky; top: 0; background: #f8fafc; border-bottom: 1px solid var(--border-light); font-weight: 700; color: var(--text-mid);">
+          <thead style="position: sticky; top: 0; background: var(--bg-body); border-bottom: 1px solid var(--border-light); font-weight: 700; color: var(--text-dark);">
             <tr>
-              <th style="padding: 12px 16px; width: 60px; text-align: center;">#</th>
-              <th style="padding: 12px 16px; width: 32%;">Subject Code</th>
-              <th style="padding: 12px 16px;">Subject Name</th>
+              <th style="padding: 12px 16px; width: 60px; text-align: center; color: var(--text-dark);">#</th>
+              <th style="padding: 12px 16px; width: 32%; color: var(--text-dark);">Subject Code</th>
+              <th style="padding: 12px 16px; color: var(--text-dark);">Subject Name</th>
             </tr>
           </thead>
           <tbody id="curriculumTableBody">
@@ -477,20 +478,20 @@
       </div>
 
       <!-- Action Buttons -->
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 12px;">
-        <button id="clearCurriculumBtn" type="button"
+      <div class="import-modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 12px;">
+        <button id="clearCurriculumBtn" class="import-btn-clear" type="button"
           style="padding: 12px 20px; background: transparent; color: #ef4444; border: 1.5px solid #fecaca; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s;"
           onmouseover="this.style.background='#fef2f2';"
           onmouseout="this.style.background='transparent';">
           Clear Existing
         </button>
 
-        <div style="display: flex; gap: 12px;">
-          <button id="cancelImportCurriculumBtn" type="button"
-            style="padding: 12px 20px; background: var(--bg-body); color: var(--text-mid); border: 1px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer;">
+        <div class="import-footer-right" style="display: flex; gap: 12px;">
+          <button id="cancelImportCurriculumBtn" class="import-btn-cancel" type="button"
+            style="padding: 12px 20px; background: var(--bg-body); color: var(--text-dark); border: 1px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer;">
             Cancel
           </button>
-          <button id="saveImportCurriculumBtn" type="button"
+          <button id="saveImportCurriculumBtn" class="import-btn-save" type="button"
             style="padding: 12px 24px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
             onmouseover="this.style.background='#17a3bc';"
             onmouseout="this.style.background='var(--primary-teal)';">
@@ -502,7 +503,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=1.0.5"></script>
+  <script src="js/script.js?v=1.0.5"></script>
   <script>
 
 
@@ -990,19 +991,31 @@
     const clearCurriculumBtn = document.getElementById('clearCurriculumBtn');
     const curriculumFilterTabs = document.getElementById('curriculumFilterTabs');
 
-    let parsedCurriculumData = [];
+    window.isFileUploadedToCurriculum = false;
 
     async function fetchExistingCurriculum() {
       try {
         const res = await fetch('/api/curriculum');
         if (res.ok) {
           const data = await res.json();
-          parsedCurriculumData = data;
-          renderCurriculumTable();
+          if (!window.isFileUploadedToCurriculum) {
+            parsedCurriculumData = data;
+            renderCurriculumTable();
+          }
         }
       } catch (err) {
         console.error('Failed to fetch existing curriculum:', err);
       }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
     function renderCurriculumTable() {
@@ -1020,7 +1033,7 @@
 
       parsedCurriculumData.forEach((item, index) => {
         const tr = document.createElement('tr');
-        tr.style.borderBottom = '1px solid #f1f5f9';
+        tr.style.borderBottom = '1px solid var(--border-light)';
         tr.innerHTML = `
           <td style="padding: 10px 16px; font-weight: 600; color: var(--text-light); text-align: center; width: 60px;">${index + 1}</td>
           <td style="padding: 10px 16px; font-weight: 700; color: var(--primary-teal);">${escapeHtml(item.Subject_Code || item.code || '-')}</td>
@@ -1031,6 +1044,7 @@
     }
 
     function openImportCurriculumModal() {
+      window.isFileUploadedToCurriculum = false;
       fetchExistingCurriculum();
       importCurriculumModal.style.display = 'flex';
       void importCurriculumModal.offsetWidth;
@@ -1058,30 +1072,10 @@
     // File parsing (Excel / CSV / JSON)
     function processUploadedFile(file) {
       if (!file) return;
+      window.isFileUploadedToCurriculum = true;
       const fileName = file.name.toLowerCase();
 
-      if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            if (typeof XLSX === 'undefined') {
-              alert('Excel parser library is loading. Please try again.');
-              return;
-            }
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-            parsedCurriculumData = parseExcelOrArrayRows(jsonRows);
-            renderCurriculumTable();
-          } catch (err) {
-            console.error('Excel parse error:', err);
-            alert('Failed to parse Excel file. Please ensure it is a valid .xlsx or .xls file.');
-          }
-        };
-        reader.readAsArrayBuffer(file);
-      } else if (fileName.endsWith('.json')) {
+      if (fileName.endsWith('.json')) {
         const reader = new FileReader();
         reader.onload = (e) => {
           try {
@@ -1093,77 +1087,246 @@
           }
         };
         reader.readAsText(file);
-      } else {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            parsedCurriculumData = parseCSVText(e.target.result);
-            renderCurriculumTable();
-          } catch (err) {
-            alert('Failed to parse CSV file.');
-          }
-        };
-        reader.readAsText(file);
+        return;
       }
+
+      // If text or CSV extension, try text parsing first
+      if (fileName.endsWith('.csv') || fileName.endsWith('.txt')) {
+        readAsTextFallback(file);
+        return;
+      }
+
+      // Try SheetJS parsing for Excel (.xlsx, .xls) files
+      console.log('[LabSync] processUploadedFile: fileName=', fileName, 'fileSize=', file.size);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (typeof XLSX === 'undefined') {
+          console.warn('[LabSync] XLSX library not loaded, attempting text fallback');
+          readAsTextFallback(file);
+          return;
+        }
+
+        try {
+          let workbook = null;
+          try {
+            workbook = XLSX.read(e.target.result, { type: 'array' });
+            console.log('[LabSync] SheetJS read OK (array mode)');
+          } catch (e1) {
+            console.warn('[LabSync] array mode failed:', e1.message);
+            try {
+              const dataArr = new Uint8Array(e.target.result);
+              workbook = XLSX.read(dataArr, { type: 'array' });
+              console.log('[LabSync] SheetJS read OK (Uint8Array mode)');
+            } catch (e2) {
+              console.warn('[LabSync] Uint8Array mode failed:', e2.message);
+              const binary = new Uint8Array(e.target.result).reduce((data, byte) => data + String.fromCharCode(byte), '');
+              workbook = XLSX.read(binary, { type: 'binary' });
+              console.log('[LabSync] SheetJS read OK (binary mode)');
+            }
+          }
+
+          if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+            console.warn('[LabSync] No sheets found, falling back to text');
+            readAsTextFallback(file);
+            return;
+          }
+
+          console.log('[LabSync] Sheet names:', workbook.SheetNames);
+
+          let allExtractedSubjects = [];
+          for (const sheetName of workbook.SheetNames) {
+            const worksheet = workbook.Sheets[sheetName];
+            if (!worksheet) continue;
+            const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+            console.log('[LabSync] Sheet "' + sheetName + '" raw rows count:', jsonRows ? jsonRows.length : 0);
+            if (jsonRows && jsonRows.length > 0) {
+              console.log('[LabSync] First 5 rows:', JSON.stringify(jsonRows.slice(0, 5)));
+              const subjects = parseExcelOrArrayRows(jsonRows);
+              console.log('[LabSync] Parsed subjects from sheet "' + sheetName + '":', subjects.length, subjects.slice(0, 3));
+              if (subjects.length > 0) {
+                allExtractedSubjects = allExtractedSubjects.concat(subjects);
+              }
+            }
+          }
+
+          if (allExtractedSubjects.length > 0) {
+            parsedCurriculumData = allExtractedSubjects;
+            renderCurriculumTable();
+          } else {
+            console.warn('[LabSync] Zero subjects parsed from XLSX, trying text fallback');
+            readAsTextFallback(file);
+          }
+        } catch (err) {
+          console.warn('[LabSync] SheetJS error, attempting text fallback:', err);
+          readAsTextFallback(file);
+        }
+      };
+      reader.onerror = () => { console.error('[LabSync] FileReader error'); readAsTextFallback(file); };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function readAsTextFallback(file) {
+      console.log('[LabSync] readAsTextFallback triggered for:', file.name);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const text = e.target.result;
+          console.log('[LabSync] Text fallback raw length:', text.length, '| first 300 chars:', text.substring(0, 300));
+          parsedCurriculumData = parseCSVText(text);
+          console.log('[LabSync] Text fallback parsed count:', parsedCurriculumData.length);
+          if (parsedCurriculumData.length === 0) {
+            alert('Could not extract valid subject rows from the uploaded file. Please ensure your file contains Subject Code and Subject Name columns.');
+          } else {
+            renderCurriculumTable();
+          }
+        } catch (err) {
+          console.error('[LabSync] Fallback parse error:', err);
+          alert('Failed to parse uploaded file. Please ensure it is a valid Excel or CSV file.');
+        }
+      };
+      reader.readAsText(file);
     }
 
     function parseExcelOrArrayRows(rows) {
       if (!rows || rows.length === 0) return [];
 
-      const firstRow = rows[0] || [];
-      const firstRowStr = firstRow.join(' ').toLowerCase();
-      const hasHeaders = firstRowStr.includes('code') || firstRowStr.includes('name') || firstRowStr.includes('subject');
-      const startIdx = hasHeaders ? 1 : 0;
+      let rawRows = rows;
+      if (rows.length > 0 && typeof rows[0] === 'object' && !Array.isArray(rows[0])) {
+        const keys = Object.keys(rows[0]);
+        rawRows = [keys].concat(rows.map(obj => keys.map(k => obj[k])));
+      }
 
-      let codeIdx = 0;
-      let nameIdx = 1;
+      const cleanRows = [];
+      for (let r of rawRows) {
+        if (!r) continue;
+        let arr = [];
+        if (Array.isArray(r)) {
+          arr = r.map(c => (c !== undefined && c !== null) ? String(c).trim() : '');
+        } else if (typeof r === 'object') {
+          arr = Object.values(r).map(c => (c !== undefined && c !== null) ? String(c).trim() : '');
+        } else {
+          arr = [String(r).trim()];
+        }
+        if (arr.some(c => c.length > 0)) {
+          cleanRows.push(arr);
+        }
+      }
 
-      if (hasHeaders) {
-        firstRow.forEach((cell, idx) => {
-          const c = (cell || '').toString().toLowerCase().trim();
-          if (c.includes('code')) {
-            codeIdx = idx;
-          } else if ((c.includes('name') || c.includes('subject') || c.includes('title')) && !c.includes('code')) {
-            nameIdx = idx;
+      if (cleanRows.length === 0) return [];
+
+      let codeIdx = -1;
+      let nameIdx = -1;
+      let headerRowIdx = -1;
+
+      // Scan first 25 rows for column headers
+      for (let i = 0; i < Math.min(cleanRows.length, 25); i++) {
+        const row = cleanRows[i];
+        let foundCode = -1;
+        let foundName = -1;
+
+        row.forEach((cell, idx) => {
+          const c = cell.toLowerCase();
+          if (c.includes('code') || c.includes('course_no') || c.includes('subj_no') || c.includes('course no') || c.includes('subject no')) {
+            foundCode = idx;
+          } else if (c.includes('name') || c.includes('title') || c.includes('description') || c.includes('descriptive') || c.includes('course title') || c.includes('subject title')) {
+            foundName = idx;
+          } else if (c === 'subject' || c === 'course' || c === 'subj') {
+            if (foundName === -1) foundName = idx;
           }
         });
-      } else {
-        const sampleRow = rows[startIdx] || [];
-        const isCol0Num = sampleRow[0] !== undefined && sampleRow[0] !== null && !isNaN(Number(sampleRow[0].toString().trim())) && sampleRow[0].toString().trim() !== '';
-        if (isCol0Num && sampleRow.length >= 3) {
-          codeIdx = 1;
-          nameIdx = 2;
+
+        if (foundCode !== -1 || foundName !== -1) {
+          headerRowIdx = i;
+          codeIdx = foundCode;
+          nameIdx = foundName;
+          break;
         }
       }
 
       const result = [];
-      for (let i = startIdx; i < rows.length; i++) {
-        const row = rows[i];
+      const startIdx = (headerRowIdx !== -1) ? headerRowIdx + 1 : 0;
+
+      for (let i = startIdx; i < cleanRows.length; i++) {
+        const row = cleanRows[i];
         if (!row || row.length === 0) continue;
 
-        let code = (row[codeIdx] !== undefined ? row[codeIdx] : '').toString().trim();
-        let name = (row[nameIdx] !== undefined ? row[nameIdx] : '').toString().trim();
+        let code = '';
+        let name = '';
 
-        if (!name && code && codeIdx === 0) {
-          name = code;
-          code = '';
+        if (codeIdx !== -1 && nameIdx !== -1 && codeIdx !== nameIdx) {
+          code = row[codeIdx] || '';
+          name = row[nameIdx] || '';
+        } else if (codeIdx !== -1 && nameIdx === -1) {
+          code = row[codeIdx] || '';
+          const otherIdx = row.findIndex((cell, idx) => idx !== codeIdx && cell.length > 0);
+          if (otherIdx !== -1) name = row[otherIdx];
+        } else if (nameIdx !== -1 && codeIdx === -1) {
+          name = row[nameIdx] || '';
+          const otherIdx = row.findIndex((cell, idx) => idx !== nameIdx && cell.length > 0);
+          if (otherIdx !== -1) code = row[otherIdx];
+        } else {
+          const nonEmp = [];
+          row.forEach((cell, idx) => { if (cell.length > 0) nonEmp.push({ val: cell, idx }); });
+          
+          if (nonEmp.length >= 2) {
+            const isFirstNum = !isNaN(Number(nonEmp[0].val)) && nonEmp[0].val.length <= 4;
+            if (isFirstNum && nonEmp.length >= 3) {
+              code = nonEmp[1].val;
+              name = nonEmp[2].val;
+            } else {
+              code = nonEmp[0].val;
+              name = nonEmp[1].val;
+            }
+          } else if (nonEmp.length === 1) {
+            const single = nonEmp[0].val;
+            if (single.length > 12 || single.includes(' ')) {
+              name = single;
+            } else {
+              code = single;
+            }
+          }
         }
 
-        if (name || code) {
-          result.push({
-            Subject_Code: code,
-            Subject_Name: name
-          });
-        }
+        code = code.trim();
+        name = name.trim();
+
+        const lowCode = code.toLowerCase();
+        const lowName = name.toLowerCase();
+
+        if (!code && !name) continue;
+        if (lowCode === 'code' || lowCode === 'subject code' || lowCode === 'course code' || lowCode === '#' || lowCode === 'no' || lowCode === 'no.') continue;
+        if (lowName === 'name' || lowName === 'subject name' || lowName === 'course title' || lowName === 'description') continue;
+        if (lowCode.includes('bulacan state') || lowCode.includes('curriculum') || lowName.includes('bulacan state')) continue;
+
+        result.push({
+          Subject_Code: code,
+          Subject_Name: name
+        });
       }
+
       return result;
     }
 
     function parseCSVText(text) {
-      const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+      if (!text || !text.trim()) return [];
+
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       if (lines.length === 0) return [];
-      
-      const rows = lines.map(line => line.split(',').map(c => c.replace(/^["']|["']$/g, '').trim()));
+
+      const sample = lines.slice(0, 10).join('\n');
+      let delimiter = ',';
+      if ((sample.match(/\t/g) || []).length > (sample.match(/,/g) || []).length) {
+        delimiter = '\t';
+      } else if ((sample.match(/;/g) || []).length > (sample.match(/,/g) || []).length) {
+        delimiter = ';';
+      } else if ((sample.match(/\|/g) || []).length > (sample.match(/,/g) || []).length) {
+        delimiter = '|';
+      }
+
+      const rows = lines.map(line => {
+        return line.split(delimiter).map(cell => cell.replace(/^["']|["']$/g, '').trim());
+      });
+
       return parseExcelOrArrayRows(rows);
     }
 
@@ -1171,6 +1334,7 @@
       curriculumFileInput.addEventListener('change', (e) => {
         if (e.target.files && e.target.files[0]) {
           processUploadedFile(e.target.files[0]);
+          e.target.value = '';
         }
       });
     }

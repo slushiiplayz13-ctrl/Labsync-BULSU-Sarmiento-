@@ -9,10 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="style.css" />
-  <style id="auth-anti-flash">body { display: none !important; }</style>
-  <script src="auth-check.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script src="js/auth-check.js"></script>
   <style>
     .menu-item:hover {
       background-color: #F3F4F6;
@@ -25,7 +23,8 @@
       animation: spin 1s linear infinite;
     }
   </style>
-  </head>
+    <link rel="stylesheet" href="style.css?v=1.0.3" />
+</head>
 
 <body data-page="faculty-management">
 
@@ -138,7 +137,7 @@
               <i data-lucide="sliders-horizontal" style="width:14px;height:14px;"></i>
               Filter
             </button>
-            <div id="filter-dropdown" style="display: none; position: absolute; left: 0; top: 100%; background: #fff; border: 1px solid #E5E7EB; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); width: 180px; z-index: 100; padding: 6px 0; margin-top: 4px; font-family: var(--font-body);">
+            <div id="filter-dropdown" style="display: none; position: absolute; right: 0; top: 100%; background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); width: 180px; max-width: calc(100vw - 24px); box-sizing: border-box; z-index: 100; padding: 6px 0; margin-top: 4px; font-family: var(--font-body);">
               <div class="filter-item" onclick="filterFaculty('all')" style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; font-weight: 600; background: none;">
                 All Roles <i data-lucide="check" style="width: 14px; height: 14px; color: var(--primary-teal); flex-shrink: 0;"></i>
               </div>
@@ -172,7 +171,7 @@
     </main>
   </div>
 
-  <script src="script.js?v=1.0.5"></script>
+  <script src="js/script.js?v=1.0.5"></script>
   <script>
     // Sidebar scroll clue
     const sidebar = document.querySelector('.sidebar');
@@ -237,8 +236,10 @@
             ? `<img src="${member.Profile_Photo}" alt="${member.Name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
             : member.Name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
+          const searchString = `${member.Name || ''} ${member.Email || ''} ${member.Role || ''} ${member.Phone || ''}`.toLowerCase();
+
           return `
-          <div class="faculty-card ${isBoss ? 'boss-card' : ''}" data-role="${member.Role ? member.Role.toLowerCase() : 'faculty'}" data-name="${member.Name.toLowerCase()}" data-dept="${member.Email.toLowerCase()}" style="background:#fff;border-radius:12px;padding:20px 18px;transition:all 0.3s ease;position:relative;${borderStyle}">
+          <div class="faculty-card ${isBoss ? 'boss-card' : ''}" data-role="${member.Role ? member.Role.toLowerCase() : 'faculty'}" data-name="${(member.Name || '').toLowerCase()}" data-dept="${(member.Email || '').toLowerCase()}" data-search="${searchString}" style="background:#fff;border-radius:12px;padding:20px 18px;transition:all 0.3s ease;position:relative;${borderStyle}">
             
             <!-- Top: Avatar + Name + Status + Menu -->
             <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">
@@ -288,6 +289,7 @@
         }).join('');
         
         lucide.createIcons();
+        if (window.applySearchAndFilter) window.applySearchAndFilter();
       } catch (error) {
         console.error('Error loading faculty:', error);
       }
@@ -325,20 +327,28 @@
     const filterBtn = document.getElementById('filter-btn');
     const filterDropdown = document.getElementById('filter-dropdown');
     
-    if (filterBtn && filterDropdown) {
-      filterBtn.addEventListener('click', (e) => {
+    window.toggleFacultyFilterDropdown = function(e) {
+      if (e) {
+        e.preventDefault();
         e.stopPropagation();
-        const isShowing = filterDropdown.style.display === 'block';
+      }
+      const dropdown = document.getElementById('filter-dropdown');
+      if (dropdown) {
+        const isShowing = dropdown.style.display === 'block';
         closeAllMenus();
-        filterDropdown.style.display = isShowing ? 'none' : 'block';
-      });
+        dropdown.style.display = isShowing ? 'none' : 'block';
+      }
+    };
+
+    if (filterBtn) {
+      filterBtn.addEventListener('click', (e) => window.toggleFacultyFilterDropdown(e));
     }
 
     // Filter and search unified logic
-    let currentFilter = 'all';
+    window.currentFacultyFilter = 'all';
 
     window.filterFaculty = function(role) {
-      currentFilter = role;
+      window.currentFacultyFilter = role;
       
       // Update UI list checkmarks
       document.querySelectorAll('.filter-item').forEach(item => {
@@ -355,35 +365,53 @@
         if (icon) icon.style.display = 'block';
       }
 
-      applySearchAndFilter();
+      const dropdown = document.getElementById('filter-dropdown');
+      if (dropdown) dropdown.style.display = 'none';
+
+      window.applySearchAndFilter();
     };
 
-    function applySearchAndFilter() {
-      const q = document.getElementById('faculty-search').value.toLowerCase().trim();
+    window.applySearchAndFilter = function() {
+      const searchInput = document.getElementById('faculty-search');
+      const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const filter = window.currentFacultyFilter || 'all';
       
       document.querySelectorAll('.faculty-card').forEach(card => {
         const name = card.dataset.name || '';
         const email = card.dataset.dept || '';
         const role = card.dataset.role || '';
+        const searchStr = card.dataset.search || (name + ' ' + email + ' ' + role);
         
-        const matchesSearch = name.includes(q) || email.includes(q);
+        const matchesSearch = !q || searchStr.includes(q);
         let matchesFilter = false;
         
-        if (currentFilter === 'all') {
+        if (filter === 'all') {
           matchesFilter = true;
-        } else if (currentFilter === 'head') {
+        } else if (filter === 'head') {
           matchesFilter = role.includes('head');
-        } else if (currentFilter === 'faculty') {
-          matchesFilter = role === 'faculty';
-        } else if (currentFilter === 'mis') {
+        } else if (filter === 'faculty') {
+          matchesFilter = role === 'faculty' || (!role.includes('head') && !role.includes('mis'));
+        } else if (filter === 'mis') {
           matchesFilter = role.includes('mis');
         }
         
-        card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+        const isVisible = matchesSearch && matchesFilter;
+        if (isVisible) {
+          card.classList.remove('hidden-card');
+          card.style.setProperty('display', '', 'important');
+        } else {
+          card.classList.add('hidden-card');
+          card.style.setProperty('display', 'none', 'important');
+        }
+      });
+    };
+
+    const searchInput = document.getElementById('faculty-search');
+    if (searchInput) {
+      ['input', 'keyup', 'change', 'clear', 'paste'].forEach(evt => {
+        searchInput.addEventListener(evt, () => window.applySearchAndFilter());
       });
     }
-
-    document.getElementById('faculty-search').addEventListener('input', applySearchAndFilter);
 
     // Add Faculty modal
     document.getElementById('add-faculty-btn').addEventListener('click', () => {
