@@ -448,8 +448,8 @@ document.addEventListener('DOMContentLoaded', () => {
     block.id = 'block-new-' + blockCounter;
     block.innerHTML = `
       <div style="font-weight: 700;">${subject}</div>
-      <div style="font-size: 10px; opacity: 0.9;">${professor}</div>
-      <div style="font-size: 10px; opacity: 0.9;">${section}</div>
+      <div style="font-size: 11.5px; opacity: 0.9;">${professor}</div>
+      <div style="font-size: 11.5px; opacity: 0.9;">${section}</div>
       <button class="delete-block-btn" onclick="deleteBlock(event, this)">
         <i data-lucide="x" style="width: 14px; height: 14px; pointer-events: none;"></i>
       </button>

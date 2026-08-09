@@ -76,7 +76,7 @@ window.showToast = function (message, type = 'success', title = null) {
         <span>${escapeToastHtml(toastTitle)}</span>
         <button class="labsync-toast-close" style="background: none; border: none; font-size: 16px; color: var(--text-muted, #94A3B8); cursor: pointer; padding: 0 4px; line-height: 1; margin-left: 8px;">&times;</button>
       </div>
-      <div style="font-size: 12.5px; color: var(--text-mid, #475569); line-height: 1.4; word-break: break-word;">${escapeToastHtml(message)}</div>
+      <div style="font-size: 13.5px; color: var(--text-mid, #475569); line-height: 1.4; word-break: break-word;">${escapeToastHtml(message)}</div>
     </div>
   `;
 
@@ -804,15 +804,15 @@ function openAccountSettings() {
             <div id="panel-profile" class="settings-tab-panel" style="display:block;">
               <div style="margin-bottom:28px;">
                 <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">Profile Details</h3>
-                <p style="font-size:12.5px;color:var(--text-mid);margin:0;">Update your personal details and profile photo</p>
+                <p style="font-size:13.5px;color:var(--text-mid);margin:0;">Update your personal details and profile photo</p>
               </div>
 
               <!-- Shared MIS Staff Account Notice Banner -->
               <div id="mis-shared-account-banner" class="banner-mis-notice info" style="display:none; border-radius:12px; padding:14px 16px; margin-bottom:24px; align-items:flex-start; gap:12px;">
                 <i data-lucide="shield-alert" class="banner-icon" style="width:20px;height:20px;flex-shrink:0;margin-top:2px;"></i>
                 <div>
-                  <div class="banner-title" style="font-weight:700;font-size:13px;margin-bottom:2px;">Shared Department Account</div>
-                  <p class="banner-text" style="font-size:12px;margin:0;line-height:1.4;">This account is shared by all MIS Personnel. Profile information (Full Name, Email Address, Mobile Number) is restricted to maintain department access.</p>
+                  <div class="banner-title" style="font-weight:700;font-size:13.5px;margin-bottom:2px;">Shared Department Account</div>
+                  <p class="banner-text" style="font-size:13px;margin:0;line-height:1.4;">This account is shared by all MIS Personnel. Profile information (Full Name, Email Address, Mobile Number) is restricted to maintain department access.</p>
                 </div>
               </div>
 
@@ -829,8 +829,8 @@ function openAccountSettings() {
                     <i data-lucide="upload" style="width:14px;height:14px;"></i>
                     Upload Photo
                   </button>
-                  <button type="button" id="remove-photo-btn" style="padding:6px 12px;border:1px solid var(--border-light);background:var(--bg-card);color:var(--text-mid);border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);display:none;">Remove Photo</button>
-                  <p style="font-size:10px;color:var(--text-muted);text-align:center;margin:0;line-height:1.4;">JPG, PNG or GIF<br>Max size: 2MB</p>
+                  <button type="button" id="remove-photo-btn" style="padding:6px 12px;border:1px solid var(--border-light);background:var(--bg-card);color:var(--text-mid);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);display:none;">Remove Photo</button>
+                  <p style="font-size:11.5px;color:var(--text-muted);text-align:center;margin:0;line-height:1.4;">JPG, PNG or GIF<br>Max size: 2MB</p>
                 </div>
 
                 <!-- Input Fields Column -->
@@ -862,15 +862,15 @@ function openAccountSettings() {
             <div id="panel-security" class="settings-tab-panel" style="display:none;">
               <div style="margin-bottom:28px;">
                 <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">Security & Login</h3>
-                <p style="font-size:12.5px;color:var(--text-mid);margin:0;">Update your account password to remain secure</p>
+                <p style="font-size:13.5px;color:var(--text-mid);margin:0;">Update your account password to remain secure</p>
               </div>
 
               <!-- Shared Password Notice for MIS -->
               <div id="mis-password-notice" class="banner-mis-notice warning" style="display:none; border-radius:12px; padding:14px 16px; margin-bottom:24px; align-items:flex-start; gap:12px;">
                 <i data-lucide="alert-triangle" class="banner-icon" style="width:20px;height:20px;flex-shrink:0;margin-top:2px;"></i>
                 <div>
-                  <div class="banner-title" style="font-weight:700;font-size:13px;margin-bottom:2px;">Shared Account Password Warning</div>
-                  <p class="banner-text" style="font-size:12px;margin:0;line-height:1.4;">Attention: Changing this password will update the login password for ALL MIS personnel using this shared department account.</p>
+                  <div class="banner-title" style="font-weight:700;font-size:13.5px;margin-bottom:2px;">Shared Account Password Warning</div>
+                  <p class="banner-text" style="font-size:13px;margin:0;line-height:1.4;">Attention: Changing this password will update the login password for ALL MIS personnel using this shared department account.</p>
                 </div>
               </div>
 
@@ -1315,7 +1315,7 @@ function openAccessibilitySettings() {
             <i data-lucide="eye" style="width:22px;height:22px;color:var(--primary-teal);"></i>
             Accessibility Settings
           </h2>
-          <p style="font-size:12px;color:var(--text-mid);margin:0;">Adjust text size and color contrast for better readability</p>
+          <p style="font-size:13px;color:var(--text-mid);margin:0;">Adjust text size and color contrast for better readability</p>
         </div>
         <button id="close-accessibility-modal" style="background:#F5F5F5;border:none;cursor:pointer;padding:8px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all 0.2s;">
           <i data-lucide="x" style="width:18px;height:18px;color:var(--text-mid);"></i>
@@ -1347,7 +1347,7 @@ function openAccessibilitySettings() {
             </div>
             <div style="flex:1;min-width:0;">
               <span style="display:block;font-size:14px;font-weight:700;color:var(--text-dark);">High Contrast Theme</span>
-              <span style="font-size:11px;color:var(--text-muted);display:block;line-height:1.35;">Use dark contrast theme for low light or visual assistance</span>
+              <span style="font-size:12.5px;color:var(--text-muted);display:block;line-height:1.35;">Use dark contrast theme for low light or visual assistance</span>
             </div>
           </div>
           <label class="accessibility-switch" style="position:relative;display:inline-block;width:48px;height:26px;min-width:48px;flex-shrink:0;cursor:pointer;margin-left:8px;">
@@ -1482,7 +1482,7 @@ async function openHelpModal() {
   const modal = document.createElement('div');
   modal.id = 'help-modal';
   modal.className = 'help-modal-overlay';
-  
+
   let quickStartHTML = '';
   let featuresHTML = '';
 
@@ -1627,7 +1627,7 @@ async function openHelpModal() {
         <p class="help-feat-desc">Manage your profile, password, and QR code from your account.</p>
       </div>`;
   }
-  
+
   modal.innerHTML = `
     <div class="help-modal-dialog">
       <!-- Header -->
@@ -1807,8 +1807,16 @@ async function loadDashboardSchedule() {
     }
 
     if (todaySchedules.length === 0) {
+      timelineList.style.paddingLeft = '0';
+      timelineList.style.paddingRight = '0';
+      timelineList.style.display = 'flex';
+      timelineList.style.flexDirection = 'column';
+      timelineList.style.justifyContent = 'center';
+      timelineList.style.alignItems = 'center';
+      timelineList.style.flex = '1';
+      timelineList.style.height = '100%';
       timelineList.innerHTML = `
-        <div class="ui-empty-state" style="grid-column: unset; width: 100%; min-height: 200px;">
+        <div class="ui-empty-state" style="grid-column: unset; width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; margin: auto 0;">
           <div class="ui-empty-icon">
             <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
           </div>
@@ -1817,6 +1825,15 @@ async function loadDashboardSchedule() {
       `;
       if (window.lucide) lucide.createIcons({ root: timelineList });
       return;
+    } else {
+      timelineList.style.paddingLeft = '';
+      timelineList.style.paddingRight = '';
+      timelineList.style.display = '';
+      timelineList.style.flexDirection = '';
+      timelineList.style.justifyContent = '';
+      timelineList.style.alignItems = '';
+      timelineList.style.flex = '';
+      timelineList.style.height = '';
     }
 
     // Determine current time to mark items as active or future
@@ -1862,7 +1879,7 @@ async function loadDashboardSchedule() {
           <div class="time-marker"></div>
           <div class="time-content" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; box-sizing: border-box;">
             <div class="tc-left" style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0;">
-              <div class="tc-time" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--primary-teal);">
+              <div class="tc-time" style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--primary-teal);">
                 <i data-lucide="clock" style="width:13px;height:13px;flex-shrink:0;"></i>
                 <span>${formatTime12(s.Start_Time)} – ${formatTime12(s.End_Time)}</span>
               </div>
@@ -1870,12 +1887,12 @@ async function loadDashboardSchedule() {
             </div>
             <div class="tc-right" style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
               <div style="display: flex; align-items: center; gap: 6px;">
-                <span class="tc-room-badge" style="font-size: 12px; font-weight: 700; background: #E0F2FE; color: #0284C7; padding: 5px 11px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">
+                <span class="tc-room-badge" style="font-size: 13px; font-weight: 700; background: #E0F2FE; color: #0284C7; padding: 5px 11px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">
                   <i data-lucide="map-pin" style="width:13px;height:13px;"></i> RM ${escapeHtml(s.Room_Number || 'TBA')}
                 </span>
-                ${s.Section ? `<span class="tc-section-badge" style="font-size: 11.5px; font-weight: 800; background: rgba(15, 23, 42, 0.06); color: var(--text-dark); padding: 5px 10px; border-radius: 8px;">${escapeHtml(s.Section)}</span>` : ''}
+                ${s.Section ? `<span class="tc-section-badge" style="font-size: 12.5px; font-weight: 800; background: rgba(15, 23, 42, 0.06); color: var(--text-dark); padding: 5px 10px; border-radius: 8px;">${escapeHtml(s.Section)}</span>` : ''}
               </div>
-              ${isActive ? '<span style="font-size: 11px; font-weight: 800; background: #DCFCE7; color: #15803D; padding: 5px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px;"><span style="width:7px;height:7px;border-radius:50%;background:#22C55E;box-shadow:0 0 0 3px rgba(34,197,94,0.25);"></span> ONGOING</span>' : (isFuture ? '<span style="font-size: 11px; font-weight: 800; background: #F1F5F9; color: #64748B; padding: 5px 12px; border-radius: 20px;">UPCOMING</span>' : '<span style="font-size: 11px; font-weight: 800; background: #F8FAFC; color: #94A3B8; padding: 5px 12px; border-radius: 20px;">COMPLETED</span>')}
+              ${isActive ? '<span style="font-size: 12px; font-weight: 800; background: #DCFCE7; color: #15803D; padding: 5px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px;"><span style="width:7px;height:7px;border-radius:50%;background:#22C55E;box-shadow:0 0 0 3px rgba(34,197,94,0.25);"></span> ONGOING</span>' : (isFuture ? '<span style="font-size: 12px; font-weight: 800; background: #F1F5F9; color: #64748B; padding: 5px 12px; border-radius: 20px;">UPCOMING</span>' : '<span style="font-size: 12px; font-weight: 800; background: #F8FAFC; color: #94A3B8; padding: 5px 12px; border-radius: 20px;">COMPLETED</span>')}
             </div>
           </div>
         </div>
@@ -2000,15 +2017,15 @@ async function initMISDashboard() {
 
           let statusBadge = '';
           if (r.Status === 'Pending') {
-            statusBadge = '<span style="background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;">Pending</span>';
+            statusBadge = '<span style="background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;">Pending</span>';
           } else if (r.Status === 'In Progress') {
-            statusBadge = '<span style="background: #DBEAFE; color: #2563EB; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;">In Progress</span>';
+            statusBadge = '<span style="background: #DBEAFE; color: #2563EB; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;">In Progress</span>';
           } else {
-            statusBadge = '<span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;">Resolved</span>';
+            statusBadge = '<span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;">Resolved</span>';
           }
 
           const sectionBadge = parsed.section && parsed.section !== 'N/A'
-            ? `<span style="font-size: 11px; font-weight: 700; color: #0E7490; background: #E0F2FE; padding: 3px 8px; border-radius: 99px; margin-left: 6px;">${parsed.section}</span>`
+            ? `<span style="font-size: 12px; font-weight: 700; color: #0E7490; background: #E0F2FE; padding: 3px 8px; border-radius: 99px; margin-left: 6px;">${parsed.section}</span>`
             : '';
 
           return `
@@ -2067,7 +2084,7 @@ async function initMISDashboard() {
               <div style="width: 10px; height: 10px; border-radius: 50%; background: ${r.Status === 'Pending' ? '#F59E0B' : r.Status === 'In Progress' ? '#3B82F6' : '#10B981'}; margin-top: 4px; flex-shrink: 0;"></div>
               <div style="flex: 1;">
                 <div style="font-size: 13px; font-weight: 600; color: var(--text-dark);">PC #${r.PC_Number} reported in Room ${r.Room_Number}</div>
-                <div style="font-size: 12px; color: var(--text-light); margin-top: 2px;">${r.Student_Name || 'Student'} • ${timeAgo}</div>
+                <div style="font-size: 12.5px; color: var(--text-light); margin-top: 2px;">${r.Student_Name || 'Student'} • ${timeAgo}</div>
               </div>
             </div>
           `;

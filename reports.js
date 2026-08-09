@@ -71,13 +71,7 @@ window.renderSingleCard = function (report) {
   let borderStyle = '';
   if (document.body.dataset.page === 'mis-pc-reports') {
     borderStyle = 'border-bottom: 1px solid var(--border-light); padding-bottom: 14px;';
-    if (report.Status === 'Pending') {
-      actionsHtml = `
-        <button class="btn-action process" onclick="window.updateReportStatus(${report.Report_ID}, 'In Progress')">
-          <i data-lucide="play" style="width:14px;height:14px;"></i>Process Ticket
-        </button>
-      `;
-    } else if (report.Status === 'In Progress') {
+    if (report.Status === 'Pending' || report.Status === 'In Progress') {
       actionsHtml = `
         <button class="btn-action resolve" onclick="window.updateReportStatus(${report.Report_ID}, 'Resolved')">
           <i data-lucide="check" style="width:14px;height:14px;"></i>Resolve Ticket
@@ -99,10 +93,6 @@ window.renderSingleCard = function (report) {
           <span style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:99px; background:#F1F5F9; color:var(--text-mid);">${formattedDate}</span>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
-          <!-- Priority Badge -->
-          <span class="priority-badge ${report.Priority_Level.toLowerCase()}">
-            ${report.Priority_Level} Priority
-          </span>
           <!-- Status Badge -->
           <span class="status-badge ${report.Status.toLowerCase().replace(' ', '-')}">
             ${report.Status}
@@ -111,43 +101,42 @@ window.renderSingleCard = function (report) {
       </div>
 
       <!-- Card Body -->
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; ${borderStyle} margin-top: 10px; align-items: start;">
+      <div class="report-card-body">
         <!-- Left Column: Asset, Reporter & Issues -->
-        <div style="display:flex; flex-direction:column; gap:10px;">
+        <div class="report-card-info">
           <!-- Location & PC -->
           <div style="display:flex; align-items:center; gap:8px;">
-            <div style="display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:6px; background:#E8F9FC; color:var(--primary-teal);">
-              <i data-lucide="monitor" style="width:16px;height:16px;"></i>
+            <div style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; background:#E0F2FE; color:#0284C7; flex-shrink:0;">
+              <i data-lucide="monitor" style="width:17px;height:17px;"></i>
             </div>
-            <div style="font-size:14.5px; font-weight:800; color:var(--text-dark);">Room ${report.Room_Number} – PC ${report.PC_Number}</div>
+            <div style="font-size:15px; font-weight:800; color:var(--text-dark);">Room ${report.Room_Number} – PC ${report.PC_Number}</div>
           </div>
           
           <!-- Reporter -->
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:13px; font-weight:600; color:var(--text-mid); margin-left:2px;">
-            <i data-lucide="user" style="width:13.5px;height:13.5px;color:var(--text-muted);"></i>
+            <i data-lucide="user" style="width:14px;height:14px;color:var(--text-muted);"></i>
             <span>${report.Student_Name}</span>
-            <span style="font-size:9.5px; font-weight:700; padding:2px 6px; border-radius:4px; background:#F1F5F9; color:var(--text-mid);">${parsed.section}</span>
+            <span style="font-size:11px; font-weight:700; padding:2.5px 7px; border-radius:4px; background:#F1F5F9; color:var(--text-mid);">${parsed.section}</span>
           </div>
 
           <!-- Hardware Issues -->
           <div style="margin-left: 2px;">
-            <span style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; display:block; margin-bottom:4px;">Issues</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:4px;">Issues</span>
             <div style="display:flex; flex-wrap:wrap; gap:4px;">
               ${parsed.issues.split(',').map(comp => comp.trim()).filter(Boolean).map(comp => {
-    if (comp.toLowerCase() === 'none' || comp.toLowerCase() === 'others') {
-      return `<span style="display:inline-flex; align-items:center; gap:3px; font-size:10.5px; font-weight:600; padding:2.5px 6px; border-radius:4px; background:#F1F5F9; color:#64748B;"><i data-lucide="check" style="width:11px;height:11px;color:#10B981;"></i> None</span>`;
-    }
-    return `<span style="display:inline-flex; align-items:center; gap:3px; font-size:10.5px; font-weight:700; padding:2.5px 6px; border-radius:4px; background:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5;"><i data-lucide="alert-triangle" style="width:11px;height:11px;color:#EF4444;"></i> ${comp}</span>`;
-  }).join('')
-    }
+                if (comp.toLowerCase() === 'none' || comp.toLowerCase() === 'others') {
+                  return `<span style="display:inline-flex; align-items:center; gap:3px; font-size:11.5px; font-weight:600; padding:3px 8px; border-radius:6px; background:#F1F5F9; color:#64748B;"><i data-lucide="check" style="width:11px;height:11px;color:#10B981;"></i> None</span>`;
+                }
+                return `<span style="display:inline-flex; align-items:center; gap:3px; font-size:11.5px; font-weight:700; padding:3px 8px; border-radius:6px; background:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5;"><i data-lucide="alert-triangle" style="width:11px;height:11px;color:#EF4444;"></i> ${comp}</span>`;
+              }).join('')}
             </div>
           </div>
         </div>
 
         <!-- Right Column: Student Remarks -->
-        <div style="display:flex; flex-direction:column; gap:4px;">
-          <span style="font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.3px;">Remarks & Problem Details</span>
-          <div style="font-size:13.5px; font-weight:600; color:#1E293B; line-height:1.5; white-space:pre-line; background:#FAFDFE; border-left:3.5px solid var(--primary-teal); padding:10px 14px; border-radius:8px; min-height:86px;">${parsed.remarks}</div>
+        <div class="report-card-remarks">
+          <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:4px;">Remarks & Problem Details</span>
+          <div class="remarks-box">${parsed.remarks}</div>
         </div>
       </div>
 

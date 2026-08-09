@@ -832,27 +832,21 @@
 .canvas-class-time {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.22);
   backdrop-filter: blur(4px);
-  padding: 2px 5px;
+  padding: 2.5px 6.5px;
   border-radius: 5px;
-  font-size: 8px;
-  font-weight: 700;
-  width: fit-content;
+  font-size: 9px;
+  font-weight: 800;
   max-width: 100%;
   white-space: nowrap;
   letter-spacing: -0.02em;
-  line-height: 1;
+  line-height: 1.1;
   color: inherit;
   box-sizing: border-box;
-}
-
-.canvas-class-time i,
-.canvas-class-time svg {
-  width: 8px !important;
-  height: 8px !important;
-  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 
@@ -915,9 +909,10 @@
 .day-count-4 .canvas-class-time,
 .day-count-5 .canvas-class-time {
   font-size: 8px;
-  font-weight: 700;
-  padding: 1.5px 4.5px;
+  font-weight: 800;
+  padding: 2px 5px;
   border-radius: 4px;
+  letter-spacing: -0.03em;
 }
 
 .day-count-3 .canvas-class-subject,

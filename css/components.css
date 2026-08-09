@@ -256,7 +256,7 @@ html.high-contrast .stat-card.theme-red {
 }
 
 .stat-title {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--text-light);
@@ -328,7 +328,7 @@ html.high-contrast .stat-value {
 
 .stat-meta {
   font-family: var(--font-body);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--theme-color);
   background: rgba(var(--theme-color-rgb), 0.06);
@@ -666,7 +666,7 @@ html.high-contrast .stat-title {
 
 .badge {
   font-family: var(--font-body);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 99px;
@@ -760,7 +760,7 @@ html.high-contrast .stat-title {
   flex-shrink: 0;
 }
 
-.ld-row > span:not(.flip-hint-badge) {
+.ld-row>span:not(.flip-hint-badge) {
   color: var(--text-mid);
   font-weight: 600;
   font-size: 11.5px;
@@ -798,7 +798,7 @@ html.high-contrast .stat-title {
 }
 
 .lab-details.empty-state span {
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #15803D;
   text-transform: uppercase;
@@ -812,7 +812,7 @@ html.high-contrast .stat-title {
 }
 
 .lab-timer {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: #64748B;
   flex-shrink: 0;
@@ -835,6 +835,27 @@ html.high-contrast .stat-title {
   flex: 1;
   overflow-y: auto;
   padding-right: 4px;
+}
+
+.timeline-list:has(> .ui-empty-state) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex: 1 !important;
+  height: 100% !important;
+}
+
+.timeline-list>.ui-empty-state {
+  width: 100% !important;
+  flex: 1 !important;
+  margin: auto 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .timeline-item {
@@ -1135,28 +1156,101 @@ html.high-contrast .stat-title {
 
 /* ── PC Reports Styles ── */
 .reports-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+  gap: 16px;
   overflow-y: auto;
-  padding-right: 8px;
+  padding-right: 4px;
   flex: 1;
 }
 
 .report-card {
   background: var(--bg-white);
   border: 1px solid var(--border-light);
-  border-radius: 12px;
-  padding: 12px 16px;
+  border-radius: 16px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  transition: all 0.2s;
+  gap: 12px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
 .report-card:hover {
-  border-color: #CBD5E1;
-  box-shadow: var(--shadow-sm);
+  border-color: rgba(2, 132, 199, 0.25);
+  box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.08);
+}
+
+.report-card-body {
+  display: flex;
+  gap: 18px;
+  margin-top: 6px;
+  align-items: flex-start;
+}
+
+.report-card-info {
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-card-remarks {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.remarks-box {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #1E293B;
+  line-height: 1.55;
+  white-space: pre-line;
+  background: #F8FAFC;
+  border-left: 3.5px solid var(--primary-teal);
+  padding: 12px 16px;
+  border-radius: 10px;
+  min-height: 80px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.toggle-completed-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary-teal);
+  background: var(--primary-teal-light);
+  border: 1px solid rgba(2, 132, 199, 0.15);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.toggle-completed-btn:hover {
+  background: #E0F2FE;
+  border-color: rgba(2, 132, 199, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.12);
+}
+
+@media (max-width: 860px) {
+  .report-card-body {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .report-card-info {
+    width: 100%;
+  }
 }
 
 .rc-top {
@@ -1267,22 +1361,28 @@ html.high-contrast .stat-title {
 
 .search-input {
   width: 100%;
-  padding: 10px 16px 10px 42px;
+  padding: 11px 16px 11px 44px;
   border: 1px solid var(--border-light);
-  border-radius: 8px;
+  border-radius: 10px;
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 13.5px;
+  font-weight: 500;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--text-dark);
+  background: var(--bg-white);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+  box-sizing: border-box;
 }
 
 .search-input::placeholder {
   color: #94A3B8;
+  font-size: 13px;
 }
 
 .search-input:focus {
   border-color: var(--primary-teal);
+  box-shadow: 0 0 0 3px var(--primary-teal-light), 0 4px 12px rgba(2, 132, 199, 0.08);
 }
 
 /* ── My Schedule Styles ── */
@@ -1527,7 +1627,7 @@ html.high-contrast .stat-title {
 }
 
 .today-pill {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   padding: 2px 6px;
   background: #ffffff;
@@ -1591,6 +1691,7 @@ html.high-contrast .stat-title {
 .sg-time-badge {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 5px;
   font-size: 10.5px;
   font-weight: 700;
@@ -1598,8 +1699,11 @@ html.high-contrast .stat-title {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(4px);
-  width: fit-content;
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-word;
   color: inherit;
+  box-sizing: border-box;
 }
 
 .sg-time-badge i,
@@ -3654,8 +3758,10 @@ select.editor-select option {
 body[data-page="dashboard"] .dashboard-main-grid .labs-grid {
   display: grid !important;
   gap: 12px !important;
-  max-height: 345px; /* limits to exactly two rows of cards on desktop to trigger scrolling */
-  grid-auto-rows: max-content !important; /* Prevents cards from squishing under max-height constraint */
+  max-height: 345px;
+  /* limits to exactly two rows of cards on desktop to trigger scrolling */
+  grid-auto-rows: max-content !important;
+  /* Prevents cards from squishing under max-height constraint */
   align-content: start !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
@@ -3694,8 +3800,10 @@ html.high-contrast body[data-page="dashboard"] .dashboard-main-grid .labs-grid::
 /* Smooth Fade & Slide-up reveal styles for flippable lab status cards */
 .lab-card-container {
   position: relative;
-  min-height: 160px; /* ensures stable size for all cards and avoids bottom clipping */
-  min-width: 260px; /* prevents card from shrinking below minimum content width */
+  min-height: 160px;
+  /* ensures stable size for all cards and avoids bottom clipping */
+  min-width: 260px;
+  /* prevents card from shrinking below minimum content width */
   width: 100%;
 }
 
@@ -3705,7 +3813,8 @@ html.high-contrast body[data-page="dashboard"] .dashboard-main-grid .labs-grid::
   height: 100%;
 }
 
-.lab-card-front, .lab-card-back {
+.lab-card-front,
+.lab-card-back {
   position: absolute !important;
   inset: 0 !important;
   width: 100% !important;
@@ -3751,7 +3860,7 @@ html.high-contrast .lab-card-back {
 
 /* Flip guide badge style for maximum visibility */
 .flip-hint-badge {
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 800;
   background: var(--primary-teal-light);
   color: var(--primary-teal);
@@ -3830,7 +3939,7 @@ html.high-contrast .lab-card-front:hover .flip-hint-badge svg {
   border: 1px solid var(--border-light);
   padding: 5px 12px;
   border-radius: 8px;
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
@@ -3899,7 +4008,8 @@ html.high-contrast .active-pc-problem-item:hover {
   content: '';
   position: absolute;
   top: -6px;
-  right: 21px; /* aligns perfectly under the notification button */
+  right: 21px;
+  /* aligns perfectly under the notification button */
   width: 12px;
   height: 12px;
   background: var(--bg-white);
@@ -3939,6 +4049,7 @@ html.high-contrast .active-pc-problem-item:hover {
     opacity: 0;
     transform: translateY(-15px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -4007,6 +4118,7 @@ html.high-contrast .active-pc-problem-item:hover {
     top: 75px;
     width: calc(100vw - 32px);
   }
+
   .notif-toast-container:has(.notif-toast-card)::before {
     display: none !important;
   }
@@ -4055,12 +4167,15 @@ html.high-contrast .notif-toast-close-btn:hover {
   background: #F0F9FF;
   border: 1px solid #BAE6FD;
 }
+
 .banner-mis-notice.info .banner-icon {
   color: #0284C7;
 }
+
 .banner-mis-notice.info .banner-title {
   color: #0369A1;
 }
+
 .banner-mis-notice.info .banner-text {
   color: #0C4A6E;
 }
@@ -4069,12 +4184,15 @@ html.high-contrast .notif-toast-close-btn:hover {
   background: #FEF2F2;
   border: 1px solid #FECACA;
 }
+
 .banner-mis-notice.warning .banner-icon {
   color: #DC2626;
 }
+
 .banner-mis-notice.warning .banner-title {
   color: #991B1B;
 }
+
 .banner-mis-notice.warning .banner-text {
   color: #7F1D1D;
 }
@@ -4084,6 +4202,7 @@ html.high-contrast .banner-mis-notice.info {
   background: rgba(14, 165, 233, 0.15) !important;
   border-color: rgba(14, 165, 233, 0.35) !important;
 }
+
 html.high-contrast .banner-mis-notice.info .banner-icon,
 html.high-contrast .banner-mis-notice.info .banner-title,
 html.high-contrast .banner-mis-notice.info .banner-text {
@@ -4094,6 +4213,7 @@ html.high-contrast .banner-mis-notice.warning {
   background: rgba(239, 68, 68, 0.15) !important;
   border-color: rgba(239, 68, 68, 0.35) !important;
 }
+
 html.high-contrast .banner-mis-notice.warning .banner-icon,
 html.high-contrast .banner-mis-notice.warning .banner-title,
 html.high-contrast .banner-mis-notice.warning .banner-text {
@@ -4104,9 +4224,24 @@ html.high-contrast .banner-mis-notice.warning .banner-text {
 .table-container tbody tr {
   transition: background 0.15s ease;
 }
+
 .table-container tbody tr:hover {
   background: rgba(30, 187, 215, 0.05);
 }
+
+html.high-contrast .table-container tbody tr:hover {
+  background: rgba(30, 187, 215, 0.12) !important;
+}
+
+/* Global Table Row Hover Handling */
+.table-container tbody tr {
+  transition: background 0.15s ease;
+}
+
+.table-container tbody tr:hover {
+  background: rgba(30, 187, 215, 0.05);
+}
+
 html.high-contrast .table-container tbody tr:hover {
   background: rgba(30, 187, 215, 0.12) !important;
 }

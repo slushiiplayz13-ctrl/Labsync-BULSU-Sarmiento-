@@ -313,15 +313,14 @@
               <p style="color:var(--text-light); font-size:12px; font-weight:500;">Student-submitted computer issues and maintenance reports</p>
             </div>
           </div>
-          <div class="sh-legend" style="display: flex; gap: 16px; font-size: 12px; font-weight: 600; color: var(--text-dark);">
-            <div class="legend-item" style="display: flex; align-items: center; gap: 6px;"><div style="width: 8px; height: 8px; border-radius: 50%; background: #F59E0B;"></div> Pending</div>
-            <div class="legend-item" style="display: flex; align-items: center; gap: 6px;"><div style="width: 8px; height: 8px; border-radius: 50%; background: #3B82F6;"></div> In progress</div>
-            <div class="legend-item" style="display: flex; align-items: center; gap: 6px;"><div style="width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></div> Resolved</div>
+          <div class="sh-legend" style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706;"></span> Pending</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; background: #D1FAE5; color: #059669; border: 1px solid #A7F3D0;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span> Resolved</span>
           </div>
         </div>
 
-        <div class="reports-controls" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
-          <div class="search-box" style="flex: 1; min-width: 280px; position: relative;">
+        <div class="reports-controls" style="display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 20px;">
+          <div class="search-box" style="max-width: 440px; width: 100%; position: relative;">
             <i data-lucide="search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
             <input type="text" id="reportSearchInput" class="search-input" placeholder="Search by room, PC number, issue details, or student name...">
           </div>

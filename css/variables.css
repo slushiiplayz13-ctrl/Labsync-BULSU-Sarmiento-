@@ -256,7 +256,7 @@ html.high-contrast .lab-card * {
   color: var(--text-dark) !important;
 }
 
-html.high-contrast .lab-card .ld-row > span:not(.flip-hint-badge) {
+html.high-contrast .lab-card .ld-row>span:not(.flip-hint-badge) {
   color: var(--text-mid) !important;
 }
 
@@ -695,6 +695,25 @@ html.high-contrast .report-card {
   border-color: var(--border-light) !important;
 }
 
+html.high-contrast .remarks-box {
+  background: rgba(15, 23, 42, 0.45) !important;
+  color: var(--text-dark) !important;
+  border-left-color: var(--primary-teal) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.high-contrast div[style*="background:#E0F2FE"],
+html.high-contrast div[style*="background: #E0F2FE"] {
+  background: rgba(2, 132, 199, 0.18) !important;
+  color: #38BDF8 !important;
+}
+
+html.high-contrast span[style*="background:#F1F5F9"],
+html.high-contrast span[style*="background: #F1F5F9"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-mid) !important;
+}
+
 html.high-contrast .status-badge.pending,
 html.high-contrast .priority-badge.medium {
   background: rgba(245, 158, 11, 0.15) !important;
@@ -750,6 +769,48 @@ html.high-contrast div[style*="background: #D1FAE5"] {
   color: #34D399 !important;
 }
 
+html.high-contrast .sh-legend span[style*="background:#FEF3C7"],
+html.high-contrast .sh-legend span[style*="background: #FEF3C7"] {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #F59E0B !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+html.high-contrast .sh-legend span[style*="background:#FEF3C7"] span,
+html.high-contrast .sh-legend span[style*="background: #FEF3C7"] span {
+  background: #F59E0B !important;
+}
+
+html.high-contrast .sh-legend span[style*="background:#DBEAFE"],
+html.high-contrast .sh-legend span[style*="background: #DBEAFE"] {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #60A5FA !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+html.high-contrast .sh-legend span[style*="background:#DBEAFE"] span,
+html.high-contrast .sh-legend span[style*="background: #DBEAFE"] span {
+  background: #60A5FA !important;
+}
+
+html.high-contrast .sh-legend span[style*="background:#D1FAE5"],
+html.high-contrast .sh-legend span[style*="background: #D1FAE5"] {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34D399 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+html.high-contrast .sh-legend span[style*="background:#D1FAE5"] span,
+html.high-contrast .sh-legend span[style*="background: #D1FAE5"] span {
+  background: #34D399 !important;
+}
+
+html.high-contrast .search-input {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+html.high-contrast .search-input::placeholder {
+  color: var(--text-muted) !important;
+}
+
 /* --- 3. My Schedule --- */
 html.high-contrast .day-column {
   background: var(--bg-card) !important;
@@ -795,6 +856,7 @@ html.high-contrast .help-feature-card.theme-blue {
   background: rgba(59, 130, 246, 0.15) !important;
   color: #93C5FD !important;
 }
+
 html.high-contrast .help-feature-card.theme-blue .help-feat-title {
   color: #60A5FA !important;
 }
@@ -803,6 +865,7 @@ html.high-contrast .help-feature-card.theme-indigo {
   background: rgba(99, 102, 241, 0.15) !important;
   color: #C7D2FE !important;
 }
+
 html.high-contrast .help-feature-card.theme-indigo .help-feat-title {
   color: #818CF8 !important;
 }
@@ -811,6 +874,7 @@ html.high-contrast .help-feature-card.theme-amber {
   background: rgba(245, 158, 11, 0.15) !important;
   color: #FDE68A !important;
 }
+
 html.high-contrast .help-feature-card.theme-amber .help-feat-title {
   color: #FBBF24 !important;
 }
@@ -819,6 +883,7 @@ html.high-contrast .help-feature-card.theme-green {
   background: rgba(16, 185, 129, 0.15) !important;
   color: #A7F3D0 !important;
 }
+
 html.high-contrast .help-feature-card.theme-green .help-feat-title {
   color: #34D399 !important;
 }
@@ -837,10 +902,12 @@ html.high-contrast .alert-info-box {
   background: rgba(14, 165, 233, 0.15) !important;
   border-color: rgba(14, 165, 233, 0.3) !important;
 }
+
 html.high-contrast .alert-info-box i,
 html.high-contrast .alert-info-box svg {
   color: #38BDF8 !important;
 }
+
 html.high-contrast .alert-info-box p {
   color: var(--text-mid) !important;
 }
@@ -849,13 +916,16 @@ html.high-contrast .alert-warning-box {
   background: rgba(245, 158, 11, 0.15) !important;
   border-color: rgba(245, 158, 11, 0.3) !important;
 }
+
 html.high-contrast .alert-warning-box i,
 html.high-contrast .alert-warning-box svg {
   color: #FBBF24 !important;
 }
+
 html.high-contrast .alert-warning-box .alert-title {
   color: var(--text-dark) !important;
 }
+
 html.high-contrast .alert-warning-box .alert-desc {
   color: var(--text-mid) !important;
 }
@@ -866,31 +936,38 @@ html.high-contrast .faculty-dropdown-menu {
   border-color: var(--border-light) !important;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
 }
+
 html.high-contrast .faculty-dropdown-menu .menu-item {
   color: var(--text-dark) !important;
   background: transparent !important;
 }
+
 html.high-contrast .faculty-dropdown-menu .menu-item:hover {
   background: var(--primary-teal-light) !important;
   color: var(--primary-teal) !important;
 }
+
 html.high-contrast .faculty-dropdown-menu .menu-item i,
 html.high-contrast .faculty-dropdown-menu .menu-item svg {
   color: var(--text-muted) !important;
 }
+
 html.high-contrast .faculty-dropdown-menu .menu-item:hover i,
 html.high-contrast .faculty-dropdown-menu .menu-item:hover svg {
   color: var(--primary-teal) !important;
 }
+
 /* Ensure the Remove Faculty / danger items remain red in high contrast dark mode */
 html.high-contrast .faculty-dropdown-menu .menu-item[style*="color: #EF4444"],
 html.high-contrast .faculty-dropdown-menu .menu-item[style*="color:#EF4444"] {
   color: #F87171 !important;
 }
+
 html.high-contrast .faculty-dropdown-menu .menu-item[style*="color: #EF4444"] i,
 html.high-contrast .faculty-dropdown-menu .menu-item[style*="color:#EF4444"] i {
   color: #F87171 !important;
 }
+
 html.high-contrast .faculty-dropdown-menu .menu-divider {
   background: var(--border-light) !important;
 }
@@ -900,46 +977,57 @@ html.high-contrast .sched-modal-header {
   background: var(--bg-card) !important;
   border-bottom-color: var(--border-light) !important;
 }
+
 html.high-contrast .sched-modal-card {
   background: var(--bg-white) !important;
   border-color: var(--border-light) !important;
   border-left-color: var(--primary-teal) !important;
 }
+
 html.high-contrast .sched-modal-card:hover {
   background: var(--bg-card) !important;
 }
+
 html.high-contrast .sched-modal-card * {
   color: var(--text-dark) !important;
 }
+
 html.high-contrast .sched-modal-card .rc-badge.in-progress {
   background: rgba(59, 130, 246, 0.16) !important;
   color: #60A5FA !important;
   border-color: rgba(59, 130, 246, 0.3) !important;
 }
+
 html.high-contrast .sched-modal-card .rc-badge.pending {
   background: rgba(245, 158, 11, 0.15) !important;
   color: #FBBF24 !important;
   border-color: rgba(245, 158, 11, 0.3) !important;
 }
+
 html.high-contrast .sched-modal-empty-icon {
   background: var(--primary-teal-light) !important;
   color: var(--primary-teal) !important;
 }
+
 html.high-contrast .heart-container {
   background: rgba(239, 68, 68, 0.15) !important;
   color: #F87171 !important;
 }
+
 html.high-contrast .tribute-card {
   background: rgba(245, 158, 11, 0.1) !important;
   border-color: rgba(245, 158, 11, 0.3) !important;
 }
+
 html.high-contrast .tribute-card * {
   color: var(--text-dark) !important;
 }
+
 html.high-contrast .successor-card {
   background: rgba(20, 184, 166, 0.1) !important;
   border-color: rgba(20, 184, 166, 0.3) !important;
 }
+
 html.high-contrast .successor-card * {
   color: var(--text-dark) !important;
 }

@@ -267,7 +267,7 @@
           itemsHTML += `
             <div class="canvas-class-block" style="background: ${item.bg || 'linear-gradient(135deg, #1D4ED8 0%, #1E3A8A 100%)'}; color: ${item.color || '#FFFFFF'};">
               <div class="canvas-class-time">
-                <i data-lucide="clock" style="width:9px;height:9px;flex-shrink:0;"></i> ${timeStr}
+                ${timeStr}
               </div>
               <div class="canvas-class-subject" title="${escapeHtml(subjName)}">${escapeHtml(subjName)}</div>
               <div class="canvas-class-meta">
@@ -382,8 +382,13 @@
     const sMatch = s.match(/^(\d+:\d+)\s*(AM|PM)$/i);
     const eMatch = e.match(/^(\d+:\d+)\s*(AM|PM)$/i);
     
-    if (sMatch && eMatch && sMatch[2].toUpperCase() === eMatch[2].toUpperCase()) {
-      return `${sMatch[1]}–${eMatch[1]} ${eMatch[2].toUpperCase()}`;
+    if (sMatch && eMatch) {
+      const sPer = sMatch[2].toUpperCase();
+      const ePer = eMatch[2].toUpperCase();
+      if (sPer === ePer) {
+        return `${sMatch[1]}–${eMatch[1]} ${ePer}`;
+      }
+      return `${sMatch[1]}${sPer[0]}–${eMatch[1]}${ePer[0]}`;
     }
     return `${s}–${e}`;
   }

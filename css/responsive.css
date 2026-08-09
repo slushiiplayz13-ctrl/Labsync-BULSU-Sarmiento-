@@ -874,7 +874,7 @@
   }
 
   .stat-title {
-    font-size: 9.5px !important;
+    font-size: 11px !important;
     letter-spacing: 0.4px !important;
   }
 
@@ -895,7 +895,7 @@
   }
 
   .stat-meta {
-    font-size: 9px !important;
+    font-size: 10.5px !important;
   }
   
   /* Scale down greeting and clock text to fit without overwhelming vertical space */
@@ -904,7 +904,7 @@
   }
   
   .greeting-left .greeting-sub {
-    font-size: 11.5px !important;
+    font-size: 12.5px !important;
     line-height: 1.4 !important;
   }
   
@@ -913,7 +913,7 @@
   }
   
   .clock-date {
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
 
   .modal-content {
@@ -925,7 +925,7 @@
 /* ─── Scale bottom nav items for extra small screens to fit 6 menus without overlap ─── */
 @media (max-width: 480px) {
   .sidebar-btn::after {
-    font-size: 7.5px !important;
+    font-size: 9px !important;
     letter-spacing: -0.3px !important;
   }
   .sidebar-btn i,
@@ -989,7 +989,7 @@
   }
   .day-column.empty-day .day-header {
     margin-bottom: 0 !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     padding: 4px 10px !important;
     box-shadow: none !important;
     color: var(--text-light) !important;
@@ -1001,7 +1001,7 @@
   }
   .day-column.empty-day::after {
     content: 'No classes scheduled' !important;
-    font-size: 11.5px !important;
+    font-size: 12.5px !important;
     font-weight: 500 !important;
     color: var(--text-muted) !important;
     font-family: var(--font-body) !important;
@@ -1012,7 +1012,7 @@
     flex: 1 0 110px !important;
     min-width: 110px !important;
     padding: 12px 4px !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
   .grid-header-cell:first-child {
     flex: 0 0 60px !important;
@@ -1027,7 +1027,7 @@
     min-width: 60px !important;
   }
   .grid-time-label {
-    font-size: 9.5px !important;
+    font-size: 11px !important;
     padding-top: 4px !important;
   }
   .grid-card {
@@ -1037,22 +1037,22 @@
     right: 4px !important;
   }
   .grid-card-title {
-    font-size: 9.5px !important;
+    font-size: 11px !important;
     font-weight: 700 !important;
   }
   .grid-card-section,
   .grid-card-prof {
-    font-size: 8px !important;
+    font-size: 9.5px !important;
     margin-top: 1px !important;
   }
   .grid-card-time {
-    font-size: 8px !important;
+    font-size: 9.5px !important;
   }
   .grid-card-time-text {
-    font-size: 8px !important;
+    font-size: 9.5px !important;
   }
   .card-info-icon {
-    width: 10px !important;
+    width: 11px !important;
     height: 10px !important;
   }
   /* Prevent full-page horizontal scrolling by keeping container constrained and scrolling inner contents */
