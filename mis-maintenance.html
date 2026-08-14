@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -620,23 +620,51 @@
     }
 
     function applyFiltersAndRender() {
-      const searchVal = (document.getElementById('maintenanceSearchInput').value || '').toLowerCase().trim();
+      const searchVal = (document.getElementById('maintenanceSearchInput')?.value || '').toLowerCase().trim();
 
       let filtered = maintenanceReports.filter(report => {
         // Status filter
-        if (activeFilter === 'pending' && report.Status === 'Resolved') return false;
-        if (activeFilter === 'resolved' && report.Status !== 'Resolved') return false;
+        const status = (report.Status || '').toLowerCase();
+        if (activeFilter === 'pending' && status === 'resolved') return false;
+        if (activeFilter === 'resolved' && status !== 'resolved') return false;
 
         // Search filter
         if (searchVal) {
+          const parsed = parseIssueDesc(report.Issue_Description);
+
+          const idStr = report.Report_ID != null ? String(report.Report_ID) : '';
+          const formattedId = idStr ? `ls-tkt-${idStr}` : '';
+          const shortTktId = idStr ? `tkt-${idStr}` : '';
+
+          const studentName = (report.Student_Name || '').toLowerCase();
+          const roomNum = report.Room_Number != null ? String(report.Room_Number).toLowerCase() : '';
+          const roomFormatted = roomNum ? `room ${roomNum}` : '';
+          const pcNum = report.PC_Number != null ? String(report.PC_Number).toLowerCase() : '';
+          const pcFormatted = pcNum ? `pc ${pcNum}` : '';
+          const pcHashFormatted = pcNum ? `pc #${pcNum}` : '';
+          const issueDesc = (report.Issue_Description || '').toLowerCase();
+          const section = (parsed.section || '').toLowerCase();
+          const issues = (parsed.issues || '').toLowerCase();
+          const remarks = (parsed.remarks || '').toLowerCase();
+          const priority = (report.Priority_Level || '').toLowerCase();
+
           const match =
-            report.Report_ID.toString().includes(searchVal) ||
-            report.Student_Name.toLowerCase().includes(searchVal) ||
-            report.Room_Number.toString().toLowerCase().includes(searchVal) ||
-            report.PC_Number.toString().toLowerCase().includes(searchVal) ||
-            report.Issue_Description.toLowerCase().includes(searchVal) ||
-            report.Priority_Level.toLowerCase().includes(searchVal) ||
-            report.Status.toLowerCase().includes(searchVal);
+            idStr.includes(searchVal) ||
+            formattedId.includes(searchVal) ||
+            shortTktId.includes(searchVal) ||
+            studentName.includes(searchVal) ||
+            roomNum.includes(searchVal) ||
+            roomFormatted.includes(searchVal) ||
+            pcNum.includes(searchVal) ||
+            pcFormatted.includes(searchVal) ||
+            pcHashFormatted.includes(searchVal) ||
+            issueDesc.includes(searchVal) ||
+            section.includes(searchVal) ||
+            issues.includes(searchVal) ||
+            remarks.includes(searchVal) ||
+            priority.includes(searchVal) ||
+            status.includes(searchVal);
+
           if (!match) return false;
         }
 

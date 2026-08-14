@@ -31,12 +31,58 @@ window.parseIssueDescription = function (desc) {
   return { section, issues, remarks };
 };
 
+// Safe query matcher handling null/undefined fields and ticket IDs
+window.matchesReportQuery = function (report, query) {
+  if (!query) return true;
+  const q = String(query).toLowerCase().trim();
+  if (!q) return true;
+
+  const parsed = window.parseIssueDescription
+    ? window.parseIssueDescription(report.Issue_Description)
+    : { section: '', issues: '', remarks: '' };
+
+  const idStr = report.Report_ID != null ? String(report.Report_ID) : '';
+  const formattedId = idStr ? `ls-tkt-${idStr}` : '';
+  const shortTktId = idStr ? `tkt-${idStr}` : '';
+
+  const studentName = (report.Student_Name || '').toLowerCase();
+  const roomNum = report.Room_Number != null ? String(report.Room_Number).toLowerCase() : '';
+  const roomFormatted = roomNum ? `room ${roomNum}` : '';
+  const pcNum = report.PC_Number != null ? String(report.PC_Number).toLowerCase() : '';
+  const pcFormatted = pcNum ? `pc ${pcNum}` : '';
+  const pcHashFormatted = pcNum ? `pc #${pcNum}` : '';
+  const issueDesc = (report.Issue_Description || '').toLowerCase();
+  const section = (parsed.section || '').toLowerCase();
+  const issues = (parsed.issues || '').toLowerCase();
+  const remarks = (parsed.remarks || '').toLowerCase();
+  const priority = (report.Priority_Level || '').toLowerCase();
+  const status = (report.Status || '').toLowerCase();
+
+  return (
+    idStr.includes(q) ||
+    formattedId.includes(q) ||
+    shortTktId.includes(q) ||
+    studentName.includes(q) ||
+    roomNum.includes(q) ||
+    roomFormatted.includes(q) ||
+    pcNum.includes(q) ||
+    pcFormatted.includes(q) ||
+    pcHashFormatted.includes(q) ||
+    issueDesc.includes(q) ||
+    section.includes(q) ||
+    issues.includes(q) ||
+    remarks.includes(q) ||
+    priority.includes(q) ||
+    status.includes(q)
+  );
+};
+
 window.loadReports = async function () {
   try {
     const response = await fetch('/api/reports');
     if (!response.ok) throw new Error('Failed to load reports');
     window.allReports = await response.json();
-    window.renderReports(window.allReports);
+    window.renderReports();
   } catch (error) {
     console.error('Error loading reports:', error);
     const container = document.getElementById('dynamicReportsList');
@@ -56,7 +102,7 @@ window.loadReports = async function () {
 
 window.renderSingleCard = function (report) {
   // Format Date
-  const dateObj = new Date(report.Date_Reported);
+  const dateObj = report.Date_Reported ? new Date(report.Date_Reported) : new Date();
   const formattedDate = dateObj.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -68,21 +114,24 @@ window.renderSingleCard = function (report) {
 
   // Determine actions based on status for MIS staff page
   let actionsHtml = '';
-  let borderStyle = '';
+  const statusStr = report.Status || 'Pending';
   if (document.body.dataset.page === 'mis-pc-reports') {
-    borderStyle = 'border-bottom: 1px solid var(--border-light); padding-bottom: 14px;';
-    if (report.Status === 'Pending' || report.Status === 'In Progress') {
+    if (statusStr.toLowerCase() === 'pending' || statusStr.toLowerCase() === 'in progress') {
       actionsHtml = `
         <button class="btn-action resolve" onclick="window.updateReportStatus(${report.Report_ID}, 'Resolved')">
           <i data-lucide="check" style="width:14px;height:14px;"></i>Resolve Ticket
         </button>
       `;
-    } else if (report.Status === 'Resolved') {
+    } else if (statusStr.toLowerCase() === 'resolved') {
       actionsHtml = `
         <span style="font-size:12.5px; font-weight:600; color:#059669; display:flex; align-items:center; gap:4px; padding:6px 0;"><i data-lucide="check" style="width:14px;height:14px;"></i>Ticket Completed</span>
       `;
     }
   }
+
+  const studentName = report.Student_Name || 'Student';
+  const roomNum = report.Room_Number != null ? report.Room_Number : 'N/A';
+  const pcNum = report.PC_Number != null ? report.PC_Number : 'N/A';
 
   return `
     <div class="report-card">
@@ -94,8 +143,8 @@ window.renderSingleCard = function (report) {
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <!-- Status Badge -->
-          <span class="status-badge ${report.Status.toLowerCase().replace(' ', '-')}">
-            ${report.Status}
+          <span class="status-badge ${statusStr.toLowerCase().replace(/\s+/g, '-')}">
+            ${statusStr}
           </span>
         </div>
       </div>
@@ -109,7 +158,7 @@ window.renderSingleCard = function (report) {
             <div style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; background:#E0F2FE; color:#0284C7; flex-shrink:0;">
               <i data-lucide="monitor" style="width:17px;height:17px;"></i>
             </div>
-            <div style="font-size:15px; font-weight:800; color:var(--text-dark);">Room ${report.Room_Number} – PC ${report.PC_Number}</div>
+            <div style="font-size:15px; font-weight:800; color:var(--text-dark);">Room ${roomNum} – PC ${pcNum}</div>
           </div>
 
           <!-- Hardware Issues (Prominent & Larger) -->
@@ -128,7 +177,7 @@ window.renderSingleCard = function (report) {
           <!-- Reporter -->
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12.5px; font-weight:600; color:var(--text-mid); margin-left:2px;">
             <i data-lucide="user" style="width:13.5px;height:13.5px;color:var(--text-muted);"></i>
-            <span>${report.Student_Name}</span>
+            <span>${studentName}</span>
             <span style="font-size:11px; font-weight:700; padding:2px 7px; border-radius:4px; background:#F1F5F9; color:var(--text-mid);">${parsed.section}</span>
           </div>
         </div>
@@ -149,36 +198,41 @@ window.renderSingleCard = function (report) {
   `;
 };
 
-window.renderReports = function (reports) {
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+window.renderReports = function () {
   const container = document.getElementById('dynamicReportsList');
   if (!container) return;
 
-  if (reports.length === 0) {
-    container.innerHTML = `
-      <div class="ui-empty-state">
-        <div class="ui-empty-icon">
-          <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
-        </div>
-        <p>No PC issue reports yet. Submitted tickets will appear here when available.</p>
-      </div>
-    `;
-    const toggleContainer = document.getElementById('completedToggleContainer');
-    if (toggleContainer) toggleContainer.innerHTML = '';
-    if (window.lucide) lucide.createIcons();
-    return;
-  }
+  const searchInput = document.getElementById('reportSearchInput');
+  const query = searchInput ? searchInput.value.trim() : '';
 
-  const activeReports = reports.filter(r => r.Status.toLowerCase() !== 'resolved');
-  const resolvedReports = reports.filter(r => r.Status.toLowerCase() === 'resolved');
+  const reports = window.allReports || [];
+
+  const totalResolvedReports = reports.filter(r => (r.Status || '').toLowerCase() === 'resolved');
+  const filteredReports = reports.filter(r => window.matchesReportQuery(r, query));
+  const activeReports = filteredReports.filter(r => (r.Status || '').toLowerCase() !== 'resolved');
+  const resolvedReports = filteredReports.filter(r => (r.Status || '').toLowerCase() === 'resolved');
 
   // Update view completed button
   const toggleContainer = document.getElementById('completedToggleContainer');
   if (toggleContainer) {
-    if (resolvedReports.length > 0) {
+    if (totalResolvedReports.length > 0) {
+      const buttonLabel = query
+        ? `View Completed Tickets (${resolvedReports.length} matching)`
+        : `View Completed Tickets (${totalResolvedReports.length})`;
       toggleContainer.innerHTML = `
         <button class="toggle-completed-btn" onclick="window.openCompletedModal()">
           <i data-lucide="history" style="width:16px;height:16px;"></i>
-          <span>View Completed Tickets (${resolvedReports.length})</span>
+          <span>${buttonLabel}</span>
         </button>
       `;
     } else {
@@ -203,24 +257,47 @@ window.renderReports = function (reports) {
   }
 
   if (!htmlContent) {
-    if (activeReports.length === 0 && resolvedReports.length > 0) {
-      container.innerHTML = `
-        <div class="ui-empty-state">
-          <div class="ui-empty-icon">
-            <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+    if (query) {
+      if (resolvedReports.length > 0) {
+        container.innerHTML = `
+          <div class="ui-empty-state">
+            <div class="ui-empty-icon">
+              <i data-lucide="search" style="width:24px;height:24px;"></i>
+            </div>
+            <p>No active PC issue reports match "<strong>${escapeHtml(query)}</strong>".</p>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Found ${resolvedReports.length} matching completed ticket(s). <a href="javascript:void(0)" onclick="window.openCompletedModal()" style="color:var(--primary-teal); font-weight:600; text-decoration:underline;">Click here to view completed history</a>.</p>
           </div>
-          <p>No active PC issue reports. Click "View Completed Tickets" to view completed history.</p>
-        </div>
-      `;
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="ui-empty-state">
+            <div class="ui-empty-icon">
+              <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+            </div>
+            <p>No PC issue reports match "<strong>${escapeHtml(query)}</strong>".</p>
+          </div>
+        `;
+      }
     } else {
-      container.innerHTML = `
-        <div class="ui-empty-state">
-          <div class="ui-empty-icon">
-            <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+      if (totalResolvedReports.length > 0) {
+        container.innerHTML = `
+          <div class="ui-empty-state">
+            <div class="ui-empty-icon">
+              <i data-lucide="check-circle-2" style="width:24px;height:24px;color:#10B981;"></i>
+            </div>
+            <p>No active PC issue reports. All tickets are completed. Click "View Completed Tickets" to view history.</p>
           </div>
-          <p>No PC issue reports match your search query.</p>
-        </div>
-      `;
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="ui-empty-state">
+            <div class="ui-empty-icon">
+              <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+            </div>
+            <p>No PC issue reports yet. Submitted tickets will appear here when available.</p>
+          </div>
+        `;
+      }
     }
   } else {
     container.innerHTML = htmlContent;
@@ -243,7 +320,7 @@ window.updateReportStatus = async function (reportId, newStatus) {
 
     if (response.ok) {
       await window.loadReports();
-      // If modal is open, we need to refresh resolved list
+      // If modal is open, refresh resolved list
       const modal = document.getElementById('completedTicketsModal');
       if (modal && modal.style.display !== 'none') {
         window.openCompletedModal();
@@ -289,19 +366,11 @@ window.openCompletedModal = function () {
   if (!modal || !modalBody) return;
 
   const searchInput = document.getElementById('reportSearchInput');
-  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-  const resolvedReports = window.allReports.filter(r => {
-    const isResolved = r.Status.toLowerCase() === 'resolved';
+  const query = searchInput ? searchInput.value.trim() : '';
+  const resolvedReports = (window.allReports || []).filter(r => {
+    const isResolved = (r.Status || '').toLowerCase() === 'resolved';
     if (!isResolved) return false;
-    if (!query) return true;
-    return (
-      r.Student_Name.toLowerCase().includes(query) ||
-      r.Room_Number.toString().toLowerCase().includes(query) ||
-      r.PC_Number.toString().toLowerCase().includes(query) ||
-      r.Issue_Description.toLowerCase().includes(query) ||
-      r.Priority_Level.toLowerCase().includes(query) ||
-      r.Status.toLowerCase().includes(query)
-    );
+    return window.matchesReportQuery(r, query);
   });
 
   if (resolvedReports.length === 0) {
@@ -310,7 +379,7 @@ window.openCompletedModal = function () {
         <div class="ui-empty-icon">
           <i data-lucide="check-circle" style="width:24px;height:24px;"></i>
         </div>
-        <p>${query ? 'No completed tickets match your search query.' : 'No completed tickets found.'}</p>
+        <p>${query ? `No completed tickets match "${escapeHtml(query)}".` : 'No completed tickets found.'}</p>
       </div>
     `;
   } else {
@@ -335,25 +404,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Live search filtering
   const searchInput = document.getElementById('reportSearchInput');
   if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      if (!query) {
-        window.renderReports(window.allReports);
-        return;
+    searchInput.addEventListener('input', () => {
+      window.renderReports();
+      const modal = document.getElementById('completedTicketsModal');
+      if (modal && modal.style.display !== 'none') {
+        window.openCompletedModal();
       }
-
-      const filtered = window.allReports.filter(report => {
-        return (
-          report.Student_Name.toLowerCase().includes(query) ||
-          report.Room_Number.toString().toLowerCase().includes(query) ||
-          report.PC_Number.toString().toLowerCase().includes(query) ||
-          report.Issue_Description.toLowerCase().includes(query) ||
-          report.Priority_Level.toLowerCase().includes(query) ||
-          report.Status.toLowerCase().includes(query)
-        );
-      });
-
-      window.renderReports(filtered);
     });
   }
 
@@ -368,3 +424,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load initial reports
   window.loadReports();
 });
+
