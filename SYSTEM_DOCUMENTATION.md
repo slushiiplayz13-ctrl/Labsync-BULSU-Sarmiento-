@@ -105,7 +105,7 @@ LabSync/
 |
 |-- room-status.html            # Faculty: Real-time lab room status
 |-- my-schedule.html            # Faculty: Personal weekly schedule
-|-- pc-reports.html             # Faculty: PC fault report viewer
+|-- faculty-pc-reports.html     # Faculty: PC fault report viewer
 |
 |-- it-head-dashboard.html      # IT Head: Main dashboard
 |-- it-head-room-status.html    # IT Head: Room status view
@@ -121,7 +121,7 @@ LabSync/
 |-- room-schedule-editor.html   # IT Head: Drag-and-drop schedule editor
 |-- faculty-management.html     # IT Head: Faculty CRUD management
 |
-|-- pc-report.html              # Student: Public PC issue reporting form
+|-- submit-pc-report.html       # Student: Public PC issue reporting form
 |-- print-schedule.html         # Print individual room schedule (A4/Legal)
 |-- print-all-schedules.html    # Print all room schedules (bulk)
 |
@@ -160,7 +160,7 @@ LabSync has **4 distinct roles**, each with a dedicated set of pages and permiss
 | `Faculty` | `index.html` | Professors / teaching staff |
 | `IT Head` | `it-head-dashboard.html` | Department head with full admin access |
 | `MIS Staff` | `mis-staff-dashboard.html` | Technical/maintenance staff |
-| *(Public)* | `pc-report.html` | Students — no login required |
+| *(Public)* | `submit-pc-report.html` | Students — no login required |
 
 ### Authentication Flow
 
@@ -188,7 +188,7 @@ LabSync has **4 distinct roles**, each with a dedicated set of pages and permiss
 
 ### 5.1 Public / Student
 
-#### `pc-report.html` — PC Issue Reporting Form
+#### `submit-pc-report.html` — PC Issue Reporting Form
 - Publicly accessible — **no login required**.
 - Loaded when a student scans a QR code label affixed to a PC.
 - URL contains the `PC_QR_String` parameter to identify the specific machine.
@@ -214,7 +214,7 @@ LabSync has **4 distinct roles**, each with a dedicated set of pages and permiss
   - **In Use** (Red) — A class is currently scheduled.
 - Status is computed **dynamically** server-side using schedule + key data.
 
-#### `pc-reports.html` — PC Reports Viewer
+#### `faculty-pc-reports.html` — PC Reports Viewer
 - Faculty can view student-submitted PC fault tickets for their rooms.
 - Shows: PC number, fault type, student remarks, date reported.
 
@@ -293,7 +293,7 @@ LabSync has **4 distinct roles**, each with a dedicated set of pages and permiss
 - Select a **Room** and **Building**, input **PC count**.
 - Server calls `GET /api/qr/generate` to create individual QR strings per PC.
 - Displays downloadable/printable QR label cards per PC.
-- QR codes encode unique `PC_QR_String` identifiers that route to `pc-report.html?pc=<string>`.
+- QR codes encode unique `PC_QR_String` identifiers that route to `submit-pc-report.html?pc=<string>`.
 
 ---
 
@@ -346,7 +346,7 @@ All stylesheets live in the `/css/` directory and are imported in this order on 
 | `auth-check.js` | All protected pages (in `<head>`) | Session validation, role enforcement, redirect on failure |
 | `script.js` | Main dashboards | Dashboard stats, room status rendering, notification polling (3s interval), occupancy log/activity feed |
 | `schedule.js` | `my-schedule.html` | Fetches and renders faculty's personal weekly timetable; filter UI |
-| `reports.js` | `pc-report.html` | PC fault form submission, QR string parsing from URL |
+| `reports.js` | `submit-pc-report.html` | PC fault form submission, QR string parsing from URL |
 | `room-schedule-editor.js` | `room-schedule-editor.html` | Full drag-and-drop schedule studio: block creation, grid rendering, clash detection, save/load |
 | `js/schedule-studio.js` | Schedule Studio (helper) | Supporting utilities for schedule studio interactions |
 

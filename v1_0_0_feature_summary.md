@@ -30,7 +30,7 @@ Faculty are general staff members responsible for their classroom slots.
   - `Available` (Green)
   - `Claimed` (Orange)
   - `In Use` (Red)
-- **PC Reports List (`pc-reports.html`)**: View student-reported computer faults (broken mice, monitors, system units, etc.) for laboratories.
+- **PC Reports List (`faculty-pc-reports.html`)**: View student-reported computer faults (broken mice, monitors, system units, etc.) for laboratories.
 - **My Schedule (`my-schedule.html`)**: Interactive weekly timetable filterable by Academic Year (e.g., `2025-2026`) and Semester (`1st Semester`, `2nd Semester`, `Summer`).
 - **Accessibility Adjustments**: Profile dropdown feature displaying adjustments for:
   - **Text Scaling**: Adjust page zoom globally (`90%`, `100%`, `110%`, `120%`) to support low-vision users.
@@ -68,7 +68,7 @@ MIS Staff are responsible for hardware maintenance and lab setups.
 ---
 
 ### 📱 4. Students (Public Access)
-- **PC Issue Reporting Form (`pc-report.html`)**:
+- **PC Issue Reporting Form (`submit-pc-report.html`)**:
   - Publicly accessible page designed to load instantly on mobile devices when scanning a PC's QR code.
   - Allows selecting specific faults (Mouse, Keyboard, Monitor, System Unit, Internet, OS, Others) and inputting student remarks and program section.
   - Student page inherits text size scaling and high contrast theme preferences.

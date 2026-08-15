@@ -1011,7 +1011,7 @@ app.get('/api/pcs/:pcId/qrcode', async (req, res) => {
 
         const pc = pcs[0];
         // The destination URL for the QR code
-        const reportUrl = `${process.env.APP_URL || 'http://localhost:3000'}/pc-report.html?room=${pc.Room_Number}&pc=${pc.PC_Number}`;
+        const reportUrl = `${process.env.APP_URL || 'http://localhost:3000'}/submit-pc-report.html?room=${pc.Room_Number}&pc=${pc.PC_Number}`;
 
         const qrCodeDataURL = await QRCode.toDataURL(reportUrl, {
             width: 300,

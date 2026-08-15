@@ -35,7 +35,7 @@
             page === 'print-schedule.html';
         const isFacultyPage = page === 'index.html' ||
             page === 'room-status.html' ||
-            page === 'pc-reports.html' ||
+            page === 'faculty-pc-reports.html' ||
             page === 'my-schedule.html';
 
         let authorized = false;

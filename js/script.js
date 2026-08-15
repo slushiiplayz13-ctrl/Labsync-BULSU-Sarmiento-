@@ -443,7 +443,7 @@ function initNotifications() {
       } else if (isHead) {
         window.location.href = 'it-head-pc-reports.html';
       } else {
-        window.location.href = 'pc-reports.html';
+        window.location.href = 'faculty-pc-reports.html';
       }
     } else {
       const isHead = document.querySelector('.profile-role')?.textContent.trim().toLowerCase().includes('head');
