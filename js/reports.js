@@ -37,6 +37,8 @@ window.matchesReportQuery = function (report, query) {
   const q = String(query).toLowerCase().trim();
   if (!q) return true;
 
+  const cleanQuery = q.replace(/[^a-z0-9]/g, '');
+
   const parsed = window.parseIssueDescription
     ? window.parseIssueDescription(report.Issue_Description)
     : { section: '', issues: '', remarks: '' };
@@ -44,6 +46,8 @@ window.matchesReportQuery = function (report, query) {
   const idStr = report.Report_ID != null ? String(report.Report_ID) : '';
   const formattedId = idStr ? `ls-tkt-${idStr}` : '';
   const shortTktId = idStr ? `tkt-${idStr}` : '';
+  const noDashId = idStr ? `lstkt${idStr}` : '';
+  const shortNoDashId = idStr ? `tkt${idStr}` : '';
 
   const studentName = (report.Student_Name || '').toLowerCase();
   const roomNum = report.Room_Number != null ? String(report.Room_Number).toLowerCase() : '';
@@ -59,9 +63,12 @@ window.matchesReportQuery = function (report, query) {
   const status = (report.Status || '').toLowerCase();
 
   return (
+    idStr === q ||
     idStr.includes(q) ||
     formattedId.includes(q) ||
     shortTktId.includes(q) ||
+    (cleanQuery && noDashId.includes(cleanQuery)) ||
+    (cleanQuery && shortNoDashId.includes(cleanQuery)) ||
     studentName.includes(q) ||
     roomNum.includes(q) ||
     roomFormatted.includes(q) ||
@@ -112,10 +119,11 @@ window.renderSingleCard = function (report) {
 
   const parsed = window.parseIssueDescription(report.Issue_Description);
 
-  // Determine actions based on status for MIS staff page
+  // Determine actions based on status for MIS staff pages
   let actionsHtml = '';
   const statusStr = report.Status || 'Pending';
-  if (document.body.dataset.page === 'mis-pc-reports') {
+  const currentPage = document.body.dataset.page;
+  if (currentPage === 'mis-pc-reports' || currentPage === 'mis-maintenance' || currentPage === 'mis-dashboard') {
     if (statusStr.toLowerCase() === 'pending' || statusStr.toLowerCase() === 'in progress') {
       actionsHtml = `
         <button class="btn-action resolve" onclick="window.updateReportStatus(${report.Report_ID}, 'Resolved')">
@@ -199,13 +207,9 @@ window.renderSingleCard = function (report) {
 };
 
 function escapeHtml(str) {
+  if (window.escapeHtml) return window.escapeHtml(str);
   if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 window.renderReports = function () {

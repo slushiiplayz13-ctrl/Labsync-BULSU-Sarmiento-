@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -145,7 +145,7 @@
           <div class="stat-card theme-blue">
             <div class="stat-header">
               <div class="stat-info">
-                <div class="stat-value blue-text">—</div>
+                <div class="stat-value blue-text" id="ithead-stat-rooms">—</div>
                 <div class="stat-title">Total Lab Rooms</div>
               </div>
               <div class="stat-icon">
@@ -153,7 +153,7 @@
               </div>
             </div>
             <div class="stat-meta-container">
-              <span class="stat-meta">No data loaded</span>
+              <span class="stat-meta" id="ithead-stat-pcs-meta">Loading...</span>
             </div>
             <div class="stat-watermark">
               <i data-lucide="monitor"></i>
@@ -164,7 +164,7 @@
           <div class="stat-card theme-green">
             <div class="stat-header">
               <div class="stat-info">
-                <div class="stat-value green-text">—</div>
+                <div class="stat-value green-text" id="ithead-stat-available">—</div>
                 <div class="stat-title">Available Labs</div>
               </div>
               <div class="stat-icon">
@@ -172,7 +172,7 @@
               </div>
             </div>
             <div class="stat-meta-container">
-              <span class="stat-meta">No data loaded</span>
+              <span class="stat-meta" id="ithead-stat-avail-meta">Loading...</span>
             </div>
             <div class="stat-watermark">
               <i data-lucide="check-circle"></i>
@@ -183,7 +183,7 @@
           <div class="stat-card theme-orange">
             <div class="stat-header">
               <div class="stat-info">
-                <div class="stat-value orange-text">—</div>
+                <div class="stat-value orange-text" id="ithead-stat-pending">—</div>
                 <div class="stat-title">Pending PC Reports</div>
               </div>
               <div class="stat-icon">
@@ -191,7 +191,7 @@
               </div>
             </div>
             <div class="stat-meta-container">
-              <span class="stat-meta">No data loaded</span>
+              <span class="stat-meta" id="ithead-stat-pending-meta">Loading...</span>
             </div>
             <div class="stat-watermark">
               <i data-lucide="alert-circle"></i>
@@ -202,7 +202,7 @@
           <div class="stat-card theme-purple">
             <div class="stat-header">
               <div class="stat-info">
-                <div class="stat-value">—</div>
+                <div class="stat-value" id="ithead-stat-classes">—</div>
                 <div class="stat-title">Classes Today</div>
               </div>
               <div class="stat-icon">
@@ -210,7 +210,7 @@
               </div>
             </div>
             <div class="stat-meta-container">
-              <span class="stat-meta">No data loaded</span>
+              <span class="stat-meta" id="ithead-stat-classes-meta">Scheduled Today</span>
             </div>
             <div class="stat-watermark">
               <i data-lucide="calendar-clock"></i>
@@ -245,17 +245,17 @@
               </div>
             </div>
 
-            <div class="labs-grid">
+            <div class="labs-grid" id="ithead-labs-grid">
               <div class="ui-empty-state">
                 <div class="ui-empty-icon">
                   <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
                 </div>
-                <p>No laboratory status to display yet. Room data will appear here when it is available.</p>
+                <p>Loading laboratory status...</p>
               </div>
             </div>
           </div>
 
-          <!-- Right: My Schedule -->
+          <!-- Right: My Schedule (Faculty View for Dept Head) -->
           <div class="content-card">
             <div class="section-header" style="margin-bottom:28px;">
               <div class="sh-left">
@@ -264,17 +264,17 @@
                 </div>
                 <div>
                   <h3>My Schedule</h3>
-                  <p>Today's classes</p>
+                  <p>Today's teaching sessions</p>
                 </div>
               </div>
             </div>
 
-            <div class="timeline-list" style="padding-left:0; flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;">
+            <div class="timeline-list" id="ithead-schedule-list" style="padding-left:0; flex:1; display:flex; flex-direction:column; justify-content:flex-start;">
               <div class="ui-empty-state" style="grid-column: unset; width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; margin: auto 0;">
                 <div class="ui-empty-icon">
                   <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
                 </div>
-                <p>No classes scheduled for today yet. Your sessions will list here when the schedule is loaded.</p>
+                <p>Loading schedule...</p>
               </div>
             </div>
 
@@ -292,18 +292,124 @@
     const sidebar = document.querySelector('.sidebar');
     const scrollClue = document.getElementById('sidebarScrollClue');
     
-    // Hide arrow if it's not scrollable
-    if (sidebar.scrollHeight <= sidebar.clientHeight) {
-      scrollClue.style.display = 'none';
+    if (sidebar && scrollClue) {
+      if (sidebar.scrollHeight <= sidebar.clientHeight) {
+        scrollClue.style.display = 'none';
+      }
+      sidebar.addEventListener('scroll', () => {
+        if (sidebar.scrollTop > 10) {
+          scrollClue.style.opacity = '0';
+        } else {
+          scrollClue.style.opacity = '1';
+        }
+      });
     }
 
-    // Hide arrow when scrolled
-    sidebar.addEventListener('scroll', () => {
-      if (sidebar.scrollTop > 10) {
-        scrollClue.style.opacity = '0';
-      } else {
-        scrollClue.style.opacity = '1';
+    // Dynamic Loader for Department Head Dashboard
+    async function loadITHeadDashboardData() {
+      try {
+        const [summaryRes, roomsRes] = await Promise.all([
+          fetch('/api/dashboard/it-head-summary'),
+          fetch('/api/laboratories')
+        ]);
+
+        if (summaryRes.ok) {
+          const stats = await summaryRes.json();
+          
+          document.getElementById('ithead-stat-rooms').textContent = stats.totalRooms;
+          document.getElementById('ithead-stat-pcs-meta').textContent = `${stats.totalPcs} Registered PCs`;
+
+          document.getElementById('ithead-stat-available').textContent = stats.availableRooms;
+          document.getElementById('ithead-stat-avail-meta').textContent = `${stats.inUseRooms} In Use • ${stats.claimedRooms} Claimed`;
+
+          document.getElementById('ithead-stat-pending').textContent = stats.pendingReports;
+          document.getElementById('ithead-stat-pending-meta').textContent = stats.pendingReports > 0 ? 'Action Recommended' : 'All Systems Clear';
+
+          document.getElementById('ithead-stat-classes').textContent = stats.classesToday;
+          document.getElementById('ithead-stat-classes-meta').textContent = `${stats.myClassesToday.length} Teaching Classes Today`;
+
+          renderMyTeachingSchedule(stats.myClassesToday);
+        }
+
+        if (roomsRes.ok) {
+          const rooms = await roomsRes.json();
+          renderMyLaboratoriesGrid(rooms);
+        }
+      } catch (err) {
+        console.error('Error loading IT Head dashboard:', err);
       }
+    }
+
+    function renderMyLaboratoriesGrid(rooms) {
+      const grid = document.getElementById('ithead-labs-grid');
+      if (!grid) return;
+
+      if (!rooms || rooms.length === 0) {
+        grid.innerHTML = `
+          <div class="ui-empty-state">
+            <div class="ui-empty-icon"><i data-lucide="monitor-dot"></i></div>
+            <p>No laboratory rooms found.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = rooms.map(r => {
+        const statusClass = (r.Current_Status || 'Available').toLowerCase().replace(/\s+/g, '-');
+        const badgeColor = statusClass === 'in-use' ? '#EF4444' : (statusClass === 'claimed' ? '#F59E0B' : '#10B981');
+        const badgeBg = statusClass === 'in-use' ? '#FEE2E2' : (statusClass === 'claimed' ? '#FEF3C7' : '#D1FAE5');
+
+        return `
+          <div class="lab-card" style="background: var(--bg-white); border: 1px solid var(--border-light); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="font-weight: 800; font-size: 16px; color: var(--text-dark);">Room ${r.Room_Number}</div>
+              <span style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: ${badgeBg}; color: ${badgeColor}; text-transform: uppercase;">
+                ${r.Current_Status}
+              </span>
+            </div>
+            <div style="font-size: 12.5px; color: var(--text-mid);">${r.Building || 'IT Building'}</div>
+            <div style="font-size: 12px; color: var(--text-dark); font-weight: 600; background: var(--bg-body); padding: 8px 10px; border-radius: 8px;">
+              ${r.Current_Class !== 'None' ? r.Current_Class : 'No Active Class'}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderMyTeachingSchedule(myClasses) {
+      const container = document.getElementById('ithead-schedule-list');
+      if (!container) return;
+
+      if (!myClasses || myClasses.length === 0) {
+        container.innerHTML = `
+          <div class="ui-empty-state" style="margin: auto 0;">
+            <div class="ui-empty-icon"><i data-lucide="calendar-days"></i></div>
+            <p>No teaching sessions scheduled for you today.</p>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = myClasses.map(c => `
+        <div style="display: flex; gap: 14px; align-items: flex-start; padding: 12px 14px; border-left: 3px solid var(--primary-teal); background: var(--bg-body); border-radius: 8px; margin-bottom: 10px;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--primary-teal); white-space: nowrap;">
+            ${(c.Start_Time || '').substring(0, 5)} - ${(c.End_Time || '').substring(0, 5)}
+          </div>
+          <div>
+            <div style="font-size: 13.5px; font-weight: 800; color: var(--text-dark);">${c.Subject_Name} (${c.Section})</div>
+            <div style="font-size: 12px; color: var(--text-mid);">Room ${c.Room_Number}</div>
+          </div>
+        </div>
+      `).join('');
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadITHeadDashboardData();
     });
   </script>
 </body>

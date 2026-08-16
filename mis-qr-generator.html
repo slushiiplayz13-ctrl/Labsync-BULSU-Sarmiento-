@@ -347,24 +347,23 @@
       <div id="pcGridView" style="display: none; padding-top: 16px;">
 
         <!-- Controls Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-          <div style="display: flex; align-items: center; gap: 16px;">
+        <div class="pc-grid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
             <button class="back-btn" onclick="showRoomSelection()">
               <i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>
             </button>
             <h2 id="selectedRoomTitle"
-              style="font-size: 26px; font-weight: 800; color: var(--primary-teal); font-family: var(--font-display);">
+              style="font-size: 20px; font-weight: 800; color: var(--primary-teal); font-family: var(--font-display); margin: 0;">
               Room 204</h2>
           </div>
           <button class="generate-all-btn" onclick="generateAllQR()">
-            <i data-lucide="qr-code" style="width: 18px; height: 18px;"></i>
+            <i data-lucide="qr-code" style="width: 16px; height: 16px;"></i>
             Generate QR ALL PC
           </button>
         </div>
 
         <!-- PCs Container -->
-        <div id="dynamicPCGrid"
-          style="border: 2px solid var(--primary-teal); border-radius: 16px; padding: 24px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
+        <div id="dynamicPCGrid" class="pc-grid-container">
         </div>
 
       </div>
@@ -786,14 +785,15 @@
     }
 
     async function generateAllQR() {
-      if (currentPCs.length === 0) {
+      if (!currentRoomId || currentPCs.length === 0) {
         alert('No PCs in this room yet.');
         return;
       }
       
       try {
-        const promises = currentPCs.map(pc => fetch(`/api/pcs/${pc.PC_ID}/qrcode`).then(res => res.json()));
-        const qrDataList = await Promise.all(promises);
+        const response = await fetch(`/api/laboratories/${currentRoomId}/pcs/qrcodes`);
+        if (!response.ok) throw new Error('Failed to generate batch QR codes');
+        const qrDataList = await response.json();
         
         let stickersHtml = qrDataList.map(data => `
           <div class="qr-sticker">

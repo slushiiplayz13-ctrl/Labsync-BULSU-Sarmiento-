@@ -155,6 +155,15 @@ main {
   margin-top: -50px;
 }
 
+.desktop-br {
+  display: inline;
+}
+
+.brand-highlight {
+  color: var(--primary-teal);
+  display: inline;
+}
+
 .left-content h1 {
   font-family: 'Poppins', sans-serif;
   font-size: 52px;
@@ -197,6 +206,34 @@ main {
   object-fit: contain;
 }
 
+/* Card Header Text (Embedded inside card container on mobile) */
+.card-header-text {
+  display: none;
+  text-align: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.card-header-text h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-dark);
+  line-height: 1.25;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.card-header-text p {
+  font-size: 13.5px;
+  color: #475569;
+  font-weight: 500;
+  line-height: 1.4;
+  max-width: 310px;
+  margin: 0 auto;
+  text-wrap: balance;
+}
+
 /* Inline Card Error Banner */
 .login-error-banner {
   width: 100%;
@@ -228,6 +265,7 @@ main {
     opacity: 0;
     transform: translateY(-8px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -342,81 +380,161 @@ main {
 
 /* ─── RESPONSIVE BREAKPOINTS (Mobile & Tablet Support) ───────────── */
 @media (max-width: 1024px) {
-  html, body {
+
+  html,
+  body {
     overflow-x: hidden !important;
   }
+
   body {
     height: auto !important;
     min-height: 100vh;
     overflow-y: auto !important;
   }
+
+  .desktop-br {
+    display: none !important;
+  }
+
   header {
     padding: 16px 20px !important;
   }
+
+  .header-right {
+    display: flex !important;
+    gap: 18px !important;
+    margin-right: 0 !important;
+  }
+
+  .header-right a {
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+  }
+
   .header-left {
     gap: 0 !important;
   }
+
   .header-left img.bsu-logo {
     height: 42px !important;
   }
+
   .divider {
     height: 34px !important;
     margin: 0 3px 0 11px !important;
   }
+
   .header-left img.labsync-logo {
     height: 46px !important;
   }
+
   main {
     flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
-    padding: 20px 24px 60px 24px !important;
-    gap: 32px !important;
+    padding: 24px 20px 48px 20px !important;
+    gap: 0 !important;
   }
+
   .left-content {
-    text-align: center !important;
-    margin-top: 0 !important;
-    max-width: 100% !important;
+    display: none !important;
   }
-  .left-content h1 {
-    font-size: 36px !important;
-    margin-bottom: 12px !important;
+
+  .card-header-text {
+    display: block !important;
   }
-  .left-content p {
-    font-size: 16px !important;
-    max-width: 100% !important;
-    margin: 0 auto !important;
+
+  .card-logo {
+    display: none !important;
   }
+
   .login-card,
   .reset-card {
     width: 100% !important;
     max-width: 440px !important;
-    padding: 32px 32px 24px 32px !important;
+    padding: 36px 32px 28px 32px !important;
     border-radius: 28px !important;
   }
 }
 
 @media (max-width: 480px) {
+  header {
+    padding: 14px 16px !important;
+  }
+
+  .header-left img.bsu-logo {
+    height: 36px !important;
+  }
+
+  .divider {
+    height: 28px !important;
+    margin: 0 2px 0 8px !important;
+  }
+
+  .header-left img.labsync-logo {
+    height: 38px !important;
+  }
+
   .header-right {
-    display: none !important;
+    display: flex !important;
+    gap: 14px !important;
+    margin-right: 0 !important;
   }
-  .left-content h1 {
-    font-size: 28px !important;
+
+  .header-right a {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
   }
-  .left-content p {
-    font-size: 14.5px !important;
+
+  main {
+    padding: 16px 16px 36px 16px !important;
   }
+
+  .card-header-text h2 {
+    font-size: 24px !important;
+    line-height: 1.25 !important;
+    margin-bottom: 6px !important;
+  }
+
+  .card-header-text p {
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+  }
+
   .login-card,
   .reset-card {
-    padding: 24px 20px 20px 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 28px 20px 20px 20px !important;
+    border-radius: 24px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04) !important;
   }
-  .card-logo {
-    height: 48px !important;
+
+  .form-group {
     margin-bottom: 16px !important;
   }
+
   .form-group input {
     padding: 14px 18px !important;
-    font-size: 13.5px !important;
+    font-size: 15px !important;
+    border-radius: 12px !important;
+  }
+
+  .forgot-link {
+    margin-top: -6px !important;
+    margin-bottom: 20px !important;
+    font-size: 11.5px !important;
+  }
+
+  .submit-btn {
+    padding: 14px !important;
+    font-size: 14.5px !important;
+    border-radius: 12px !important;
+  }
+
+  .footer-text {
+    margin-top: 24px !important;
+    font-size: 11px !important;
   }
 }
 
@@ -501,58 +619,79 @@ html.high-contrast {
   --bg-page: #0B0F19;
   --primary-teal-light: #1A2E35;
 }
+
 html.high-contrast body {
   background-color: var(--bg-page);
   color: var(--text-dark);
 }
+
 html.high-contrast .login-card,
 html.high-contrast .reset-card {
   background: #111827;
   border: 1px solid #374151;
 }
-html.high-contrast .left-content p {
+
+html.high-contrast .left-content p,
+html.high-contrast .card-header-text p {
   color: #CBD5E1;
 }
+
+html.high-contrast .card-header-text h2 {
+  color: var(--text-dark);
+}
+
 html.high-contrast .forgot-link {
   color: #94A3B8;
 }
+
 html.high-contrast .forgot-link:hover {
   color: var(--primary-teal);
 }
+
 html.high-contrast .form-group input {
   background: #1F2937;
   color: #F8FAFC;
 }
+
 html.high-contrast .form-group input::placeholder {
   color: #64748B;
 }
+
 html.high-contrast .form-group input:focus {
   background: #111827;
   border-color: var(--primary-teal);
 }
+
 html.high-contrast .footer-text {
   color: #475569;
 }
+
 html.high-contrast .bg-blob-1,
 html.high-contrast .bg-blob-2 {
   opacity: 0.15;
 }
+
 html.high-contrast .modal-card {
   background: #111827;
   border: 1px solid #374151;
 }
+
 html.high-contrast .modal-card h2 {
   color: var(--text-dark);
 }
+
 html.high-contrast .modal-card p {
   color: #CBD5E1;
 }
+
 html.high-contrast .header-right a {
   color: #CBD5E1;
 }
+
 html.high-contrast .header-right a:hover {
   color: var(--text-dark);
 }
+
 html.high-contrast .divider {
   background-color: #374151;
 }
@@ -621,8 +760,13 @@ html.high-contrast img.bsu-logo {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .status-title {
@@ -644,12 +788,15 @@ html.high-contrast img.bsu-logo {
 html.high-contrast .back-link {
   color: #94A3B8;
 }
+
 html.high-contrast .back-link:hover {
   color: var(--primary-teal);
 }
+
 html.high-contrast .status-title {
   color: var(--text-dark);
 }
+
 html.high-contrast .status-message {
   color: #CBD5E1;
 }
@@ -833,9 +980,9 @@ html.high-contrast .about-footer {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
 @media (max-width: 480px) {
   .devs-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
-

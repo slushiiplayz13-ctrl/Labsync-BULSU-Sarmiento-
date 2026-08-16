@@ -63,8 +63,10 @@ window.showToast = function (message, type = 'success', title = null) {
     card.style.color = '#F8FAFC';
   }
 
-  function escapeToastHtml(str) {
-    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  if (!window.escapeHtml) {
+    window.escapeHtml = function (str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    };
   }
 
   card.innerHTML = `
@@ -73,10 +75,10 @@ window.showToast = function (message, type = 'success', title = null) {
     </div>
     <div style="flex: 1; min-width: 0;">
       <div style="font-size: 13.5px; font-weight: 700; color: var(--text-dark, #0F172A); margin-bottom: 2px; font-family: var(--font-display, sans-serif); display: flex; align-items: center; justify-content: space-between;">
-        <span>${escapeToastHtml(toastTitle)}</span>
+        <span>${window.escapeHtml(toastTitle)}</span>
         <button class="labsync-toast-close" style="background: none; border: none; font-size: 16px; color: var(--text-muted, #94A3B8); cursor: pointer; padding: 0 4px; line-height: 1; margin-left: 8px;">&times;</button>
       </div>
-      <div style="font-size: 13.5px; color: var(--text-mid, #475569); line-height: 1.4; word-break: break-word;">${escapeToastHtml(message)}</div>
+      <div style="font-size: 13.5px; color: var(--text-mid, #475569); line-height: 1.4; word-break: break-word;">${window.escapeHtml(message)}</div>
     </div>
   `;
 
@@ -2071,27 +2073,20 @@ async function initMISDashboard() {
             statusBadge = '<span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;">Resolved</span>';
           }
 
-          const sectionBadge = parsed.section && parsed.section !== 'N/A'
-            ? `<span style="font-size: 12px; font-weight: 700; color: #0E7490; background: #E0F2FE; padding: 3px 8px; border-radius: 99px; margin-left: 6px;">${parsed.section}</span>`
-            : '';
-
           return `
             <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.15s ease;">
-              <td style="padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--primary-teal); white-space: nowrap;">
-                <a href="mis-maintenance.html" style="color: inherit; text-decoration: none;">LS-TKT-${r.Report_ID}</a>
+              <td style="padding: 8px 10px; font-size: 12.5px; font-weight: 700; color: #2563EB; white-space: nowrap; text-align: left;">
+                <a href="mis-maintenance.html" style="color: #2563EB; text-decoration: none;">LS-TKT-${r.Report_ID}</a>
               </td>
-              <td style="padding: 12px 16px; font-size: 12.5px; color: var(--text-mid); white-space: nowrap;">${dateStr}</td>
-              <td style="padding: 12px 16px; font-size: 13px; font-weight: 600; color: var(--text-dark); white-space: nowrap;">Room ${r.Room_Number}</td>
-              <td style="padding: 12px 16px; font-size: 13px; font-weight: 600; color: var(--text-dark); white-space: nowrap;">PC #${r.PC_Number}</td>
-              <td style="padding: 12px 16px; font-size: 12.5px; color: var(--text-dark);">
-                <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
-                  <span style="font-weight: 600; color: var(--text-dark);">${parsed.issues}</span>
-                  ${sectionBadge}
-                </div>
+              <td class="col-date" style="padding: 8px 10px; font-size: 12px; color: var(--text-mid); white-space: nowrap; text-align: left;">${dateStr}</td>
+              <td style="padding: 8px 10px; font-size: 12.5px; font-weight: 600; color: var(--text-dark); white-space: nowrap; text-align: center;">${r.Room_Number}</td>
+              <td style="padding: 8px 10px; font-size: 12.5px; font-weight: 600; color: var(--text-dark); white-space: nowrap; text-align: center;">#${r.PC_Number}</td>
+              <td style="padding: 8px 10px; font-size: 12px; color: var(--text-dark); white-space: nowrap; text-align: left;">
+                <span style="font-weight: 600; color: var(--text-dark); white-space: nowrap;">${parsed.issues}</span>
               </td>
-              <td style="padding: 12px 16px; white-space: nowrap;">${statusBadge}</td>
-              <td style="padding: 12px 16px; text-align: right; white-space: nowrap;">
-                <a href="mis-maintenance.html" style="color: var(--primary-teal); font-size: 12.5px; font-weight: 600; text-decoration: none;">View</a>
+              <td style="padding: 8px 10px; white-space: nowrap; text-align: center;">${statusBadge}</td>
+              <td style="padding: 8px 10px; text-align: center; white-space: nowrap;">
+                <a href="mis-maintenance.html" style="color: #2563EB; font-size: 12px; font-weight: 600; text-decoration: none;">View</a>
               </td>
             </tr>
           `;
@@ -2139,17 +2134,48 @@ async function initMISDashboard() {
       }
     }
 
-    // 7. Live search box filtering
-    const searchInput = document.querySelector('.search-input');
-    if (searchInput && tbody) {
-      searchInput.addEventListener('input', () => {
-        const query = searchInput.value.toLowerCase().trim();
-        const rows = tbody.querySelectorAll('tr');
-        rows.forEach(row => {
-          const text = row.textContent.toLowerCase();
-          row.style.display = text.includes(query) ? '' : 'none';
-        });
+    // 7. Enhanced live search box filtering (preserves active search across polling refreshes)
+    function applyMISSearchFilter() {
+      const searchInput = document.querySelector('.search-input');
+      const tbody = document.querySelector('.table-container table tbody');
+      if (!searchInput || !tbody) return;
+
+      const rawInput = searchInput.value.toLowerCase().trim();
+      const rows = tbody.querySelectorAll('tr');
+
+      if (!rawInput) {
+        rows.forEach(row => row.style.display = '');
+        return;
+      }
+
+      const cleanQuery = rawInput.replace(/[^a-z0-9]/g, '');
+      const numOnlyQuery = rawInput.replace(/[^0-9]/g, '');
+
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const cleanText = text.replace(/[^a-z0-9]/g, '');
+
+        // Standard substring match
+        let isMatch = text.includes(rawInput) || cleanText.includes(cleanQuery);
+
+        // Flexible Ticket ID / Room / PC matching
+        if (!isMatch && numOnlyQuery) {
+          if (cleanQuery.includes('tkt') || cleanQuery.includes('ls') || cleanQuery.includes('ticket')) {
+            isMatch = cleanText.includes('lstkt' + numOnlyQuery) || cleanText.includes('tkt' + numOnlyQuery);
+          }
+        }
+
+        row.style.display = isMatch ? '' : 'none';
       });
+    }
+
+    // Instantly preserve active search filter when table rows are re-rendered
+    applyMISSearchFilter();
+
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput && !searchInput.dataset.boundSearch) {
+      searchInput.dataset.boundSearch = 'true';
+      searchInput.addEventListener('input', applyMISSearchFilter);
     }
 
   } catch (err) {

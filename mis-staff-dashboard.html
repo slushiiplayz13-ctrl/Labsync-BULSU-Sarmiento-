@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -62,11 +62,11 @@
     <header class="header">
 
       <!-- Logos -->
-      <div class="header-logos" style="display: flex; align-items: center; gap: 14px;">
+      <div class="header-logos" style="display: flex; align-items: center; gap: 14px; pointer-events: none;">
         <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo"
-          style="height: 40px; width: auto; object-fit: contain;">
+          style="height: 40px; width: auto; object-fit: contain; pointer-events: none;" draggable="false" oncontextmenu="return false;">
         <div class="logo-divider" style="width: 1px; height: 32px; background: var(--border-light);"></div>
-        <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain; pointer-events: none;" draggable="false" oncontextmenu="return false;">
       </div>
 
       <!-- Center Nav -->
@@ -119,12 +119,12 @@
         <div class="dashboard-overview">
 
           <!-- Stats Grid -->
-          <div class="stats-grid mis-stats" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+          <div class="stats-grid mis-stats">
             <!-- Stat 1 -->
             <div class="stat-card theme-blue">
               <div class="stat-header">
                 <div class="stat-info">
-                  <div class="stat-value">0 <span class="stat-pill-badge">Across 0 Rooms</span></div>
+                  <div class="stat-value"><span id="mis-stat-pcs">0</span> <span class="stat-pill-badge" id="mis-stat-rooms">Across 0 Rooms</span></div>
                   <div class="stat-title">Registered PC Units</div>
                 </div>
                 <div class="stat-icon">
@@ -140,7 +140,7 @@
             <div class="stat-card theme-orange">
               <div class="stat-header">
                 <div class="stat-info">
-                  <div class="stat-value">0 <span class="stat-pill-badge">0 Total Tickets</span></div>
+                  <div class="stat-value"><span id="mis-stat-pending">0</span> <span class="stat-pill-badge" id="mis-stat-total">0 Total Tickets</span></div>
                   <div class="stat-title">Pending PC Reports</div>
                 </div>
                 <div class="stat-icon">
@@ -152,19 +152,19 @@
               </div>
             </div>
 
-            <!-- Stat 3 -->
-            <div class="stat-card theme-red">
+            <!-- Stat 3: Resolved Reports -->
+            <div class="stat-card theme-green">
               <div class="stat-header">
                 <div class="stat-info">
-                  <div class="stat-value">0 <span class="stat-pill-badge">In Progress</span></div>
-                  <div class="stat-title">Active Maintenance</div>
+                  <div class="stat-value"><span id="mis-stat-resolved">0</span> <span class="stat-pill-badge">Completed</span></div>
+                  <div class="stat-title">Resolved Reports</div>
                 </div>
                 <div class="stat-icon">
-                  <i data-lucide="wrench"></i>
+                  <i data-lucide="check-circle"></i>
                 </div>
               </div>
               <div class="stat-watermark">
-                <i data-lucide="wrench"></i>
+                <i data-lucide="check-circle"></i>
               </div>
             </div>
           </div>
@@ -181,9 +181,9 @@
                     <p style="font-size: 13px;">Track and manage all reported issues</p>
                   </div>
                 </div>
-                <div>
+                <div style="flex-shrink: 0; white-space: nowrap; margin-left: auto;">
                   <a href="mis-maintenance.html"
-                    style="color: var(--primary-teal); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">View
+                    style="color: var(--primary-teal); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; white-space: nowrap;">View
                     All <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i></a>
                 </div>
               </div>
@@ -192,42 +192,42 @@
               <div class="search-box" style="position: relative;">
                 <i data-lucide="search"
                   style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
-                <input type="text" class="search-input" placeholder="Search by ticket ID, room, or issue type...">
+                <input type="text" id="dashboardSearchInput" class="search-input" placeholder="Search by ticket ID, room, or issue type...">
               </div>
 
               <!-- Table -->
-              <div class="table-container" style="overflow-x: auto; overflow-y: auto; flex: 1; min-height: 150px;">
+              <div class="table-container" style="overflow-x: auto; overflow-y: auto; flex: 1; min-height: 260px; max-height: 400px;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left;">
                   <thead style="position: sticky; top: 0; background: var(--bg-white); z-index: 10;">
                     <tr>
                       <th
-                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: left;">
                         TICKET ID</th>
-                      <th
-                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                      <th class="col-date"
+                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: left;">
                         DATE & TIME</th>
                       <th
-                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: center;">
                         LAB ROOM</th>
                       <th
-                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: center;">
                         PC ID</th>
                       <th
-                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: left;">
                         ISSUE TYPE</th>
                       <th
-                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light);">
+                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: center;">
                         STATUS</th>
                       <th
-                        style="padding: 8px 16px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: right;">
+                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: center;">
                         ACTION</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="misDashboardReportRows">
                     <tr>
                       <td colspan="7"
                         style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
-                        No PC reports available. Reports will appear here when submitted.
+                        Loading reports...
                       </td>
                     </tr>
                   </tbody>
@@ -311,6 +311,151 @@
       if (subEl) subEl.textContent = 'Manage system-wide hardware reports, administrative tasks, and the technical integrity of all IT laboratory spaces.';
     }
     updateMISGreeting();
+
+    // Fetch and bind live dashboard stats and reports
+    async function loadDashboardData() {
+      try {
+        const [reportsRes, roomsRes] = await Promise.all([
+          fetch('/api/reports'),
+          fetch('/api/laboratories')
+        ]);
+        
+        const reports = reportsRes.ok ? await reportsRes.json() : [];
+        const rooms = roomsRes.ok ? await roomsRes.json() : [];
+
+        // Compute metrics
+        const totalTickets = reports.length;
+        const pendingTickets = reports.filter(r => (r.Status || '').toLowerCase() === 'pending');
+        const resolvedTickets = reports.filter(r => (r.Status || '').toLowerCase() === 'resolved').length;
+        const activeTickets = pendingTickets.length;
+        const totalRooms = rooms.length;
+
+        // Fetch PC counts
+        let totalPcs = 0;
+        if (rooms.length > 0) {
+          const pcPromises = rooms.map(r => fetch(`/api/laboratories/${r.Room_ID}/pcs`).then(res => res.ok ? res.json() : []));
+          const pcLists = await Promise.all(pcPromises);
+          totalPcs = pcLists.reduce((acc, pcs) => acc + pcs.length, 0);
+        }
+
+        // Update Stat Cards
+        const pcsEl = document.getElementById('mis-stat-pcs');
+        if (pcsEl) pcsEl.textContent = totalPcs;
+        const roomsEl = document.getElementById('mis-stat-rooms');
+        if (roomsEl) roomsEl.textContent = `Across ${totalRooms} Room${totalRooms !== 1 ? 's' : ''}`;
+
+        const pendingEl = document.getElementById('mis-stat-pending');
+        if (pendingEl) pendingEl.textContent = activeTickets;
+        const totalEl = document.getElementById('mis-stat-total');
+        if (totalEl) totalEl.textContent = `${totalTickets} Total Tickets`;
+
+        const resolvedEl = document.getElementById('mis-stat-resolved');
+        if (resolvedEl) resolvedEl.textContent = resolvedTickets;
+
+        // Render Recent Reports Table
+        renderDashboardTable(reports);
+      } catch (err) {
+        console.error('Error loading dashboard data:', err);
+      }
+    }
+
+    function renderDashboardTable(reports) {
+      const tbody = document.getElementById('misDashboardReportRows');
+      if (!tbody) return;
+
+      if (!reports || reports.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+              No PC reports available. Reports will appear here when submitted.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const searchInput = document.getElementById('dashboardSearchInput');
+      const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+      const filtered = reports.filter(r => {
+        if (!query) return true;
+        const tkt = `ls-tkt-${r.Report_ID}`.toLowerCase();
+        const room = `room ${r.Room_Number}`.toLowerCase();
+        const pc = `pc ${r.PC_Number}`.toLowerCase();
+        const desc = (r.Issue_Description || '').toLowerCase();
+        return tkt.includes(query) || room.includes(query) || pc.includes(query) || desc.includes(query);
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+              No reports match your search criteria.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.slice(0, 10).map(r => {
+        const dateObj = r.Date_Reported ? new Date(r.Date_Reported) : new Date();
+        const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const isResolved = (r.Status || '').toLowerCase() === 'resolved';
+
+        return `
+          <tr>
+            <td style="padding: 10px; font-weight: 700; color: var(--primary-teal); font-family: monospace;">LS-TKT-${r.Report_ID}</td>
+            <td style="padding: 10px; font-size: 12px; color: var(--text-mid);">${formattedDate}</td>
+            <td style="padding: 10px; text-align: center; font-weight: 600;">Room ${r.Room_Number || 'N/A'}</td>
+            <td style="padding: 10px; text-align: center; font-weight: 600;">PC ${r.PC_Number || 'N/A'}</td>
+            <td style="padding: 10px; font-size: 12px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(r.Issue_Description || 'Hardware Issue')}</td>
+            <td style="padding: 10px; text-align: center;">
+              <span class="status-badge ${isResolved ? 'resolved' : 'pending'}" style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: ${isResolved ? '#D1FAE5' : '#FEF3C7'}; color: ${isResolved ? '#059669' : '#D97706'};">
+                ${r.Status || 'Pending'}
+              </span>
+            </td>
+            <td style="padding: 10px; text-align: center;">
+              ${!isResolved ? `
+                <button onclick="resolveDashboardTicket(${r.Report_ID})" style="padding: 5px 12px; border: none; background: #10B981; color: white; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+                  Resolve
+                </button>
+              ` : `
+                <span style="font-size: 11.5px; color: #059669; font-weight: 600;">Completed</span>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function resolveDashboardTicket(reportId) {
+      if (!confirm(`Are you sure you want to resolve Ticket LS-TKT-${reportId}?`)) return;
+      try {
+        const res = await fetch(`/api/reports/${reportId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'Resolved' })
+        });
+        if (res.ok) {
+          loadDashboardData();
+          if (window.showToast) window.showToast(`Ticket LS-TKT-${reportId} resolved successfully.`);
+        }
+      } catch (err) {
+        console.error('Error resolving ticket:', err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDashboardData();
+      const searchInput = document.getElementById('dashboardSearchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', () => loadDashboardData());
+      }
+    });
   </script>
 </body>
 

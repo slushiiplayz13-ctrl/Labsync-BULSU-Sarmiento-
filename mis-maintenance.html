@@ -12,7 +12,12 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet" />
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style id="auth-anti-flash">
+    body {
+      display: none !important;
+    }
+  </style>
   <script src="js/auth-check.js"></script>
   <style>
     /* Modern Stat Cards */
@@ -28,20 +33,24 @@
       position: relative;
       overflow: hidden;
     }
+
     .maint-stat-card:hover {
       transform: translateY(-3px);
       box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08);
     }
+
     .maint-stat-card.total {
       background: linear-gradient(135deg, #1EBBD7 0%, #0EA5C9 100%);
       color: #FFFFFF;
       box-shadow: 0 8px 20px -4px rgba(30, 187, 215, 0.35);
     }
+
     .maint-stat-card.pending {
       background: #FFFFFF;
       border: 1.5px solid #FDE68A;
       box-shadow: 0 4px 16px -2px rgba(245, 158, 11, 0.08);
     }
+
     .maint-stat-card.resolved {
       background: #FFFFFF;
       border: 1.5px solid #A7F3D0;
@@ -57,21 +66,31 @@
       justify-content: center;
       flex-shrink: 0;
     }
+
     .maint-stat-card.total .stat-icon-wrapper {
       background: rgba(255, 255, 255, 0.2);
       color: #FFFFFF;
       backdrop-filter: blur(4px);
     }
+
     .maint-stat-card.pending .stat-icon-wrapper {
       background: #FEF3C7;
       color: #D97706;
     }
+
     .maint-stat-card.resolved .stat-icon-wrapper {
       background: #D1FAE5;
       color: #059669;
     }
 
     /* Filter Pills */
+    .filter-pills-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+
     .filter-pill {
       border: 1px solid var(--border-light);
       background: #FFFFFF;
@@ -83,20 +102,209 @@
       cursor: pointer;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       transition: all 0.2s ease;
       font-family: var(--font-body);
+      white-space: nowrap;
     }
+
     .filter-pill:hover {
       border-color: var(--primary-teal);
       color: var(--primary-teal);
       background: #F0FDFD;
     }
+
     .filter-pill.active {
       background: var(--primary-teal);
       color: #FFFFFF;
       border-color: var(--primary-teal);
       box-shadow: 0 3px 10px rgba(30, 187, 215, 0.3);
+    }
+
+    @media (max-width: 600px) {
+      .maint-controls-row {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 14px !important;
+        margin-bottom: 6px !important;
+      }
+
+      .filter-pills-row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+        gap: 6px !important;
+        margin-bottom: 4px !important;
+      }
+
+      .filter-pill {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        padding: 7px 4px !important;
+        font-size: 11.5px !important;
+        justify-content: center !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+      }
+
+      .filter-pill i,
+      .filter-pill svg {
+        width: 12px !important;
+        height: 12px !important;
+      }
+
+      .maint-search-wrap {
+        width: 100% !important;
+        margin-top: 4px !important;
+      }
+
+      .maint-search-wrap .search-box {
+        width: 100% !important;
+      }
+
+      /* Mobile Card View for Maintenance Table */
+      .maint-table-wrapper {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        max-height: calc(100vh - 280px) !important;
+        padding-right: 2px !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      .maint-table,
+      .maint-table tbody {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        width: 100% !important;
+      }
+
+      .maint-table thead {
+        display: none !important;
+      }
+
+      .maint-table tr {
+        display: grid !important;
+        grid-template-areas:
+          "ticket status"
+          "issues issues"
+          "actions actions";
+        grid-template-columns: 1fr auto !important;
+        gap: 10px !important;
+        background: #FFFFFF !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: 16px !important;
+        padding: 14px 16px !important;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+      }
+
+      .maint-table tr td {
+        display: block !important;
+        padding: 0 !important;
+        border: none !important;
+        white-space: normal !important;
+        min-width: 0 !important;
+        max-width: none !important;
+      }
+
+      .maint-table tr td.col-ticket {
+        grid-area: ticket;
+        align-self: center;
+      }
+
+      .maint-table tr td.col-status {
+        grid-area: status;
+        justify-self: end;
+        align-self: center;
+      }
+
+      .maint-table tr td.col-date,
+      .maint-table tr td.col-room,
+      .maint-table tr td.col-pc {
+        display: none !important;
+      }
+
+      .maint-table tr td.col-issues {
+        grid-area: issues;
+      }
+
+      .maint-table tr td.col-actions {
+        grid-area: actions;
+        margin-top: 4px;
+        padding-top: 10px !important;
+        border-top: 1px dashed var(--border-light) !important;
+      }
+
+      .maint-table tr td.col-actions .btn-resolve-ticket,
+      .maint-table tr td.col-actions .completed-chip {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 10px 14px !important;
+        font-size: 13px !important;
+        border-radius: 12px !important;
+        box-sizing: border-box !important;
+      }
+
+      .mobile-card-meta {
+        display: flex !important;
+        align-items: center;
+        gap: 5px 8px;
+        flex-wrap: wrap;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        background: #F8FAFC;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border-light);
+        box-sizing: border-box;
+        width: 100%;
+      }
+
+      .mobile-card-meta>span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+      }
+    }
+
+    .maint-controls-row {
+      position: sticky;
+      top: 0;
+      background: var(--bg-card, #FFFFFF);
+      z-index: 25;
+      padding-top: 6px;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-direction: row;
+      gap: 16px;
+    }
+
+    .filter-pills-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+      margin-bottom: 0;
+    }
+
+    .maint-search-wrap {
+      display: flex;
+      align-items: center;
+      margin-top: 0;
     }
 
     /* Table Enhancements */
@@ -105,10 +313,14 @@
       border: 1px solid var(--border-light);
       border-radius: 16px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-      overflow: hidden;
+      overflow-y: auto !important;
+      overflow-x: auto !important;
+      max-height: 480px;
+      -webkit-overflow-scrolling: touch;
     }
+
     .maint-table th {
-      padding: 14px 18px;
+      padding: 10px 10px;
       font-size: 11px;
       font-weight: 700;
       color: #64748B;
@@ -117,18 +329,22 @@
       background: #F8FAFC;
       border-bottom: 1px solid var(--border-light);
     }
+
     .maint-table td {
-      padding: 16px 18px;
+      padding: 10px 10px;
       vertical-align: middle;
       border-bottom: 1px solid #F1F5F9;
-      font-size: 13px;
+      font-size: 12.5px;
     }
+
     .maint-table tr:last-child td {
       border-bottom: none;
     }
+
     .maint-table tr {
       transition: background 0.15s ease;
     }
+
     .maint-table tr:hover {
       background: #FAFDFE;
     }
@@ -149,6 +365,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
     }
+
     .ticket-chip:hover {
       background: var(--primary-teal);
       color: #FFFFFF;
@@ -165,11 +382,13 @@
       align-items: center;
       gap: 5px;
     }
+
     .issue-tag.bad {
       background: #FEE2E2;
       color: #DC2626;
       border: 1px solid #FCA5A5;
     }
+
     .issue-tag.ok {
       background: #F1F5F9;
       color: #64748B;
@@ -202,26 +421,31 @@
       padding: 4px 12px;
       border-radius: 99px;
     }
+
     .status-badge-pulse.pending {
       background: #FEF3C7;
       color: #D97706;
       border: 1px solid #FDE68A;
     }
+
     .status-badge-pulse.resolved {
       background: #D1FAE5;
       color: #059669;
       border: 1px solid #A7F3D0;
     }
+
     .pulse-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
       display: inline-block;
     }
+
     .status-badge-pulse.pending .pulse-dot {
       background: #F59E0B;
       box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
     }
+
     .status-badge-pulse.resolved .pulse-dot {
       background: #10B981;
       box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
@@ -245,14 +469,17 @@
       font-family: var(--font-body);
       white-space: nowrap;
     }
+
     .btn-resolve-ticket:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
       background: linear-gradient(135deg, #059669, #047857);
     }
+
     .btn-resolve-ticket:active {
       transform: translateY(0);
     }
+
     .completed-chip {
       display: inline-flex;
       align-items: center;
@@ -280,6 +507,7 @@
       gap: 3px;
       font-family: var(--font-body);
     }
+
     .btn-read-more:hover {
       text-decoration: underline;
     }
@@ -290,42 +518,51 @@
       border-color: var(--border-light) !important;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
     }
+
     html.high-contrast .maint-table th {
       background: rgba(255, 255, 255, 0.05) !important;
       color: var(--text-muted) !important;
       border-bottom-color: var(--border-light) !important;
     }
+
     html.high-contrast .maint-table td {
       border-bottom-color: var(--border-light) !important;
       color: var(--text-dark) !important;
     }
+
     html.high-contrast .maint-table tr:hover {
       background: rgba(30, 187, 215, 0.08) !important;
     }
+
     html.high-contrast .ticket-chip {
       background: rgba(30, 187, 215, 0.15) !important;
       border-color: rgba(30, 187, 215, 0.3) !important;
       color: var(--primary-teal) !important;
     }
+
     html.high-contrast .filter-pill {
       background: var(--bg-card) !important;
       color: var(--text-dark) !important;
       border-color: var(--border-light) !important;
     }
+
     html.high-contrast .filter-pill.active {
       background: var(--primary-teal) !important;
       color: #FFFFFF !important;
       border-color: var(--primary-teal) !important;
     }
+
     html.high-contrast #maintenanceSearchInput {
       background: var(--bg-card) !important;
       color: var(--text-dark) !important;
       border-color: var(--border-light) !important;
     }
+
     html.high-contrast .remarks-quote-box {
       background: rgba(255, 255, 255, 0.05) !important;
       color: var(--text-dark) !important;
     }
+
     html.high-contrast .completed-chip {
       background: rgba(16, 185, 129, 0.15) !important;
       color: #34D399 !important;
@@ -343,7 +580,8 @@
       <button class="sidebar-btn" title="Dashboard" onclick="window.location.href='mis-staff-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn active" title="Maintenance Tracker" onclick="window.location.href='mis-maintenance.html'">
+      <button class="sidebar-btn active" title="Maintenance Tracker"
+        onclick="window.location.href='mis-maintenance.html'">
         <i data-lucide="wrench" style="width:24px;height:24px;"></i>
       </button>
       <button class="sidebar-btn" title="PC & QR Management" onclick="window.location.href='mis-qr-generator.html'">
@@ -386,7 +624,8 @@
       <!-- Center Nav -->
       <nav class="header-nav">
         <button class="nav-item" onclick="window.location.href='mis-staff-dashboard.html'">Dashboard</button>
-        <button class="nav-item active" onclick="window.location.href='mis-maintenance.html'">Maintenance Tracker</button>
+        <button class="nav-item active" onclick="window.location.href='mis-maintenance.html'">Maintenance
+          Tracker</button>
         <button class="nav-item" onclick="window.location.href='mis-qr-generator.html'">PC & QR Management</button>
       </nav>
 
@@ -418,7 +657,8 @@
       <div class="greeting-row">
         <div class="greeting-left">
           <h1 class="greeting-title" id="greetingText">Maintenance Tracker</h1>
-          <p class="greeting-sub" id="greetingSub">Monitor, process, and resolve computer laboratory maintenance tickets.</p>
+          <p class="greeting-sub" id="greetingSub">Monitor, process, and resolve computer laboratory maintenance
+            tickets.</p>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime">--:--:-- --</div>
@@ -428,14 +668,15 @@
 
       <!-- Main Content Card -->
       <div class="dashboard-card" style="padding: 24px; display: flex; flex-direction: column; gap: 24px;">
-        
+
         <!-- Dashboard Summary Cards (Matching Dashboard Theme & Watermark Animations) -->
-        <div class="stats-grid mis-stats" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; width: 100%;">
+        <div class="stats-grid mis-stats">
           <!-- Card 1 -->
           <div class="stat-card theme-blue">
             <div class="stat-header">
               <div class="stat-info">
-                <div class="stat-value"><span id="stat-total">0</span> <span class="stat-pill-badge">All Work Orders</span></div>
+                <div class="stat-value"><span id="stat-total">0</span> <span class="stat-pill-badge">All Work
+                    Orders</span></div>
                 <div class="stat-title">Total Tickets</div>
               </div>
               <div class="stat-icon">
@@ -451,7 +692,8 @@
           <div class="stat-card theme-orange">
             <div class="stat-header">
               <div class="stat-info">
-                <div class="stat-value"><span id="stat-pending">0</span> <span class="stat-pill-badge">Action Required</span></div>
+                <div class="stat-value"><span id="stat-pending">0</span> <span class="stat-pill-badge">Action
+                    Required</span></div>
                 <div class="stat-title">Pending Reports</div>
               </div>
               <div class="stat-icon">
@@ -467,7 +709,8 @@
           <div class="stat-card theme-green">
             <div class="stat-header">
               <div class="stat-info">
-                <div class="stat-value"><span id="stat-resolved">0</span> <span class="stat-pill-badge">Completed</span></div>
+                <div class="stat-value"><span id="stat-resolved">0</span> <span class="stat-pill-badge">Completed</span>
+                </div>
                 <div class="stat-title">Resolved Reports</div>
               </div>
               <div class="stat-icon">
@@ -481,10 +724,10 @@
         </div>
 
         <!-- Controls Row -->
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-          
+        <div class="maint-controls-row">
+
           <!-- Filter Pills -->
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div class="filter-pills-row">
             <button class="filter-pill active" id="filter-all" onclick="filterStatus('all')">
               <i data-lucide="layers" style="width: 14px; height: 14px;"></i> All Tickets
             </button>
@@ -495,12 +738,16 @@
               <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i> Resolved
             </button>
           </div>
-          
+
           <!-- Right Search Input -->
-          <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="maint-search-wrap">
             <div class="search-box" style="position: relative; width: 320px;">
-              <i data-lucide="search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94A3B8;"></i>
-              <input type="text" id="maintenanceSearchInput" placeholder="Search by Ticket ID, Room, PC, or Details..." style="width: 100%; padding: 10px 14px 10px 38px; border: 1.5px solid var(--border-light); border-radius: 12px; font-size: 13px; outline: none; font-family: var(--font-body); transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary-teal)'" onblur="this.style.borderColor='var(--border-light)'">
+              <i data-lucide="search"
+                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94A3B8;"></i>
+              <input type="text" id="maintenanceSearchInput" placeholder="Search by Ticket ID, Room, PC, or Details..."
+                style="width: 100%; padding: 10px 14px 10px 38px; border: 1.5px solid var(--border-light); border-radius: 12px; font-size: 13px; outline: none; font-family: var(--font-body); transition: border-color 0.2s;"
+                onfocus="this.style.borderColor='var(--primary-teal)'"
+                onblur="this.style.borderColor='var(--border-light)'">
             </div>
           </div>
         </div>
@@ -537,7 +784,7 @@
   <script>
     const sidebar = document.querySelector('.sidebar');
     const scrollClue = document.getElementById('sidebarScrollClue');
-    
+
     if (sidebar && scrollClue) {
       if (sidebar.scrollHeight <= sidebar.clientHeight) {
         scrollClue.style.display = 'none';
@@ -586,7 +833,7 @@
         const response = await fetch('/api/reports');
         if (!response.ok) throw new Error('Failed to fetch reports');
         maintenanceReports = await response.json();
-        
+
         calculateStats(maintenanceReports);
         applyFiltersAndRender();
       } catch (error) {
@@ -689,19 +936,15 @@
 
       tbody.innerHTML = reports.map(report => {
         const dateObj = new Date(report.Date_Reported);
-        const formattedDate = dateObj.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
+        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
         const parsed = parseIssueDesc(report.Issue_Description);
 
         let actionsHtml = '';
         if (report.Status !== 'Resolved') {
           actionsHtml = `
-            <button class="btn-resolve-ticket" onclick="updateReportStatus(${report.Report_ID}, 'Resolved')">
+            <button class="btn-resolve-ticket" onclick="event.stopPropagation(); updateReportStatus(${report.Report_ID}, 'Resolved')">
               <i data-lucide="check" style="width:14px;height:14px;"></i> Mark Resolved
             </button>
           `;
@@ -710,7 +953,7 @@
         }
 
         const sectionChip = parsed.section && parsed.section !== 'N/A'
-          ? `<span style="font-size: 10.5px; font-weight: 700; color: #0E7490; background: #E0F2FE; border: 1px solid #BAE6FD; padding: 2px 7px; border-radius: 99px;">${parsed.section}</span>`
+          ? `<span style="font-size: 10.5px; font-weight: 700; color: #0E7490; background: #E0F2FE; border: 1px solid #BAE6FD; padding: 2px 7px; border-radius: 99px; white-space: nowrap; display: inline-block; flex-shrink: 0;">${parsed.section}</span>`
           : '';
 
         // Format component issues cleanly
@@ -727,36 +970,46 @@
 
         const isLongRemark = parsed.remarks && parsed.remarks.length > 70;
         const readMoreBtn = isLongRemark
-          ? `<button class="btn-read-more" onclick="viewTicketModal(${report.Report_ID})">Expand <i data-lucide="maximize-2" style="width:11px;height:11px;"></i></button>`
+          ? `<button class="btn-read-more" onclick="event.stopPropagation(); viewTicketModal(${report.Report_ID})">Expand <i data-lucide="maximize-2" style="width:11px;height:11px;"></i></button>`
           : '';
 
         return `
-          <tr>
-            <td style="white-space: nowrap;">
-              <span class="ticket-chip" onclick="viewTicketModal(${report.Report_ID})" title="Click to view full ticket details">
+          <tr onclick="viewTicketModal(${report.Report_ID})" style="cursor: pointer;" title="Tap to view full ticket details">
+            <td class="col-ticket" style="white-space: nowrap;">
+              <span class="ticket-chip" onclick="event.stopPropagation(); viewTicketModal(${report.Report_ID})" title="Click to view full ticket details">
                 LS-TKT-${report.Report_ID}
               </span>
             </td>
-            <td style="white-space: nowrap; font-size: 12.5px; color: var(--text-mid); font-weight: 500;">
+            <td class="col-date" style="white-space: nowrap;">
               <div style="display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="calendar" style="width:13px;height:13px;color:#94A3B8;"></i>
-                ${formattedDate}
+                <i data-lucide="calendar" style="width:13px;height:13px;color:#94A3B8;flex-shrink:0;"></i>
+                <div style="display: flex; flex-direction: column; line-height: 1.25;">
+                  <span style="font-weight: 700; color: var(--text-dark); font-size: 12px;">${dateStr}</span>
+                  <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">${timeStr}</span>
+                </div>
               </div>
             </td>
-            <td style="white-space: nowrap; font-weight: 700; color: var(--text-dark);">
+            <td class="col-room" style="white-space: nowrap; font-weight: 700; color: var(--text-dark);">
               <div style="display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--primary-teal);"></i>
+                <i data-lucide="map-pin" style="width:13px;height:13px;color:var(--primary-teal);flex-shrink:0;"></i>
                 Room ${report.Room_Number}
               </div>
             </td>
-            <td style="white-space: nowrap; font-weight: 700; color: var(--text-dark);">
+            <td class="col-pc" style="white-space: nowrap; font-weight: 700; color: var(--text-dark);">
               <div style="display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="monitor" style="width:14px;height:14px;color:#64748B;"></i>
+                <i data-lucide="monitor" style="width:13px;height:13px;color:#64748B;flex-shrink:0;"></i>
                 PC #${report.PC_Number}
               </div>
             </td>
-            <td style="min-width: 280px; max-width: 380px;">
-              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
+            <td class="col-issues" style="min-width: 170px; max-width: 300px;">
+              <div class="mobile-card-meta">
+                <span><i data-lucide="map-pin" style="width:12px;height:12px;color:var(--primary-teal);flex-shrink:0;"></i> Room ${report.Room_Number}</span>
+                <span style="color: #CBD5E1; font-weight: 400;">•</span>
+                <span><i data-lucide="monitor" style="width:12px;height:12px;color:#64748B;flex-shrink:0;"></i> #${report.PC_Number}</span>
+                <span style="color: #CBD5E1; font-weight: 400;">•</span>
+                <span><i data-lucide="calendar" style="width:12px;height:12px;color:#94A3B8;flex-shrink:0;"></i> ${dateStr}, ${timeStr}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px;">
                 ${issueBadges}
                 ${sectionChip}
               </div>
@@ -765,10 +1018,10 @@
               </div>
               ${readMoreBtn}
             </td>
-            <td style="white-space: nowrap;">
+            <td class="col-status" style="white-space: nowrap;">
               ${statusPill}
             </td>
-            <td style="text-align: center; white-space: nowrap;">
+            <td class="col-actions" style="text-align: center; white-space: nowrap;">
               ${actionsHtml}
             </td>
           </tr>

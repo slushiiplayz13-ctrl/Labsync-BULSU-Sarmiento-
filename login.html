@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -78,11 +78,16 @@
 
   <main>
     <div class="left-content">
-      <h1>Sign In to<br>LabSync</h1>
+      <h1>Sign In to<br class="desktop-br"> <span class="brand-highlight">LabSync</span></h1>
       <p>Access your lab schedules and resources in one place.</p>
     </div>
 
     <form class="login-card" id="loginForm" onsubmit="event.preventDefault(); return false;">
+      <div class="card-header-text">
+        <h2>Sign In to <span class="brand-highlight">LabSync</span></h2>
+        <p>Access your lab schedules and resources in one place.</p>
+      </div>
+
       <img src="assets/labsync-logo.png" alt="LabSync Logo" class="card-logo">
 
       <div id="loginErrorMessage" class="login-error-banner" style="display: none;">

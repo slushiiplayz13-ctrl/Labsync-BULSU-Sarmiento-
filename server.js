@@ -783,40 +783,40 @@ app.delete('/api/faculty/:userId', requireAuth, async (req, res) => {
 // Get all laboratories with real-time status and active classes computed dynamically
 app.get('/api/laboratories', async (req, res) => {
     try {
-        const [rooms] = await db.query('SELECT * FROM laboratories ORDER BY Room_Number');
-
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const today = days[new Date().getDay()];
         const nowTime = new Date().toTimeString().split(' ')[0]; // 'HH:MM:SS'
 
-        for (let room of rooms) {
-            // Find if there's any class scheduled right now in this room
-            const [schedules] = await db.query(
-                `SELECT s.Subject_Name, s.Section, u.Name as ProfessorName 
-                 FROM schedules s
-                 LEFT JOIN users u ON s.User_ID = u.User_ID
-                 WHERE s.Room_ID = ? AND s.Day_of_Week = ? AND ? BETWEEN s.Start_Time AND s.End_Time`,
-                [room.Room_ID, today, nowTime]
-            );
+        // Single JOIN query replacing loop queries
+        const [rooms] = await db.query(
+            `SELECT r.Room_ID, r.Room_Number, r.Building, r.Current_Status AS DB_Status, r.Key_Status,
+                    s.Subject_Name, s.Section, u.Name AS ProfessorName
+             FROM laboratories r
+             LEFT JOIN schedules s ON r.Room_ID = s.Room_ID 
+                 AND s.Day_of_Week = ? 
+                 AND ? BETWEEN s.Start_Time AND s.End_Time
+             LEFT JOIN users u ON s.User_ID = u.User_ID
+             ORDER BY CAST(r.Room_Number AS UNSIGNED)`,
+            [today, nowTime]
+        );
 
-            if (schedules.length > 0) {
-                room.Current_Status = 'In Use';
-                room.Current_Class = `${schedules[0].Subject_Name} (${schedules[0].Section})`;
-            } else {
-                // If key is Absent (taken), the room is occupied/Claimed. If Key is Present, it is Available.
-                if (room.Key_Status === 'Absent') {
-                    room.Current_Status = 'Claimed';
-                    room.Current_Class = 'Open Lab Session';
-                } else {
-                    room.Current_Status = 'Available';
-                    room.Current_Class = 'None';
-                }
-            }
-        }
+        const result = rooms.map(room => {
+            const hasClass = !!room.Subject_Name;
+            const keyAbsent = room.Key_Status === 'Absent';
 
-        res.json(rooms);
+            return {
+                Room_ID: room.Room_ID,
+                Room_Number: room.Room_Number,
+                Building: room.Building,
+                Key_Status: room.Key_Status || 'Present',
+                Current_Status: hasClass ? 'In Use' : (keyAbsent ? 'Claimed' : 'Available'),
+                Current_Class: hasClass ? `${room.Subject_Name} (${room.Section})` : (keyAbsent ? 'Open Lab Session' : 'None')
+            };
+        });
+
+        res.json(result);
     } catch (err) {
-        console.error(err);
+        console.error('Error fetching laboratories:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -1034,6 +1034,42 @@ app.get('/api/pcs/:pcId/qrcode', async (req, res) => {
     }
 });
 
+// Batch QR code generation for all PCs in a room
+app.get('/api/laboratories/:roomId/pcs/qrcodes', async (req, res) => {
+    try {
+        const { roomId } = req.params;
+        const [pcs] = await db.query(
+            'SELECT p.PC_ID, p.PC_Number, r.Room_Number FROM lab_units p JOIN laboratories r ON p.Room_ID = r.Room_ID WHERE p.Room_ID = ? ORDER BY CAST(p.PC_Number AS UNSIGNED)',
+            [roomId]
+        );
+
+        const baseUrl = process.env.APP_URL || 'http://localhost:3000';
+        const qrList = await Promise.all(pcs.map(async (pc) => {
+            const reportUrl = `${baseUrl}/submit-pc-report.html?room=${pc.Room_Number}&pc=${pc.PC_Number}`;
+            const qrCodeDataURL = await QRCode.toDataURL(reportUrl, {
+                width: 300,
+                margin: 2,
+                color: {
+                    dark: '#1EBBD7',
+                    light: '#FFFFFF'
+                }
+            });
+            return {
+                pcId: pc.PC_ID,
+                pcNumber: pc.PC_Number,
+                roomNumber: pc.Room_Number,
+                qrCode: qrCodeDataURL,
+                reportUrl: reportUrl
+            };
+        }));
+
+        res.json(qrList);
+    } catch (err) {
+        console.error('Batch QR error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // --- Schedules Endpoints ---
 app.post('/api/schedules/save', async (req, res) => {
     const { roomNumber, schedules, academicYear, semester } = req.body;
@@ -1225,6 +1261,79 @@ app.get('/api/schedules/user', async (req, res) => {
         res.json(schedules);
     } catch (err) {
         console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// IT Dept. Head Executive Dashboard Summary Endpoint
+app.get('/api/dashboard/it-head-summary', async (req, res) => {
+    try {
+        const userId = req.session ? req.session.userId : null;
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const today = days[new Date().getDay()];
+        const nowTime = new Date().toTimeString().split(' ')[0];
+
+        // 1. Total rooms & room status breakdown
+        const [rooms] = await db.query(`
+            SELECT 
+                r.Room_ID, r.Room_Number, r.Key_Status,
+                s.Subject_Name, s.Section
+            FROM laboratories r
+            LEFT JOIN schedules s ON r.Room_ID = s.Room_ID 
+                AND s.Day_of_Week = ? 
+                AND ? BETWEEN s.Start_Time AND s.End_Time
+        `, [today, nowTime]);
+
+        const totalRooms = rooms.length;
+        let availableRooms = 0;
+        let claimedRooms = 0;
+        let inUseRooms = 0;
+
+        rooms.forEach(r => {
+            if (r.Subject_Name) inUseRooms++;
+            else if (r.Key_Status === 'Absent') claimedRooms++;
+            else availableRooms++;
+        });
+
+        // 2. Total registered PCs
+        const [[{ totalPcs }]] = await db.query('SELECT COUNT(*) AS totalPcs FROM lab_units');
+
+        // 3. Pending PC reports count
+        const [[{ pendingReports }]] = await db.query(
+            "SELECT COUNT(*) AS pendingReports FROM maintenance WHERE Status != 'Resolved'"
+        );
+
+        // 4. Classes scheduled today department-wide
+        const [[{ classesToday }]] = await db.query(
+            "SELECT COUNT(*) AS classesToday FROM schedules WHERE Day_of_Week = ?",
+            [today]
+        );
+
+        // 5. IT Head's own scheduled teaching classes for today (as a Faculty member)
+        let myClassesToday = [];
+        if (userId) {
+            const [myScheds] = await db.query(`
+                SELECT s.*, r.Room_Number, r.Building
+                FROM schedules s
+                JOIN laboratories r ON s.Room_ID = r.Room_ID
+                WHERE s.User_ID = ? AND s.Day_of_Week = ?
+                ORDER BY s.Start_Time
+            `, [userId, today]);
+            myClassesToday = myScheds;
+        }
+
+        res.json({
+            totalRooms,
+            availableRooms,
+            claimedRooms,
+            inUseRooms,
+            totalPcs,
+            pendingReports,
+            classesToday,
+            myClassesToday
+        });
+    } catch (err) {
+        console.error('Error fetching IT Head summary:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -1817,21 +1926,28 @@ app.get('/api/notifications', requireAuth, async (req, res) => {
             }
         }
 
-        if (role === 'MIS Staff') {
-            // MIS Staff sees all PC reports and hardware maintenance notifications (excluding room key/occupancy logs)
-            const [reports] = await db.query(`
-                SELECT 'report' AS type, m.Report_ID AS id, m.Date_Reported AS time, m.Status AS status, 
+        if (role === 'MIS Staff' || role === 'IT Dept. Head' || role === 'Department Head') {
+            // MIS Staff & Department Head see department-wide notifications (PC reports + occupancy logs)
+            const [notifications] = await db.query(`
+                (SELECT 'report' AS type, m.Report_ID AS id, m.Date_Reported AS time, m.Status AS status, 
                        p.PC_Number AS pc_number, r.Room_Number AS room_number, m.Issue_Description AS description, 
                        m.Student_Name AS detail, m.Priority_Level AS priority
                 FROM maintenance m
                 JOIN lab_units p ON m.PC_ID = p.PC_ID
-                JOIN laboratories r ON p.Room_ID = r.Room_ID
-                ORDER BY m.Date_Reported DESC
-                LIMIT 15
+                JOIN laboratories r ON p.Room_ID = r.Room_ID)
+                UNION ALL
+                (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
+                       NULL AS pc_number, r.Room_Number AS room_number, IFNULL(u.Name, 'Room Key') AS description,
+                       IFNULL(u.Role, 'System') AS detail, NULL AS priority
+                FROM occupancy_log o
+                LEFT JOIN users u ON o.User_ID = u.User_ID
+                JOIN laboratories r ON o.Room_ID = r.Room_ID)
+                ORDER BY time DESC
+                LIMIT 20
             `);
-            return res.json(reports);
+            return res.json(notifications);
         } else {
-            // Faculty & Dept Head only see PC reports and occupancy logs for their assigned rooms (based on schedules)
+            // Faculty only see PC reports and occupancy logs for their assigned rooms (based on schedules)
             const [schedules] = await db.query('SELECT DISTINCT Room_ID FROM schedules WHERE User_ID = ?', [userId]);
 
             if (schedules.length === 0) {
