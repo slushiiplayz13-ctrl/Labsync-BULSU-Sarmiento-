@@ -20,7 +20,11 @@
 
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css?v=1.0.3" />
-  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <style id="auth-anti-flash">
+    body {
+      display: none !important;
+    }
+  </style>
   <script src="js/auth-check.js"></script>
 </head>
 
@@ -30,29 +34,39 @@
   <aside class="sidebar">
 
     <nav class="sidebar-nav">
-      <button class="sidebar-btn" title="Dashboard" onclick="window.location.href='it-head-dashboard.html'">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='it-head-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn active" title="Room Status" onclick="window.location.href='it-head-room-status.html'">
+      <button class="sidebar-btn active" data-tooltip="Room Status" title="Room Status"
+        onclick="window.location.href='it-head-room-status.html'">
         <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='it-head-pc-reports.html'">
+      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports"
+        onclick="window.location.href='it-head-pc-reports.html'">
         <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="My Schedule" onclick="window.location.href='it-head-my-schedule.html'">
+      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule"
+        onclick="window.location.href='it-head-my-schedule.html'">
         <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
       </button>
-      
-      <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;"></div>
 
-      <button class="sidebar-btn desktop-only-btn" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+      <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;">
+      </div>
+
+      <button class="sidebar-btn desktop-only-btn" data-tooltip="Master Schedule" title="Master Schedule"
+        onclick="window.location.href='master-schedule.html'">
         <i data-lucide="calendar" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn desktop-only-btn" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+      <button class="sidebar-btn desktop-only-btn" data-tooltip="Faculty Management" title="Faculty Management"
+        onclick="window.location.href='faculty-management.html'">
         <i data-lucide="users" style="width:24px;height:24px;"></i>
       </button>
-      <div class="mobile-only-divider" style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;"></div>
-      <button class="sidebar-btn mobile-only-btn" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
+      <div class="mobile-only-divider"
+        style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;">
+      </div>
+      <button class="sidebar-btn mobile-only-btn" data-tooltip="Admin Panel" title="Admin Panel"
+        onclick="toggleAdminMenu(event, this)">
         <i data-lucide="folder-cog" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -60,17 +74,18 @@
     <div class="sidebar-spacer"></div>
 
     <div class="sidebar-bottom">
-      <button class="sidebar-btn" title="Help">
+      <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
         <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Logout" onclick="window.location.href='login.html'">
+      <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
         <i data-lucide="log-out" style="width:24px;height:24px;"></i>
       </button>
     </div>
   </aside>
 
   <!-- Scroll Clue for Sidebar -->
-  <div id="sidebarScrollClue" style="position: fixed; bottom: 16px; left: 30px; z-index: 105; color: var(--primary-teal); pointer-events: none; transition: opacity 0.3s ease;">
+  <div id="sidebarScrollClue"
+    style="position: fixed; bottom: 16px; left: 30px; z-index: 105; color: var(--primary-teal); pointer-events: none; transition: opacity 0.3s ease;">
     <i data-lucide="chevron-down" style="width: 20px; height: 20px; animation: bounce 2s infinite;"></i>
   </div>
   <!-- ── MAIN WRAPPER ─────────────────────────────────────────── -->
@@ -87,16 +102,6 @@
         <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
       </div>
 
-      <!-- Center Nav -->
-      <nav class="header-nav">
-        <button class="nav-item" onclick="window.location.href='it-head-dashboard.html'">Dashboard</button>
-        <button class="nav-item active" onclick="window.location.href='it-head-room-status.html'">Room Status</button>
-        <button class="nav-item" onclick="window.location.href='it-head-pc-reports.html'">PC Reports</button>
-        <button class="nav-item" onclick="window.location.href='it-head-my-schedule.html'">My Schedule</button>
-        <span class="nav-divider" style="color: var(--border-light); margin: 0 8px;">|</span>
-        <button class="nav-item" onclick="window.location.href='master-schedule.html'">Master Schedule</button>
-        <button class="nav-item" onclick="window.location.href='faculty-management.html'">Faculty Management</button>
-      </nav>
 
       <!-- Right Profile -->
       <div class="header-right">
@@ -137,59 +142,65 @@
       <!-- Main Content Card -->
       <div class="dashboard-card">
         <div class="dashboard-main-grid">
-            
-            <!-- Left: Room Status -->
-            <div class="content-card">
-              <div class="section-header">
-                <div class="sh-left">
-                  <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
-                    <i data-lucide="monitor-dot" style="width:22px;height:22px;"></i>
-                  </div>
-                  <div>
-                    <h3>Room Status</h3>
-                    <p>Complete overview of all campus labs</p>
-                  </div>
+
+          <!-- Left: Room Status -->
+          <div class="content-card">
+            <div class="section-header">
+              <div class="sh-left">
+                <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
+                  <i data-lucide="monitor-dot" style="width:22px;height:22px;"></i>
                 </div>
-                <div class="sh-legend">
-                  <div class="legend-item"><div class="dot green"></div> Available</div>
-                  <div class="legend-item"><div class="dot orange"></div> Claimed</div>
-                  <div class="legend-item"><div class="dot red"></div> In Use</div>
+                <div>
+                  <h3>Room Status</h3>
+                  <p>Complete overview of all campus labs</p>
                 </div>
               </div>
-
-              <div class="labs-grid" id="ithead-room-grid">
-                <div class="ui-empty-state">
-                  <div class="ui-empty-icon">
-                    <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
-                  </div>
-                  <p>Loading room status data...</p>
+              <div class="sh-legend">
+                <div class="legend-item">
+                  <div class="dot green"></div> Available
+                </div>
+                <div class="legend-item">
+                  <div class="dot orange"></div> Claimed
+                </div>
+                <div class="legend-item">
+                  <div class="dot red"></div> In Use
                 </div>
               </div>
             </div>
 
-            <!-- Right: Activity Log -->
-            <div class="content-card">
-              <div class="section-header">
-                <div class="sh-left">
-                  <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
-                    <i data-lucide="clock-4" style="width:22px;height:22px;"></i>
-                  </div>
-                  <div>
-                    <h3>Activity Log</h3>
-                    <p>Recent department room activities & events</p>
-                  </div>
+            <div class="labs-grid" id="ithead-room-grid">
+              <div class="ui-empty-state">
+                <div class="ui-empty-icon">
+                  <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
                 </div>
+                <p>Loading room status data...</p>
               </div>
+            </div>
+          </div>
 
-              <div class="timeline-list" id="ithead-activity-list" style="padding-left:0;">
-                <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
-                  <div class="ui-empty-icon">
-                    <i data-lucide="clock-4" style="width:24px;height:24px;"></i>
-                  </div>
-                  <p>Loading activity log...</p>
+          <!-- Right: Activity Log -->
+          <div class="content-card">
+            <div class="section-header">
+              <div class="sh-left">
+                <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
+                  <i data-lucide="clock-4" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                  <h3>Activity Log</h3>
+                  <p>Recent department room activities & events</p>
                 </div>
               </div>
             </div>
+
+            <div class="timeline-list" id="ithead-activity-list" style="padding-left:0;">
+              <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
+                <div class="ui-empty-icon">
+                  <i data-lucide="clock-4" style="width:24px;height:24px;"></i>
+                </div>
+                <p>Loading activity log...</p>
+              </div>
+            </div>
+          </div>
 
         </div>
       </div>
@@ -200,7 +211,7 @@
   <script>
     const sidebar = document.querySelector('.sidebar');
     const scrollClue = document.getElementById('sidebarScrollClue');
-    
+
     if (sidebar && scrollClue) {
       if (sidebar.scrollHeight <= sidebar.clientHeight) {
         scrollClue.style.display = 'none';
@@ -217,8 +228,8 @@
     async function loadRoomStatusAndLogs() {
       try {
         const [roomsRes, notifsRes] = await Promise.all([
-          fetch('/api/laboratories'),
-          fetch('/api/notifications')
+          fetch('/api/laboratories', { credentials: 'include' }),
+          fetch('/api/notifications', { credentials: 'include' })
         ]);
 
         if (roomsRes.ok) {
@@ -273,11 +284,24 @@
       if (window.lucide) lucide.createIcons();
     }
 
+    // Track last data fingerprint to avoid unnecessary re-renders
+    let _inlineActivityLogLastKey = '';
+
     function renderActivityLogList(notifs) {
       const container = document.getElementById('ithead-activity-list');
       if (!container) return;
 
-      if (!notifs || notifs.length === 0) {
+      // Only show occupancy logs (room key events & QR verification), not PC reports
+      const occupancyOnly = (notifs || []).filter(n => n.type === 'occupancy');
+
+      // Build a data fingerprint to detect real changes
+      const dataKey = occupancyOnly.map(n => `${n.id || ''}-${n.type}-${n.status}-${n.room_number}`).join('|');
+      if (dataKey === _inlineActivityLogLastKey) return; // No change, skip re-render
+
+      // Save scroll position
+      const savedScrollTop = container.scrollTop;
+
+      if (occupancyOnly.length === 0) {
         container.innerHTML = `
           <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
             <div class="ui-empty-icon"><i data-lucide="clock-4"></i></div>
@@ -285,10 +309,11 @@
           </div>
         `;
         if (window.lucide) lucide.createIcons();
+        _inlineActivityLogLastKey = dataKey;
         return;
       }
 
-      container.innerHTML = notifs.map(n => {
+      container.innerHTML = occupancyOnly.map(n => {
         const dateObj = n.time ? new Date(n.time) : new Date();
         const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         const isReport = n.type === 'report';
@@ -312,6 +337,10 @@
       }).join('');
 
       if (window.lucide) lucide.createIcons();
+      _inlineActivityLogLastKey = dataKey;
+
+      // Restore scroll position after re-render
+      container.scrollTop = savedScrollTop;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -319,5 +348,5 @@
     });
   </script>
 </body>
-</html>
 
+</html>

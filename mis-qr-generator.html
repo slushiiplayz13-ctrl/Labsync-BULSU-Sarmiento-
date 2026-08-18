@@ -240,13 +240,13 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <nav class="sidebar-nav">
-      <button class="sidebar-btn" title="Dashboard" onclick="window.location.href='mis-staff-dashboard.html'">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='mis-staff-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Maintenance Tracker" onclick="window.location.href='mis-maintenance.html'">
+      <button class="sidebar-btn" data-tooltip="Maintenance Tracker" title="Maintenance Tracker" onclick="window.location.href='mis-maintenance.html'">
         <i data-lucide="wrench" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn active" title="PC & QR Management" onclick="window.location.href='mis-qr-generator.html'">
+      <button class="sidebar-btn active" data-tooltip="PC & QR Management" title="PC & QR Management" onclick="window.location.href='mis-qr-generator.html'">
         <i data-lucide="qr-code" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -254,10 +254,10 @@
     <div class="sidebar-spacer"></div>
 
     <div class="sidebar-bottom">
-      <button class="sidebar-btn" title="Help" onclick="openHelpModal()">
+      <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
         <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Logout" onclick="handleLogout()">
+      <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
         <i data-lucide="log-out" style="width:24px;height:24px;"></i>
       </button>
     </div>
@@ -282,12 +282,6 @@
         <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
       </div>
 
-      <!-- Center Nav -->
-      <nav class="header-nav">
-        <button class="nav-item" onclick="window.location.href='mis-staff-dashboard.html'">Dashboard</button>
-        <button class="nav-item" onclick="window.location.href='mis-maintenance.html'">Maintenance Tracker</button>
-        <button class="nav-item active" onclick="window.location.href='mis-qr-generator.html'">PC & QR Management</button>
-      </nav>
 
       <!-- Right Profile -->
       <div class="header-right">

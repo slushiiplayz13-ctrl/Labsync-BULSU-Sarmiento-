@@ -12,18 +12,11 @@
   background: var(--bg-white);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 40px 0 24px 20px;
-  gap: 24px;
+  align-items: center;
+  padding: 36px 0 20px 10px;
+  gap: 20px;
   z-index: 100;
-  overflow-y: auto;
-  scrollbar-width: none;
-  /* Firefox */
-}
-
-.sidebar::-webkit-scrollbar {
-  display: none;
-  /* Chrome, Safari, Edge */
+  overflow: visible;
 }
 
 .sidebar-logo {
@@ -50,8 +43,8 @@
 
 .sidebar-btn {
   position: relative;
-  width: 52px;
-  height: 52px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   border: none;
   background: transparent;
@@ -78,6 +71,13 @@
   pointer-events: none;
 }
 
+/* Large-mode icon sizing ported to Normal default */
+.sidebar-btn i,
+.sidebar-btn svg {
+  width: 28px !important;
+  height: 28px !important;
+}
+
 .sidebar-spacer {
   flex: 1;
 }
@@ -87,6 +87,74 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
+}
+
+/* ─── Floating Tooltips on Hover (Desktop) ──────────────────────── */
+@media (min-width: 1025px) {
+  .sidebar-btn[data-tooltip] {
+    position: relative;
+  }
+
+  /* Tooltip Box */
+  .sidebar-btn[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 14px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-6px);
+    background: var(--primary-teal);
+    color: #ffffff;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    padding: 7px 14px;
+    border-radius: 9999px;
+    box-shadow: 0 4px 14px var(--primary-teal-glow), 0 2px 6px rgba(0, 0, 0, 0.08);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 1000;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s;
+    letter-spacing: 0.2px;
+  }
+
+  /* Left-pointing Caret/Arrow */
+  .sidebar-btn[data-tooltip]::before {
+    content: '';
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-6px);
+    border-width: 5px 6px 5px 0;
+    border-style: solid;
+    border-color: transparent var(--primary-teal) transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 1000;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s;
+  }
+
+  .sidebar-btn[data-tooltip]:hover::after,
+  .sidebar-btn[data-tooltip]:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+  }
+
+  /* High-Contrast Floating Tooltips */
+  html.high-contrast .sidebar-btn[data-tooltip]::after {
+    background: var(--bg-card);
+    color: #ffffff !important;
+    border: 1px solid var(--primary-teal);
+    box-shadow: 0 4px 14px rgba(0, 163, 196, 0.35);
+  }
+
+  html.high-contrast .sidebar-btn[data-tooltip]::before {
+    border-color: transparent var(--primary-teal) transparent transparent;
+  }
 }
 
 /* ─── MAIN WRAPPER ───────────────────────────────────────────────── */
@@ -194,6 +262,21 @@ img[src*="bsu"] {
   letter-spacing: -0.3px;
 }
 
+/* ── Large-Mode Branding Ported to Normal Default ── */
+.header-logos img[src*="bsu-sarmiento"] {
+  height: 46px !important;
+  width: auto !important;
+}
+
+.header-logos img[src*="labsync-logo"] {
+  height: 52px !important;
+  width: auto !important;
+}
+
+.header-logos .logo-divider {
+  height: 36px !important;
+}
+
 /* ── Center Nav ── */
 .header-nav {
   position: absolute;
@@ -293,7 +376,7 @@ img[src*="bsu"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
@@ -314,7 +397,7 @@ img[src*="bsu"] {
 }
 
 .profile-name {
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-dark);
   line-height: 1.3;
@@ -322,7 +405,7 @@ img[src*="bsu"] {
 }
 
 .profile-role {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--primary-teal);
   font-weight: 500;
 }

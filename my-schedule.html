@@ -18,9 +18,14 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
-  <!-- External Stylesheet -->  <link rel="stylesheet" href="css/schedule-studio.css" />
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="css/schedule-studio.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <style id="auth-anti-flash">
+    body {
+      display: none !important;
+    }
+  </style>
   <script>
     (function applyAccessibilitySettings() {
       const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
@@ -40,6 +45,7 @@
       flex: 1;
       align-items: stretch;
     }
+
     .day-column {
       display: flex;
       flex-direction: column;
@@ -53,11 +59,13 @@
       padding: 12px;
       transition: all 0.2s ease;
     }
+
     .day-column.highlight-day {
       border-color: var(--primary-teal);
       background: var(--primary-teal-light);
       box-shadow: 0 4px 12px var(--primary-teal-glow);
     }
+
     .day-header {
       font-family: var(--font-display);
       font-size: 13px;
@@ -71,11 +79,13 @@
       box-shadow: var(--shadow-sm);
       border: 1px solid var(--border-light);
     }
+
     .day-column.highlight-day .day-header {
       background: var(--primary-teal);
       color: #fff;
       border-color: var(--primary-teal);
     }
+
     .sg-cell.filled {
       cursor: pointer;
     }
@@ -90,16 +100,20 @@
   <aside class="sidebar">
 
     <nav class="sidebar-nav">
-      <button class="sidebar-btn" title="Home" onclick="window.location.href='index.html'">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='index.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Lab Rooms" onclick="window.location.href='room-status.html'">
+      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status"
+        onclick="window.location.href='room-status.html'">
         <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='faculty-pc-reports.html'">
+      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports"
+        onclick="window.location.href='faculty-pc-reports.html'">
         <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn active" title="My Schedule" onclick="window.location.href='my-schedule.html'">
+      <button class="sidebar-btn active" data-tooltip="My Schedule" title="My Schedule"
+        onclick="window.location.href='my-schedule.html'">
         <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -107,10 +121,10 @@
     <div class="sidebar-spacer"></div>
 
     <div class="sidebar-bottom">
-      <button class="sidebar-btn" title="Help" onclick="openHelpModal()">
+      <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
         <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Logout" onclick="handleLogout()">
+      <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
         <i data-lucide="log-out" style="width:24px;height:24px;"></i>
       </button>
     </div>
@@ -130,13 +144,6 @@
         <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
       </div>
 
-      <!-- Center Nav -->
-      <nav class="header-nav">
-        <button class="nav-item" onclick="window.location.href='index.html'">Dashboard</button>
-        <button class="nav-item" onclick="window.location.href='room-status.html'">Room Status</button>
-        <button class="nav-item" onclick="window.location.href='faculty-pc-reports.html'">PC Reports</button>
-        <button class="nav-item active" onclick="window.location.href='my-schedule.html'">My Schedule</button>
-      </nav>
 
       <!-- Right Profile -->
       <div class="header-right">
@@ -166,7 +173,8 @@
       <div class="greeting-row">
         <div class="greeting-left">
           <h1 class="greeting-title" id="greetingText">My Schedule</h1>
-          <p class="greeting-sub" id="greetingSub">View your complete weekly teaching schedule and class assignments.</p>
+          <p class="greeting-sub" id="greetingSub">View your complete weekly teaching schedule and class assignments.
+          </p>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime">--:--:-- --</div>
@@ -175,59 +183,66 @@
       </div>
 
       <!-- Main Content Card -->
-      <div class="dashboard-card" style="padding: 0; overflow: visible !important; border-radius: 12px; position: relative; display: flex; flex-direction: column; flex: 1;">
-          <!-- Header -->
-          <div class="schedule-header" style="background: var(--primary-teal); color: white; padding: 12px 24px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; font-size: 15px; border-radius: 12px 12px 0 0; flex-shrink: 0;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <i data-lucide="calendar" style="width: 20px; height: 20px;"></i> My Weekly Schedule
-            </div>
-            
-            <!-- In-Header Selector Panel -->
-            <div class="schedule-selectors" style="display: flex; align-items: center; gap: 16px;">
-              <button class="btn-schedule-studio" onclick="openScheduleStudio()" title="Custom Schedule Wallpaper & Card Generator">
-                <span class="studio-btn-icon-badge">
-                  <i data-lucide="palette" style="width:14px;height:14px;"></i>
-                </span>
-                <span>Schedule Studio</span>
-              </button>
+      <div class="dashboard-card"
+        style="padding: 0; overflow: visible !important; border-radius: 12px; position: relative; display: flex; flex-direction: column; flex: 1;">
+        <!-- Header -->
+        <div class="schedule-header"
+          style="background: var(--primary-teal); color: white; padding: 12px 24px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; font-size: 15px; border-radius: 12px 12px 0 0; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i data-lucide="calendar" style="width: 20px; height: 20px;"></i> My Weekly Schedule
+          </div>
 
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">AY:</span>
-                <div class="custom-select-wrapper header-select" id="academic-year-wrapper" style="width: 125px;">
-                  <div class="custom-select-trigger" style="padding: 5px 10px; font-size: 12.5px; border-radius: 6px; height: auto;">
-                    <span>Select</span>
-                    <i data-lucide="chevron-down"></i>
-                  </div>
-                  <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
+          <!-- In-Header Selector Panel -->
+          <div class="schedule-selectors" style="display: flex; align-items: center; gap: 16px;">
+            <button class="btn-schedule-studio" onclick="openScheduleStudio()"
+              title="Custom Schedule Wallpaper & Card Generator">
+              <span class="studio-btn-icon-badge">
+                <i data-lucide="palette" style="width:14px;height:14px;"></i>
+              </span>
+              <span>Schedule Studio</span>
+            </button>
+
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span
+                style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">AY:</span>
+              <div class="custom-select-wrapper header-select" id="academic-year-wrapper" style="width: 125px;">
+                <div class="custom-select-trigger"
+                  style="padding: 5px 10px; font-size: 12.5px; border-radius: 6px; height: auto;">
+                  <span>Select</span>
+                  <i data-lucide="chevron-down"></i>
                 </div>
+                <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
               </div>
-              
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Sem:</span>
-                <div class="custom-select-wrapper header-select" id="semester-wrapper" style="width: 135px;">
-                  <div class="custom-select-trigger" style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
-                    <span>1st Semester</span>
-                    <i data-lucide="chevron-down"></i>
-                  </div>
-                  <div class="custom-select-dropdown" style="color: var(--text-dark);">
-                    <div class="custom-select-option selected" data-value="1st Semester">1st Semester</div>
-                    <div class="custom-select-option" data-value="2nd Semester">2nd Semester</div>
-                    <div class="custom-select-option" data-value="Summer">Summer</div>
-                  </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span
+                style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Sem:</span>
+              <div class="custom-select-wrapper header-select" id="semester-wrapper" style="width: 135px;">
+                <div class="custom-select-trigger"
+                  style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
+                  <span>1st Semester</span>
+                  <i data-lucide="chevron-down"></i>
+                </div>
+                <div class="custom-select-dropdown" style="color: var(--text-dark);">
+                  <div class="custom-select-option selected" data-value="1st Semester">1st Semester</div>
+                  <div class="custom-select-option" data-value="2nd Semester">2nd Semester</div>
+                  <div class="custom-select-option" data-value="Summer">Summer</div>
                 </div>
               </div>
             </div>
           </div>
-          
-          <div id="schedule-container" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; flex: 1;">
+        </div>
 
-            <div class="ui-empty-state">
-              <div class="ui-empty-icon">
-                <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
-              </div>
-              <p>Loading your schedule...</p>
+        <div id="schedule-container" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; flex: 1;">
+
+          <div class="ui-empty-state">
+            <div class="ui-empty-icon">
+              <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
             </div>
+            <p>Loading your schedule...</p>
           </div>
+        </div>
       </div>
     </main>
   </div>
@@ -236,4 +251,5 @@
   <script src="js/schedule.js"></script>
   <script src="js/schedule-studio.js"></script>
 </body>
+
 </html>

@@ -30,29 +30,29 @@
   <aside class="sidebar">
 
     <nav class="sidebar-nav">
-      <button class="sidebar-btn active" title="Dashboard" onclick="window.location.href='it-head-dashboard.html'">
+      <button class="sidebar-btn active" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='it-head-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Room Status" onclick="window.location.href='it-head-room-status.html'">
+      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status" onclick="window.location.href='it-head-room-status.html'">
         <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="PC Reports" onclick="window.location.href='it-head-pc-reports.html'">
+      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports" onclick="window.location.href='it-head-pc-reports.html'">
         <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="My Schedule" onclick="window.location.href='it-head-my-schedule.html'">
+      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule" onclick="window.location.href='it-head-my-schedule.html'">
         <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
       </button>
       
       <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;"></div>
 
-      <button class="sidebar-btn desktop-only-btn" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+      <button class="sidebar-btn desktop-only-btn" data-tooltip="Master Schedule" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
         <i data-lucide="calendar" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn desktop-only-btn" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+      <button class="sidebar-btn desktop-only-btn" data-tooltip="Faculty Management" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
         <i data-lucide="users" style="width:24px;height:24px;"></i>
       </button>
       <div class="mobile-only-divider" style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;"></div>
-      <button class="sidebar-btn mobile-only-btn" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
+      <button class="sidebar-btn mobile-only-btn" data-tooltip="Admin Panel" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
         <i data-lucide="folder-cog" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -60,10 +60,10 @@
     <div class="sidebar-spacer"></div>
 
     <div class="sidebar-bottom">
-      <button class="sidebar-btn" title="Help" onclick="openHelpModal()">
+      <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
         <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Logout" onclick="handleLogout()">
+      <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
         <i data-lucide="log-out" style="width:24px;height:24px;"></i>
       </button>
     </div>
@@ -87,16 +87,6 @@
         <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
       </div>
 
-      <!-- Center Nav -->
-      <nav class="header-nav">
-        <button class="nav-item active" onclick="window.location.href='it-head-dashboard.html'">Dashboard</button>
-        <button class="nav-item" onclick="window.location.href='it-head-room-status.html'">Room Status</button>
-        <button class="nav-item" onclick="window.location.href='it-head-pc-reports.html'">PC Reports</button>
-        <button class="nav-item" onclick="window.location.href='it-head-my-schedule.html'">My Schedule</button>
-        <span class="nav-divider" style="color: var(--border-light); margin: 0 8px;">|</span>
-        <button class="nav-item" onclick="window.location.href='master-schedule.html'">Master Schedule</button>
-        <button class="nav-item" onclick="window.location.href='faculty-management.html'">Faculty Management</button>
-      </nav>
 
       <!-- Right Profile -->
       <div class="header-right">
@@ -264,17 +254,17 @@
                 </div>
                 <div>
                   <h3>My Schedule</h3>
-                  <p>Today's teaching sessions</p>
+                  <p>Today's classes</p>
                 </div>
               </div>
             </div>
 
-            <div class="timeline-list" id="ithead-schedule-list" style="padding-left:0; flex:1; display:flex; flex-direction:column; justify-content:flex-start;">
+            <div class="timeline-list" id="ithead-schedule-list" style="padding-left:0; flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;">
               <div class="ui-empty-state" style="grid-column: unset; width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; margin: auto 0;">
                 <div class="ui-empty-icon">
                   <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
                 </div>
-                <p>Loading schedule...</p>
+                <p>No classes scheduled for today yet. Your sessions will list here when the schedule is loaded.</p>
               </div>
             </div>
 
@@ -382,30 +372,102 @@
       const container = document.getElementById('ithead-schedule-list');
       if (!container) return;
 
+      const escapeHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
       if (!myClasses || myClasses.length === 0) {
+        container.style.paddingLeft = '0';
+        container.style.paddingRight = '0';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.justifyContent = 'center';
+        container.style.alignItems = 'center';
+        container.style.flex = '1';
+        container.style.height = '100%';
         container.innerHTML = `
-          <div class="ui-empty-state" style="margin: auto 0;">
-            <div class="ui-empty-icon"><i data-lucide="calendar-days"></i></div>
-            <p>No teaching sessions scheduled for you today.</p>
+          <div class="ui-empty-state" style="grid-column: unset; width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; margin: auto 0;">
+            <div class="ui-empty-icon"><i data-lucide="calendar-days" style="width:24px;height:24px;"></i></div>
+            <p>No classes scheduled for today.</p>
           </div>
         `;
-        if (window.lucide) lucide.createIcons();
+        if (window.lucide) lucide.createIcons({ root: container });
         return;
+      } else {
+        container.style.paddingLeft = '';
+        container.style.paddingRight = '';
+        container.style.display = '';
+        container.style.flexDirection = '';
+        container.style.justifyContent = '';
+        container.style.alignItems = '';
+        container.style.flex = '';
+        container.style.height = '';
       }
 
-      container.innerHTML = myClasses.map(c => `
-        <div style="display: flex; gap: 14px; align-items: flex-start; padding: 12px 14px; border-left: 3px solid var(--primary-teal); background: var(--bg-body); border-radius: 8px; margin-bottom: 10px;">
-          <div style="font-size: 12px; font-weight: 700; color: var(--primary-teal); white-space: nowrap;">
-            ${(c.Start_Time || '').substring(0, 5)} - ${(c.End_Time || '').substring(0, 5)}
-          </div>
-          <div>
-            <div style="font-size: 13.5px; font-weight: 800; color: var(--text-dark);">${c.Subject_Name} (${c.Section})</div>
-            <div style="font-size: 12px; color: var(--text-mid);">Room ${c.Room_Number}</div>
-          </div>
-        </div>
-      `).join('');
+      // Sort chronologically
+      myClasses.sort((a, b) => (a.Start_Time || '').localeCompare(b.Start_Time || ''));
 
-      if (window.lucide) lucide.createIcons();
+      // Determine current time to mark items as active or future
+      const now = new Date();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+      // formatting helpers
+      const formatTime12 = (timeStr) => {
+        if (!timeStr) return '';
+        const parts = timeStr.split(':');
+        let hour = parseInt(parts[0], 10);
+        const minute = parts[1];
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        hour = hour % 12;
+        hour = hour ? hour : 12;
+        return `${hour}:${minute} ${ampm}`;
+      };
+
+      let html = '';
+      myClasses.forEach((s) => {
+        // Parse start and end times to see if active
+        let isActive = false;
+        let isFuture = false;
+        if (s.Start_Time && s.End_Time) {
+          const startParts = s.Start_Time.split(':');
+          const endParts = s.End_Time.split(':');
+          const startMin = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+          const endMin = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+
+          if (nowMinutes >= startMin && nowMinutes <= endMin) {
+            isActive = true;
+          } else if (nowMinutes < startMin) {
+            isFuture = true;
+          }
+        }
+
+        let timeClass = 'timeline-item';
+        if (isActive) timeClass += ' active';
+        else if (isFuture) timeClass += ' future';
+
+        html += `
+          <div class="${timeClass}" style="width: 100%; box-sizing: border-box;">
+            <div class="time-marker"></div>
+            <div class="time-content">
+              <div class="tc-top-row">
+                <div class="tc-time">
+                  <i data-lucide="clock" style="width:13px;height:13px;flex-shrink:0;"></i>
+                  <span>${formatTime12(s.Start_Time)} – ${formatTime12(s.End_Time)}</span>
+                </div>
+                ${isActive ? '<span class="tc-status-pill ongoing"><span class="dot"></span> ONGOING</span>' : (isFuture ? '<span class="tc-status-pill upcoming">UPCOMING</span>' : '<span class="tc-status-pill completed">COMPLETED</span>')}
+              </div>
+              <div class="tc-title">${escapeHtml(s.Subject_Name || 'Class Session')}</div>
+              <div class="tc-bottom-row">
+                <span class="tc-room-badge">
+                  <i data-lucide="map-pin" style="width:12px;height:12px;"></i> RM ${escapeHtml(s.Room_Number || 'TBA')}
+                </span>
+                ${s.Section ? `<span class="tc-section-badge">${escapeHtml(s.Section)}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      if (window.lucide) lucide.createIcons({ root: container });
     }
 
     document.addEventListener('DOMContentLoaded', () => {

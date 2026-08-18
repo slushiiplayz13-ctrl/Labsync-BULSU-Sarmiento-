@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -195,29 +195,29 @@
   <aside class="sidebar">
 
     <nav class="sidebar-nav">
-      <button class="sidebar-btn" title="Dashboard" onclick="window.location.href='it-head-dashboard.html'">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='it-head-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Room Status" onclick="window.location.href='it-head-room-status.html'">
+      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status" onclick="window.location.href='it-head-room-status.html'">
         <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn active" title="PC Reports" onclick="window.location.href='it-head-pc-reports.html'">
+      <button class="sidebar-btn active" data-tooltip="PC Reports" title="PC Reports" onclick="window.location.href='it-head-pc-reports.html'">
         <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="My Schedule" onclick="window.location.href='it-head-my-schedule.html'">
+      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule" onclick="window.location.href='it-head-my-schedule.html'">
         <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
       </button>
       
       <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;"></div>
 
-      <button class="sidebar-btn desktop-only-btn" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+      <button class="sidebar-btn desktop-only-btn" data-tooltip="Master Schedule" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
         <i data-lucide="calendar" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn desktop-only-btn" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+      <button class="sidebar-btn desktop-only-btn" data-tooltip="Faculty Management" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
         <i data-lucide="users" style="width:24px;height:24px;"></i>
       </button>
       <div class="mobile-only-divider" style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;"></div>
-      <button class="sidebar-btn mobile-only-btn" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
+      <button class="sidebar-btn mobile-only-btn" data-tooltip="Admin Panel" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
         <i data-lucide="folder-cog" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -225,10 +225,10 @@
     <div class="sidebar-spacer"></div>
 
     <div class="sidebar-bottom">
-      <button class="sidebar-btn" title="Help">
+      <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
         <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Logout" onclick="window.location.href='login.html'">
+      <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
         <i data-lucide="log-out" style="width:24px;height:24px;"></i>
       </button>
     </div>
@@ -252,16 +252,6 @@
         <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
       </div>
 
-      <!-- Center Nav -->
-      <nav class="header-nav">
-        <button class="nav-item" onclick="window.location.href='it-head-dashboard.html'">Dashboard</button>
-        <button class="nav-item" onclick="window.location.href='it-head-room-status.html'">Room Status</button>
-        <button class="nav-item active" onclick="window.location.href='it-head-pc-reports.html'">PC Reports</button>
-        <button class="nav-item" onclick="window.location.href='it-head-my-schedule.html'">My Schedule</button>
-        <span class="nav-divider" style="color: var(--border-light); margin: 0 8px;">|</span>
-        <button class="nav-item" onclick="window.location.href='master-schedule.html'">Master Schedule</button>
-        <button class="nav-item" onclick="window.location.href='faculty-management.html'">Faculty Management</button>
-      </nav>
 
       <!-- Right Profile -->
       <div class="header-right">

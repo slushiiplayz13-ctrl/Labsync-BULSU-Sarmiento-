@@ -195,16 +195,16 @@
   <aside class="sidebar">
 
     <nav class="sidebar-nav">
-      <button class="sidebar-btn" title="Home" onclick="window.location.href='index.html'">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='index.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Lab Rooms" onclick="window.location.href='room-status.html'">
+      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status" onclick="window.location.href='room-status.html'">
         <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn active" title="PC Reports" onclick="window.location.href='faculty-pc-reports.html'">
+      <button class="sidebar-btn active" data-tooltip="PC Reports" title="PC Reports" onclick="window.location.href='faculty-pc-reports.html'">
         <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="My Schedule" onclick="window.location.href='my-schedule.html'">
+      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule" onclick="window.location.href='my-schedule.html'">
         <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -212,10 +212,10 @@
     <div class="sidebar-spacer"></div>
 
     <div class="sidebar-bottom">
-      <button class="sidebar-btn" title="Help" onclick="openHelpModal()">
+      <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
         <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" title="Logout" onclick="handleLogout()">
+      <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
         <i data-lucide="log-out" style="width:24px;height:24px;"></i>
       </button>
     </div>
@@ -235,13 +235,6 @@
         <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
       </div>
 
-      <!-- Center Nav -->
-      <nav class="header-nav">
-        <button class="nav-item" onclick="window.location.href='index.html'">Dashboard</button>
-        <button class="nav-item" onclick="window.location.href='room-status.html'">Room Status</button>
-        <button class="nav-item active" onclick="window.location.href='faculty-pc-reports.html'">PC Reports</button>
-        <button class="nav-item" onclick="window.location.href='my-schedule.html'">My Schedule</button>
-      </nav>
 
       <!-- Right Profile -->
       <div class="header-right">

@@ -1334,10 +1334,10 @@ function openAccessibilitySettings() {
             Adjust Text Size
           </label>
           <div class="accessibility-scale-grid" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;background:#F8FAFC;padding:6px;border-radius:12px;border:1px solid var(--border-light);">
-            <button id="btn-scale-small" onclick="setAccessibilityScale('small')" class="accessibility-scale-btn scale-small" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:11px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Small (90%)</button>
-            <button id="btn-scale-normal" onclick="setAccessibilityScale('normal')" class="accessibility-scale-btn scale-normal" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Normal</button>
-            <button id="btn-scale-large" onclick="setAccessibilityScale('large')" class="accessibility-scale-btn scale-large" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:15px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Large</button>
-            <button id="btn-scale-xlarge" onclick="setAccessibilityScale('xlarge')" class="accessibility-scale-btn scale-xlarge" style="border:none;padding:10px;border-radius:8px;font-weight:700;font-size:17px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">X-Large</button>
+            <button id="btn-scale-small" onclick="setAccessibilityScale('small')" class="accessibility-scale-btn scale-small" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Small (90%)</button>
+            <button id="btn-scale-normal" onclick="setAccessibilityScale('normal')" class="accessibility-scale-btn scale-normal" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Normal</button>
+            <button id="btn-scale-large" onclick="setAccessibilityScale('large')" class="accessibility-scale-btn scale-large" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:16px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Large</button>
+            <button id="btn-scale-xlarge" onclick="setAccessibilityScale('xlarge')" class="accessibility-scale-btn scale-xlarge" style="border:none;padding:10px;border-radius:8px;font-weight:700;font-size:18px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">X-Large</button>
           </div>
         </div>
 
@@ -1824,6 +1824,8 @@ async function loadDashboardSchedule() {
   `;
   if (window.lucide) lucide.createIcons({ root: timelineList });
 
+  const escapeHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   try {
     const currentYear = new Date().getFullYear();
     // Default current term params
@@ -1926,22 +1928,20 @@ async function loadDashboardSchedule() {
       html += `
         <div class="${timeClass}" style="width: 100%; box-sizing: border-box;">
           <div class="time-marker"></div>
-          <div class="time-content" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; box-sizing: border-box;">
-            <div class="tc-left" style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0;">
-              <div class="tc-time" style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--primary-teal);">
+          <div class="time-content">
+            <div class="tc-top-row">
+              <div class="tc-time">
                 <i data-lucide="clock" style="width:13px;height:13px;flex-shrink:0;"></i>
                 <span>${formatTime12(s.Start_Time)} – ${formatTime12(s.End_Time)}</span>
               </div>
-              <div class="tc-title" style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-dark); margin: 2px 0;">${escapeHtml(s.Subject_Name || 'Class Session')}</div>
+              ${isActive ? '<span class="tc-status-pill ongoing"><span class="dot"></span> ONGOING</span>' : (isFuture ? '<span class="tc-status-pill upcoming">UPCOMING</span>' : '<span class="tc-status-pill completed">COMPLETED</span>')}
             </div>
-            <div class="tc-right" style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span class="tc-room-badge" style="font-size: 13px; font-weight: 700; background: #E0F2FE; color: #0284C7; padding: 5px 11px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">
-                  <i data-lucide="map-pin" style="width:13px;height:13px;"></i> RM ${escapeHtml(s.Room_Number || 'TBA')}
-                </span>
-                ${s.Section ? `<span class="tc-section-badge" style="font-size: 12.5px; font-weight: 800; background: rgba(15, 23, 42, 0.06); color: var(--text-dark); padding: 5px 10px; border-radius: 8px;">${escapeHtml(s.Section)}</span>` : ''}
-              </div>
-              ${isActive ? '<span style="font-size: 12px; font-weight: 800; background: #DCFCE7; color: #15803D; padding: 5px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px;"><span style="width:7px;height:7px;border-radius:50%;background:#22C55E;box-shadow:0 0 0 3px rgba(34,197,94,0.25);"></span> ONGOING</span>' : (isFuture ? '<span style="font-size: 12px; font-weight: 800; background: #F1F5F9; color: #64748B; padding: 5px 12px; border-radius: 20px;">UPCOMING</span>' : '<span style="font-size: 12px; font-weight: 800; background: #F8FAFC; color: #94A3B8; padding: 5px 12px; border-radius: 20px;">COMPLETED</span>')}
+            <div class="tc-title">${escapeHtml(s.Subject_Name || 'Class Session')}</div>
+            <div class="tc-bottom-row">
+              <span class="tc-room-badge">
+                <i data-lucide="map-pin" style="width:12px;height:12px;"></i> RM ${escapeHtml(s.Room_Number || 'TBA')}
+              </span>
+              ${s.Section ? `<span class="tc-section-badge">${escapeHtml(s.Section)}</span>` : ''}
             </div>
           </div>
         </div>
@@ -2451,93 +2451,140 @@ window.populateCustomYearSelectors = function (arg1, arg2, arg3, arg4) {
 };
 
 // Fetch and load occupancy access events on room status timeline
+// Track whether we've done the first load of the activity log
+let _activityLogFirstLoad = true;
+// Track the last rendered data fingerprint to avoid unnecessary re-renders
+let _activityLogLastDataKey = '';
+
 async function loadRoomStatusActivityLog() {
   const timelineList = document.querySelector('.timeline-list');
   if (!timelineList) return;
 
-  timelineList.innerHTML = `
-    <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
-      <div class="ui-empty-icon">
-        <i data-lucide="loader-2" class="animate-spin" style="width:24px;height:24px;"></i>
+  // Only show the loading spinner on the very first load
+  if (_activityLogFirstLoad) {
+    timelineList.innerHTML = `
+      <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
+        <div class="ui-empty-icon">
+          <i data-lucide="loader-2" class="animate-spin" style="width:24px;height:24px;"></i>
+        </div>
+        <p>Loading recent activities...</p>
       </div>
-      <p>Loading recent activities...</p>
-    </div>
-  `;
-  if (window.lucide) lucide.createIcons({ root: timelineList });
+    `;
+    if (window.lucide) lucide.createIcons({ root: timelineList });
+  }
+
+  function getRelativeTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDays = Math.floor(diffHr / 24);
+
+    if (diffSec < 60) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHr < 24) return `${diffHr}h ago`;
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays} days ago`;
+  }
 
   try {
-    const res = await fetch('/api/notifications');
+    const res = await fetch('/api/notifications', { credentials: 'include' });
     if (!res.ok) throw new Error('Failed to load activities');
     const activities = await res.json();
 
     // Filter only occupancy log notifications
     const occupancyLogs = activities.filter(a => a.type === 'occupancy');
 
+    // Build a data fingerprint (ignoring relative time which always changes)
+    // so we only re-render when the actual log entries change
+    const dataKey = occupancyLogs.map(l => `${l.id}-${l.status}-${l.room_number}-${l.description}`).join('|');
+    const dataChanged = dataKey !== _activityLogLastDataKey;
+
     if (occupancyLogs.length === 0) {
-      timelineList.innerHTML = `
-        <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
-          <div class="ui-empty-icon">
-            <i data-lucide="clock-4" style="width:24px;height:24px;"></i>
+      if (dataChanged || _activityLogFirstLoad) {
+        timelineList.innerHTML = `
+          <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
+            <div class="ui-empty-icon">
+              <i data-lucide="clock-4" style="width:24px;height:24px;"></i>
+            </div>
+            <p>No activity yet. Recent room events will appear here when available.</p>
           </div>
-          <p>No activity yet. Recent room events will appear here when available.</p>
-        </div>
-      `;
-      if (window.lucide) lucide.createIcons({ root: timelineList });
+        `;
+        if (window.lucide) lucide.createIcons({ root: timelineList });
+      }
+      _activityLogLastDataKey = dataKey;
+      _activityLogFirstLoad = false;
       return;
     }
 
-    let html = '';
-    occupancyLogs.forEach(log => {
-      let activityText = '';
-      if (log.status === 'Key Taken') {
-        if (log.description && log.description !== 'Room Key') {
-          activityText = `Room key for Room ${log.room_number} taken by ${log.description} (Registered to system).`;
+    // Only re-render if the data actually changed
+    if (dataChanged || _activityLogFirstLoad) {
+      // Save scroll position before re-render
+      const savedScrollTop = timelineList.scrollTop;
+
+      let html = '';
+      occupancyLogs.forEach(log => {
+        let activityText = '';
+        if (log.status === 'Key Taken') {
+          if (log.description && log.description !== 'Room Key') {
+            activityText = `Room key for Room ${log.room_number} taken by ${log.description} (Registered to system).`;
+          } else {
+            activityText = `Room key for Room ${log.room_number} was taken from the holder.`;
+          }
+        } else if (log.status === 'Key Returned') {
+          activityText = `Room key for Room ${log.room_number} was returned (Room Secured).`;
         } else {
-          activityText = `Room key for Room ${log.room_number} was taken from the holder.`;
+          activityText = `QR Code verified for ${log.description} (Awaiting key retrieval).`;
         }
-      } else if (log.status === 'Key Returned') {
-        activityText = `Room key for Room ${log.room_number} was returned (Room Secured).`;
-      } else {
-        activityText = `QR Code verified for ${log.description} (Awaiting key retrieval).`;
-      }
 
-      html += `
-        <div class="timeline-item" style="display:flex;gap:16px;margin-bottom:20px;position:relative;">
-          <div class="timeline-badge" style="width:40px;height:40px;border-radius:50%;background:#E8F9FC;color:#1EBBD7;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:2;">
-            <i data-lucide="key-round" style="width:18px;height:18px;"></i>
-          </div>
-          <div class="timeline-panel" style="flex:1;background:var(--bg-white, #fff);border:1px solid var(--border-light, #e2e8f0);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.02);">
-            <div class="timeline-heading" style="margin-bottom:6px;">
-              <h4 class="timeline-title" style="font-family:var(--font-display);font-size:14.5px;font-weight:700;color:var(--text-dark, #1e293b);margin:0;">${log.description}</h4>
-              <p style="margin:2px 0 0 0;font-size:12px;color:var(--text-light, #64748b);display:flex;align-items:center;gap:4px;">
-                <i data-lucide="clock" style="width:12px;height:12px;"></i>
-                <span>${getRelativeTime(log.time)}</span>
-                <span style="color:var(--border-light, #cbd5e1);">•</span>
-                <span>${log.detail}</span>
-              </p>
+        html += `
+          <div class="timeline-item" style="display:flex;gap:16px;margin-bottom:20px;position:relative;">
+            <div class="timeline-badge" style="width:40px;height:40px;border-radius:50%;background:#E8F9FC;color:#1EBBD7;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:2;">
+              <i data-lucide="key-round" style="width:18px;height:18px;"></i>
             </div>
-            <div class="timeline-body" style="font-family:var(--font-body);font-size:13.5px;color:var(--text-mid, #475569);line-height:1.5;">
-              <p style="margin:0;">${activityText}</p>
+            <div class="timeline-panel" style="flex:1;background:var(--bg-white, #fff);border:1px solid var(--border-light, #e2e8f0);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+              <div class="timeline-heading" style="margin-bottom:6px;">
+                <h4 class="timeline-title" style="font-family:var(--font-display);font-size:14.5px;font-weight:700;color:var(--text-dark, #1e293b);margin:0;">${log.description}</h4>
+                <p style="margin:2px 0 0 0;font-size:12px;color:var(--text-light, #64748b);display:flex;align-items:center;gap:4px;">
+                  <i data-lucide="clock" style="width:12px;height:12px;"></i>
+                  <span>${getRelativeTime(log.time)}</span>
+                  <span style="color:var(--border-light, #cbd5e1);">•</span>
+                  <span>${log.detail}</span>
+                </p>
+              </div>
+              <div class="timeline-body" style="font-family:var(--font-body);font-size:13.5px;color:var(--text-mid, #475569);line-height:1.5;">
+                <p style="margin:0;">${activityText}</p>
+              </div>
             </div>
           </div>
-        </div>
-      `;
-    });
+        `;
+      });
 
-    timelineList.innerHTML = html;
-    if (window.lucide) lucide.createIcons({ root: timelineList });
-    if (window.lucide) lucide.createIcons({ root: timelineList });
+      timelineList.innerHTML = html;
+      if (window.lucide) lucide.createIcons({ root: timelineList });
+
+      // Restore scroll position after re-render
+      timelineList.scrollTop = savedScrollTop;
+    }
+
+    _activityLogLastDataKey = dataKey;
+    _activityLogFirstLoad = false;
   } catch (err) {
     console.error('Error loading room status activities:', err);
-    timelineList.innerHTML = `
-      <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
-        <div class="ui-empty-icon" style="background:#FEE2E2;color:#EF4444;">
-          <i data-lucide="alert-circle"></i>
+    // Only show error state if this was the first load (don't replace existing content on network blip)
+    if (_activityLogFirstLoad) {
+      timelineList.innerHTML = `
+        <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
+          <div class="ui-empty-icon" style="background:#FEE2E2;color:#EF4444;">
+            <i data-lucide="alert-circle"></i>
+          </div>
+          <p>Failed to load activity logs.</p>
         </div>
-        <p>Failed to load activity logs.</p>
-      </div>
-    `;
-    if (window.lucide) lucide.createIcons({ root: timelineList });
+      `;
+      if (window.lucide) lucide.createIcons({ root: timelineList });
+    }
   }
 }
 
@@ -2724,6 +2771,32 @@ function toggleAdminMenu(event, btnEl) {
   setTimeout(() => {
     document.addEventListener('click', closeHandler);
   }, 0);
+}
+
+// ── Initialize Floating Tooltips for Sidebar ───────────────────────
+function initSidebarTooltips() {
+  const tooltipMap = {
+    'Home': 'Dashboard',
+    'Lab Rooms': 'Room Status',
+    'Help': 'Help & Support'
+  };
+
+  document.querySelectorAll('.sidebar-btn').forEach(btn => {
+    let tooltip = btn.getAttribute('data-tooltip') || btn.getAttribute('title');
+    if (tooltip) {
+      if (tooltipMap[tooltip]) {
+        tooltip = tooltipMap[tooltip];
+      }
+      btn.setAttribute('data-tooltip', tooltip);
+      btn.removeAttribute('title');
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSidebarTooltips);
+} else {
+  initSidebarTooltips();
 }
 
 

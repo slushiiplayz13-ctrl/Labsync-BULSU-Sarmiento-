@@ -156,9 +156,20 @@
   .sidebar-btn.active svg {
     color: var(--primary-teal) !important;
   }
+  .sidebar-btn::before {
+    display: none !important;
+  }
   .sidebar-btn::after {
-    content: attr(title) !important;
+    content: attr(data-tooltip) !important;
     display: block !important;
+    position: static !important;
+    transform: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
     font-size: 8.5px !important;
     font-weight: 500 !important;
     white-space: nowrap !important;
@@ -173,6 +184,9 @@
     opacity: 0.85;
     transition: opacity var(--transition), font-weight var(--transition);
     letter-spacing: -0.1px !important;
+  }
+  .sidebar-btn:not([data-tooltip])::after {
+    content: attr(title) !important;
   }
   .sidebar-btn.active::after {
     opacity: 1 !important;
