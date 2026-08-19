@@ -28,3 +28,35 @@
   border-color: var(--primary-teal);
   box-shadow: 0 0 0 3px var(--primary-teal-light), 0 4px 12px rgba(2, 132, 199, 0.08);
 }
+
+/* ─── Input Group Form Control Styles ─── */
+.input-group {
+  position: relative;
+  width: 100%;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 18px 20px;
+  padding-right: 50px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: #E8EEF5;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.input-group input::placeholder {
+  color: #64748B;
+  font-weight: 600;
+}
+
+.input-group input:focus {
+  background: #fff;
+  border-color: var(--primary-teal);
+  box-shadow: 0 4px 12px rgba(30, 187, 215, 0.1);
+}
