@@ -341,6 +341,8 @@ function initNotifications() {
   if (!headerRight || !notifBtn) return;
 
   let isInitialLoad = true;
+  let lastNotifSignature = null;
+
 
   // 1. Create notifications dropdown element if it doesn't exist
   let notifMenu = document.getElementById('notif-menu');
@@ -618,18 +620,29 @@ function initNotifications() {
         notifDot.style.display = unreadCount > 0 ? 'block' : 'none';
       }
 
+      // Build notification state signature including all fields that affect UI display
+      const currentSignature = notifications.map(n => 
+        `${n.id || ''}:${n.type || ''}:${n.status || ''}:${n.priority || ''}:${n.pc_number || ''}:${n.room_number || ''}:${n.description || ''}:${n.time || ''}`
+      ).join('|');
+
+      const notifStateChanged = lastNotifSignature !== null && lastNotifSignature !== currentSignature;
+      lastNotifSignature = currentSignature;
+
       isInitialLoad = false;
       lucide.createIcons();
 
-      // Real-time cards and timeline refresh
-      if (document.body.dataset.page === 'dashboard' || document.body.dataset.page === 'room-status') {
-        loadDashboardStatsAndLabs();
-      } else if (document.body.dataset.page === 'mis-dashboard') {
-        initMISDashboard();
+      // Real-time cards and timeline refresh (only when notification state actually changes after initial load)
+      if (notifStateChanged) {
+        if (document.body.dataset.page === 'dashboard' || document.body.dataset.page === 'room-status') {
+          loadDashboardStatsAndLabs();
+        } else if (document.body.dataset.page === 'mis-dashboard') {
+          initMISDashboard();
+        }
+        if (document.body.dataset.page === 'room-status') {
+          loadRoomStatusActivityLog();
+        }
       }
-      if (document.body.dataset.page === 'room-status') {
-        loadRoomStatusActivityLog();
-      }
+
     } catch (err) {
       console.error('Error loading notifications:', err);
     }
@@ -1764,15 +1777,6 @@ async function openHelpModal() {
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.remove();
   });
-
-  // Hover effect for close button
-  const closeBtn = document.getElementById('close-help-modal');
-  closeBtn.addEventListener('mouseenter', () => {
-    closeBtn.style.background = '#E5E5E5';
-  });
-  closeBtn.addEventListener('mouseleave', () => {
-    closeBtn.style.background = '#F5F5F5';
-  });
 }
 
 // Global function to toggle password visibility
@@ -1966,6 +1970,177 @@ async function loadDashboardSchedule() {
   }
 }
 
+// ── System Activity Stream & Audit Log Fetcher (100% Live API Data) ──
+window.loadSystemActivityFeed = async function (targetContainer, optionalReports = null) {
+  const container = typeof targetContainer === 'string'
+    ? document.getElementById(targetContainer)
+    : (targetContainer || document.getElementById('misDashboardActivityList') || document.querySelector('.activity-feed-list'));
+
+  if (!container) return;
+
+  let activities = [];
+
+  try {
+    // 1. Fetch real merged system audit notifications from API (/api/notifications)
+    const notifRes = await fetch('/api/notifications', { credentials: 'include' });
+    if (notifRes.ok) {
+      const rawNotifs = await notifRes.json();
+      if (Array.isArray(rawNotifs) && rawNotifs.length > 0) {
+        activities = rawNotifs.map(n => transformNotificationToActivity(n));
+      }
+    }
+  } catch (err) {
+    console.warn('Could not fetch /api/notifications:', err);
+  }
+
+  // 2. Fallback / Merge with live PC reports from API if notifications empty or unauthenticated
+  if (activities.length === 0) {
+    let reports = optionalReports;
+    if (!reports) {
+      try {
+        const repRes = await fetch('/api/reports');
+        if (repRes.ok) reports = await repRes.json();
+      } catch (e) {
+        console.warn('Could not fetch /api/reports fallback:', e);
+      }
+    }
+
+    if (Array.isArray(reports) && reports.length > 0) {
+      activities = reports.map(r => transformReportToActivity(r));
+    }
+  }
+
+  // If no data exists in database, render clean empty state (NO FAKE DATA)
+  if (!activities || activities.length === 0) {
+    container.innerHTML = `
+      <div class="activity-empty">
+        No recent system activity. System updates and audit logs will appear here.
+      </div>
+    `;
+    return;
+  }
+
+  // Sort descending by timestamp
+  activities.sort((a, b) => b.timestamp - a.timestamp);
+
+  function getRelativeTimeStr(date) {
+    if (!date || isNaN(date.getTime())) return 'Recently';
+    const now = new Date();
+    const diffSec = Math.floor((now - date) / 1000);
+    if (diffSec < 45) return 'Just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} mins ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr} hour${diffHr > 1 ? 's' : ''} ago`;
+    const diffDays = Math.floor(diffHr / 24);
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function escapeStr(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  container.innerHTML = activities.slice(0, 10).map(act => {
+    const relTime = getRelativeTimeStr(act.timestamp);
+    return `
+      <div class="activity-tile">
+        <div class="activity-tile-left">
+          <div class="activity-tile-icon ${act.badgeClass}">
+            <i data-lucide="${act.icon}"></i>
+          </div>
+          <div class="activity-tile-details">
+            <div class="activity-tile-title">${escapeStr(act.title)}</div>
+            <div class="activity-tile-meta">${escapeStr(act.meta)}</div>
+          </div>
+        </div>
+        <div class="activity-tile-right">
+          <span class="activity-status-pill ${act.badgeClass}">${escapeStr(act.badgeLabel)}</span>
+          <span class="activity-tile-time">${relTime}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+};
+
+// Also expose alias for backward compatibility with inline page callers
+window.renderEcosystemActivityFeed = function (reports, container) {
+  return window.loadSystemActivityFeed(container, reports);
+};
+
+function transformNotificationToActivity(n) {
+  const dateObj = n.time ? new Date(n.time) : new Date();
+
+  if (n.type === 'occupancy') {
+    let titleText = '';
+    const status = n.status || 'Access';
+    if (status === 'Key Taken') {
+      titleText = n.description && n.description !== 'Room Key'
+        ? `Room key for Room ${n.room_number || 'N/A'} taken by ${n.description}`
+        : `Room key for Room ${n.room_number || 'N/A'} taken`;
+    } else if (status === 'Key Returned') {
+      titleText = `Room key for Room ${n.room_number || 'N/A'} returned (Room Secured)`;
+    } else {
+      titleText = `Access verified for ${n.description || 'User'} in Room ${n.room_number || 'N/A'}`;
+    }
+
+    return {
+      id: `occ-${n.id}`,
+      title: titleText,
+      meta: `${n.detail || 'System'} • Room ${n.room_number || 'N/A'}`,
+      badgeLabel: status,
+      badgeClass: status === 'Key Returned' ? 'iot-online' : status === 'Key Taken' ? 'schedule' : 'security',
+      icon: status === 'Key Returned' ? 'check-circle' : 'key-round',
+      timestamp: dateObj
+    };
+  } else {
+    // Maintenance report notification
+    const statusLower = (n.status || '').toLowerCase();
+    const isResolved = statusLower === 'resolved';
+    const isInProgress = statusLower === 'in progress';
+
+    return {
+      id: `report-${n.id}`,
+      title: isResolved
+        ? `Ticket LS-TKT-${n.id} marked as Resolved`
+        : isInProgress
+          ? `Ticket LS-TKT-${n.id} in progress (Room ${n.room_number || 'N/A'})`
+          : `PC #${n.pc_number || 'N/A'} reported in Room ${n.room_number || 'N/A'}`,
+      meta: isResolved ? `MIS Maintenance` : `Reported by ${n.detail || 'Student'}`,
+      badgeLabel: n.status || 'Pending',
+      badgeClass: isResolved ? 'maint-resolved' : isInProgress ? 'maint-progress' : 'maint-pending',
+      icon: isResolved ? 'check-circle' : isInProgress ? 'wrench' : 'alert-circle',
+      timestamp: dateObj
+    };
+  }
+}
+
+function transformReportToActivity(r) {
+  const statusLower = (r.Status || '').toLowerCase();
+  const isResolved = statusLower === 'resolved';
+  const isInProgress = statusLower === 'in progress';
+  const dateObj = r.Date_Reported ? new Date(r.Date_Reported) : new Date();
+
+  return {
+    id: `maint-${r.Report_ID}`,
+    title: isResolved
+      ? `Ticket LS-TKT-${r.Report_ID} marked as Resolved by Staff`
+      : isInProgress
+        ? `Ticket LS-TKT-${r.Report_ID} assigned & in progress (Room ${r.Room_Number || 'N/A'})`
+        : `PC #${r.PC_Number || 'N/A'} reported in Room ${r.Room_Number || 'N/A'}`,
+    meta: isResolved ? `Initiated by MIS Staff` : `Reported by ${r.Student_Name || 'Student'}`,
+    badgeLabel: isResolved ? 'Resolved' : isInProgress ? 'In Progress' : 'Pending',
+    badgeClass: isResolved ? 'maint-resolved' : isInProgress ? 'maint-progress' : 'maint-pending',
+    icon: isResolved ? 'check-circle' : isInProgress ? 'wrench' : 'alert-circle',
+    timestamp: dateObj
+  };
+}
+
 async function initMISDashboard() {
   if (document.body.dataset.page !== 'mis-dashboard') return;
 
@@ -2052,7 +2227,7 @@ async function initMISDashboard() {
       if (reports.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+            <td colspan="7" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
               No PC reports available. Reports will appear here when submitted.
             </td>
           </tr>
@@ -2063,30 +2238,45 @@ async function initMISDashboard() {
           const dateObj = new Date(r.Date_Reported);
           const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
           const parsed = parseIssueDesc(r.Issue_Description);
+          const rawIssue = (parsed.issues || '').trim();
+          const lowerIssue = rawIssue.toLowerCase();
+          const hasRemarks = parsed.remarks &&
+            parsed.remarks.trim().length > 0 &&
+            parsed.remarks.toLowerCase() !== 'none' &&
+            parsed.remarks.toLowerCase() !== 'no remarks provided' &&
+            parsed.remarks.toLowerCase() !== 'no details provided.';
+
+          let displayIssue = rawIssue;
+          if (!rawIssue || lowerIssue === 'none' || lowerIssue === 'n/a') {
+            displayIssue = hasRemarks ? 'Other' : 'None';
+          } else if (lowerIssue === 'others' || lowerIssue === 'other') {
+            displayIssue = 'Other';
+          }
 
           let statusBadge = '';
-          if (r.Status === 'Pending') {
-            statusBadge = '<span style="background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;">Pending</span>';
-          } else if (r.Status === 'In Progress') {
-            statusBadge = '<span style="background: #DBEAFE; color: #2563EB; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;">In Progress</span>';
+          const statusLower = (r.Status || '').toLowerCase();
+          if (statusLower === 'pending') {
+            statusBadge = '<span class="status-pill pending">Pending</span>';
+          } else if (statusLower === 'in progress') {
+            statusBadge = '<span class="status-pill in-progress">In Progress</span>';
           } else {
-            statusBadge = '<span style="background: #D1FAE5; color: #059669; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;">Resolved</span>';
+            statusBadge = '<span class="status-pill resolved">Resolved</span>';
           }
 
           return `
-            <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.15s ease;">
-              <td style="padding: 8px 10px; font-size: 12.5px; font-weight: 700; color: #2563EB; white-space: nowrap; text-align: left;">
-                <a href="mis-maintenance.html" style="color: #2563EB; text-decoration: none;">LS-TKT-${r.Report_ID}</a>
+            <tr class="table-data-row">
+              <td class="table-cell ticket-id-cell">
+                <a href="mis-maintenance.html" class="ticket-id-link">LS-TKT-${r.Report_ID}</a>
               </td>
-              <td class="col-date" style="padding: 8px 10px; font-size: 12px; color: var(--text-mid); white-space: nowrap; text-align: left;">${dateStr}</td>
-              <td style="padding: 8px 10px; font-size: 12.5px; font-weight: 600; color: var(--text-dark); white-space: nowrap; text-align: center;">${r.Room_Number}</td>
-              <td style="padding: 8px 10px; font-size: 12.5px; font-weight: 600; color: var(--text-dark); white-space: nowrap; text-align: center;">#${r.PC_Number}</td>
-              <td style="padding: 8px 10px; font-size: 12px; color: var(--text-dark); white-space: nowrap; text-align: left;">
-                <span style="font-weight: 600; color: var(--text-dark); white-space: nowrap;">${parsed.issues}</span>
+              <td class="table-cell date-cell col-date">${dateStr}</td>
+              <td class="table-cell room-cell text-center">${r.Room_Number}</td>
+              <td class="table-cell pc-cell text-center">#${r.PC_Number}</td>
+              <td class="table-cell issue-cell">
+                <strong>${displayIssue}</strong>
               </td>
-              <td style="padding: 8px 10px; white-space: nowrap; text-align: center;">${statusBadge}</td>
-              <td style="padding: 8px 10px; text-align: center; white-space: nowrap;">
-                <a href="mis-maintenance.html" style="color: #2563EB; font-size: 12px; font-weight: 600; text-decoration: none;">View</a>
+              <td class="table-cell text-center">${statusBadge}</td>
+              <td class="table-cell text-center">
+                <a href="mis-maintenance.html" class="action-link">View</a>
               </td>
             </tr>
           `;
@@ -2094,44 +2284,25 @@ async function initMISDashboard() {
       }
     }
 
-    // 5. Update Table Footer (Remove redundant big View All button)
-    const paginationContainer = document.querySelector('.table-container + div');
+    // 5. Update Table Footer
+    const paginationContainer = document.querySelector('.table-pagination') || document.querySelector('.table-container + div');
     if (paginationContainer) {
+      paginationContainer.className = 'table-pagination';
       paginationContainer.innerHTML = `
-        <div style="font-size: 13px; color: var(--text-muted);">
-          Showing <strong style="color: var(--text-dark);">${Math.min(10, reports.length)}</strong> of <strong style="color: var(--text-dark);">${reports.length}</strong> reports
+        <div class="pagination-info">
+          Showing <strong>${Math.min(10, reports.length)}</strong> of <strong>${reports.length}</strong> reports
         </div>
-        <div style="display: flex; gap: 8px;">
-          <button style="padding: 6px 14px; border: 1px solid var(--border-light); background: #fff; border-radius: 20px; font-size: 12.5px; font-weight: 600; color: var(--text-muted); cursor: not-allowed; opacity: 0.5;" disabled>Previous</button>
-          <button style="padding: 6px 14px; border: 1px solid var(--border-light); background: #fff; border-radius: 20px; font-size: 12.5px; font-weight: 600; color: var(--text-muted); cursor: not-allowed; opacity: 0.5;" disabled>Next</button>
+        <div class="pagination-controls">
+          <button class="btn-page btn-prev" disabled>Previous</button>
+          <button class="btn-page btn-next" disabled>Next</button>
         </div>
       `;
     }
 
-    // 6. Populate Activity Feed
-    const activityFeedContainer = document.querySelector('.dashboard-main-grid .content-card:last-child > div:last-child > div:last-child');
+    // 6. Populate System Activity Feed with Multi-Category Ecosystem Events
+    const activityFeedContainer = document.getElementById('misDashboardActivityList') || document.querySelector('.activity-feed-list') || document.querySelector('.dashboard-main-grid .content-card:last-child > div:last-child > div:last-child');
     if (activityFeedContainer) {
-      if (reports.length === 0) {
-        activityFeedContainer.innerHTML = `
-          <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px;">
-            No recent activity. System updates will appear here.
-          </div>
-        `;
-      } else {
-        const recentFeed = reports.slice(0, 6);
-        activityFeedContainer.innerHTML = recentFeed.map(r => {
-          const timeAgo = formatLastUpdatedTime ? formatLastUpdatedTime(r.Date_Reported) : 'Recently';
-          return `
-            <div style="display: flex; gap: 12px; align-items: flex-start;">
-              <div style="width: 10px; height: 10px; border-radius: 50%; background: ${r.Status === 'Pending' ? '#F59E0B' : r.Status === 'In Progress' ? '#3B82F6' : '#10B981'}; margin-top: 4px; flex-shrink: 0;"></div>
-              <div style="flex: 1;">
-                <div style="font-size: 13px; font-weight: 600; color: var(--text-dark);">PC #${r.PC_Number} reported in Room ${r.Room_Number}</div>
-                <div style="font-size: 12.5px; color: var(--text-light); margin-top: 2px;">${r.Student_Name || 'Student'} • ${timeAgo}</div>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
+      window.renderEcosystemActivityFeed(reports, activityFeedContainer);
     }
 
     // 7. Enhanced live search box filtering (preserves active search across polling refreshes)

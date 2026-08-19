@@ -74,11 +74,27 @@ async function getITHeadSummary(req, res, next) {
     }
 }
 
+async function getFacultyScheduleByName(req, res, next) {
+    try {
+        const { professorName } = req.params;
+        const { academicYear, semester } = req.query;
+        const result = await scheduleService.getFacultyScheduleByName(professorName, academicYear, semester);
+        if (result.error) {
+            return res.status(result.status).json({ error: result.error });
+        }
+        return res.status(result.status).json(result.data);
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     saveSchedule,
     checkConflict,
     getProfessorSchedule,
+    getFacultyScheduleByName,
     getRoomSchedule,
     getUserSchedule,
     getITHeadSummary
 };
+

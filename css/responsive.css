@@ -687,17 +687,22 @@
     border-radius: 9px !important;
   }
 
-  .delete-pc-btn {
-    width: 24px !important;
-    height: 24px !important;
-    top: 8px !important;
-    right: 8px !important;
+  .delete-pc-btn,
+  .card-action-delete,
+  .pc-card .btn-delete {
+    width: 28px !important;
+    height: 28px !important;
+    top: 10px !important;
+    right: 10px !important;
+    border-radius: 7px !important;
   }
 
   .delete-pc-btn i,
-  .delete-pc-btn svg {
-    width: 12px !important;
-    height: 12px !important;
+  .delete-pc-btn svg,
+  .card-action-delete i,
+  .card-action-delete svg {
+    width: 14px !important;
+    height: 14px !important;
   }
 
   .pc-grid-header {
@@ -946,14 +951,90 @@
     min-height: 240px !important;
   }
   .table-container table th,
-  .table-container table td {
-    padding: 8px 10px !important;
-    font-size: 11.5px !important;
+  .table-container table td,
+  .table-header-cell,
+  .table-cell {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+  }
+  .table-cell.ticket-id-cell {
+    font-size: 13.5px !important;
   }
   .table-container .col-date,
   .table-container th.col-date,
   .table-container td.col-date {
     display: none !important;
+  }
+
+  /* Mobile Activity Tile Layout & Natural Wrap (Fixes Truncation) */
+  .activity-tile {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+
+  .activity-tile-left {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .activity-tile-icon {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+    margin-top: 1px !important;
+  }
+
+  .activity-tile-icon i {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  .activity-tile-details {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .activity-tile-title {
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word !important;
+    line-height: 1.35 !important;
+  }
+
+  .activity-tile-meta {
+    font-size: 12px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word !important;
+    margin-top: 2px !important;
+  }
+
+  .activity-tile-right {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding-top: 6px !important;
+    border-top: 1px dashed var(--border-light, #E2E8F0) !important;
+    margin-top: 2px !important;
+  }
+
+  .activity-status-pill {
+    font-size: 11px !important;
+    padding: 3px 8px !important;
+  }
+
+  .activity-tile-time {
+    font-size: 12px !important;
   }
 
   /* 2x2 grid for stats cards to save vertical space on mobile */
@@ -1302,6 +1383,105 @@
     min-width: 720px !important;
   }
   
+  /* ── Mobile Maintenance Cards Layout & Full-Width Action Buttons (Max Width: 768px) ── */
+  .maint-table-wrapper {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .maint-table {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .maint-table thead {
+    display: none !important;
+  }
+
+  .maint-table tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .maint-table tr,
+  .maint-mobile-card,
+  .ticket-card-mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+    background: #FFFFFF !important;
+    border: 1px solid var(--border-light, #E2E8F0) !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  .maint-table td {
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .maint-table td.col-ticket {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+
+  .maint-table td.col-status {
+    display: flex !important;
+    justify-content: flex-end !important;
+    margin-top: -38px !important;
+    pointer-events: none;
+  }
+
+  .maint-table td.col-status .status-badge-pulse {
+    pointer-events: auto;
+  }
+
+  .maint-table td.col-date,
+  .maint-table td.col-room,
+  .maint-table td.col-pc {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-right: 12px !important;
+    font-size: 12.5px !important;
+  }
+
+  .maint-table td.col-actions {
+    margin-top: 4px !important;
+    padding-top: 10px !important;
+    border-top: 1px dashed var(--border-light, #E2E8F0) !important;
+    width: 100% !important;
+  }
+
+  .maint-table .btn-resolve-ticket,
+  .maint-table .completed-chip,
+  .maint-table .completed-label,
+  .maint-table .btn-completed,
+  .maint-mobile-card .btn-resolve-ticket,
+  .maint-mobile-card .completed-chip,
+  .ticket-card-mobile .btn-resolve-ticket,
+  .ticket-card-mobile .completed-chip {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+
   /* Prevent whole body overflow */
   body[data-page="schedule-editor"] {
     max-width: 100% !important;

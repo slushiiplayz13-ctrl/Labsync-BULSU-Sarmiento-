@@ -179,11 +179,26 @@ async function getITHeadSummary(sessionUserId) {
     };
 }
 
+async function getFacultyScheduleByName(professorName, academicYear, semester) {
+    if (!professorName) {
+        return { status: 400, error: 'Missing professorName parameter' };
+    }
+
+    const currentYear = new Date().getFullYear();
+    const ay = academicYear || `${currentYear}-${currentYear + 1}`;
+    const sem = semester || '1st Semester';
+
+    const [schedules] = await scheduleRepository.findFacultySchedulesByName(professorName, ay, sem);
+    return { status: 200, data: schedules };
+}
+
 module.exports = {
     saveRoomSchedule,
     checkProfessorConflict,
     getProfessorSchedule,
+    getFacultyScheduleByName,
     getRoomSchedule,
     getUserSchedule,
     getITHeadSummary
 };
+

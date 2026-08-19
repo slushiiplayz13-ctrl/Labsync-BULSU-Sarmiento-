@@ -40,6 +40,11 @@
   --font-size-stat: 42px;
 
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* --- Status Badge Tokens --- */
+  --badge-completed-bg: #ECFDF5;
+  --badge-completed-text: #047857;
+  --badge-completed-border: #A7F3D0;
 }
 
 /* Accessibility: Text Scaling */
@@ -110,6 +115,10 @@ html.high-contrast {
   --bg-card: #1F2937;
   --bg-body: var(--bg-card);
   --border-light: #374151;
+
+  --badge-completed-bg: rgba(6, 78, 59, 0.65);
+  --badge-completed-text: #34D399;
+  --badge-completed-border: rgba(52, 211, 153, 0.35);
 }
 
 /* High Contrast Global UI Overrides */
@@ -816,6 +825,7 @@ html.high-contrast .sh-legend span[style*="background: #FEF3C7"] {
   color: #F59E0B !important;
   border-color: rgba(245, 158, 11, 0.3) !important;
 }
+
 html.high-contrast .sh-legend span[style*="background:#FEF3C7"] span,
 html.high-contrast .sh-legend span[style*="background: #FEF3C7"] span {
   background: #F59E0B !important;
@@ -827,6 +837,7 @@ html.high-contrast .sh-legend span[style*="background: #DBEAFE"] {
   color: #60A5FA !important;
   border-color: rgba(59, 130, 246, 0.3) !important;
 }
+
 html.high-contrast .sh-legend span[style*="background:#DBEAFE"] span,
 html.high-contrast .sh-legend span[style*="background: #DBEAFE"] span {
   background: #60A5FA !important;
@@ -838,6 +849,7 @@ html.high-contrast .sh-legend span[style*="background: #D1FAE5"] {
   color: #34D399 !important;
   border-color: rgba(16, 185, 129, 0.3) !important;
 }
+
 html.high-contrast .sh-legend span[style*="background:#D1FAE5"] span,
 html.high-contrast .sh-legend span[style*="background: #D1FAE5"] span {
   background: #34D399 !important;
@@ -848,6 +860,7 @@ html.high-contrast .search-input {
   color: var(--text-dark) !important;
   border-color: var(--border-light) !important;
 }
+
 html.high-contrast .search-input::placeholder {
   color: var(--text-muted) !important;
 }
@@ -887,46 +900,206 @@ html.high-contrast .boss-role {
   color: var(--primary-teal) !important;
 }
 
-/* --- Help & Support Modal High Contrast Overrides --- */
+/* --- Help & Support Modal Dark Mode & High Contrast Overrides --- */
+html.dark-mode .help-modal-footer,
+body.dark-mode .help-modal-footer,
+[data-theme="dark"] .help-modal-footer,
 html.high-contrast .help-modal-footer {
   background: var(--bg-card) !important;
   border-top-color: var(--border-light) !important;
 }
 
+html.dark-mode .help-feature-card,
+body.dark-mode .help-feature-card,
+[data-theme="dark"] .help-feature-card,
+html.high-contrast .help-feature-card {
+  background: #111827 !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+  color: #CBD5E1 !important;
+}
+
+html.dark-mode .help-feat-title,
+body.dark-mode .help-feat-title,
+[data-theme="dark"] .help-feat-title,
+html.high-contrast .help-feat-title {
+  color: #F8FAFC !important;
+}
+
+html.dark-mode .help-feat-desc,
+body.dark-mode .help-feat-desc,
+[data-theme="dark"] .help-feat-desc,
+html.high-contrast .help-feat-desc {
+  color: #94A3B8 !important;
+}
+
+/* Purple Theme Dark Mode Override */
+html.dark-mode .help-feature-card.theme-purple,
+body.dark-mode .help-feature-card.theme-purple,
+[data-theme="dark"] .help-feature-card.theme-purple,
+html.high-contrast .help-feature-card.theme-purple {
+  background: rgba(168, 85, 247, 0.12) !important;
+  border: 1.5px solid rgba(168, 85, 247, 0.35) !important;
+  color: #E9D5FF !important;
+}
+
+html.dark-mode .help-feature-card.theme-purple .help-feat-title,
+body.dark-mode .help-feature-card.theme-purple .help-feat-title,
+[data-theme="dark"] .help-feature-card.theme-purple .help-feat-title,
+html.high-contrast .help-feature-card.theme-purple .help-feat-title {
+  color: #C084FC !important;
+}
+
+html.dark-mode .help-feature-card.theme-purple .help-feat-desc,
+body.dark-mode .help-feature-card.theme-purple .help-feat-desc,
+[data-theme="dark"] .help-feature-card.theme-purple .help-feat-desc,
+html.high-contrast .help-feature-card.theme-purple .help-feat-desc {
+  color: #E9D5FF !important;
+}
+
+html.dark-mode .help-feature-card.theme-purple .feature-icon-box,
+body.dark-mode .help-feature-card.theme-purple .feature-icon-box,
+[data-theme="dark"] .help-feature-card.theme-purple .feature-icon-box,
+html.high-contrast .help-feature-card.theme-purple .feature-icon-box,
+html.dark-mode .help-feature-card.theme-purple .help-feat-icon-badge,
+body.dark-mode .help-feature-card.theme-purple .help-feat-icon-badge,
+[data-theme="dark"] .help-feature-card.theme-purple .help-feat-icon-badge,
+html.high-contrast .help-feature-card.theme-purple .help-feat-icon-badge {
+  background: rgba(168, 85, 247, 0.25) !important;
+  border: 1px solid rgba(168, 85, 247, 0.45) !important;
+  color: #D8B4FE !important;
+}
+
+/* Blue Theme Dark Mode Override */
+html.dark-mode .help-feature-card.theme-blue,
+body.dark-mode .help-feature-card.theme-blue,
+[data-theme="dark"] .help-feature-card.theme-blue,
 html.high-contrast .help-feature-card.theme-blue {
-  background: rgba(59, 130, 246, 0.15) !important;
+  background: rgba(59, 130, 246, 0.12) !important;
+  border: 1.5px solid rgba(59, 130, 246, 0.35) !important;
   color: #93C5FD !important;
 }
 
+html.dark-mode .help-feature-card.theme-blue .help-feat-title,
+body.dark-mode .help-feature-card.theme-blue .help-feat-title,
+[data-theme="dark"] .help-feature-card.theme-blue .help-feat-title,
 html.high-contrast .help-feature-card.theme-blue .help-feat-title {
   color: #60A5FA !important;
 }
 
+html.dark-mode .help-feature-card.theme-blue .help-feat-desc,
+body.dark-mode .help-feature-card.theme-blue .help-feat-desc,
+[data-theme="dark"] .help-feature-card.theme-blue .help-feat-desc,
+html.high-contrast .help-feature-card.theme-blue .help-feat-desc {
+  color: #93C5FD !important;
+}
+
+html.dark-mode .help-feature-card.theme-blue .feature-icon-box,
+body.dark-mode .help-feature-card.theme-blue .feature-icon-box,
+[data-theme="dark"] .help-feature-card.theme-blue .feature-icon-box,
+html.high-contrast .help-feature-card.theme-blue .feature-icon-box {
+  background: rgba(59, 130, 246, 0.25) !important;
+  border: 1px solid rgba(59, 130, 246, 0.45) !important;
+  color: #93C5FD !important;
+}
+
+/* Indigo Theme Dark Mode Override */
+html.dark-mode .help-feature-card.theme-indigo,
+body.dark-mode .help-feature-card.theme-indigo,
+[data-theme="dark"] .help-feature-card.theme-indigo,
 html.high-contrast .help-feature-card.theme-indigo {
-  background: rgba(99, 102, 241, 0.15) !important;
+  background: rgba(99, 102, 241, 0.12) !important;
+  border: 1.5px solid rgba(99, 102, 241, 0.35) !important;
   color: #C7D2FE !important;
 }
 
+html.dark-mode .help-feature-card.theme-indigo .help-feat-title,
+body.dark-mode .help-feature-card.theme-indigo .help-feat-title,
+[data-theme="dark"] .help-feature-card.theme-indigo .help-feat-title,
 html.high-contrast .help-feature-card.theme-indigo .help-feat-title {
   color: #818CF8 !important;
 }
 
+html.dark-mode .help-feature-card.theme-indigo .help-feat-desc,
+body.dark-mode .help-feature-card.theme-indigo .help-feat-desc,
+[data-theme="dark"] .help-feature-card.theme-indigo .help-feat-desc,
+html.high-contrast .help-feature-card.theme-indigo .help-feat-desc {
+  color: #C7D2FE !important;
+}
+
+html.dark-mode .help-feature-card.theme-indigo .feature-icon-box,
+body.dark-mode .help-feature-card.theme-indigo .feature-icon-box,
+[data-theme="dark"] .help-feature-card.theme-indigo .feature-icon-box,
+html.high-contrast .help-feature-card.theme-indigo .feature-icon-box {
+  background: rgba(99, 102, 241, 0.25) !important;
+  border: 1px solid rgba(99, 102, 241, 0.45) !important;
+  color: #A5B4FC !important;
+}
+
+/* Amber Theme Dark Mode Override */
+html.dark-mode .help-feature-card.theme-amber,
+body.dark-mode .help-feature-card.theme-amber,
+[data-theme="dark"] .help-feature-card.theme-amber,
 html.high-contrast .help-feature-card.theme-amber {
-  background: rgba(245, 158, 11, 0.15) !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1.5px solid rgba(245, 158, 11, 0.35) !important;
   color: #FDE68A !important;
 }
 
+html.dark-mode .help-feature-card.theme-amber .help-feat-title,
+body.dark-mode .help-feature-card.theme-amber .help-feat-title,
+[data-theme="dark"] .help-feature-card.theme-amber .help-feat-title,
 html.high-contrast .help-feature-card.theme-amber .help-feat-title {
   color: #FBBF24 !important;
 }
 
+html.dark-mode .help-feature-card.theme-amber .help-feat-desc,
+body.dark-mode .help-feature-card.theme-amber .help-feat-desc,
+[data-theme="dark"] .help-feature-card.theme-amber .help-feat-desc,
+html.high-contrast .help-feature-card.theme-amber .help-feat-desc {
+  color: #FDE68A !important;
+}
+
+html.dark-mode .help-feature-card.theme-amber .feature-icon-box,
+body.dark-mode .help-feature-card.theme-amber .feature-icon-box,
+[data-theme="dark"] .help-feature-card.theme-amber .feature-icon-box,
+html.high-contrast .help-feature-card.theme-amber .feature-icon-box {
+  background: rgba(245, 158, 11, 0.25) !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
+  color: #FDE68A !important;
+}
+
+/* Green Theme Dark Mode Override */
+html.dark-mode .help-feature-card.theme-green,
+body.dark-mode .help-feature-card.theme-green,
+[data-theme="dark"] .help-feature-card.theme-green,
 html.high-contrast .help-feature-card.theme-green {
-  background: rgba(16, 185, 129, 0.15) !important;
+  background: rgba(16, 185, 129, 0.12) !important;
+  border: 1.5px solid rgba(16, 185, 129, 0.35) !important;
   color: #A7F3D0 !important;
 }
 
+html.dark-mode .help-feature-card.theme-green .help-feat-title,
+body.dark-mode .help-feature-card.theme-green .help-feat-title,
+[data-theme="dark"] .help-feature-card.theme-green .help-feat-title,
 html.high-contrast .help-feature-card.theme-green .help-feat-title {
   color: #34D399 !important;
+}
+
+html.dark-mode .help-feature-card.theme-green .help-feat-desc,
+body.dark-mode .help-feature-card.theme-green .help-feat-desc,
+[data-theme="dark"] .help-feature-card.theme-green .help-feat-desc,
+html.high-contrast .help-feature-card.theme-green .help-feat-desc {
+  color: #A7F3D0 !important;
+}
+
+html.dark-mode .help-feature-card.theme-green .feature-icon-box,
+body.dark-mode .help-feature-card.theme-green .feature-icon-box,
+[data-theme="dark"] .help-feature-card.theme-green .feature-icon-box,
+html.high-contrast .help-feature-card.theme-green .feature-icon-box {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border: 1px solid rgba(16, 185, 129, 0.45) !important;
+  color: #A7F3D0 !important;
 }
 
 html.high-contrast .help-support-box {

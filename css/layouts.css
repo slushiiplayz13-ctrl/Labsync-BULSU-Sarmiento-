@@ -99,35 +99,35 @@
   .sidebar-btn[data-tooltip]::after {
     content: attr(data-tooltip);
     position: absolute;
-    left: calc(100% + 14px);
+    left: calc(100% + 16px);
     top: 50%;
-    transform: translateY(-50%) translateX(-6px);
+    transform: translateY(-50%) translateX(-8px);
     background: var(--primary-teal);
     color: #ffffff;
     font-family: var(--font-body);
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 14.5px;
+    font-weight: 700;
     line-height: 1;
     white-space: nowrap;
-    padding: 7px 14px;
+    padding: 9px 18px;
     border-radius: 9999px;
-    box-shadow: 0 4px 14px var(--primary-teal-glow), 0 2px 6px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 20px var(--primary-teal-glow), 0 3px 8px rgba(0, 0, 0, 0.12);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     z-index: 1000;
     transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
   }
 
   /* Left-pointing Caret/Arrow */
   .sidebar-btn[data-tooltip]::before {
     content: '';
     position: absolute;
-    left: calc(100% + 8px);
+    left: calc(100% + 9px);
     top: 50%;
-    transform: translateY(-50%) translateX(-6px);
-    border-width: 5px 6px 5px 0;
+    transform: translateY(-50%) translateX(-8px);
+    border-width: 7px 8px 7px 0;
     border-style: solid;
     border-color: transparent var(--primary-teal) transparent transparent;
     opacity: 0;
@@ -149,7 +149,7 @@
     background: var(--bg-card);
     color: #ffffff !important;
     border: 1px solid var(--primary-teal);
-    box-shadow: 0 4px 14px rgba(0, 163, 196, 0.35);
+    box-shadow: 0 6px 20px rgba(0, 163, 196, 0.4);
   }
 
   html.high-contrast .sidebar-btn[data-tooltip]::before {

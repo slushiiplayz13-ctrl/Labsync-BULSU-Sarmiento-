@@ -114,6 +114,30 @@ async function findUserClassesToday(userId, today, executor = db) {
     `, [userId, today]);
 }
 
+async function findFacultySchedulesByName(professorName, ay, sem, executor = db) {
+    const trimmedName = (professorName || '').trim();
+    const query = `
+        SELECT 
+            s.*,
+            s.Subject_Name as subject,
+            s.Section as section,
+            s.Day_of_Week as day,
+            s.Start_Time as startTime,
+            s.End_Time as endTime,
+            l.Room_Number,
+            l.Building,
+            u.Name as ProfessorName,
+            u.Name as professor
+        FROM schedules s
+        JOIN laboratories l ON s.Room_ID = l.Room_ID
+        JOIN users u ON s.User_ID = u.User_ID
+        WHERE (LOWER(TRIM(u.Name)) = LOWER(?) OR LOWER(TRIM(u.Name)) LIKE LOWER(CONCAT('%', ?, '%')))
+          AND s.Academic_Year = ? AND s.Semester = ?
+        ORDER BY FIELD(s.Day_of_Week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), s.Start_Time
+    `;
+    return executor.query(query, [trimmedName, trimmedName, ay, sem]);
+}
+
 async function findDistinctRoomIdsByUserId(userId, executor = db) {
     return executor.query('SELECT DISTINCT Room_ID FROM schedules WHERE User_ID = ?', [userId]);
 }
@@ -125,6 +149,7 @@ module.exports = {
     insertSchedule,
     findUserSchedulesForConflict,
     findProfessorSchedules,
+    findFacultySchedulesByName,
     findRoomSchedules,
     findUserSchedule,
     findSummaryRoomsStatus,
@@ -134,3 +159,4 @@ module.exports = {
     findUserClassesToday,
     findDistinctRoomIdsByUserId
 };
+

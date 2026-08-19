@@ -92,21 +92,27 @@
     }
 
     .filter-pill {
-      border: 1px solid var(--border-light);
+      border: 1.5px solid var(--border-light);
       background: #FFFFFF;
       color: var(--text-mid);
-      padding: 6px 16px;
-      border-radius: 99px;
-      font-size: 12.5px;
+      padding: 7.5px 17px;
+      border-radius: 9999px;
+      font-size: 13.5px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 7px;
       transition: all 0.2s ease;
       font-family: var(--font-body);
       white-space: nowrap;
+    }
+
+    .filter-pill i,
+    .filter-pill svg {
+      width: 15px !important;
+      height: 15px !important;
     }
 
     .filter-pill:hover {
@@ -119,7 +125,7 @@
       background: var(--primary-teal);
       color: #FFFFFF;
       border-color: var(--primary-teal);
-      box-shadow: 0 3px 10px rgba(30, 187, 215, 0.3);
+      box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);
     }
 
     @media (max-width: 600px) {
@@ -281,11 +287,11 @@
     .maint-controls-row {
       position: sticky;
       top: 0;
-      background: var(--bg-card, #FFFFFF);
+      background: transparent !important;
       z-index: 25;
-      padding-top: 6px;
-      padding-bottom: 12px;
-      margin-bottom: 12px;
+      padding-top: 2px;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -310,24 +316,46 @@
     /* Table Enhancements */
     .maint-table-wrapper {
       background: #FFFFFF;
-      border: 1px solid var(--border-light);
+      border: 1.5px solid var(--border-light);
       border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
       overflow-y: auto !important;
       overflow-x: auto !important;
-      max-height: 480px;
+      flex: 1 1 auto !important;
+      min-height: 250px;
+      max-height: none !important;
       -webkit-overflow-scrolling: touch;
     }
 
+    .maint-table-wrapper::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    .maint-table-wrapper::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 99px;
+    }
+
+    .maint-table-wrapper::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 99px;
+    }
+
+    .maint-table-wrapper::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
     .maint-table th {
-      padding: 10px 10px;
-      font-size: 11px;
+      padding: 13px 18px;
+      font-size: 11.5px;
       font-weight: 700;
-      color: #64748B;
+      color: #334155;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
-      background: #F8FAFC;
-      border-bottom: 1px solid var(--border-light);
+      letter-spacing: 0.08em;
+      background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
+      border-bottom: 1.5px solid #CBD5E1;
+      box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.4);
     }
 
     .maint-table td {
@@ -396,19 +424,22 @@
 
     /* Remarks Quote Box */
     .remarks-quote-box {
-      font-size: 13px;
+      font-size: 15px;
       color: var(--text-dark);
-      font-weight: 500;
-      background: var(--bg-body);
-      border-left: 3.5px solid var(--primary-teal);
-      padding: 8px 12px;
-      border-radius: 6px;
-      line-height: 1.45;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      font-style: italic;
+      background: #F8FAFC;
+      border-left: 4px solid var(--primary-teal);
+      padding: 12px 16px;
+      border-radius: 0 10px 10px 0;
+      line-height: 1.5;
+      display: block !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      white-space: normal !important;
+      word-break: break-word !important;
+      overflow-wrap: anywhere !important;
+      margin-top: 4px;
     }
 
     /* Status Badges with Pulse Dot */
@@ -483,14 +514,14 @@
     .completed-chip {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-size: 12px;
+      gap: 7px;
+      font-size: 14.5px;
       font-weight: 700;
-      color: #059669;
-      background: #ECFDF5;
-      padding: 6px 14px;
-      border-radius: 99px;
-      border: 1px solid #A7F3D0;
+      color: var(--badge-completed-text, #047857) !important;
+      background: var(--badge-completed-bg, #ECFDF5);
+      padding: 9px 18px;
+      border-radius: 10px;
+      border: 1.5px solid var(--badge-completed-border, #A7F3D0);
     }
 
     /* Read More Expand Button */
@@ -577,14 +608,16 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <nav class="sidebar-nav">
-      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='mis-staff-dashboard.html'">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='mis-staff-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
       <button class="sidebar-btn active" data-tooltip="Maintenance Tracker" title="Maintenance Tracker"
         onclick="window.location.href='mis-maintenance.html'">
         <i data-lucide="wrench" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="PC & QR Management" title="PC & QR Management" onclick="window.location.href='mis-qr-generator.html'">
+      <button class="sidebar-btn" data-tooltip="PC & QR Management" title="PC & QR Management"
+        onclick="window.location.href='mis-qr-generator.html'">
         <i data-lucide="qr-code" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -660,7 +693,8 @@
       </div>
 
       <!-- Main Content Card -->
-      <div class="dashboard-card" style="padding: 24px; display: flex; flex-direction: column; gap: 24px;">
+      <div class="dashboard-card"
+        style="padding: 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; min-height: 0;">
 
         <!-- Dashboard Summary Cards (Matching Dashboard Theme & Watermark Animations) -->
         <div class="stats-grid mis-stats">
@@ -722,13 +756,13 @@
           <!-- Filter Pills -->
           <div class="filter-pills-row">
             <button class="filter-pill active" id="filter-all" onclick="filterStatus('all')">
-              <i data-lucide="layers" style="width: 14px; height: 14px;"></i> All Tickets
+              <i data-lucide="layers" style="width: 16px; height: 16px;"></i> All Tickets
             </button>
             <button class="filter-pill" id="filter-pending" onclick="filterStatus('pending')">
-              <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i> Pending
+              <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i> Pending
             </button>
             <button class="filter-pill" id="filter-resolved" onclick="filterStatus('resolved')">
-              <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i> Resolved
+              <i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i> Resolved
             </button>
           </div>
 
@@ -946,16 +980,43 @@
         }
 
         const sectionChip = parsed.section && parsed.section !== 'N/A'
-          ? `<span style="font-size: 10.5px; font-weight: 700; color: #0E7490; background: #E0F2FE; border: 1px solid #BAE6FD; padding: 2px 7px; border-radius: 99px; white-space: nowrap; display: inline-block; flex-shrink: 0;">${parsed.section}</span>`
+          ? `<span class="section-chip">${parsed.section}</span>`
           : '';
 
-        // Format component issues cleanly
-        const issueBadges = parsed.issues.split(',').map(t => t.trim()).filter(Boolean).map(t => {
-          if (t.toLowerCase() === 'none' || t.toLowerCase() === 'others') {
-            return `<span class="issue-tag ok"><i data-lucide="check-square" style="width:10px;height:10px;"></i> ${t}</span>`;
+        // Helper to format issue badges intelligently
+        function formatIssueBadges(issuesStr, remarksStr, isModal = false) {
+          const iconSize = isModal ? '13px' : '12px';
+          const extraStyle = isModal ? ' style="font-size:12.5px;padding:5px 12px;"' : '';
+          const issues = (issuesStr || '').split(',').map(s => s.trim()).filter(Boolean);
+          const remarks = (remarksStr || '').trim();
+          const hasRemarks = remarks.length > 0 &&
+            remarks.toLowerCase() !== 'none' &&
+            remarks.toLowerCase() !== 'no remarks provided' &&
+            remarks.toLowerCase() !== 'no details provided.';
+
+          if (issues.length === 0) {
+            if (hasRemarks) {
+              return `<span class="issue-tag other"${extraStyle}><i data-lucide="alert-circle" style="width:${iconSize};height:${iconSize};"></i> Other</span>`;
+            }
+            return `<span class="issue-tag ok"${extraStyle}><i data-lucide="check-square" style="width:${iconSize};height:${iconSize};"></i> None</span>`;
           }
-          return `<span class="issue-tag bad"><i data-lucide="alert-triangle" style="width:10px;height:10px;"></i> ${t}</span>`;
-        }).join(' ');
+
+          return issues.map(item => {
+            const lower = item.toLowerCase();
+            if (lower === 'none' || lower === 'n/a') {
+              if (hasRemarks) {
+                return `<span class="issue-tag other"${extraStyle}><i data-lucide="alert-circle" style="width:${iconSize};height:${iconSize};"></i> Other</span>`;
+              }
+              return `<span class="issue-tag ok"${extraStyle}><i data-lucide="check-square" style="width:${iconSize};height:${iconSize};"></i> None</span>`;
+            }
+            if (lower === 'others' || lower === 'other') {
+              return `<span class="issue-tag other"${extraStyle}><i data-lucide="alert-circle" style="width:${iconSize};height:${iconSize};"></i> Other</span>`;
+            }
+            return `<span class="issue-tag bad"${extraStyle}><i data-lucide="alert-triangle" style="width:${iconSize};height:${iconSize};"></i> ${item}</span>`;
+          }).join(' ');
+        }
+
+        const issueBadges = formatIssueBadges(parsed.issues, parsed.remarks, false);
 
         const statusPill = report.Status === 'Resolved'
           ? `<span class="status-badge-pulse resolved"><span class="pulse-dot"></span> Resolved</span>`
@@ -974,35 +1035,28 @@
               </span>
             </td>
             <td class="col-date" style="white-space: nowrap;">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="calendar" style="width:13px;height:13px;color:#94A3B8;flex-shrink:0;"></i>
-                <div style="display: flex; flex-direction: column; line-height: 1.25;">
-                  <span style="font-weight: 700; color: var(--text-dark); font-size: 12px;">${dateStr}</span>
-                  <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">${timeStr}</span>
+              <div class="col-date-wrap">
+                <i data-lucide="calendar" class="col-date-icon"></i>
+                <div class="col-date-text">
+                  <span class="date-main">${dateStr}</span>
+                  <span class="time-sub">${timeStr}</span>
                 </div>
               </div>
             </td>
-            <td class="col-room" style="white-space: nowrap; font-weight: 700; color: var(--text-dark);">
-              <div style="display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="map-pin" style="width:13px;height:13px;color:var(--primary-teal);flex-shrink:0;"></i>
+            <td class="col-room" style="white-space: nowrap;">
+              <div class="cell-icon-wrap">
+                <i data-lucide="map-pin" class="cell-icon room"></i>
                 Room ${report.Room_Number}
               </div>
             </td>
-            <td class="col-pc" style="white-space: nowrap; font-weight: 700; color: var(--text-dark);">
-              <div style="display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="monitor" style="width:13px;height:13px;color:#64748B;flex-shrink:0;"></i>
+            <td class="col-pc" style="white-space: nowrap;">
+              <div class="cell-icon-wrap">
+                <i data-lucide="monitor" class="cell-icon pc"></i>
                 PC #${report.PC_Number}
               </div>
             </td>
-            <td class="col-issues" style="min-width: 170px; max-width: 300px;">
-              <div class="mobile-card-meta">
-                <span><i data-lucide="map-pin" style="width:12px;height:12px;color:var(--primary-teal);flex-shrink:0;"></i> Room ${report.Room_Number}</span>
-                <span style="color: #CBD5E1; font-weight: 400;">•</span>
-                <span><i data-lucide="monitor" style="width:12px;height:12px;color:#64748B;flex-shrink:0;"></i> #${report.PC_Number}</span>
-                <span style="color: #CBD5E1; font-weight: 400;">•</span>
-                <span><i data-lucide="calendar" style="width:12px;height:12px;color:#94A3B8;flex-shrink:0;"></i> ${dateStr}, ${timeStr}</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px;">
+            <td class="col-issues" style="min-width: 200px; max-width: 360px;">
+              <div class="ticket-badge-group">
                 ${issueBadges}
                 ${sectionChip}
               </div>
@@ -1040,13 +1094,7 @@
       });
 
       const parsed = parseIssueDesc(report.Issue_Description);
-
-      const issueBadges = parsed.issues.split(',').map(t => t.trim()).filter(Boolean).map(t => {
-        if (t.toLowerCase() === 'none' || t.toLowerCase() === 'others') {
-          return `<span class="issue-tag ok" style="font-size:12.5px;padding:5px 12px;"><i data-lucide="check-square" style="width:13px;height:13px;"></i> ${t}</span>`;
-        }
-        return `<span class="issue-tag bad" style="font-size:12.5px;padding:5px 12px;"><i data-lucide="alert-triangle" style="width:13px;height:13px;"></i> ${t}</span>`;
-      }).join(' ');
+      const issueBadges = formatIssueBadges(parsed.issues, parsed.remarks, true);
 
       const existingModal = document.getElementById('ticket-details-modal');
       if (existingModal) existingModal.remove();

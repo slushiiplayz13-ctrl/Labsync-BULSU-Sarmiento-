@@ -592,32 +592,11 @@
       });
       
       try {
-        const labsRes = await fetch('/api/laboratories');
-        if (!labsRes.ok) throw new Error('Failed to load labs');
-        const labs = await labsRes.json();
-        
-        let allSchedules = [];
-        await Promise.all(labs.map(async (lab) => {
-          try {
-            const sRes = await fetch(`/api/schedules/room/${lab.Room_Number}`);
-            if (sRes.ok) {
-              const roomScheds = await sRes.json();
-              roomScheds.forEach(s => {
-                s.Room_Number = lab.Room_Number;
-                s.Building = lab.Building;
-              });
-              allSchedules = allSchedules.concat(roomScheds);
-            }
-          } catch (err) {
-            console.error('Error fetching schedules:', lab.Room_Number, err);
-          }
-        }));
-        
-        const searchName = profName.toLowerCase().trim();
-        const profSchedules = allSchedules.filter(s => {
-          const pName = (s.professor || s.ProfessorName || '').toLowerCase().trim();
-          return pName.includes(searchName) || searchName.includes(pName);
-        });
+        const encodedName = encodeURIComponent(profName);
+        const schedRes = await fetch(`/api/schedules/faculty/${encodedName}`);
+        if (!schedRes.ok) throw new Error('Failed to load faculty schedule');
+        const profSchedules = await schedRes.json();
+
         
         const body = document.getElementById('sched-modal-body');
         body.style.display = 'block';

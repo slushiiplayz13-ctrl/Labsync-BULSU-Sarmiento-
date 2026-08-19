@@ -12,7 +12,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
     rel="stylesheet" />
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>  <style id="auth-anti-flash">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style id="auth-anti-flash">
     body {
       display: none !important;
     }
@@ -26,13 +27,16 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <nav class="sidebar-nav">
-      <button class="sidebar-btn active" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='mis-staff-dashboard.html'">
+      <button class="sidebar-btn active" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='mis-staff-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="Maintenance Tracker" title="Maintenance Tracker" onclick="window.location.href='mis-maintenance.html'">
+      <button class="sidebar-btn" data-tooltip="Maintenance Tracker" title="Maintenance Tracker"
+        onclick="window.location.href='mis-maintenance.html'">
         <i data-lucide="wrench" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="PC & QR Management" title="PC & QR Management" onclick="window.location.href='mis-qr-generator.html'">
+      <button class="sidebar-btn" data-tooltip="PC & QR Management" title="PC & QR Management"
+        onclick="window.location.href='mis-qr-generator.html'">
         <i data-lucide="qr-code" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -64,9 +68,12 @@
       <!-- Logos -->
       <div class="header-logos" style="display: flex; align-items: center; gap: 14px; pointer-events: none;">
         <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo"
-          style="height: 40px; width: auto; object-fit: contain; pointer-events: none;" draggable="false" oncontextmenu="return false;">
+          style="height: 40px; width: auto; object-fit: contain; pointer-events: none;" draggable="false"
+          oncontextmenu="return false;">
         <div class="logo-divider" style="width: 1px; height: 32px; background: var(--border-light);"></div>
-        <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain; pointer-events: none;" draggable="false" oncontextmenu="return false;">
+        <img src="assets/labsync-logo.png" alt="LabSync Logo"
+          style="height: 45px; width: auto; object-fit: contain; pointer-events: none;" draggable="false"
+          oncontextmenu="return false;">
       </div>
 
 
@@ -118,7 +125,8 @@
             <div class="stat-card theme-blue">
               <div class="stat-header">
                 <div class="stat-info">
-                  <div class="stat-value"><span id="mis-stat-pcs">0</span> <span class="stat-pill-badge" id="mis-stat-rooms">Across 0 Rooms</span></div>
+                  <div class="stat-value"><span id="mis-stat-pcs">0</span> <span class="stat-pill-badge"
+                      id="mis-stat-rooms">Across 0 Rooms</span></div>
                   <div class="stat-title">Registered PC Units</div>
                 </div>
                 <div class="stat-icon">
@@ -134,7 +142,8 @@
             <div class="stat-card theme-orange">
               <div class="stat-header">
                 <div class="stat-info">
-                  <div class="stat-value"><span id="mis-stat-pending">0</span> <span class="stat-pill-badge" id="mis-stat-total">0 Total Tickets</span></div>
+                  <div class="stat-value"><span id="mis-stat-pending">0</span> <span class="stat-pill-badge"
+                      id="mis-stat-total">0 Total Tickets</span></div>
                   <div class="stat-title">Pending PC Reports</div>
                 </div>
                 <div class="stat-icon">
@@ -150,7 +159,8 @@
             <div class="stat-card theme-green">
               <div class="stat-header">
                 <div class="stat-info">
-                  <div class="stat-value"><span id="mis-stat-resolved">0</span> <span class="stat-pill-badge">Completed</span></div>
+                  <div class="stat-value"><span id="mis-stat-resolved">0</span> <span
+                      class="stat-pill-badge">Completed</span></div>
                   <div class="stat-title">Resolved Reports</div>
                 </div>
                 <div class="stat-icon">
@@ -167,60 +177,46 @@
           <div class="dashboard-main-grid" style="margin-top: 16px;">
 
             <!-- Left: Recent PC Reports -->
-            <div class="content-card" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 16px;">
-              <div class="section-header" style="margin-bottom: 0;">
+            <div class="content-card" style="padding: 20px 24px; display: flex; flex-direction: column; min-height: 0; box-sizing: border-box;">
+              <div class="section-header" style="margin-bottom: 16px;">
                 <div class="sh-left">
                   <div>
-                    <h3 style="font-size: 18px; margin-bottom: 4px;">Recent PC Reports</h3>
-                    <p style="font-size: 13px;">Track and manage all reported issues</p>
+                    <h3 class="card-section-title">Recent PC Reports</h3>
+                    <p class="card-section-subtitle">Track and manage all reported issues</p>
                   </div>
                 </div>
                 <div style="flex-shrink: 0; white-space: nowrap; margin-left: auto;">
                   <a href="mis-maintenance.html"
-                    style="color: var(--primary-teal); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; white-space: nowrap;">View
-                    All <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i></a>
+                    style="color: var(--primary-teal); font-size: 15px; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 4px; white-space: nowrap;">View
+                    All <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i></a>
                 </div>
               </div>
 
               <!-- Search Box -->
-              <div class="search-box" style="position: relative;">
-                <i data-lucide="search"
-                  style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
-                <input type="text" id="dashboardSearchInput" class="search-input" placeholder="Search by ticket ID, room, or issue type...">
+              <div class="search-box search-box-prominent" style="margin-bottom: 16px;">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="dashboardSearchInput" class="search-input"
+                  placeholder="Search by ticket ID, room, or issue type...">
               </div>
 
               <!-- Table -->
-              <div class="table-container" style="overflow-x: auto; overflow-y: auto; flex: 1; min-height: 260px; max-height: 400px;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                  <thead style="position: sticky; top: 0; background: var(--bg-white); z-index: 10;">
+              <div class="table-container"
+                style="overflow-x: auto; overflow-y: auto; flex: 1 1 auto; min-height: 0; margin-bottom: 0;">
+                <table class="reports-table">
+                  <thead class="reports-table-head">
                     <tr>
-                      <th
-                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: left;">
-                        TICKET ID</th>
-                      <th class="col-date"
-                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: left;">
-                        DATE & TIME</th>
-                      <th
-                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: center;">
-                        LAB ROOM</th>
-                      <th
-                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: center;">
-                        PC ID</th>
-                      <th
-                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: left;">
-                        ISSUE TYPE</th>
-                      <th
-                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: center;">
-                        STATUS</th>
-                      <th
-                        style="padding: 8px 10px; font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-light); text-align: center;">
-                        ACTION</th>
+                      <th class="table-header-cell">TICKET ID</th>
+                      <th class="table-header-cell col-date">DATE & TIME</th>
+                      <th class="table-header-cell text-center">LAB ROOM</th>
+                      <th class="table-header-cell text-center">PC ID</th>
+                      <th class="table-header-cell">ISSUE TYPE</th>
+                      <th class="table-header-cell text-center">STATUS</th>
+                      <th class="table-header-cell text-center">ACTION</th>
                     </tr>
                   </thead>
                   <tbody id="misDashboardReportRows">
                     <tr>
-                      <td colspan="7"
-                        style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+                      <td colspan="7" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
                         Loading reports...
                       </td>
                     </tr>
@@ -229,48 +225,34 @@
               </div>
 
               <!-- Pagination -->
-              <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-light);">
-                <div style="font-size: 13px; color: var(--text-muted);">
-                  Showing <strong style="color: var(--text-dark);">0</strong> of <strong
-                    style="color: var(--text-dark);">0</strong> reports
+              <div class="table-pagination">
+                <div class="pagination-info">
+                  Showing <strong>0</strong> of <strong>0</strong> reports
                 </div>
-                <div style="display: flex; gap: 8px;">
-                  <button
-                    style="padding: 8px 16px; border: 1px solid var(--border-light); background: #fff; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-mid); cursor: not-allowed; opacity: 0.5; transition: all var(--transition);"
-                    disabled>Previous</button>
-                  <button
-                    style="padding: 8px 16px; border: none; background: var(--primary-teal); border-radius: 20px; font-size: 13px; font-weight: 600; color: #fff; cursor: not-allowed; opacity: 0.5; box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3); transition: all var(--transition);"
-                    disabled>Next</button>
+                <div class="pagination-controls">
+                  <button class="btn-page btn-prev" disabled>Previous</button>
+                  <button class="btn-page btn-next" disabled>Next</button>
                 </div>
               </div>
 
             </div>
 
             <!-- Right: Activity Feed -->
-            <div class="content-card" style="padding: 16px 20px; display: flex; flex-direction: column;">
-              <div class="section-header" style="margin-bottom: 16px;">
+            <div class="content-card activity-feed-card">
+              <div class="section-header activity-feed-header" style="margin-bottom: 18px;">
                 <div class="sh-left">
                   <div>
-                    <h3 style="font-size: 18px; margin-bottom: 4px;">System Activity Feed</h3>
-                    <p style="font-size: 13px;">Recent system updates and alerts</p>
+                    <h3 class="card-section-title activity-feed-title">System Activity Feed</h3>
+                    <p class="card-section-subtitle activity-feed-subtitle">Recent system updates and alerts</p>
                   </div>
                 </div>
               </div>
 
-              <div style="flex: 1; position: relative; margin-left: 8px;">
-                <!-- Vertical line -->
-                <div
-                  style="position: absolute; left: 4px; top: 8px; bottom: 0; width: 2px; background: var(--border-light); z-index: 0;">
-                </div>
-
-                <!-- Items -->
-                <div style="display: flex; flex-direction: column; gap: 24px; position: relative; z-index: 1;">
-
-                  <div style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px;">
+              <div class="activity-feed-container">
+                <div class="activity-feed-list" id="misDashboardActivityList">
+                  <div class="activity-empty">
                     No recent activity. System updates will appear here.
                   </div>
-
                 </div>
               </div>
             </div>
@@ -313,7 +295,7 @@
           fetch('/api/reports'),
           fetch('/api/laboratories')
         ]);
-        
+
         const reports = reportsRes.ok ? await reportsRes.json() : [];
         const rooms = roomsRes.ok ? await roomsRes.json() : [];
 
@@ -346,10 +328,19 @@
         const resolvedEl = document.getElementById('mis-stat-resolved');
         if (resolvedEl) resolvedEl.textContent = resolvedTickets;
 
-        // Render Recent Reports Table
+        // Render Recent Reports Table & Activity Feed
         renderDashboardTable(reports);
+        renderActivityFeed(reports);
       } catch (err) {
         console.error('Error loading dashboard data:', err);
+      }
+    }
+
+    function renderActivityFeed(reports) {
+      const feedContainer = document.getElementById('misDashboardActivityList') || document.querySelector('.activity-feed-list');
+      if (!feedContainer) return;
+      if (typeof window.renderEcosystemActivityFeed === 'function') {
+        window.renderEcosystemActivityFeed(reports, feedContainer);
       }
     }
 
@@ -396,25 +387,49 @@
         const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         const isResolved = (r.Status || '').toLowerCase() === 'resolved';
 
+        let displayIssue = 'Other';
+        if (r.Issue_Description) {
+          const rawDesc = r.Issue_Description;
+          const issuesMatch = rawDesc.match(/\[Issues:\s*([^\]]+)\]/i);
+          const remarksMatch = rawDesc.match(/Remarks:\s*(.*)$/is);
+          const issues = issuesMatch ? issuesMatch[1].trim() : '';
+          const remarks = remarksMatch ? remarksMatch[1].trim() : '';
+
+          const hasRemarks = remarks.length > 0 &&
+            remarks.toLowerCase() !== 'none' &&
+            remarks.toLowerCase() !== 'no remarks provided';
+
+          const lowerIssue = issues.toLowerCase();
+          if (!issues || lowerIssue === 'none' || lowerIssue === 'n/a') {
+            displayIssue = hasRemarks ? 'Other' : 'None';
+          } else if (lowerIssue === 'others' || lowerIssue === 'other') {
+            displayIssue = 'Other';
+          } else {
+            displayIssue = issues;
+          }
+        }
+
         return `
-          <tr>
-            <td style="padding: 10px; font-weight: 700; color: var(--primary-teal); font-family: monospace;">LS-TKT-${r.Report_ID}</td>
-            <td style="padding: 10px; font-size: 12px; color: var(--text-mid);">${formattedDate}</td>
-            <td style="padding: 10px; text-align: center; font-weight: 600;">Room ${r.Room_Number || 'N/A'}</td>
-            <td style="padding: 10px; text-align: center; font-weight: 600;">PC ${r.PC_Number || 'N/A'}</td>
-            <td style="padding: 10px; font-size: 12px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(r.Issue_Description || 'Hardware Issue')}</td>
-            <td style="padding: 10px; text-align: center;">
-              <span class="status-badge ${isResolved ? 'resolved' : 'pending'}" style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: ${isResolved ? '#D1FAE5' : '#FEF3C7'}; color: ${isResolved ? '#059669' : '#D97706'};">
+          <tr class="table-data-row">
+            <td class="table-cell ticket-id-cell">
+              <a href="mis-maintenance.html" class="ticket-id-link">LS-TKT-${r.Report_ID}</a>
+            </td>
+            <td class="table-cell date-cell col-date">${formattedDate}</td>
+            <td class="table-cell room-cell text-center">Room ${r.Room_Number || 'N/A'}</td>
+            <td class="table-cell pc-cell text-center">PC ${r.PC_Number || 'N/A'}</td>
+            <td class="table-cell issue-cell">${escapeHtml(displayIssue)}</td>
+            <td class="table-cell text-center">
+              <span class="status-pill ${isResolved ? 'resolved' : 'pending'}">
                 ${r.Status || 'Pending'}
               </span>
             </td>
-            <td style="padding: 10px; text-align: center;">
+            <td class="table-cell text-center">
               ${!isResolved ? `
-                <button onclick="resolveDashboardTicket(${r.Report_ID})" style="padding: 5px 12px; border: none; background: #10B981; color: white; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
+                <button onclick="resolveDashboardTicket(${r.Report_ID})" class="btn-resolve-ticket">
                   Resolve
                 </button>
               ` : `
-                <span style="font-size: 11.5px; color: #059669; font-weight: 600;">Completed</span>
+                <span class="completed-chip"><i data-lucide="check-check" style="width:13px;height:13px;"></i> Completed</span>
               `}
             </td>
           </tr>

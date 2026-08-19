@@ -132,7 +132,7 @@ window.renderSingleCard = function (report) {
       `;
     } else if (statusStr.toLowerCase() === 'resolved') {
       actionsHtml = `
-        <span style="font-size:12.5px; font-weight:600; color:#059669; display:flex; align-items:center; gap:4px; padding:6px 0;"><i data-lucide="check" style="width:14px;height:14px;"></i>Ticket Completed</span>
+        <span class="completed-chip" style="font-size:13px; padding:6px 14px;"><i data-lucide="check-check" style="width:14px;height:14px;"></i> Ticket Completed</span>
       `;
     }
   }
@@ -174,11 +174,11 @@ window.renderSingleCard = function (report) {
             <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:4px;">Reported Issue</span>
             <div style="display:flex; flex-wrap:wrap; gap:6px;">
               ${parsed.issues.split(',').map(comp => comp.trim()).filter(Boolean).map(comp => {
-                if (comp.toLowerCase() === 'none' || comp.toLowerCase() === 'others') {
-                  return `<span class="issue-badge-none" style="display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600; padding:4px 10px; border-radius:8px; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0;"><i data-lucide="check-circle-2" style="width:13px;height:13px;color:#10B981;"></i> No Faults</span>`;
-                }
-                return `<span class="issue-badge-fault" style="display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:800; padding:4px 11px; border-radius:8px; background:#FEF2F2; color:#DC2626; border:1.5px solid #FCA5A5; box-shadow:0 1px 3px rgba(220,38,38,0.08);"><i data-lucide="alert-triangle" style="width:14px;height:14px;color:#EF4444;"></i> ${comp}</span>`;
-              }).join('')}
+    if (comp.toLowerCase() === 'none' || comp.toLowerCase() === 'others') {
+      return `<span class="issue-badge-none" style="display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600; padding:4px 10px; border-radius:8px; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0;"><i data-lucide="check-circle-2" style="width:13px;height:13px;color:#10B981;"></i> No Faults</span>`;
+    }
+    return `<span class="issue-badge-fault" style="display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:800; padding:4px 11px; border-radius:8px; background:#FEF2F2; color:#DC2626; border:1.5px solid #FCA5A5; box-shadow:0 1px 3px rgba(220,38,38,0.08);"><i data-lucide="alert-triangle" style="width:14px;height:14px;color:#EF4444;"></i> ${comp}</span>`;
+  }).join('')}
             </div>
           </div>
           
