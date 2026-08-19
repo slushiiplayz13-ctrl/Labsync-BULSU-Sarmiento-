@@ -1,0 +1,30 @@
+/* ================================================================
+   LabSync – Modular Component: Form Controls & Inputs | css/components/forms.css
+   ================================================================ */
+
+/* ─── Search Input Control Styles ─── */
+.search-input {
+  width: 100%;
+  padding: 11px 16px 11px 44px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-dark);
+  background: var(--bg-white);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+  box-sizing: border-box;
+}
+
+.search-input::placeholder {
+  color: #94A3B8;
+  font-size: 13px;
+}
+
+.search-input:focus {
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 3px var(--primary-teal-light), 0 4px 12px rgba(2, 132, 199, 0.08);
+}
