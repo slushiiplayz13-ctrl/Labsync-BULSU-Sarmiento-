@@ -4913,38 +4913,6 @@ html.high-contrast .table-container tbody tr:hover {
   flex-shrink: 0 !important;
 }
 
-.btn-page {
-  padding: 6px 14px !important;
-  border-radius: 9999px !important;
-  font-size: 12.5px !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.15s ease !important;
-  font-family: var(--font-body, inherit) !important;
-  border: 1px solid var(--border-light, #E2E8F0) !important;
-  background: var(--bg-white, #FFFFFF) !important;
-  color: var(--text-mid, #475569) !important;
-}
-
-.btn-page:disabled {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
-}
-
-.btn-page.btn-next:not(:disabled) {
-  background: var(--primary-teal, #1EBBD7) !important;
-  border-color: var(--primary-teal, #1EBBD7) !important;
-  color: #FFFFFF !important;
-  box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3) !important;
-}
-
-.btn-page.btn-next:not(:disabled):hover {
-  background: #0284C7 !important;
-  border-color: #0284C7 !important;
-}
 
 /* Dark Mode Overrides for Table Pagination */
 html.dark-mode .table-pagination,
