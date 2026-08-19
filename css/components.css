@@ -1305,39 +1305,6 @@ html.high-contrast .stat-title {
 }
 
 /* Empty data placeholders (replace sample / demo content) */
-.ui-empty-state {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: clamp(36px, 8vh, 72px) 24px;
-  text-align: center;
-  color: var(--text-muted);
-  border: 1px dashed var(--border-light);
-  border-radius: 16px;
-  background: rgba(248, 250, 252, 0.75);
-}
-
-.ui-empty-state .ui-empty-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary-teal-light);
-  color: var(--primary-teal);
-}
-
-.ui-empty-state p {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.5;
-  max-width: 380px;
-}
 
 .reports-list>.ui-empty-state {
   width: 100%;
