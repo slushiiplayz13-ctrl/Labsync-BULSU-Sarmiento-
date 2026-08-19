@@ -102,3 +102,46 @@
   border-color: var(--primary-teal);
   box-shadow: 0 0 0 3px var(--primary-teal-light), 0 4px 12px rgba(2, 132, 199, 0.08);
 }
+
+/* ─── Form Field & Label Component Styles ─── */
+.editor-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.editor-select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: var(--bg-white);
+  color: var(--text-dark);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  appearance: none;
+  margin-bottom: 16px;
+}
+
+.editor-select:focus {
+  outline: none;
+  border-color: var(--primary-teal);
+}
+
+.editor-select::placeholder {
+  color: #94A3B8;
+  opacity: 1;
+}
+
+select.editor-select:invalid {
+  color: #94A3B8;
+}
+
+select.editor-select option {
+  color: var(--text-dark);
+}
