@@ -60,13 +60,13 @@ const authController = require('./controllers/auth.controller');
 const usersController = require('./controllers/users.controller');
 const schedulesController = require('./controllers/schedules.controller');
 const maintenanceController = require('./controllers/maintenance.controller');
-const { requireAuth } = require('./middleware/auth');
+const { requireAuth, requireRole, ADMIN_ROLES } = require('./middleware/auth');
 
 // Top-level legacy route aliases to guarantee 100% zero-regression compatibility
 app.post('/api/login', authController.login);
-app.post('/api/logout', authController.logout);
+app.post('/api/logout', requireAuth, authController.logout);
 app.post('/api/qrcode/scan', usersController.scanQRCode);
-app.get('/api/dashboard/it-head-summary', schedulesController.getITHeadSummary);
+app.get('/api/dashboard/it-head-summary', requireRole(ADMIN_ROLES), schedulesController.getITHeadSummary);
 app.get('/api/notifications', requireAuth, maintenanceController.getNotifications);
 
 // Mount modular API routers

@@ -3,9 +3,9 @@
 const express = require('express');
 const router = express.Router();
 const settingsController = require('../controllers/settings.controller');
-const { requireAuth } = require('../middleware/auth');
+const { requireRole, ADMIN_ROLES } = require('../middleware/auth');
 
-router.get('/', requireAuth, settingsController.getSettings);
-router.post('/', requireAuth, settingsController.updateSettings);
+router.get('/', requireRole(ADMIN_ROLES), settingsController.getSettings);
+router.post('/', requireRole(ADMIN_ROLES), settingsController.updateSettings);
 
 module.exports = router;
