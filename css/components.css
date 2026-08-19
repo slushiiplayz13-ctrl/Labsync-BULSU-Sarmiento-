@@ -4886,47 +4886,6 @@ html.high-contrast .maint-table th {
   white-space: nowrap !important;
 }
 
-/* Prominent Search Input Box */
-.search-box-prominent {
-  position: relative;
-}
-
-.search-box-prominent .search-icon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 22px;
-  height: 22px;
-  color: #94A3B8;
-  pointer-events: none;
-}
-
-.search-box-prominent .search-input {
-  width: 100%;
-  padding: 14px 18px 14px 52px;
-  border: 1px solid var(--border-light);
-  border-radius: 12px;
-  font-family: var(--font-body);
-  font-size: 16px;
-  font-weight: 500;
-  outline: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: var(--text-dark);
-  background: var(--bg-white);
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
-  box-sizing: border-box;
-}
-
-.search-box-prominent .search-input::placeholder {
-  color: #94A3B8;
-  font-size: 15.5px;
-}
-
-.search-box-prominent .search-input:focus {
-  border-color: var(--primary-teal);
-  box-shadow: 0 0 0 3px var(--primary-teal-light), 0 4px 12px rgba(2, 132, 199, 0.08);
-}
 
 /* Shared Card Section Header Typography */
 .card-section-title {
