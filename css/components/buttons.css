@@ -35,3 +35,48 @@
   background: #0284C7 !important;
   border-color: #0284C7 !important;
 }
+
+/* ─── Filter Pills Component Styles ─── */
+.filter-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.filter-pill {
+  border: 1.5px solid var(--border-light);
+  background: #FFFFFF;
+  color: var(--text-mid);
+  padding: 7.5px 17px;
+  border-radius: 9999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all 0.2s ease;
+  font-family: var(--font-body);
+  white-space: nowrap;
+}
+
+.filter-pill i,
+.filter-pill svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+.filter-pill:hover {
+  border-color: var(--primary-teal);
+  color: var(--primary-teal);
+  background: #F0FDFD;
+}
+
+.filter-pill.active {
+  background: var(--primary-teal);
+  color: #FFFFFF;
+  border-color: var(--primary-teal);
+  box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);
+}
