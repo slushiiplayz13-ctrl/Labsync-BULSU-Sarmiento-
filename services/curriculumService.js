@@ -1,9 +1,10 @@
 'use strict';
 
-const db = require('../db');
+const db = require('../database/connection');
+const curriculumRepository = require('../repositories/curriculum.repository');
 
 async function getCurriculum() {
-    const [rows] = await db.query('SELECT * FROM curriculum ORDER BY Subject_Code ASC, Subject_Name ASC');
+    const [rows] = await curriculumRepository.findAllCurriculum();
     return { status: 200, data: rows };
 }
 
@@ -12,23 +13,33 @@ async function importCurriculum(subjects, mode) {
         return { status: 400, error: 'No subject items provided.' };
     }
 
-    if (mode !== 'append') {
-        await db.query('DELETE FROM curriculum');
-    }
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
 
-    for (const s of subjects) {
-        const code = (s.Subject_Code || s.code || '').toString().trim();
-        const name = (s.Subject_Name || s.name || s.title || '').toString().trim();
-
-        if (name) {
-            await db.query(
-                'INSERT INTO curriculum (Subject_Code, Subject_Name) VALUES (?, ?)',
-                [code, name]
-            );
+        if (mode !== 'append') {
+            await curriculumRepository.deleteAllCurriculum(connection);
         }
+
+        for (const s of subjects) {
+            const code = (s.Subject_Code || s.code || '').toString().trim();
+            const name = (s.Subject_Name || s.name || s.title || '').toString().trim();
+
+            if (name) {
+                await curriculumRepository.insertCurriculumItem(code, name, connection);
+            }
+        }
+
+        await connection.commit();
+    } catch (err) {
+        await connection.rollback();
+        console.error('Error importing curriculum within transaction:', err);
+        throw err;
+    } finally {
+        connection.release();
     }
 
-    const [updatedRows] = await db.query('SELECT * FROM curriculum ORDER BY Subject_Code ASC, Subject_Name ASC');
+    const [updatedRows] = await curriculumRepository.findAllCurriculum();
     return {
         status: 200,
         data: {
@@ -40,7 +51,7 @@ async function importCurriculum(subjects, mode) {
 }
 
 async function clearCurriculum() {
-    await db.query('DELETE FROM curriculum');
+    await curriculumRepository.deleteAllCurriculum();
     return { status: 200, message: 'Curriculum cleared successfully.' };
 }
 

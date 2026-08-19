@@ -1,20 +1,17 @@
 'use strict';
 
-const db = require('../db');
 const crypto = require('crypto');
 const QRCode = require('qrcode');
 const { isValidEmailFormat } = require('./authService');
 const { sendEmailVerificationEmail } = require('./emailService');
+const userRepository = require('../repositories/user.repository');
 
 async function getCurrentUser(userId) {
     if (!userId) {
         return { status: 401, error: 'Not authenticated' };
     }
 
-    const [users] = await db.query(
-        'SELECT User_ID, Name, Email, Role, Profile_Photo, Phone FROM users WHERE User_ID = ?',
-        [userId]
-    );
+    const [users] = await userRepository.findById(userId);
 
     if (users.length === 0) {
         return { status: 404, error: 'User not found' };
@@ -40,7 +37,7 @@ async function updateUserAccount(userId, reqBody, session) {
 
     const { name, email, currentPassword, newPassword, profilePhoto, phone } = reqBody;
 
-    const [users] = await db.query('SELECT * FROM users WHERE User_ID = ?', [userId]);
+    const [users] = await userRepository.findFullById(userId);
     if (users.length === 0) {
         return { status: 404, error: 'User not found' };
     }
@@ -60,7 +57,7 @@ async function updateUserAccount(userId, reqBody, session) {
             return { status: 400, error: 'Invalid email address format. Please enter a valid email (e.g., user@domain.com).' };
         }
 
-        const [existingUsers] = await db.query('SELECT 1 FROM users WHERE Email = ? AND User_ID != ?', [newEmailTrim, userId]);
+        const [existingUsers] = await userRepository.findByEmailExceptId(newEmailTrim, userId);
         if (existingUsers.length > 0) {
             return { status: 400, error: 'Email address is already in use' };
         }
@@ -68,10 +65,7 @@ async function updateUserAccount(userId, reqBody, session) {
         const token = crypto.randomBytes(32).toString('hex');
         const expiry = new Date(Date.now() + 3600000);
 
-        await db.query(
-            'UPDATE users SET New_Email = ?, Email_Verify_Token = ?, Email_Verify_Token_Expiry = ? WHERE User_ID = ?',
-            [newEmailTrim, token, expiry, userId]
-        );
+        await userRepository.updateEmailVerificationToken(userId, newEmailTrim, token, expiry);
 
         const verificationLink = `${process.env.APP_URL || 'http://localhost:3000'}/api/user/verify-email?token=${token}`;
         await sendEmailVerificationEmail(newEmailTrim, name || user.Name, verificationLink);
@@ -83,29 +77,18 @@ async function updateUserAccount(userId, reqBody, session) {
             return { status: 401, error: 'Current password is incorrect' };
         }
 
-        if (profilePhoto !== undefined) {
-            await db.query(
-                'UPDATE users SET Name = ?, Password = ?, Profile_Photo = ?, Phone = ? WHERE User_ID = ?',
-                [name, newPassword, profilePhoto, phone !== undefined ? phone : null, userId]
-            );
-        } else {
-            await db.query(
-                'UPDATE users SET Name = ?, Password = ?, Phone = ? WHERE User_ID = ?',
-                [name, newPassword, phone !== undefined ? phone : null, userId]
-            );
-        }
+        await userRepository.updateUserProfile(userId, {
+            name,
+            password: newPassword,
+            profilePhoto,
+            phone
+        });
     } else {
-        if (profilePhoto !== undefined) {
-            await db.query(
-                'UPDATE users SET Name = ?, Profile_Photo = ?, Phone = ? WHERE User_ID = ?',
-                [name, profilePhoto, phone !== undefined ? phone : null, userId]
-            );
-        } else {
-            await db.query(
-                'UPDATE users SET Name = ?, Phone = ? WHERE User_ID = ?',
-                [name, phone !== undefined ? phone : null, userId]
-            );
-        }
+        await userRepository.updateUserProfile(userId, {
+            name,
+            profilePhoto,
+            phone
+        });
     }
 
     if (session) {
@@ -124,10 +107,7 @@ async function verifyEmailToken(token, session) {
         return { status: 400, html: 'Verification token is missing.' };
     }
 
-    const [users] = await db.query(
-        'SELECT User_ID, Name, New_Email, Email_Verify_Token_Expiry FROM users WHERE Email_Verify_Token = ?',
-        [token]
-    );
+    const [users] = await userRepository.findByEmailVerifyToken(token);
 
     if (users.length === 0) {
         return {
@@ -190,10 +170,7 @@ async function verifyEmailToken(token, session) {
     }
 
     const newEmail = user.New_Email;
-    await db.query(
-        'UPDATE users SET Email = ?, New_Email = NULL, Email_Verify_Token = NULL, Email_Verify_Token_Expiry = NULL WHERE User_ID = ?',
-        [newEmail, user.User_ID]
-    );
+    await userRepository.applyVerifiedEmail(user.User_ID, newEmail);
 
     if (session && session.userId === user.User_ID) {
         session.userEmail = newEmail;
@@ -231,10 +208,7 @@ async function getUserQRCode(userId) {
         return { status: 401, error: 'Not authenticated' };
     }
 
-    const [users] = await db.query(
-        'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE User_ID = ?',
-        [userId]
-    );
+    const [users] = await userRepository.findUserQR(userId);
 
     if (users.length === 0) {
         return { status: 404, error: 'User not found' };
@@ -243,7 +217,7 @@ async function getUserQRCode(userId) {
     const user = users[0];
     if (!user.ID_QR_String) {
         const qrString = `LABSYNC-USER-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-        await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [qrString, user.User_ID]);
+        await userRepository.updateUserQR(user.User_ID, qrString);
         user.ID_QR_String = qrString;
     }
 
@@ -269,10 +243,7 @@ async function getUserQRCode(userId) {
 }
 
 async function scanQRCode(qrString) {
-    const [users] = await db.query(
-        'SELECT User_ID, Name, Email, Role FROM users WHERE ID_QR_String = ?',
-        [qrString]
-    );
+    const [users] = await userRepository.findByQRString(qrString);
 
     if (users.length === 0) {
         return { status: 404, error: 'User not found' };

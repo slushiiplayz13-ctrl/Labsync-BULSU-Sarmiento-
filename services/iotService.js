@@ -1,6 +1,10 @@
 'use strict';
 
-const db = require('../db');
+const db = require('../database/connection');
+const iotRepository = require('../repositories/iot.repository');
+const scheduleRepository = require('../repositories/schedule.repository');
+const labRepository = require('../repositories/laboratory.repository');
+const userRepository = require('../repositories/user.repository');
 
 // In-memory store for recent room claim scans
 const recentRoomClaims = {};
@@ -12,10 +16,7 @@ async function logOccupancy(reqBody) {
         return { status: 400, error: 'roomNumber is required.', lcdLine1: 'Error', lcdLine2: 'No Room Num' };
     }
 
-    const [rooms] = await db.query(
-        'SELECT Room_ID FROM laboratories WHERE Room_Number = ?',
-        [roomNumber]
-    );
+    const [rooms] = await scheduleRepository.findRoomIdByNumber(roomNumber);
     if (rooms.length === 0) {
         return { status: 404, error: `Room ${roomNumber} not found.`, lcdLine1: 'Error', lcdLine2: 'Invalid Room' };
     }
@@ -23,10 +24,6 @@ async function logOccupancy(reqBody) {
 
     if (keyEvent) {
         const status = (keyEvent === 'Key Returned') ? 'Present' : 'Absent';
-        await db.query(
-            'UPDATE laboratories SET Key_Status = ? WHERE Room_ID = ?',
-            [status, room.Room_ID]
-        );
 
         let claimUserId = null;
         let claimUserName = null;
@@ -41,10 +38,21 @@ async function logOccupancy(reqBody) {
             delete recentRoomClaims[roomNumber];
         }
 
-        await db.query(
-            'INSERT INTO occupancy_log (User_ID, Room_ID, Access_Time, Auth_Method) VALUES (?, ?, NOW(), ?)',
-            [claimUserId, room.Room_ID, keyEvent]
-        );
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            await labRepository.updateKeyStatus(room.Room_ID, status, connection);
+            await iotRepository.insertOccupancyLog(claimUserId, room.Room_ID, keyEvent, connection);
+
+            await connection.commit();
+        } catch (err) {
+            await connection.rollback();
+            console.error('Error logging key status occupancy within transaction:', err);
+            throw err;
+        } finally {
+            connection.release();
+        }
 
         let lcdLine1 = 'Key Take Reg!';
         let lcdLine2 = claimUserName ? claimUserName.substring(0, 16) : 'System Updated';
@@ -71,10 +79,7 @@ async function logOccupancy(reqBody) {
         return { status: 400, error: 'qrString or keyEvent is required.', lcdLine1: 'Scan Error', lcdLine2: 'Missing QR' };
     }
 
-    const [users] = await db.query(
-        'SELECT User_ID, Name, Role FROM users WHERE ID_QR_String = ?',
-        [qrString]
-    );
+    const [users] = await userRepository.findByQRString(qrString);
     if (users.length === 0) {
         return { status: 404, error: 'User not found for the provided QR code.', lcdLine1: 'Access Denied!', lcdLine2: 'Invalid QR Code' };
     }
@@ -87,10 +92,7 @@ async function logOccupancy(reqBody) {
         timestamp: Date.now()
     };
 
-    await db.query(
-        'INSERT INTO occupancy_log (User_ID, Room_ID, Access_Time, Auth_Method) VALUES (?, ?, NOW(), ?)',
-        [user.User_ID, room.Room_ID, authMethod || 'QR Code']
-    );
+    await iotRepository.insertOccupancyLog(user.User_ID, room.Room_ID, authMethod || 'QR Code');
 
     return {
         status: 200,

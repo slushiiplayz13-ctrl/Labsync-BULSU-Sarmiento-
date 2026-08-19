@@ -1,8 +1,8 @@
 'use strict';
 
-const db = require('../db');
 const crypto = require('crypto');
 const { sendResetPasswordEmail } = require('./emailService');
+const userRepository = require('../repositories/user.repository');
 
 function isValidEmailFormat(email) {
     if (!email || typeof email !== 'string') return false;
@@ -35,7 +35,7 @@ async function loginUser(email, password) {
         return { status: 400, error: 'Please enter a valid email address format (e.g., user@domain.com).' };
     }
 
-    const [users] = await db.query('SELECT * FROM users WHERE Email = ?', [email]);
+    const [users] = await userRepository.findByEmail(email);
 
     if (users.length === 0 || users[0].Password !== password) {
         return { status: 401, error: 'Invalid email or password' };
@@ -62,7 +62,7 @@ async function recoverPassword(email) {
         return { status: 400, error: 'Please enter a valid email address (e.g., user@domain.com).' };
     }
 
-    const [users] = await db.query('SELECT User_ID, Name, Email FROM users WHERE Email = ?', [email]);
+    const [users] = await userRepository.findBasicByEmail(email);
     if (users.length === 0) {
         return { status: 404, error: 'No account found with this email address.' };
     }
@@ -72,10 +72,7 @@ async function recoverPassword(email) {
     const expiry = new Date();
     expiry.setHours(expiry.getHours() + 1);
 
-    await db.query(
-        'UPDATE users SET Reset_Token = ?, Reset_Token_Expiry = ? WHERE User_ID = ?',
-        [token, expiry, user.User_ID]
-    );
+    await userRepository.updateResetToken(user.User_ID, token, expiry);
 
     const resetLink = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password.html?token=${token}`;
     const emailSent = await sendResetPasswordEmail(user.Email, user.Name, resetLink);
@@ -92,10 +89,7 @@ async function validateResetToken(token) {
         return { status: 400, valid: false, error: 'Token is required.' };
     }
 
-    const [users] = await db.query(
-        'SELECT User_ID FROM users WHERE Reset_Token = ? AND Reset_Token_Expiry > NOW()',
-        [token]
-    );
+    const [users] = await userRepository.findByResetToken(token);
 
     if (users.length === 0) {
         return { status: 400, valid: false, error: 'Reset link is invalid or has expired.' };
@@ -109,20 +103,14 @@ async function resetPassword(token, password) {
         return { status: 400, error: 'Token and new password are required.' };
     }
 
-    const [users] = await db.query(
-        'SELECT User_ID FROM users WHERE Reset_Token = ? AND Reset_Token_Expiry > NOW()',
-        [token]
-    );
+    const [users] = await userRepository.findByResetToken(token);
 
     if (users.length === 0) {
         return { status: 400, error: 'Reset link is invalid or has expired.' };
     }
 
     const user = users[0];
-    await db.query(
-        'UPDATE users SET Password = ?, Reset_Token = NULL, Reset_Token_Expiry = NULL WHERE User_ID = ?',
-        [password, user.User_ID]
-    );
+    await userRepository.updatePasswordReset(user.User_ID, password);
 
     return { status: 200, message: 'Password has been reset successfully. You can now log in with your new password.' };
 }

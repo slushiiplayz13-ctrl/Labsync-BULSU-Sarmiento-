@@ -11,7 +11,6 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -24,14 +23,30 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `curriculum`
+--
+
+CREATE TABLE `curriculum` (
+  `Curriculum_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `Subject_Code` varchar(50) DEFAULT NULL,
+  `Subject_Name` varchar(255) NOT NULL,
+  `Created_At` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Curriculum_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `laboratories`
 --
 
 CREATE TABLE `laboratories` (
-  `Room_ID` int(11) NOT NULL,
+  `Room_ID` int(11) NOT NULL AUTO_INCREMENT,
   `Room_Number` varchar(10) DEFAULT NULL,
   `Building` varchar(50) DEFAULT NULL,
-  `Current_Status` varchar(255) DEFAULT NULL
+  `Current_Status` varchar(255) DEFAULT NULL,
+  `Key_Status` varchar(20) DEFAULT 'Present',
+  PRIMARY KEY (`Room_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -41,11 +56,13 @@ CREATE TABLE `laboratories` (
 --
 
 CREATE TABLE `lab_units` (
-  `PC_ID` int(11) NOT NULL,
+  `PC_ID` int(11) NOT NULL AUTO_INCREMENT,
   `Room_ID` int(11) DEFAULT NULL,
   `PC_Number` varchar(10) DEFAULT NULL,
   `Condition_Status` text DEFAULT NULL,
-  `PC_QR_String` varchar(255) DEFAULT NULL
+  `PC_QR_String` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`PC_ID`),
+  KEY `Room_ID` (`Room_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -55,14 +72,17 @@ CREATE TABLE `lab_units` (
 --
 
 CREATE TABLE `maintenance` (
-  `Report_ID` int(11) NOT NULL,
+  `Report_ID` int(11) NOT NULL AUTO_INCREMENT,
   `PC_ID` int(11) DEFAULT NULL,
   `User_ID` int(11) DEFAULT NULL,
   `Student_Name` varchar(100) DEFAULT NULL,
   `Issue_Description` text DEFAULT NULL,
   `Date_Reported` datetime DEFAULT NULL,
   `Status` varchar(20) DEFAULT NULL,
-  `Priority_Level` varchar(20) DEFAULT NULL
+  `Priority_Level` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`Report_ID`),
+  KEY `PC_ID` (`PC_ID`),
+  KEY `User_ID` (`User_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -72,11 +92,14 @@ CREATE TABLE `maintenance` (
 --
 
 CREATE TABLE `occupancy_log` (
-  `Log_ID` int(11) NOT NULL,
+  `Log_ID` int(11) NOT NULL AUTO_INCREMENT,
   `User_ID` int(11) DEFAULT NULL,
   `Room_ID` int(11) DEFAULT NULL,
   `Access_Time` datetime DEFAULT NULL,
-  `Auth_Method` varchar(20) DEFAULT NULL
+  `Auth_Method` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`Log_ID`),
+  KEY `User_ID` (`User_ID`),
+  KEY `Room_ID` (`Room_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -86,7 +109,7 @@ CREATE TABLE `occupancy_log` (
 --
 
 CREATE TABLE `schedules` (
-  `Schedule_ID` int(11) NOT NULL,
+  `Schedule_ID` int(11) NOT NULL AUTO_INCREMENT,
   `User_ID` int(11) DEFAULT NULL,
   `Room_ID` int(11) DEFAULT NULL,
   `Subject_Name` varchar(15) DEFAULT NULL,
@@ -95,8 +118,32 @@ CREATE TABLE `schedules` (
   `Start_Time` time DEFAULT NULL,
   `End_Time` time DEFAULT NULL,
   `Academic_Year` varchar(15) DEFAULT '2025-2026',
-  `Semester` varchar(20) DEFAULT '1st Semester'
+  `Semester` varchar(20) DEFAULT '1st Semester',
+  `Color_Theme` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`Schedule_ID`),
+  KEY `User_ID` (`User_ID`),
+  KEY `Room_ID` (`Room_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `system_settings`
+--
+
+CREATE TABLE `system_settings` (
+  `Setting_Key` varchar(50) NOT NULL,
+  `Setting_Value` varchar(255) NOT NULL,
+  PRIMARY KEY (`Setting_Key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `system_settings`
+--
+
+INSERT INTO `system_settings` (`Setting_Key`, `Setting_Value`) VALUES
+('campus_dean', 'DR. MARICEL BALIGOD'),
+('program_chair', 'ELENITA T. CAPARIÑO');
 
 -- --------------------------------------------------------
 
@@ -105,133 +152,39 @@ CREATE TABLE `schedules` (
 --
 
 CREATE TABLE `users` (
-  `User_ID` int(11) NOT NULL,
+  `User_ID` int(11) NOT NULL AUTO_INCREMENT,
   `Name` varchar(100) DEFAULT NULL,
   `Email` varchar(50) DEFAULT NULL,
   `Role` varchar(20) DEFAULT NULL,
   `Password` varchar(255) DEFAULT NULL,
-  `ID_QR_String` varchar(255) DEFAULT NULL
+  `ID_QR_String` varchar(255) DEFAULT NULL,
+  `Reset_Token` varchar(255) DEFAULT NULL,
+  `Reset_Token_Expiry` datetime DEFAULT NULL,
+  `Profile_Photo` longtext DEFAULT NULL,
+  `New_Email` varchar(255) DEFAULT NULL,
+  `Email_Verify_Token` varchar(255) DEFAULT NULL,
+  `Email_Verify_Token_Expiry` datetime DEFAULT NULL,
+  `Phone` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`User_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `laboratories`
---
-ALTER TABLE `laboratories`
-  ADD PRIMARY KEY (`Room_ID`);
-
---
--- Indexes for table `lab_units`
---
-ALTER TABLE `lab_units`
-  ADD PRIMARY KEY (`PC_ID`),
-  ADD KEY `Room_ID` (`Room_ID`);
-
---
--- Indexes for table `maintenance`
---
-ALTER TABLE `maintenance`
-  ADD PRIMARY KEY (`Report_ID`),
-  ADD KEY `PC_ID` (`PC_ID`),
-  ADD KEY `User_ID` (`User_ID`);
-
---
--- Indexes for table `occupancy_log`
---
-ALTER TABLE `occupancy_log`
-  ADD PRIMARY KEY (`Log_ID`),
-  ADD KEY `User_ID` (`User_ID`),
-  ADD KEY `Room_ID` (`Room_ID`);
-
---
--- Indexes for table `schedules`
---
-ALTER TABLE `schedules`
-  ADD PRIMARY KEY (`Schedule_ID`),
-  ADD KEY `User_ID` (`User_ID`),
-  ADD KEY `Room_ID` (`Room_ID`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`User_ID`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `laboratories`
---
-ALTER TABLE `laboratories`
-  MODIFY `Room_ID` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `lab_units`
---
-ALTER TABLE `lab_units`
-  MODIFY `PC_ID` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `maintenance`
---
-ALTER TABLE `maintenance`
-  MODIFY `Report_ID` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `occupancy_log`
---
-ALTER TABLE `occupancy_log`
-  MODIFY `Log_ID` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `schedules`
---
-ALTER TABLE `schedules`
-  MODIFY `Schedule_ID` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `User_ID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
 --
 
---
--- Constraints for table `lab_units`
---
 ALTER TABLE `lab_units`
   ADD CONSTRAINT `lab_units_ibfk_1` FOREIGN KEY (`Room_ID`) REFERENCES `laboratories` (`Room_ID`) ON DELETE CASCADE;
 
---
--- Constraints for table `maintenance`
---
 ALTER TABLE `maintenance`
   ADD CONSTRAINT `maintenance_ibfk_1` FOREIGN KEY (`PC_ID`) REFERENCES `lab_units` (`PC_ID`) ON DELETE CASCADE,
   ADD CONSTRAINT `maintenance_ibfk_2` FOREIGN KEY (`User_ID`) REFERENCES `users` (`User_ID`) ON DELETE SET NULL;
 
---
--- Constraints for table `occupancy_log`
---
 ALTER TABLE `occupancy_log`
   ADD CONSTRAINT `occupancy_log_ibfk_1` FOREIGN KEY (`User_ID`) REFERENCES `users` (`User_ID`) ON DELETE CASCADE,
   ADD CONSTRAINT `occupancy_log_ibfk_2` FOREIGN KEY (`Room_ID`) REFERENCES `laboratories` (`Room_ID`) ON DELETE CASCADE;
 
---
--- Constraints for table `schedules`
---
 ALTER TABLE `schedules`
   ADD CONSTRAINT `schedules_ibfk_1` FOREIGN KEY (`User_ID`) REFERENCES `users` (`User_ID`) ON DELETE CASCADE,
   ADD CONSTRAINT `schedules_ibfk_2` FOREIGN KEY (`Room_ID`) REFERENCES `laboratories` (`Room_ID`) ON DELETE CASCADE;
-COMMIT;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+COMMIT;

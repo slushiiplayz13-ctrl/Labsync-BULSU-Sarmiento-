@@ -1,0 +1,137 @@
+'use strict';
+
+const db = require('../database/connection');
+
+async function findByEmail(email, executor = db) {
+    return executor.query('SELECT * FROM users WHERE Email = ?', [email]);
+}
+
+async function findBasicByEmail(email, executor = db) {
+    return executor.query('SELECT User_ID, Name, Email FROM users WHERE Email = ?', [email]);
+}
+
+async function findById(userId, executor = db) {
+    return executor.query(
+        'SELECT User_ID, Name, Email, Role, Profile_Photo, Phone FROM users WHERE User_ID = ?',
+        [userId]
+    );
+}
+
+async function findFullById(userId, executor = db) {
+    return executor.query('SELECT * FROM users WHERE User_ID = ?', [userId]);
+}
+
+async function findByEmailExceptId(email, userId, executor = db) {
+    return executor.query('SELECT 1 FROM users WHERE Email = ? AND User_ID != ?', [email, userId]);
+}
+
+async function updateResetToken(userId, token, expiry, executor = db) {
+    return executor.query(
+        'UPDATE users SET Reset_Token = ?, Reset_Token_Expiry = ? WHERE User_ID = ?',
+        [token, expiry, userId]
+    );
+}
+
+async function findByResetToken(token, executor = db) {
+    return executor.query(
+        'SELECT User_ID FROM users WHERE Reset_Token = ? AND Reset_Token_Expiry > NOW()',
+        [token]
+    );
+}
+
+async function updatePasswordReset(userId, password, executor = db) {
+    return executor.query(
+        'UPDATE users SET Password = ?, Reset_Token = NULL, Reset_Token_Expiry = NULL WHERE User_ID = ?',
+        [password, userId]
+    );
+}
+
+async function updateEmailVerificationToken(userId, newEmail, token, expiry, executor = db) {
+    return executor.query(
+        'UPDATE users SET New_Email = ?, Email_Verify_Token = ?, Email_Verify_Token_Expiry = ? WHERE User_ID = ?',
+        [newEmail, token, expiry, userId]
+    );
+}
+
+async function findByEmailVerifyToken(token, executor = db) {
+    return executor.query(
+        'SELECT User_ID, Name, New_Email, Email_Verify_Token_Expiry FROM users WHERE Email_Verify_Token = ?',
+        [token]
+    );
+}
+
+async function applyVerifiedEmail(userId, newEmail, executor = db) {
+    return executor.query(
+        'UPDATE users SET Email = ?, New_Email = NULL, Email_Verify_Token = NULL, Email_Verify_Token_Expiry = NULL WHERE User_ID = ?',
+        [newEmail, userId]
+    );
+}
+
+async function updateUserProfile(userId, { name, password, profilePhoto, phone }, executor = db) {
+    if (password !== undefined) {
+        if (profilePhoto !== undefined) {
+            return executor.query(
+                'UPDATE users SET Name = ?, Password = ?, Profile_Photo = ?, Phone = ? WHERE User_ID = ?',
+                [name, password, profilePhoto, phone !== undefined ? phone : null, userId]
+            );
+        } else {
+            return executor.query(
+                'UPDATE users SET Name = ?, Password = ?, Phone = ? WHERE User_ID = ?',
+                [name, password, phone !== undefined ? phone : null, userId]
+            );
+        }
+    } else {
+        if (profilePhoto !== undefined) {
+            return executor.query(
+                'UPDATE users SET Name = ?, Profile_Photo = ?, Phone = ? WHERE User_ID = ?',
+                [name, profilePhoto, phone !== undefined ? phone : null, userId]
+            );
+        } else {
+            return executor.query(
+                'UPDATE users SET Name = ?, Phone = ? WHERE User_ID = ?',
+                [name, phone !== undefined ? phone : null, userId]
+            );
+        }
+    }
+}
+
+async function findUserQR(userId, executor = db) {
+    return executor.query(
+        'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE User_ID = ?',
+        [userId]
+    );
+}
+
+async function updateUserQR(userId, qrString, executor = db) {
+    return executor.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [qrString, userId]);
+}
+
+async function findByQRString(qrString, executor = db) {
+    return executor.query(
+        'SELECT User_ID, Name, Email, Role FROM users WHERE ID_QR_String = ?',
+        [qrString]
+    );
+}
+
+async function getRoleById(userId, executor = db) {
+    return executor.query('SELECT Role FROM users WHERE User_ID = ?', [userId]);
+}
+
+module.exports = {
+    findByEmail,
+    findBasicByEmail,
+    findById,
+    findFullById,
+    findByEmailExceptId,
+    updateResetToken,
+    findByResetToken,
+    updatePasswordReset,
+    updateEmailVerificationToken,
+    findByEmailVerifyToken,
+    applyVerifiedEmail,
+    updateUserProfile,
+    findUserQR,
+    updateUserQR,
+    findByQRString,
+    getRoleById
+};

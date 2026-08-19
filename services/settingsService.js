@@ -1,9 +1,10 @@
 'use strict';
 
-const db = require('../db');
+const settingsRepository = require('../repositories/settings.repository');
+const userRepository = require('../repositories/user.repository');
 
 async function getSettings() {
-    const [rows] = await db.query('SELECT Setting_Key, Setting_Value FROM system_settings');
+    const [rows] = await settingsRepository.findAllSettings();
     const settings = {};
     rows.forEach(row => {
         settings[row.Setting_Key] = row.Setting_Value;
@@ -14,7 +15,7 @@ async function getSettings() {
 async function updateSettings(settings, sessionUserId, sessionUserRole) {
     let role = sessionUserRole;
     if (!role) {
-        const [users] = await db.query('SELECT Role FROM users WHERE User_ID = ?', [sessionUserId]);
+        const [users] = await userRepository.getRoleById(sessionUserId);
         if (users.length > 0) {
             role = users[0].Role;
         }
@@ -26,11 +27,7 @@ async function updateSettings(settings, sessionUserId, sessionUserRole) {
     }
 
     for (const [key, value] of Object.entries(settings)) {
-        await db.query(`
-            INSERT INTO system_settings (Setting_Key, Setting_Value) 
-            VALUES (?, ?) 
-            ON DUPLICATE KEY UPDATE Setting_Value = ?
-        `, [key, value, value]);
+        await settingsRepository.upsertSetting(key, value);
     }
 
     return { status: 200, message: 'System settings updated successfully.' };

@@ -1,24 +1,14 @@
 'use strict';
 
-const db = require('../db');
 const QRCode = require('qrcode');
+const labRepository = require('../repositories/laboratory.repository');
 
 async function getAllLaboratories() {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const today = days[new Date().getDay()];
     const nowTime = new Date().toTimeString().split(' ')[0];
 
-    const [rooms] = await db.query(
-        `SELECT r.Room_ID, r.Room_Number, r.Building, r.Current_Status AS DB_Status, r.Key_Status,
-                s.Subject_Name, s.Section, u.Name AS ProfessorName
-         FROM laboratories r
-         LEFT JOIN schedules s ON r.Room_ID = s.Room_ID 
-             AND s.Day_of_Week = ? 
-             AND ? BETWEEN s.Start_Time AND s.End_Time
-         LEFT JOIN users u ON s.User_ID = u.User_ID
-         ORDER BY CAST(r.Room_Number AS UNSIGNED)`,
-        [today, nowTime]
-    );
+    const [rooms] = await labRepository.findAllLaboratoriesWithSchedule(today, nowTime);
 
     const result = rooms.map(room => {
         const hasClass = !!room.Subject_Name;
@@ -45,15 +35,12 @@ async function addLaboratory(roomNumber, building) {
         return { status: 400, error: 'Room number must contain only numbers.' };
     }
 
-    const [existing] = await db.query('SELECT * FROM laboratories WHERE Room_Number = ?', [roomNumber]);
+    const [existing] = await labRepository.findByRoomNumber(roomNumber);
     if (existing.length > 0) {
         return { status: 400, error: 'Room number already exists' };
     }
 
-    const [result] = await db.query(
-        'INSERT INTO laboratories (Room_Number, Building, Current_Status) VALUES (?, ?, ?)',
-        [roomNumber, building, 'Available']
-    );
+    const [result] = await labRepository.insertLaboratory(roomNumber, building);
 
     return { status: 200, message: 'Room added successfully', roomId: result.insertId };
 }
@@ -66,26 +53,23 @@ async function updateLaboratory(roomId, roomNumber, building) {
         return { status: 400, error: 'Room number must contain only numbers.' };
     }
 
-    const [existing] = await db.query('SELECT * FROM laboratories WHERE Room_Number = ? AND Room_ID != ?', [roomNumber, roomId]);
+    const [existing] = await labRepository.findByRoomNumberExceptId(roomNumber, roomId);
     if (existing.length > 0) {
         return { status: 400, error: 'Room number already exists' };
     }
 
-    await db.query(
-        'UPDATE laboratories SET Room_Number = ?, Building = ? WHERE Room_ID = ?',
-        [roomNumber, building, roomId]
-    );
+    await labRepository.updateLaboratory(roomId, roomNumber, building);
 
     return { status: 200, message: 'Room updated successfully' };
 }
 
 async function deleteLaboratory(roomId) {
-    await db.query('DELETE FROM laboratories WHERE Room_ID = ?', [roomId]);
+    await labRepository.deleteLaboratory(roomId);
     return { status: 200, message: 'Room deleted successfully' };
 }
 
 async function getRoomPCs(roomId) {
-    const [pcs] = await db.query('SELECT * FROM lab_units WHERE Room_ID = ? ORDER BY CAST(PC_Number AS UNSIGNED)', [roomId]);
+    const [pcs] = await labRepository.findPCsByRoomId(roomId);
     return { status: 200, data: pcs };
 }
 
@@ -94,16 +78,13 @@ async function addPC(roomId, pcNumber) {
         return { status: 400, error: 'PC Number is required' };
     }
 
-    const [existing] = await db.query('SELECT PC_ID FROM lab_units WHERE Room_ID = ? AND PC_Number = ?', [roomId, pcNumber]);
+    const [existing] = await labRepository.findPCByRoomAndNumber(roomId, pcNumber);
     if (existing.length > 0) {
         return { status: 400, error: 'This PC number already exists in this room.' };
     }
 
     const qrString = `LABSYNC-PC-${roomId}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-    const [result] = await db.query(
-        'INSERT INTO lab_units (Room_ID, PC_Number, Condition_Status, PC_QR_String) VALUES (?, ?, ?, ?)',
-        [roomId, pcNumber, 'Functional', qrString]
-    );
+    const [result] = await labRepository.insertPC(roomId, pcNumber, qrString);
 
     return { status: 200, message: 'PC added successfully', pcId: result.insertId, pcNumber };
 }
@@ -118,7 +99,7 @@ async function addPCsBulk(roomId, pcNumbers) {
         return { status: 400, error: 'Valid PC numbers are required.' };
     }
 
-    const [existing] = await db.query('SELECT PC_Number FROM lab_units WHERE Room_ID = ?', [roomId]);
+    const [existing] = await labRepository.findPCNumbersByRoomId(roomId);
     const existingSet = new Set(existing.map(p => p.PC_Number.toString().trim()));
 
     const added = [];
@@ -130,10 +111,7 @@ async function addPCsBulk(roomId, pcNumbers) {
             continue;
         }
         const qrString = `LABSYNC-PC-${roomId}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-        await db.query(
-            'INSERT INTO lab_units (Room_ID, PC_Number, Condition_Status, PC_QR_String) VALUES (?, ?, ?, ?)',
-            [roomId, num, 'Functional', qrString]
-        );
+        await labRepository.insertPC(roomId, num, qrString);
         added.push(num);
     }
 
@@ -150,15 +128,12 @@ async function addPCsBulk(roomId, pcNumbers) {
 }
 
 async function deletePC(pcId) {
-    await db.query('DELETE FROM lab_units WHERE PC_ID = ?', [pcId]);
+    await labRepository.deletePC(pcId);
     return { status: 200, message: 'PC deleted successfully' };
 }
 
 async function getPCQRCode(pcId) {
-    const [pcs] = await db.query(
-        'SELECT p.*, r.Room_Number FROM lab_units p JOIN laboratories r ON p.Room_ID = r.Room_ID WHERE p.PC_ID = ?',
-        [pcId]
-    );
+    const [pcs] = await labRepository.findPCWithRoomDetails(pcId);
 
     if (pcs.length === 0) {
         return { status: 404, error: 'PC not found' };
@@ -185,10 +160,7 @@ async function getPCQRCode(pcId) {
 }
 
 async function getBatchQRCodes(roomId) {
-    const [pcs] = await db.query(
-        'SELECT p.PC_ID, p.PC_Number, r.Room_Number FROM lab_units p JOIN laboratories r ON p.Room_ID = r.Room_ID WHERE p.Room_ID = ? ORDER BY CAST(p.PC_Number AS UNSIGNED)',
-        [roomId]
-    );
+    const [pcs] = await labRepository.findRoomPCsWithRoomDetails(roomId);
 
     const baseUrl = process.env.APP_URL || 'http://localhost:3000';
     const qrList = await Promise.all(pcs.map(async (pc) => {

@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS curriculum (
+    Curriculum_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Subject_Code  VARCHAR(50)  NULL,
+    Subject_Name  VARCHAR(255) NOT NULL,
+    Created_At    DATETIME     DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

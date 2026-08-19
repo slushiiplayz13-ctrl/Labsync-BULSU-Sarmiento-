@@ -1,8 +1,9 @@
 'use strict';
 
-const db = require('../db');
+const db = require('../database/connection');
 const { isValidEmailFormat } = require('./authService');
 const { sendWelcomeEmail } = require('./emailService');
+const facultyRepository = require('../repositories/faculty.repository');
 
 async function addFaculty(reqBody) {
     const { name, email, role } = reqBody;
@@ -11,7 +12,7 @@ async function addFaculty(reqBody) {
         return { status: 400, error: 'Invalid email address. Please enter a valid email (e.g., user@domain.com).' };
     }
 
-    const [existing] = await db.query('SELECT * FROM users WHERE Email = ?', [email]);
+    const [existing] = await facultyRepository.findByEmail(email);
     if (existing.length > 0) {
         return { status: 400, error: 'Email already exists' };
     }
@@ -19,10 +20,13 @@ async function addFaculty(reqBody) {
     const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase();
     const qrString = `LABSYNC-USER-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-    const [result] = await db.query(
-        'INSERT INTO users (Name, Email, Role, Password, ID_QR_String) VALUES (?, ?, ?, ?, ?)',
-        [name, email, role || 'Faculty', generatedPassword, qrString]
-    );
+    const [result] = await facultyRepository.insertFaculty({
+        name,
+        email,
+        role,
+        password: generatedPassword,
+        qrString
+    });
 
     const emailSent = await sendWelcomeEmail(email, name, generatedPassword);
 
@@ -43,35 +47,43 @@ async function addFaculty(reqBody) {
 }
 
 async function getAllFaculty() {
-    const [faculty] = await db.query(
-        'SELECT User_ID, Name, Email, Role, Profile_Photo, Phone FROM users WHERE Role IN ("Faculty", "IT Head", "IT Dept. Head", "IT Dept Head") ORDER BY Name'
-    );
+    const [faculty] = await facultyRepository.findAllFaculty();
     return { status: 200, data: faculty };
 }
 
 async function updateFacultyRole(userId, role, currentSessionUserId, session) {
     if (role && role.toLowerCase().includes('head')) {
-        await db.query(
-            'UPDATE users SET Role = "Faculty" WHERE Role IN ("IT Head", "IT Dept. Head", "IT Dept Head")'
-        );
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
 
-        await db.query('UPDATE users SET Role = ? WHERE User_ID = ?', [role, userId]);
+            await facultyRepository.demoteAllHeadsToFaculty(connection);
+            await facultyRepository.updateUserRole(userId, role, connection);
 
-        if (currentSessionUserId && session) {
-            const [currentRows] = await db.query('SELECT Role FROM users WHERE User_ID = ?', [currentSessionUserId]);
-            if (currentRows.length > 0) {
-                session.userRole = currentRows[0].Role;
+            if (currentSessionUserId && session) {
+                const [currentRows] = await facultyRepository.findRoleById(currentSessionUserId, connection);
+                if (currentRows.length > 0) {
+                    session.userRole = currentRows[0].Role;
+                }
             }
+
+            await connection.commit();
+        } catch (err) {
+            await connection.rollback();
+            console.error('Error updating faculty role within transaction:', err);
+            throw err;
+        } finally {
+            connection.release();
         }
     } else {
-        await db.query('UPDATE users SET Role = ? WHERE User_ID = ?', [role, userId]);
+        await facultyRepository.updateUserRole(userId, role);
     }
 
     return { status: 200, message: 'Role updated successfully' };
 }
 
 async function deleteFaculty(userId) {
-    await db.query('DELETE FROM users WHERE User_ID = ?', [userId]);
+    await facultyRepository.deleteById(userId);
     return { status: 200, message: 'Faculty member removed successfully' };
 }
 
