@@ -197,3 +197,201 @@ html.high-contrast .maint-table .cell-icon-wrap {
   flex-wrap: wrap;
   margin-bottom: 8px;
 }
+
+/* ─── Table Pagination Controls & Dark Mode Overrides ─── */
+.pagination-controls {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+html.dark-mode .table-pagination,
+body.dark-mode .table-pagination,
+[data-theme="dark"] .table-pagination,
+html.high-contrast .table-pagination,
+html.dark-mode .table-container + div,
+body.dark-mode .table-container + div,
+[data-theme="dark"] .table-container + div,
+html.high-contrast .table-container + div {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark-mode .pagination-info,
+body.dark-mode .pagination-info,
+[data-theme="dark"] .pagination-info,
+html.high-contrast .pagination-info {
+  color: #94A3B8 !important;
+}
+
+html.dark-mode .pagination-info strong,
+body.dark-mode .pagination-info strong,
+[data-theme="dark"] .pagination-info strong,
+html.high-contrast .pagination-info strong {
+  color: #F8FAFC !important;
+}
+
+html.dark-mode .btn-page,
+body.dark-mode .btn-page,
+[data-theme="dark"] .btn-page,
+html.high-contrast .btn-page {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #94A3B8 !important;
+}
+
+html.dark-mode .btn-page.btn-next:not(:disabled),
+body.dark-mode .btn-page.btn-next:not(:disabled),
+[data-theme="dark"] .btn-page.btn-next:not(:disabled),
+html.high-contrast .btn-page.btn-next:not(:disabled) {
+  background: var(--primary-teal, #1EBBD7) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary-teal, #1EBBD7) !important;
+}
+
+/* ─── Reports Table & Header Cell Presentation Component Styles ─── */
+.reports-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.reports-table-head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table-header-cell,
+.reports-table th,
+.reports-table-head th,
+.maint-table th,
+.dashboard-table th {
+  padding: 13px 18px !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  color: #334155 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%) !important;
+  border-bottom: 1.5px solid #CBD5E1 !important;
+  box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.4) !important;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.table-header-cell.text-center,
+.reports-table th.text-center,
+.maint-table th.text-center {
+  text-align: center !important;
+}
+
+/* Dark Mode Overrides for Premium Table Headers */
+html.dark-mode .table-header-cell,
+html.dark-mode .reports-table th,
+html.dark-mode .reports-table-head th,
+html.dark-mode .maint-table th,
+html.dark-mode .dashboard-table th,
+body.dark-mode .table-header-cell,
+body.dark-mode .reports-table th,
+body.dark-mode .maint-table th,
+[data-theme="dark"] .table-header-cell,
+[data-theme="dark"] .reports-table th,
+[data-theme="dark"] .maint-table th,
+html.high-contrast .table-header-cell,
+html.high-contrast .reports-table th,
+html.high-contrast .maint-table th {
+  background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%) !important;
+  border-bottom: 1.5px solid #334155 !important;
+  box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.6) !important;
+  color: #CBD5E1 !important;
+}
+
+/* ─── Maintenance Table Wrapper, Desktop Expansion & Scrollbar Component Styles ─── */
+.maint-table-wrapper {
+  margin-top: 0 !important;
+}
+
+@media (min-width: 1025px) {
+  .dashboard-card {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .maint-table-wrapper {
+    flex: 1 1 auto !important;
+    min-height: 280px;
+    max-height: none !important;
+    overflow-y: auto !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+.maint-table-wrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.maint-table-wrapper::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 99px;
+}
+
+.maint-table-wrapper::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 99px;
+}
+
+.maint-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+.maint-table .col-issues,
+.col-issues {
+  min-width: 280px;
+  max-width: 440px;
+  width: auto;
+}
+
+/* ─── Unified Mobile Maintenance Card & Dark Mode Styling Architecture ─── */
+html.dark-mode .maint-table-wrapper,
+body.dark-mode .maint-table-wrapper,
+[data-theme="dark"] .maint-table-wrapper,
+html.high-contrast .maint-table-wrapper {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html.dark-mode .maint-table tr,
+body.dark-mode .maint-table tr,
+[data-theme="dark"] .maint-table tr,
+html.high-contrast .maint-table tr,
+html.dark-mode .maint-mobile-card,
+body.dark-mode .maint-mobile-card,
+[data-theme="dark"] .maint-mobile-card,
+html.high-contrast .maint-mobile-card,
+html.dark-mode .ticket-card-mobile,
+body.dark-mode .ticket-card-mobile,
+[data-theme="dark"] .ticket-card-mobile,
+html.high-contrast .ticket-card-mobile {
+  background-color: #111827 !important;
+  background: #111827 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+html.dark-mode .maint-table tr:hover,
+body.dark-mode .maint-table tr:hover,
+[data-theme="dark"] .maint-table tr:hover,
+html.high-contrast .maint-table tr:hover {
+  background-color: #1e293b !important;
+  background: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
