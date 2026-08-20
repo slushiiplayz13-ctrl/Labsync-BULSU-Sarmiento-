@@ -119,3 +119,68 @@
   color: #059669;
 }
 
+/* ─── Component Issue Tag Styles ─── */
+.issue-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.issue-tag.bad {
+  background: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
+}
+
+.issue-tag.ok {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+}
+
+.issue-tag.other {
+  background: #FEF3C7;
+  color: #D97706;
+  border: 1.5px solid #FDE68A;
+}
+
+html.high-contrast .issue-tag.other {
+  background: #78350F;
+  color: #FEF3C7;
+  border: 1.5px solid #F59E0B;
+}
+
+/* Component Issue Tags in Dark Mode */
+html.dark-mode .issue-tag.bad,
+body.dark-mode .issue-tag.bad,
+[data-theme="dark"] .issue-tag.bad,
+html.high-contrast .issue-tag.bad {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+
+html.dark-mode .issue-tag.ok,
+body.dark-mode .issue-tag.ok,
+[data-theme="dark"] .issue-tag.ok,
+html.high-contrast .issue-tag.ok {
+  background: rgba(148, 163, 184, 0.15) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+}
+
+html.dark-mode .issue-tag.other,
+body.dark-mode .issue-tag.other,
+[data-theme="dark"] .issue-tag.other,
+html.high-contrast .issue-tag.other {
+  background: rgba(245, 158, 11, 0.18) !important;
+  color: #fde68a !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+
