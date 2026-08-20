@@ -414,37 +414,37 @@
     overflow: hidden !important;
   }
   .settings-modal-sidebar {
-    width: 100% !important;
-    flex-direction: row !important;
-    border-right: none !important;
-    border-bottom: 1.5px solid var(--border-light) !important;
-    padding: 2px 12px !important;
-    gap: 4px !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    white-space: nowrap !important;
-    -webkit-overflow-scrolling: touch !important;
-    background: var(--bg-white) !important;
+    width: 100%;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1.5px solid var(--border-light);
+    padding: 2px 12px;
+    gap: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    background: var(--bg-white);
   }
   html.high-contrast .settings-modal-sidebar {
     background: #111827 !important;
   }
   .settings-modal-sidebar .settings-tab-btn {
-    width: auto !important;
-    padding: 12px 14px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    white-space: nowrap !important;
-    border-left: none !important;
-    border-bottom: 3px solid transparent !important;
-    border-radius: 0 !important;
-    justify-content: center !important;
+    width: auto;
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    justify-content: center;
   }
   .settings-modal-sidebar .settings-tab-btn.active {
-    background: transparent !important;
-    border-bottom-color: var(--primary-teal) !important;
-    color: var(--primary-teal) !important;
-    font-weight: 700 !important;
+    background: transparent;
+    border-bottom-color: var(--primary-teal);
+    color: var(--primary-teal);
+    font-weight: 700;
   }
   .settings-modal-scroll {
     padding: 14px !important;
