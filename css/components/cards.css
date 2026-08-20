@@ -3094,6 +3094,143 @@ html.high-contrast .help-modal-close-btn:focus-visible {
   gap: 12px;
 }
 
+/* ─── Laboratory Subcard Details, Timers & Legend Badges Component Styles ─── */
+.sh-legend {
+  display: flex;
+  gap: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-mid);
+}
+
+.legend-item .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot.green {
+  background: #4ADE80;
+}
+
+.dot.orange {
+  background: #FB923C;
+}
+
+.dot.red {
+  background: #EF4444;
+}
+
+.lab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+
+.room-num {
+  font-family: var(--font-display);
+  font-size: 18.5px;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: -0.3px;
+}
+
+.muted-text {
+  color: var(--text-muted) !important;
+  font-weight: 500 !important;
+}
+
+.lab-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex: 1;
+}
+
+.ld-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.ld-row>span:not(.flip-hint-badge) {
+  color: var(--text-mid);
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ld-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--primary-teal);
+  flex-shrink: 0;
+}
+
+.ld-row strong {
+  color: var(--text-dark);
+  font-weight: 700;
+  font-size: 14.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+.teal-text {
+  color: #0284C7 !important;
+}
+
+.lab-details.empty-state {
+  justify-content: center;
+  gap: 6px;
+}
+
+.lab-details.empty-state span {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #15803D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lab-details.empty-state strong {
+  font-size: 15.5px;
+  color: #0F172A;
+  font-weight: 700;
+}
+
+.lab-timer {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  flex-shrink: 0;
+}
+
+.lab-card.red-theme .lab-timer {
+  color: #9F1239;
+}
+
+.lab-card.orange-theme .lab-timer {
+  color: #9A3412;
+}
+
+
 
 
 
