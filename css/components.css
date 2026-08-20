@@ -458,14 +458,14 @@ html.high-contrast .stat-title {
   max-width: 100%;
   flex: 1;
   min-height: 0;
-  align-items: stretch !important;
+  align-items: stretch;
 }
 
 .dashboard-overview {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 !important;
-  min-height: 0 !important;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   width: 100%;
 }
 
@@ -892,45 +892,45 @@ html.high-contrast .stat-title {
 }
 
 /* Dashboard Laboratories scroll limit */
-body[data-page="dashboard"] .dashboard-main-grid .labs-grid {
-  display: grid !important;
-  gap: 12px !important;
+.dashboard-main-grid .labs-grid {
+  display: grid;
+  gap: 12px;
   max-height: 345px;
   /* limits to exactly two rows of cards on desktop to trigger scrolling */
-  grid-auto-rows: max-content !important;
+  grid-auto-rows: max-content;
   /* Prevents cards from squishing under max-height constraint */
-  align-content: start !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  align-content: start;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding-right: 4px;
 }
 
-body[data-page="dashboard"] .dashboard-main-grid .labs-grid .lab-card {
-  flex: none !important;
-  min-width: 0 !important;
+.dashboard-main-grid .labs-grid .lab-card {
+  flex: none;
+  min-width: 0;
 }
 
 /* Custom scrollbar for labs grid to keep it elegant */
-body[data-page="dashboard"] .dashboard-main-grid .labs-grid::-webkit-scrollbar {
+.dashboard-main-grid .labs-grid::-webkit-scrollbar {
   width: 4px;
 }
 
-body[data-page="dashboard"] .dashboard-main-grid .labs-grid::-webkit-scrollbar-track {
+.dashboard-main-grid .labs-grid::-webkit-scrollbar-track {
   background: transparent;
 }
 
-body[data-page="dashboard"] .dashboard-main-grid .labs-grid::-webkit-scrollbar-thumb {
+.dashboard-main-grid .labs-grid::-webkit-scrollbar-thumb {
   background: rgba(15, 23, 42, 0.15);
   border-radius: 4px;
 }
 
-html.high-contrast body[data-page="dashboard"] .dashboard-main-grid .labs-grid::-webkit-scrollbar-thumb {
+html.high-contrast .dashboard-main-grid .labs-grid::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
 }
 
 @media (max-width: 850px) {
-  body[data-page="dashboard"] .dashboard-main-grid .labs-grid {
-    max-height: none !important;
+  .dashboard-main-grid .labs-grid {
+    max-height: none;
   }
 }
 
