@@ -205,9 +205,9 @@ select.editor-select option {
 
 .custom-select-wrapper.header-select .custom-select-trigger:hover,
 .custom-select-wrapper.header-select.open .custom-select-trigger {
-  background: #f8fafc !important;
-  border-color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16) !important;
+  background: #f8fafc;
+  border-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16);
 }
 
 .custom-select-wrapper.header-select .custom-select-trigger span {
@@ -217,7 +217,7 @@ select.editor-select option {
 
 .custom-select-wrapper.header-select .custom-select-trigger i,
 .custom-select-wrapper.header-select .custom-select-trigger svg {
-  color: var(--primary-teal) !important;
+  color: var(--primary-teal);
 }
 
 /* ─── Remove Background Container Strips Behind Search Inputs Component Styles ─── */
@@ -256,16 +256,16 @@ select.editor-select option {
   padding: 12px 16px;
   font-size: 15px;
   color: var(--text-dark);
-  line-height: 1.5 !important;
+  line-height: 1.5;
   font-style: italic;
   margin-top: 4px;
-  display: block !important;
-  height: auto !important;
-  max-height: none !important;
-  overflow: visible !important;
-  white-space: normal !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
+  display: block;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 html.dark-mode .remarks-quote-box,
