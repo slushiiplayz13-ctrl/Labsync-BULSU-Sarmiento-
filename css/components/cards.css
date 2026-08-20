@@ -293,6 +293,42 @@
   line-height: 1.5;
 }
 
+/* ─── MIS Department Notice & Alert Banner Component Styles ─── */
+.banner-mis-notice.info {
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+}
+
+.banner-mis-notice.info .banner-icon {
+  color: #0284C7;
+}
+
+.banner-mis-notice.info .banner-title {
+  color: #0369A1;
+}
+
+.banner-mis-notice.info .banner-text {
+  color: #0C4A6E;
+}
+
+.banner-mis-notice.warning {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+}
+
+.banner-mis-notice.warning .banner-icon {
+  color: #DC2626;
+}
+
+.banner-mis-notice.warning .banner-title {
+  color: #991B1B;
+}
+
+.banner-mis-notice.warning .banner-text {
+  color: #7F1D1D;
+}
+
+
 
 
 
