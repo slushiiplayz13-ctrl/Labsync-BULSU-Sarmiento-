@@ -191,4 +191,28 @@
   line-height: 1.35;
 }
 
+/* ─── Card Feature Icon & Badge Component Styles ─── */
+.feature-icon-box,
+.help-feat-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(30, 187, 215, 0.12);
+  border: 1px solid rgba(30, 187, 215, 0.25);
+  color: var(--primary-teal, #0284C7);
+  flex-shrink: 0;
+}
+
+.feature-icon-box i,
+.feature-icon-box svg,
+.help-feat-icon-badge i,
+.help-feat-icon-badge svg {
+  width: 17px !important;
+  height: 17px !important;
+}
+
+
 
