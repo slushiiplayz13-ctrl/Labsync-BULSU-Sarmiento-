@@ -2388,38 +2388,6 @@ html.high-contrast .stat-title {
 /* =========================================
    FACULTY MANAGEMENT UI
    ========================================= */
-.fm-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.fm-search-row {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.fm-search {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
-  padding: 8px 16px;
-  width: 320px;
-  gap: 8px;
-}
-
-.fm-search input {
-  border: none;
-  outline: none;
-  width: 100%;
-  font-family: inherit;
-  font-size: 14px;
-}
 
 
 .faculty-grid {
@@ -2589,32 +2557,6 @@ html.high-contrast .stat-title {
    Custom Beautiful Select Dropdown
    ========================================================= */
 
-/* =========================================================
-   Solid Premium White Custom Selects in Teal Header
-   ========================================================= */
-.custom-select-wrapper.header-select .custom-select-trigger {
-  background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  color: var(--text-dark);
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
-}
-
-.custom-select-wrapper.header-select .custom-select-trigger:hover,
-.custom-select-wrapper.header-select.open .custom-select-trigger {
-  background: #f8fafc !important;
-  border-color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16) !important;
-}
-
-.custom-select-wrapper.header-select .custom-select-trigger span {
-  color: var(--text-dark);
-  font-weight: 600;
-}
-
-.custom-select-wrapper.header-select .custom-select-trigger i,
-.custom-select-wrapper.header-select .custom-select-trigger svg {
-  color: var(--primary-teal) !important;
-}
 
 /* ================================================================
    Account Settings Layout Redesign Styles
@@ -4420,28 +4362,6 @@ body.dark-mode .activity-status-pill.system-info,
   }
 }
 
-/* ─── Remove Background Container Strips Behind Search Inputs ─── */
-.maint-controls-row,
-.maint-search-wrap,
-.reports-controls,
-.table-toolbar,
-.filter-bar,
-.search-container,
-.search-box-container,
-.search-box-wrap {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  background-image: none !important;
-}
-
-/* ─── Compact Vertical Spacing for Controls Toolbar & Table Card ─── */
-.maint-controls-row,
-.reports-controls {
-  padding-top: 2px !important;
-  padding-bottom: 4px !important;
-  margin-bottom: 6px !important;
-}
 
 .maint-table-wrapper {
   margin-top: 0 !important;
@@ -4485,11 +4405,6 @@ body.dark-mode .activity-status-pill.system-info,
   background: #94A3B8;
 }
 
-.search-container::after {
-  background: transparent !important;
-  box-shadow: none !important;
-  display: none !important;
-}
 
 .maint-controls-row::before,
 .maint-controls-row::after,
@@ -4636,24 +4551,6 @@ html.high-contrast .maint-table .cell-icon-wrap {
   margin-bottom: 8px;
 }
 
-.remarks-quote-box {
-  background: #F8FAFC;
-  border-left: 4px solid var(--primary-teal);
-  border-radius: 0 10px 10px 0;
-  padding: 12px 16px;
-  font-size: 15px;
-  color: var(--text-dark);
-  line-height: 1.5 !important;
-  font-style: italic;
-  margin-top: 4px;
-  display: block !important;
-  height: auto !important;
-  max-height: none !important;
-  overflow: visible !important;
-  white-space: normal !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-}
 
 .maint-table .col-issues,
 .col-issues {
@@ -4698,16 +4595,4 @@ html.high-contrast .maint-table tr:hover {
   background: #1e293b !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
 }
-
-/* Remarks Quote Box Dark Mode Overrides */
-html.dark-mode .remarks-quote-box,
-body.dark-mode .remarks-quote-box,
-[data-theme="dark"] .remarks-quote-box,
-html.high-contrast .remarks-quote-box {
-  background-color: rgba(255, 255, 255, 0.04) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
-  border-left: 3px solid #06b6d4 !important;
-  color: #e2e8f0 !important;
-  font-style: italic !important;
-  font-size: 13.5px !important;
-}
+
