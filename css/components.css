@@ -4255,31 +4255,6 @@ html.high-contrast .maint-table th {
   color: var(--text-dark);
 }
 
-/* Status Pill Badges */
-.status-pill {
-  display: inline-block;
-  font-size: 13.5px;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 99px;
-  white-space: nowrap;
-}
-
-.status-pill.pending {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-.status-pill.in-progress {
-  background: #DBEAFE;
-  color: #2563EB;
-}
-
-.status-pill.resolved {
-  background: #D1FAE5;
-  color: #059669;
-}
-
 /* Action Links & Buttons */
 .action-link {
   color: #2563EB;
