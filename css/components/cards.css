@@ -3230,6 +3230,50 @@ html.high-contrast .help-modal-close-btn:focus-visible {
   color: #9A3412;
 }
 
+/* ─── Dashboard Header Greeting & Real-Time Clock Display Component Styles ─── */
+.greeting-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.greeting-left .greeting-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary-teal);
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.greeting-left .greeting-sub {
+  font-size: 14.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+.clock-block {
+  text-align: right;
+}
+
+.clock-time {
+  font-family: var(--font-display);
+  font-size: 33px;
+  font-weight: 800;
+  color: var(--primary-teal);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.clock-date {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+
 
 
 
