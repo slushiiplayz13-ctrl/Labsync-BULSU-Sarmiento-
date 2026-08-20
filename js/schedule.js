@@ -48,17 +48,6 @@ window.loadUserSchedule = async function () {
 
     const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
-    function formatTime12(timeStr) {
-      if (!timeStr) return '';
-      const parts = timeStr.split(':');
-      let hour = parseInt(parts[0], 10);
-      const minute = parts[1];
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      hour = hour % 12;
-      hour = hour ? hour : 12;
-      return `${hour}:${minute} ${ampm}`;
-    }
-
     const totalClasses = schedules.length;
 
     // Color palettes for dynamic subject cards and legend dots
@@ -104,8 +93,6 @@ window.loadUserSchedule = async function () {
         color: palette ? palette.color : '#FFFFFF'
       };
     });
-
-    const escapeHtml = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     let html = `
     <!-- Top Filter & Legend Toolbar -->

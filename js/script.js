@@ -63,12 +63,6 @@ window.showToast = function (message, type = 'success', title = null) {
     card.style.color = '#F8FAFC';
   }
 
-  if (!window.escapeHtml) {
-    window.escapeHtml = function (str) {
-      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    };
-  }
-
   card.innerHTML = `
     <div style="width: 34px; height: 34px; min-width: 34px; border-radius: 50%; background: ${iconBg}; color: ${iconColor}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;">
       <i data-lucide="${iconName}" style="width: 18px; height: 18px;"></i>
@@ -1204,26 +1198,6 @@ function openAccountSettings() {
   });
 }
 
-function formatLastUpdatedTime(timestampStr) {
-  if (!timestampStr) return 'Never';
-  const date = new Date(timestampStr);
-  if (isNaN(date.getTime())) return 'Never';
-
-  const now = new Date();
-  const diffMs = now - date;
-  const diffMin = Math.floor(diffMs / (1000 * 60));
-  const diffHrs = Math.floor(diffMin / 60);
-  const diffDays = Math.floor(diffHrs / 24);
-
-  if (diffMin < 1) return 'Just now';
-  if (diffMin < 60) return `${diffMin} min${diffMin > 1 ? 's' : ''} ago`;
-  if (diffHrs < 24) return `${diffHrs} hour${diffHrs > 1 ? 's' : ''} ago`;
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
-
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
 async function loadAccountSettingsData() {
   try {
     const response = await fetch('/api/user/current', { credentials: 'include' });
@@ -1828,8 +1802,6 @@ async function loadDashboardSchedule() {
   `;
   if (window.lucide) lucide.createIcons({ root: timelineList });
 
-  const escapeHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
   try {
     const currentYear = new Date().getFullYear();
     // Default current term params
@@ -1916,18 +1888,6 @@ async function loadDashboardSchedule() {
       let timeClass = 'timeline-item';
       if (isActive) timeClass += ' active';
       else if (isFuture) timeClass += ' future';
-
-      // formatting helpers
-      const formatTime12 = (timeStr) => {
-        if (!timeStr) return '';
-        const parts = timeStr.split(':');
-        let hour = parseInt(parts[0], 10);
-        const minute = parts[1];
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        hour = hour % 12;
-        hour = hour ? hour : 12;
-        return `${hour}:${minute} ${ampm}`;
-      };
 
       html += `
         <div class="${timeClass}" style="width: 100%; box-sizing: border-box;">
