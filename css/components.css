@@ -3490,42 +3490,6 @@ html.high-contrast .help-modal-close-btn:focus-visible {
 }
 
 /* ================================================================
-   Info and Warning Alert Boxes
-   ================================================================ */
-
-.alert-warning-box {
-  background: #FEF3C7;
-  border: 1px solid #FDE68A;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  gap: 12px;
-}
-
-.alert-warning-box i,
-.alert-warning-box svg {
-  width: 18px;
-  height: 18px;
-  color: #F59E0B;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.alert-warning-box .alert-title {
-  margin: 0 0 4px 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: #92400E;
-}
-
-.alert-warning-box .alert-desc {
-  margin: 0;
-  font-size: 11px;
-  color: #92400E;
-  line-height: 1.5;
-}
-
-/* ================================================================
    Faculty Actions Dropdown & Menu Buttons
    ================================================================ */
 .faculty-menu-btn {
