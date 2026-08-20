@@ -363,6 +363,68 @@
   height: 16px;
 }
 
+/* ─── Help Support Box Card Component Styles ─── */
+.help-support-box {
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+  border: 1px solid #BAE6FD;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.help-support-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-support-title i,
+.help-support-title svg {
+  width: 18px;
+  height: 18px;
+  color: var(--primary-teal);
+}
+
+.help-support-desc {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+.help-support-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.help-support-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dark);
+}
+
+.help-support-item i,
+.help-support-item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--primary-teal);
+}
+
+.help-support-item strong {
+  font-weight: 700;
+}
+
+.help-support-item span.highlight {
+  color: var(--primary-teal);
+}
+
+
 
 
 
