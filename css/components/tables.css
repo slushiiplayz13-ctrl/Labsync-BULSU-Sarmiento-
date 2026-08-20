@@ -200,10 +200,10 @@ html.high-contrast .maint-table .cell-icon-wrap {
 
 /* ─── Table Pagination Controls & Dark Mode Overrides ─── */
 .pagination-controls {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  flex-shrink: 0 !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 html.dark-mode .table-pagination,
@@ -413,28 +413,28 @@ html.high-contrast .table-container tbody tr:hover {
 .table-footer,
 .pagination-wrapper,
 .table-container + div {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  padding-top: 14px !important;
-  margin-top: auto !important;
-  flex-shrink: 0 !important;
-  border-top: 1px solid var(--border-light, #E2E8F0) !important;
-  gap: 12px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 14px;
+  margin-top: auto;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-light, #E2E8F0);
+  gap: 12px;
 }
 
 .pagination-info {
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  color: var(--text-muted, #64748B) !important;
-  white-space: nowrap !important;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted, #64748B);
+  white-space: nowrap;
 }
 
 .pagination-info strong {
-  font-weight: 700 !important;
-  color: var(--text-dark, #0F172A) !important;
+  font-weight: 700;
+  color: var(--text-dark, #0F172A);
 }
 
 
