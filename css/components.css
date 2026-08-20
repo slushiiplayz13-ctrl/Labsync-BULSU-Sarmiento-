@@ -3356,12 +3356,6 @@ html.high-contrast .help-modal-close-btn:focus-visible {
   gap: 6px;
 }
 
-.help-feat-title i,
-.help-feat-title svg {
-  width: 16px;
-  height: 16px;
-}
-
 .help-feat-desc {
   margin: 0;
   font-size: 12px;

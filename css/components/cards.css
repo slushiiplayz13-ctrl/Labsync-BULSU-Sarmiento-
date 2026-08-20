@@ -357,6 +357,13 @@
   color: var(--text-mid, #64748B);
 }
 
+.help-feat-title i,
+.help-feat-title svg {
+  width: 16px;
+  height: 16px;
+}
+
+
 
 
 
