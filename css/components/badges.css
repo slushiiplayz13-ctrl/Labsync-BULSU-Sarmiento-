@@ -183,4 +183,28 @@ html.high-contrast .issue-tag.other {
   border: 1px solid rgba(245, 158, 11, 0.35) !important;
 }
 
+/* ─── Section Chip Component Styles ─── */
+.section-chip {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0E7490;
+  background: #E0F2FE;
+  border: 1.5px solid #BAE6FD;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* Section Chips in Dark Mode */
+html.dark-mode .section-chip,
+body.dark-mode .section-chip,
+[data-theme="dark"] .section-chip,
+html.high-contrast .section-chip {
+  background: rgba(14, 116, 144, 0.25) !important;
+  color: #7dd3fc !important;
+  border: 1px solid rgba(125, 211, 252, 0.3) !important;
+}
+
+
 
