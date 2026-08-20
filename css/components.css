@@ -1201,32 +1201,6 @@ html.high-contrast .stat-title {
   pointer-events: none;
 }
 
-.card-empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  opacity: 0.4;
-  user-select: none;
-}
-
-.card-empty-state .empty-icon {
-  width: 52px;
-  height: 52px;
-  background: var(--primary-teal-light);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-teal);
-}
-
-.card-empty-state p {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
 /* Empty data placeholders (replace sample / demo content) */
 
 .reports-list>.ui-empty-state {
