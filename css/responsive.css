@@ -41,47 +41,47 @@
 
   /* Header Customization */
   .header {
-    height: 70px !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+    height: 70px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
   .header-nav {
-    display: none !important; /* Hide central navigation link row, bottom nav takes over */
+    display: none; /* Hide central navigation link row, bottom nav takes over */
   }
   .logo-labsync-text {
-    font-size: 15px !important;
+    font-size: 15px;
   }
   .profile-info {
-    display: none !important; /* Hide profile textual descriptors to prevent header clutter */
+    display: none; /* Hide profile textual descriptors to prevent header clutter */
   }
   .profile-dropdown {
-    border: none !important;
-    background: transparent !important;
-    padding: 0 !important;
-    gap: 0 !important;
-    box-shadow: none !important;
+    border: none;
+    background: transparent;
+    padding: 0;
+    gap: 0;
+    box-shadow: none;
   }
   .profile-dropdown .chevron-btn,
   .profile-dropdown button {
-    display: none !important;
+    display: none;
   }
   .header-right {
-    gap: 10px !important;
+    gap: 10px;
   }
   .notif-btn {
-    width: 42px !important;
-    height: 42px !important;
+    width: 42px;
+    height: 42px;
   }
   .profile-dropdown .avatar {
-    width: 38px !important;
-    height: 38px !important;
-    border: 2px solid var(--border-light) !important;
+    width: 38px;
+    height: 38px;
+    border: 2px solid var(--border-light);
   }
   html.high-contrast .profile-dropdown .avatar {
     border-color: var(--primary-teal) !important;
   }
   .profile-help-btn {
-    display: flex !important;
+    display: flex;
   }
 
   /* Bottom Navigation Bar Conversion */

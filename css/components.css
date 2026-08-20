@@ -847,7 +847,7 @@ html.high-contrast .stat-title {
 }
 
 .profile-help-btn {
-  display: none !important;
+  display: none;
 }
 
 .profile-menu-item {
