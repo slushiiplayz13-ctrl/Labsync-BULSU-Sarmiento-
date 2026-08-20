@@ -1,9 +1,9 @@
 /* Sidebar Button Responsiveness (Desktop vs Mobile) */
 .sidebar-btn.mobile-only-btn {
-  display: none !important;
+  display: none;
 }
 .sidebar-btn.desktop-only-btn {
-  display: inline-flex !important;
+  display: inline-flex;
 }
 .mobile-only-divider {
   display: none !important;
@@ -12,10 +12,10 @@
 /* ─── Tablet and Mobile Viewports (Max Width: 1024px) ───────────── */
 @media (max-width: 1024px) {
   .sidebar-btn.mobile-only-btn {
-    display: flex !important;
+    display: flex;
   }
   .sidebar-btn.desktop-only-btn {
-    display: none !important;
+    display: none;
   }
   .mobile-only-divider {
     display: block !important;
@@ -148,16 +148,16 @@
     transition: color var(--transition);
   }
   .sidebar-btn.active {
-    background: transparent !important;
-    color: var(--primary-teal) !important;
-    box-shadow: none !important;
+    background: transparent;
+    color: var(--primary-teal);
+    box-shadow: none;
   }
   .sidebar-btn.active i,
   .sidebar-btn.active svg {
-    color: var(--primary-teal) !important;
+    color: var(--primary-teal);
   }
   .sidebar-btn::before {
-    display: none !important;
+    display: none;
   }
   .sidebar-btn::after {
     content: attr(data-tooltip) !important;
@@ -189,8 +189,8 @@
     content: attr(title) !important;
   }
   .sidebar-btn.active::after {
-    opacity: 1 !important;
-    font-weight: 600 !important;
+    opacity: 1;
+    font-weight: 600;
   }
   /* De-clutter bottom navigation and remove sidebar-only items */
   .sidebar-logo, 
