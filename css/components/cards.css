@@ -2218,6 +2218,314 @@ html.high-contrast .lab-card-back {
   margin-bottom: 12px;
 }
 
+/* ─── PC QR Code Generator Cards & Subcomponents Component Styles ─── */
+.pc-grid-container {
+  border: 2px solid var(--primary-teal);
+  border-radius: 16px;
+  padding: 20px;
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px !important;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .pc-grid-container {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 12px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pc-grid-container {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 14px !important;
+  }
+}
+
+.pc-qr-card {
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 26px 14px 20px 14px;
+  min-height: 125px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  position: relative;
+  background: var(--bg-white);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.pc-qr-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: #bae6fd;
+}
+
+.pc-qr-dot {
+  display: none !important;
+}
+
+.pc-qr-title {
+  color: var(--primary-teal);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+/* ─── Help & Support Feature Cards Color Theme Highlights ─── */
+.help-feature-card.theme-purple {
+  background: #F3E8FF;
+  border: 1.5px solid #D8B4FE;
+  color: #581C87;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.08);
+}
+
+.help-feature-card.theme-purple .help-feat-title {
+  color: #7E22CE;
+}
+
+.help-feature-card.theme-purple .help-feat-desc {
+  color: #6B21A8;
+}
+
+.help-feature-card.theme-purple .feature-icon-box,
+.help-feature-card.theme-purple .help-feat-icon-badge {
+  background: #E9D5FF;
+  border: 1px solid #C084FC;
+  color: #7E22CE;
+}
+
+.help-feature-card.theme-blue {
+  background: #E0F2FE;
+  border: 1.5px solid #BAE6FD;
+  color: #0C4A6E;
+}
+
+.help-feature-card.theme-blue .help-feat-title {
+  color: #0284C7;
+}
+
+.help-feature-card.theme-blue .help-feat-desc {
+  color: #0369A1;
+}
+
+.help-feature-card.theme-blue .feature-icon-box,
+.help-feature-card.theme-blue .help-feat-icon-badge {
+  background: #BAE6FD;
+  border: 1px solid #38BDF8;
+  color: #0284C7;
+}
+
+.help-feature-card.theme-indigo {
+  background: #EEF2FF;
+  border: 1.5px solid #C7D2FE;
+  color: #1E3A8A;
+}
+
+.help-feature-card.theme-indigo .help-feat-title {
+  color: #4338CA;
+}
+
+.help-feature-card.theme-indigo .help-feat-desc {
+  color: #3730A3;
+}
+
+.help-feature-card.theme-indigo .feature-icon-box,
+.help-feature-card.theme-indigo .help-feat-icon-badge {
+  background: #C7D2FE;
+  border: 1px solid #818CF8;
+  color: #4338CA;
+}
+
+.help-feature-card.theme-amber {
+  background: #FEF3C7;
+  border: 1.5px solid #FDE68A;
+  color: #92400E;
+}
+
+.help-feature-card.theme-amber .help-feat-title {
+  color: #D97706;
+}
+
+.help-feature-card.theme-amber .help-feat-desc {
+  color: #B45309;
+}
+
+.help-feature-card.theme-amber .feature-icon-box,
+.help-feature-card.theme-amber .help-feat-icon-badge {
+  background: #FDE68A;
+  border: 1px solid #FBBF24;
+  color: #D97706;
+}
+
+.help-feature-card.theme-green {
+  background: #DCFCE7;
+  border: 1.5px solid #BBF7D0;
+  color: #14532D;
+}
+
+.help-feature-card.theme-green .help-feat-title {
+  color: #15803D;
+}
+
+.help-feature-card.theme-green .help-feat-desc {
+  color: #166534;
+}
+
+.help-feature-card.theme-green .feature-icon-box,
+.help-feature-card.theme-green .help-feat-icon-badge {
+  background: #BBF7D0;
+  border: 1px solid #4ADE80;
+  color: #15803D;
+}
+
+.pc-qr-btn {
+  background: var(--primary-teal);
+  color: #fff;
+  border: none;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  width: 100%;
+  box-shadow: 0 3px 8px rgba(30, 187, 215, 0.25);
+  transition: background 0.2s;
+  box-sizing: border-box;
+}
+
+.pc-qr-btn:hover {
+  background: #18a3bb;
+}
+
+.generate-all-btn {
+  background: #10B981;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: background 0.2s;
+}
+
+.generate-all-btn:hover {
+  background: #059669;
+}
+
+/* ─── Help & Support Feature Cards Grid & Action Buttons Component Styles ─── */
+.help-features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.help-feature-card {
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.help-feature-card.theme-blue {
+  background: #E0F2FE;
+  color: #0C4A6E;
+}
+
+.help-feature-card.theme-blue .help-feat-title {
+  color: #0284C7;
+}
+
+.help-feature-card.theme-indigo {
+  background: #DBEAFE;
+  color: #1E3A8A;
+}
+
+.help-feature-card.theme-indigo .help-feat-title {
+  color: #1E40AF;
+}
+
+.help-feature-card.theme-amber {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.help-feature-card.theme-amber .help-feat-title {
+  color: #D97706;
+}
+
+.help-feature-card.theme-green {
+  background: #DCFCE7;
+  color: #14532D;
+}
+
+.help-feature-card.theme-green .help-feat-title {
+  color: #16A34A;
+}
+
+.help-feat-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.help-feat-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.help-modal-footer {
+  padding: 20px 32px;
+  border-top: 1px solid var(--border-light);
+  background: #FAFAFA;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.help-modal-footer p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.help-modal-got-it-btn {
+  padding: 10px 24px;
+  border: none;
+  background: var(--primary-teal);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 4px 12px var(--primary-teal-glow);
+  font-family: var(--font-body);
+}
+
+.help-modal-got-it-btn:hover {
+  background: var(--primary-teal-hover);
+}
+
+
+
 
 
 
