@@ -1357,29 +1357,6 @@ html.high-contrast .stat-title {
   color: #64748B;
 }
 
-.rc-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.rc-badge.pending {
-  background: #FEF9C3;
-  color: #D97706;
-  border: 1px solid #FEF08A;
-}
-
-.rc-badge.in-progress {
-  background: #EFF6FF;
-  color: #3B82F6;
-  border: 1px solid #BFDBFE;
-}
-
 .rc-footer {
   display: flex;
   justify-content: space-between;
@@ -1519,26 +1496,6 @@ html.high-contrast .stat-title {
   gap: 12px;
 }
 
-.sf-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--primary-teal-light);
-  color: var(--primary-teal);
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(30, 187, 215, 0.2);
-}
-
-.sf-badge i,
-.sf-badge svg {
-  width: 14px;
-  height: 14px;
-}
-
 .schedule-legend {
   display: flex;
   align-items: center;
@@ -1653,16 +1610,6 @@ html.high-contrast .stat-title {
   color: #ffffff;
   border-color: var(--primary-teal);
   box-shadow: 0 4px 12px var(--primary-teal-glow);
-}
-
-.today-pill {
-  font-size: 11px;
-  font-weight: 800;
-  padding: 2px 6px;
-  background: #ffffff;
-  color: var(--primary-teal);
-  border-radius: 6px;
-  letter-spacing: 0.5px;
 }
 
 .empty-day-box {
@@ -2744,29 +2691,10 @@ body.dark-mode .delete-pc-btn:hover svg,
   margin-bottom: 6px;
 }
 
-.fc-dept-tag {
-  display: inline-block;
-  background: #F1F5F9;
-  color: #475569;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
 .fc-status-row {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-}
-
-.fc-status-badge {
-  background: #DCFCE7;
-  color: #16A34A;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 99px;
 }
 
 .fc-menu-btn {
@@ -5016,25 +4944,6 @@ html.high-contrast .remarks-quote-box {
   color: #e2e8f0 !important;
   font-style: italic !important;
   font-size: 13.5px !important;
-}
-
-/* Status Pulse Pills in Dark Mode */
-html.dark-mode .status-badge-pulse.pending,
-body.dark-mode .status-badge-pulse.pending,
-[data-theme="dark"] .status-badge-pulse.pending,
-html.high-contrast .status-badge-pulse.pending {
-  background: rgba(245, 158, 11, 0.2) !important;
-  color: #fde68a !important;
-  border: 1px solid rgba(253, 230, 138, 0.35) !important;
-}
-
-html.dark-mode .status-badge-pulse.resolved,
-body.dark-mode .status-badge-pulse.resolved,
-[data-theme="dark"] .status-badge-pulse.resolved,
-html.high-contrast .status-badge-pulse.resolved {
-  background: rgba(16, 185, 129, 0.2) !important;
-  color: #6ee7b7 !important;
-  border: 1px solid rgba(110, 231, 183, 0.35) !important;
 }
 
 /* Action Buttons in Dark Mode */
