@@ -62,3 +62,54 @@
   color: #0C4A6E;
   line-height: 1.5;
 }
+
+/* ─── Help & Quick-Start Card Component Styles ─── */
+.help-qs-card {
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 3px solid transparent;
+  background: var(--bg-card);
+}
+
+.help-qs-card.theme-teal {
+  border-left-color: var(--primary-teal);
+}
+
+.help-qs-card.theme-blue {
+  border-left-color: #3B82F6;
+}
+
+.help-qs-card.theme-warning {
+  border-left-color: #F59E0B;
+}
+
+.help-qs-card.theme-purple {
+  border-left-color: #8B5CF6;
+}
+
+.help-qs-card.theme-green {
+  border-left-color: #10B981;
+}
+
+.help-qs-card.theme-pink {
+  border-left-color: #EC4899;
+}
+
+.help-qs-card.theme-red {
+  border-left-color: #EF4444;
+}
+
+.help-qs-title {
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.help-qs-text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
