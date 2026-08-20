@@ -834,6 +834,135 @@ body.dark-mode .activity-status-pill.system-info,
   font-size: 14px;
 }
 
+/* ─── Lab Card Flip Guide Badge Component Styles ─── */
+.flip-hint-badge {
+  font-size: 10px;
+  font-weight: 800;
+  background: var(--primary-teal-light);
+  color: var(--primary-teal);
+  padding: 3px 10px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  border: 1px solid var(--primary-teal-glow);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flip-hint-badge span {
+  color: var(--primary-teal);
+  transition: color 0.25s ease;
+}
+
+.flip-hint-badge i,
+.flip-hint-badge svg {
+  color: var(--primary-teal);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s ease;
+}
+
+.lab-card-front:hover .flip-hint-badge {
+  background: var(--primary-teal) !important;
+  border-color: var(--primary-teal) !important;
+  box-shadow: 0 3px 10px var(--primary-teal-glow);
+}
+
+.lab-card-front:hover .flip-hint-badge span,
+.lab-card-front:hover .flip-hint-badge i,
+.lab-card-front:hover .flip-hint-badge svg {
+  color: #ffffff !important;
+}
+
+.lab-card-front:hover .flip-hint-badge i,
+.lab-card-front:hover .flip-hint-badge svg {
+  transform: translateX(3px);
+}
+
+html.high-contrast .flip-hint-badge {
+  background: rgba(0, 163, 196, 0.16) !important;
+  color: #00e5ff !important;
+  border-color: rgba(0, 163, 196, 0.3) !important;
+}
+
+html.high-contrast .flip-hint-badge span,
+html.high-contrast .flip-hint-badge i,
+html.high-contrast .flip-hint-badge svg {
+  color: #00e5ff !important;
+}
+
+html.high-contrast .lab-card-front:hover .flip-hint-badge {
+  background: #00a3c4 !important;
+  border-color: #00a3c4 !important;
+  box-shadow: none !important;
+}
+
+html.high-contrast .lab-card-front:hover .flip-hint-badge span,
+html.high-contrast .lab-card-front:hover .flip-hint-badge i,
+html.high-contrast .lab-card-front:hover .flip-hint-badge svg {
+  color: #111827 !important;
+}
+
+/* ─── Lab Card Flip Back Action Button Component Styles ─── */
+.flip-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-card);
+  color: var(--text-mid);
+  border: 1px solid var(--border-light);
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+
+.flip-back-btn:hover {
+  background: #F1F5F9;
+  color: var(--text-dark);
+  border-color: #CBD5E1;
+  box-shadow: var(--shadow-md);
+}
+
+html.high-contrast .flip-back-btn {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+
+html.high-contrast .flip-back-btn:hover {
+  background: #334155 !important;
+  border-color: #64748b !important;
+}
+
+/* ─── Active PC Report Details Subcard Item Component Styles ─── */
+.active-pc-problem-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(234, 88, 12, 0.02);
+  border: 1px solid rgba(234, 88, 12, 0.06);
+  transition: all var(--transition);
+}
+
+.active-pc-problem-item:hover {
+  background: rgba(234, 88, 12, 0.05);
+  border-color: rgba(234, 88, 12, 0.14);
+}
+
+html.high-contrast .active-pc-problem-item:hover {
+  background: rgba(251, 146, 60, 0.08) !important;
+  border-color: rgba(251, 146, 60, 0.25) !important;
+}
+
+
 
 
 

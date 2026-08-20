@@ -395,3 +395,46 @@ html.high-contrast .maint-table tr:hover {
   border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
+/* ─── Global Data Table Row Hover & Container Overrides ─── */
+.table-container tbody tr {
+  transition: background 0.15s ease;
+}
+
+.table-container tbody tr:hover {
+  background: rgba(30, 187, 215, 0.05);
+}
+
+html.high-contrast .table-container tbody tr:hover {
+  background: rgba(30, 187, 215, 0.12) !important;
+}
+
+/* ─── Table Pagination Footer & Layout Wrapper Component Styles ─── */
+.table-pagination,
+.table-footer,
+.pagination-wrapper,
+.table-container + div {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding-top: 14px !important;
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+  border-top: 1px solid var(--border-light, #E2E8F0) !important;
+  gap: 12px !important;
+}
+
+.pagination-info {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--text-muted, #64748B) !important;
+  white-space: nowrap !important;
+}
+
+.pagination-info strong {
+  font-weight: 700 !important;
+  color: var(--text-dark, #0F172A) !important;
+}
+
+
