@@ -444,10 +444,13 @@ function initNotifications() {
 
   async function loadNotifications() {
     try {
-      // Use cache-busting timestamp to prevent browser cache
-      const response = await fetch(`/api/notifications?_=${Date.now()}`, { credentials: 'include' });
-      if (!response.ok) return;
-      const notifications = await response.json();
+      const notifications = typeof window.fetchNotifications === 'function'
+        ? await window.fetchNotifications()
+        : await (async () => {
+            const res = await fetch(`/api/notifications?_=${Date.now()}`, { credentials: 'include' });
+            return res.ok ? await res.json() : null;
+          })();
+      if (!notifications || !Array.isArray(notifications)) return;
 
       const lastRead = localStorage.getItem('last_read_notifications');
       let unreadCount = 0;
@@ -1838,13 +1841,15 @@ window.loadSystemActivityFeed = async function (targetContainer, optionalReports
   let activities = [];
 
   try {
-    // 1. Fetch real merged system audit notifications from API (/api/notifications)
-    const notifRes = await fetch('/api/notifications', { credentials: 'include' });
-    if (notifRes.ok) {
-      const rawNotifs = await notifRes.json();
-      if (Array.isArray(rawNotifs) && rawNotifs.length > 0) {
-        activities = rawNotifs.map(n => transformNotificationToActivity(n));
-      }
+    // 1. Fetch real merged system audit notifications from Notification Service
+    const rawNotifs = typeof window.fetchNotifications === 'function'
+      ? await window.fetchNotifications()
+      : await (async () => {
+          const res = await fetch('/api/notifications', { credentials: 'include' });
+          return res.ok ? await res.json() : null;
+        })();
+    if (Array.isArray(rawNotifs) && rawNotifs.length > 0) {
+      activities = rawNotifs.map(n => transformNotificationToActivity(n));
     }
   } catch (err) {
     console.warn('Could not fetch /api/notifications:', err);
@@ -2518,9 +2523,13 @@ async function loadRoomStatusActivityLog() {
   }
 
   try {
-    const res = await fetch('/api/notifications', { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to load activities');
-    const activities = await res.json();
+    const activities = typeof window.fetchNotifications === 'function'
+      ? await window.fetchNotifications()
+      : await (async () => {
+          const res = await fetch('/api/notifications', { credentials: 'include' });
+          return res.ok ? await res.json() : null;
+        })();
+    if (!activities || !Array.isArray(activities)) throw new Error('Failed to load activities');
 
     // Filter only occupancy log notifications
     const occupancyLogs = activities.filter(a => a.type === 'occupancy');
