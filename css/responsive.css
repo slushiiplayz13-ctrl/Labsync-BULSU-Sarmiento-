@@ -159,34 +159,34 @@
   .sidebar-btn::before {
     display: none;
   }
-  .sidebar-btn::after {
-    content: attr(data-tooltip) !important;
-    display: block !important;
-    position: static !important;
-    transform: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-    font-size: 8.5px !important;
-    font-weight: 500 !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    text-align: center !important;
-    line-height: 1.1 !important;
-    font-family: var(--font-body) !important;
-    color: inherit !important;
+  .sidebar-btn[data-tooltip]::after {
+    content: attr(data-tooltip);
+    display: block;
+    position: static;
+    transform: none;
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    visibility: visible;
+    pointer-events: auto;
+    font-size: 8.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+    line-height: 1.1;
+    font-family: var(--font-body);
+    color: inherit;
     opacity: 0.85;
     transition: opacity var(--transition), font-weight var(--transition);
-    letter-spacing: -0.1px !important;
+    letter-spacing: -0.1px;
   }
   .sidebar-btn:not([data-tooltip])::after {
-    content: attr(title) !important;
+    content: attr(title);
   }
   .sidebar-btn.active::after {
     opacity: 1;
