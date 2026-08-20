@@ -860,6 +860,7 @@
   white-space: normal;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -922,6 +923,7 @@
   line-height: 1.12;
   margin: 0;
   -webkit-line-clamp: 1;
+  line-clamp: 1;
 }
 
 .day-count-3 .canvas-class-meta,
