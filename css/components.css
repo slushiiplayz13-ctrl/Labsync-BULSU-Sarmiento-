@@ -4519,26 +4519,6 @@ html.high-contrast .maint-table th {
   white-space: nowrap !important;
 }
 
-
-/* Shared Card Section Header Typography */
-.card-section-title {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-dark);
-  margin-bottom: 4px;
-  line-height: 1.25;
-}
-
-.card-section-subtitle {
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-muted);
-  margin: 0;
-  line-height: 1.35;
-}
-
 /* ─── System Activity Feed Component Styles (Full-Width Tiles) ─── */
 .activity-feed-card {
   padding: 20px 24px;
