@@ -962,6 +962,117 @@ html.high-contrast .active-pc-problem-item:hover {
   border-color: rgba(251, 146, 60, 0.25) !important;
 }
 
+/* ─── IT Leadership & Department Tribute / Successor Special Cards ─── */
+.heart-container {
+  width: 72px;
+  height: 72px;
+  background: #FEF2F2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px auto 24px auto;
+  color: #EF4444;
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.12);
+}
+
+.tribute-card {
+  background: #FFFDF5;
+  border: 1px solid #FEF3C7;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 14px;
+  text-align: left;
+  position: relative;
+}
+
+.successor-card {
+  background: #F0FDFA;
+  border: 1px solid #CCFBF1;
+  border-radius: 12px;
+  padding: 14px 18px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ─── Active PC Problems Subcard List Scrollbar Component Styles ─── */
+.active-pc-problems-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.active-pc-problems-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.active-pc-problems-list::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.15);
+  border-radius: 4px;
+}
+
+/* ─── Flippable Lab Status Card Container & Face Presentation Component Styles ─── */
+.lab-card-container {
+  position: relative;
+  min-height: 160px;
+  /* ensures stable size for all cards and avoids bottom clipping */
+  min-width: 260px;
+  /* prevents card from shrinking below minimum content width */
+  width: 100%;
+}
+
+.lab-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.lab-card-front,
+.lab-card-back {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: opacity, transform;
+}
+
+.lab-card-front {
+  opacity: 1;
+  transform: translateY(0) !important;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.lab-card-container.flipped .lab-card-front {
+  opacity: 0;
+  transform: translateY(-12px) !important;
+  pointer-events: none;
+}
+
+.lab-card-back {
+  opacity: 0;
+  transform: translateY(12px) !important;
+  border-color: rgba(234, 88, 12, 0.24) !important;
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.04) 0%, rgba(234, 88, 12, 0.01) 100%) !important;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.lab-card-container.flipped .lab-card-back {
+  opacity: 1;
+  transform: translateY(0) !important;
+  pointer-events: auto;
+  z-index: 3;
+}
+
+html.high-contrast .lab-card-back {
+  background: #0f172a !important;
+  border-color: rgba(234, 88, 12, 0.6) !important;
+}
+
+
 
 
 
