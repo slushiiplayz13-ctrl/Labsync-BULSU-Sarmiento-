@@ -64,8 +64,8 @@
 
 .filter-pill i,
 .filter-pill svg {
-  width: 15px !important;
-  height: 15px !important;
+  width: 15px;
+  height: 15px;
 }
 
 .filter-pill:hover {
