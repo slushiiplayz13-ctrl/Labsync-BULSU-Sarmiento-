@@ -109,7 +109,7 @@
 .maint-table .col-date-icon {
   width: 18px;
   height: 18px;
-  color: var(--primary-teal, #1EBBD7) !important;
+  color: var(--primary-teal, #1EBBD7);
   flex-shrink: 0;
 }
 
@@ -149,7 +149,7 @@
 
 .maint-table .cell-icon.room,
 .maint-table .cell-icon.pc {
-  color: var(--primary-teal, #1EBBD7) !important;
+  color: var(--primary-teal, #1EBBD7);
 }
 
 /* ─── Maintenance Table Dark Mode & High Contrast Theme Overrides ─── */
@@ -267,15 +267,15 @@ html.high-contrast .btn-page.btn-next:not(:disabled) {
 .reports-table-head th,
 .maint-table th,
 .dashboard-table th {
-  padding: 13px 18px !important;
-  font-size: 11.5px !important;
-  font-weight: 700 !important;
-  color: #334155 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.08em !important;
-  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%) !important;
-  border-bottom: 1.5px solid #CBD5E1 !important;
-  box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.4) !important;
+  padding: 13px 18px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
+  border-bottom: 1.5px solid #CBD5E1;
+  box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.4);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -285,7 +285,7 @@ html.high-contrast .btn-page.btn-next:not(:disabled) {
 .table-header-cell.text-center,
 .reports-table th.text-center,
 .maint-table th.text-center {
-  text-align: center !important;
+  text-align: center;
 }
 
 /* Dark Mode Overrides for Premium Table Headers */
