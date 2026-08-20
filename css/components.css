@@ -3718,17 +3718,6 @@ html.high-contrast .help-modal-close-btn:focus-visible {
   border-radius: 4px;
 }
 
-/* Base style for PC reports badge tag */
-.pc-badge-tag {
-  background: rgba(234, 88, 12, 0.08);
-  color: #ea580c;
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-weight: 700;
-  flex-shrink: 0;
-  display: inline-block;
-}
-
 /* Dashboard Laboratories scroll limit */
 body[data-page="dashboard"] .dashboard-main-grid .labs-grid {
   display: grid !important;
@@ -4287,22 +4276,6 @@ html.high-contrast .maint-table th {
   background: #059669;
 }
 
-.completed-label {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
-  font-size: 13.5px !important;
-  font-weight: 800 !important;
-  padding: 6px 14px !important;
-  border-radius: 9999px !important;
-  background: #D1FAE5 !important;
-  color: #064E3B !important;
-  border: 1.5px solid #6EE7B7 !important;
-  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.15) !important;
-  white-space: nowrap !important;
-}
-
 /* ─── System Activity Feed Component Styles (Full-Width Tiles) ─── */
 .activity-feed-card {
   padding: 20px 24px;
@@ -4846,31 +4819,6 @@ body.dark-mode .activity-status-pill.system-info,
   background: rgba(30, 187, 215, 0.04);
 }
 
-/* Ticket ID Chip Badge */
-.ticket-chip {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-display);
-  font-size: 14.5px;
-  font-weight: 700;
-  color: #0284C7;
-  background: #E0F2FE;
-  border: 1.5px solid #BAE6FD;
-  padding: 6px 15px;
-  border-radius: 9999px;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.ticket-chip:hover {
-  background: #0284C7;
-  color: #ffffff;
-  border-color: #0284C7;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
-}
-
 /* Date & Time Column */
 .maint-table .col-date-wrap {
   display: flex;
@@ -5020,48 +4968,6 @@ html.high-contrast .maint-table .cell-icon-wrap {
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
 }
 
-/* ─── Completed Chip Component Styles ─── */
-.completed-chip,
-.completed-label,
-.btn-completed {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 7px !important;
-  font-size: 13.5px !important;
-  font-weight: 800 !important;
-  padding: 7px 16px !important;
-  border-radius: 9999px !important;
-  white-space: nowrap !important;
-  background: #D1FAE5 !important;
-  color: #064E3B !important;
-  border: 1.5px solid #6EE7B7 !important;
-  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.15) !important;
-  transition: all 0.2s ease !important;
-}
-
-/* Dark Mode Theme Overrides */
-html.dark-mode .completed-chip,
-html.dark-mode .completed-label,
-html.dark-mode .btn-completed,
-body.dark-mode .completed-chip,
-body.dark-mode .completed-label,
-[data-theme="dark"] .completed-chip,
-[data-theme="dark"] .completed-label {
-  background: rgba(6, 78, 59, 0.6) !important;
-  color: #6ee7b7 !important;
-  border: 1.5px solid #10b981 !important;
-  box-shadow: none !important;
-}
-
-/* High Contrast Mode Overrides */
-html.high-contrast .completed-chip,
-html.high-contrast .completed-label {
-  background: #022C22 !important;
-  color: #6EE7B7 !important;
-  border: 2px solid #34D399 !important;
-}
-
 /* ─── Unified Mobile Maintenance Card & Dark Mode Styling Architecture ─── */
 html.dark-mode .maint-table-wrapper,
 body.dark-mode .maint-table-wrapper,
@@ -5110,20 +5016,6 @@ html.high-contrast .remarks-quote-box {
   color: #e2e8f0 !important;
   font-style: italic !important;
   font-size: 13.5px !important;
-}
-
-/* Ticket Chips & ID Badges in Dark Mode */
-html.dark-mode .ticket-chip,
-body.dark-mode .ticket-chip,
-[data-theme="dark"] .ticket-chip,
-html.high-contrast .ticket-chip,
-html.dark-mode .badge-ticket-id,
-body.dark-mode .badge-ticket-id,
-[data-theme="dark"] .badge-ticket-id,
-html.high-contrast .badge-ticket-id {
-  background: rgba(6, 182, 212, 0.15) !important;
-  color: #38bdf8 !important;
-  border: 1px solid rgba(56, 189, 248, 0.3) !important;
 }
 
 /* Status Pulse Pills in Dark Mode */

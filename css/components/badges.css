@@ -206,5 +206,114 @@ html.high-contrast .section-chip {
   border: 1px solid rgba(125, 211, 252, 0.3) !important;
 }
 
+/* ─── PC Reports Badge Tag Component Styles ─── */
+.pc-badge-tag {
+  background: rgba(234, 88, 12, 0.08);
+  color: #ea580c;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* ─── Ticket ID Chip Badge Component Styles ─── */
+.ticket-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0284C7;
+  background: #E0F2FE;
+  border: 1.5px solid #BAE6FD;
+  padding: 6px 15px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ticket-chip:hover {
+  background: #0284C7;
+  color: #ffffff;
+  border-color: #0284C7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
+}
+
+/* Ticket Chips & ID Badges in Dark Mode */
+html.dark-mode .ticket-chip,
+body.dark-mode .ticket-chip,
+[data-theme="dark"] .ticket-chip,
+html.high-contrast .ticket-chip,
+html.dark-mode .badge-ticket-id,
+body.dark-mode .badge-ticket-id,
+[data-theme="dark"] .badge-ticket-id,
+html.high-contrast .badge-ticket-id {
+  background: rgba(6, 182, 212, 0.15) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+/* ─── Completed Chip Component Styles ─── */
+.completed-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  font-size: 13.5px !important;
+  font-weight: 800 !important;
+  padding: 6px 14px !important;
+  border-radius: 9999px !important;
+  background: #D1FAE5 !important;
+  color: #064E3B !important;
+  border: 1.5px solid #6EE7B7 !important;
+  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.15) !important;
+  white-space: nowrap !important;
+}
+
+.completed-chip,
+.completed-label,
+.btn-completed {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  font-size: 13.5px !important;
+  font-weight: 800 !important;
+  padding: 7px 16px !important;
+  border-radius: 9999px !important;
+  white-space: nowrap !important;
+  background: #D1FAE5 !important;
+  color: #064E3B !important;
+  border: 1.5px solid #6EE7B7 !important;
+  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.15) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Dark Mode Theme Overrides */
+html.dark-mode .completed-chip,
+html.dark-mode .completed-label,
+html.dark-mode .btn-completed,
+body.dark-mode .completed-chip,
+body.dark-mode .completed-label,
+[data-theme="dark"] .completed-chip,
+[data-theme="dark"] .completed-label {
+  background: rgba(6, 78, 59, 0.6) !important;
+  color: #6ee7b7 !important;
+  border: 1.5px solid #10b981 !important;
+  box-shadow: none !important;
+}
+
+/* High Contrast Mode Overrides */
+html.high-contrast .completed-chip,
+html.high-contrast .completed-label {
+  background: #022C22 !important;
+  color: #6EE7B7 !important;
+  border: 2px solid #34D399 !important;
+}
+
+
 
 
