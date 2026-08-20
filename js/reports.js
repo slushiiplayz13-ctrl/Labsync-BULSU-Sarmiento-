@@ -1,5 +1,7 @@
-// ── Shared PC Issue Reports Logic ────────────────────────────────────
-window.allReports = [];
+// Report state ownership is managed by reportStore (js/state/report.store.js)
+if (!window.reportStore) {
+  window.allReports = [];
+}
 
 window.parseIssueDescription = function (desc) {
   if (!desc) {
