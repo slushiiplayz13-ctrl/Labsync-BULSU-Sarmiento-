@@ -1391,8 +1391,8 @@ html.high-contrast .lab-card-back {
 
 /* Color Themes for Schedule Cards */
 .subject-network {
-  background: linear-gradient(135deg, #0E7490 0%, #155E75 100%) !important;
-  color: #E0F2FE !important;
+  background: linear-gradient(135deg, #0E7490 0%, #155E75 100%);
+  color: #E0F2FE;
 }
 
 .dot.network {
@@ -1401,8 +1401,8 @@ html.high-contrast .lab-card-back {
 }
 
 .subject-webdev {
-  background: linear-gradient(135deg, #1D4ED8 0%, #1E3A8A 100%) !important;
-  color: #EFF6FF !important;
+  background: linear-gradient(135deg, #1D4ED8 0%, #1E3A8A 100%);
+  color: #EFF6FF;
 }
 
 .dot.webdev {
@@ -1411,8 +1411,8 @@ html.high-contrast .lab-card-back {
 }
 
 .subject-capstone {
-  background: linear-gradient(135deg, #7E22CE 0%, #581C87 100%) !important;
-  color: #FAF5FF !important;
+  background: linear-gradient(135deg, #7E22CE 0%, #581C87 100%);
+  color: #FAF5FF;
 }
 
 .dot.capstone {
@@ -1421,8 +1421,8 @@ html.high-contrast .lab-card-back {
 }
 
 .subject-prog {
-  background: linear-gradient(135deg, #15803D 0%, #14532D 100%) !important;
-  color: #F0FDF4 !important;
+  background: linear-gradient(135deg, #15803D 0%, #14532D 100%);
+  color: #F0FDF4;
 }
 
 .dot.prog {
@@ -1431,8 +1431,8 @@ html.high-contrast .lab-card-back {
 }
 
 .subject-intro {
-  background: linear-gradient(135deg, #B45309 0%, #78350F 100%) !important;
-  color: #FEF3C7 !important;
+  background: linear-gradient(135deg, #B45309 0%, #78350F 100%);
+  color: #FEF3C7;
 }
 
 .dot.intro {
@@ -1885,11 +1885,11 @@ html.high-contrast .lab-card-back {
   right: -4px;
   width: 22px;
   height: 22px;
-  background: linear-gradient(135deg, var(--primary-teal) 0%, var(--accent-blue) 100%) !important;
-  color: white !important;
+  background: linear-gradient(135deg, var(--primary-teal) 0%, var(--accent-blue) 100%);
+  color: white;
   border-radius: 50%;
-  box-shadow: 0 3px 8px var(--primary-teal-glow) !important;
-  border: 2px solid var(--bg-white) !important;
+  box-shadow: 0 3px 8px var(--primary-teal-glow);
+  border: 2px solid var(--bg-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1898,14 +1898,14 @@ html.high-contrast .lab-card-back {
 
 .boss-crown i,
 .boss-crown svg {
-  width: 12px !important;
-  height: 12px !important;
+  width: 12px;
+  height: 12px;
 }
 
 .boss-role {
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent-blue) !important;
+  color: var(--accent-blue);
   line-height: 1.4;
   display: flex;
   align-items: center;
