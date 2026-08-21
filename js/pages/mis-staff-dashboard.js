@@ -242,7 +242,5 @@ if (document.readyState === 'loading') {
   initMISDashboardPage();
 }
 
-// Global exports for inline HTML handlers & notification polling system
-window.initMISDashboard = loadDashboardData;
-window.loadDashboardData = loadDashboardData;
+// Global exports for inline HTML handlers
 window.resolveDashboardTicket = resolveDashboardTicket;

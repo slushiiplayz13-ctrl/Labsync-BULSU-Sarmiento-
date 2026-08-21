@@ -232,7 +232,3 @@ if (document.readyState === 'loading') {
 } else {
   initITHeadDashboardPage();
 }
-
-// Global compatibility bridges
-window.initITHeadDashboard = loadITHeadDashboardData;
-window.loadITHeadDashboardData = loadITHeadDashboardData;
