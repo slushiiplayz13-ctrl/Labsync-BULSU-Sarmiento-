@@ -134,7 +134,7 @@
       }).join('');
       
       if (typeof lucide !== 'undefined') lucide.createIcons();
-      if (window.applySearchAndFilter) window.applySearchAndFilter();
+      applySearchAndFilter();
     } catch (error) {
       console.error('Error loading faculty:', error);
     }
@@ -909,11 +909,9 @@
   }
 
   // Global Compatibility Bridges
-  window.loadFacultyMembers = loadFacultyMembers;
   window.toggleMenu = toggleMenu;
   window.toggleFacultyFilterDropdown = toggleFacultyFilterDropdown;
   window.filterFaculty = filterFaculty;
-  window.applySearchAndFilter = applySearchAndFilter;
   window.showAddFacultyModal = showAddFacultyModal;
   window.viewFacultySchedule = viewFacultySchedule;
   window.changeFacultyRole = changeFacultyRole;
