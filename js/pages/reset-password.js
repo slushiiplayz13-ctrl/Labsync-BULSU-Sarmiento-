@@ -141,9 +141,6 @@
     initResetWorkflow();
   }
 
-  // Global Compatibility Bridges
-  window.setupToggle = setupToggle;
-
   // Execute on DOM Ready or immediately
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initPage);

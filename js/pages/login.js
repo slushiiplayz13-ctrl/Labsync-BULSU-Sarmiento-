@@ -285,12 +285,6 @@
     initLoginFormListeners();
   }
 
-  // Global Compatibility Bridges
-  window.showLoginError = showLoginError;
-  window.hideLoginError = hideLoginError;
-  window.performLogin = performLogin;
-  window.syncEmailClearVisibility = syncEmailClearVisibility;
-
   // Execute on DOM Ready or immediately
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initPage);

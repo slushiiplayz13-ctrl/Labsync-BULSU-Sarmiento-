@@ -155,11 +155,6 @@
     loadRoomStatusAndLogs();
   }
 
-  // Global Compatibility Bridges
-  window.loadRoomStatusAndLogs = loadRoomStatusAndLogs;
-  window.renderRoomStatusGrid = renderRoomStatusGrid;
-  window.renderActivityLogList = renderActivityLogList;
-
   // Execute on DOM Ready or immediately
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initPage);
