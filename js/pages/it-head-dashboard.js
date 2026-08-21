@@ -22,10 +22,13 @@ function escapeHtml(str) {
  * @returns {string}
  */
 function formatTime12(timeStr) {
+  if (typeof window.formatTime12 === 'function') {
+    return window.formatTime12(timeStr);
+  }
   if (!timeStr) return '';
   const parts = timeStr.split(':');
   let hour = parseInt(parts[0], 10);
-  const minute = parts[1];
+  const minute = parts[1] || '00';
   const ampm = hour >= 12 ? 'PM' : 'AM';
   hour = hour % 12;
   hour = hour ? hour : 12;
@@ -40,7 +43,7 @@ function renderMyTeachingSchedule(myClasses) {
   const container = document.getElementById('ithead-schedule-list');
   if (!container) return;
 
-  if (!myClasses || myClasses.length === 0) {
+  if (!Array.isArray(myClasses) || myClasses.length === 0) {
     container.style.paddingLeft = '0';
     container.style.paddingRight = '0';
     container.style.display = 'flex';
@@ -55,7 +58,9 @@ function renderMyTeachingSchedule(myClasses) {
         <p>No classes scheduled for today.</p>
       </div>
     `;
-    if (window.lucide) lucide.createIcons({ root: container });
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons({ root: container });
+    }
     return;
   } else {
     container.style.paddingLeft = '';
@@ -69,22 +74,21 @@ function renderMyTeachingSchedule(myClasses) {
   }
 
   // Sort chronologically
-  myClasses.sort((a, b) => (a.Start_Time || '').localeCompare(b.Start_Time || ''));
+  const sortedClasses = [...myClasses].sort((a, b) => (a.Start_Time || '').localeCompare(b.Start_Time || ''));
 
-  // Determine current time to mark items as active or future
+  // Determine current time to mark items as active, future, or completed
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
   let html = '';
-  myClasses.forEach((s) => {
-    // Parse start and end times to see if active
+  sortedClasses.forEach((s) => {
     let isActive = false;
     let isFuture = false;
     if (s.Start_Time && s.End_Time) {
       const startParts = s.Start_Time.split(':');
       const endParts = s.End_Time.split(':');
-      const startMin = parseInt(startParts[0], 10) * 60 + parseInt(startParts[1], 10);
-      const endMin = parseInt(endParts[0], 10) * 60 + parseInt(endParts[1], 10);
+      const startMin = parseInt(startParts[0], 10) * 60 + parseInt(startParts[1] || '0', 10);
+      const endMin = parseInt(endParts[0], 10) * 60 + parseInt(endParts[1] || '0', 10);
 
       if (nowMinutes >= startMin && nowMinutes <= endMin) {
         isActive = true;
@@ -121,60 +125,50 @@ function renderMyTeachingSchedule(myClasses) {
   });
 
   container.innerHTML = html;
-  if (window.lucide) lucide.createIcons({ root: container });
-}
-
-/**
- * Renders laboratory room status cards in the IT Head grid.
- * @param {Array} rooms - List of laboratory room objects
- */
-function renderMyLaboratoriesGrid(rooms) {
-  const grid = document.getElementById('ithead-labs-grid');
-  if (!grid) return;
-
-  if (!rooms || rooms.length === 0) {
-    grid.innerHTML = `
-      <div class="ui-empty-state">
-        <div class="ui-empty-icon"><i data-lucide="monitor-dot"></i></div>
-        <p>No laboratory rooms found.</p>
-      </div>
-    `;
-    return;
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons({ root: container });
   }
-
-  grid.innerHTML = rooms.map(r => {
-    const statusClass = (r.Current_Status || 'Available').toLowerCase().replace(/\s+/g, '-');
-    const badgeColor = statusClass === 'in-use' ? '#EF4444' : (statusClass === 'claimed' ? '#F59E0B' : '#10B981');
-    const badgeBg = statusClass === 'in-use' ? '#FEE2E2' : (statusClass === 'claimed' ? '#FEF3C7' : '#D1FAE5');
-
-    return `
-      <div class="lab-card" style="background: var(--bg-white); border: 1px solid var(--border-light); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div style="font-weight: 800; font-size: 16px; color: var(--text-dark);">Room ${r.Room_Number}</div>
-          <span style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: ${badgeBg}; color: ${badgeColor}; text-transform: uppercase;">
-            ${r.Current_Status}
-          </span>
-        </div>
-        <div style="font-size: 12.5px; color: var(--text-mid);">${r.Building || 'IT Building'}</div>
-        <div style="font-size: 12px; color: var(--text-dark); font-weight: 600; background: var(--bg-body); padding: 8px 10px; border-radius: 8px;">
-          ${r.Current_Class !== 'None' ? r.Current_Class : 'No Active Class'}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  if (window.lucide) lucide.createIcons();
 }
 
 /**
  * Dynamic loader for Department Head Dashboard metrics, room grid, and schedule.
+ * Loads laboratories and IT Head summary stats independently so failures in one do not block the other.
  */
 async function loadITHeadDashboardData() {
+  const labsContainer = document.getElementById('ithead-labs-grid') || '.labs-grid';
+  const scheduleContainer = document.getElementById('ithead-schedule-list');
+
+  // Show immediate loading state in schedule container if present
+  if (scheduleContainer) {
+    scheduleContainer.style.paddingLeft = '0';
+    scheduleContainer.style.paddingRight = '0';
+    scheduleContainer.style.display = 'flex';
+    scheduleContainer.style.flexDirection = 'column';
+    scheduleContainer.style.justifyContent = 'center';
+    scheduleContainer.style.alignItems = 'center';
+    scheduleContainer.style.flex = '1';
+    scheduleContainer.style.height = '100%';
+    scheduleContainer.innerHTML = `
+      <div class="ui-empty-state" style="grid-column: unset; width: 100%; min-height: 200px;">
+        <div class="ui-empty-icon">
+          <i data-lucide="loader-2" class="animate-spin" style="width:24px;height:24px;"></i>
+        </div>
+        <p>Loading today's classes...</p>
+      </div>
+    `;
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons({ root: scheduleContainer });
+    }
+  }
+
+  // 1. Fetch & Render IT Head Summary Stat Cards
   try {
-    const [summaryRes, roomsRes] = await Promise.all([
-      fetch('/api/dashboard/it-head-summary', { credentials: 'include' }),
-      fetch('/api/laboratories', { credentials: 'include' })
-    ]);
+    const summaryRes = await fetch('/api/dashboard/it-head-summary', {
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
 
     if (summaryRes.ok) {
       const stats = await summaryRes.json();
@@ -183,37 +177,62 @@ async function loadITHeadDashboardData() {
       if (elRooms) elRooms.textContent = stats.totalRooms;
 
       const elPcsMeta = document.getElementById('ithead-stat-pcs-meta');
-      if (elPcsMeta) elPcsMeta.textContent = `${stats.totalPcs} Registered PCs`;
+      if (elPcsMeta) elPcsMeta.textContent = `${stats.totalRooms} room(s) registered`;
 
       const elAvail = document.getElementById('ithead-stat-available');
       if (elAvail) elAvail.textContent = stats.availableRooms;
 
       const elAvailMeta = document.getElementById('ithead-stat-avail-meta');
-      if (elAvailMeta) elAvailMeta.textContent = `${stats.inUseRooms} In Use • ${stats.claimedRooms} Claimed`;
+      if (elAvailMeta) elAvailMeta.textContent = `${stats.availableRooms} available now`;
 
       const elPending = document.getElementById('ithead-stat-pending');
       if (elPending) elPending.textContent = stats.pendingReports;
 
       const elPendingMeta = document.getElementById('ithead-stat-pending-meta');
-      if (elPendingMeta) elPendingMeta.textContent = stats.pendingReports > 0 ? 'Action Recommended' : 'All Systems Clear';
-
-      const elClasses = document.getElementById('ithead-stat-classes');
-      if (elClasses) elClasses.textContent = stats.classesToday;
-
-      const elClassesMeta = document.getElementById('ithead-stat-classes-meta');
-      if (elClassesMeta) elClassesMeta.textContent = `${(stats.myClassesToday || []).length} Teaching Classes Today`;
-
-      renderMyTeachingSchedule(stats.myClassesToday || []);
-    } else {
-      console.error('Failed to load IT Head summary stats:', summaryRes.status);
+      if (elPendingMeta) elPendingMeta.textContent = `${stats.pendingReports} active ticket(s)`;
     }
+  } catch (err) {
+    console.error('Error loading IT Head summary metrics:', err);
+  }
 
-    if (roomsRes.ok) {
-      const rooms = await roomsRes.json();
-      renderMyLaboratoriesGrid(rooms);
+  // 2. Delegate Schedule Loading to shared loadDashboardSchedule (exact same implementation as Faculty)
+  if (typeof window.loadDashboardSchedule === 'function') {
+    await window.loadDashboardSchedule();
+  } else if (typeof loadDashboardSchedule === 'function') {
+    await loadDashboardSchedule();
+  }
+
+  // 2. Fetch & Render Laboratories Grid independently
+  try {
+    const fetchFn = typeof window.fetchLaboratories === 'function'
+      ? window.fetchLaboratories
+      : async () => {
+          const res = await fetch('/api/laboratories', { credentials: 'include' });
+          if (!res.ok) throw new Error('Failed to load laboratories');
+          return await res.json();
+        };
+
+    const rooms = await fetchFn();
+
+    const renderFn = typeof window.renderLabCards === 'function'
+      ? window.renderLabCards
+      : null;
+
+    if (renderFn) {
+      renderFn(rooms, labsContainer);
     } else {
-      console.error('Failed to load laboratories:', roomsRes.status);
-      const grid = document.getElementById('ithead-labs-grid');
+      renderMyLaboratoriesGridFallback(rooms, labsContainer);
+    }
+  } catch (err) {
+    console.error('IT Head laboratory loading failed:', err);
+    const renderErrFn = typeof window.renderLabCardsError === 'function'
+      ? window.renderLabCardsError
+      : null;
+
+    if (renderErrFn) {
+      renderErrFn(labsContainer);
+    } else {
+      const grid = typeof labsContainer === 'string' ? document.querySelector(labsContainer) : labsContainer;
       if (grid) {
         grid.innerHTML = `
           <div class="ui-empty-state">
@@ -221,11 +240,63 @@ async function loadITHeadDashboardData() {
             <p>Failed to load laboratory status.</p>
           </div>
         `;
-        if (window.lucide) lucide.createIcons({ root: grid });
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons({ root: grid });
+        }
       }
     }
-  } catch (err) {
-    console.error('Error loading IT Head dashboard:', err);
+  }
+}
+
+/**
+ * Fallback renderer for laboratory room status cards in the IT Head grid.
+ * @param {Array} rooms - List of laboratory room objects
+ * @param {HTMLElement|string} targetContainer
+ */
+function renderMyLaboratoriesGridFallback(rooms, targetContainer) {
+  const grid = typeof targetContainer === 'string'
+    ? document.querySelector(targetContainer)
+    : targetContainer;
+
+  if (!grid) return;
+
+  if (!Array.isArray(rooms) || rooms.length === 0) {
+    grid.innerHTML = `
+      <div class="ui-empty-state">
+        <div class="ui-empty-icon"><i data-lucide="monitor-dot"></i></div>
+        <p>No laboratory rooms found.</p>
+      </div>
+    `;
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons({ root: grid });
+    }
+    return;
+  }
+
+  grid.innerHTML = rooms.map(r => {
+    const rawStatus = String(r.Current_Status || 'Available');
+    const statusClass = rawStatus.toLowerCase().replace(/\s+/g, '-');
+    const badgeColor = statusClass === 'in-use' ? '#EF4444' : (statusClass === 'claimed' ? '#F59E0B' : '#10B981');
+    const badgeBg = statusClass === 'in-use' ? '#FEE2E2' : (statusClass === 'claimed' ? '#FEF3C7' : '#D1FAE5');
+
+    return `
+      <div class="lab-card" style="background: var(--bg-white); border: 1px solid var(--border-light); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-weight: 800; font-size: 16px; color: var(--text-dark);">Room ${escapeHtml(r.Room_Number)}</div>
+          <span style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: ${badgeBg}; color: ${badgeColor}; text-transform: uppercase;">
+            ${escapeHtml(rawStatus)}
+          </span>
+        </div>
+        <div style="font-size: 12.5px; color: var(--text-mid);">${escapeHtml(r.Building || 'IT Building')}</div>
+        <div style="font-size: 12px; color: var(--text-dark); font-weight: 600; background: var(--bg-body); padding: 8px 10px; border-radius: 8px;">
+          ${r.Current_Class !== 'None' ? escapeHtml(r.Current_Class) : 'No Active Class'}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons({ root: grid });
   }
 }
 
@@ -256,8 +327,10 @@ function initITHeadDashboardPage() {
 window.loadITHeadDashboardData = loadITHeadDashboardData;
 window.initITHeadDashboardPage = initITHeadDashboardPage;
 
-// Auto-initialize immediately and on DOMContentLoaded
-initITHeadDashboardPage();
+// Auto-initialize on DOMContentLoaded or immediately if DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initITHeadDashboardPage);
+} else {
+  initITHeadDashboardPage();
 }
+

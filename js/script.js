@@ -453,9 +453,9 @@ function initNotifications() {
       const notifications = typeof window.fetchNotifications === 'function'
         ? await window.fetchNotifications()
         : await (async () => {
-            const res = await fetch(`/api/notifications?_=${Date.now()}`, { credentials: 'include' });
-            return res.ok ? await res.json() : null;
-          })();
+          const res = await fetch(`/api/notifications?_=${Date.now()}`, { credentials: 'include' });
+          return res.ok ? await res.json() : null;
+        })();
       if (!notifications || !Array.isArray(notifications)) return;
 
       const lastRead = localStorage.getItem('last_read_notifications');
@@ -521,7 +521,7 @@ function initNotifications() {
       }
 
       // Build notification state signature including all fields that affect UI display
-      const currentSignature = notifications.map(n => 
+      const currentSignature = notifications.map(n =>
         `${n.id || ''}:${n.type || ''}:${n.status || ''}:${n.priority || ''}:${n.pc_number || ''}:${n.room_number || ''}:${n.description || ''}:${n.time || ''}`
       ).join('|');
 
@@ -1720,9 +1720,9 @@ window.loadSystemActivityFeed = async function (targetContainer, optionalReports
     const rawNotifs = typeof window.fetchNotifications === 'function'
       ? await window.fetchNotifications()
       : await (async () => {
-          const res = await fetch('/api/notifications', { credentials: 'include' });
-          return res.ok ? await res.json() : null;
-        })();
+        const res = await fetch('/api/notifications', { credentials: 'include' });
+        return res.ok ? await res.json() : null;
+      })();
     if (Array.isArray(rawNotifs) && rawNotifs.length > 0) {
       activities = rawNotifs.map(n => transformNotificationToActivity(n));
     }
@@ -2099,10 +2099,10 @@ async function loadDashboardStatsAndLabs() {
     const labs = typeof window.fetchLaboratories === 'function'
       ? await window.fetchLaboratories()
       : await (async () => {
-          const res = await fetch('/api/laboratories', { credentials: 'include' });
-          if (!res.ok) throw new Error('Failed to load laboratories');
-          return await res.json();
-        })();
+        const res = await fetch('/api/laboratories', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load laboratories');
+        return await res.json();
+      })();
 
     // 2. Fetch PC reports (for pending count)
     const reportsRes = await fetch('/api/reports');
@@ -2371,9 +2371,9 @@ async function loadRoomStatusActivityLog() {
     const activities = typeof window.fetchNotifications === 'function'
       ? await window.fetchNotifications()
       : await (async () => {
-          const res = await fetch('/api/notifications', { credentials: 'include' });
-          return res.ok ? await res.json() : null;
-        })();
+        const res = await fetch('/api/notifications', { credentials: 'include' });
+        return res.ok ? await res.json() : null;
+      })();
     if (!activities || !Array.isArray(activities)) throw new Error('Failed to load activities');
 
     // Filter only occupancy log notifications
