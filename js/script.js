@@ -50,6 +50,9 @@ function getGreeting(hour) {
 
 // ── Live Clock & Dynamic Greeting ────────────────────────────────
 function updateClock() {
+  const clockTimeEl = document.getElementById('clockTime');
+  if (!clockTimeEl) return;
+
   const now = new Date();
   let h = now.getHours();
   const m = now.getMinutes();
@@ -58,16 +61,19 @@ function updateClock() {
   h = h % 12 || 12;
 
   // Update clock time
-  document.getElementById('clockTime').textContent =
+  clockTimeEl.textContent =
     `${pad(h)}:${pad(m)}:${pad(s)} ${ampm}`;
 
   // Update date
-  const day = DAYS[now.getDay()];
-  const date = now.getDate();
-  const mon = MONTHS[now.getMonth()];
-  const yr = now.getFullYear();
-  document.getElementById('clockDate').textContent =
-    `${day}, ${mon} ${date}, ${yr}`;
+  const clockDateEl = document.getElementById('clockDate');
+  if (clockDateEl) {
+    const day = DAYS[now.getDay()];
+    const date = now.getDate();
+    const mon = MONTHS[now.getMonth()];
+    const yr = now.getFullYear();
+    clockDateEl.textContent =
+      `${day}, ${mon} ${date}, ${yr}`;
+  }
 
   // Update greeting based on current hour ONLY if dashboard is active
   if (document.body.dataset.page === 'dashboard') {
