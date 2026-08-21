@@ -606,9 +606,7 @@ if (document.readyState === 'loading') {
 }
 
 // Global compatibility bridges
-window.showPCGrid = showPCGrid;
 window.showRoomSelection = showRoomSelection;
-window.loadPCs = loadPCs;
 window.deletePC = deletePC;
 window.generateQR = generateQR;
 window.generateAllQR = generateAllQR;
@@ -620,4 +618,3 @@ window.setCountPreset = setCountPreset;
 window.updateSimplePreview = updateSimplePreview;
 window.validateSpecificPcInput = validateSpecificPcInput;
 window.submitAddPc = submitAddPc;
-window.loadRooms = loadRooms;
