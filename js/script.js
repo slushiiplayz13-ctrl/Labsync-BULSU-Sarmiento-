@@ -76,7 +76,7 @@ function updateClock() {
   }
 
   // Update greeting based on current hour ONLY if dashboard is active
-  if (document.body.dataset.page === 'dashboard') {
+  if (document.body.dataset.page === 'dashboard' || document.body.dataset.page === 'it-head-dashboard') {
     const greet = getGreeting(now.getHours());
 
     // Get the name from the profile section dynamically
@@ -155,7 +155,7 @@ async function loadCurrentUser() {
       }
 
       // Update greeting if on dashboard page
-      if (document.body.dataset.page === 'dashboard') {
+      if (document.body.dataset.page === 'dashboard' || document.body.dataset.page === 'it-head-dashboard') {
         updateClock(); // This will update the greeting with the correct name
       }
     }
@@ -175,7 +175,8 @@ if (document.readyState === 'loading') {
 function initProfileDropdown() {
   // Create dropdown menu if it doesn't exist
   const headerRight = document.querySelector('.header-right');
-  if (!headerRight) return;
+  const profileDropdown = document.querySelector('.profile-dropdown');
+  if (!headerRight || !profileDropdown) return;
 
   let profileMenu = document.getElementById('profile-menu');
   if (!profileMenu) {
@@ -206,7 +207,6 @@ function initProfileDropdown() {
   }
 
   // Add click handlers
-  const profileDropdown = document.querySelector('.profile-dropdown');
   const chevronBtn = document.querySelector('.chevron-btn');
 
   if (profileDropdown) {
@@ -535,6 +535,8 @@ function initNotifications() {
       if (notifStateChanged) {
         if (document.body.dataset.page === 'dashboard' || document.body.dataset.page === 'room-status') {
           loadDashboardStatsAndLabs();
+        } else if (document.body.dataset.page === 'it-head-dashboard') {
+          if (typeof window.loadITHeadDashboardData === 'function') window.loadITHeadDashboardData();
         } else if (document.body.dataset.page === 'mis-dashboard') {
           initMISDashboard();
         }
@@ -613,6 +615,14 @@ function initCommon() {
       window.initDashboard();
     } else if (typeof initDashboard === 'function') {
       initDashboard();
+    }
+  } else if (document.body.dataset.page === 'it-head-dashboard') {
+    if (typeof window.initITHeadDashboardPage === 'function') {
+      window.initITHeadDashboardPage();
+    } else if (typeof initITHeadDashboardPage === 'function') {
+      initITHeadDashboardPage();
+    } else if (typeof window.loadITHeadDashboardData === 'function') {
+      window.loadITHeadDashboardData();
     }
   } else if (document.body.dataset.page === 'mis-dashboard') {
     initMISDashboard();

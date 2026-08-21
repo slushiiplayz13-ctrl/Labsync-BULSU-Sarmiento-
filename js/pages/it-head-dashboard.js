@@ -172,31 +172,57 @@ function renderMyLaboratoriesGrid(rooms) {
 async function loadITHeadDashboardData() {
   try {
     const [summaryRes, roomsRes] = await Promise.all([
-      fetch('/api/dashboard/it-head-summary'),
-      fetch('/api/laboratories')
+      fetch('/api/dashboard/it-head-summary', { credentials: 'include' }),
+      fetch('/api/laboratories', { credentials: 'include' })
     ]);
 
     if (summaryRes.ok) {
       const stats = await summaryRes.json();
 
-      document.getElementById('ithead-stat-rooms').textContent = stats.totalRooms;
-      document.getElementById('ithead-stat-pcs-meta').textContent = `${stats.totalPcs} Registered PCs`;
+      const elRooms = document.getElementById('ithead-stat-rooms');
+      if (elRooms) elRooms.textContent = stats.totalRooms;
 
-      document.getElementById('ithead-stat-available').textContent = stats.availableRooms;
-      document.getElementById('ithead-stat-avail-meta').textContent = `${stats.inUseRooms} In Use • ${stats.claimedRooms} Claimed`;
+      const elPcsMeta = document.getElementById('ithead-stat-pcs-meta');
+      if (elPcsMeta) elPcsMeta.textContent = `${stats.totalPcs} Registered PCs`;
 
-      document.getElementById('ithead-stat-pending').textContent = stats.pendingReports;
-      document.getElementById('ithead-stat-pending-meta').textContent = stats.pendingReports > 0 ? 'Action Recommended' : 'All Systems Clear';
+      const elAvail = document.getElementById('ithead-stat-available');
+      if (elAvail) elAvail.textContent = stats.availableRooms;
 
-      document.getElementById('ithead-stat-classes').textContent = stats.classesToday;
-      document.getElementById('ithead-stat-classes-meta').textContent = `${stats.myClassesToday.length} Teaching Classes Today`;
+      const elAvailMeta = document.getElementById('ithead-stat-avail-meta');
+      if (elAvailMeta) elAvailMeta.textContent = `${stats.inUseRooms} In Use • ${stats.claimedRooms} Claimed`;
 
-      renderMyTeachingSchedule(stats.myClassesToday);
+      const elPending = document.getElementById('ithead-stat-pending');
+      if (elPending) elPending.textContent = stats.pendingReports;
+
+      const elPendingMeta = document.getElementById('ithead-stat-pending-meta');
+      if (elPendingMeta) elPendingMeta.textContent = stats.pendingReports > 0 ? 'Action Recommended' : 'All Systems Clear';
+
+      const elClasses = document.getElementById('ithead-stat-classes');
+      if (elClasses) elClasses.textContent = stats.classesToday;
+
+      const elClassesMeta = document.getElementById('ithead-stat-classes-meta');
+      if (elClassesMeta) elClassesMeta.textContent = `${(stats.myClassesToday || []).length} Teaching Classes Today`;
+
+      renderMyTeachingSchedule(stats.myClassesToday || []);
+    } else {
+      console.error('Failed to load IT Head summary stats:', summaryRes.status);
     }
 
     if (roomsRes.ok) {
       const rooms = await roomsRes.json();
       renderMyLaboratoriesGrid(rooms);
+    } else {
+      console.error('Failed to load laboratories:', roomsRes.status);
+      const grid = document.getElementById('ithead-labs-grid');
+      if (grid) {
+        grid.innerHTML = `
+          <div class="ui-empty-state">
+            <div class="ui-empty-icon" style="background:#FEE2E2; color:#EF4444;"><i data-lucide="alert-circle"></i></div>
+            <p>Failed to load laboratory status.</p>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons({ root: grid });
+      }
     }
   } catch (err) {
     console.error('Error loading IT Head dashboard:', err);
@@ -226,9 +252,12 @@ function initITHeadDashboardPage() {
   loadITHeadDashboardData();
 }
 
-// Auto-initialize on DOMContentLoaded
+// Expose globally
+window.loadITHeadDashboardData = loadITHeadDashboardData;
+window.initITHeadDashboardPage = initITHeadDashboardPage;
+
+// Auto-initialize immediately and on DOMContentLoaded
+initITHeadDashboardPage();
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initITHeadDashboardPage);
-} else {
-  initITHeadDashboardPage();
 }

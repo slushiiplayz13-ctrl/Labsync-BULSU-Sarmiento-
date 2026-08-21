@@ -20,39 +20,53 @@
 
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css?v=1.0.3" />
-  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <style id="auth-anti-flash">
+    body {
+      display: none !important;
+    }
+  </style>
   <script src="js/auth-check.js"></script>
 </head>
 
-<body data-page="dashboard">
+<body data-page="it-head-dashboard">
 
   <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
   <aside class="sidebar">
 
     <nav class="sidebar-nav">
-      <button class="sidebar-btn active" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='it-head-dashboard.html'">
+      <button class="sidebar-btn active" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='it-head-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status" onclick="window.location.href='it-head-room-status.html'">
+      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status"
+        onclick="window.location.href='it-head-room-status.html'">
         <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports" onclick="window.location.href='it-head-pc-reports.html'">
+      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports"
+        onclick="window.location.href='it-head-pc-reports.html'">
         <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule" onclick="window.location.href='it-head-my-schedule.html'">
+      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule"
+        onclick="window.location.href='it-head-my-schedule.html'">
         <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
       </button>
-      
-      <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;"></div>
 
-      <button class="sidebar-btn desktop-only-btn" data-tooltip="Master Schedule" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+      <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;">
+      </div>
+
+      <button class="sidebar-btn desktop-only-btn" data-tooltip="Master Schedule" title="Master Schedule"
+        onclick="window.location.href='master-schedule.html'">
         <i data-lucide="calendar" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn desktop-only-btn" data-tooltip="Faculty Management" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+      <button class="sidebar-btn desktop-only-btn" data-tooltip="Faculty Management" title="Faculty Management"
+        onclick="window.location.href='faculty-management.html'">
         <i data-lucide="users" style="width:24px;height:24px;"></i>
       </button>
-      <div class="mobile-only-divider" style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;"></div>
-      <button class="sidebar-btn mobile-only-btn" data-tooltip="Admin Panel" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
+      <div class="mobile-only-divider"
+        style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;">
+      </div>
+      <button class="sidebar-btn mobile-only-btn" data-tooltip="Admin Panel" title="Admin Panel"
+        onclick="toggleAdminMenu(event, this)">
         <i data-lucide="folder-cog" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -70,7 +84,8 @@
   </aside>
 
   <!-- Scroll Clue for Sidebar -->
-  <div id="sidebarScrollClue" style="position: fixed; bottom: 16px; left: 30px; z-index: 105; color: var(--primary-teal); pointer-events: none; transition: opacity 0.3s ease;">
+  <div id="sidebarScrollClue"
+    style="position: fixed; bottom: 16px; left: 30px; z-index: 105; color: var(--primary-teal); pointer-events: none; transition: opacity 0.3s ease;">
     <i data-lucide="chevron-down" style="width: 20px; height: 20px; animation: bounce 2s infinite;"></i>
   </div>
   <!-- ── MAIN WRAPPER ─────────────────────────────────────────── -->
@@ -126,152 +141,161 @@
 
       <!-- Main Content Card -->
       <div class="dashboard-card">
-<!-- Dashboard Overview -->
-          <div class="dashboard-overview">
-        
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-          <!-- Total Lab Rooms -->
-          <div class="stat-card theme-blue">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value blue-text" id="ithead-stat-rooms">—</div>
-                <div class="stat-title">Total Lab Rooms</div>
+        <!-- Dashboard Overview -->
+        <div class="dashboard-overview">
+
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <!-- Total Lab Rooms -->
+            <div class="stat-card theme-blue">
+              <div class="stat-header">
+                <div class="stat-info">
+                  <div class="stat-value blue-text" id="ithead-stat-rooms">—</div>
+                  <div class="stat-title">Total Lab Rooms</div>
+                </div>
+                <div class="stat-icon">
+                  <i data-lucide="monitor"></i>
+                </div>
               </div>
-              <div class="stat-icon">
+              <div class="stat-meta-container">
+                <span class="stat-meta" id="ithead-stat-pcs-meta">Loading...</span>
+              </div>
+              <div class="stat-watermark">
                 <i data-lucide="monitor"></i>
               </div>
             </div>
-            <div class="stat-meta-container">
-              <span class="stat-meta" id="ithead-stat-pcs-meta">Loading...</span>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="monitor"></i>
-            </div>
-          </div>
 
-          <!-- Available Labs -->
-          <div class="stat-card theme-green">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value green-text" id="ithead-stat-available">—</div>
-                <div class="stat-title">Available Labs</div>
+            <!-- Available Labs -->
+            <div class="stat-card theme-green">
+              <div class="stat-header">
+                <div class="stat-info">
+                  <div class="stat-value green-text" id="ithead-stat-available">—</div>
+                  <div class="stat-title">Available Labs</div>
+                </div>
+                <div class="stat-icon">
+                  <i data-lucide="check-circle"></i>
+                </div>
               </div>
-              <div class="stat-icon">
+              <div class="stat-meta-container">
+                <span class="stat-meta" id="ithead-stat-avail-meta">Loading...</span>
+              </div>
+              <div class="stat-watermark">
                 <i data-lucide="check-circle"></i>
               </div>
             </div>
-            <div class="stat-meta-container">
-              <span class="stat-meta" id="ithead-stat-avail-meta">Loading...</span>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="check-circle"></i>
-            </div>
-          </div>
 
-          <!-- Pending PC Reports -->
-          <div class="stat-card theme-orange">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value orange-text" id="ithead-stat-pending">—</div>
-                <div class="stat-title">Pending PC Reports</div>
+            <!-- Pending PC Reports -->
+            <div class="stat-card theme-orange">
+              <div class="stat-header">
+                <div class="stat-info">
+                  <div class="stat-value orange-text" id="ithead-stat-pending">—</div>
+                  <div class="stat-title">Pending PC Reports</div>
+                </div>
+                <div class="stat-icon">
+                  <i data-lucide="alert-circle"></i>
+                </div>
               </div>
-              <div class="stat-icon">
+              <div class="stat-meta-container">
+                <span class="stat-meta" id="ithead-stat-pending-meta">Loading...</span>
+              </div>
+              <div class="stat-watermark">
                 <i data-lucide="alert-circle"></i>
               </div>
             </div>
-            <div class="stat-meta-container">
-              <span class="stat-meta" id="ithead-stat-pending-meta">Loading...</span>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="alert-circle"></i>
-            </div>
-          </div>
 
-          <!-- Classes Today -->
-          <div class="stat-card theme-purple">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value" id="ithead-stat-classes">—</div>
-                <div class="stat-title">Classes Today</div>
+            <!-- Classes Today -->
+            <div class="stat-card theme-purple">
+              <div class="stat-header">
+                <div class="stat-info">
+                  <div class="stat-value" id="ithead-stat-classes">—</div>
+                  <div class="stat-title">Classes Today</div>
+                </div>
+                <div class="stat-icon">
+                  <i data-lucide="calendar-clock"></i>
+                </div>
               </div>
-              <div class="stat-icon">
+              <div class="stat-meta-container">
+                <span class="stat-meta" id="ithead-stat-classes-meta">Scheduled Today</span>
+              </div>
+              <div class="stat-watermark">
                 <i data-lucide="calendar-clock"></i>
               </div>
             </div>
-            <div class="stat-meta-container">
-              <span class="stat-meta" id="ithead-stat-classes-meta">Scheduled Today</span>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="calendar-clock"></i>
-            </div>
           </div>
-        </div>
 
-        <!-- Main Grid -->
-        <div class="dashboard-main-grid">
-          
-          <!-- Left: My Laboratories -->
-          <div class="content-card">
-            <div class="section-header">
-              <div class="sh-left">
-                <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
-                  <i data-lucide="book-open" style="width:22px;height:22px;"></i>
-                </div>
-                <div>
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <h3>My Laboratories</h3>
-                    <span class="scroll-hint-badge" style="display: none; align-items: center; gap: 4px; font-size: 10px; color: var(--primary-teal); background: var(--primary-teal-light); padding: 2px 8px; border-radius: 99px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                      <i data-lucide="chevrons-up-down" style="width: 11px; height: 11px;"></i> Scrollable
-                    </span>
+          <!-- Main Grid -->
+          <div class="dashboard-main-grid">
+
+            <!-- Left: My Laboratories -->
+            <div class="content-card">
+              <div class="section-header">
+                <div class="sh-left">
+                  <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
+                    <i data-lucide="book-open" style="width:22px;height:22px;"></i>
                   </div>
-                  <p>Real-time room status</p>
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <h3>My Laboratories</h3>
+                      <span class="scroll-hint-badge"
+                        style="display: none; align-items: center; gap: 4px; font-size: 10px; color: var(--primary-teal); background: var(--primary-teal-light); padding: 2px 8px; border-radius: 99px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i data-lucide="chevrons-up-down" style="width: 11px; height: 11px;"></i> Scrollable
+                      </span>
+                    </div>
+                    <p>Real-time room status</p>
+                  </div>
+                </div>
+                <div class="sh-legend">
+                  <div class="legend-item">
+                    <div class="dot green"></div> Available
+                  </div>
+                  <div class="legend-item">
+                    <div class="dot orange"></div> Claimed
+                  </div>
+                  <div class="legend-item">
+                    <div class="dot red"></div> In Use
+                  </div>
                 </div>
               </div>
-              <div class="sh-legend">
-                <div class="legend-item"><div class="dot green"></div> Available</div>
-                <div class="legend-item"><div class="dot orange"></div> Claimed</div>
-                <div class="legend-item"><div class="dot red"></div> In Use</div>
+
+              <div class="labs-grid" id="ithead-labs-grid">
+                <div class="ui-empty-state">
+                  <div class="ui-empty-icon">
+                    <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
+                  </div>
+                  <p>Loading laboratory status...</p>
+                </div>
               </div>
             </div>
 
-            <div class="labs-grid" id="ithead-labs-grid">
-              <div class="ui-empty-state">
-                <div class="ui-empty-icon">
-                  <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
+            <!-- Right: My Schedule (Faculty View for Dept Head) -->
+            <div class="content-card">
+              <div class="section-header" style="margin-bottom:28px;">
+                <div class="sh-left">
+                  <div class="sh-icon" style="background:#E0F2FE;color:#0284C7;">
+                    <i data-lucide="calendar-days" style="width:22px;height:22px;"></i>
+                  </div>
+                  <div>
+                    <h3>My Schedule</h3>
+                    <p>Today's classes</p>
+                  </div>
                 </div>
-                <p>Loading laboratory status...</p>
               </div>
+
+              <div class="timeline-list" id="ithead-schedule-list"
+                style="padding-left:0; flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;">
+                <div class="ui-empty-state"
+                  style="grid-column: unset; width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; margin: auto 0;">
+                  <div class="ui-empty-icon">
+                    <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
+                  </div>
+                  <p>No classes scheduled for today yet. Your sessions will list here when the schedule is loaded.</p>
+                </div>
+              </div>
+
             </div>
           </div>
 
-          <!-- Right: My Schedule (Faculty View for Dept Head) -->
-          <div class="content-card">
-            <div class="section-header" style="margin-bottom:28px;">
-              <div class="sh-left">
-                <div class="sh-icon" style="background:#E0F2FE;color:#0284C7;">
-                  <i data-lucide="calendar-days" style="width:22px;height:22px;"></i>
-                </div>
-                <div>
-                  <h3>My Schedule</h3>
-                  <p>Today's classes</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="timeline-list" id="ithead-schedule-list" style="padding-left:0; flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;">
-              <div class="ui-empty-state" style="grid-column: unset; width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; margin: auto 0;">
-                <div class="ui-empty-icon">
-                  <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
-                </div>
-                <p>No classes scheduled for today yet. Your sessions will list here when the schedule is loaded.</p>
-              </div>
-            </div>
-
-          </div>
         </div>
-
-          </div>
       </div>
 
     </main>
@@ -282,9 +306,8 @@
   <script src="js/components/toast.js"></script>
   <script src="js/services/notification.service.js"></script>
   <script src="js/services/laboratory.service.js"></script>
-  <script src="js/script.js?v=1.0.5"></script>
-  <script src="js/pages/dashboard.js"></script>
   <script src="js/pages/it-head-dashboard.js"></script>
+  <script src="js/script.js?v=1.0.5"></script>
 </body>
-</html>
 
+</html>
