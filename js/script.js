@@ -2079,10 +2079,14 @@ async function loadDashboardStatsAndLabs() {
   const labsGrid = document.querySelector('.labs-grid');
 
   try {
-    // 1. Fetch laboratories
-    const labsRes = await fetch('/api/laboratories');
-    if (!labsRes.ok) throw new Error('Failed to load laboratories');
-    const labs = await labsRes.json();
+    // 1. Fetch laboratories using shared Laboratory Service
+    const labs = typeof window.fetchLaboratories === 'function'
+      ? await window.fetchLaboratories()
+      : await (async () => {
+          const res = await fetch('/api/laboratories', { credentials: 'include' });
+          if (!res.ok) throw new Error('Failed to load laboratories');
+          return await res.json();
+        })();
 
     // 2. Fetch PC reports (for pending count)
     const reportsRes = await fetch('/api/reports');
@@ -2109,64 +2113,29 @@ async function loadDashboardStatsAndLabs() {
     if (pendingReportsVal) pendingReportsVal.textContent = reportsCount;
     if (pendingReportsMeta) pendingReportsMeta.textContent = `${reportsCount} active ticket(s)`;
 
-    // 4. Update Laboratories Grid if it exists
+    // 4. Update Laboratories Grid using shared Laboratory Service
     if (labsGrid) {
-      if (labs.length === 0) {
-        labsGrid.innerHTML = `
-          <div class="ui-empty-state">
-            <div class="ui-empty-icon">
-              <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
-            </div>
-            <p>No laboratories registered.</p>
-          </div>
-        `;
-        if (window.lucide) lucide.createIcons({ root: labsGrid });
-        return;
+      if (typeof window.renderLabCards === 'function') {
+        window.renderLabCards(labs, labsGrid);
       }
-
-      labsGrid.innerHTML = labs.map(room => {
-        let statusTheme = 'green-theme';
-        if (room.Current_Status.toLowerCase() === 'claimed') statusTheme = 'orange-theme';
-        else if (room.Current_Status.toLowerCase() === 'in use') statusTheme = 'red-theme';
-
-        return `
-          <div class="lab-card ${statusTheme}">
-            <div class="lab-header lc-header">
-              <span class="room-num">RM ${room.Room_Number}</span>
-              <span class="badge ${room.Current_Status.toLowerCase() === 'in use' ? 'red' : (room.Current_Status.toLowerCase() === 'claimed' ? 'orange' : 'green')}">${room.Current_Status}</span>
-            </div>
-            <div class="lab-details lc-details">
-              <div class="ld-row">
-                <span>Building:</span>
-                <strong>${room.Building || 'Main'}</strong>
-              </div>
-              <div class="ld-row">
-                <span>Active Class:</span>
-                <strong class="teal-text">${room.Current_Class || 'None'}</strong>
-              </div>
-              <div class="ld-row">
-                <span>Key Status:</span>
-                <strong style="color: ${room.Key_Status === 'Absent' ? '#ef4444' : '#10b981'};">${room.Key_Status || 'Present'}</strong>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-      if (window.lucide) lucide.createIcons({ root: labsGrid });
     }
 
   } catch (err) {
     console.error('Error loading dashboard stats and labs:', err);
     if (labsGrid) {
-      labsGrid.innerHTML = `
-        <div class="ui-empty-state">
-          <div class="ui-empty-icon" style="background:#FEE2E2; color:#EF4444;">
-            <i data-lucide="alert-circle"></i>
+      if (typeof window.renderLabCardsError === 'function') {
+        window.renderLabCardsError(labsGrid);
+      } else {
+        labsGrid.innerHTML = `
+          <div class="ui-empty-state">
+            <div class="ui-empty-icon" style="background:#FEE2E2; color:#EF4444;">
+              <i data-lucide="alert-circle"></i>
+            </div>
+            <p>Failed to load laboratories.</p>
           </div>
-          <p>Failed to load laboratories.</p>
-        </div>
-      `;
-      if (window.lucide) lucide.createIcons({ root: labsGrid });
+        `;
+        if (window.lucide) lucide.createIcons({ root: labsGrid });
+      }
     }
   }
 }
