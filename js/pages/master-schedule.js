@@ -112,9 +112,6 @@
         }
       });
     }
-
-    window.openModal = openModal;
-    window.closeModal = closeModal;
   }
 
   // Edit Room Modal Logic
@@ -214,9 +211,6 @@
         }
       });
     }
-
-    window.openEditModal = openEditModal;
-    window.closeEditModal = closeEditModal;
   }
 
   // Numeric input restrictor
@@ -415,8 +409,6 @@
       });
     }
 
-    window.openDownloadModal = openDownloadModal;
-    window.closeDownloadModal = closeDownloadModal;
     window.printAllSchedules = function() {
       openDownloadModal();
     };
@@ -508,9 +500,6 @@
         }
       });
     }
-
-    window.openSignatureModal = openSignatureModal;
-    window.closeSignatureModal = closeSignatureModal;
   }
 
   // Import Curriculum Modal Logic
@@ -970,15 +959,6 @@
         }
       });
     }
-
-    window.openImportCurriculumModal = openImportCurriculumModal;
-    window.closeImportCurriculumModal = closeImportCurriculumModal;
-    window.fetchExistingCurriculum = fetchExistingCurriculum;
-    window.renderCurriculumTable = renderCurriculumTable;
-    window.processUploadedFile = processUploadedFile;
-    window.readAsTextFallback = readAsTextFallback;
-    window.parseExcelOrArrayRows = parseExcelOrArrayRows;
-    window.parseCSVText = parseCSVText;
   }
 
   // Initialize Page Component & Selectors
@@ -1003,9 +983,6 @@
 
     loadRooms();
   }
-
-  // Global Bridges
-  window.loadRooms = loadRooms;
 
   // Execute on DOM Ready or immediately
   if (document.readyState === 'loading') {
