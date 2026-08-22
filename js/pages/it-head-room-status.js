@@ -53,43 +53,33 @@
     }
   }
 
-  // Render room status cards
+  // Render room status cards using unified Laboratory Service design
   function renderRoomStatusGrid(rooms) {
     const grid = document.getElementById('ithead-room-grid');
     if (!grid) return;
 
-    if (!rooms || rooms.length === 0) {
-      grid.innerHTML = `
-        <div class="ui-empty-state">
-          <div class="ui-empty-icon"><i data-lucide="monitor-dot"></i></div>
-          <p>No room data available.</p>
-        </div>
-      `;
-      return;
+    if (typeof window.renderLabCards === 'function') {
+      window.renderLabCards(rooms, grid);
+    } else if (typeof renderLabCards === 'function') {
+      renderLabCards(rooms, grid);
     }
+  }
 
-    grid.innerHTML = rooms.map(r => {
-      const statusClass = (r.Current_Status || 'Available').toLowerCase().replace(/\s+/g, '-');
-      const badgeColor = statusClass === 'in-use' ? '#EF4444' : (statusClass === 'claimed' ? '#F59E0B' : '#10B981');
-      const badgeBg = statusClass === 'in-use' ? '#FEE2E2' : (statusClass === 'claimed' ? '#FEF3C7' : '#D1FAE5');
+  function getRelativeTime(dateString) {
+    if (!dateString) return 'Just now';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDays = Math.floor(diffHr / 24);
 
-      return `
-        <div class="lab-card" style="background: var(--bg-white); border: 1px solid var(--border-light); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-weight: 800; font-size: 16px; color: var(--text-dark);">Room ${r.Room_Number}</div>
-            <span style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: ${badgeBg}; color: ${badgeColor}; text-transform: uppercase;">
-              ${r.Current_Status}
-            </span>
-          </div>
-          <div style="font-size: 12.5px; color: var(--text-mid);">${r.Building || 'IT Building'}   Key: <strong>${r.Key_Status || 'Present'}</strong></div>
-          <div style="font-size: 12px; color: var(--text-dark); font-weight: 600; background: var(--bg-body); padding: 8px 10px; border-radius: 8px;">
-            ${r.Current_Class !== 'None' ? r.Current_Class : 'No Active Class'}
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    if (window.lucide) lucide.createIcons();
+    if (diffSec < 60) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHr < 24) return `${diffHr}h ago`;
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays} days ago`;
   }
 
   // Render activity logs with scroll preservation & change fingerprinting
@@ -119,23 +109,41 @@
       return;
     }
 
-    container.innerHTML = occupancyOnly.map(n => {
-      const dateObj = n.time ? new Date(n.time) : new Date();
-      const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-      const isReport = n.type === 'report';
+    container.innerHTML = occupancyOnly.map(log => {
+      let activityText = '';
+      if (log.status === 'Key Taken') {
+        if (log.description && log.description !== 'Room Key') {
+          activityText = `Room key for Room ${log.room_number} taken by ${log.description} (Registered to system).`;
+        } else {
+          activityText = `Room key for Room ${log.room_number} was taken from the holder.`;
+        }
+      } else if (log.status === 'Key Returned') {
+        activityText = `Room key for Room ${log.room_number} was returned (Room Secured).`;
+      } else {
+        activityText = `QR Code verified for ${log.description || 'user'} (Awaiting key retrieval).`;
+      }
+
+      const titleText = log.description && log.description !== 'Room Key' ? log.description : 'Room Key';
+      const detailText = log.detail || 'System';
+      const relTime = getRelativeTime(log.time);
 
       return `
-        <div style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-bottom: 1px solid var(--border-light); font-size: 13px;">
-          <div style="width: 32px; height: 32px; border-radius: 50%; background: ${isReport ? '#FEF3C7' : '#E0F2FE'}; color: ${isReport ? '#D97706' : '#0284C7'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
-            <i data-lucide="${isReport ? 'wrench' : 'key'}" style="width: 16px; height: 16px;"></i>
+        <div class="timeline-item" style="display:flex;gap:16px;margin-bottom:16px;position:relative;">
+          <div class="timeline-badge" style="width:40px;height:40px;border-radius:50%;background:#E8F9FC;color:#1EBBD7;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:2;">
+            <i data-lucide="key-round" style="width:18px;height:18px;"></i>
           </div>
-          <div style="flex: 1;">
-            <div style="font-weight: 700; color: var(--text-dark); display: flex; justify-content: space-between;">
-              <span>${isReport ? `PC Report (Room ${n.room_number})` : `Room Access (Room ${n.room_number})`}</span>
-              <span style="font-size: 11px; font-weight: 500; color: var(--text-light);">${formattedDate}</span>
+          <div class="timeline-panel" style="flex:1;background:var(--bg-white, #fff);border:1px solid var(--border-light, #e2e8f0);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+            <div class="timeline-heading" style="margin-bottom:6px;">
+              <h4 class="timeline-title" style="font-family:var(--font-display);font-size:14.5px;font-weight:700;color:var(--text-dark, #1e293b);margin:0;">${titleText}</h4>
+              <p style="margin:2px 0 0 0;font-size:12px;color:var(--text-light, #64748b);display:flex;align-items:center;gap:4px;">
+                <i data-lucide="clock" style="width:12px;height:12px;"></i>
+                <span>${relTime}</span>
+                <span style="color:var(--border-light, #cbd5e1);">•</span>
+                <span>${detailText}</span>
+              </p>
             </div>
-            <div style="font-size: 12.5px; color: var(--text-mid); margin-top: 2px;">
-              ${isReport ? `PC ${n.pc_number} - ${n.description}` : `${n.description} (${n.detail || 'Event'})`}
+            <div class="timeline-body" style="font-family:var(--font-body);font-size:13.5px;color:var(--text-mid, #475569);line-height:1.5;">
+              <p style="margin:0;">${activityText}</p>
             </div>
           </div>
         </div>

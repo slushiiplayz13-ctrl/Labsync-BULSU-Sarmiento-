@@ -8,7 +8,7 @@ async function findByEmail(email, executor = db) {
 
 async function insertFaculty({ name, email, role, password, qrString }, executor = db) {
     return executor.query(
-        'INSERT INTO users (Name, Email, Role, Password, ID_QR_String) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO users (Name, Email, Role, Password, ID_QR_String, Has_Completed_Tutorial) VALUES (?, ?, ?, ?, ?, 0)',
         [name, email, role || 'Faculty', password, qrString]
     );
 }

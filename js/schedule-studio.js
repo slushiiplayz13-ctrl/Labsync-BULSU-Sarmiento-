@@ -55,7 +55,7 @@
                   </button>
                   <button class="theme-card-btn ${state.theme === 'teal' ? 'active' : ''}" data-theme="teal">
                     <div class="theme-swatch theme-teal"></div>
-                    <span class="theme-name">LabSync Teal</span>
+                    <span class="theme-name">LabSync Blue</span>
                   </button>
                   <button class="theme-card-btn ${state.theme === 'academic' ? 'active' : ''}" data-theme="academic">
                     <div class="theme-swatch theme-academic"></div>

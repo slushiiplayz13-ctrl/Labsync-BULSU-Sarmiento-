@@ -25,11 +25,12 @@ window.loadUserSchedule = async function () {
 
     if (schedules.length === 0) {
       container.innerHTML = `
-        <div class="ui-empty-state">
-          <div class="ui-empty-icon">
+        <div class="ui-empty-state" style="width: 100%; flex: 1; height: 100%; min-height: 280px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0; box-sizing: border-box;">
+          <div class="ui-empty-icon" style="background:#E8F9FC; color:#1EBBD7;">
             <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
           </div>
-          <p>No weekly schedule loaded for ${ay} ${sem}. Your teaching blocks will appear here when data is synced.</p>
+          <p style="font-weight:600; color:var(--text-dark, #1e293b); margin-top:8px; margin-bottom:4px;">No weekly schedule loaded for ${ay} ${sem}</p>
+          <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin-bottom:0;">Your teaching blocks will appear here when data is synced.</p>
         </div>
       `;
       if (window.lucide) lucide.createIcons({ root: container });

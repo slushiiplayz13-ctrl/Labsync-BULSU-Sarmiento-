@@ -118,7 +118,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 10px;
 }
@@ -462,7 +462,7 @@
   flex: 1 1 auto !important;
   height: 100% !important;
   min-height: 0 !important;
-  max-height: none !important;
+  max-height: clamp(360px, calc(100vh - 280px), 560px) !important;
   overflow-y: auto !important;
   padding-right: 4px;
 }
@@ -1216,6 +1216,33 @@ html.high-contrast .lab-card-back {
   color: #F59E0B;
 }
 
+#schedule-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+#schedule-container:has(> .ui-empty-state) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+#schedule-container > .ui-empty-state {
+  width: 100% !important;
+  flex: 1 !important;
+  height: 100% !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 /* ─── Weekly Schedule Columns & Day Container Component Styles ─── */
 .schedule-columns {
   display: grid;
@@ -1846,6 +1873,112 @@ html.high-contrast .lab-card-back {
 
 #blocks-container {
   min-height: 100px;
+}
+
+/* Schedule Card Info Icon */
+.card-info-icon {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0F172A !important;
+  border: 1px solid rgba(15, 23, 42, 0.15) !important;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.15);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.95;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+.card-info-icon i,
+.card-info-icon svg {
+  width: 13px !important;
+  height: 13px !important;
+  pointer-events: none;
+  stroke: #0F172A !important;
+  color: #0F172A !important;
+}
+.card-info-icon:hover {
+  opacity: 1 !important;
+  color: #ffffff !important;
+  background: var(--primary-teal, #1EBBD7) !important;
+  border-color: var(--primary-teal, #1EBBD7) !important;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(30, 187, 215, 0.4);
+}
+.card-info-icon:hover i,
+.card-info-icon:hover svg {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Dark mode and High-Contrast explicit dark icon contrast overrides */
+html.dark-mode .card-info-icon,
+body.dark-mode .card-info-icon,
+[data-theme="dark"] .card-info-icon,
+html.high-contrast .card-info-icon {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+html.dark-mode .card-info-icon i,
+html.dark-mode .card-info-icon svg,
+body.dark-mode .card-info-icon i,
+body.dark-mode .card-info-icon svg,
+[data-theme="dark"] .card-info-icon i,
+[data-theme="dark"] .card-info-icon svg,
+html.high-contrast .card-info-icon i,
+html.high-contrast .card-info-icon svg {
+  stroke: #0F172A !important;
+  color: #0F172A !important;
+}
+
+/* High-Contrast and Dark Mode Schedule Card Block Visibility Fixes */
+html.dark-mode .grid-card,
+body.dark-mode .grid-card,
+[data-theme="dark"] .grid-card,
+html.high-contrast .grid-card {
+  background-color: rgba(15, 23, 42, 0.88) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+html.dark-mode .grid-card-title,
+body.dark-mode .grid-card-title,
+[data-theme="dark"] .grid-card-title,
+html.high-contrast .grid-card-title {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+html.dark-mode .grid-card-section,
+body.dark-mode .grid-card-section,
+[data-theme="dark"] .grid-card-section,
+html.high-contrast .grid-card-section,
+html.dark-mode .grid-card-prof,
+body.dark-mode .grid-card-prof,
+[data-theme="dark"] .grid-card-prof,
+html.high-contrast .grid-card-prof {
+  color: #E2E8F0 !important;
+  font-weight: 600 !important;
+}
+
+html.dark-mode .grid-card-time,
+body.dark-mode .grid-card-time,
+[data-theme="dark"] .grid-card-time,
+html.high-contrast .grid-card-time,
+html.dark-mode .grid-card-time-text,
+body.dark-mode .grid-card-time-text,
+[data-theme="dark"] .grid-card-time-text,
+html.high-contrast .grid-card-time-text {
+  color: #38BDF8 !important;
+  font-weight: 700 !important;
 }
 
 /* ─── Faculty Management Grid & Faculty Subcomponent Cards Component Styles ─── */

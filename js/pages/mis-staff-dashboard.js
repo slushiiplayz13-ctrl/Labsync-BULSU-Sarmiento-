@@ -38,7 +38,7 @@ function renderActivityFeed(reports) {
  * @returns {string}
  */
 function escapeHtml(str) {
-  if (typeof window.escapeHtml === 'function') {
+  if (typeof window.escapeHtml === 'function' && window.escapeHtml !== escapeHtml) {
     return window.escapeHtml(str);
   }
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

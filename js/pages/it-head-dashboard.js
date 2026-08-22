@@ -10,7 +10,7 @@
  * @returns {string}
  */
 function escapeHtml(str) {
-  if (typeof window.escapeHtml === 'function') {
+  if (typeof window.escapeHtml === 'function' && window.escapeHtml !== escapeHtml) {
     return window.escapeHtml(str);
   }
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -22,7 +22,7 @@ function escapeHtml(str) {
  * @returns {string}
  */
 function formatTime12(timeStr) {
-  if (typeof window.formatTime12 === 'function') {
+  if (typeof window.formatTime12 === 'function' && window.formatTime12 !== formatTime12) {
     return window.formatTime12(timeStr);
   }
   if (!timeStr) return '';
@@ -202,7 +202,7 @@ async function loadITHeadDashboardData() {
     await loadDashboardSchedule();
   }
 
-  // 2. Fetch & Render Laboratories Grid independently
+  // 3. Fetch & Render Laboratories Grid filtered by user assigned schedule
   try {
     const fetchFn = typeof window.fetchLaboratories === 'function'
       ? window.fetchLaboratories
@@ -212,16 +212,41 @@ async function loadITHeadDashboardData() {
           return await res.json();
         };
 
-    const rooms = await fetchFn();
+    const allLabs = await fetchFn();
+    const assignedRooms = typeof window.getUserAssignedRooms === 'function'
+      ? await window.getUserAssignedRooms()
+      : new Set();
+
+    const myLabs = allLabs.filter(room => {
+      const roomNum = String(room.Room_Number || '').trim().replace(/^RM\s*/i, '').toLowerCase();
+      return assignedRooms.has(roomNum);
+    });
+
+    const elRooms = document.getElementById('ithead-stat-rooms');
+    if (elRooms) elRooms.textContent = allLabs.length;
+
+    const elPcsMeta = document.getElementById('ithead-stat-pcs-meta');
+    if (elPcsMeta) {
+      elPcsMeta.textContent = myLabs.length > 0 
+        ? `${myLabs.length} assigned to you (${allLabs.length} total)`
+        : `${allLabs.length} registered campus lab(s)`;
+    }
+
+    const elAvail = document.getElementById('ithead-stat-available');
+    const availableTotalCount = allLabs.filter(r => String(r.Current_Status || '').toLowerCase() === 'available').length;
+    if (elAvail) elAvail.textContent = availableTotalCount;
+
+    const elAvailMeta = document.getElementById('ithead-stat-avail-meta');
+    if (elAvailMeta) elAvailMeta.textContent = `${availableTotalCount} available now campus-wide`;
 
     const renderFn = typeof window.renderLabCards === 'function'
       ? window.renderLabCards
       : null;
 
     if (renderFn) {
-      renderFn(rooms, labsContainer);
+      renderFn(myLabs, labsContainer);
     } else {
-      renderMyLaboratoriesGridFallback(rooms, labsContainer);
+      renderMyLaboratoriesGridFallback(myLabs, labsContainer);
     }
   } catch (err) {
     console.error('IT Head laboratory loading failed:', err);
@@ -260,43 +285,10 @@ function renderMyLaboratoriesGridFallback(rooms, targetContainer) {
 
   if (!grid) return;
 
-  if (!Array.isArray(rooms) || rooms.length === 0) {
-    grid.innerHTML = `
-      <div class="ui-empty-state">
-        <div class="ui-empty-icon"><i data-lucide="monitor-dot"></i></div>
-        <p>No laboratory rooms found.</p>
-      </div>
-    `;
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-      window.lucide.createIcons({ root: grid });
-    }
-    return;
-  }
-
-  grid.innerHTML = rooms.map(r => {
-    const rawStatus = String(r.Current_Status || 'Available');
-    const statusClass = rawStatus.toLowerCase().replace(/\s+/g, '-');
-    const badgeColor = statusClass === 'in-use' ? '#EF4444' : (statusClass === 'claimed' ? '#F59E0B' : '#10B981');
-    const badgeBg = statusClass === 'in-use' ? '#FEE2E2' : (statusClass === 'claimed' ? '#FEF3C7' : '#D1FAE5');
-
-    return `
-      <div class="lab-card" style="background: var(--bg-white); border: 1px solid var(--border-light); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div style="font-weight: 800; font-size: 16px; color: var(--text-dark);">Room ${escapeHtml(r.Room_Number)}</div>
-          <span style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: ${badgeBg}; color: ${badgeColor}; text-transform: uppercase;">
-            ${escapeHtml(rawStatus)}
-          </span>
-        </div>
-        <div style="font-size: 12.5px; color: var(--text-mid);">${escapeHtml(r.Building || 'IT Building')}</div>
-        <div style="font-size: 12px; color: var(--text-dark); font-weight: 600; background: var(--bg-body); padding: 8px 10px; border-radius: 8px;">
-          ${r.Current_Class !== 'None' ? escapeHtml(r.Current_Class) : 'No Active Class'}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  if (window.lucide && typeof window.lucide.createIcons === 'function') {
-    window.lucide.createIcons({ root: grid });
+  if (typeof window.renderLabCards === 'function') {
+    window.renderLabCards(rooms, grid);
+  } else if (typeof renderLabCards === 'function') {
+    renderLabCards(rooms, grid);
   }
 }
 

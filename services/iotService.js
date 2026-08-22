@@ -42,7 +42,7 @@ async function logOccupancy(reqBody) {
         try {
             await connection.beginTransaction();
 
-            await labRepository.updateKeyStatus(room.Room_ID, status, connection);
+            await labRepository.updateKeyStatus(room.Room_ID, status, claimUserId, connection);
             await iotRepository.insertOccupancyLog(claimUserId, room.Room_ID, keyEvent, connection);
 
             await connection.commit();
@@ -85,6 +85,12 @@ async function logOccupancy(reqBody) {
     }
     const user = users[0];
 
+    if (!user.ID_QR_String) {
+        const newQR = `LABSYNC-USER-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        await userRepository.updateUserQR(user.User_ID, newQR);
+        user.ID_QR_String = newQR;
+    }
+
     recentRoomClaims[roomNumber] = {
         userId: user.User_ID,
         userName: user.Name,
@@ -102,8 +108,9 @@ async function logOccupancy(reqBody) {
                 name: user.Name,
                 role: user.Role
             },
-            lcdLine1: 'Scan Confirmed!',
-            lcdLine2: 'You May Take Key'
+            name: user.Name,
+            lcdLine1: 'Access Granted!',
+            lcdLine2: user.Name.substring(0, 16)
         }
     };
 }

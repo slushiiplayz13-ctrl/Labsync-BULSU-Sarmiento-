@@ -12,7 +12,7 @@ async function findBasicByEmail(email, executor = db) {
 
 async function findById(userId, executor = db) {
     return executor.query(
-        'SELECT User_ID, Name, Email, Role, Profile_Photo, Phone FROM users WHERE User_ID = ?',
+        'SELECT User_ID, Name, Email, Role, Profile_Photo, Phone, Has_Completed_Tutorial FROM users WHERE User_ID = ?',
         [userId]
     );
 }
@@ -107,14 +107,52 @@ async function updateUserQR(userId, qrString, executor = db) {
 }
 
 async function findByQRString(qrString, executor = db) {
-    return executor.query(
-        'SELECT User_ID, Name, Email, Role FROM users WHERE ID_QR_String = ?',
-        [qrString]
+    if (!qrString) return [[]];
+    const cleanStr = String(qrString).trim();
+
+    // 1. Try exact match, FIND_IN_SET, or LIKE on ID_QR_String
+    let [users] = await executor.query(
+        'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE ID_QR_String = ? OR FIND_IN_SET(?, ID_QR_String) > 0 OR ID_QR_String LIKE ?',
+        [cleanStr, cleanStr, `%${cleanStr}%`]
     );
+    if (users.length > 0) return [users];
+
+    // 2. Try match on Email or User_ID
+    [users] = await executor.query(
+        'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE Email = ? OR User_ID = ?',
+        [cleanStr, cleanStr]
+    );
+    if (users.length > 0) return [users];
+
+    // 3. Fallback: URL decoding or JSON token extraction
+    let extractedToken = cleanStr;
+    if (cleanStr.includes('qrString=')) {
+        const match = cleanStr.match(/qrString=([^&]+)/);
+        if (match) extractedToken = decodeURIComponent(match[1]);
+    } else if (cleanStr.startsWith('{') && cleanStr.endsWith('}')) {
+        try {
+            const parsed = JSON.parse(cleanStr);
+            extractedToken = parsed.qrString || parsed.id || parsed.email || cleanStr;
+        } catch (e) {}
+    }
+
+    if (extractedToken !== cleanStr) {
+        return executor.query(
+            'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE ID_QR_String = ? OR FIND_IN_SET(?, ID_QR_String) > 0 OR ID_QR_String LIKE ? OR Email = ? OR User_ID = ?',
+            [extractedToken, extractedToken, `%${extractedToken}%`, extractedToken, extractedToken]
+        );
+    }
+
+    return [[]];
 }
 
 async function getRoleById(userId, executor = db) {
     return executor.query('SELECT Role FROM users WHERE User_ID = ?', [userId]);
+}
+
+async function updateTutorialStatus(userId, completed, executor = db) {
+    const statusVal = completed ? 1 : 0;
+    return executor.query('UPDATE users SET Has_Completed_Tutorial = ? WHERE User_ID = ?', [statusVal, userId]);
 }
 
 module.exports = {
@@ -133,5 +171,6 @@ module.exports = {
     findUserQR,
     updateUserQR,
     findByQRString,
-    getRoleById
+    getRoleById,
+    updateTutorialStatus
 };

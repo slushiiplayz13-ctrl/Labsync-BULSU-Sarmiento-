@@ -64,10 +64,25 @@ async function scanQRCode(req, res, next) {
     }
 }
 
+async function updateTutorialStatus(req, res, next) {
+    try {
+        const userId = req.session ? req.session.userId : null;
+        const { completed } = req.body;
+        const result = await usersService.updateTutorialStatus(userId, completed !== undefined ? completed : true);
+        if (result.error) {
+            return res.status(result.status).json({ error: result.error });
+        }
+        return res.status(result.status).json({ message: result.message });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     getCurrentUser,
     updateUser,
     verifyEmail,
     getUserQRCode,
-    scanQRCode
+    scanQRCode,
+    updateTutorialStatus
 };

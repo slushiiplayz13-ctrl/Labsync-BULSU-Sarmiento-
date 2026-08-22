@@ -162,7 +162,8 @@ async function getNotifications(sessionUserId, sessionUserRole) {
         const [schedules] = await scheduleRepository.findDistinctRoomIdsByUserId(userId);
 
         if (schedules.length === 0) {
-            return { status: 200, data: [] };
+            const [allNotifications] = await maintenanceRepository.findAllNotifications();
+            return { status: 200, data: allNotifications };
         }
 
         const roomIds = schedules.map(s => s.Room_ID);

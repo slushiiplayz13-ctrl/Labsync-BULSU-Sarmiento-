@@ -25,7 +25,8 @@ async function getCurrentUser(userId) {
             email: users[0].Email,
             role: users[0].Role,
             profilePhoto: users[0].Profile_Photo,
-            phone: users[0].Phone
+            phone: users[0].Phone,
+            hasCompletedTutorial: users[0].Has_Completed_Tutorial === 1 || users[0].Has_Completed_Tutorial === true
         }
     };
 }
@@ -263,10 +264,19 @@ async function scanQRCode(qrString) {
     };
 }
 
+async function updateTutorialStatus(userId, completed) {
+    if (!userId) {
+        return { status: 401, error: 'Not authenticated' };
+    }
+    await userRepository.updateTutorialStatus(userId, completed);
+    return { status: 200, message: 'Tutorial status updated successfully' };
+}
+
 module.exports = {
     getCurrentUser,
     updateUserAccount,
     verifyEmailToken,
     getUserQRCode,
-    scanQRCode
+    scanQRCode,
+    updateTutorialStatus
 };

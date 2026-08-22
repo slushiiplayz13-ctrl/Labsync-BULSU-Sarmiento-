@@ -20,12 +20,38 @@ const path = require('path');
 
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
+    port: Number(process.env.EMAIL_PORT) || 587,
+    secure: process.env.EMAIL_SECURE === 'true',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000
 });
+
+/**
+ * Wraps transporter.sendMail with a maximum timeout safeguard to prevent hanging HTTP responses.
+ * @param {object} mailOptions
+ * @param {number} [timeoutMs=12000]
+ * @returns {Promise<any>}
+ */
+async function sendMailWithTimeout(mailOptions, timeoutMs = 12000) {
+    let timerId;
+    const sendPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) => {
+        timerId = setTimeout(() => {
+            reject(new Error(`SMTP send timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+    });
+
+    try {
+        return await Promise.race([sendPromise, timeoutPromise]);
+    } finally {
+        if (timerId) clearTimeout(timerId);
+    }
+}
 
 // ─── Shared Assets ───────────────────────────────────────────────────────────
 
@@ -156,7 +182,7 @@ async function sendWelcomeEmail(recipientEmail, recipientName, password) {
         </p>`;
 
     try {
-        await transporter.sendMail({
+        await sendMailWithTimeout({
             from: process.env.EMAIL_USER,
             to: recipientEmail,
             subject: 'Welcome to LabSync - Your Account Credentials',
@@ -205,7 +231,7 @@ async function sendResetPasswordEmail(recipientEmail, recipientName, resetLink) 
         </p>`;
 
     try {
-        await transporter.sendMail({
+        await sendMailWithTimeout({
             from: process.env.EMAIL_USER,
             to: recipientEmail,
             subject: 'Reset Your LabSync Password',
@@ -254,7 +280,7 @@ async function sendEmailVerificationEmail(recipientEmail, recipientName, verific
         </p>`;
 
     try {
-        await transporter.sendMail({
+        await sendMailWithTimeout({
             from: process.env.EMAIL_USER,
             to: recipientEmail,
             subject: 'Verify Your New LabSync Email Address',

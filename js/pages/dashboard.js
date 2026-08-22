@@ -34,33 +34,46 @@ async function loadDashboardStatsAndLabs() {
     }
   }
 
-  // 1. Fetch & Render Laboratories
+  // 1. Fetch & Render Laboratories filtered by User's assigned schedule
   try {
     const fetchFn = typeof window.fetchLaboratories === 'function'
       ? window.fetchLaboratories
       : fetchLaboratories;
 
-    const labs = await fetchFn();
+    const allLabs = await fetchFn();
+    const assignedRooms = typeof window.getUserAssignedRooms === 'function'
+      ? await window.getUserAssignedRooms()
+      : new Set();
 
-    // Update Stats Card 1: Total Lab Rooms
+    // Filter laboratories to show only those assigned to the user
+    const myLabs = allLabs.filter(room => {
+      const roomNum = String(room.Room_Number || '').trim().replace(/^RM\s*/i, '').toLowerCase();
+      return assignedRooms.has(roomNum);
+    });
+
+    // Update Stats Card 1: Total Campus Rooms
     const totalLabsVal = document.querySelector('.stat-card:nth-child(1) .stat-value') || document.getElementById('ithead-stat-rooms');
     const totalLabsMeta = document.querySelector('.stat-card:nth-child(1) .stat-meta') || document.getElementById('ithead-stat-pcs-meta');
-    if (totalLabsVal) totalLabsVal.textContent = labs.length;
-    if (totalLabsMeta) totalLabsMeta.textContent = `${labs.length} room(s) registered`;
+    if (totalLabsVal) totalLabsVal.textContent = allLabs.length;
+    if (totalLabsMeta) {
+      totalLabsMeta.textContent = myLabs.length > 0
+        ? `${myLabs.length} assigned to you (${allLabs.length} total)`
+        : `${allLabs.length} registered campus lab(s)`;
+    }
 
-    // Update Stats Card 2: Available Labs
+    // Update Stats Card 2: Campus Available Labs
     const availLabsVal = document.querySelector('.stat-card:nth-child(2) .stat-value') || document.getElementById('ithead-stat-available');
     const availLabsMeta = document.querySelector('.stat-card:nth-child(2) .stat-meta') || document.getElementById('ithead-stat-avail-meta');
-    const availableCount = labs.filter(r => String(r.Current_Status || '').toLowerCase() === 'available').length;
-    if (availLabsVal) availLabsVal.textContent = availableCount;
-    if (availLabsMeta) availLabsMeta.textContent = `${availableCount} available now`;
+    const availableTotalCount = allLabs.filter(r => String(r.Current_Status || '').toLowerCase() === 'available').length;
+    if (availLabsVal) availLabsVal.textContent = availableTotalCount;
+    if (availLabsMeta) availLabsMeta.textContent = `${availableTotalCount} available now campus-wide`;
 
     // Render Laboratory Cards into grid
     if (labsGrid) {
       const renderFn = typeof window.renderLabCards === 'function'
         ? window.renderLabCards
         : renderLabCards;
-      renderFn(labs, labsGrid);
+      renderFn(myLabs, labsGrid);
     }
   } catch (err) {
     console.error('Dashboard laboratory loading failed:', err);

@@ -209,7 +209,7 @@ window.renderSingleCard = function (report) {
 };
 
 function escapeHtml(str) {
-  if (window.escapeHtml) return window.escapeHtml(str);
+  if (window.escapeHtml && window.escapeHtml !== escapeHtml) return window.escapeHtml(str);
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }

@@ -13,10 +13,21 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 36px 0 20px 10px;
-  gap: 20px;
+  padding: 20px 0 16px 4px;
+  gap: 18px;
   z-index: 100;
-  overflow: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .sidebar-logo {
@@ -26,6 +37,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .sidebar-logo svg {
@@ -37,14 +49,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  flex: 1;
+  gap: 18px;
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .sidebar-btn {
   position: relative;
-  width: 60px;
-  height: 60px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: none;
   background: transparent;
@@ -54,6 +67,7 @@
   justify-content: center;
   color: var(--text-muted);
   transition: color var(--transition), background var(--transition);
+  flex-shrink: 0;
 }
 
 .sidebar-btn:hover {
@@ -71,22 +85,31 @@
   pointer-events: none;
 }
 
-/* Large-mode icon sizing ported to Normal default */
+/* Standard icon sizing */
 .sidebar-btn i,
 .sidebar-btn svg {
   width: 28px !important;
   height: 28px !important;
 }
 
+.sidebar-divider {
+  flex-shrink: 0;
+}
+
 .sidebar-spacer {
   flex: 1;
+  min-height: 16px;
+  flex-shrink: 0;
 }
 
 .sidebar-bottom {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 14px;
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-bottom: 8px;
 }
 
 /* ─── Floating Tooltips on Hover (Desktop) ──────────────────────── */
@@ -98,9 +121,8 @@
   /* Tooltip Box */
   .sidebar-btn[data-tooltip]::after {
     content: attr(data-tooltip);
-    position: absolute;
-    left: calc(100% + 16px);
-    top: 50%;
+    position: fixed;
+    left: calc(var(--sidebar-width) + 12px);
     transform: translateY(-50%) translateX(-8px);
     background: var(--primary-teal);
     color: #ffffff;
@@ -123,9 +145,8 @@
   /* Left-pointing Caret/Arrow */
   .sidebar-btn[data-tooltip]::before {
     content: '';
-    position: absolute;
-    left: calc(100% + 9px);
-    top: 50%;
+    position: fixed;
+    left: calc(var(--sidebar-width) + 5px);
     transform: translateY(-50%) translateX(-8px);
     border-width: 7px 8px 7px 0;
     border-style: solid;

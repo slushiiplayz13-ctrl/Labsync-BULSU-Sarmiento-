@@ -178,21 +178,6 @@
   function filterFaculty(role) {
     window.currentFacultyFilter = role;
     
-    // Update UI list checkmarks
-    document.querySelectorAll('.filter-item').forEach(item => {
-      item.style.fontWeight = '500';
-      const icon = item.querySelector('i');
-      if (icon) icon.style.display = 'none';
-    });
-    
-    // Find selected item
-    const activeItem = document.querySelector(`.filter-item[onclick*="'${role}'"]`);
-    if (activeItem) {
-      activeItem.style.fontWeight = '600';
-      const icon = activeItem.querySelector('i');
-      if (icon) icon.style.display = 'block';
-    }
-
     const dropdown = document.getElementById('filter-dropdown');
     if (dropdown) dropdown.style.display = 'none';
 
@@ -204,6 +189,17 @@
     const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
     const filter = window.currentFacultyFilter || 'all';
     
+    // Sync filter dropdown checkmarks and active styles
+    document.querySelectorAll('.filter-item').forEach(item => {
+      const itemRole = item.dataset.filter || (item.getAttribute('onclick') || '').match(/'([^']+)'/)?.[1];
+      const isSelected = itemRole === filter;
+      item.style.fontWeight = isSelected ? '600' : '500';
+      const icon = item.querySelector('i, svg');
+      if (icon) {
+        icon.style.display = isSelected ? 'block' : 'none';
+      }
+    });
+
     document.querySelectorAll('.faculty-card').forEach(card => {
       const name = card.dataset.name || '';
       const email = card.dataset.dept || '';
@@ -353,28 +349,73 @@
           }
           return;
         }
+
+        const submitButton = addForm.querySelector('button[type="submit"]');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
         
+        const requestStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        console.log('[Add Faculty] Request started');
+
         try {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Creating Faculty...';
+          }
+
           const response = await fetch('/api/faculty/add', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
             credentials: 'include',
-            body: JSON.stringify(formData)
+            body: JSON.stringify(formData),
+            signal: controller.signal
           });
+
+          const respMs = Math.round(((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - requestStart);
+          console.log('[Add Faculty] Response received after', respMs, 'ms');
           
+          console.log('[Add Faculty] JSON parsing started');
           const result = await response.json();
+          const jsonMs = Math.round(((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - requestStart);
+          console.log('[Add Faculty] JSON parsed after', jsonMs, 'ms');
           
+          console.log('[Add Faculty] Response handling started');
           if (response.ok) {
-            alert(`Faculty member added successfully!\n\nLogin credentials have been sent to ${formData.email}`);
+            if (typeof window.showToast === 'function') {
+              window.showToast(`Faculty member added successfully! Credentials will be delivered to ${formData.email}.`, 'success', 'Faculty Added');
+            } else {
+              alert(`Faculty member added successfully!\n\nLogin credentials will be delivered to ${formData.email}.`);
+            }
             modal.remove();
-            loadFacultyMembers();
+            
+            const getFacultyStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+            console.log('[Add Faculty] loadFacultyMembers started');
+            await loadFacultyMembers();
+            const getFacultyMs = Math.round(((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - getFacultyStart);
+            console.log('[Add Faculty] loadFacultyMembers finished after', getFacultyMs, 'ms');
           } else {
             console.error('Add faculty failed:', response.status, result);
             alert('Error: ' + (result.error || 'Failed to add faculty'));
           }
+
+          const totalMs = Math.round(((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - requestStart);
+          console.log('[Add Faculty] UI handling finished after', totalMs, 'ms');
         } catch (error) {
           console.error('Error adding faculty:', error);
-          alert('Failed to add faculty. Please try again.');
+          if (error.name === 'AbortError') {
+            alert('The request took too long. The faculty account may have been created, but email delivery may be delayed.');
+          } else {
+            alert('Failed to add faculty. Please try again.');
+          }
+        } finally {
+          clearTimeout(timeoutId);
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Add Faculty';
+          }
         }
       });
     }

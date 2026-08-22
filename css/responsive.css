@@ -9,13 +9,71 @@
   display: none !important;
 }
 
+/* ─── Desktop Window Resizing & Laptop Viewports (1025px to 1320px) ─── */
+@media (min-width: 1025px) and (max-width: 1320px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+  .dashboard-main-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) !important;
+    gap: 14px !important;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1140px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+/* ─── Height-Constrained Windows / Minimized Screens ──────────────── */
+@media (max-height: 820px) {
+  body {
+    height: auto !important;
+    overflow-y: auto !important;
+  }
+  .main-wrapper {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: visible !important;
+  }
+  .page-content {
+    height: auto !important;
+    overflow-y: visible !important;
+  }
+  .dashboard-card {
+    height: auto !important;
+    min-height: max-content !important;
+    overflow: visible !important;
+  }
+  .dashboard-overview {
+    height: auto !important;
+    min-height: max-content !important;
+  }
+}
+
 /* ─── Tablet and Mobile Viewports (Max Width: 1024px) ───────────── */
 @media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+  .dashboard-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .dashboard-card {
+    height: auto !important;
+    min-height: max-content !important;
+    overflow: visible !important;
+  }
   .sidebar-btn.mobile-only-btn {
-    display: flex;
+    display: flex !important;
   }
   .sidebar-btn.desktop-only-btn {
-    display: none;
+    display: none !important;
   }
   .mobile-only-divider {
     display: block !important;
@@ -142,19 +200,19 @@
   }
   .sidebar-btn i,
   .sidebar-btn svg {
-    width: 18px !important;
-    height: 18px !important;
-    color: var(--text-muted) !important;
+    width: 20px !important;
+    height: 20px !important;
+    color: var(--text-muted);
     transition: color var(--transition);
   }
   .sidebar-btn.active {
-    background: transparent;
-    color: var(--primary-teal);
-    box-shadow: none;
+    background: transparent !important;
+    color: var(--primary-teal) !important;
+    box-shadow: none !important;
   }
   .sidebar-btn.active i,
   .sidebar-btn.active svg {
-    color: var(--primary-teal);
+    color: var(--primary-teal) !important;
   }
   .sidebar-btn::before {
     display: none;
@@ -189,8 +247,9 @@
     content: attr(title);
   }
   .sidebar-btn.active::after {
-    opacity: 1;
-    font-weight: 600;
+    color: var(--primary-teal) !important;
+    opacity: 1 !important;
+    font-weight: 700 !important;
   }
   /* De-clutter bottom navigation and remove sidebar-only items */
   .sidebar-logo, 
@@ -1248,8 +1307,8 @@
   }
   .sidebar-btn i,
   .sidebar-btn svg {
-    width: 16px !important;
-    height: 16px !important;
+    width: 17px !important;
+    height: 17px !important;
   }
 }
 
@@ -1370,7 +1429,12 @@
     font-size: 9.5px !important;
   }
   .card-info-icon {
-    width: 11px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .card-info-icon i,
+  .card-info-icon svg {
+    width: 10px !important;
     height: 10px !important;
   }
   /* Prevent full-page horizontal scrolling by keeping container constrained and scrolling inner contents */

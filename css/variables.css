@@ -739,6 +739,25 @@ html.high-contrast #panel-qrcode p {
   color: var(--text-mid) !important;
 }
 
+/* Email Change Security Modal Dark Mode & Contrast Overrides */
+html.dark-mode #email-confirm-modal .email-alert-notice,
+body.dark-mode #email-confirm-modal .email-alert-notice {
+  background: rgba(245, 158, 11, 0.16) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+html.dark-mode #email-confirm-modal .email-alert-notice span,
+body.dark-mode #email-confirm-modal .email-alert-notice span,
+html.dark-mode #email-confirm-modal .email-alert-notice strong,
+body.dark-mode #email-confirm-modal .email-alert-notice strong {
+  color: var(--text-dark, #f8fafc) !important;
+}
+
+html.dark-mode #email-confirm-modal .email-alert-notice strong.highlight-text,
+body.dark-mode #email-confirm-modal .email-alert-notice strong.highlight-text {
+  color: #FBBF24 !important;
+}
+
 /* --- 2. PC Reports --- */
 html.high-contrast .report-card {
   background: var(--bg-white) !important;

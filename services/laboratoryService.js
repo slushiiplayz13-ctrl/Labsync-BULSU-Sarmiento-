@@ -11,16 +11,58 @@ async function getAllLaboratories() {
     const [rooms] = await labRepository.findAllLaboratoriesWithSchedule(today, nowTime);
 
     const result = rooms.map(room => {
-        const hasClass = !!room.Subject_Name;
+        const hasScheduledClass = !!room.Subject_Name;
         const keyAbsent = room.Key_Status === 'Absent';
+        
+        const scheduledProfName = room.Scheduled_Professor_Name || null;
+        const currentHolderName = room.Current_Key_Holder_Name || null;
+
+        const isScheduledProfHolder = keyAbsent && 
+            room.Current_User_ID != null && 
+            room.Scheduled_User_ID != null && 
+            String(room.Current_User_ID) === String(room.Scheduled_User_ID);
+
+        let currentStatus = 'Available';
+        let currentClassInfo = 'None';
+
+        if (!keyAbsent) {
+            currentStatus = 'Available';
+            if (hasScheduledClass) {
+                currentClassInfo = `Scheduled: ${room.Subject_Name} (${room.Section}) - ${scheduledProfName || 'Faculty'}`;
+            } else {
+                currentClassInfo = 'None';
+            }
+        } else {
+            if (hasScheduledClass && isScheduledProfHolder) {
+                currentStatus = 'In Use';
+                currentClassInfo = `${room.Subject_Name} (${room.Section}) - Prof. ${scheduledProfName || 'Faculty'}`;
+            } else {
+                currentStatus = 'Claimed';
+                if (currentHolderName) {
+                    currentClassInfo = `Claimed by ${currentHolderName}${hasScheduledClass ? ` (Borrowed from ${scheduledProfName || 'Scheduled Slot'})` : ''}`;
+                } else if (hasScheduledClass) {
+                    currentClassInfo = `Claimed (Borrowed from Prof. ${scheduledProfName || 'Faculty'})`;
+                } else {
+                    currentClassInfo = 'Open Lab Session';
+                }
+            }
+        }
 
         return {
             Room_ID: room.Room_ID,
             Room_Number: room.Room_Number,
             Building: room.Building,
             Key_Status: room.Key_Status || 'Present',
-            Current_Status: hasClass ? 'In Use' : (keyAbsent ? 'Claimed' : 'Available'),
-            Current_Class: hasClass ? `${room.Subject_Name} (${room.Section})` : (keyAbsent ? 'Open Lab Session' : 'None')
+            Current_Status: currentStatus,
+            Current_Class: currentClassInfo,
+            Scheduled_Class: hasScheduledClass ? {
+                subject: room.Subject_Name,
+                section: room.Section,
+                professor: scheduledProfName,
+                startTime: room.Start_Time,
+                endTime: room.End_Time
+            } : null,
+            Current_Key_Holder: currentHolderName
         };
     });
 

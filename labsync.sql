@@ -165,6 +165,7 @@ CREATE TABLE `users` (
   `Email_Verify_Token` varchar(255) DEFAULT NULL,
   `Email_Verify_Token_Expiry` datetime DEFAULT NULL,
   `Phone` varchar(20) DEFAULT NULL,
+  `Has_Completed_Tutorial` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`User_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

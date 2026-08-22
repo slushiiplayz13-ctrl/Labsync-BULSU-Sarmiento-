@@ -4,13 +4,16 @@ const db = require('../database/connection');
 
 async function findAllLaboratoriesWithSchedule(today, nowTime, executor = db) {
     return executor.query(
-        `SELECT r.Room_ID, r.Room_Number, r.Building, r.Current_Status AS DB_Status, r.Key_Status,
-                s.Subject_Name, s.Section, u.Name AS ProfessorName
+        `SELECT r.Room_ID, r.Room_Number, r.Building, r.Current_Status AS DB_Status, r.Key_Status, r.Current_User_ID,
+                s.Subject_Name, s.Section, s.User_ID AS Scheduled_User_ID, s.Start_Time, s.End_Time,
+                u_sched.Name AS Scheduled_Professor_Name,
+                u_curr.Name AS Current_Key_Holder_Name
          FROM laboratories r
          LEFT JOIN schedules s ON r.Room_ID = s.Room_ID 
              AND s.Day_of_Week = ? 
              AND ? BETWEEN s.Start_Time AND s.End_Time
-         LEFT JOIN users u ON s.User_ID = u.User_ID
+         LEFT JOIN users u_sched ON s.User_ID = u_sched.User_ID
+         LEFT JOIN users u_curr ON r.Current_User_ID = u_curr.User_ID
          ORDER BY CAST(r.Room_Number AS UNSIGNED)`,
         [today, nowTime]
     );
@@ -83,8 +86,8 @@ async function updateConditionStatus(pcId, conditionStatus, executor = db) {
     return executor.query('UPDATE lab_units SET Condition_Status = ? WHERE PC_ID = ?', [conditionStatus, pcId]);
 }
 
-async function updateKeyStatus(roomId, keyStatus, executor = db) {
-    return executor.query('UPDATE laboratories SET Key_Status = ? WHERE Room_ID = ?', [keyStatus, roomId]);
+async function updateKeyStatus(roomId, keyStatus, userId = null, executor = db) {
+    return executor.query('UPDATE laboratories SET Key_Status = ?, Current_User_ID = ? WHERE Room_ID = ?', [keyStatus, userId, roomId]);
 }
 
 module.exports = {

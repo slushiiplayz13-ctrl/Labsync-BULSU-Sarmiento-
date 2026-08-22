@@ -17,6 +17,32 @@ async function fetchLaboratories() {
 }
 
 /**
+ * Fetches user's assigned schedule and returns a Set of normalized assigned room numbers.
+ * @returns {Promise<Set<string>>} Set of room number strings normalized without "RM" prefix.
+ */
+async function getUserAssignedRooms() {
+  try {
+    const res = await fetch('/api/schedules/user', { credentials: 'include' });
+    if (!res.ok) return new Set();
+    const schedules = await res.json();
+    if (!Array.isArray(schedules)) return new Set();
+    
+    const assignedRooms = new Set();
+    schedules.forEach(s => {
+      const raw = String(s.Room_Number || s.room_number || s.Room || '').trim();
+      if (raw) {
+        const clean = raw.replace(/^RM\s*/i, '').toLowerCase();
+        if (clean) assignedRooms.add(clean);
+      }
+    });
+    return assignedRooms;
+  } catch (err) {
+    console.error('Error fetching user assigned rooms:', err);
+    return new Set();
+  }
+}
+
+/**
  * Renders laboratory cards into the specified DOM container.
  * Also handles empty state when labs list is empty.
  * @param {Array} labs - List of laboratory room objects.
@@ -30,12 +56,17 @@ function renderLabCards(labs, targetContainer) {
   if (!container) return;
 
   if (!Array.isArray(labs) || labs.length === 0) {
+    const isDashboard = window.location.pathname.includes('index.html') || window.location.pathname.includes('dashboard') || window.location.pathname === '/';
+    const roomStatusLink = window.location.pathname.includes('it-head') ? 'it-head-room-status.html' : 'room-status.html';
+
     container.innerHTML = `
-      <div class="ui-empty-state">
-        <div class="ui-empty-icon">
-          <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
+      <div class="ui-empty-state" style="grid-column: 1 / -1; padding: 28px 16px; width: 100%; flex: 1; height: 100%; min-height: 240px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0; box-sizing: border-box;">
+        <div class="ui-empty-icon" style="background:#E8F9FC; color:#1EBBD7;">
+          <i data-lucide="calendar-off" style="width:24px;height:24px;"></i>
         </div>
-        <p>No laboratories registered.</p>
+        <p style="font-weight:600; color:var(--text-dark, #1e293b); margin-top:8px; margin-bottom:4px;">No rooms assigned to your schedule yet</p>
+        <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin-bottom:14px;">Rooms will appear here when classes are added to your schedule.</p>
+        ${isDashboard ? `<button onclick="window.location.href='${roomStatusLink}'" style="padding:9px 20px; border:none; background:var(--primary-teal); color:#fff; border-radius:18px; font-weight:600; font-size:12.5px; cursor:pointer; font-family:var(--font-body); box-shadow: 0 4px 12px var(--primary-teal-glow); transition:all 0.2s;">View All Campus Rooms</button>` : ''}
       </div>
     `;
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -46,14 +77,17 @@ function renderLabCards(labs, targetContainer) {
 
   container.innerHTML = labs.map(room => {
     let statusTheme = 'green-theme';
-    if (room.Current_Status.toLowerCase() === 'claimed') statusTheme = 'orange-theme';
-    else if (room.Current_Status.toLowerCase() === 'in use') statusTheme = 'red-theme';
+    const statusLower = (room.Current_Status || '').toLowerCase();
+    if (statusLower === 'claimed') statusTheme = 'orange-theme';
+    else if (statusLower === 'in use') statusTheme = 'red-theme';
+
+    const scheduledProf = room.Scheduled_Class ? `${room.Scheduled_Class.professor || 'Faculty'} (${room.Scheduled_Class.subject || ''})` : null;
 
     return `
       <div class="lab-card ${statusTheme}">
         <div class="lab-header lc-header">
           <span class="room-num">RM ${room.Room_Number}</span>
-          <span class="badge ${room.Current_Status.toLowerCase() === 'in use' ? 'red' : (room.Current_Status.toLowerCase() === 'claimed' ? 'orange' : 'green')}">${room.Current_Status}</span>
+          <span class="badge ${statusLower === 'in use' ? 'red' : (statusLower === 'claimed' ? 'orange' : 'green')}">${room.Current_Status}</span>
         </div>
         <div class="lab-details lc-details">
           <div class="ld-row">
@@ -61,9 +95,15 @@ function renderLabCards(labs, targetContainer) {
             <strong>${room.Building || 'Main'}</strong>
           </div>
           <div class="ld-row">
-            <span>Active Class:</span>
-            <strong class="teal-text">${room.Current_Class || 'None'}</strong>
+            <span>Status / Activity:</span>
+            <strong class="teal-text" style="font-size: 12px; word-break: break-word;">${room.Current_Class || 'None'}</strong>
           </div>
+          ${scheduledProf ? `
+          <div class="ld-row" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba(0,0,0,0.06);">
+            <span>Scheduled Prof:</span>
+            <strong style="color: #475569; font-size: 11.5px;">${scheduledProf}</strong>
+          </div>
+          ` : ''}
           <div class="ld-row">
             <span>Key Status:</span>
             <strong style="color: ${room.Key_Status === 'Absent' ? '#ef4444' : '#10b981'};">${room.Key_Status || 'Present'}</strong>
@@ -104,5 +144,6 @@ function renderLabCardsError(targetContainer) {
 
 // Global exports for compatibility
 window.fetchLaboratories = fetchLaboratories;
+window.getUserAssignedRooms = getUserAssignedRooms;
 window.renderLabCards = renderLabCards;
 window.renderLabCardsError = renderLabCardsError;

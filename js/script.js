@@ -111,6 +111,9 @@ setInterval(updateClock, 1000);
 // ── Logout Handler ───────────────────────────────────────────────
 async function handleLogout() {
   try {
+    localStorage.removeItem('user');
+    localStorage.removeItem('labsync_tutorial_completed');
+    sessionStorage.clear();
     await fetch('/api/logout', {
       method: 'POST',
       credentials: 'include'
@@ -195,6 +198,10 @@ function initProfileDropdown() {
       <button onclick="openHelpModal()" class="profile-menu-item profile-help-btn">
         <i data-lucide="circle-help" style="width:16px;height:16px;"></i>
         Help Center
+      </button>
+      <button onclick="if(window.startFacultyTutorial){ window.startFacultyTutorial(true); }" class="profile-menu-item">
+        <i data-lucide="play-circle" style="width:16px;height:16px;"></i>
+        Watch System Tutorial
       </button>
       <div class="profile-menu-divider"></div>
       <button onclick="handleLogout()" class="profile-menu-item logout">
@@ -417,6 +424,11 @@ function initNotifications() {
       dismissToast(card);
     });
 
+    // Limit max stacked toasts to 3 synchronously to prevent browser main-thread loop lockup
+    while (toastContainer.children.length >= 3) {
+      toastContainer.firstElementChild.remove();
+    }
+
     toastContainer.appendChild(card);
     lucide.createIcons();
 
@@ -425,7 +437,7 @@ function initNotifications() {
     function startTimeout() {
       dismissTimeout = setTimeout(() => {
         dismissToast(card);
-      }, 6000);
+      }, 7000);
     }
 
     card.addEventListener('mouseenter', () => {
@@ -435,17 +447,22 @@ function initNotifications() {
     card.addEventListener('mouseleave', () => {
       dismissTimeout = setTimeout(() => {
         dismissToast(card);
-      }, 3000); // 3 more seconds of life when mouse leaves
+      }, 2000);
     });
 
     startTimeout();
   }
 
   function dismissToast(card) {
-    card.classList.add('fade-out');
-    card.addEventListener('transitionend', () => {
-      card.remove();
-    });
+    if (!card || !card.parentNode) return;
+    card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(-10px) scale(0.92)';
+    setTimeout(() => {
+      if (card && card.parentNode) {
+        card.remove();
+      }
+    }, 300);
   }
 
   async function loadNotifications() {
@@ -533,15 +550,15 @@ function initNotifications() {
 
       // Real-time cards and timeline refresh (only when notification state actually changes after initial load)
       if (notifStateChanged) {
-        if (document.body.dataset.page === 'dashboard' || document.body.dataset.page === 'room-status') {
+        if (document.body.dataset.page === 'dashboard') {
           loadDashboardStatsAndLabs();
+        } else if (document.body.dataset.page === 'room-status') {
+          loadAllRoomStatusLabs();
+          loadRoomStatusActivityLog();
         } else if (document.body.dataset.page === 'it-head-dashboard') {
           if (typeof window.loadITHeadDashboardData === 'function') window.loadITHeadDashboardData();
         } else if (document.body.dataset.page === 'mis-dashboard') {
           initMISDashboard();
-        }
-        if (document.body.dataset.page === 'room-status') {
-          loadRoomStatusActivityLog();
         }
       }
 
@@ -605,6 +622,30 @@ function initHelpButtons() {
   });
 }
 
+async function loadAllRoomStatusLabs() {
+  const labsGrid = document.querySelector('.labs-grid');
+  if (!labsGrid) return;
+  try {
+    const fetchFn = typeof window.fetchLaboratories === 'function'
+      ? window.fetchLaboratories
+      : async () => {
+        const res = await fetch('/api/laboratories', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load laboratories');
+        return await res.json();
+      };
+    const allLabs = await fetchFn();
+    if (typeof window.renderLabCards === 'function') {
+      window.renderLabCards(allLabs, labsGrid);
+    }
+  } catch (err) {
+    console.error('Error loading all room status labs:', err);
+    if (typeof window.renderLabCardsError === 'function') {
+      window.renderLabCardsError(labsGrid);
+    }
+  }
+}
+window.loadAllRoomStatusLabs = loadAllRoomStatusLabs;
+
 // Initialize profile dropdown, notifications and help buttons on page load
 function initCommon() {
   initProfileDropdown();
@@ -627,7 +668,7 @@ function initCommon() {
   } else if (document.body.dataset.page === 'mis-dashboard') {
     initMISDashboard();
   } else if (document.body.dataset.page === 'room-status') {
-    loadDashboardStatsAndLabs();
+    loadAllRoomStatusLabs();
     loadRoomStatusActivityLog();
   }
 }
@@ -638,35 +679,52 @@ if (document.readyState === 'loading') {
   initCommon();
 }
 
-// Helper function to show email change confirmation modal
+// Helper function to show secure email change authentication modal
 function showEmailChangeConfirmation(oldEmail, newEmail, onConfirm) {
   const overlay = document.createElement('div');
   overlay.id = 'email-confirm-modal';
-  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.4);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2100;';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:2100;padding:20px;';
 
   overlay.innerHTML = `
-    <div style="background:#fff;border-radius:20px;width:100%;max-width:440px;padding:32px;box-shadow:0 20px 50px rgba(0,0,0,0.1);text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px;font-family:var(--font-body);">
+    <div class="email-confirm-content" style="background:var(--bg-white, #fff);border:1px solid var(--border-light, #e2e8f0);border-radius:24px;width:100%;max-width:460px;padding:32px;box-shadow:0 25px 60px rgba(0,0,0,0.25);display:flex;flex-direction:column;align-items:center;gap:20px;font-family:var(--font-body);animation:fadeIn 0.25s ease-out;color:var(--text-dark);">
       <!-- Icon Container -->
-      <div style="width:64px;height:64px;background:rgba(245,158,11,0.1);color:#F59E0B;border-radius:50%;display:flex;align-items:center;justify-content:center;">
-        <i data-lucide="shield-alert" style="width:32px;height:32px;"></i>
+      <div style="width:68px;height:68px;background:rgba(239,68,68,0.1);color:#EF4444;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(239,68,68,0.15);">
+        <i data-lucide="shield-alert" style="width:34px;height:34px;"></i>
       </div>
       
-      <!-- Text -->
-      <div>
-        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 10px 0;">Verify New Email Address</h3>
+      <!-- Text & Security Warnings -->
+      <div style="width:100%;text-align:center;">
+        <h3 style="font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--text-dark);margin:0 0 8px 0;">Email Change Security Authorization</h3>
         <p style="font-size:13.5px;color:var(--text-mid);line-height:1.5;margin:0 0 16px 0;">
-          Changing your email address to <strong style="color:var(--text-dark);">${newEmail}</strong> requires verification.
+          You are requesting to change your account email to <strong style="color:var(--text-dark);font-weight:700;">${newEmail}</strong>.
         </p>
-        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;text-align:left;font-size:12px;color:var(--text-mid);line-height:1.5;display:flex;gap:10px;">
-          <i data-lucide="info" style="width:16px;height:16px;color:#0EA5E9;flex-shrink:0;margin-top:2px;"></i>
-          <span>A verification link will be sent to the new address. Your login email will remain <strong style="color:var(--text-dark);">${oldEmail}</strong> until verified.</span>
+        
+        <!-- Security Notice -->
+        <div style="display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:16px;">
+          <div class="email-alert-notice" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--text-dark);line-height:1.5;display:flex;gap:10px;align-items:flex-start;">
+            <i data-lucide="shield-check" style="width:18px;height:18px;color:#F59E0B;flex-shrink:0;margin-top:2px;"></i>
+            <span style="color:var(--text-dark);">A <strong class="highlight-text" style="color:#D97706;font-weight:700;">Confirmation Approval Link</strong> will be sent to your current email (<strong style="color:var(--text-dark);font-weight:700;">${oldEmail}</strong>). You must click this link to authorize updating your account email to <strong style="color:var(--text-dark);font-weight:700;">${newEmail}</strong>.</span>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 16px 0;line-height:1.4;text-align:left;">Your account login email address will remain unchanged until authorized from your current email inbox.</p>
+
+        <!-- Current Password Re-Authentication Field -->
+        <div style="text-align:left;width:100%;">
+          <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Enter Current Password to Authorize *</label>
+          <div style="position:relative;">
+            <input type="password" id="email-confirm-password" required style="width:100%;padding:12px 44px 12px 16px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;box-sizing:border-box;background:var(--bg-card);color:var(--text-dark);" placeholder="Enter current password">
+            <button type="button" id="toggle-confirm-pass-btn" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;color:var(--text-muted);outline:none;">
+              <i data-lucide="eye" style="width:18px;height:18px;"></i>
+            </button>
+          </div>
+          <div id="email-confirm-pass-err" style="display:none;color:#EF4444;font-size:12px;margin-top:6px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Current password is required to change email address.</div>
         </div>
       </div>
       
-      <!-- Buttons -->
-      <div style="display:flex;gap:12px;width:100%;margin-top:8px;">
-        <button id="cancel-email-confirm" type="button" style="flex:1;padding:12px;border:1px solid var(--border-light);background:#fff;color:var(--text-mid);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);">Cancel</button>
-        <button id="proceed-email-confirm" type="button" style="flex:1;padding:12px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(30,187,215,0.3);font-family:var(--font-body);">Confirm & Save</button>
+      <!-- Action Buttons -->
+      <div style="display:flex;gap:12px;width:100%;margin-top:6px;">
+        <button id="cancel-email-confirm" type="button" style="flex:1;padding:12px;border:1px solid var(--border-light);background:var(--bg-card);color:var(--text-dark);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);">Cancel</button>
+        <button id="proceed-email-confirm" type="button" style="flex:1;padding:12px;border:none;background:var(--primary-teal);color:#fff;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px var(--primary-teal-glow);font-family:var(--font-body);">Authenticate & Send</button>
       </div>
     </div>
   `;
@@ -674,14 +732,35 @@ function showEmailChangeConfirmation(oldEmail, newEmail, onConfirm) {
   document.body.appendChild(overlay);
   if (window.lucide) window.lucide.createIcons();
 
+  const passInput = document.getElementById('email-confirm-password');
+  const passErr = document.getElementById('email-confirm-pass-err');
+  const toggleBtn = document.getElementById('toggle-confirm-pass-btn');
+
+  if (passInput) passInput.focus();
+
+  if (toggleBtn && passInput) {
+    toggleBtn.addEventListener('click', () => {
+      const isPass = passInput.type === 'password';
+      passInput.type = isPass ? 'text' : 'password';
+      toggleBtn.innerHTML = `<i data-lucide="${isPass ? 'eye-off' : 'eye'}" style="width:18px;height:18px;"></i>`;
+      if (window.lucide) window.lucide.createIcons({ root: toggleBtn });
+    });
+  }
+
   // Handlers
   document.getElementById('cancel-email-confirm').addEventListener('click', () => {
     overlay.remove();
   });
 
   document.getElementById('proceed-email-confirm').addEventListener('click', () => {
+    const passwordVal = passInput ? passInput.value : '';
+    if (!passwordVal) {
+      if (passInput) passInput.style.borderColor = '#EF4444';
+      if (passErr) passErr.style.display = 'block';
+      return;
+    }
     overlay.remove();
-    onConfirm();
+    onConfirm(passwordVal);
   });
 }
 
@@ -779,9 +858,9 @@ function openAccountSettings() {
                       <input type="tel" id="settings-phone" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;transition:all 0.2s;" placeholder="09XXXXXXXXX" pattern="09[0-9]{9}" title="Please enter a valid 11-digit mobile number starting with 09.">
                     </div>
                   </div>
-                  <div class="alert-info-box" style="margin-top:4px;">
-                    <i data-lucide="info"></i>
-                    <p>Changing your email address will require verification. A verification link will be sent to the new address.</p>
+                  <div class="alert-info-box" style="margin-top:4px; display:flex; gap:10px; align-items:flex-start;">
+                    <i data-lucide="shield-check" style="width:18px;height:18px;color:#0284C7;flex-shrink:0;margin-top:2px;"></i>
+                    <p style="margin:0;font-size:12.5px;line-height:1.4;">Changing your email address requires your <strong>Current Password</strong>. A <strong>Confirmation Approval Link</strong> will be sent to your current email address to authorize the change.</p>
                   </div>
                 </div>
               </div>
@@ -1050,7 +1129,7 @@ function openAccountSettings() {
 
     const isEmailChanging = newEmail.toLowerCase() !== initialEmail.toLowerCase();
 
-    const executeUpdate = async () => {
+    const executeUpdate = async (authPassword) => {
       try {
         const response = await fetch('/api/user/update', {
           method: 'PUT',
@@ -1059,7 +1138,7 @@ function openAccountSettings() {
           body: JSON.stringify({
             name: name,
             email: newEmail,
-            currentPassword: currentPassword || null,
+            currentPassword: authPassword || currentPassword || null,
             newPassword: newPassword || null,
             profilePhoto: profilePhoto,
             phone: document.getElementById('settings-phone').value.trim()
@@ -1111,9 +1190,11 @@ function openAccountSettings() {
     };
 
     if (isEmailChanging) {
-      showEmailChangeConfirmation(initialEmail, newEmail, executeUpdate);
+      showEmailChangeConfirmation(initialEmail, newEmail, (authenticatedPassword) => {
+        executeUpdate(authenticatedPassword);
+      });
     } else {
-      executeUpdate();
+      executeUpdate(currentPassword);
     }
   });
 }
@@ -2095,14 +2176,23 @@ async function loadDashboardStatsAndLabs() {
   const labsGrid = document.querySelector('.labs-grid');
 
   try {
-    // 1. Fetch laboratories using shared Laboratory Service
-    const labs = typeof window.fetchLaboratories === 'function'
+    // 1. Fetch laboratories & assigned rooms using shared Laboratory Service
+    const allLabs = typeof window.fetchLaboratories === 'function'
       ? await window.fetchLaboratories()
       : await (async () => {
         const res = await fetch('/api/laboratories', { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to load laboratories');
         return await res.json();
       })();
+
+    const assignedRooms = typeof window.getUserAssignedRooms === 'function'
+      ? await window.getUserAssignedRooms()
+      : new Set();
+
+    const myLabs = allLabs.filter(room => {
+      const roomNum = String(room.Room_Number || '').trim().replace(/^RM\s*/i, '').toLowerCase();
+      return assignedRooms.has(roomNum);
+    });
 
     // 2. Fetch PC reports (for pending count)
     const reportsRes = await fetch('/api/reports');
@@ -2115,14 +2205,18 @@ async function loadDashboardStatsAndLabs() {
     // 3. Update Stats Grid
     const totalLabsVal = document.querySelector('.stat-card:nth-child(1) .stat-value');
     const totalLabsMeta = document.querySelector('.stat-card:nth-child(1) .stat-meta');
-    if (totalLabsVal) totalLabsVal.textContent = labs.length;
-    if (totalLabsMeta) totalLabsMeta.textContent = `${labs.length} room(s) registered`;
+    if (totalLabsVal) totalLabsVal.textContent = allLabs.length;
+    if (totalLabsMeta) {
+      totalLabsMeta.textContent = myLabs.length > 0
+        ? `${myLabs.length} assigned to you (${allLabs.length} total)`
+        : `${allLabs.length} registered campus lab(s)`;
+    }
 
     const availLabsVal = document.querySelector('.stat-card:nth-child(2) .stat-value');
     const availLabsMeta = document.querySelector('.stat-card:nth-child(2) .stat-meta');
-    const availableCount = labs.filter(r => r.Current_Status.toLowerCase() === 'available').length;
-    if (availLabsVal) availLabsVal.textContent = availableCount;
-    if (availLabsMeta) availLabsMeta.textContent = `${availableCount} available now`;
+    const availableTotalCount = allLabs.filter(r => String(r.Current_Status || '').toLowerCase() === 'available').length;
+    if (availLabsVal) availLabsVal.textContent = availableTotalCount;
+    if (availLabsMeta) availLabsMeta.textContent = `${availableTotalCount} available now campus-wide`;
 
     const pendingReportsVal = document.querySelector('.stat-card:nth-child(3) .stat-value');
     const pendingReportsMeta = document.querySelector('.stat-card:nth-child(3) .stat-meta');
@@ -2132,7 +2226,7 @@ async function loadDashboardStatsAndLabs() {
     // 4. Update Laboratories Grid using shared Laboratory Service
     if (labsGrid) {
       if (typeof window.renderLabCards === 'function') {
-        window.renderLabCards(labs, labsGrid);
+        window.renderLabCards(myLabs, labsGrid);
       }
     }
 

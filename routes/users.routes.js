@@ -10,5 +10,6 @@ router.put('/update', requireAuth, usersController.updateUser);
 router.get('/verify-email', usersController.verifyEmail);
 router.get('/qrcode', requireAuth, usersController.getUserQRCode);
 router.post('/scan', usersController.scanQRCode);
+router.put('/tutorial-status', requireAuth, usersController.updateTutorialStatus);
 
 module.exports = router;

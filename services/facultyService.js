@@ -12,7 +12,10 @@ async function addFaculty(reqBody) {
         return { status: 400, error: 'Invalid email address. Please enter a valid email (e.g., user@domain.com).' };
     }
 
+    console.time('[Faculty] findByEmail');
     const [existing] = await facultyRepository.findByEmail(email);
+    console.timeEnd('[Faculty] findByEmail');
+
     if (existing.length > 0) {
         return { status: 400, error: 'Email already exists' };
     }
@@ -20,6 +23,7 @@ async function addFaculty(reqBody) {
     const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase();
     const qrString = `LABSYNC-USER-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
+    console.time('[Faculty] insertFaculty');
     const [result] = await facultyRepository.insertFaculty({
         name,
         email,
@@ -27,13 +31,23 @@ async function addFaculty(reqBody) {
         password: generatedPassword,
         qrString
     });
+    console.timeEnd('[Faculty] insertFaculty');
 
-    const emailSent = await sendWelcomeEmail(email, name, generatedPassword);
-
-    if (!emailSent) {
-        console.log(`Warning: Email failed to send to ${email}`);
-        console.log(`Manual credentials - Email: ${email}, Password: ${generatedPassword}`);
-    }
+    // Dispatch welcome email asynchronously so HTTP response is not blocked by SMTP networking
+    console.time('[Faculty] sendWelcomeEmail');
+    sendWelcomeEmail(email, name, generatedPassword)
+        .then(emailSent => {
+            console.timeEnd('[Faculty] sendWelcomeEmail');
+            if (!emailSent) {
+                console.warn(`[Faculty] Welcome email failed for ${email}; manual credential delivery required.`);
+            } else {
+                console.log(`[Faculty] Welcome email successfully delivered to ${email}`);
+            }
+        })
+        .catch(err => {
+            console.timeEnd('[Faculty] sendWelcomeEmail');
+            console.error(`[Faculty] Welcome email error for ${email}:`, err.message);
+        });
 
     return {
         status: 200,
@@ -41,7 +55,7 @@ async function addFaculty(reqBody) {
             message: 'Faculty member added successfully',
             userId: result.insertId,
             email,
-            emailSent
+            emailSent: 'pending'
         }
     };
 }
