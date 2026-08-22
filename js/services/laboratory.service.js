@@ -170,8 +170,75 @@ function renderLabCardsError(targetContainer) {
   }
 }
 
+/**
+ * Adds a new laboratory room.
+ * @param {string} roomNumber - Room number
+ * @param {string} building - Building name
+ * @returns {Promise<object>}
+ */
+async function addLaboratory(roomNumber, building) {
+  const res = await fetch('/api/laboratories/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ roomNumber, building })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to add room');
+  return data;
+}
+
+/**
+ * Updates an existing laboratory room.
+ * @param {string|number} roomId - Room ID
+ * @param {string} roomNumber - Updated room number
+ * @param {string} building - Updated building name
+ * @returns {Promise<object>}
+ */
+async function updateLaboratory(roomId, roomNumber, building) {
+  const res = await fetch(`/api/laboratories/${roomId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ roomNumber, building })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to update room');
+  return data;
+}
+
+/**
+ * Deletes a laboratory room and its associated schedules.
+ * @param {string|number} roomId - Room ID
+ * @returns {Promise<object>}
+ */
+async function deleteLaboratory(roomId) {
+  const res = await fetch(`/api/laboratories/${roomId}`, {
+    method: 'DELETE',
+    credentials: 'include'
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to delete room');
+  return data;
+}
+
+const laboratoryService = {
+  fetchLaboratories,
+  getUserAssignedRooms,
+  renderLabCards,
+  renderLabCardsError,
+  addLaboratory,
+  updateLaboratory,
+  deleteLaboratory
+};
+
 // Global exports for compatibility
 window.fetchLaboratories = fetchLaboratories;
 window.getUserAssignedRooms = getUserAssignedRooms;
 window.renderLabCards = renderLabCards;
 window.renderLabCardsError = renderLabCardsError;
+window.addLaboratory = addLaboratory;
+window.updateLaboratory = updateLaboratory;
+window.deleteLaboratory = deleteLaboratory;
+window.laboratoryService = laboratoryService;
+

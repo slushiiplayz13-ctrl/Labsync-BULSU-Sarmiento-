@@ -1,5 +1,6 @@
 /* ================================================================
    LabSync – Print Schedule Page Controller  |  js/pages/print-schedule.js
+   Refactored in Phase 2 (Scheduling Architecture Refactor)
    ================================================================ */
 
 'use strict';
@@ -10,6 +11,7 @@
  * @returns {string} Formatted string "h:MM AM/PM"
  */
 function formatTime24to12(t) {
+  if (window.formatTimeLabel) return window.formatTimeLabel(t);
   if (!t) return '';
   let [h, m] = t.split(':');
   h = parseInt(h, 10);
@@ -24,17 +26,21 @@ function formatTime24to12(t) {
 async function initPrintSchedulePage() {
   // 1. Fetch and display dynamic signatures from settings
   try {
-    const settingsRes = await fetch('/api/settings');
-    if (settingsRes.ok) {
-      const settings = await settingsRes.json();
-      if (settings.program_chair) {
-        const chairEl = document.getElementById('print-program-chair');
-        if (chairEl) chairEl.textContent = settings.program_chair.toUpperCase();
-      }
-      if (settings.campus_dean) {
-        const deanEl = document.getElementById('print-campus-dean');
-        if (deanEl) deanEl.textContent = settings.campus_dean.toUpperCase();
-      }
+    let settings = {};
+    if (window.settingsService && typeof window.settingsService.getSettings === 'function') {
+      settings = await window.settingsService.getSettings();
+    } else {
+      const settingsRes = await fetch('/api/settings', { credentials: 'include' });
+      if (settingsRes.ok) settings = await settingsRes.json();
+    }
+
+    if (settings.program_chair) {
+      const chairEl = document.getElementById('print-program-chair');
+      if (chairEl) chairEl.textContent = settings.program_chair.toUpperCase();
+    }
+    if (settings.campus_dean) {
+      const deanEl = document.getElementById('print-campus-dean');
+      if (deanEl) deanEl.textContent = settings.campus_dean.toUpperCase();
     }
   } catch (err) {
     console.error('Failed to load dynamic signatures:', err);
@@ -68,11 +74,8 @@ async function initPrintSchedulePage() {
   if (localDataString) {
     try {
       const parsed = JSON.parse(localDataString);
-      // Ensure it is for the current room we requested
       if (String(parsed.roomNum) === String(roomNum)) {
         rawSchedules = parsed.scheduleData;
-        console.log('Loaded schedule data from local draft storage:', rawSchedules);
-        // Clear the localStorage entry so it doesn't linger
         localStorage.removeItem('print_schedule_data');
       }
     } catch (err) {
@@ -83,20 +86,19 @@ async function initPrintSchedulePage() {
   // If local draft data wasn't found or was for a different room, fetch from database API
   if (rawSchedules.length === 0) {
     try {
-      const res = await fetch(`/api/schedules/room/${roomNum}`);
-      if (res.ok) {
-        rawSchedules = await res.json();
-        console.log('Loaded schedule data from database API:', rawSchedules);
+      if (window.scheduleService && typeof window.scheduleService.getRoomSchedule === 'function') {
+        rawSchedules = await window.scheduleService.getRoomSchedule(roomNum, academicYear, semester);
       } else {
-        console.error('Failed to load room schedule from API');
+        const res = await fetch(`/api/schedules/room/${encodeURIComponent(roomNum)}?academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}`, { credentials: 'include' });
+        if (res.ok) rawSchedules = await res.json();
       }
     } catch (err) {
       console.error('API fetch error:', err);
     }
   }
 
-  // 4. Normalize the schedules so that properties map perfectly regardless of source
-  const scheduleData = rawSchedules.map(s => ({
+  // 4. Normalize the schedules
+  const scheduleData = (rawSchedules || []).map(s => ({
     day: s.day || s.Day_of_Week,
     startTime: (s.startTime || s.Start_Time || '').substring(0, 5),
     endTime: (s.endTime || s.End_Time || '').substring(0, 5),
@@ -111,7 +113,7 @@ async function initPrintSchedulePage() {
     times.push(`${h.toString().padStart(2, '0')}:00`);
     times.push(`${h.toString().padStart(2, '0')}:30`);
   }
-  times.push('21:00'); // final upper limit boundary
+  times.push('21:00');
 
   // 6. Initialize layout grid [time slot index][day index]
   const grid = Array.from({ length: times.length - 1 }, () => Array(7).fill(null));
@@ -133,7 +135,7 @@ async function initPrintSchedulePage() {
     }
   });
 
-  // 7. Build the DOM Table Rows dynamically with correct rowspans
+  // 7. Build DOM Table Rows dynamically
   let tbodyHtml = '';
   for (let r = 0; r < times.length - 1; r++) {
     tbodyHtml += '<tr>';
@@ -175,9 +177,15 @@ async function initPrintSchedulePage() {
   }, 500);
 }
 
-// Auto-initialize on DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initPrintSchedulePage);
-} else {
+let _printScheduleInitialized = false;
+function bootstrapPrintSchedule() {
+  if (_printScheduleInitialized) return;
+  _printScheduleInitialized = true;
   initPrintSchedulePage();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrapPrintSchedule);
+} else {
+  bootstrapPrintSchedule();
 }

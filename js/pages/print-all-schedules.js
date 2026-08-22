@@ -1,5 +1,6 @@
 /* ================================================================
    LabSync – Print All Schedules Page Controller  |  js/pages/print-all-schedules.js
+   Refactored in Phase 2 (Scheduling Architecture Refactor)
    ================================================================ */
 
 'use strict';
@@ -10,6 +11,7 @@
  * @returns {string} Formatted string "h:MM AM/PM"
  */
 function formatTime24to12(t) {
+  if (window.formatTimeLabel) return window.formatTimeLabel(t);
   if (!t) return '';
   let [h, m] = t.split(':');
   h = parseInt(h, 10);
@@ -22,7 +24,6 @@ function formatTime24to12(t) {
  * Triggers PDF generation and download using html2pdf library.
  */
 function triggerDownload() {
-  // Temporarily remove margin-bottom from wrappers to prevent blank pages in PDF slice calculations
   document.querySelectorAll('.document-page-wrapper').forEach(w => {
     w.style.marginBottom = '0px';
   });
@@ -48,7 +49,6 @@ function triggerDownload() {
       if (titleEl) titleEl.textContent = 'Download Complete';
       if (subEl) subEl.textContent = 'You can close this tab now.';
 
-      // Restore margins for screen preview
       document.querySelectorAll('.document-page-wrapper').forEach(w => {
         w.style.marginBottom = '20px';
       });
@@ -74,28 +74,36 @@ async function initPrintAllSchedulesPage() {
 
   // Fetch dynamic signature settings
   try {
-    const settingsRes = await fetch('/api/settings');
-    if (settingsRes.ok) {
-      const settings = await settingsRes.json();
-      if (settings.program_chair) programChair = settings.program_chair.toUpperCase();
-      if (settings.campus_dean) campusDean = settings.campus_dean.toUpperCase();
+    let settings = {};
+    if (window.settingsService && typeof window.settingsService.getSettings === 'function') {
+      settings = await window.settingsService.getSettings();
+    } else {
+      const settingsRes = await fetch('/api/settings', { credentials: 'include' });
+      if (settingsRes.ok) settings = await settingsRes.json();
     }
+    if (settings.program_chair) programChair = settings.program_chair.toUpperCase();
+    if (settings.campus_dean) campusDean = settings.campus_dean.toUpperCase();
   } catch (err) {
     console.error('Failed to fetch signature settings:', err);
   }
 
   try {
     // 1. Fetch all rooms
-    const res = await fetch('/api/laboratories');
-    if (!res.ok) throw new Error('Failed to fetch rooms');
-    const rooms = await res.json();
+    let rooms = [];
+    if (window.laboratoryService && typeof window.laboratoryService.fetchLaboratories === 'function') {
+      rooms = await window.laboratoryService.fetchLaboratories();
+    } else {
+      const res = await fetch('/api/laboratories', { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch rooms');
+      rooms = await res.json();
+    }
 
     if (!Array.isArray(rooms) || rooms.length === 0) {
       pagesContainer.innerHTML = '<div style="padding: 40px; color: #64748b; font-family: \'Plus Jakarta Sans\', sans-serif;">No rooms found.</div>';
       return;
     }
 
-    pagesContainer.innerHTML = ''; // Clear loading text
+    pagesContainer.innerHTML = '';
 
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -105,22 +113,23 @@ async function initPrintAllSchedulesPage() {
       times.push(`${h.toString().padStart(2, '0')}:00`);
       times.push(`${h.toString().padStart(2, '0')}:30`);
     }
-    times.push('21:00'); // final limit
+    times.push('21:00');
 
     // 2. Process each room
     for (const room of rooms) {
       const roomNum = room.Room_Number;
       const bldgName = room.Building || 'Building B';
 
-      // Fetch schedule for this room with term filtering
-      const schedRes = await fetch(`/api/schedules/room/${roomNum}?academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}`);
       let rawSchedules = [];
-      if (schedRes.ok) {
-        rawSchedules = await schedRes.json();
+      if (window.scheduleService && typeof window.scheduleService.getRoomSchedule === 'function') {
+        rawSchedules = await window.scheduleService.getRoomSchedule(roomNum, academicYear, semester);
+      } else {
+        const schedRes = await fetch(`/api/schedules/room/${encodeURIComponent(roomNum)}?academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}`, { credentials: 'include' });
+        if (schedRes.ok) rawSchedules = await schedRes.json();
       }
 
       // Normalize schedules
-      const scheduleData = rawSchedules.map(s => ({
+      const scheduleData = (rawSchedules || []).map(s => ({
         day: s.day || s.Day_of_Week,
         startTime: (s.startTime || s.Start_Time || '').substring(0, 5),
         endTime: (s.endTime || s.End_Time || '').substring(0, 5),
@@ -245,7 +254,6 @@ async function initPrintAllSchedulesPage() {
       wrapperEl.appendChild(pageEl);
       pagesContainer.appendChild(wrapperEl);
 
-      // Add explicit page break for html2pdf, except for the last page
       if (room !== rooms[rooms.length - 1]) {
         const pageBreak = document.createElement('div');
         pageBreak.className = 'html2pdf__page-break';
@@ -253,7 +261,6 @@ async function initPrintAllSchedulesPage() {
       }
     }
 
-    // 3. Auto-trigger PDF download after rendering completes
     setTimeout(() => {
       triggerDownload();
     }, 1500);
@@ -264,12 +271,17 @@ async function initPrintAllSchedulesPage() {
   }
 }
 
-// Auto-initialize on DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initPrintAllSchedulesPage);
-} else {
+let _printAllSchedulesInitialized = false;
+function bootstrapPrintAllSchedules() {
+  if (_printAllSchedulesInitialized) return;
+  _printAllSchedulesInitialized = true;
   initPrintAllSchedulesPage();
 }
 
-// Expose global download trigger for onclick handler
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrapPrintAllSchedules);
+} else {
+  bootstrapPrintAllSchedules();
+}
+
 window.triggerDownload = triggerDownload;
