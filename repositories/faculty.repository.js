@@ -37,6 +37,34 @@ async function deleteById(userId, executor = db) {
     return executor.query('DELETE FROM users WHERE User_ID = ?', [userId]);
 }
 
+async function deleteFacultyCascade(userId) {
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        // 1. Clear key holder if active on any laboratory
+        await connection.query('UPDATE laboratories SET Current_User_ID = NULL WHERE Current_User_ID = ?', [userId]);
+
+        // 2. Clear schedule assignments
+        await connection.query('DELETE FROM schedules WHERE User_ID = ?', [userId]);
+
+        // 3. Nullify maintenance reports and occupancy log references
+        await connection.query('UPDATE maintenance SET User_ID = NULL WHERE User_ID = ?', [userId]);
+        await connection.query('UPDATE occupancy_log SET User_ID = NULL WHERE User_ID = ?', [userId]);
+
+        // 4. Delete user record
+        await connection.query('DELETE FROM users WHERE User_ID = ?', [userId]);
+
+        await connection.commit();
+        return true;
+    } catch (err) {
+        await connection.rollback();
+        throw err;
+    } finally {
+        connection.release();
+    }
+}
+
 module.exports = {
     findByEmail,
     insertFaculty,
@@ -44,5 +72,6 @@ module.exports = {
     demoteAllHeadsToFaculty,
     updateUserRole,
     findRoleById,
-    deleteById
+    deleteById,
+    deleteFacultyCascade
 };

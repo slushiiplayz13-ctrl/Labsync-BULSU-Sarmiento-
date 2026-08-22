@@ -34,10 +34,8 @@ async function addFaculty(reqBody) {
     console.timeEnd('[Faculty] insertFaculty');
 
     // Dispatch welcome email asynchronously so HTTP response is not blocked by SMTP networking
-    console.time('[Faculty] sendWelcomeEmail');
     sendWelcomeEmail(email, name, generatedPassword)
         .then(emailSent => {
-            console.timeEnd('[Faculty] sendWelcomeEmail');
             if (!emailSent) {
                 console.warn(`[Faculty] Welcome email failed for ${email}; manual credential delivery required.`);
             } else {
@@ -45,7 +43,6 @@ async function addFaculty(reqBody) {
             }
         })
         .catch(err => {
-            console.timeEnd('[Faculty] sendWelcomeEmail');
             console.error(`[Faculty] Welcome email error for ${email}:`, err.message);
         });
 
@@ -97,7 +94,7 @@ async function updateFacultyRole(userId, role, currentSessionUserId, session) {
 }
 
 async function deleteFaculty(userId) {
-    await facultyRepository.deleteById(userId);
+    await facultyRepository.deleteFacultyCascade(userId);
     return { status: 200, message: 'Faculty member removed successfully' };
 }
 

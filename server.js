@@ -85,9 +85,26 @@ app.use('/api/occupancy', require('./routes/iot.routes'));
 const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);
 
+// Global process safety handlers to protect server from unexpected crashing on SMTP or socket errors
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('[Process] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('[Process] Uncaught Exception:', err);
+});
+
 // Start the server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`[Server Error] Port ${PORT} is already in use. Please close the other process and restart.`);
+    } else {
+        console.error('[Server Error]', err);
+    }
 });
 
 module.exports = app;

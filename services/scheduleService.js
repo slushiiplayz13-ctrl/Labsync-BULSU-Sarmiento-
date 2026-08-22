@@ -2,6 +2,7 @@
 
 const db = require('../database/connection');
 const scheduleRepository = require('../repositories/schedule.repository');
+const iotService = require('./iotService');
 
 async function saveRoomSchedule(roomNumber, schedules, academicYear, semester) {
     const currentYear = new Date().getFullYear();
@@ -147,11 +148,24 @@ async function getITHeadSummary(sessionUserId) {
     let availableRooms = 0;
     let claimedRooms = 0;
     let inUseRooms = 0;
+    let onlineRooms = 0;
+    let offlineRooms = 0;
 
     rooms.forEach(r => {
-        if (r.Subject_Name) inUseRooms++;
-        else if (r.Key_Status === 'Absent') claimedRooms++;
-        else availableRooms++;
+        const isOnline = iotService.isDeviceOnline(r.Room_Number, r.Last_Seen);
+        if (isOnline) {
+            onlineRooms++;
+        } else {
+            offlineRooms++;
+        }
+
+        if (r.Subject_Name) {
+            inUseRooms++;
+        } else if (r.Key_Status === 'Absent') {
+            claimedRooms++;
+        } else if (isOnline) {
+            availableRooms++;
+        }
     });
 
     const [[{ totalPcs }]] = await scheduleRepository.countTotalPCs();
@@ -171,6 +185,8 @@ async function getITHeadSummary(sessionUserId) {
             availableRooms,
             claimedRooms,
             inUseRooms,
+            onlineRooms,
+            offlineRooms,
             totalPcs,
             pendingReports,
             classesToday,
