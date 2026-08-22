@@ -153,6 +153,9 @@
       }, 300);
     }
 
+    window.openEditModal = openEditModal;
+    window.closeEditModal = closeEditModal;
+
     if (closeEditModalBtn) closeEditModalBtn.addEventListener('click', closeEditModal);
     editRoomModal.addEventListener('click', (e) => {
       if (e.target === editRoomModal) closeEditModal();

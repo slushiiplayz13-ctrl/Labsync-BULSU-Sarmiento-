@@ -174,6 +174,30 @@ if (document.readyState === 'loading') {
   loadCurrentUser();
 }
 
+// ── Global System Tutorial Launcher ────────────────────────────────────────
+window.startSystemTutorial = function (force = true) {
+  if (typeof window.startFacultyTutorial === 'function' && window.startFacultyTutorial !== window.startSystemTutorial) {
+    window.startFacultyTutorial(force);
+  } else {
+    const existing = document.querySelector('script[src*="tutorial.js"]');
+    if (existing) {
+      if (typeof window.startFacultyTutorial === 'function' && window.startFacultyTutorial !== window.startSystemTutorial) {
+        window.startFacultyTutorial(force);
+      }
+    } else {
+      const s = document.createElement('script');
+      s.src = 'js/tutorial.js';
+      s.onload = () => {
+        if (typeof window.startFacultyTutorial === 'function' && window.startFacultyTutorial !== window.startSystemTutorial) {
+          window.startFacultyTutorial(force);
+        }
+      };
+      document.body.appendChild(s);
+    }
+  }
+};
+window.startFacultyTutorial = window.startFacultyTutorial || window.startSystemTutorial;
+
 // ── Profile Dropdown Handler ─────────────────────────────────────────────────
 function initProfileDropdown() {
   // Create dropdown menu if it doesn't exist
@@ -199,7 +223,7 @@ function initProfileDropdown() {
         <i data-lucide="circle-help" style="width:16px;height:16px;"></i>
         Help Center
       </button>
-      <button onclick="if(window.startFacultyTutorial){ window.startFacultyTutorial(true); }" class="profile-menu-item">
+      <button onclick="window.startSystemTutorial(true)" class="profile-menu-item">
         <i data-lucide="play-circle" style="width:16px;height:16px;"></i>
         Watch System Tutorial
       </button>
@@ -527,6 +551,10 @@ function initNotifications() {
         }
       });
 
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ root: notifList });
+      }
+
       // Keep only last 50 keys to prevent localStorage bloat
       if (newToastedKeys.length > 50) {
         newToastedKeys.splice(0, newToastedKeys.length - 50);
@@ -544,11 +572,7 @@ function initNotifications() {
 
       const notifStateChanged = lastNotifSignature !== null && lastNotifSignature !== currentSignature;
       lastNotifSignature = currentSignature;
-
-      isInitialLoad = false;
-      lucide.createIcons();
-
-      // Real-time cards and timeline refresh (only when notification state actually changes after initial load)
+      // Real-time cards and timeline refresh
       if (notifStateChanged) {
         if (document.body.dataset.page === 'dashboard') {
           loadDashboardStatsAndLabs();
@@ -557,8 +581,31 @@ function initNotifications() {
           loadRoomStatusActivityLog();
         } else if (document.body.dataset.page === 'it-head-dashboard') {
           if (typeof window.loadITHeadDashboardData === 'function') window.loadITHeadDashboardData();
+        } else if (document.body.dataset.page === 'it-head-room-status') {
+          if (typeof window.loadITHeadRoomStatus === 'function') {
+            window.loadITHeadRoomStatus();
+          } else {
+            loadAllRoomStatusLabs();
+          }
         } else if (document.body.dataset.page === 'mis-dashboard') {
           initMISDashboard();
+        }
+      } else {
+        // Continuous live refresh for room status cards to detect IoT Offline & Reconnect state changes
+        if (document.body.dataset.page === 'room-status') {
+          loadAllRoomStatusLabs();
+        } else if (document.body.dataset.page === 'it-head-room-status') {
+          if (typeof window.loadITHeadRoomStatus === 'function') {
+            window.loadITHeadRoomStatus();
+          } else {
+            loadAllRoomStatusLabs();
+          }
+        } else if (document.body.dataset.page === 'dashboard') {
+          loadDashboardStatsAndLabs();
+        } else if (document.body.dataset.page === 'it-head-dashboard') {
+          if (typeof window.loadITHeadDashboardData === 'function') {
+            window.loadITHeadDashboardData();
+          }
         }
       }
 
@@ -607,7 +654,7 @@ function initNotifications() {
   });
 
   loadNotifications();
-  setInterval(loadNotifications, 3000); // Poll every 3 seconds for near-instantaneous live updates
+  setInterval(loadNotifications, 2000); // Poll every 2 seconds for snappy live updates
 }
 
 // Bind click events to Help buttons dynamically

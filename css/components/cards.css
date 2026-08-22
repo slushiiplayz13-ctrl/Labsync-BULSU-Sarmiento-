@@ -2688,6 +2688,12 @@ html.high-contrast .grid-card-time-text {
   box-sizing: border-box;
 }
 
+.timeline-badge i,
+.timeline-badge svg {
+  width: 18px;
+  height: 18px;
+}
+
 .timeline-panel {
   flex: 1;
   min-width: 0;
@@ -2732,6 +2738,13 @@ html.high-contrast .grid-card-time-text {
   gap: 4px;
   flex-wrap: wrap;
   word-break: break-word;
+}
+
+.timeline-heading-meta i,
+.timeline-heading-meta svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
 }
 
 .timeline-body {
@@ -2826,12 +2839,35 @@ html.high-contrast .grid-card-time-text {
   z-index: 1;
 }
 
+.timeline-item:has(.timeline-badge)::before {
+  left: 18px;
+  top: 18px;
+  bottom: -14px;
+}
+
+@media (max-width: 768px) {
+  .timeline-item:has(.timeline-badge)::before {
+    left: 15px;
+    top: 15px;
+    bottom: -10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .timeline-item:has(.timeline-badge)::before {
+    left: 13px;
+    top: 13px;
+    bottom: -8px;
+  }
+}
+
 .timeline-item.active::before {
   background: linear-gradient(to bottom, var(--primary-teal), var(--border-light));
 }
 
 .timeline-item:last-child {
   padding-bottom: 0;
+  margin-bottom: 0;
 }
 
 .timeline-item:last-child::before {

@@ -2,6 +2,7 @@
 
 const QRCode = require('qrcode');
 const labRepository = require('../repositories/laboratory.repository');
+const iotService = require('./iotService');
 
 async function getAllLaboratories() {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -48,6 +49,9 @@ async function getAllLaboratories() {
             }
         }
 
+        const isOnline = iotService.isDeviceOnline(room.Room_Number, room.Last_Seen);
+        const lastSeenTimestamp = iotService.getLastSeen(room.Room_Number, room.Last_Seen);
+
         return {
             Room_ID: room.Room_ID,
             Room_Number: room.Room_Number,
@@ -62,7 +66,9 @@ async function getAllLaboratories() {
                 startTime: room.Start_Time,
                 endTime: room.End_Time
             } : null,
-            Current_Key_Holder: currentHolderName
+            Current_Key_Holder: currentHolderName,
+            deviceOnline: isOnline,
+            lastSeen: lastSeenTimestamp
         };
     });
 

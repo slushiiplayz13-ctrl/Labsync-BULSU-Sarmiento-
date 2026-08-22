@@ -128,22 +128,22 @@
       const relTime = getRelativeTime(log.time);
 
       return `
-        <div class="timeline-item" style="display:flex;gap:16px;margin-bottom:16px;position:relative;">
-          <div class="timeline-badge" style="width:40px;height:40px;border-radius:50%;background:#E8F9FC;color:#1EBBD7;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:2;">
-            <i data-lucide="key-round" style="width:18px;height:18px;"></i>
+        <div class="timeline-item">
+          <div class="timeline-badge">
+            <i data-lucide="key-round"></i>
           </div>
-          <div class="timeline-panel" style="flex:1;background:var(--bg-white, #fff);border:1px solid var(--border-light, #e2e8f0);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.02);">
-            <div class="timeline-heading" style="margin-bottom:6px;">
-              <h4 class="timeline-title" style="font-family:var(--font-display);font-size:14.5px;font-weight:700;color:var(--text-dark, #1e293b);margin:0;">${titleText}</h4>
-              <p style="margin:2px 0 0 0;font-size:12px;color:var(--text-light, #64748b);display:flex;align-items:center;gap:4px;">
-                <i data-lucide="clock" style="width:12px;height:12px;"></i>
+          <div class="timeline-panel">
+            <div class="timeline-heading">
+              <h4 class="timeline-title">${titleText}</h4>
+              <p class="timeline-heading-meta">
+                <i data-lucide="clock"></i>
                 <span>${relTime}</span>
                 <span style="color:var(--border-light, #cbd5e1);">•</span>
                 <span>${detailText}</span>
               </p>
             </div>
-            <div class="timeline-body" style="font-family:var(--font-body);font-size:13.5px;color:var(--text-mid, #475569);line-height:1.5;">
-              <p style="margin:0;">${activityText}</p>
+            <div class="timeline-body">
+              <p>${activityText}</p>
             </div>
           </div>
         </div>
@@ -162,6 +162,10 @@
     initSidebarScrollClue();
     loadRoomStatusAndLogs();
   }
+
+  // Expose globally for real-time polling
+  window.loadITHeadRoomStatus = loadRoomStatusAndLogs;
+  window.loadRoomStatusAndLogs = loadRoomStatusAndLogs;
 
   // Execute on DOM Ready or immediately
   if (document.readyState === 'loading') {

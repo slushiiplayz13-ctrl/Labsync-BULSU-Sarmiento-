@@ -537,15 +537,28 @@ html.high-contrast .stat-title {
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.1);
 }
 
+.lab-card.offline-theme,
+.lab-card.gray-theme {
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.08) 0%, rgba(148, 163, 184, 0.02) 100%);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.lab-card.offline-theme:hover,
+.lab-card.gray-theme:hover {
+  border-color: rgba(148, 163, 184, 0.45);
+  box-shadow: 0 6px 20px rgba(100, 116, 139, 0.1);
+}
+
 /* Timeline List */
 .timeline-list {
   display: flex;
   flex-direction: column;
   position: relative;
   padding-left: 0;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
   overflow-y: auto !important;
-  max-height: clamp(360px, calc(100vh - 280px), 560px);
   padding-right: 6px;
   min-width: 0;
   width: 100%;
@@ -906,9 +919,8 @@ html.high-contrast .stat-title {
 .dashboard-main-grid .labs-grid {
   display: grid;
   gap: 12px;
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
-  max-height: clamp(360px, calc(100vh - 280px), 560px);
   grid-auto-rows: max-content;
   align-content: start;
   overflow-y: auto;
@@ -917,9 +929,10 @@ html.high-contrast .stat-title {
 }
 
 .dashboard-main-grid .timeline-list {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
-  max-height: clamp(360px, calc(100vh - 280px), 560px) !important;
+  height: 100%;
+  max-height: none !important;
   overflow-y: auto !important;
   overflow-x: hidden;
   padding-right: 4px;

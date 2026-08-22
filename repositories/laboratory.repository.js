@@ -4,7 +4,7 @@ const db = require('../database/connection');
 
 async function findAllLaboratoriesWithSchedule(today, nowTime, executor = db) {
     return executor.query(
-        `SELECT r.Room_ID, r.Room_Number, r.Building, r.Current_Status AS DB_Status, r.Key_Status, r.Current_User_ID,
+        `SELECT r.Room_ID, r.Room_Number, r.Building, r.Current_Status AS DB_Status, r.Key_Status, r.Current_User_ID, r.Last_Seen,
                 s.Subject_Name, s.Section, s.User_ID AS Scheduled_User_ID, s.Start_Time, s.End_Time,
                 u_sched.Name AS Scheduled_Professor_Name,
                 u_curr.Name AS Current_Key_Holder_Name
@@ -87,7 +87,16 @@ async function updateConditionStatus(pcId, conditionStatus, executor = db) {
 }
 
 async function updateKeyStatus(roomId, keyStatus, userId = null, executor = db) {
-    return executor.query('UPDATE laboratories SET Key_Status = ?, Current_User_ID = ? WHERE Room_ID = ?', [keyStatus, userId, roomId]);
+    return executor.query('UPDATE laboratories SET Key_Status = ?, Current_User_ID = ?, Last_Seen = NOW() WHERE Room_ID = ?', [keyStatus, userId, roomId]);
+}
+
+async function updateLastSeenByRoomNumbers(roomNumbers, executor = db) {
+    if (!roomNumbers || !Array.isArray(roomNumbers) || roomNumbers.length === 0) return;
+    const placeholders = roomNumbers.map(() => '?').join(',');
+    return executor.query(
+        `UPDATE laboratories SET Last_Seen = NOW() WHERE Room_Number IN (${placeholders})`,
+        roomNumbers
+    );
 }
 
 module.exports = {
@@ -105,5 +114,6 @@ module.exports = {
     findPCWithRoomDetails,
     findRoomPCsWithRoomDetails,
     updateConditionStatus,
-    updateKeyStatus
+    updateKeyStatus,
+    updateLastSeenByRoomNumbers
 };

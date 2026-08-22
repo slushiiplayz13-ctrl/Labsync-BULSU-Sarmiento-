@@ -18,6 +18,16 @@ async function logOccupancy(req, res, next) {
     }
 }
 
+async function heartbeat(req, res, next) {
+    try {
+        const result = await iotService.recordHeartbeat(req.body);
+        return res.status(result.status || 200).json(result.data || { ok: true });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
-    logOccupancy
+    logOccupancy,
+    heartbeat
 };

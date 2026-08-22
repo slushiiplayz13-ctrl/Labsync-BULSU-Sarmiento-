@@ -94,6 +94,18 @@
   display: none;
 }
 
+.badge.offline,
+.badge.gray {
+  background: rgba(148, 163, 184, 0.15);
+  color: #64748B;
+}
+
+.badge.offline::before,
+.badge.gray::before {
+  background: #94A3B8;
+  animation: none;
+}
+
 /* ─── Status Pill Badge Component Styles ─── */
 .status-pill {
   display: inline-block;

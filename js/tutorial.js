@@ -376,6 +376,7 @@
 
     // Export globally for manual trigger ("Re-watch tutorial")
     window.startFacultyTutorial = startFacultyTutorial;
+    window.startSystemTutorial = startFacultyTutorial;
 
     // Run automatically on page load
     if (document.readyState === 'loading') {

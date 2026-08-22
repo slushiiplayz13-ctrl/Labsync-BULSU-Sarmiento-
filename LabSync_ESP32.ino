@@ -4,7 +4,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoJson.h>
 
-// Global LCD placeholder (default 0x27)
+// Global LCD placeholder (auto-detected I2C address)
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 bool lcdDetected = false;
 
@@ -14,20 +14,31 @@ const char* password = "POOHLIEPOGI";
 
 // Server Configuration
 const char* serverUrl = "http://192.168.100.59:3000/api/occupancy/log";
+const char* heartbeatUrl = "http://192.168.100.59:3000/api/occupancy/heartbeat";
 const char* defaultScanRoom = "203"; 
 
 // Key Slots Configuration
-#define KEY_PIN_203 32 // Pin D32 for Room 203
-#define KEY_PIN_204 33 // Pin D33 for Room 204
+#define KEY_PIN_203 32 // D32 -> Slot 203 (Expects Key 203: ~1800 ADC)
+#define KEY_PIN_204 33 // D33 -> Slot 204 (Expects Key 204: ~0 ADC)
 
-bool lastKeyState203 = true;
-bool lastKeyState204 = true;
+enum KeyType {
+  KEY_NONE = 0,   // Empty Slot (> 3000)
+  KEY_204 = 1,    // 0 Ohm Direct Wire Key (0 - 500)
+  KEY_203 = 2     // 10k Ohm Resistor Key (1000 - 2600)
+};
 
-// Pin Definitions for GM65 Scanner
-#define GM65_RX_PIN 17 // ESP32 RX2 (connect to GM65 TX)
-#define GM65_TX_PIN 16 // ESP32 TX2 (connect to GM65 RX)
+KeyType lastSlotState203 = KEY_NONE;
+KeyType lastSlotState204 = KEY_NONE;
 
-// Pin Definitions for I2C LCD
+// Periodic Heartbeat Timer
+unsigned long lastHeartbeatTime = 0;
+const unsigned long HEARTBEAT_INTERVAL = 5000; // 5 seconds
+
+// GM65 Scanner Pins
+#define GM65_RX_PIN 17 
+#define GM65_TX_PIN 16 
+
+// I2C Pins for LCD
 #define I2C_SDA_PIN 21
 #define I2C_SCL_PIN 22
 
@@ -36,11 +47,11 @@ bool lastKeyState204 = true;
 
 void buzzerOn() {
   pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW); // Pull to GND -> Buzzer Sounds
+  digitalWrite(BUZZER_PIN, LOW); // LOW = Beep ON
 }
 
 void buzzerOff() {
-  pinMode(BUZZER_PIN, INPUT); // High-Z / Float -> Buzzer OFF
+  pinMode(BUZZER_PIN, INPUT); // High-Z float = Beep OFF
 }
 
 void triggerBuzzer(int durationMs = 100, int count = 1) {
@@ -48,9 +59,7 @@ void triggerBuzzer(int durationMs = 100, int count = 1) {
     buzzerOn();
     delay(durationMs);
     buzzerOff();
-    if (i < count - 1) {
-      delay(50);
-    }
+    if (i < count - 1) delay(50);
   }
 }
 
@@ -70,28 +79,90 @@ void clearSerialBuffer() {
   }
 }
 
+// Lightweight 5-second Heartbeat
+void sendHeartbeatToServer() {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(heartbeatUrl);
+    http.setTimeout(800); // Fast 800ms non-blocking timeout
+    http.addHeader("Content-Type", "application/json");
+
+    String jsonPayload = "{\"deviceId\":\"ESP32-KeyBox\",\"rooms\":[\"203\",\"204\"]}";
+    int code = http.POST(jsonPayload);
+    
+    // Fallback to /api/occupancy/log with keyEvent:Heartbeat if /heartbeat returns 404
+    if (code == 404 || code < 0) {
+      http.end();
+      http.begin(serverUrl);
+      http.setTimeout(800);
+      http.addHeader("Content-Type", "application/json");
+      http.POST("{\"keyEvent\":\"Heartbeat\",\"roomNumber\":\"203\"}");
+    }
+    http.end();
+  }
+}
+
+// Stable ADC reading with 20-sample averaging
+KeyType detectKeyType(int pin) {
+  long sum = 0;
+  for (int i = 0; i < 20; i++) {
+    sum += analogRead(pin);
+    delayMicroseconds(100);
+  }
+  int avgReading = sum / 20;
+
+  if (avgReading >= 3000) {
+    return KEY_NONE;
+  } else if (avgReading < 500) {
+    return KEY_204;
+  } else if (avgReading >= 1000 && avgReading <= 2600) {
+    return KEY_203;
+  }
+
+  return KEY_NONE;
+}
+
+// Alarm loop when a key is put in the wrong hole
+void handleWrongSlotAlarm(int pin, String expectedSlot, String insertedKey) {
+  Serial.println("❌ WRONG KEY SLOT! Key " + insertedKey + " inserted into Slot " + expectedSlot);
+  
+  if (lcdDetected) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("WRONG KEY SLOT!");
+    lcd.setCursor(0, 1);
+    lcd.print("Insert in " + insertedKey + "!");
+  }
+
+  while (detectKeyType(pin) != KEY_NONE) {
+    buzzerOn();
+    delay(80);
+    buzzerOff();
+    delay(50);
+  }
+
+  buzzerOff();
+  Serial.println("Wrong key removed. System ready.");
+  delay(300);
+  showReadyScreen();
+}
+
 void setup() {
   Serial.begin(115200);
   delay(500);
   Serial.println("\n--- LabSync Device Booting ---");
 
-  // 1. Initialize Buzzer safely
   buzzerOff();
 
-  // 2. Initialize Key Sensor Pins
-  pinMode(KEY_PIN_203, INPUT_PULLUP);
-  pinMode(KEY_PIN_204, INPUT_PULLUP);
-  delay(50);
+  analogSetPinAttenuation(KEY_PIN_203, ADC_11db);
+  analogSetPinAttenuation(KEY_PIN_204, ADC_11db);
+  analogReadResolution(12);
+  delay(100);
 
-  lastKeyState203 = (digitalRead(KEY_PIN_203) == LOW);
-  lastKeyState204 = (digitalRead(KEY_PIN_204) == LOW);
+  lastSlotState203 = detectKeyType(KEY_PIN_203);
+  lastSlotState204 = detectKeyType(KEY_PIN_204);
 
-  Serial.print("Initial Key 203 Status: ");
-  Serial.println(lastKeyState203 ? "Present" : "Absent");
-  Serial.print("Initial Key 204 Status: ");
-  Serial.println(lastKeyState204 ? "Present" : "Absent");
-
-  // 3. Initialize I2C LCD
+  // Initialize LCD
   Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
   byte count = 0;
   byte foundAddress = 0;
@@ -105,9 +176,6 @@ void setup() {
   }
 
   if (count > 0 && foundAddress != 0) {
-    Serial.print("LCD Screen detected at: 0x");
-    Serial.println(foundAddress, HEX);
-    
     lcd = LiquidCrystal_I2C(foundAddress, 16, 2);
     lcd.init();
     lcd.backlight();
@@ -117,17 +185,14 @@ void setup() {
     lcd.setCursor(0, 1);
     lcd.print("Wi-Fi...");
     lcdDetected = true;
-  } else {
-    Serial.println("WARNING: No LCD Screen found on I2C pins.");
   }
 
-  // 4. Initialize GM65 Scanner
+  // Initialize GM65 Scanner
   Serial2.begin(9600, SERIAL_8N1, GM65_RX_PIN, GM65_TX_PIN);
   clearSerialBuffer();
 
-  // 5. Connect to Wi-Fi
+  // Connect Wi-Fi
   WiFi.begin(ssid, password);
-  Serial.print("Connecting to Wi-Fi");
   int wifiTimeout = 0;
   while (WiFi.status() != WL_CONNECTED && wifiTimeout < 20) {
     delay(400);
@@ -137,9 +202,8 @@ void setup() {
   
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nConnected to Wi-Fi!");
-    triggerBuzzer(100, 1); // Fast boot beep
-  } else {
-    Serial.println("\nWi-Fi Connection Failed!");
+    triggerBuzzer(100, 1);
+    sendHeartbeatToServer(); // Immediately announce online presence on boot!
   }
 
   if (lcdDetected) {
@@ -159,7 +223,7 @@ void sendScanToServer(String scannedToken) {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
     http.begin(serverUrl);
-    http.setTimeout(1200); // 1.2s timeout prevents hanging on slow network
+    http.setTimeout(1200);
     http.addHeader("Content-Type", "application/json");
 
     StaticJsonDocument<256> reqDoc;
@@ -169,14 +233,9 @@ void sendScanToServer(String scannedToken) {
 
     String jsonPayload;
     serializeJson(reqDoc, jsonPayload);
-
-    Serial.print("Sending QR Token to server: ");
-    Serial.println(jsonPayload);
     
     int httpResponseCode = http.POST(jsonPayload);
     String response = http.getString();
-    Serial.print("HTTP Response Code: ");
-    Serial.println(httpResponseCode);
 
     StaticJsonDocument<1024> resDoc;
     DeserializationError error = deserializeJson(resDoc, response);
@@ -185,16 +244,10 @@ void sendScanToServer(String scannedToken) {
     String line2 = "Authorized User";
 
     if (!error) {
-      if (resDoc.containsKey("lcdLine1")) {
-        line1 = resDoc["lcdLine1"].as<String>();
-      }
-      if (resDoc.containsKey("lcdLine2")) {
-        line2 = resDoc["lcdLine2"].as<String>();
-      } else if (resDoc.containsKey("name")) {
-        line2 = resDoc["name"].as<String>();
-      } else if (resDoc.containsKey("user") && resDoc["user"].containsKey("name")) {
-        line2 = resDoc["user"]["name"].as<String>();
-      }
+      if (resDoc.containsKey("lcdLine1")) line1 = resDoc["lcdLine1"].as<String>();
+      if (resDoc.containsKey("lcdLine2")) line2 = resDoc["lcdLine2"].as<String>();
+      else if (resDoc.containsKey("name")) line2 = resDoc["name"].as<String>();
+      else if (resDoc.containsKey("user") && resDoc["user"].containsKey("name")) line2 = resDoc["user"]["name"].as<String>();
     }
 
     if (httpResponseCode == 200) {
@@ -206,7 +259,6 @@ void sendScanToServer(String scannedToken) {
         lcd.setCursor(0, 1);
         lcd.print(line2.substring(0, 16));
       }
-      Serial.println("Access Granted for: " + line2);
     } else {
       triggerBuzzer(300, 1); 
       if (lcdDetected) {
@@ -216,8 +268,6 @@ void sendScanToServer(String scannedToken) {
         lcd.setCursor(0, 1);
         lcd.print(line2.substring(0, 16));
       }
-      Serial.print("Access Denied. Code: ");
-      Serial.println(httpResponseCode);
     }
     http.end();
   } else {
@@ -226,13 +276,10 @@ void sendScanToServer(String scannedToken) {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Wi-Fi Error!");
-      lcd.setCursor(0, 1);
-      lcd.print("Disconnected");
     }
-    Serial.println("Wi-Fi Disconnected!");
   }
 
-  delay(1200); // Snappy 1.2s display before returning to ready screen
+  delay(1200);
   clearSerialBuffer();
   showReadyScreen();
 }
@@ -246,102 +293,99 @@ void sendKeyStatusToServer(String room, bool present) {
 
     String statusStr = present ? "Key Returned" : "Key Taken";
     String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + room + "\"}";
-
-    Serial.print("Sending Key Event for Room " + room + ": ");
-    Serial.println(statusStr);
     
-    int httpResponseCode = http.POST(jsonPayload);
-    if (httpResponseCode == 200) {
-      Serial.println("Server confirmed: Key status updated for Room " + room);
-    } else {
-      Serial.print("Server error logging key event. Code: ");
-      Serial.println(httpResponseCode);
-    }
+    http.POST(jsonPayload);
     http.end();
-  } else {
-    Serial.println("Wi-Fi Disconnected! Cannot send key status.");
   }
 }
 
-void handleKeySlot(int pin, bool &lastState, String roomName) {
-  bool readState1 = (digitalRead(pin) == LOW);
+void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expectedKey) {
+  KeyType currentState = detectKeyType(pin);
   
-  if (readState1 != lastState) {
-    delay(40); // Snappy 40ms debounce
-    bool readState2 = (digitalRead(pin) == LOW);
+  if (currentState != lastState) {
+    delay(100); // 100ms debounce
+    KeyType verifyState = detectKeyType(pin);
     
-    if (readState1 == readState2) {
-      lastState = readState2;
+    if (currentState == verifyState) {
+      // 1. Wrong Key Inserted -> Sound Alarm
+      if (verifyState != KEY_NONE && verifyState != expectedKey) {
+        String insertedKeyName = (verifyState == KEY_203) ? "203" : "204";
+        handleWrongSlotAlarm(pin, slotRoom, insertedKeyName);
+        lastState = KEY_NONE;
+        return;
+      }
 
-      if (readState2) {
-        triggerBuzzer(80, 2); // 2 quick beeps on key return
-        Serial.println("KEY SENSOR [" + roomName + "]: Key returned.");
+      lastState = verifyState;
+
+      // 2. Correct Key Returned
+      if (verifyState == expectedKey) {
+        triggerBuzzer(80, 2);
         if (lcdDetected) {
           lcd.clear();
           lcd.setCursor(0, 0);
-          lcd.print(roomName + " Key Return");
+          lcd.print(slotRoom + " Key Return");
           lcd.setCursor(0, 1);
           lcd.print("Room Secured");
         }
-      } else {
-        triggerBuzzer(150, 1); // 1 quick beep on key take
-        Serial.println("KEY SENSOR [" + roomName + "]: Key taken.");
+        sendKeyStatusToServer(slotRoom, true);
+        delay(1000);
+        clearSerialBuffer();
+        showReadyScreen();
+      } 
+      // 3. Key Taken
+      else if (verifyState == KEY_NONE) {
+        triggerBuzzer(150, 1);
         if (lcdDetected) {
           lcd.clear();
           lcd.setCursor(0, 0);
-          lcd.print(roomName + " Key Taken");
+          lcd.print(slotRoom + " Key Taken");
           lcd.setCursor(0, 1);
           lcd.print("Room Active");
         }
+        sendKeyStatusToServer(slotRoom, false);
+        delay(1000);
+        clearSerialBuffer();
+        showReadyScreen();
       }
-
-      sendKeyStatusToServer(roomName, readState2);
-      delay(1000); // 1s message hold
-      clearSerialBuffer();
-      showReadyScreen();
     }
   }
 }
 
 void loop() {
-  // 1. Instant GM65 Scanner Detection
+  // 1. GM65 Scanner
   if (Serial2.available() > 0) {
     String scannedCode = "";
     unsigned long startTime = millis();
     unsigned long lastCharTime = millis();
     int totalBytesRead = 0;
     
-    // Tight 60ms scan window for zero perceptible input lag
     while ((millis() - startTime < 60) && (millis() - lastCharTime < 20)) {
       while (Serial2.available() > 0) {
         char c = Serial2.read();
         totalBytesRead++;
-        if (c >= 32 && c <= 126) {
-          scannedCode += c;
-        }
+        if (c >= 32 && c <= 126) scannedCode += c;
         lastCharTime = millis();
-        
-        if (scannedCode.length() >= 128 || totalBytesRead >= 256) {
-          break;
-        }
+        if (scannedCode.length() >= 128 || totalBytesRead >= 256) break;
       }
     }
     
     scannedCode.trim();
-
     if (scannedCode.length() > 0) {
-      Serial.print("QR Code Detected: [");
-      Serial.print(scannedCode);
-      Serial.println("]");
       sendScanToServer(scannedCode);
     } else {
       clearSerialBuffer();
     }
   }
 
-  // 2. Continuous Key Monitoring
-  handleKeySlot(KEY_PIN_203, lastKeyState203, "203");
-  handleKeySlot(KEY_PIN_204, lastKeyState204, "204");
+  // 2. Key Monitoring
+  handleKeySlot(KEY_PIN_203, lastSlotState203, "203", KEY_203);
+  handleKeySlot(KEY_PIN_204, lastSlotState204, "204", KEY_204);
 
-  delay(10); // Minimal loop rest
+  // 3. Periodic 5-second Heartbeat
+  if (millis() - lastHeartbeatTime >= HEARTBEAT_INTERVAL) {
+    lastHeartbeatTime = millis();
+    sendHeartbeatToServer();
+  }
+
+  delay(20);
 }

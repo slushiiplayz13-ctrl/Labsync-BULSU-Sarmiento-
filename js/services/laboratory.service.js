@@ -76,18 +76,46 @@ function renderLabCards(labs, targetContainer) {
   }
 
   container.innerHTML = labs.map(room => {
+    const isOnline = room.deviceOnline === true || room.deviceOnline === 1 || room.deviceOnline === 'true';
+
     let statusTheme = 'green-theme';
-    const statusLower = (room.Current_Status || '').toLowerCase();
-    if (statusLower === 'claimed') statusTheme = 'orange-theme';
-    else if (statusLower === 'in use') statusTheme = 'red-theme';
+    let badgeClass = 'green';
+    let displayStatus = room.Current_Status || 'Available';
+
+    if (!isOnline) {
+      statusTheme = 'offline-theme';
+      badgeClass = 'offline';
+      displayStatus = 'Offline';
+    } else {
+      const statusLower = (room.Current_Status || '').toLowerCase();
+      if (statusLower === 'claimed') {
+        statusTheme = 'orange-theme';
+        badgeClass = 'orange';
+      } else if (statusLower === 'in use') {
+        statusTheme = 'red-theme';
+        badgeClass = 'red';
+      }
+    }
 
     const scheduledProf = room.Scheduled_Class ? `${room.Scheduled_Class.professor || 'Faculty'} (${room.Scheduled_Class.subject || ''})` : null;
+
+    let activityText = room.Current_Class || 'None';
+    if (!isOnline) {
+      activityText = 'Offline';
+    }
+
+    let keyStatusText = room.Key_Status || 'Present';
+    let keyStatusColor = room.Key_Status === 'Absent' ? '#ef4444' : '#10b981';
+    if (!isOnline) {
+      keyStatusText = 'Offline';
+      keyStatusColor = '#94a3b8';
+    }
 
     return `
       <div class="lab-card ${statusTheme}">
         <div class="lab-header lc-header">
           <span class="room-num">RM ${room.Room_Number}</span>
-          <span class="badge ${statusLower === 'in use' ? 'red' : (statusLower === 'claimed' ? 'orange' : 'green')}">${room.Current_Status}</span>
+          <span class="badge ${badgeClass}">${displayStatus}</span>
         </div>
         <div class="lab-details lc-details">
           <div class="ld-row">
@@ -96,7 +124,7 @@ function renderLabCards(labs, targetContainer) {
           </div>
           <div class="ld-row">
             <span>Status / Activity:</span>
-            <strong class="teal-text" style="font-size: 12px; word-break: break-word;">${room.Current_Class || 'None'}</strong>
+            <strong class="${isOnline ? 'teal-text' : 'muted-text'}" style="font-size: 12px; word-break: break-word;">${activityText}</strong>
           </div>
           ${scheduledProf ? `
           <div class="ld-row" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba(0,0,0,0.06);">
@@ -106,7 +134,7 @@ function renderLabCards(labs, targetContainer) {
           ` : ''}
           <div class="ld-row">
             <span>Key Status:</span>
-            <strong style="color: ${room.Key_Status === 'Absent' ? '#ef4444' : '#10b981'};">${room.Key_Status || 'Present'}</strong>
+            <strong style="color: ${keyStatusColor};">${keyStatusText}</strong>
           </div>
         </div>
       </div>
@@ -134,7 +162,7 @@ function renderLabCardsError(targetContainer) {
       <div class="ui-empty-icon" style="background:#FEE2E2; color:#EF4444;">
         <i data-lucide="alert-circle"></i>
       </div>
-      <p>Failed to load laboratories.</p>
+      <p>Unable to retrieve room status</p>
     </div>
   `;
   if (window.lucide && typeof window.lucide.createIcons === 'function') {

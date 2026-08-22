@@ -362,6 +362,7 @@ img[src*="bsu"] {
 }
 
 .notif-dot {
+  display: none;
   position: absolute;
   top: 7px;
   right: 8px;
@@ -369,7 +370,7 @@ img[src*="bsu"] {
   height: 7px;
   background: #EF4444;
   border-radius: 50%;
-  border: 1.5px solid #fff;
+  border: 1.5px solid var(--bg-white, #fff);
 }
 
 .profile-dropdown {

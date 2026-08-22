@@ -233,7 +233,7 @@ async function loadITHeadDashboardData() {
     }
 
     const elAvail = document.getElementById('ithead-stat-available');
-    const availableTotalCount = allLabs.filter(r => String(r.Current_Status || '').toLowerCase() === 'available').length;
+    const availableTotalCount = allLabs.filter(r => r.deviceOnline !== false && String(r.Current_Status || '').toLowerCase() === 'available').length;
     if (elAvail) elAvail.textContent = availableTotalCount;
 
     const elAvailMeta = document.getElementById('ithead-stat-avail-meta');

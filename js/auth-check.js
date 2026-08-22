@@ -1,3 +1,21 @@
+// Synchronously apply saved accessibility theme & scale settings before any visual paint or auth check
+(function initAntiFlashTheme() {
+    try {
+        const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
+        if (savedContrast) {
+            document.documentElement.classList.add('high-contrast');
+        } else {
+            document.documentElement.classList.remove('high-contrast');
+        }
+        const savedScale = localStorage.getItem('labsync-text-scale');
+        if (savedScale && savedScale !== 'normal') {
+            document.documentElement.setAttribute('data-text-scale', savedScale);
+        }
+    } catch (e) {
+        // Guard against restricted localStorage
+    }
+})();
+
 // Authentication & Role Authorization Check - Include this script in all protected pages
 (async function checkAuth() {
     function revealPage() {

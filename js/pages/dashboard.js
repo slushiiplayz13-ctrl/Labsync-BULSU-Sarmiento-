@@ -64,7 +64,7 @@ async function loadDashboardStatsAndLabs() {
     // Update Stats Card 2: Campus Available Labs
     const availLabsVal = document.querySelector('.stat-card:nth-child(2) .stat-value') || document.getElementById('ithead-stat-available');
     const availLabsMeta = document.querySelector('.stat-card:nth-child(2) .stat-meta') || document.getElementById('ithead-stat-avail-meta');
-    const availableTotalCount = allLabs.filter(r => String(r.Current_Status || '').toLowerCase() === 'available').length;
+    const availableTotalCount = allLabs.filter(r => r.deviceOnline !== false && String(r.Current_Status || '').toLowerCase() === 'available').length;
     if (availLabsVal) availLabsVal.textContent = availableTotalCount;
     if (availLabsMeta) availLabsMeta.textContent = `${availableTotalCount} available now campus-wide`;
 

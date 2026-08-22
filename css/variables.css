@@ -277,6 +277,17 @@ html.high-contrast .lab-card.red-theme {
   border-color: #9F1239 !important;
 }
 
+html.high-contrast .lab-card.offline-theme,
+html.high-contrast .lab-card.gray-theme {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  border-color: #334155 !important;
+}
+
+html.high-contrast .lab-card.offline-theme:hover,
+html.high-contrast .lab-card.gray-theme:hover {
+  border-color: #64748b !important;
+}
+
 html.high-contrast .lab-card * {
   color: var(--text-dark) !important;
 }
@@ -315,6 +326,18 @@ html.high-contrast .lab-card .badge.red {
 
 html.high-contrast .lab-card .badge.red::before {
   background: #F87171 !important;
+}
+
+html.high-contrast .lab-card .badge.offline,
+html.high-contrast .lab-card .badge.gray {
+  color: #94A3B8 !important;
+  background: rgba(148, 163, 184, 0.2) !important;
+}
+
+html.high-contrast .lab-card .badge.offline::before,
+html.high-contrast .lab-card .badge.gray::before {
+  background: #94A3B8 !important;
+  box-shadow: none !important;
 }
 
 /* PC Reports text visibility overrides inside status card in high contrast */
@@ -419,6 +442,80 @@ html.high-contrast .tc-status-pill.upcoming {
 html.high-contrast .time-marker {
   border-color: var(--bg-white) !important;
   box-shadow: 0 0 0 1px var(--border-light) !important;
+}
+
+/* Activity Log Timeline High Contrast & Dark Mode Overrides */
+html.high-contrast .timeline-badge,
+html.dark-mode .timeline-badge,
+body.dark-mode .timeline-badge,
+[data-theme="dark"] .timeline-badge {
+  background: rgba(30, 187, 215, 0.15) !important;
+  color: #38BDF8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+html.high-contrast .timeline-panel,
+html.dark-mode .timeline-panel,
+body.dark-mode .timeline-panel,
+[data-theme="dark"] .timeline-panel {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+html.high-contrast .timeline-panel:hover,
+html.dark-mode .timeline-panel:hover,
+body.dark-mode .timeline-panel:hover,
+[data-theme="dark"] .timeline-panel:hover {
+  background: #243044 !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.high-contrast .timeline-title,
+html.dark-mode .timeline-title,
+body.dark-mode .timeline-title,
+[data-theme="dark"] .timeline-title {
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .timeline-heading-meta,
+html.dark-mode .timeline-heading-meta,
+body.dark-mode .timeline-heading-meta,
+[data-theme="dark"] .timeline-heading-meta {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .timeline-body,
+html.dark-mode .timeline-body,
+body.dark-mode .timeline-body,
+[data-theme="dark"] .timeline-body,
+html.high-contrast .timeline-body p,
+html.dark-mode .timeline-body p,
+body.dark-mode .timeline-body p,
+[data-theme="dark"] .timeline-body p {
+  color: #CBD5E1 !important;
+}
+
+html.high-contrast .timeline-item::before,
+html.dark-mode .timeline-item::before,
+body.dark-mode .timeline-item::before,
+[data-theme="dark"] .timeline-item::before {
+  background: #334155 !important;
+}
+
+html.high-contrast .timeline-list::-webkit-scrollbar-thumb,
+html.dark-mode .timeline-list::-webkit-scrollbar-thumb,
+body.dark-mode .timeline-list::-webkit-scrollbar-thumb,
+[data-theme="dark"] .timeline-list::-webkit-scrollbar-thumb {
+  background: #475569 !important;
+}
+
+html.high-contrast .timeline-list::-webkit-scrollbar-thumb:hover,
+html.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
+body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .timeline-list::-webkit-scrollbar-thumb:hover {
+  background: #64748B !important;
 }
 
 /* Faculty Filter Dropdown High Contrast Overrides */
