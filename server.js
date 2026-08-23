@@ -1,29 +1,37 @@
+'use strict';
+
+/**
+ * server.js
+ * LabSync Express Server Entry Point.
+ */
+
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const session = require('express-session');
-const db = require('./db');
 
-dotenv.config();
+const {
+    PORT,
+    SESSION_SECRET,
+    SESSION_MAX_AGE,
+    isOriginAllowed
+} = require('./config/app.config');
+
+const { initializeDatabase } = require('./services/dbInit');
+const errorHandler = require('./middleware/errorHandler');
+const apiRoutes = require('./routes');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Database initialization (delegated to services/dbInit)
-const { initializeDatabase } = require('./services/dbInit');
+// Initialize database migrations asynchronously
 initializeDatabase();
 
-// Trust proxy for secure cookies behind reverse proxies (like Ngrok, Heroku, Render, Nginx)
+// Trust proxy for secure cookies behind reverse proxies (Ngrok, Heroku, Render, Nginx)
 app.set('trust proxy', 1);
 
-// Middleware setup
+// Middleware configuration
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('ngrok') || (process.env.APP_URL && origin === process.env.APP_URL)) {
-            callback(null, true);
-        } else {
-            callback(null, true);
-        }
+    origin: (origin, callback) => {
+        callback(null, isOriginAllowed(origin));
     },
     credentials: true
 }));
@@ -32,60 +40,25 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Session configuration
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'labsync-secret-key-change-in-production',
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
         secure: false,
-        maxAge: 24 * 60 * 60 * 1000
+        maxAge: SESSION_MAX_AGE
     }
 }));
 
-// Serve static files from root
+// Serve static frontend assets
 app.use(express.static('./'));
 
-// Basic test route
-app.get('/api/test', async (req, res) => {
-    try {
-        const [rows] = await db.query('SELECT 1 + 1 AS result');
-        res.json({ message: 'Database connected successfully', result: rows[0].result });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Database connection failed' });
-    }
-});
-
-// Import Controllers for top-level backward compatibility routes
-const authController = require('./controllers/auth.controller');
-const usersController = require('./controllers/users.controller');
-const schedulesController = require('./controllers/schedules.controller');
-const maintenanceController = require('./controllers/maintenance.controller');
-const { requireAuth, requireRole, ADMIN_ROLES } = require('./middleware/auth');
-
-// Top-level legacy route aliases to guarantee 100% zero-regression compatibility
-app.post('/api/login', authController.login);
-app.post('/api/logout', requireAuth, authController.logout);
-app.post('/api/qrcode/scan', usersController.scanQRCode);
-app.get('/api/dashboard/it-head-summary', requireRole(ADMIN_ROLES), schedulesController.getITHeadSummary);
-app.get('/api/notifications', requireAuth, maintenanceController.getNotifications);
-
-// Mount modular API routers
-app.use('/api/auth', require('./routes/auth.routes'));
-app.use('/api/user', require('./routes/users.routes'));
-app.use('/api/faculty', require('./routes/faculty.routes'));
-app.use('/api/laboratories', require('./routes/labs.routes'));
-app.use('/api/pcs', require('./routes/pcs.routes'));
-app.use('/api/schedules', require('./routes/schedules.routes'));
-app.use('/api/reports', require('./routes/maintenance.routes'));
-app.use('/api/settings', require('./routes/settings.routes'));
-app.use('/api/curriculum', require('./routes/curriculum.routes'));
-app.use('/api/occupancy', require('./routes/iot.routes'));
+// Mount centralized API router (all domain routes and legacy compatibility aliases)
+app.use('/api', apiRoutes);
 
 // Centralized error handling middleware
-const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);
 
-// Global process safety handlers to protect server from unexpected crashing on SMTP or socket errors
+// Global process safety handlers to protect server from unexpected crashing
 process.on('unhandledRejection', (reason, promise) => {
     console.error('[Process] Unhandled Rejection at:', promise, 'reason:', reason);
 });
@@ -94,7 +67,7 @@ process.on('uncaughtException', (err) => {
     console.error('[Process] Uncaught Exception:', err);
 });
 
-// Start the server
+// Start HTTP server
 const server = app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
