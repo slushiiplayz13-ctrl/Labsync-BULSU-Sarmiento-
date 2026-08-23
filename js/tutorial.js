@@ -12,51 +12,113 @@
     let cardEl = null;
     let activeHighlightedEl = null;
     let currentUserId = null;
+    let activeTutorialSteps = [];
 
-    const tutorialSteps = [
+    const facultyTutorialSteps = [
         {
             selector: '.header-logos, .header, .header-title',
             title: 'Welcome to LabSync! 👋',
             badge: 'Getting Started',
-            description: 'Welcome to your new LabSync faculty account. This interactive guide will quickly show you around your main tools and dashboard features.',
+            description: 'Welcome to your LabSync faculty portal. This interactive walkthrough will guide you through your dashboard, class schedules, and room tools.',
             position: 'bottom'
         },
         {
             selector: 'button[onclick*="my-schedule"], .sidebar-btn[title*="Schedule"], .sidebar-btn[data-tooltip*="Schedule"], a[href*="my-schedule.html"]',
             title: '📅 My Schedule',
-            badge: 'Class Management',
-            description: 'View all your assigned lab classes, room numbers, subject codes, and weekly schedules updated by your Department Head.',
+            badge: 'Class Schedule',
+            description: 'View all your assigned laboratory classes, room assignments, subject codes, and weekly time slots configured by your Department Head.',
             position: 'right'
         },
         {
             selector: 'button[onclick*="room-status"], .sidebar-btn[title*="Room"], .sidebar-btn[data-tooltip*="Room"], a[href*="room-status.html"]',
             title: '🖥️ Room Status & Key Log',
-            badge: 'Lab Availability',
-            description: 'Check real-time laboratory availability, active room occupancy, and key status before heading to your class.',
+            badge: 'Room Status',
+            description: 'Check real-time laboratory room availability, active occupancy, and physical key custody before heading to class.',
             position: 'right'
         },
         {
-            selector: 'button[onclick*="pc-report"], button[onclick*="faculty-pc-reports"], .sidebar-btn[title*="PC"], .sidebar-btn[data-tooltip*="PC"], a[href*="faculty-pc-reports.html"]',
-            title: '🔧 Submit PC Issue Reports',
-            badge: 'Hardware Support',
-            description: 'Easily report malfunctioning lab PCs, monitor maintenance status, and alert MIS technicians instantly when issues arise during lab hours.',
+            selector: 'button[onclick*="pc-reports"], button[onclick*="faculty-pc-reports"], .sidebar-btn[title*="PC"], .sidebar-btn[data-tooltip*="PC"], a[href*="faculty-pc-reports.html"]',
+            title: '🔧 PC Reports',
+            badge: 'PC Issues',
+            description: 'View and check reported student PC issues in your assigned laboratory rooms.',
             position: 'right'
         },
         {
             selector: '.profile-dropdown, .header-right, .profile-info, .avatar',
             title: '🪪 Digital QR ID & Profile',
-            badge: 'Door Access & Settings',
-            description: 'Access your official digital QR code used for automated lab door scanner access, and update your profile details anytime.',
+            badge: 'QR Door Access',
+            description: 'Access your official digital QR code used as a key to unlock and access laboratory rooms, update your credentials, and customize preferences.',
             position: 'bottom-left'
         }
     ];
+
+    const itHeadTutorialSteps = [
+        {
+            selector: '.header-logos, .header, .header-title',
+            title: 'Welcome, Department Head! 🎓',
+            badge: 'IT Head Portal',
+            description: 'Welcome to the LabSync IT Department Head management portal. This interactive guide will introduce your administrative tools and academic controls.',
+            position: 'bottom'
+        },
+        {
+            selector: 'button[onclick*="master-schedule"], .sidebar-btn[title*="Master Schedule"], .sidebar-btn[data-tooltip*="Master Schedule"], a[href*="master-schedule.html"]',
+            title: '📅 Master Schedule Planner',
+            badge: 'Master Schedule',
+            description: 'Build, configure, and manage semester-wide laboratory timetables, room assignments, and course sections across IT laboratories.',
+            position: 'right'
+        },
+        {
+            selector: 'button[onclick*="faculty-management"], .sidebar-btn[title*="Faculty Management"], .sidebar-btn[data-tooltip*="Faculty Management"], a[href*="faculty-management.html"]',
+            title: '👥 Faculty Management',
+            badge: 'Faculty Roster',
+            description: 'Oversee department faculty accounts, register new instructors, update account permissions, and promote faculty to Department Head.',
+            position: 'right'
+        },
+        {
+            selector: 'button[onclick*="room-status"], .sidebar-btn[title*="Room"], .sidebar-btn[data-tooltip*="Room"], a[href*="it-head-room-status.html"], a[href*="room-status.html"]',
+            title: '🖥️ Room Status & Key Logs',
+            badge: 'Room Status',
+            description: 'Monitor real-time laboratory room availability, live key custody, device connectivity status, and access activity streams.',
+            position: 'right'
+        },
+        {
+            selector: 'button[onclick*="pc-reports"], button[onclick*="it-head-pc-reports"], .sidebar-btn[title*="PC"], .sidebar-btn[data-tooltip*="PC"], a[href*="it-head-pc-reports.html"]',
+            title: '🔧 PC Maintenance Reports',
+            badge: 'PC Tickets',
+            description: 'View and monitor reported student PC issues across laboratory rooms.',
+            position: 'right'
+        },
+        {
+            selector: 'button[onclick*="my-schedule"], .sidebar-btn[title*="Schedule"], .sidebar-btn[data-tooltip*="Schedule"], a[href*="it-head-my-schedule.html"], a[href*="my-schedule.html"]',
+            title: '📆 My Teaching Schedule',
+            badge: 'My Teaching',
+            description: 'Quickly access and review your own scheduled teaching hours and assigned laboratory classrooms.',
+            position: 'right'
+        },
+        {
+            selector: '.profile-dropdown, .header-right, .profile-info, .avatar',
+            title: '🪪 Digital QR ID & Profile',
+            badge: 'QR Door Access',
+            description: 'Access your official digital QR code used as a key to unlock and access laboratory rooms, manage account settings, and customize preferences.',
+            position: 'bottom-left'
+        }
+    ];
+
+    function isItHeadUser() {
+        if (window.currentUser && String(window.currentUser.Role || '').toLowerCase().includes('head')) return true;
+        if (window.location.pathname.includes('it-head')) return true;
+        const roleEl = document.querySelector('.profile-role');
+        if (roleEl && roleEl.textContent.toLowerCase().includes('head')) return true;
+        return false;
+    }
+
 
     async function checkAndInitTutorial() {
         try {
             const res = await fetch('/api/user/current', { credentials: 'include' });
             if (!res.ok) return;
             const user = await res.json();
-            
+
             if (!user || !user.id) return;
             currentUserId = user.id;
 
@@ -78,8 +140,9 @@
                 return;
             }
 
-            // Auto launch ONLY ONCE on initial first login for newly created faculty
-            if (user && !hasCompleted && isFacultyRole(user.role)) {
+            // Auto launch ONLY ONCE on initial first login for newly created accounts
+            const isEligibleRole = isFacultyRole(user.role) || String(user.role || '').toLowerCase().includes('head');
+            if (user && !hasCompleted && isEligibleRole) {
                 sessionStorage.setItem(sessionKey, 'true');
                 localStorage.setItem(userKey, 'true');
                 markTutorialCompleteInDB();
@@ -118,7 +181,7 @@
         cardEl.innerHTML = `
             <div class="tutorial-card-header">
                 <span class="tutorial-badge" id="tut-badge">Getting Started</span>
-                <button class="tutorial-skip-btn" id="tut-skip-btn" title="Skip tutorial">Skip Tutorial ✕</button>
+                <button class="tutorial-skip-btn" id="tut-skip-btn" title="Skip tutorial">Skip ✕</button>
             </div>
             <h3 class="tutorial-title" id="tut-title">Step Title</h3>
             <p class="tutorial-description" id="tut-desc">Step description text goes here.</p>
@@ -128,8 +191,8 @@
             <div class="tutorial-card-footer">
                 <span class="tutorial-step-counter" id="tut-counter">Step 1 of 5</span>
                 <div class="tutorial-nav-buttons">
-                    <button class="tutorial-btn-prev" id="tut-prev-btn">Back</button>
-                    <button class="tutorial-btn-next" id="tut-next-btn">Next →</button>
+                    <button class="tutorial-btn-prev" id="tut-prev-btn" type="button">Back</button>
+                    <button class="tutorial-btn-next" id="tut-next-btn" type="button">Next →</button>
                 </div>
             </div>
         `;
@@ -145,6 +208,7 @@
     }
 
     function startFacultyTutorial(force = false) {
+        activeTutorialSteps = isItHeadUser() ? itHeadTutorialSteps : facultyTutorialSteps;
         createTutorialElements();
         currentStepIndex = 0;
 
@@ -157,7 +221,10 @@
     }
 
     function showStep(index) {
-        if (index < 0 || index >= tutorialSteps.length) return;
+        if (!activeTutorialSteps || activeTutorialSteps.length === 0) {
+            activeTutorialSteps = isItHeadUser() ? itHeadTutorialSteps : facultyTutorialSteps;
+        }
+        if (index < 0 || index >= activeTutorialSteps.length) return;
 
         // Clear previous highlight ring
         if (activeHighlightedEl) {
@@ -165,7 +232,7 @@
             activeHighlightedEl = null;
         }
 
-        const step = tutorialSteps[index];
+        const step = activeTutorialSteps[index];
         const targetEl = findTargetElement(step.selector);
 
         if (targetEl) {
@@ -179,7 +246,7 @@
         document.getElementById('tut-desc').textContent = step.description;
 
         // Progress bar
-        const total = tutorialSteps.length;
+        const total = activeTutorialSteps.length;
         const percent = Math.round(((index + 1) / total) * 100);
         document.getElementById('tut-progress').style.width = `${percent}%`;
         document.getElementById('tut-counter').textContent = `Step ${index + 1} of ${total}`;
@@ -238,14 +305,14 @@
         spotlightEl.style.width = `${rect.width + padding * 2}px`;
         spotlightEl.style.height = `${rect.height + padding * 2}px`;
 
-        const cardWidth = Math.min(370, window.innerWidth - 32);
+        const cardWidth = Math.min(410, window.innerWidth - 32);
         const cardHeight = cardEl.offsetHeight || 240;
 
         let cardTop = rect.bottom + 16;
         let cardLeft = rect.left + (rect.width / 2) - (cardWidth / 2);
 
         if (preferredPos === 'right') {
-            cardLeft = rect.right + 16;
+            cardLeft = rect.right + 24;
             cardTop = rect.top + (rect.height / 2) - (cardHeight / 2);
         } else if (preferredPos === 'bottom-left' || preferredPos === 'left') {
             cardLeft = rect.right - cardWidth;
@@ -274,13 +341,19 @@
 
     function handleReposition() {
         if (!cardEl || !cardEl.classList.contains('active')) return;
-        const step = tutorialSteps[currentStepIndex];
-        const targetEl = findTargetElement(step.selector);
-        positionTutorialElements(targetEl, step.position);
+        if (!activeTutorialSteps || activeTutorialSteps.length === 0) {
+            activeTutorialSteps = isItHeadUser() ? itHeadTutorialSteps : facultyTutorialSteps;
+        }
+        const step = activeTutorialSteps[currentStepIndex];
+        const targetEl = findTargetElement(step ? step.selector : null);
+        positionTutorialElements(targetEl, step ? step.position : 'bottom');
     }
 
     function nextStep() {
-        if (currentStepIndex < tutorialSteps.length - 1) {
+        if (!activeTutorialSteps || activeTutorialSteps.length === 0) {
+            activeTutorialSteps = isItHeadUser() ? itHeadTutorialSteps : facultyTutorialSteps;
+        }
+        if (currentStepIndex < activeTutorialSteps.length - 1) {
             currentStepIndex++;
             showStep(currentStepIndex);
         } else {

@@ -685,7 +685,7 @@
             if (response.ok) {
               try {
                 localStorage.setItem('labsync_last_updated', new Date().toISOString());
-              } catch (e) {}
+              } catch (e) { }
 
               if (typeof global.showToast === 'function') {
                 global.showToast(result.message || 'Account updated successfully!');
@@ -764,16 +764,31 @@
 
     if (isMis) {
       quickStartHTML = `
-        <div class="help-qs-card theme-teal">
-          <div class="help-qs-title">📊 Dashboard</div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-teal">
+              <i data-lucide="layout-dashboard"></i>
+            </div>
+            <div class="help-qs-title">Dashboard</div>
+          </div>
           <p class="help-qs-text">Monitor active work orders, total registered PC counts, and recent student report submissions at a glance.</p>
         </div>
-        <div class="help-qs-card theme-red">
-          <div class="help-qs-title">🛠️ Maintenance Tracker</div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-red">
+              <i data-lucide="wrench"></i>
+            </div>
+            <div class="help-qs-title">Maintenance Tracker</div>
+          </div>
           <p class="help-qs-text">Filter tickets by status (All, Pending, Resolved), view issue details, and mark broken PCs as resolved with 1 click.</p>
         </div>
-        <div class="help-qs-card theme-blue">
-          <div class="help-qs-title">📱 PC & QR Management</div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-blue">
+              <i data-lucide="qr-code"></i>
+            </div>
+            <div class="help-qs-title">PC & QR Management</div>
+          </div>
           <p class="help-qs-text">Add or delete workstation units, inspect room-by-room lab health, and generate printable QR code stickers.</p>
         </div>`;
 
@@ -808,20 +823,40 @@
         </div>`;
     } else if (isItHead) {
       quickStartHTML = `
-        <div class="help-qs-card theme-teal">
-          <div class="help-qs-title">📊 IT Head Dashboard</div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-teal">
+              <i data-lucide="layout-dashboard"></i>
+            </div>
+            <div class="help-qs-title">IT Head Dashboard</div>
+          </div>
           <p class="help-qs-text">Overview of overall lab usage, schedule publishing, and department activity.</p>
         </div>
-        <div class="help-qs-card theme-green">
-          <div class="help-qs-title">📆 Master Schedule</div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-green">
+              <i data-lucide="calendar-range"></i>
+            </div>
+            <div class="help-qs-title">Master Schedule</div>
+          </div>
           <p class="help-qs-text">View and manage the complete laboratory schedule for all faculty members and classes.</p>
         </div>
-        <div class="help-qs-card theme-pink">
-          <div class="help-qs-title">👥 Faculty Management</div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-indigo">
+              <i data-lucide="users"></i>
+            </div>
+            <div class="help-qs-title">Faculty Management</div>
+          </div>
           <p class="help-qs-text">Add new faculty members, manage accounts, and send automated credentials.</p>
         </div>
-        <div class="help-qs-card theme-purple">
-          <div class="help-qs-title">✏️ Schedule Editor</div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-purple">
+              <i data-lucide="calendar-plus"></i>
+            </div>
+            <div class="help-qs-title">Schedule Editor</div>
+          </div>
           <p class="help-qs-text">Create and customize room schedule blocks with imported subject catalogs.</p>
         </div>`;
 
@@ -856,20 +891,40 @@
         </div>`;
     } else {
       quickStartHTML = `
-        <div class="help-qs-card theme-teal">
-          <div class="help-qs-title">📊 Dashboard</div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-teal">
+              <i data-lucide="layout-dashboard"></i>
+            </div>
+            <div class="help-qs-title">Dashboard</div>
+          </div>
           <p class="help-qs-text">View real-time lab status, your schedule, and pending PC reports at a glance.</p>
         </div>
-        <div class="help-qs-card theme-blue">
-          <div class="help-qs-title">🖥️ Room Status</div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-blue">
+              <i data-lucide="monitor-dot"></i>
+            </div>
+            <div class="help-qs-title">Room Status</div>
+          </div>
           <p class="help-qs-text">Monitor all laboratory rooms and their availability across campus.</p>
         </div>
-        <div class="help-qs-card theme-warning">
-          <div class="help-qs-title">📝 PC Reports</div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-warning">
+              <i data-lucide="clipboard-list"></i>
+            </div>
+            <div class="help-qs-title">PC Reports</div>
+          </div>
           <p class="help-qs-text">Submit and track computer issues and maintenance requests for lab equipment.</p>
         </div>
-        <div class="help-qs-card theme-purple">
-          <div class="help-qs-title">📅 My Schedule</div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-purple">
+              <i data-lucide="calendar"></i>
+            </div>
+            <div class="help-qs-title">My Schedule</div>
+          </div>
           <p class="help-qs-text">View your complete weekly teaching schedule and class assignments.</p>
         </div>`;
 

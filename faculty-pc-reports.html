@@ -18,7 +18,11 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="css/tutorial.css" />
-  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <style id="auth-anti-flash">
+    body {
+      display: none !important;
+    }
+  </style>
   <script src="js/auth-check.js"></script>
   <style>
     /* Status Badges */
@@ -31,14 +35,17 @@
       text-transform: uppercase;
       letter-spacing: 0.3px;
     }
+
     .status-badge.pending {
       background: #FEF3C7;
       color: #D97706;
     }
+
     .status-badge.in-progress {
       background: #DBEAFE;
       color: #2563EB;
     }
+
     .status-badge.resolved {
       background: #D1FAE5;
       color: #059669;
@@ -54,14 +61,17 @@
       text-transform: uppercase;
       letter-spacing: 0.3px;
     }
+
     .priority-badge.high {
       background: #FEE2E2;
       color: #DC2626;
     }
+
     .priority-badge.medium {
       background: #FEF3C7;
       color: #D97706;
     }
+
     .priority-badge.low {
       background: #EFF6FF;
       color: #2563EB;
@@ -73,12 +83,14 @@
       grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
       gap: 16px;
     }
+
     #dynamicReportsList {
       display: flex;
       flex-direction: column;
       gap: 24px;
       width: 100%;
     }
+
     .toggle-completed-btn {
       white-space: nowrap;
       height: 42px;
@@ -96,11 +108,12 @@
       background: #D1FAE5;
       color: #059669;
     }
+
     .toggle-completed-btn:hover {
       background: #059669;
       color: #FFFFFF;
     }
-    
+
     /* Modal Styles */
     .modal-backdrop {
       position: fixed;
@@ -116,6 +129,7 @@
       z-index: 1000;
       animation: fadeIn 0.2s ease;
     }
+
     .modal-container {
       background: #FFFFFF;
       border-radius: 20px;
@@ -128,6 +142,7 @@
       overflow: hidden;
       animation: slideUp 0.3s ease;
     }
+
     .modal-header {
       padding: 18px 24px;
       border-bottom: 1px solid var(--border-light);
@@ -136,6 +151,7 @@
       align-items: center;
       background: #FFFFFF;
     }
+
     .modal-close-btn {
       background: #F1F5F9;
       border: none;
@@ -149,10 +165,12 @@
       cursor: pointer;
       transition: all var(--transition);
     }
+
     .modal-close-btn:hover {
       background: #E2E8F0;
       color: var(--text-dark);
     }
+
     .modal-body {
       padding: 24px;
       overflow-y: auto;
@@ -161,14 +179,27 @@
       flex-direction: column;
       gap: 16px;
     }
-    
+
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
     }
+
     @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     .report-card {
@@ -183,6 +214,7 @@
       transition: transform var(--transition), box-shadow var(--transition);
       margin-bottom: 0;
     }
+
     .report-card:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
@@ -197,16 +229,20 @@
   <aside class="sidebar">
 
     <nav class="sidebar-nav">
-      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='index.html'">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='index.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status" onclick="window.location.href='room-status.html'">
+      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status"
+        onclick="window.location.href='room-status.html'">
         <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn active" data-tooltip="PC Reports" title="PC Reports" onclick="window.location.href='faculty-pc-reports.html'">
+      <button class="sidebar-btn active" data-tooltip="PC Reports" title="PC Reports"
+        onclick="window.location.href='faculty-pc-reports.html'">
         <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule" onclick="window.location.href='my-schedule.html'">
+      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule"
+        onclick="window.location.href='my-schedule.html'">
         <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -276,26 +312,36 @@
 
       <!-- Main Content Card -->
       <div class="dashboard-card" style="padding: 24px; display: flex; flex-direction: column; gap: 24px;">
-        <div class="reports-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div class="reports-header"
+          style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
           <div class="sh-left">
             <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
               <i data-lucide="monitor" style="width:22px;height:22px;"></i>
             </div>
             <div>
               <h3 style="color:var(--text-dark); font-size:16px; font-weight:700;">PC Reports</h3>
-              <p style="color:var(--text-light); font-size:12px; font-weight:500;">Student-submitted computer issues and maintenance reports</p>
+              <p style="color:var(--text-light); font-size:12px; font-weight:500;">Student-submitted computer issues and
+                maintenance reports</p>
             </div>
           </div>
-          <div class="sh-legend" style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700;">
-            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706;"></span> Pending</span>
-            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; background: #D1FAE5; color: #059669; border: 1px solid #A7F3D0;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span> Resolved</span>
+          <div class="sh-legend"
+            style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700;">
+            <span
+              style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A;"><span
+                style="width: 6px; height: 6px; border-radius: 50%; background: #D97706;"></span> Pending</span>
+            <span
+              style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; background: #D1FAE5; color: #059669; border: 1px solid #A7F3D0;"><span
+                style="width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span> Resolved</span>
           </div>
         </div>
 
-        <div class="reports-controls" style="display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 20px;">
+        <div class="reports-controls"
+          style="display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 20px;">
           <div class="search-box" style="max-width: 440px; width: 100%; position: relative;">
-            <i data-lucide="search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
-            <input type="text" id="reportSearchInput" class="search-input" placeholder="Search by room, PC number, issue details, or student name...">
+            <i data-lucide="search"
+              style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
+            <input type="text" id="reportSearchInput" class="search-input"
+              placeholder="Search by room, PC number, issue details, or student name...">
           </div>
           <div id="completedToggleContainer"></div>
         </div>
@@ -333,12 +379,15 @@
     <div class="modal-container">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: #D1FAE5; color: #059669;">
+          <div
+            style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: #D1FAE5; color: #059669;">
             <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
           </div>
           <div>
-            <h3 style="font-size: 16px; font-weight: 700; color: var(--text-dark); margin: 0;">Completed Tickets History</h3>
-            <p style="font-size: 11.5px; font-weight: 500; color: var(--text-light); margin: 2px 0 0 0;">View all historical resolved computer maintenance logs</p>
+            <h3 style="font-size: 16px; font-weight: 700; color: var(--text-dark); margin: 0;">Completed Tickets History
+            </h3>
+            <p style="font-size: 11.5px; font-weight: 500; color: var(--text-light); margin: 2px 0 0 0;">View all
+              historical resolved computer maintenance logs</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeCompletedModal()">
@@ -352,4 +401,5 @@
   </div>
   <script src="js/tutorial.js"></script>
 </body>
+
 </html>

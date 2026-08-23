@@ -44,6 +44,14 @@
   flex-wrap: nowrap;
 }
 
+@media (max-width: 600px) {
+  .filter-pills-row {
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+}
+
 .filter-pill {
   border: 1.5px solid var(--border-light);
   background: #FFFFFF;

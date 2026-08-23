@@ -19,9 +19,13 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
   <!-- External Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1.0.3" />
+  <link rel="stylesheet" href="style.css?v=1.1.2" />
   <link rel="stylesheet" href="css/tutorial.css" />
-  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <style id="auth-anti-flash">
+    body {
+      display: none !important;
+    }
+  </style>
   <script src="js/auth-check.js"></script>
 </head>
 
@@ -31,16 +35,20 @@
   <aside class="sidebar">
 
     <nav class="sidebar-nav">
-      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='index.html'">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='index.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn active" data-tooltip="Room Status" title="Room Status" onclick="window.location.href='room-status.html'">
+      <button class="sidebar-btn active" data-tooltip="Room Status" title="Room Status"
+        onclick="window.location.href='room-status.html'">
         <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports" onclick="window.location.href='faculty-pc-reports.html'">
+      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports"
+        onclick="window.location.href='faculty-pc-reports.html'">
         <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule" onclick="window.location.href='my-schedule.html'">
+      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule"
+        onclick="window.location.href='my-schedule.html'">
         <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -110,62 +118,68 @@
 
       <!-- Main Content Card -->
       <div class="dashboard-card">
-<div class="dashboard-main-grid">
-            
-            <!-- Left: Room Status -->
-            <div class="content-card">
-              <div class="section-header">
-                <div class="sh-left">
-                  <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
-                    <i data-lucide="monitor-dot" style="width:22px;height:22px;"></i>
-                  </div>
-                  <div>
-                    <h3>Room Status</h3>
-                    <p>Complete overview of all campus labs</p>
-                  </div>
+        <div class="dashboard-main-grid">
+
+          <!-- Left: Room Status -->
+          <div class="content-card">
+            <div class="section-header">
+              <div class="sh-left">
+                <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
+                  <i data-lucide="monitor-dot" style="width:22px;height:22px;"></i>
                 </div>
-                <div class="sh-legend">
-                  <div class="legend-item"><div class="dot green"></div> Available</div>
-                  <div class="legend-item"><div class="dot orange"></div> Claimed</div>
-                  <div class="legend-item"><div class="dot red"></div> In Use</div>
+                <div>
+                  <h3>Room Status</h3>
+                  <p>Complete overview of all campus labs</p>
                 </div>
               </div>
-
-              <div class="labs-grid">
-                <div class="ui-empty-state">
-                  <div class="ui-empty-icon">
-                    <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
-                  </div>
-                  <p>No room status to display yet. Connected lab data will show here.</p>
+              <div class="sh-legend">
+                <div class="legend-item">
+                  <div class="dot green"></div> Available
+                </div>
+                <div class="legend-item">
+                  <div class="dot orange"></div> Claimed
+                </div>
+                <div class="legend-item">
+                  <div class="dot red"></div> In Use
                 </div>
               </div>
             </div>
 
-            <!-- Right: Activity Log -->
-            <div class="content-card">
-              <div class="section-header">
-                <div class="sh-left">
-                  <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
-                    <i data-lucide="clock-4" style="width:22px;height:22px;"></i>
-                  </div>
-                  <div>
-                    <h3>Activity Log</h3>
-                    <p>Recent room activities</p>
-                  </div>
+            <div class="labs-grid">
+              <div class="ui-empty-state">
+                <div class="ui-empty-icon">
+                  <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
                 </div>
-              </div>
-
-              <div class="timeline-list" style="padding-left:0;">
-                <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
-                  <div class="ui-empty-icon">
-                    <i data-lucide="clock-4" style="width:24px;height:24px;"></i>
-                  </div>
-                  <p>No activity yet. Recent room events will appear here when available.</p>
-                </div>
+                <p>No room status to display yet. Connected lab data will show here.</p>
               </div>
             </div>
-
           </div>
+
+          <!-- Right: Activity Log -->
+          <div class="content-card activity-log-card">
+            <div class="section-header">
+              <div class="sh-left">
+                <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
+                  <i data-lucide="clock-4" style="width:22px;height:22px;"></i>
+                </div>
+                <div>
+                  <h3>Activity Log</h3>
+                  <p>Recent room activities</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-list" style="padding-left:0;">
+              <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
+                <div class="ui-empty-icon">
+                  <i data-lucide="clock-4" style="width:24px;height:24px;"></i>
+                </div>
+                <p>No activity yet. Recent room events will appear here when available.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
     </main>
   </div>
@@ -177,7 +191,7 @@
   <script src="js/core/tutorial-launcher.js"></script>
   <script src="js/services/user.service.js"></script>
   <script src="js/services/notification.service.js"></script>
-  <script src="js/services/laboratory.service.js"></script>
+  <script src="js/services/laboratory.service.js?v=1.1.1"></script>
   <script src="js/components/toast.js"></script>
   <script src="js/components/profile-menu.js"></script>
   <script src="js/components/notifications.js"></script>
@@ -187,4 +201,5 @@
   <script src="js/script.js?v=1.0.5"></script>
   <script src="js/tutorial.js"></script>
 </body>
+
 </html>

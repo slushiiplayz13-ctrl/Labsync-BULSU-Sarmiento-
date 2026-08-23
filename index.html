@@ -19,9 +19,13 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
   <!-- External Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1.0.3" />
+  <link rel="stylesheet" href="style.css?v=1.1.2" />
   <link rel="stylesheet" href="css/tutorial.css" />
-  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <style id="auth-anti-flash">
+    body {
+      display: none !important;
+    }
+  </style>
   <script src="js/auth-check.js"></script>
 </head>
 
@@ -31,16 +35,20 @@
   <aside class="sidebar">
 
     <nav class="sidebar-nav">
-      <button class="sidebar-btn active" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='index.html'">
+      <button class="sidebar-btn active" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='index.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status" onclick="window.location.href='room-status.html'">
+      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status"
+        onclick="window.location.href='room-status.html'">
         <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports" onclick="window.location.href='faculty-pc-reports.html'">
+      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports"
+        onclick="window.location.href='faculty-pc-reports.html'">
         <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule" onclick="window.location.href='my-schedule.html'">
+      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule"
+        onclick="window.location.href='my-schedule.html'">
         <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -110,152 +118,161 @@
 
       <!-- Main Content Card -->
       <div class="dashboard-card">
-<!-- Dashboard Overview -->
-          <div class="dashboard-overview">
-        
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-          <!-- Total Lab Rooms -->
-          <div class="stat-card theme-blue">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value blue-text">—</div>
-                <div class="stat-title">Total Lab Rooms</div>
+        <!-- Dashboard Overview -->
+        <div class="dashboard-overview">
+
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <!-- Total Lab Rooms -->
+            <div class="stat-card theme-blue">
+              <div class="stat-header">
+                <div class="stat-info">
+                  <div class="stat-value blue-text">—</div>
+                  <div class="stat-title">Total Lab Rooms</div>
+                </div>
+                <div class="stat-icon">
+                  <i data-lucide="monitor"></i>
+                </div>
               </div>
-              <div class="stat-icon">
+              <div class="stat-meta-container">
+                <span class="stat-meta">No data loaded</span>
+              </div>
+              <div class="stat-watermark">
                 <i data-lucide="monitor"></i>
               </div>
             </div>
-            <div class="stat-meta-container">
-              <span class="stat-meta">No data loaded</span>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="monitor"></i>
-            </div>
-          </div>
 
-          <!-- Available Labs -->
-          <div class="stat-card theme-green">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value green-text">—</div>
-                <div class="stat-title">Available Labs</div>
+            <!-- Available Labs -->
+            <div class="stat-card theme-green">
+              <div class="stat-header">
+                <div class="stat-info">
+                  <div class="stat-value green-text">—</div>
+                  <div class="stat-title">Available Labs</div>
+                </div>
+                <div class="stat-icon">
+                  <i data-lucide="check-circle"></i>
+                </div>
               </div>
-              <div class="stat-icon">
+              <div class="stat-meta-container">
+                <span class="stat-meta">No data loaded</span>
+              </div>
+              <div class="stat-watermark">
                 <i data-lucide="check-circle"></i>
               </div>
             </div>
-            <div class="stat-meta-container">
-              <span class="stat-meta">No data loaded</span>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="check-circle"></i>
-            </div>
-          </div>
 
-          <!-- Pending PC Reports -->
-          <div class="stat-card theme-orange">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value orange-text">—</div>
-                <div class="stat-title">Pending PC Reports</div>
+            <!-- Pending PC Reports -->
+            <div class="stat-card theme-orange">
+              <div class="stat-header">
+                <div class="stat-info">
+                  <div class="stat-value orange-text">—</div>
+                  <div class="stat-title">Pending PC Reports</div>
+                </div>
+                <div class="stat-icon">
+                  <i data-lucide="alert-circle"></i>
+                </div>
               </div>
-              <div class="stat-icon">
+              <div class="stat-meta-container">
+                <span class="stat-meta">No data loaded</span>
+              </div>
+              <div class="stat-watermark">
                 <i data-lucide="alert-circle"></i>
               </div>
             </div>
-            <div class="stat-meta-container">
-              <span class="stat-meta">No data loaded</span>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="alert-circle"></i>
-            </div>
-          </div>
 
-          <!-- Classes Today -->
-          <div class="stat-card theme-purple">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value">—</div>
-                <div class="stat-title">Classes Today</div>
+            <!-- Classes Today -->
+            <div class="stat-card theme-purple">
+              <div class="stat-header">
+                <div class="stat-info">
+                  <div class="stat-value">—</div>
+                  <div class="stat-title">Classes Today</div>
+                </div>
+                <div class="stat-icon">
+                  <i data-lucide="calendar-clock"></i>
+                </div>
               </div>
-              <div class="stat-icon">
+              <div class="stat-meta-container">
+                <span class="stat-meta">No data loaded</span>
+              </div>
+              <div class="stat-watermark">
                 <i data-lucide="calendar-clock"></i>
               </div>
             </div>
-            <div class="stat-meta-container">
-              <span class="stat-meta">No data loaded</span>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="calendar-clock"></i>
-            </div>
           </div>
-        </div>
 
-        <!-- Main Grid -->
-        <div class="dashboard-main-grid">
-          
-          <!-- Left: My Laboratories -->
-          <div class="content-card">
-            <div class="section-header">
-              <div class="sh-left">
-                <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
-                  <i data-lucide="book-open" style="width:22px;height:22px;"></i>
-                </div>
-                <div>
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <h3>My Laboratories</h3>
-                    <span class="scroll-hint-badge" style="display: none; align-items: center; gap: 4px; font-size: 10px; color: var(--primary-teal); background: var(--primary-teal-light); padding: 2px 8px; border-radius: 99px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                      <i data-lucide="chevrons-up-down" style="width: 11px; height: 11px;"></i> Scrollable
-                    </span>
+          <!-- Main Grid -->
+          <div class="dashboard-main-grid">
+
+            <!-- Left: My Laboratories -->
+            <div class="content-card">
+              <div class="section-header">
+                <div class="sh-left">
+                  <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
+                    <i data-lucide="book-open" style="width:22px;height:22px;"></i>
                   </div>
-                  <p>Real-time room status</p>
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <h3>My Laboratories</h3>
+                      <span class="scroll-hint-badge"
+                        style="display: none; align-items: center; gap: 4px; font-size: 10px; color: var(--primary-teal); background: var(--primary-teal-light); padding: 2px 8px; border-radius: 99px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i data-lucide="chevrons-up-down" style="width: 11px; height: 11px;"></i> Scrollable
+                      </span>
+                    </div>
+                    <p>Real-time room status</p>
+                  </div>
+                </div>
+                <div class="sh-legend">
+                  <div class="legend-item">
+                    <div class="dot green"></div> Available
+                  </div>
+                  <div class="legend-item">
+                    <div class="dot orange"></div> Claimed
+                  </div>
+                  <div class="legend-item">
+                    <div class="dot red"></div> In Use
+                  </div>
                 </div>
               </div>
-              <div class="sh-legend">
-                <div class="legend-item"><div class="dot green"></div> Available</div>
-                <div class="legend-item"><div class="dot orange"></div> Claimed</div>
-                <div class="legend-item"><div class="dot red"></div> In Use</div>
+
+              <div class="labs-grid">
+                <div class="ui-empty-state">
+                  <div class="ui-empty-icon">
+                    <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
+                  </div>
+                  <p>No laboratory status to display yet. Room data will appear here when it is available.</p>
+                </div>
               </div>
             </div>
 
-            <div class="labs-grid">
-              <div class="ui-empty-state">
-                <div class="ui-empty-icon">
-                  <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
+            <!-- Right: My Schedule -->
+            <div class="content-card">
+              <div class="section-header">
+                <div class="sh-left">
+                  <div class="sh-icon" style="background:#E0F2FE;color:#0284C7;">
+                    <i data-lucide="calendar-days" style="width:22px;height:22px;"></i>
+                  </div>
+                  <div>
+                    <h3>My Schedule</h3>
+                    <p>Today's classes</p>
+                  </div>
                 </div>
-                <p>No laboratory status to display yet. Room data will appear here when it is available.</p>
               </div>
+
+              <div class="timeline-list"
+                style="padding-left:0; flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;">
+                <div class="ui-empty-state"
+                  style="grid-column: unset; width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; margin: auto 0;">
+                  <div class="ui-empty-icon">
+                    <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
+                  </div>
+                  <p>No classes scheduled for today yet. Your sessions will list here when the schedule is loaded.</p>
+                </div>
+              </div>
+
             </div>
           </div>
 
-          <!-- Right: My Schedule -->
-          <div class="content-card">
-            <div class="section-header">
-              <div class="sh-left">
-                <div class="sh-icon" style="background:#E0F2FE;color:#0284C7;">
-                  <i data-lucide="calendar-days" style="width:22px;height:22px;"></i>
-                </div>
-                <div>
-                  <h3>My Schedule</h3>
-                  <p>Today's classes</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="timeline-list" style="padding-left:0; flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;">
-              <div class="ui-empty-state" style="grid-column: unset; width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; margin: auto 0;">
-                <div class="ui-empty-icon">
-                  <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
-                </div>
-                <p>No classes scheduled for today yet. Your sessions will list here when the schedule is loaded.</p>
-              </div>
-            </div>
-
-          </div>
         </div>
-
-          </div>
       </div>
     </main>
   </div>
@@ -274,7 +291,8 @@
   <script src="js/components/sidebar-nav.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
-  <script src="js/tutorial.js"></script>
+  <script src="js/tutorial.js?v=1.1.0"></script>
   <script src="js/pages/dashboard.js"></script>
 </body>
+
 </html>

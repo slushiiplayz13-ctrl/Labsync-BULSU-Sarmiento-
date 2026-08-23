@@ -26,10 +26,39 @@
     grid-template-columns: 1fr !important;
     gap: 16px !important;
   }
+  body,
+  .main-wrapper,
+  .page-content,
+  .dashboard-card,
+  .dashboard-overview {
+    height: auto !important;
+    min-height: max-content !important;
+    overflow-y: auto !important;
+    overflow: visible !important;
+  }
+  .content-card {
+    height: auto !important;
+    min-height: max-content !important;
+    overflow: hidden !important;
+  }
+  .labs-grid,
+  .dashboard-main-grid .labs-grid {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .timeline-list,
+  .dashboard-main-grid .timeline-list {
+    height: auto !important;
+    min-height: 260px !important;
+    max-height: 540px !important;
+    overflow-y: auto !important;
+  }
 }
 
 /* ─── Height-Constrained Windows / Minimized Screens ──────────────── */
-@media (max-height: 820px) {
+@media (max-height: 720px) {
   body {
     height: auto !important;
     overflow-y: auto !important;
@@ -52,6 +81,25 @@
     height: auto !important;
     min-height: max-content !important;
   }
+  .content-card {
+    height: auto !important;
+    min-height: max-content !important;
+    overflow: hidden !important;
+  }
+  .labs-grid,
+  .dashboard-main-grid .labs-grid {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .timeline-list,
+  .dashboard-main-grid .timeline-list {
+    height: auto !important;
+    min-height: 260px !important;
+    max-height: 540px !important;
+    overflow-y: auto !important;
+  }
 }
 
 /* ─── Tablet and Mobile Viewports (Max Width: 1024px) ───────────── */
@@ -68,6 +116,30 @@
     height: auto !important;
     min-height: max-content !important;
     overflow: visible !important;
+  }
+  .content-card {
+    height: auto !important;
+    min-height: max-content !important;
+    overflow: visible !important;
+  }
+  .labs-grid,
+  .dashboard-main-grid .labs-grid {
+    display: grid !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    flex: none !important;
+    overflow: visible !important;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+    gap: 14px !important;
+  }
+  .timeline-list,
+  .dashboard-main-grid .timeline-list {
+    height: auto !important;
+    min-height: 280px !important;
+    max-height: 520px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
   }
   .sidebar-btn.mobile-only-btn {
     display: flex !important;
@@ -1009,7 +1081,7 @@
   }
 
   .table-container {
-    min-height: 240px !important;
+    min-height: 200px !important;
   }
   .table-container table th,
   .table-container table td,
@@ -1020,11 +1092,6 @@
   }
   .table-cell.ticket-id-cell {
     font-size: 13.5px !important;
-  }
-  .table-container .col-date,
-  .table-container th.col-date,
-  .table-container td.col-date {
-    display: none !important;
   }
 
   /* Mobile Activity Tile Layout & Natural Wrap (Fixes Truncation) */
@@ -1229,6 +1296,38 @@
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+  }
+
+  /* 1-Column Full-Width Faculty Grid for Clean Mobile Typography */
+  .faculty-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .faculty-card {
+    padding: 16px 14px !important;
+    border-radius: 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .faculty-card > div[style*="display:flex"]:first-of-type,
+  .faculty-card > div[style*="display: flex"]:first-of-type {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding-right: 38px !important;
+  }
+
+  .faculty-card div[style*="font-size:16px"],
+  .faculty-card div[style*="font-size: 16px"] {
+    font-size: 15px !important;
+    line-height: 1.3 !important;
+  }
+
+  .faculty-card div[style*="font-size:12px"],
+  .faculty-card div[style*="font-size: 12px"] {
+    font-size: 12px !important;
   }
 
   /* Import Curriculum Modal Mobile Layout */
@@ -1559,5 +1658,57 @@
     overflow-x: hidden !important;
   }
 }
+
+/* ─── Compact Mobile Landscape Viewports (e.g. 844x390, 932x430) ─── */
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 1024px) {
+  .header {
+    height: 52px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+  .header-logos img[src*="bsu"] {
+    height: 30px !important;
+  }
+  .header-logos img[src*="labsync"] {
+    height: 32px !important;
+  }
+  .sidebar {
+    height: 54px !important;
+  }
+  .sidebar-btn {
+    gap: 1px !important;
+    padding: 2px !important;
+  }
+  .sidebar-btn i,
+  .sidebar-btn svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+  .sidebar-btn[data-tooltip]::after {
+    font-size: 8px !important;
+  }
+  .main-wrapper {
+    padding-top: 52px !important;
+    padding-bottom: 64px !important;
+  }
+  .page-content {
+    padding: 10px 14px !important;
+  }
+  .greeting-row {
+    margin-bottom: 8px !important;
+  }
+  .greeting-title {
+    font-size: 18px !important;
+  }
+  .greeting-sub {
+    font-size: 11.5px !important;
+  }
+  .modal-container,
+  .modal-content,
+  .settings-modal-container {
+    max-height: 86vh !important;
+  }
+}
+
 
 

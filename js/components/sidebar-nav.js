@@ -208,6 +208,13 @@
       'Help': 'Help & Support'
     };
 
+    let floatingTooltip = document.querySelector('.sidebar-floating-tooltip');
+    if (!floatingTooltip) {
+      floatingTooltip = document.createElement('div');
+      floatingTooltip.className = 'sidebar-floating-tooltip';
+      document.body.appendChild(floatingTooltip);
+    }
+
     document.querySelectorAll('.sidebar-btn').forEach(btn => {
       let tooltip = btn.getAttribute('data-tooltip') || btn.getAttribute('title');
       if (tooltip) {
@@ -217,7 +224,30 @@
         btn.setAttribute('data-tooltip', tooltip);
         btn.removeAttribute('title');
       }
+
+      btn.addEventListener('mouseenter', () => {
+        const text = btn.getAttribute('data-tooltip');
+        if (!text || window.innerWidth <= 1024) return;
+        floatingTooltip.textContent = text;
+        const rect = btn.getBoundingClientRect();
+        floatingTooltip.style.top = `${rect.top + rect.height / 2}px`;
+        floatingTooltip.style.left = `${rect.right + 12}px`;
+        floatingTooltip.classList.add('active');
+      });
+
+      btn.addEventListener('mouseleave', () => {
+        if (floatingTooltip) {
+          floatingTooltip.classList.remove('active');
+        }
+      });
     });
+
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+      sidebar.addEventListener('scroll', () => {
+        if (floatingTooltip) floatingTooltip.classList.remove('active');
+      }, { passive: true });
+    }
   }
 
   if (document.readyState === 'loading') {

@@ -157,8 +157,8 @@
       const totalRoomsCount = allLabs.length || stats.totalRooms || 0;
       const onlineCount = allLabs.filter(r => r.deviceOnline === true || r.deviceOnline === 1 || r.deviceOnline === 'true').length;
       const offlineCount = totalRoomsCount - onlineCount;
-      const onlineAndAvailableCount = allLabs.filter(r => 
-        (r.deviceOnline === true || r.deviceOnline === 1 || r.deviceOnline === 'true') && 
+      const onlineAndAvailableCount = allLabs.filter(r =>
+        (r.deviceOnline === true || r.deviceOnline === 1 || r.deviceOnline === 'true') &&
         String(r.Current_Status || '').toLowerCase() === 'available'
       ).length;
 
@@ -203,7 +203,7 @@
       if (global.laboratoryService && typeof global.laboratoryService.getUserAssignedRooms === 'function') {
         try {
           assignedRooms = await global.laboratoryService.getUserAssignedRooms();
-        } catch (e) {}
+        } catch (e) { }
       }
 
       const myLabs = allLabs.filter(room => {
@@ -228,27 +228,11 @@
   }
 
   /**
-   * Initializes sidebar scroll clue and triggers dashboard load.
+   * Initializes dashboard load.
    */
   function initITHeadDashboardPage() {
     if (_itHeadDashboardInitialized) return;
     _itHeadDashboardInitialized = true;
-
-    const sidebar = document.querySelector('.sidebar');
-    const scrollClue = document.getElementById('sidebarScrollClue');
-
-    if (sidebar && scrollClue) {
-      if (sidebar.scrollHeight <= sidebar.clientHeight) {
-        scrollClue.style.display = 'none';
-      }
-      sidebar.addEventListener('scroll', () => {
-        if (sidebar.scrollTop > 10) {
-          scrollClue.style.opacity = '0';
-        } else {
-          scrollClue.style.opacity = '1';
-        }
-      });
-    }
 
     loadITHeadDashboardData();
   }

@@ -409,6 +409,14 @@ window.closeCompletedModal = function () {
 document.addEventListener('DOMContentLoaded', () => {
   // Live search filtering
   const searchInput = document.getElementById('reportSearchInput');
+
+  // Check for ?room= URL parameter to auto-filter by room
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomParam = urlParams.get('room');
+  if (roomParam && searchInput) {
+    searchInput.value = `Room ${roomParam}`;
+  }
+
   if (searchInput) {
     searchInput.addEventListener('input', () => {
       window.renderReports();
@@ -430,4 +438,5 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load initial reports
   window.loadReports();
 });
+
 

@@ -26,7 +26,7 @@ async function getUserAssignedRooms() {
     if (!res.ok) return new Set();
     const schedules = await res.json();
     if (!Array.isArray(schedules)) return new Set();
-    
+
     const assignedRooms = new Set();
     schedules.forEach(s => {
       const raw = String(s.Room_Number || s.room_number || s.Room || '').trim();
@@ -59,6 +59,11 @@ function renderLabCards(labs, targetContainer) {
     const isDashboard = window.location.pathname.includes('index.html') || window.location.pathname.includes('dashboard') || window.location.pathname === '/';
     const roomStatusLink = window.location.pathname.includes('it-head') ? 'it-head-room-status.html' : 'room-status.html';
 
+    if (container._lastRenderSignature === '__EMPTY__') {
+      return;
+    }
+    container._lastRenderSignature = '__EMPTY__';
+
     container.innerHTML = `
       <div class="ui-empty-state" style="grid-column: 1 / -1; padding: 28px 16px; width: 100%; flex: 1; height: 100%; min-height: 240px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0; box-sizing: border-box;">
         <div class="ui-empty-icon" style="background:#E8F9FC; color:#1EBBD7;">
@@ -74,6 +79,16 @@ function renderLabCards(labs, targetContainer) {
     }
     return;
   }
+
+  // Fingerprint data to avoid destroying and recreating DOM nodes when data is unchanged
+  const dataSignature = labs.map(r => 
+    `${r.Room_ID || r.Room_Number}-${r.Current_Status}-${r.deviceOnline}-${r.Key_Status}-${r.total_pc_issues}-${r.Current_Class}-${r.Scheduled_Class ? (r.Scheduled_Class.professor + r.Scheduled_Class.subject) : ''}`
+  ).join('|');
+
+  if (container._lastRenderSignature === dataSignature) {
+    return; // Unchanged data, skip re-rendering to prevent flashing
+  }
+  container._lastRenderSignature = dataSignature;
 
   container.innerHTML = labs.map(room => {
     const isOnline = room.deviceOnline === true || room.deviceOnline === 1 || room.deviceOnline === 'true';
@@ -99,43 +114,98 @@ function renderLabCards(labs, targetContainer) {
 
     const scheduledProf = room.Scheduled_Class ? `${room.Scheduled_Class.professor || 'Faculty'} (${room.Scheduled_Class.subject || ''})` : null;
 
-    let activityText = room.Current_Class || 'None';
-    if (!isOnline) {
-      activityText = 'Offline';
-    }
+    const activityText = room.Current_Class || 'None';
 
     let keyStatusText = room.Key_Status || 'Present';
     let keyStatusColor = room.Key_Status === 'Absent' ? '#ef4444' : '#10b981';
     if (!isOnline) {
-      keyStatusText = 'Offline';
+      keyStatusText = 'Disconnected';
       keyStatusColor = '#94a3b8';
+    }
+
+    const pcIssues = Array.isArray(room.pc_issues) ? room.pc_issues : [];
+    const totalPcIssues = room.total_pc_issues || 0;
+
+    const isItHead = window.location.pathname.includes('it-head') || (window.currentUser && window.currentUser.Role === 'IT Dept. Head');
+    const reportsPage = isItHead ? 'it-head-pc-reports.html' : 'faculty-pc-reports.html';
+    const targetUrl = `${reportsPage}?room=${encodeURIComponent(room.Room_Number)}`;
+
+    let pcStatusHtml = '';
+    if (totalPcIssues > 0) {
+      pcStatusHtml = `
+        <div class="ld-row pc-status-row">
+          <span class="ld-label">
+            <i data-lucide="alert-triangle" class="ld-icon issue-icon"></i>
+            <span class="issue-label">${totalPcIssues} PC ${totalPcIssues === 1 ? 'Issue' : 'Issues'}</span>
+          </span>
+          <button type="button" class="btn-health-view" onclick="window.location.href='${targetUrl}'" title="View reports for RM ${room.Room_Number}">
+            <span>View</span>
+            <i data-lucide="arrow-right"></i>
+          </button>
+        </div>
+      `;
+    } else if (isOnline) {
+      pcStatusHtml = `
+        <div class="ld-row pc-status-row">
+          <span class="ld-label">
+            <i data-lucide="check-circle-2" class="ld-icon" style="color:#10B981;"></i>
+            <span>PC Status</span>
+          </span>
+          <strong class="ld-value" style="color: #10B981;">All Operational</strong>
+        </div>
+      `;
+    } else {
+      pcStatusHtml = `
+        <div class="ld-row pc-status-row">
+          <span class="ld-label">
+            <i data-lucide="radio" class="ld-icon" style="color:#94A3B8;"></i>
+            <span>PC Status</span>
+          </span>
+          <strong class="ld-value muted-text" style="color: #94A3B8;">Offline</strong>
+        </div>
+      `;
     }
 
     return `
       <div class="lab-card ${statusTheme}">
         <div class="lab-header lc-header">
-          <span class="room-num">RM ${room.Room_Number}</span>
+          <div class="room-title-group">
+            <h3 class="room-num">RM ${room.Room_Number}</h3>
+            <span class="room-subtitle">${room.Building || 'Main Building'}</span>
+          </div>
           <span class="badge ${badgeClass}">${displayStatus}</span>
         </div>
+        
         <div class="lab-details lc-details">
           <div class="ld-row">
-            <span>Building:</span>
-            <strong>${room.Building || 'Main'}</strong>
+            <span class="ld-label">
+              <i data-lucide="clock" class="ld-icon"></i>
+              <span>Current Session</span>
+            </span>
+            <strong class="${isOnline ? 'teal-text' : 'muted-text'} ld-value" title="${activityText}">${activityText}</strong>
           </div>
-          <div class="ld-row">
-            <span>Status / Activity:</span>
-            <strong class="${isOnline ? 'teal-text' : 'muted-text'}" style="font-size: 12px; word-break: break-word;">${activityText}</strong>
-          </div>
+          
           ${scheduledProf ? `
-          <div class="ld-row" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba(0,0,0,0.06);">
-            <span>Scheduled Prof:</span>
-            <strong style="color: #475569; font-size: 11.5px;">${scheduledProf}</strong>
+          <div class="ld-row scheduled-row">
+            <span class="ld-label">
+              <i data-lucide="user-check" class="ld-icon"></i>
+              <span>Scheduled Prof</span>
+            </span>
+            <strong class="ld-value" style="color: #64748b;" title="${scheduledProf}">${scheduledProf}</strong>
           </div>
           ` : ''}
+          
           <div class="ld-row">
-            <span>Key Status:</span>
-            <strong style="color: ${keyStatusColor};">${keyStatusText}</strong>
+            <span class="ld-label">
+              <i data-lucide="key-round" class="ld-icon"></i>
+              <span>Key Status</span>
+            </span>
+            <strong class="ld-value" style="color: ${keyStatusColor};">${keyStatusText}</strong>
           </div>
+        </div>
+
+        <div class="lab-card-footer">
+          ${pcStatusHtml}
         </div>
       </div>
     `;

@@ -133,12 +133,16 @@ function renderDashboardTable(reports) {
               Resolve
             </button>
           ` : `
-            <span class="completed-chip"><i data-lucide="check-check" style="width:13px;height:13px;"></i> Completed</span>
+            <span class="completed-chip"><i data-lucide="check-check"></i> Completed</span>
           `}
         </td>
       </tr>
     `;
   }).join('');
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons({ root: tbody });
+  }
 }
 
 /**

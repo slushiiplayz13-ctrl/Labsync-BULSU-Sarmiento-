@@ -13,19 +13,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 0 16px 4px;
+  padding: 20px 0 16px 12px;
+  box-sizing: border-box;
   gap: 18px;
   z-index: 100;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   overscroll-behavior: contain;
   overscroll-behavior-y: contain;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
 .sidebar::-webkit-scrollbar {
-  display: none;
+  display: none !important;
   width: 0 !important;
   height: 0 !important;
 }
@@ -113,79 +114,54 @@
 }
 
 /* ─── Floating Tooltips on Hover (Desktop) ──────────────────────── */
-@media (min-width: 1025px) {
-  .sidebar {
-    overflow: visible;
-  }
+.sidebar-floating-tooltip {
+  position: fixed;
+  background: var(--primary-teal);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  padding: 9px 18px;
+  border-radius: 9999px;
+  box-shadow: 0 6px 20px var(--primary-teal-glow), 0 3px 8px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 999999;
+  transition: opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.18s;
+  transform: translateY(-50%) translateX(-6px);
+  letter-spacing: 0.3px;
+}
 
-  .sidebar-nav {
-    overflow: visible;
-  }
+.sidebar-floating-tooltip.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
 
-  .sidebar-btn[data-tooltip] {
-    position: relative;
-  }
+.sidebar-floating-tooltip::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -7px;
+  transform: translateY(-50%);
+  border-width: 7px 8px 7px 0;
+  border-style: solid;
+  border-color: transparent var(--primary-teal) transparent transparent;
+}
 
-  /* Tooltip Box */
-  .sidebar-btn[data-tooltip]::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: 50%;
-    left: calc(100% + 14px);
-    transform: translateY(-50%) translateX(-6px);
-    background: var(--primary-teal);
-    color: #ffffff;
-    font-family: var(--font-body);
-    font-size: 14.5px;
-    font-weight: 700;
-    line-height: 1;
-    white-space: nowrap;
-    padding: 9px 18px;
-    border-radius: 9999px;
-    box-shadow: 0 6px 20px var(--primary-teal-glow), 0 3px 8px rgba(0, 0, 0, 0.12);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    z-index: 1000;
-    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s;
-    letter-spacing: 0.3px;
-  }
+/* High-Contrast / Dark Mode Floating Tooltips */
+html.high-contrast .sidebar-floating-tooltip {
+  background: var(--bg-card, #1E293B);
+  color: #ffffff !important;
+  border: 1px solid var(--primary-teal);
+  box-shadow: 0 6px 20px rgba(0, 163, 196, 0.4);
+}
 
-  /* Left-pointing Caret/Arrow */
-  .sidebar-btn[data-tooltip]::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: calc(100% + 7px);
-    transform: translateY(-50%) translateX(-6px);
-    border-width: 7px 8px 7px 0;
-    border-style: solid;
-    border-color: transparent var(--primary-teal) transparent transparent;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    z-index: 1000;
-    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s;
-  }
-
-  .sidebar-btn[data-tooltip]:hover::after,
-  .sidebar-btn[data-tooltip]:hover::before {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(-50%) translateX(0);
-  }
-
-  /* High-Contrast Floating Tooltips */
-  html.high-contrast .sidebar-btn[data-tooltip]::after {
-    background: var(--bg-card);
-    color: #ffffff !important;
-    border: 1px solid var(--primary-teal);
-    box-shadow: 0 6px 20px rgba(0, 163, 196, 0.4);
-  }
-
-  html.high-contrast .sidebar-btn[data-tooltip]::before {
-    border-color: transparent var(--primary-teal) transparent transparent;
-  }
+html.high-contrast .sidebar-floating-tooltip::before {
+  border-color: transparent var(--primary-teal) transparent transparent;
 }
 
 
@@ -486,4 +462,4 @@ img[src*="bsu"] {
 
 .view-section.active {
   display: flex;
-}
+}

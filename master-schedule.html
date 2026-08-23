@@ -21,7 +21,12 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>if (typeof XLSX === 'undefined') document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>');</script>
 
-  <!-- External Stylesheet -->  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <!-- External Stylesheet -->
+  <style id="auth-anti-flash">
+    body {
+      display: none !important;
+    }
+  </style>
   <script>
     (function applyAccessibilitySettings() {
       const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
@@ -31,7 +36,7 @@
     })();
   </script>
   <script src="js/auth-check.js"></script>
-  
+
 
   <link rel="stylesheet" href="style.css?v=1.0.3" />
 </head>
@@ -42,30 +47,39 @@
   <aside class="sidebar">
 
     <nav class="sidebar-nav">
-      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='it-head-dashboard.html'">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='it-head-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status" onclick="window.location.href='it-head-room-status.html'">
+      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status"
+        onclick="window.location.href='it-head-room-status.html'">
         <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports" onclick="window.location.href='it-head-pc-reports.html'">
+      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports"
+        onclick="window.location.href='it-head-pc-reports.html'">
         <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule" onclick="window.location.href='it-head-my-schedule.html'">
+      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule"
+        onclick="window.location.href='it-head-my-schedule.html'">
         <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
       </button>
 
       <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;">
       </div>
 
-      <button class="sidebar-btn desktop-only-btn active" data-tooltip="Master Schedule" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+      <button class="sidebar-btn desktop-only-btn active" data-tooltip="Master Schedule" title="Master Schedule"
+        onclick="window.location.href='master-schedule.html'">
         <i data-lucide="calendar" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn desktop-only-btn" data-tooltip="Faculty Management" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+      <button class="sidebar-btn desktop-only-btn" data-tooltip="Faculty Management" title="Faculty Management"
+        onclick="window.location.href='faculty-management.html'">
         <i data-lucide="users" style="width:24px;height:24px;"></i>
       </button>
-      <div class="mobile-only-divider" style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;"></div>
-      <button class="sidebar-btn mobile-only-btn active" data-tooltip="Admin Panel" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
+      <div class="mobile-only-divider"
+        style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;">
+      </div>
+      <button class="sidebar-btn mobile-only-btn active" data-tooltip="Admin Panel" title="Admin Panel"
+        onclick="toggleAdminMenu(event, this)">
         <i data-lucide="folder-cog" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -142,7 +156,8 @@
       <!-- Term Selector Panel Removed (now inside bulk print modal) -->
 
       <!-- Room Selection Section -->
-      <div class="room-selection-header" style="margin-top: 32px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+      <div class="room-selection-header"
+        style="margin-top: 32px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
         <div>
           <h2
             style="font-size: 20px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; font-family: var(--font-display);">
@@ -155,14 +170,16 @@
             style="padding: 10px 20px; background: var(--bg-white); color: var(--text-mid); border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;"
             onmouseover="this.style.background='var(--primary-teal-light)'; this.style.borderColor='var(--primary-teal)'; this.style.color='var(--primary-teal)'; this.querySelector('i').style.color='var(--primary-teal)';"
             onmouseout="this.style.background='var(--bg-white)'; this.style.borderColor='var(--border-light)'; this.style.color='var(--text-mid)'; this.querySelector('i').style.color='var(--primary-teal)';">
-            <i data-lucide="file-up" style="width: 18px; height: 18px; color: var(--primary-teal); transition: all 0.2s;"></i>
+            <i data-lucide="file-up"
+              style="width: 18px; height: 18px; color: var(--primary-teal); transition: all 0.2s;"></i>
             Import Subjects
           </button>
           <button id="openSignatureSettingsBtn"
             style="padding: 10px 20px; background: var(--bg-white); color: var(--text-mid); border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;"
             onmouseover="this.style.background='var(--primary-teal-light)'; this.style.borderColor='var(--primary-teal)'; this.style.color='var(--primary-teal)'; this.querySelector('i').style.color='var(--primary-teal)';"
             onmouseout="this.style.background='var(--bg-white)'; this.style.borderColor='var(--border-light)'; this.style.color='var(--text-mid)'; this.querySelector('i').style.color='var(--primary-teal)';">
-            <i data-lucide="settings" style="width: 18px; height: 18px; color: var(--primary-teal); transition: all 0.2s;"></i>
+            <i data-lucide="settings"
+              style="width: 18px; height: 18px; color: var(--primary-teal); transition: all 0.2s;"></i>
             Signature Settings
           </button>
           <button id="downloadAllSchedulesBtn"
@@ -225,7 +242,8 @@
         <label
           style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Building</label>
         <div class="custom-select-wrapper" id="building-select-wrapper" style="width: 100%;">
-          <div class="custom-select-trigger" style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; background: var(--bg-white); color: var(--text-dark); cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
+          <div class="custom-select-trigger"
+            style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; background: var(--bg-white); color: var(--text-dark); cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
             <span>Bldg. B</span>
             <i data-lucide="chevron-down" style="width: 18px; height: 18px; color: var(--text-light);"></i>
           </div>
@@ -253,7 +271,8 @@
       style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <div>
-          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">Edit Room</h2>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">Edit
+            Room</h2>
           <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Update the laboratory details below</p>
         </div>
         <button id="closeEditModalBtn"
@@ -268,7 +287,8 @@
 
       <div style="margin-bottom: 20px;">
         <label
-          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Room Number</label>
+          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Room
+          Number</label>
         <input type="text" id="editRoomNumberInput" placeholder="e.g. 204" pattern="[0-9]*" inputmode="numeric"
           style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
           onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
@@ -279,7 +299,8 @@
         <label
           style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Building</label>
         <div class="custom-select-wrapper" id="edit-building-select-wrapper" style="width: 100%;">
-          <div class="custom-select-trigger" style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; background: var(--bg-white); color: var(--text-dark); cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
+          <div class="custom-select-trigger"
+            style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; background: var(--bg-white); color: var(--text-dark); cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
             <span>Bldg. B</span>
             <i data-lucide="chevron-down" style="width: 18px; height: 18px; color: var(--text-light);"></i>
           </div>
@@ -316,8 +337,10 @@
       style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <div>
-          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">Download Schedules</h2>
-          <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Select academic year and semester to download</p>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">
+            Download Schedules</h2>
+          <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Select academic year and semester to
+            download</p>
         </div>
         <button id="closeDownloadModalBtn"
           style="background: var(--bg-body); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-light); transition: all 0.2s;"
@@ -329,7 +352,9 @@
 
       <!-- Academic Year selector -->
       <div style="margin-bottom: 20px;">
-        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Academic Year</label>
+        <label
+          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Academic
+          Year</label>
         <div class="custom-select-wrapper" id="academic-year-wrapper" style="width: 100%;">
           <div class="custom-select-trigger">
             <span>Select</span>
@@ -341,7 +366,8 @@
 
       <!-- Semester selector -->
       <div style="margin-bottom: 32px;">
-        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Semester</label>
+        <label
+          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Semester</label>
         <div class="custom-select-wrapper" id="semester-wrapper" style="width: 100%;">
           <div class="custom-select-trigger">
             <span>1st Semester</span>
@@ -372,7 +398,8 @@
       style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <div>
-          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">Signature Settings</h2>
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">
+            Signature Settings</h2>
           <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Update names for printed schedules</p>
         </div>
         <button id="closeSignatureModalBtn"
@@ -384,7 +411,9 @@
       </div>
 
       <div style="margin-bottom: 20px;">
-        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Program Chair Name</label>
+        <label
+          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Program
+          Chair Name</label>
         <input type="text" id="programChairInput" placeholder=""
           style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
           onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
@@ -392,7 +421,9 @@
       </div>
 
       <div style="margin-bottom: 32px;">
-        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Campus Dean Name</label>
+        <label
+          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Campus
+          Dean Name</label>
         <input type="text" id="campusDeanInput" placeholder=""
           style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
           onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
@@ -414,12 +445,16 @@
     style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
     <div class="modal-content import-modal-content"
       style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 720px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
-      
+
       <!-- Modal Header -->
-      <div class="import-modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
+      <div class="import-modal-header"
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
         <div>
-          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display); margin: 0 0 4px 0;">Import Subjects</h2>
-          <p style="font-size: 13px; color: var(--text-light); margin: 0;">Upload subject catalog containing Subject Code and Subject Name</p>
+          <h2
+            style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display); margin: 0 0 4px 0;">
+            Import Subjects</h2>
+          <p style="font-size: 13px; color: var(--text-light); margin: 0;">Upload subject catalog containing Subject
+            Code and Subject Name</p>
         </div>
         <button id="closeImportCurriculumModalBtn"
           style="background: var(--bg-body); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-light); transition: all 0.2s;"
@@ -430,14 +465,20 @@
       </div>
 
       <!-- Upload Zone & Download Sample -->
-      <div class="import-modal-top-row" style="display: flex; gap: 16px; margin-bottom: 20px; flex-shrink: 0; align-items: stretch;">
-        <div id="dropZone" class="import-dropzone" style="flex: 1; border: 2px dashed var(--primary-teal); background: rgba(30, 187, 215, 0.05); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s;"
-             onclick="document.getElementById('curriculumFileInput').click();">
+      <div class="import-modal-top-row"
+        style="display: flex; gap: 16px; margin-bottom: 20px; flex-shrink: 0; align-items: stretch;">
+        <div id="dropZone" class="import-dropzone"
+          style="flex: 1; border: 2px dashed var(--primary-teal); background: rgba(30, 187, 215, 0.05); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s;"
+          onclick="document.getElementById('curriculumFileInput').click();">
           <input type="file" id="curriculumFileInput" accept=".xlsx,.xls,.csv,.json,.txt" style="display: none;">
-          <i data-lucide="upload-cloud" style="width: 32px; height: 32px; color: var(--primary-teal); margin-bottom: 8px;"></i>
-          <div class="dropzone-text-desktop" style="font-size: 14px; font-weight: 600; color: var(--text-dark);">Click or Drag & Drop File</div>
-          <div class="dropzone-text-mobile" style="font-size: 14px; font-weight: 600; color: var(--text-dark); display: none;">Tap to Upload File</div>
-          <div style="font-size: 12px; color: var(--text-light); margin-top: 2px;">Supports Excel (.xlsx, .xls), CSV, or JSON format</div>
+          <i data-lucide="upload-cloud"
+            style="width: 32px; height: 32px; color: var(--primary-teal); margin-bottom: 8px;"></i>
+          <div class="dropzone-text-desktop" style="font-size: 14px; font-weight: 600; color: var(--text-dark);">Click
+            or Drag & Drop File</div>
+          <div class="dropzone-text-mobile"
+            style="font-size: 14px; font-weight: 600; color: var(--text-dark); display: none;">Tap to Upload File</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 2px;">Supports Excel (.xlsx, .xls), CSV, or
+            JSON format</div>
         </div>
 
         <button id="downloadSampleCsvBtn" class="import-sample-btn" type="button"
@@ -450,9 +491,11 @@
       </div>
 
       <!-- Preview Table Container -->
-      <div class="import-table-container" style="flex: 1; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 12px; margin-bottom: 20px; background: var(--bg-card);">
+      <div class="import-table-container"
+        style="flex: 1; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 12px; margin-bottom: 20px; background: var(--bg-card);">
         <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
-          <thead style="position: sticky; top: 0; background: var(--bg-body); border-bottom: 1px solid var(--border-light); font-weight: 700; color: var(--text-dark);">
+          <thead
+            style="position: sticky; top: 0; background: var(--bg-body); border-bottom: 1px solid var(--border-light); font-weight: 700; color: var(--text-dark);">
             <tr>
               <th style="padding: 12px 16px; width: 60px; text-align: center; color: var(--text-dark);">#</th>
               <th style="padding: 12px 16px; width: 32%; color: var(--text-dark);">Subject Code</th>
@@ -461,18 +504,19 @@
           </thead>
           <tbody id="curriculumTableBody">
             <tr>
-              <td colspan="3" style="text-align: center; padding: 32px; color: var(--text-light);">No subject data loaded yet. Upload an Excel or CSV file.</td>
+              <td colspan="3" style="text-align: center; padding: 32px; color: var(--text-light);">No subject data
+                loaded yet. Upload an Excel or CSV file.</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <!-- Action Buttons -->
-      <div class="import-modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 12px;">
+      <div class="import-modal-footer"
+        style="display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 12px;">
         <button id="clearCurriculumBtn" class="import-btn-clear" type="button"
           style="padding: 12px 20px; background: transparent; color: #ef4444; border: 1.5px solid #fecaca; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s;"
-          onmouseover="this.style.background='#fef2f2';"
-          onmouseout="this.style.background='transparent';">
+          onmouseover="this.style.background='#fef2f2';" onmouseout="this.style.background='transparent';">
           Clear Existing
         </button>
 
@@ -483,8 +527,7 @@
           </button>
           <button id="saveImportCurriculumBtn" class="import-btn-save" type="button"
             style="padding: 12px 24px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
-            onmouseover="this.style.background='#17a3bc';"
-            onmouseout="this.style.background='var(--primary-teal)';">
+            onmouseover="this.style.background='#17a3bc';" onmouseout="this.style.background='var(--primary-teal)';">
             Save & Import Subjects
           </button>
         </div>
@@ -514,4 +557,5 @@
   <script src="js/pages/master-schedule.js"></script>
   <script src="js/tutorial.js"></script>
 </body>
+
 </html>

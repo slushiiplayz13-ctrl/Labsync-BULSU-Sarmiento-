@@ -196,12 +196,8 @@
       }
 
       .maint-table tr {
-        display: grid !important;
-        grid-template-areas:
-          "ticket status"
-          "issues issues"
-          "actions actions";
-        grid-template-columns: 1fr auto !important;
+        display: flex !important;
+        flex-direction: column !important;
         gap: 10px !important;
         background: #FFFFFF !important;
         border: 1px solid var(--border-light) !important;
@@ -222,28 +218,32 @@
       }
 
       .maint-table tr td.col-ticket {
-        grid-area: ticket;
-        align-self: center;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
       }
 
       .maint-table tr td.col-status {
-        grid-area: status;
-        justify-self: end;
-        align-self: center;
+        display: flex !important;
+        justify-content: flex-end !important;
+        margin-top: -36px !important;
       }
 
       .maint-table tr td.col-date,
       .maint-table tr td.col-room,
       .maint-table tr td.col-pc {
-        display: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin-right: 12px !important;
+        font-size: 12.5px !important;
       }
 
       .maint-table tr td.col-issues {
-        grid-area: issues;
+        margin-top: 2px !important;
       }
 
       .maint-table tr td.col-actions {
-        grid-area: actions;
         margin-top: 4px;
         padding-top: 10px !important;
         border-top: 1px dashed var(--border-light) !important;

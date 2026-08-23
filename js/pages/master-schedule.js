@@ -417,7 +417,7 @@
       });
     }
 
-    global.printAllSchedules = function() {
+    global.printAllSchedules = function () {
       openDownloadModal();
     };
   }

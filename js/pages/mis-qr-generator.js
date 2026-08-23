@@ -415,7 +415,7 @@ async function submitAddPc() {
             body: JSON.stringify({ pcNumber })
           });
           if (singleRes.ok) addedCount++;
-        } catch (e) {}
+        } catch (e) { }
       }
       closeAddPcModal();
       await loadPCs(roomId);

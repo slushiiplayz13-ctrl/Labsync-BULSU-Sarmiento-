@@ -10,17 +10,33 @@ async function getAllLaboratories() {
     const nowTime = new Date().toTimeString().split(' ')[0];
 
     const [rooms] = await labRepository.findAllLaboratoriesWithSchedule(today, nowTime);
+    const [activeIssues] = await labRepository.findActivePCIssuesGroupedByRoom();
+
+    const roomIssuesMap = {};
+    for (const row of activeIssues) {
+        if (!roomIssuesMap[row.Room_ID]) {
+            roomIssuesMap[row.Room_ID] = {
+                total_issues: 0,
+                issues: []
+            };
+        }
+        roomIssuesMap[row.Room_ID].total_issues += row.pc_count;
+        roomIssuesMap[row.Room_ID].issues.push({
+            issue: row.Issue_Description,
+            count: row.pc_count
+        });
+    }
 
     const result = rooms.map(room => {
         const hasScheduledClass = !!room.Subject_Name;
         const keyAbsent = room.Key_Status === 'Absent';
-        
+
         const scheduledProfName = room.Scheduled_Professor_Name || null;
         const currentHolderName = room.Current_Key_Holder_Name || null;
 
-        const isScheduledProfHolder = keyAbsent && 
-            room.Current_User_ID != null && 
-            room.Scheduled_User_ID != null && 
+        const isScheduledProfHolder = keyAbsent &&
+            room.Current_User_ID != null &&
+            room.Scheduled_User_ID != null &&
             String(room.Current_User_ID) === String(room.Scheduled_User_ID);
 
         let currentStatus = 'Available';
@@ -51,6 +67,7 @@ async function getAllLaboratories() {
 
         const isOnline = iotService.isDeviceOnline(room.Room_Number, room.Last_Seen);
         const lastSeenTimestamp = iotService.getLastSeen(room.Room_Number, room.Last_Seen);
+        const roomIssueData = roomIssuesMap[room.Room_ID] || { total_issues: 0, issues: [] };
 
         return {
             Room_ID: room.Room_ID,
@@ -68,7 +85,9 @@ async function getAllLaboratories() {
             } : null,
             Current_Key_Holder: currentHolderName,
             deviceOnline: isOnline,
-            lastSeen: lastSeenTimestamp
+            lastSeen: lastSeenTimestamp,
+            pc_issues: roomIssueData.issues,
+            total_pc_issues: roomIssueData.total_issues
         };
     });
 

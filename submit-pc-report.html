@@ -275,33 +275,43 @@
       flex-direction: column;
       align-items: center;
       gap: 16px;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
       text-align: center;
     }
 
     .brand-logos {
       display: flex;
       align-items: center;
-      gap: 16px;
+      justify-content: center;
+      gap: 18px;
     }
 
-    .logo-img {
-      height: 48px;
-      width: auto;
-      object-fit: contain;
+    .brand-logos img,
+    .brand-logos .logo-img {
+      height: 56px !important;
+      width: auto !important;
+      max-width: none !important;
+      border-radius: 0 !important;
+      object-fit: contain !important;
+      display: block !important;
+    }
+
+    .brand-logos img.labsync-brand-logo {
+      height: 52px !important;
+      max-width: 180px !important;
     }
 
     .logo-divider {
-      width: 2px;
-      height: 32px;
-      background: rgba(148, 163, 184, 0.3);
-      border-radius: 99px;
+      width: 2px !important;
+      height: 38px !important;
+      background: rgba(148, 163, 184, 0.4) !important;
+      border-radius: 99px !important;
     }
 
     .form-title {
       font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 600;
+      font-size: 19px;
+      font-weight: 700;
       color: #0F172A;
       letter-spacing: -0.3px;
       background: linear-gradient(135deg, #0F172A, #1E293B);
@@ -387,39 +397,47 @@
       position: relative;
       flex: 1;
       width: 100%;
+      display: flex;
+      align-items: center;
     }
 
     .input-wrapper svg,
-    .input-wrapper .lucide {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      width: 18px;
-      height: 18px;
+    .input-wrapper .lucide,
+    .input-wrapper i {
+      position: absolute !important;
+      left: 16px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      color: var(--text-muted) !important;
+      width: 18px !important;
+      height: 18px !important;
       transition: color var(--transition);
-      pointer-events: none;
-      z-index: 10;
+      pointer-events: none !important;
+      z-index: 10 !important;
     }
 
-    .input-field {
-      width: 100%;
-      padding: 14px 18px 14px 48px;
-      border: 1px solid var(--border-light);
-      border-radius: 12px;
-      font-family: var(--font-body);
-      font-size: 14px;
-      color: var(--text-dark);
-      background: #F8FAFC;
-      outline: none;
-      transition: all var(--transition);
+    .input-group .input-wrapper input.input-field,
+    .input-wrapper input.input-field,
+    .input-wrapper .input-field {
+      width: 100% !important;
+      padding: 14px 18px 14px 48px !important;
+      border: 1px solid var(--border-light) !important;
+      border-radius: 12px !important;
+      font-family: var(--font-body) !important;
+      font-size: 14px !important;
+      color: var(--text-dark) !important;
+      background: #F8FAFC !important;
+      outline: none !important;
+      transition: all var(--transition) !important;
+      box-sizing: border-box !important;
     }
 
-    .input-field:focus {
-      background: #FFFFFF;
-      border-color: var(--primary-teal);
-      box-shadow: 0 0 0 4px rgba(30, 187, 215, 0.15);
+    .input-group .input-wrapper input.input-field:focus,
+    .input-wrapper input.input-field:focus,
+    .input-wrapper .input-field:focus {
+      background: #FFFFFF !important;
+      border-color: var(--primary-teal) !important;
+      box-shadow: 0 0 0 4px rgba(30, 187, 215, 0.15) !important;
     }
 
     .input-field:focus+svg,
@@ -1176,9 +1194,9 @@
     <!-- Brand Header -->
     <header class="brand-header">
       <div class="brand-logos">
-        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo" class="logo-img" />
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo" class="logo-img bsu-logo" />
         <div class="logo-divider"></div>
-        <img src="assets/labsync-logo.png" alt="LabSync Logo" class="logo-img" />
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" class="logo-img labsync-brand-logo" />
       </div>
       <h1 class="form-title">Computer Laboratory Monitoring Form</h1>
     </header>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,18 +9,31 @@
   <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <style id="auth-anti-flash">body { display: none !important; }</style>
+  <style id="auth-anti-flash">
+    body {
+      display: none !important;
+    }
+  </style>
   <script src="js/auth-check.js"></script>
   <style>
     .menu-item:hover {
       background-color: #F3F4F6;
     }
+
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
+
     .sched-spinner {
       animation: spin 1s linear infinite;
     }
@@ -32,29 +46,39 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <nav class="sidebar-nav">
-      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard" onclick="window.location.href='it-head-dashboard.html'">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='it-head-dashboard.html'">
         <i data-lucide="home" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status" onclick="window.location.href='it-head-room-status.html'">
+      <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status"
+        onclick="window.location.href='it-head-room-status.html'">
         <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports" onclick="window.location.href='it-head-pc-reports.html'">
+      <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports"
+        onclick="window.location.href='it-head-pc-reports.html'">
         <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule" onclick="window.location.href='it-head-my-schedule.html'">
+      <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule"
+        onclick="window.location.href='it-head-my-schedule.html'">
         <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
       </button>
-      
-      <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;"></div>
 
-      <button class="sidebar-btn desktop-only-btn" data-tooltip="Master Schedule" title="Master Schedule" onclick="window.location.href='master-schedule.html'">
+      <div class="sidebar-divider" style="height: 1px; width: 60%; background: var(--border-light); margin: 8px auto;">
+      </div>
+
+      <button class="sidebar-btn desktop-only-btn" data-tooltip="Master Schedule" title="Master Schedule"
+        onclick="window.location.href='master-schedule.html'">
         <i data-lucide="calendar" style="width:24px;height:24px;"></i>
       </button>
-      <button class="sidebar-btn desktop-only-btn active" data-tooltip="Faculty Management" title="Faculty Management" onclick="window.location.href='faculty-management.html'">
+      <button class="sidebar-btn desktop-only-btn active" data-tooltip="Faculty Management" title="Faculty Management"
+        onclick="window.location.href='faculty-management.html'">
         <i data-lucide="users" style="width:24px;height:24px;"></i>
       </button>
-      <div class="mobile-only-divider" style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;"></div>
-      <button class="sidebar-btn mobile-only-btn active" data-tooltip="Admin Panel" title="Admin Panel" onclick="toggleAdminMenu(event, this)">
+      <div class="mobile-only-divider"
+        style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;">
+      </div>
+      <button class="sidebar-btn mobile-only-btn active" data-tooltip="Admin Panel" title="Admin Panel"
+        onclick="toggleAdminMenu(event, this)">
         <i data-lucide="folder-cog" style="width:24px;height:24px;"></i>
       </button>
     </nav>
@@ -70,7 +94,8 @@
   </aside>
 
   <!-- Scroll Clue -->
-  <div id="sidebarScrollClue" style="position:fixed;bottom:16px;left:30px;z-index:105;color:var(--primary-teal);pointer-events:none;transition:opacity 0.3s ease;">
+  <div id="sidebarScrollClue"
+    style="position:fixed;bottom:16px;left:30px;z-index:105;color:var(--primary-teal);pointer-events:none;transition:opacity 0.3s ease;">
     <i data-lucide="chevron-down" style="width:20px;height:20px;animation:bounce 2s infinite;"></i>
   </div>
 
@@ -108,7 +133,8 @@
       <div class="greeting-row" style="margin-bottom:16px;">
         <div class="greeting-left">
           <h1 class="greeting-title" id="greetingText">Faculty Management</h1>
-          <p class="greeting-sub" id="greetingSub">Manage faculty members, assignments, and departmental information.</p>
+          <p class="greeting-sub" id="greetingSub">Manage faculty members, assignments, and departmental information.
+          </p>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime">--:--:-- --</div>
@@ -128,15 +154,22 @@
               <i data-lucide="sliders-horizontal" style="width:14px;height:14px;"></i>
               Filter
             </button>
-            <div id="filter-dropdown" style="display: none; position: absolute; right: 0; top: 100%; background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); width: 180px; max-width: calc(100vw - 24px); box-sizing: border-box; z-index: 100; padding: 6px 0; margin-top: 4px; font-family: var(--font-body);">
-              <div class="filter-item" data-filter="all" onclick="filterFaculty('all')" style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; font-weight: 600; background: none;">
-                All Roles <i data-lucide="check" style="width: 14px; height: 14px; color: var(--primary-teal); flex-shrink: 0;"></i>
+            <div id="filter-dropdown"
+              style="display: none; position: absolute; right: 0; top: 100%; background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); width: 180px; max-width: calc(100vw - 24px); box-sizing: border-box; z-index: 100; padding: 6px 0; margin-top: 4px; font-family: var(--font-body);">
+              <div class="filter-item" data-filter="all" onclick="filterFaculty('all')"
+                style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; font-weight: 600; background: none;">
+                All Roles <i data-lucide="check"
+                  style="width: 14px; height: 14px; color: var(--primary-teal); flex-shrink: 0;"></i>
               </div>
-              <div class="filter-item" data-filter="head" onclick="filterFaculty('head')" style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; background: none;">
-                IT Dept. Head <i data-lucide="check" style="width: 14px; height: 14px; color: var(--primary-teal); display: none; flex-shrink: 0;"></i>
+              <div class="filter-item" data-filter="head" onclick="filterFaculty('head')"
+                style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; background: none;">
+                IT Dept. Head <i data-lucide="check"
+                  style="width: 14px; height: 14px; color: var(--primary-teal); display: none; flex-shrink: 0;"></i>
               </div>
-              <div class="filter-item" data-filter="faculty" onclick="filterFaculty('faculty')" style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; background: none;">
-                Faculty <i data-lucide="check" style="width: 14px; height: 14px; color: var(--primary-teal); display: none; flex-shrink: 0;"></i>
+              <div class="filter-item" data-filter="faculty" onclick="filterFaculty('faculty')"
+                style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; background: none;">
+                Faculty <i data-lucide="check"
+                  style="width: 14px; height: 14px; color: var(--primary-teal); display: none; flex-shrink: 0;"></i>
               </div>
             </div>
 
@@ -184,4 +217,5 @@
   <script src="js/script.js?v=1.0.5"></script>
   <script src="js/tutorial.js"></script>
 </body>
+
 </html>

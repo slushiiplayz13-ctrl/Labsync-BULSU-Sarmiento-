@@ -291,10 +291,10 @@ html.high-contrast .badge-ticket-id {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 7px !important;
-  font-size: 13.5px !important;
-  font-weight: 800 !important;
-  padding: 7px 16px !important;
+  gap: 5px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  padding: 5px 12px !important;
   border-radius: 9999px !important;
   white-space: nowrap !important;
   background: #D1FAE5 !important;
@@ -302,6 +302,16 @@ html.high-contrast .badge-ticket-id {
   border: 1.5px solid #6EE7B7 !important;
   box-shadow: 0 1px 4px rgba(16, 185, 129, 0.15) !important;
   transition: all 0.2s ease !important;
+  line-height: 1.2 !important;
+}
+
+.completed-chip svg,
+.completed-chip i {
+  width: 13px !important;
+  height: 13px !important;
+  stroke-width: 2.5 !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
 }
 
 /* Dark Mode Theme Overrides */
@@ -323,7 +333,7 @@ html.high-contrast .completed-chip,
 html.high-contrast .completed-label {
   background: #022C22 !important;
   color: #6EE7B7 !important;
-  border: 2px solid #34D399 !important;
+  border: 1.5px solid #34D399 !important;
 }
 
 /* ─── Faculty Card Department Tag & Status Badge Component Styles ─── */
