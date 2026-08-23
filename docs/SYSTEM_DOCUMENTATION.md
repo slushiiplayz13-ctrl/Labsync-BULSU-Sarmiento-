@@ -129,25 +129,44 @@ LabSync/
 |-- package.json                # Node.js project manifest
 |-- .env                        # Environment variables (not committed)
 |-- .gitignore                  # Git exclusion rules
+|-- README.md                   # Project overview and quickstart guide
+|-- labsync.sql                 # Baseline MySQL cold-start database schema dump
+|-- LabSync_ESP32.ino           # ESP32 firmware sketch
+|-- server.js                   # Application bootstrap entrypoint
+|
+|-- config/                     # Application & environment configuration
+|-- controllers/                # Domain route controllers
+|-- database/                   # Database connection, migration engine & migrations
+|-- middleware/                 # Auth, role check, and request middleware
+|-- repositories/               # Data access layer
+|-- routes/                     # Domain router aggregation & legacy bridges
+|-- services/                   # Business logic, IoT services, notifications
 |
 |-- css/
-|   |-- reset.css               # CSS reset / base normalization
-|   |-- variables.css           # Design tokens (colors, spacing, shadows, etc.)
-|   |-- components.css          # Reusable UI components (cards, buttons, modals)
-|   |-- layouts.css             # Page-level layout grids and containers
-|   |-- responsive.css          # All media queries and mobile breakpoints
-|   |-- auth.css                # Login and reset-password specific styles
-|   `-- schedule-studio.css     # Drag-and-drop schedule editor specific styles
+|   |-- variables.css           # Design tokens, themes & text scaling
+|   |-- reset.css               # Base resets & scrollbar rules
+|   |-- layouts.css             # Header, sidebar, page content & tooltips
+|   |-- components/             # Domain modular component stylesheets
+|   |-- responsive.css          # Viewport media queries & bottom navigation
+|   |-- auth.css                # Authentication pages stylesheet
+|   |-- tutorial.css            # Spotlight tutorial overlay styles
+|   `-- schedule-studio.css     # Wallpaper and export studio styles
 |
 |-- js/
-|   `-- schedule-studio.js      # Schedule Studio drag-and-drop helper logic
+|   |-- core/                   # State, session, clock, accessibility
+|   |-- components/             # Reusable UI components & modals
+|   |-- services/               # Frontend API client services
+|   |-- pages/                  # Page-specific business logic controllers
+|   |-- scheduling/             # Scheduling engine, colors & time utils
+|   `-- utils/                  # UI helpers & formatters
 |
-|-- assets/                     # Static assets (images, logos, etc.)
-|
-|-- IOT_HANDOVER_SUMMARY.md     # ESP32 wiring, sketch, and debugging notes
-|-- v1_0_0_feature_summary.md   # V1.0.0 feature and DB schema summary
-`-- SYSTEM_DOCUMENTATION.md     # This file
+|-- assets/                     # Static assets (images, logos, dev photos)
+`-- docs/                       # Project documentation hierarchy
+    |-- SYSTEM_DOCUMENTATION.md # Comprehensive system manual
+    |-- hardware/               # ESP32 wiring, sketch, and debugging notes
+    `-- releases/               # V1.0.0 feature and release changelogs
 ```
+
 
 ---
 
@@ -645,7 +664,7 @@ Boot → Connect Wi-Fi → Show "Ready to Scan!" on LCD
 
 ### Key Detection Debugging Notes
 
-> See [IOT_HANDOVER_SUMMARY.md](./IOT_HANDOVER_SUMMARY.md) for full wiring details and the complete Arduino sketch.
+> See [IOT_HANDOVER_SUMMARY.md](./hardware/IOT_HANDOVER_SUMMARY.md) for full wiring details and the complete Arduino sketch.
 
 - **Working**: D14 grounding directly to GND changes pin state correctly.
 - **Issue**: Fully-metal 6.35mm plug may bridge both socket contacts, keeping the circuit permanently closed.
@@ -749,5 +768,6 @@ Then use **Faculty Management** (`faculty-management.html`) to add additional st
 ---
 
 *This document reflects the state of LabSync as of Version 1.0.0, August 2026.*  
-*For IoT-specific debugging, refer to [IOT_HANDOVER_SUMMARY.md](./IOT_HANDOVER_SUMMARY.md).*  
-*For the feature changelog, refer to [v1_0_0_feature_summary.md](./v1_0_0_feature_summary.md).*
+*For IoT-specific debugging, refer to [IOT_HANDOVER_SUMMARY.md](./hardware/IOT_HANDOVER_SUMMARY.md).*  
+*For the feature changelog, refer to [v1_0_0_feature_summary.md](./releases/v1_0_0_feature_summary.md).*
+
