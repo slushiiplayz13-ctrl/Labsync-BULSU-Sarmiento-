@@ -279,3 +279,66 @@ html.high-contrast .remarks-quote-box {
   font-style: italic !important;
   font-size: 13.5px !important;
 }
+
+/* ─── Authentication Form Components & Input Controls ─── */
+.auth-toggle {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.auth-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input-icon-btn {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  color: #94A3B8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.input-icon-btn:hover {
+  color: #64748B;
+}
+
+.recover-pw {
+  text-align: right;
+  width: 100%;
+  margin-top: -6px;
+  margin-bottom: 12px;
+}
+
+.recover-pw a {
+  color: #CBD5E1;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.recover-pw a:hover {
+  color: var(--primary-teal);
+}
+
+.auth-footer-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: #CBD5E1;
+  text-align: center;
+  width: 100%;
+  letter-spacing: 0.5px;
+}

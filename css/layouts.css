@@ -114,6 +114,14 @@
 
 /* ─── Floating Tooltips on Hover (Desktop) ──────────────────────── */
 @media (min-width: 1025px) {
+  .sidebar {
+    overflow: visible;
+  }
+
+  .sidebar-nav {
+    overflow: visible;
+  }
+
   .sidebar-btn[data-tooltip] {
     position: relative;
   }
@@ -121,9 +129,10 @@
   /* Tooltip Box */
   .sidebar-btn[data-tooltip]::after {
     content: attr(data-tooltip);
-    position: fixed;
-    left: calc(var(--sidebar-width) + 12px);
-    transform: translateY(-50%) translateX(-8px);
+    position: absolute;
+    top: 50%;
+    left: calc(100% + 14px);
+    transform: translateY(-50%) translateX(-6px);
     background: var(--primary-teal);
     color: #ffffff;
     font-family: var(--font-body);
@@ -145,9 +154,10 @@
   /* Left-pointing Caret/Arrow */
   .sidebar-btn[data-tooltip]::before {
     content: '';
-    position: fixed;
-    left: calc(var(--sidebar-width) + 5px);
-    transform: translateY(-50%) translateX(-8px);
+    position: absolute;
+    top: 50%;
+    left: calc(100% + 7px);
+    transform: translateY(-50%) translateX(-6px);
     border-width: 7px 8px 7px 0;
     border-style: solid;
     border-color: transparent var(--primary-teal) transparent transparent;
@@ -177,6 +187,7 @@
     border-color: transparent var(--primary-teal) transparent transparent;
   }
 }
+
 
 /* ─── MAIN WRAPPER ───────────────────────────────────────────────── */
 .main-wrapper {
@@ -441,3 +452,38 @@ img[src*="bsu"] {
   align-items: center;
   padding: 0;
 }
+
+/* ─── PAGE CONTENT & SECTIONS ────────────────────────────────────── */
+.page-content {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.view-section {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.view-section.active {
+  display: flex;
+}
