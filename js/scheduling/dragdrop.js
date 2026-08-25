@@ -14,6 +14,179 @@
   const TOTAL_SLOTS = 27; // 7am to 8:30pm (27 slots)
 
   /**
+   * Smooth RAF AutoScroller for drag & drop and card resize interactions.
+   * Auto-scrolls both the timetable grid container (.calendar-grid-container)
+   * and the browser viewport when cursor is dragged near edges.
+   */
+  const AutoScroller = {
+    rafId: null,
+    pointerX: 0,
+    pointerY: 0,
+    active: false,
+    onScrollCallback: null,
+    EDGE_THRESHOLD: 70, // proximity zone in px
+    MIN_SPEED: 2,       // min px per frame
+    MAX_SPEED: 18,      // max px per frame
+
+    getGridContainer() {
+      return document.querySelector('.calendar-grid-container');
+    },
+
+    start(onScrollCallback) {
+      this.active = true;
+      if (typeof onScrollCallback === 'function') {
+        this.onScrollCallback = onScrollCallback;
+      }
+      if (!this.rafId) {
+        this.loop = this.loop.bind(this);
+        this.rafId = requestAnimationFrame(this.loop);
+      }
+    },
+
+    update(clientX, clientY, onScrollCallback) {
+      if (clientX !== undefined) this.pointerX = clientX;
+      if (clientY !== undefined) this.pointerY = clientY;
+      if (typeof onScrollCallback === 'function') {
+        this.onScrollCallback = onScrollCallback;
+      }
+      if (!this.active) {
+        this.start(onScrollCallback);
+      }
+    },
+
+    stop() {
+      this.active = false;
+      this.onScrollCallback = null;
+      if (this.rafId) {
+        cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+      }
+    },
+
+    computeSpeed(distanceInsideEdge) {
+      const ratio = Math.min(1.6, Math.max(0, distanceInsideEdge / this.EDGE_THRESHOLD));
+      return this.MIN_SPEED + (this.MAX_SPEED - this.MIN_SPEED) * Math.pow(ratio, 1.4);
+    },
+
+    loop() {
+      if (!this.active) {
+        this.rafId = null;
+        return;
+      }
+
+      let didScroll = false;
+      const container = this.getGridContainer();
+      const clientY = this.pointerY;
+      const clientX = this.pointerX;
+
+      if (clientY > 0 && container) {
+        const cRect = container.getBoundingClientRect();
+
+        // 1. Calendar Grid Container auto-scroll (Primary)
+        if (clientX >= cRect.left - 60 && clientX <= cRect.right + 60) {
+          // Bottom edge of container
+          if (clientY >= cRect.bottom - this.EDGE_THRESHOLD && clientY <= cRect.bottom + 120) {
+            const distance = clientY - (cRect.bottom - this.EDGE_THRESHOLD);
+            const speed = this.computeSpeed(distance);
+            const maxScrollTop = container.scrollHeight - container.clientHeight;
+            if (container.scrollTop < maxScrollTop) {
+              container.scrollTop = Math.min(maxScrollTop, container.scrollTop + speed);
+              didScroll = true;
+            }
+          }
+          // Top edge of container
+          else if (clientY <= cRect.top + this.EDGE_THRESHOLD && clientY >= cRect.top - 60) {
+            const distance = (cRect.top + this.EDGE_THRESHOLD) - clientY;
+            const speed = this.computeSpeed(distance);
+            if (container.scrollTop > 0) {
+              container.scrollTop = Math.max(0, container.scrollTop - speed);
+              didScroll = true;
+            }
+          }
+        }
+
+        // 2. Viewport / Window vertical auto-scroll (Secondary / Page level)
+        const vh = window.innerHeight;
+        if (clientY >= vh - this.EDGE_THRESHOLD) {
+          const distance = clientY - (vh - this.EDGE_THRESHOLD);
+          const speed = this.computeSpeed(distance);
+          window.scrollBy(0, speed);
+          didScroll = true;
+        } else if (clientY <= this.EDGE_THRESHOLD && clientY >= 0) {
+          const distance = this.EDGE_THRESHOLD - clientY;
+          const speed = this.computeSpeed(distance);
+          window.scrollBy(0, -speed);
+          didScroll = true;
+        }
+      }
+
+      // Continuously update placeholder / resize calculations on each animation frame
+      if (this.onScrollCallback) {
+        this.onScrollCallback(this.pointerX, this.pointerY, didScroll);
+      }
+
+      if (this.active) {
+        this.rafId = requestAnimationFrame(this.loop);
+      } else {
+        this.rafId = null;
+      }
+    }
+  };
+
+  /**
+   * Helper to recalculate slot and update the snap placeholder during native drag auto-scroll
+   */
+  function updateDropPlaceholderFromPoint(clientX, clientY) {
+    if (document.body.classList.contains('view-mode')) return;
+    const elem = document.elementFromPoint(clientX, clientY);
+    if (!elem) return;
+
+    const col = elem.closest('.grid-day-column');
+    if (!col) return;
+
+    const slotHeight = getSlotHeight();
+    const rect = col.getBoundingClientRect();
+    const dropY = clientY - rect.top;
+    let slotIndex = Math.round(dropY / slotHeight);
+    if (slotIndex < 0) slotIndex = 0;
+
+    const draggedId = document.querySelector('.grid-card.dragging, .schedule-block.dragging')?.id;
+    if (!draggedId) return;
+    const draggedBlock = document.getElementById(draggedId);
+    if (!draggedBlock) return;
+
+    let durationSlots = 3;
+    if (draggedBlock.classList.contains('grid-card')) {
+      durationSlots = parseFloat(draggedBlock.dataset.end) - parseFloat(draggedBlock.dataset.start);
+    }
+
+    if (slotIndex + durationSlots > TOTAL_SLOTS) {
+      slotIndex = TOTAL_SLOTS - durationSlots;
+    }
+
+    if (global.showPlaceholder) {
+      global.showPlaceholder(col, slotIndex, durationSlots);
+    }
+  }
+
+  // Global drag listeners to keep AutoScroller updated across window boundaries
+  document.addEventListener('dragover', (e) => {
+    if (document.body.classList.contains('view-mode')) return;
+    const isDragging = document.querySelector('.grid-card.dragging, .schedule-block.dragging');
+    if (isDragging) {
+      AutoScroller.update(e.clientX, e.clientY, updateDropPlaceholderFromPoint);
+    }
+  });
+
+  document.addEventListener('dragend', () => {
+    AutoScroller.stop();
+  });
+
+  document.addEventListener('drop', () => {
+    AutoScroller.stop();
+  });
+
+  /**
    * Initializes resize interaction on a schedule card handle.
    * @param {HTMLElement} card - The schedule card
    * @param {HTMLElement} handle - The resize handle element
@@ -33,19 +206,26 @@
       const startTop = card.offsetTop;
       const col = card.closest('.grid-day-column');
       const day = col ? col.dataset.day : '';
+      const container = AutoScroller.getGridContainer();
+      const startScrollTop = container ? container.scrollTop : 0;
 
       const originalEndSlot = parseFloat(card.dataset.end);
 
       function doResize(moveEvt) {
-        const currentY = moveEvt.clientY || (moveEvt.touches && moveEvt.touches[0].clientY);
-        const dy = currentY - startY;
+        const currentY = (moveEvt && moveEvt.clientY !== undefined)
+          ? moveEvt.clientY
+          : (moveEvt && moveEvt.touches && moveEvt.touches[0] ? moveEvt.touches[0].clientY : startY);
+
+        const currentScrollTop = container ? container.scrollTop : 0;
+        const scrollDiff = currentScrollTop - startScrollTop;
+        const dy = (currentY - startY) + scrollDiff;
 
         // Calculate new height, snap to slotHeight
         let newHeight = startHeight + dy;
         newHeight = Math.round(newHeight / slotHeight) * slotHeight;
         if (newHeight < slotHeight) newHeight = slotHeight;
 
-        // Check bounds (cannot exceed 7:00 PM)
+        // Check bounds (cannot exceed TOTAL_SLOTS)
         const proposedEndSlot = (startTop + newHeight) / slotHeight;
         if (proposedEndSlot > TOTAL_SLOTS) {
           return;
@@ -70,10 +250,20 @@
         if (timeEl) timeEl.textContent = `${fStart} - ${fEnd}`;
       }
 
+      function handleResizeMove(moveEvt) {
+        const currentX = moveEvt.clientX || (moveEvt.touches && moveEvt.touches[0] ? moveEvt.touches[0].clientX : 0);
+        const currentY = moveEvt.clientY || (moveEvt.touches && moveEvt.touches[0] ? moveEvt.touches[0].clientY : 0);
+        doResize(moveEvt);
+        AutoScroller.update(currentX, currentY, () => {
+          doResize({ clientX: currentX, clientY: currentY });
+        });
+      }
+
       async function stopResize() {
-        document.removeEventListener('mousemove', doResize);
+        AutoScroller.stop();
+        document.removeEventListener('mousemove', handleResizeMove);
         document.removeEventListener('mouseup', stopResize);
-        document.removeEventListener('touchmove', doResize);
+        document.removeEventListener('touchmove', handleResizeMove);
         document.removeEventListener('touchend', stopResize);
 
         // Perform Async Professor Conflict Check upon completion of resizing
@@ -114,9 +304,9 @@
         global.isDirty = true;
       }
 
-      document.addEventListener('mousemove', doResize);
+      document.addEventListener('mousemove', handleResizeMove);
       document.addEventListener('mouseup', stopResize);
-      document.addEventListener('touchmove', doResize, { passive: false });
+      document.addEventListener('touchmove', handleResizeMove, { passive: false });
       document.addEventListener('touchend', stopResize);
     }
 
@@ -139,6 +329,8 @@
       }
       e.dataTransfer.setData('text/plain', card.id);
       setTimeout(() => card.classList.add('dragging'), 0);
+      AutoScroller.start(updateDropPlaceholderFromPoint);
+
       if (professor && typeof global.loadProfessorGhostSchedule === 'function') {
         const academicYear = typeof global.getSelectedAcademicYear === 'function' ? global.getSelectedAcademicYear() : '';
         const semester = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
@@ -150,6 +342,7 @@
 
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging');
+      AutoScroller.stop();
       if (typeof global.restoreDefaultOrClearGhost === 'function') {
         global.restoreDefaultOrClearGhost();
       }
@@ -171,6 +364,8 @@
       }
       e.dataTransfer.setData('text/plain', block.id);
       setTimeout(() => block.classList.add('dragging'), 0);
+      AutoScroller.start(updateDropPlaceholderFromPoint);
+
       if (professor && typeof global.loadProfessorGhostSchedule === 'function') {
         const academicYear = typeof global.getSelectedAcademicYear === 'function' ? global.getSelectedAcademicYear() : '';
         const semester = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
@@ -182,6 +377,7 @@
 
     block.addEventListener('dragend', () => {
       block.classList.remove('dragging');
+      AutoScroller.stop();
       if (typeof global.updateBlockCount === 'function') {
         global.updateBlockCount();
       }
@@ -204,6 +400,8 @@
         if (document.body.classList.contains('view-mode')) return;
         e.preventDefault();
         col.classList.add('drag-over');
+
+        AutoScroller.update(e.clientX, e.clientY, updateDropPlaceholderFromPoint);
 
         const slotHeight = getSlotHeight();
         const rect = col.getBoundingClientRect();
@@ -239,6 +437,7 @@
         if (document.body.classList.contains('view-mode')) return;
         e.preventDefault();
         col.classList.remove('drag-over');
+        AutoScroller.stop();
         if (global.removePlaceholder) global.removePlaceholder();
 
         const id = e.dataTransfer.getData('text/plain');
@@ -380,6 +579,7 @@
       if (document.body.classList.contains('view-mode')) return;
       e.preventDefault();
       blocksContainer.classList.remove('drag-over');
+      AutoScroller.stop();
 
       const id = e.dataTransfer.getData('text/plain');
       const block = document.getElementById(id);
@@ -458,19 +658,18 @@
       }
     }, { passive: false });
 
-    document.addEventListener('touchmove', function (e) {
+    function handleTouchMoveCoordinates(clientX, clientY) {
       if (!draggedElement) return;
 
-      const touch = e.touches[0];
-      const x = touch.clientX - touchOffsetX;
-      const y = touch.clientY - touchOffsetY;
+      const x = clientX - touchOffsetX;
+      const y = clientY - touchOffsetY;
 
       if (ghostElement) {
         ghostElement.style.left = x + 'px';
         ghostElement.style.top = y + 'px';
       }
 
-      const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+      const elementUnderTouch = document.elementFromPoint(clientX, clientY);
       if (!elementUnderTouch) return;
 
       const dropZone = elementUnderTouch.closest('.grid-day-column, #blocks-container');
@@ -488,7 +687,7 @@
       if (activeDropZone && activeDropZone.classList.contains('grid-day-column')) {
         const slotHeight = getSlotHeight();
         const rect = activeDropZone.getBoundingClientRect();
-        const dropY = touch.clientY - rect.top;
+        const dropY = clientY - rect.top;
         let slotIndex = Math.round(dropY / slotHeight);
         if (slotIndex < 0) slotIndex = 0;
 
@@ -507,6 +706,16 @@
       } else {
         if (global.removePlaceholder) global.removePlaceholder();
       }
+    }
+
+    document.addEventListener('touchmove', function (e) {
+      if (!draggedElement) return;
+
+      const touch = e.touches[0];
+      handleTouchMoveCoordinates(touch.clientX, touch.clientY);
+      AutoScroller.update(touch.clientX, touch.clientY, (cx, cy) => {
+        handleTouchMoveCoordinates(cx, cy);
+      });
 
       e.preventDefault();
     }, { passive: false });
@@ -514,6 +723,7 @@
     document.addEventListener('touchend', async function (e) {
       if (!draggedElement) return;
 
+      AutoScroller.stop();
       draggedElement.classList.remove('dragging');
       document.body.classList.remove('dragging-active');
       if (global.removePlaceholder) global.removePlaceholder();
@@ -675,6 +885,7 @@
   }
 
   const scheduleDragDrop = {
+    AutoScroller,
     initCardResize,
     bindCardDragListeners,
     bindTrayBlockDragListeners,
