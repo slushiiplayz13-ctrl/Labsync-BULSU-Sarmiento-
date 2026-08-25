@@ -94,16 +94,25 @@
       } else if (notif.type === 'occupancy') {
         iconName = 'key-round';
         iconClass = 'notif-icon-occupancy';
+        const hasUser = notif.description && notif.description !== 'Room Key';
+        const profText = hasUser
+          ? (notif.description.startsWith('Prof.') ? notif.description : `Prof. ${notif.description}`)
+          : '';
+
         if (notif.status === 'Key Taken') {
-          title = 'Laboratory Key Taken';
-          if (notif.description && notif.description !== 'Room Key') {
-            text = `Room Key for Room ${notif.room_number} was taken by ${notif.description} (Registered to System).`;
+          if (notif.session_type === 'In Session') {
+            title = 'Key Taken (In Session)';
+            text = `Key taken by ${profText || 'Faculty'} (In Session) for Room ${notif.room_number}.`;
+          } else if (notif.session_type === 'Borrowed' || hasUser) {
+            title = 'Key Borrowed';
+            text = `Key borrowed by ${profText || 'Faculty'} for Room ${notif.room_number}.`;
           } else {
-            text = `Room Key for Room ${notif.room_number} was taken from the holder.`;
+            title = 'Laboratory Key Taken';
+            text = `Key taken for Room ${notif.room_number}.`;
           }
         } else if (notif.status === 'Key Returned') {
           title = 'Laboratory Key Returned';
-          text = `Room Key for Room ${notif.room_number} was returned (Room Secured).`;
+          text = `Key returned for RM ${notif.room_number}.`;
         } else {
           title = 'QR Identity Verified';
           text = `${notif.description} verified QR code identity (Ready to take key).`;
@@ -162,13 +171,17 @@
     function showNotificationToast(notif) {
       const { iconName, iconClass, title, text } = getNotificationDetails(notif);
 
-      // Dynamically position the toast container to center the arrow on the bell button
+      // Dynamically position the toast container to center the arrow precisely on the bell button
       const notifBtnRect = notifBtn.getBoundingClientRect();
       const rightOffset = window.innerWidth - (notifBtnRect.left + notifBtnRect.width / 2);
-      toastContainer.style.right = `${rightOffset - 21}px`;
+      toastContainer.style.right = `${Math.max(12, rightOffset - 28)}px`;
 
       const card = document.createElement('div');
       card.className = 'notif-toast-card';
+
+      const relTime = getRelativeTime(notif.time || new Date());
+      const roomNum = notif.room_number ? String(notif.room_number).replace(/^RM\s*/i, '') : null;
+      const isReport = notif.type === 'report';
 
       card.innerHTML = `
         <div class="notif-icon-box ${iconClass}">
@@ -177,9 +190,20 @@
         <div class="notif-toast-content">
           <div class="notif-toast-header-row">
             <span class="notif-toast-title">${title}</span>
-            <button class="notif-toast-close-btn" title="Close">&times;</button>
+            <div class="notif-toast-meta-right">
+              <span class="notif-toast-time">${relTime}</span>
+              <button class="notif-toast-close-btn" title="Close" aria-label="Close">&times;</button>
+            </div>
           </div>
           <p class="notif-toast-message">${text}</p>
+          <div class="notif-toast-footer-row">
+            <div class="notif-toast-tags">
+              ${roomNum ? `<span class="notif-toast-tag room"><i data-lucide="map-pin"></i> RM ${roomNum}</span>` : ''}
+              ${isReport && notif.priority ? `<span class="notif-toast-tag priority-${String(notif.priority).toLowerCase()}">${notif.priority} Priority</span>` : ''}
+              ${!isReport && notif.session_type ? `<span class="notif-toast-tag session">${notif.session_type}</span>` : (!isReport && notif.status ? `<span class="notif-toast-tag status">${notif.status}</span>` : '')}
+            </div>
+            <span class="notif-toast-cta">View details <i data-lucide="chevron-right"></i></span>
+          </div>
         </div>
       `;
 
@@ -197,8 +221,9 @@
         });
       }
 
-      // Limit max stacked toasts to 3 synchronously to prevent browser main-thread loop lockup
-      while (toastContainer.children.length >= 3) {
+      // Limit max stacked toasts (1 on mobile <= 600px, 3 on desktop) to prevent viewport blocking
+      const maxToasts = window.innerWidth <= 600 ? 1 : 3;
+      while (toastContainer.children.length >= maxToasts) {
         toastContainer.firstElementChild.remove();
       }
 
@@ -419,7 +444,7 @@
       if (notifBtn && toastContainer) {
         const notifBtnRect = notifBtn.getBoundingClientRect();
         const rightOffset = window.innerWidth - (notifBtnRect.left + notifBtnRect.width / 2);
-        toastContainer.style.right = `${rightOffset - 21}px`;
+        toastContainer.style.right = `${Math.max(12, rightOffset - 28)}px`;
       }
     });
 

@@ -91,7 +91,7 @@
     const occupancyOnly = (notifs || []).filter(n => n.type === 'occupancy');
 
     // Build a data fingerprint to detect real changes
-    const dataKey = occupancyOnly.map(n => `${n.id || ''}-${n.type}-${n.status}-${n.room_number}`).join('|');
+    const dataKey = occupancyOnly.map(n => `${n.id || ''}-${n.type}-${n.status}-${n.room_number}-${n.session_type || ''}`).join('|');
     if (dataKey === _inlineActivityLogLastKey) return; // No change, skip re-render
 
     // Save scroll position
@@ -111,16 +111,23 @@
 
     container.innerHTML = occupancyOnly.map(log => {
       let activityText = '';
+      const hasUser = log.description && log.description !== 'Room Key';
+      const profText = hasUser
+        ? (log.description.startsWith('Prof.') ? log.description : `Prof. ${log.description}`)
+        : '';
+
       if (log.status === 'Key Taken') {
-        if (log.description && log.description !== 'Room Key') {
-          activityText = `Room key for Room ${log.room_number} taken by ${log.description} (Registered to system).`;
+        if (log.session_type === 'In Session') {
+          activityText = `Key taken by ${profText || 'Faculty'} (In Session)`;
+        } else if (log.session_type === 'Borrowed' || hasUser) {
+          activityText = `Key borrowed by ${profText || 'Faculty'}`;
         } else {
-          activityText = `Room key for Room ${log.room_number} was taken from the holder.`;
+          activityText = `Key taken for RM ${log.room_number || ''}`;
         }
       } else if (log.status === 'Key Returned') {
-        activityText = `Room key for Room ${log.room_number} was returned (Room Secured).`;
+        activityText = `Key returned for RM ${log.room_number || ''}`;
       } else {
-        activityText = `QR Code verified for ${log.description || 'user'} (Awaiting key retrieval).`;
+        activityText = `QR Code verified for ${log.description || 'User'} (Awaiting key retrieval).`;
       }
 
       const titleText = log.description && log.description !== 'Room Key' ? log.description : 'Room Key';

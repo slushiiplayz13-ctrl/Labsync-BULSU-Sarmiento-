@@ -23,7 +23,7 @@
             font-family: Arial, sans-serif;
             background-color: #f1f5f9;
             margin: 0;
-            padding: 40px 20px;
+            padding: 30px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -34,17 +34,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             background: #ffffff;
-            padding: 14px 28px;
-            border-radius: 16px;
+            padding: 12px 24px;
+            border-radius: 14px;
             box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
             box-sizing: border-box;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         .actions-left h1 {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: #0f172a;
             margin: 0;
@@ -53,7 +53,7 @@
         .actions-left p {
             font-size: 12px;
             color: #64748b;
-            margin: 4px 0 0 0;
+            margin: 3px 0 0 0;
         }
 
         .actions-right {
@@ -62,10 +62,10 @@
         }
 
         .btn-action {
-            padding: 10px 20px;
-            font-size: 13.5px;
+            padding: 9px 18px;
+            font-size: 13px;
             font-weight: 600;
-            border-radius: 10px;
+            border-radius: 9px;
             cursor: pointer;
             border: none;
             display: flex;
@@ -99,45 +99,38 @@
 
         @page {
             size: A4 portrait;
-            margin: 0.5in;
+            margin: 0; /* Removes browser URL header and 1/1 footer */
         }
 
         .document-page {
             background-color: #ffffff;
             width: 8.27in;
-            min-height: 11.69in;
-            padding: 0.5in;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            height: 11.69in;
+            max-height: 11.69in;
+            padding: 0.35in 0.45in 0.35in 0.45in;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
             box-sizing: border-box;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
         }
 
         /* Header Layout */
         .print-header-container {
             position: relative;
             text-align: center;
-            min-height: 120px;
+            min-height: 80px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .logo-placeholder {
-            width: 60px;
-            height: 60px;
-            border: 2px dashed #ccc;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: #999;
+            margin-bottom: 6px;
         }
 
         .header-text h1 {
-            font-size: 14px;
+            font-size: 11.5px;
             margin: 0;
             text-transform: uppercase;
             font-weight: normal;
@@ -145,15 +138,15 @@
         }
 
         .header-text h2 {
-            font-size: 16px;
-            margin: 2px 0;
+            font-size: 13.5px;
+            margin: 1px 0;
             font-weight: bold;
             color: black;
         }
 
         .header-text p {
-            font-size: 12px;
-            margin: 2px 0;
+            font-size: 10px;
+            margin: 1px 0;
             color: black;
         }
 
@@ -161,23 +154,23 @@
             position: relative;
             text-align: center;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 6px;
             color: black;
-            min-height: 25px;
+            min-height: 20px;
         }
 
         .print-room-title-block span {
             position: absolute;
             left: 0;
-            top: 5px;
-            font-size: 11px;
+            top: 3px;
+            font-size: 10.5px;
         }
 
         .print-room-title-block h3 {
             display: inline-block;
-            font-size: 18px;
+            font-size: 15px;
             border-bottom: 2px solid #000;
-            padding-bottom: 2px;
+            padding-bottom: 1px;
             margin: 0;
         }
 
@@ -185,16 +178,17 @@
         .print-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9.5px;
+            font-size: 8.5px;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 6px;
+            flex-grow: 1;
         }
 
         .print-table th,
         .print-table td {
             border: 1px solid #000;
-            padding: 2px;
-            height: 18px;
+            padding: 1px 2px;
+            height: 14px;
             vertical-align: middle;
             color: black;
         }
@@ -202,7 +196,8 @@
         .print-table th {
             background-color: #f2f2f2 !important;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 10px;
+            height: 16px;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color: black;
@@ -216,7 +211,7 @@
             print-color-adjust: exact !important;
             color: black;
             white-space: nowrap;
-            font-size: 9px;
+            font-size: 8px;
         }
 
         /* Class detail block formatting */
@@ -231,16 +226,16 @@
 
         .class-box .subject {
             font-weight: bold;
-            font-size: 9.5px;
+            font-size: 8px;
         }
 
         .class-box .section {
-            font-size: 8.5px;
+            font-size: 7.5px;
         }
 
         .class-box .instructor {
             text-transform: uppercase;
-            font-size: 8.5px;
+            font-size: 7px;
             margin-top: 1px;
         }
 
@@ -261,34 +256,37 @@
 
         /* Footer */
         .print-footer-container {
-            margin-top: 25px;
+            margin-top: 6px;
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
-            padding: 0 20px;
+            font-size: 10px;
+            padding: 0 15px;
             color: black;
         }
 
         .signature-block {
-            width: 200px;
+            width: 180px;
         }
 
         .signature-line {
-            margin-top: 30px;
+            margin-top: 20px;
             border-top: 1px solid #000;
-            padding-top: 5px;
+            padding-top: 3px;
         }
 
         .sign-name {
             font-weight: bold;
+            font-size: 10.5px;
         }
 
         /* Print Overrides */
         @media print {
-            body {
-                background-color: #ffffff;
-                margin: 0;
-                padding: 0;
+            html, body {
+                background-color: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
             .print-actions {
@@ -296,12 +294,18 @@
             }
 
             .document-page {
-                box-shadow: none;
-                padding: 0;
-                width: 100%;
-                min-height: auto;
-                page-break-inside: avoid;
-                break-inside: avoid;
+                box-shadow: none !important;
+                border: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                padding: 0.35in 0.45in !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+                overflow: hidden !important;
             }
         }
     </style>
@@ -313,6 +317,69 @@
             min-height: 100vh !important;
             overflow: auto !important;
             overflow-y: auto !important;
+        }
+
+        /* Enforce physical paper colors and dark mode preview */
+        html.high-contrast .document-page,
+        html.dark-mode .document-page,
+        .document-page {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+        }
+
+        html.high-contrast .document-page *,
+        html.dark-mode .document-page *,
+        .document-page * {
+            color: #000000 !important;
+            border-color: #000000;
+        }
+
+        html.high-contrast .document-page img,
+        html.dark-mode .document-page img,
+        .document-page img {
+            filter: none !important;
+        }
+
+        html.high-contrast .print-table th,
+        .print-table th {
+            background-color: #f2f2f2 !important;
+            color: #000000 !important;
+            border: 1px solid #000000 !important;
+        }
+
+        html.high-contrast .print-table td,
+        .print-table td {
+            color: #000000 !important;
+            border: 1px solid #000000 !important;
+        }
+
+        html.high-contrast .print-table .time-col,
+        .print-table .time-col {
+            background-color: #b4c6e7 !important;
+            color: #000000 !important;
+            border: 1px solid #000000 !important;
+        }
+
+        html.high-contrast .print-actions,
+        html.dark-mode .print-actions {
+            background: #1e293b !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        html.high-contrast .actions-left h1,
+        html.dark-mode .actions-left h1 {
+            color: #f8fafc !important;
+        }
+
+        html.high-contrast .actions-left p,
+        html.dark-mode .actions-left p {
+            color: #94a3b8 !important;
+        }
+
+        html.high-contrast .btn-close,
+        html.dark-mode .btn-close {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            color: #f1f5f9 !important;
         }
     </style>
 </head>
@@ -334,32 +401,32 @@
     <!-- A4 Print Layout Sheet -->
     <div class="document-page">
         <div class="print-header-container">
-            <!-- Left Logo: BULSU Logo.png (Scaled up and shifted inwards) -->
+            <!-- Left Logo: BULSU Logo.png -->
             <img src="assets/BULSU%20Logo.png" alt="BulSU Logo"
-                style="position: absolute; left: 120px; top: 50%; transform: translateY(-50%); height: 75px; width: auto; object-fit: contain;">
+                style="position: absolute; left: 100px; top: 50%; transform: translateY(-50%); height: 60px; width: auto; object-fit: contain;">
 
-            <div class="header-text" style="text-align: center; margin: 0 200px;">
-                <h1 style="font-size: 13px; margin: 0; text-transform: uppercase; font-weight: normal; color: black;">
+            <div class="header-text" style="text-align: center; margin: 0 160px;">
+                <h1 style="font-size: 11.5px; margin: 0; text-transform: uppercase; font-weight: normal; color: black;">
                     Republic of the Philippines</h1>
-                <h2 style="font-size: 15px; margin: 2px 0; font-weight: bold; color: black; margin-top: 4px;">Bulacan
+                <h2 style="font-size: 13.5px; margin: 1px 0; font-weight: bold; color: black; margin-top: 2px;">Bulacan
                     State University</h2>
-                <p style="font-size: 11px; margin: 2px 0; color: black;">City of Malolos</p>
-                <p style="font-weight: bold; margin-top: 8px; font-size: 13px; color: black; letter-spacing: 0.5px;">
+                <p style="font-size: 10px; margin: 1px 0; color: black;">City of Malolos</p>
+                <p style="font-weight: bold; margin-top: 4px; font-size: 11.5px; color: black; letter-spacing: 0.5px;">
                     ROOM ASSIGNMENT</p>
-                <p id="print-ay-sem" style="font-size: 11px; margin: 2px 0; color: black; margin-top: 4px;">Academic
+                <p id="print-ay-sem" style="font-size: 10px; margin: 1px 0; color: black; margin-top: 2px;">Academic
                     Year: 2025-2026 1st SEMESTER</p>
             </div>
 
-            <!-- Right Logos: BSU Sarmiento (Scaled up and shifted inwards) -->
+            <!-- Right Logos: BSU Sarmiento -->
             <div
-                style="position: absolute; right: 120px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 10px;">
+                style="position: absolute; right: 100px; top: 50%; transform: translateY(-50%); display: flex; align-items: center;">
                 <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Campus Logo"
-                    style="height: 65px; width: auto; object-fit: contain;">
+                    style="height: 52px; width: auto; object-fit: contain;">
             </div>
         </div>
 
         <div class="print-room-title-block">
-            <span style="float: left; font-size: 11px; font-weight: bold; margin-top: 5px;">BLDG. AND ROOM NO.:</span>
+            <span style="float: left; font-size: 10.5px; font-weight: bold; margin-top: 3px;">BLDG. AND ROOM NO.:</span>
             <h3 id="print-room-title">BLDG B. RM 203</h3>
         </div>
 
@@ -392,17 +459,17 @@
 
             <!-- Sleek Center Brand Stamp -->
             <div class="footer-brand"
-                style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; opacity: 0.95; align-self: flex-end; padding-bottom: 5px;">
+                style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; opacity: 0.95; align-self: flex-end; padding-bottom: 2px;">
                 <span
-                    style="font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #475569; font-weight: bold;">Generated
+                    style="font-size: 7.5px; text-transform: uppercase; letter-spacing: 1px; color: #475569; font-weight: bold;">Generated
                     by</span>
                 <img src="assets/labsync-logo.png" alt="LabSync Logo"
-                    style="height: 28px; width: auto; object-fit: contain;">
+                    style="height: 24px; width: auto; object-fit: contain;">
             </div>
 
             <div class="signature-block" style="text-align: right;">
-                <p style="text-align: left; margin: 0; margin-left: 40px;">Approved by:</p>
-                <div class="signature-line" style="text-align: left; margin-left: 40px;">
+                <p style="text-align: left; margin: 0; margin-left: 30px;">Approved by:</p>
+                <div class="signature-line" style="text-align: left; margin-left: 30px;">
                     <span class="sign-name" id="print-campus-dean">DR. MARICEL BALIGOD</span><br>
                     <span>Campus Dean</span>
                 </div>

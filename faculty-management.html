@@ -149,31 +149,6 @@
             <i data-lucide="search" style="width:15px;height:15px;color:#94A3B8;flex-shrink:0;"></i>
             <input id="faculty-search" type="text" placeholder="Search faculty by name, email, or department..." />
           </div>
-          <div style="position: relative; display: inline-block;">
-            <button class="fm-filter-btn" id="filter-btn" style="display: flex; align-items: center; gap: 6px;">
-              <i data-lucide="sliders-horizontal" style="width:14px;height:14px;"></i>
-              Filter
-            </button>
-            <div id="filter-dropdown"
-              style="display: none; position: absolute; right: 0; top: 100%; background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); width: 180px; max-width: calc(100vw - 24px); box-sizing: border-box; z-index: 100; padding: 6px 0; margin-top: 4px; font-family: var(--font-body);">
-              <div class="filter-item" data-filter="all" onclick="filterFaculty('all')"
-                style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; font-weight: 600; background: none;">
-                All Roles <i data-lucide="check"
-                  style="width: 14px; height: 14px; color: var(--primary-teal); flex-shrink: 0;"></i>
-              </div>
-              <div class="filter-item" data-filter="head" onclick="filterFaculty('head')"
-                style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; background: none;">
-                IT Dept. Head <i data-lucide="check"
-                  style="width: 14px; height: 14px; color: var(--primary-teal); display: none; flex-shrink: 0;"></i>
-              </div>
-              <div class="filter-item" data-filter="faculty" onclick="filterFaculty('faculty')"
-                style="padding: 10px 14px; font-size: 13px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; background: none;">
-                Faculty <i data-lucide="check"
-                  style="width: 14px; height: 14px; color: var(--primary-teal); display: none; flex-shrink: 0;"></i>
-              </div>
-            </div>
-
-          </div>
         </div>
         <button class="fm-add-btn" id="add-faculty-btn">
           <i data-lucide="user-plus" style="width:16px;height:16px;"></i>

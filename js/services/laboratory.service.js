@@ -59,7 +59,8 @@ function renderLabCards(labs, targetContainer) {
     const isDashboard = window.location.pathname.includes('index.html') || window.location.pathname.includes('dashboard') || window.location.pathname === '/';
     const roomStatusLink = window.location.pathname.includes('it-head') ? 'it-head-room-status.html' : 'room-status.html';
 
-    if (container._lastRenderSignature === '__EMPTY__') {
+    const hasLoadingSpinner = container.querySelector('.animate-spin') !== null;
+    if (!hasLoadingSpinner && container._lastRenderSignature === '__EMPTY__') {
       return;
     }
     container._lastRenderSignature = '__EMPTY__';
@@ -71,7 +72,7 @@ function renderLabCards(labs, targetContainer) {
         </div>
         <p style="font-weight:600; color:var(--text-dark, #1e293b); margin-top:8px; margin-bottom:4px;">No rooms assigned to your schedule yet</p>
         <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin-bottom:14px;">Rooms will appear here when classes are added to your schedule.</p>
-        ${isDashboard ? `<button onclick="window.location.href='${roomStatusLink}'" style="padding:9px 20px; border:none; background:var(--primary-teal); color:#fff; border-radius:18px; font-weight:600; font-size:12.5px; cursor:pointer; font-family:var(--font-body); box-shadow: 0 4px 12px var(--primary-teal-glow); transition:all 0.2s;">View All Campus Rooms</button>` : ''}
+        ${isDashboard ? `<button type="button" onclick="window.location.href='${roomStatusLink}'" style="padding:9px 20px; border:none; background:var(--primary-teal); color:#fff; border-radius:18px; font-weight:600; font-size:12.5px; cursor:pointer; font-family:var(--font-body); box-shadow: 0 4px 12px var(--primary-teal-glow); transition:all 0.2s;">View All Campus Rooms</button>` : ''}
       </div>
     `;
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -82,10 +83,11 @@ function renderLabCards(labs, targetContainer) {
 
   // Fingerprint data to avoid destroying and recreating DOM nodes when data is unchanged
   const dataSignature = labs.map(r => 
-    `${r.Room_ID || r.Room_Number}-${r.Current_Status}-${r.deviceOnline}-${r.Key_Status}-${r.total_pc_issues}-${r.Current_Class}-${r.Scheduled_Class ? (r.Scheduled_Class.professor + r.Scheduled_Class.subject) : ''}`
+    `${r.Room_ID || r.Room_Number}-${r.Current_Status}-${r.deviceOnline}-${r.Key_Status}-${r.Current_Key_Holder || ''}-${r.total_pc_issues}-${r.Scheduled_Class ? (r.Scheduled_Class.professor || '') : ''}`
   ).join('|');
 
-  if (container._lastRenderSignature === dataSignature) {
+  const hasLoadingSpinner = container.querySelector('.animate-spin') !== null;
+  if (!hasLoadingSpinner && container._lastRenderSignature === dataSignature) {
     return; // Unchanged data, skip re-rendering to prevent flashing
   }
   container._lastRenderSignature = dataSignature;
@@ -103,24 +105,56 @@ function renderLabCards(labs, targetContainer) {
       displayStatus = 'Offline';
     } else {
       const statusLower = (room.Current_Status || '').toLowerCase();
-      if (statusLower === 'claimed') {
+      if (statusLower === 'borrowed' || statusLower === 'claimed') {
         statusTheme = 'orange-theme';
         badgeClass = 'orange';
-      } else if (statusLower === 'in use') {
+        displayStatus = 'Borrowed';
+      } else if (statusLower === 'in session' || statusLower === 'in use') {
         statusTheme = 'red-theme';
         badgeClass = 'red';
+        displayStatus = 'In Session';
+      } else {
+        statusTheme = 'green-theme';
+        badgeClass = 'green';
+        displayStatus = 'Available';
       }
     }
 
-    const scheduledProf = room.Scheduled_Class ? `${room.Scheduled_Class.professor || 'Faculty'} (${room.Scheduled_Class.subject || ''})` : null;
+    let keyHolderText = 'None';
+    let keyHolderColorClass = 'muted-text';
 
-    const activityText = room.Current_Class || 'None';
-
-    let keyStatusText = room.Key_Status || 'Present';
-    let keyStatusColor = room.Key_Status === 'Absent' ? '#ef4444' : '#10b981';
     if (!isOnline) {
-      keyStatusText = 'Disconnected';
-      keyStatusColor = '#94a3b8';
+      keyHolderText = 'Offline';
+      keyHolderColorClass = 'muted-text';
+    } else {
+      const isAbsent = room.Key_Status === 'Absent' || 
+                       (room.Current_Status || '').toLowerCase() === 'borrowed' || 
+                       (room.Current_Status || '').toLowerCase() === 'in session';
+      if (isAbsent) {
+        let rawHolder = room.Current_Key_Holder;
+        if (!rawHolder && room.Scheduled_Class && room.Scheduled_Class.professor) {
+          rawHolder = room.Scheduled_Class.professor;
+        }
+        if (rawHolder) {
+          const cleanHolder = String(rawHolder).replace(/^Prof\.?\s*/i, '').trim();
+          keyHolderText = cleanHolder;
+          keyHolderColorClass = 'teal-text';
+        } else {
+          keyHolderText = 'Unregistered';
+          keyHolderColorClass = 'amber-text';
+        }
+      } else {
+        keyHolderText = 'None';
+        keyHolderColorClass = 'muted-text';
+      }
+    }
+
+    let scheduledProfText = 'None';
+    if (room.Scheduled_Class && room.Scheduled_Class.professor) {
+      const cleanProf = String(room.Scheduled_Class.professor).replace(/^Prof\.?\s*/i, '').trim();
+      if (cleanProf) {
+        scheduledProfText = cleanProf;
+      }
     }
 
     const pcIssues = Array.isArray(room.pc_issues) ? room.pc_issues : [];
@@ -179,28 +213,18 @@ function renderLabCards(labs, targetContainer) {
         <div class="lab-details lc-details">
           <div class="ld-row">
             <span class="ld-label">
-              <i data-lucide="clock" class="ld-icon"></i>
-              <span>Current Session</span>
+              <i data-lucide="key-round" class="ld-icon"></i>
+              <span>Claimed By</span>
             </span>
-            <strong class="${isOnline ? 'teal-text' : 'muted-text'} ld-value" title="${activityText}">${activityText}</strong>
+            <strong class="${keyHolderColorClass} ld-value" title="${keyHolderText}">${keyHolderText}</strong>
           </div>
           
-          ${scheduledProf ? `
           <div class="ld-row scheduled-row">
             <span class="ld-label">
               <i data-lucide="user-check" class="ld-icon"></i>
-              <span>Scheduled Prof</span>
+              <span>Scheduled</span>
             </span>
-            <strong class="ld-value" style="color: #64748b;" title="${scheduledProf}">${scheduledProf}</strong>
-          </div>
-          ` : ''}
-          
-          <div class="ld-row">
-            <span class="ld-label">
-              <i data-lucide="key-round" class="ld-icon"></i>
-              <span>Key Status</span>
-            </span>
-            <strong class="ld-value" style="color: ${keyStatusColor};">${keyStatusText}</strong>
+            <strong class="${scheduledProfText !== 'None' ? 'ld-value' : 'ld-value muted-text'}" style="${scheduledProfText !== 'None' ? 'color: #64748b;' : ''}" title="${scheduledProfText}">${scheduledProfText}</strong>
           </div>
         </div>
 

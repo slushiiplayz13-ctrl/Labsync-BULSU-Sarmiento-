@@ -39,13 +39,24 @@
   function initNumericRestrictions() {
     const restrictToNumeric = (inputElement) => {
       if (!inputElement) return;
+      inputElement.setAttribute('maxlength', '3');
       inputElement.addEventListener('input', (e) => {
-        e.target.value = e.target.value.replace(/\D/g, '');
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3);
       });
       inputElement.addEventListener('keypress', (e) => {
         if (!/[0-9]/.test(e.key)) {
           e.preventDefault();
+          return;
         }
+        const selection = window.getSelection ? window.getSelection().toString() : '';
+        if (e.target.value.length >= 3 && !selection) {
+          e.preventDefault();
+        }
+      });
+      inputElement.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasteData = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+        e.target.value = pasteData.replace(/\D/g, '').slice(0, 3);
       });
     };
 
@@ -98,10 +109,16 @@
         const bldgNative = document.getElementById('buildingSelect');
         const bldg = (bldgSelect && bldgSelect.dataset ? bldgSelect.dataset.value : null) || (bldgNative ? bldgNative.value : null) || 'Bldg. B';
 
-        if (!roomNum) {
+        const numVal = parseInt(roomNum, 10);
+        if (!roomNum || isNaN(numVal) || numVal < 1 || numVal > 999) {
+          if (global.showToast) {
+            global.showToast('Room number must be between 1 and 999 (up to 3 digits).', 'warning');
+          } else {
+            alert('Room number must be between 1 and 999.');
+          }
           if (roomNumInput) {
             roomNumInput.style.borderColor = '#ef4444';
-            setTimeout(() => roomNumInput.style.borderColor = 'var(--primary-teal)', 1000);
+            setTimeout(() => roomNumInput.style.borderColor = 'var(--primary-teal)', 1200);
           }
           return;
         }
@@ -201,10 +218,16 @@
         const bldgSelect = document.getElementById('editBuildingSelect');
         const bldg = (bldgWrapper && bldgWrapper.dataset ? bldgWrapper.dataset.value : null) || (bldgSelect ? bldgSelect.value : null) || 'Bldg. B';
 
-        if (!roomNum) {
+        const numVal = parseInt(roomNum, 10);
+        if (!roomNum || isNaN(numVal) || numVal < 1 || numVal > 999) {
+          if (global.showToast) {
+            global.showToast('Room number must be between 1 and 999 (up to 3 digits).', 'warning');
+          } else {
+            alert('Room number must be between 1 and 999.');
+          }
           if (roomNumInput) {
             roomNumInput.style.borderColor = '#ef4444';
-            setTimeout(() => roomNumInput.style.borderColor = 'var(--primary-teal)', 1000);
+            setTimeout(() => roomNumInput.style.borderColor = 'var(--primary-teal)', 1200);
           }
           return;
         }

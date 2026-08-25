@@ -8,8 +8,8 @@
   'use strict';
 
   const START_HOUR = 7;
-  const END_HOUR = 19;
-  const TOTAL_SLOTS = 24; // 12 hours from 7:00 AM to 7:00 PM (30 min per slot)
+  const END_HOUR = 20.5;
+  const TOTAL_SLOTS = 27; // 13.5 hours from 7:00 AM to 8:30 PM (30 min per slot)
 
   /**
    * Converts a "HH:MM" 24-hour time string to a slot index relative to start hour (0 to 24).

@@ -11,47 +11,47 @@
   const COLOR_PALETTES = {
     Default: {
       light: { bg: 'rgba(30, 187, 215, 0.08)', border: 'rgba(30, 187, 215, 0.3)', accent: '#1EBBD7', text: '#0B5E6D', subtext: 'rgba(11, 94, 109, 0.85)' },
-      dark:  { bg: 'rgba(13, 33, 55, 0.92)', border: 'rgba(56, 189, 248, 0.65)', accent: '#22D3EE', text: '#FFFFFF', subtext: '#E2E8F0' },
+      dark: { bg: 'rgba(6, 182, 212, 0.22)', border: 'rgba(34, 211, 238, 0.65)', accent: '#22D3EE', text: '#FFFFFF', subtext: '#BAE6FD' },
       label: 'Default'
     },
     Indigo: {
       light: { bg: 'rgba(99, 102, 241, 0.08)', border: 'rgba(99, 102, 241, 0.3)', accent: '#6366F1', text: '#312E81', subtext: 'rgba(49, 46, 129, 0.85)' },
-      dark:  { bg: 'rgba(30, 27, 75, 0.92)', border: 'rgba(129, 140, 248, 0.65)', accent: '#818CF8', text: '#FFFFFF', subtext: '#E2E8F0' },
+      dark: { bg: 'rgba(99, 102, 241, 0.22)', border: 'rgba(129, 140, 248, 0.65)', accent: '#818CF8', text: '#FFFFFF', subtext: '#C7D2FE' },
       label: 'Indigo'
     },
     Emerald: {
       light: { bg: 'rgba(16, 185, 129, 0.08)', border: 'rgba(16, 185, 129, 0.3)', accent: '#10B981', text: '#064E3B', subtext: 'rgba(6, 78, 59, 0.85)' },
-      dark:  { bg: 'rgba(6, 78, 59, 0.92)', border: 'rgba(52, 211, 153, 0.65)', accent: '#34D399', text: '#FFFFFF', subtext: '#E2E8F0' },
+      dark: { bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(52, 211, 153, 0.65)', accent: '#34D399', text: '#FFFFFF', subtext: '#A7F3D0' },
       label: 'Emerald'
     },
     Amber: {
       light: { bg: 'rgba(245, 158, 11, 0.08)', border: 'rgba(245, 158, 11, 0.3)', accent: '#F59E0B', text: '#78350F', subtext: 'rgba(120, 53, 15, 0.85)' },
-      dark:  { bg: 'rgba(69, 30, 7, 0.92)', border: 'rgba(251, 191, 36, 0.65)', accent: '#FBBF24', text: '#FFFFFF', subtext: '#E2E8F0' },
+      dark: { bg: 'rgba(245, 158, 11, 0.22)', border: 'rgba(251, 191, 36, 0.65)', accent: '#FBBF24', text: '#FFFFFF', subtext: '#FDE68A' },
       label: 'Amber'
     },
     Rose: {
       light: { bg: 'rgba(239, 68, 68, 0.08)', border: 'rgba(239, 68, 68, 0.3)', accent: '#EF4444', text: '#7F1D1D', subtext: 'rgba(127, 29, 29, 0.85)' },
-      dark:  { bg: 'rgba(69, 10, 10, 0.92)', border: 'rgba(248, 113, 113, 0.65)', accent: '#F87171', text: '#FFFFFF', subtext: '#E2E8F0' },
+      dark: { bg: 'rgba(239, 68, 68, 0.22)', border: 'rgba(248, 113, 113, 0.65)', accent: '#F87171', text: '#FFFFFF', subtext: '#FECDD3' },
       label: 'Rose'
     },
     Blue: {
       light: { bg: 'rgba(59, 130, 246, 0.08)', border: 'rgba(59, 130, 246, 0.3)', accent: '#3B82F6', text: '#1E3A8A', subtext: 'rgba(30, 58, 138, 0.85)' },
-      dark:  { bg: 'rgba(30, 58, 138, 0.92)', border: 'rgba(96, 165, 250, 0.65)', accent: '#60A5FA', text: '#FFFFFF', subtext: '#E2E8F0' },
+      dark: { bg: 'rgba(59, 130, 246, 0.22)', border: 'rgba(96, 165, 250, 0.65)', accent: '#60A5FA', text: '#FFFFFF', subtext: '#BFDBFE' },
       label: 'Blue'
     },
     Purple: {
       light: { bg: 'rgba(168, 85, 247, 0.08)', border: 'rgba(168, 85, 247, 0.3)', accent: '#A855F7', text: '#581C87', subtext: 'rgba(88, 28, 135, 0.85)' },
-      dark:  { bg: 'rgba(58, 12, 94, 0.92)', border: 'rgba(192, 132, 252, 0.65)', accent: '#C084FC', text: '#FFFFFF', subtext: '#E2E8F0' },
+      dark: { bg: 'rgba(168, 85, 247, 0.22)', border: 'rgba(192, 132, 252, 0.65)', accent: '#C084FC', text: '#FFFFFF', subtext: '#E9D5FF' },
       label: 'Purple'
     },
     Teal: {
       light: { bg: 'rgba(20, 184, 166, 0.08)', border: 'rgba(20, 184, 166, 0.3)', accent: '#20B8A6', text: '#115E59', subtext: 'rgba(17, 94, 89, 0.85)' },
-      dark:  { bg: 'rgba(17, 94, 89, 0.92)', border: 'rgba(45, 212, 191, 0.65)', accent: '#2DD4BF', text: '#FFFFFF', subtext: '#CBD5E1' },
+      dark: { bg: 'rgba(20, 184, 166, 0.22)', border: 'rgba(45, 212, 191, 0.65)', accent: '#2DD4BF', text: '#FFFFFF', subtext: '#99F6E4' },
       label: 'Teal'
     },
     Pink: {
       light: { bg: 'rgba(236, 72, 153, 0.08)', border: 'rgba(236, 72, 153, 0.3)', accent: '#EC4899', text: '#831843', subtext: 'rgba(131, 24, 67, 0.85)' },
-      dark:  { bg: 'rgba(131, 24, 67, 0.92)', border: 'rgba(244, 114, 182, 0.65)', accent: '#F472B6', text: '#FFFFFF', subtext: '#CBD5E1' },
+      dark: { bg: 'rgba(236, 72, 153, 0.22)', border: 'rgba(244, 114, 182, 0.65)', accent: '#F472B6', text: '#FFFFFF', subtext: '#FBCFE8' },
       label: 'Pink'
     }
   };
@@ -74,10 +74,10 @@
    */
   function isDarkModeActive() {
     return document.documentElement.classList.contains('high-contrast') ||
-           document.documentElement.classList.contains('dark-mode') ||
-           document.body.classList.contains('dark-mode') ||
-           document.body.classList.contains('dark-theme') ||
-           document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.classList.contains('dark-mode') ||
+      document.body?.classList.contains('dark-mode') ||
+      document.body?.classList.contains('dark-theme') ||
+      document.documentElement.getAttribute('data-theme') === 'dark';
   }
 
   /**
@@ -108,11 +108,11 @@
     const isDark = isDarkModeActive();
     if (isDark) {
       return {
-        bg: `rgba(${r}, ${g}, ${b}, 0.25)`,
+        bg: `rgba(${r}, ${g}, ${b}, 0.22)`,
         border: `rgba(${r}, ${g}, ${b}, 0.65)`,
         accent: hex,
         text: '#FFFFFF',
-        subtext: '#CBD5E1',
+        subtext: '#E2E8F0',
         label: 'Custom Color'
       };
     } else {
@@ -149,27 +149,53 @@
     const palette = entry.dark ? (isDark ? entry.dark : entry.light) : entry;
 
     card.dataset.color = colorName || 'Default';
-    card.style.backgroundColor = palette.bg;
-    card.style.border = `1.5px solid ${palette.border}`;
-    card.style.borderLeft = `5px solid ${palette.accent}`;
-    card.style.color = palette.text;
+    card.style.setProperty('background-color', palette.bg, 'important');
+    card.style.setProperty('border', `1.5px solid ${palette.border}`, 'important');
+    card.style.setProperty('border-left', `5px solid ${palette.accent}`, 'important');
+    card.style.setProperty('color', palette.text, 'important');
     if (isDark) {
-      card.style.boxShadow = `0 4px 16px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15)`;
+      card.style.setProperty('box-shadow', '0 4px 16px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15)', 'important');
     } else {
-      card.style.boxShadow = `0 4px 12px rgba(15, 23, 42, 0.03)`;
+      card.style.setProperty('box-shadow', '0 4px 12px rgba(15, 23, 42, 0.03)', 'important');
     }
 
     const title = card.querySelector('.grid-card-title');
-    if (title) title.style.color = palette.text;
+    if (title) {
+      title.style.setProperty('color', palette.text, 'important');
+      title.style.setProperty('text-shadow', isDark ? '0 1px 2px rgba(0, 0, 0, 0.6)' : 'none', 'important');
+    }
 
     const sec = card.querySelector('.grid-card-section');
-    if (sec) sec.style.color = palette.subtext;
+    if (sec) sec.style.setProperty('color', palette.subtext, 'important');
 
     const prof = card.querySelector('.grid-card-prof');
-    if (prof) prof.style.color = palette.subtext;
+    if (prof) prof.style.setProperty('color', palette.subtext, 'important');
 
     const time = card.querySelector('.grid-card-time');
-    if (time) time.style.color = palette.accent;
+    if (time) time.style.setProperty('color', palette.accent, 'important');
+
+    const timeText = card.querySelector('.grid-card-time-text');
+    if (timeText) timeText.style.setProperty('color', palette.accent, 'important');
+  }
+
+  /**
+   * Reapplies card colors to all existing cards in the DOM (e.g. on theme toggle).
+   */
+  function reapplyAllCardColors() {
+    document.querySelectorAll('.grid-card').forEach(card => {
+      const color = card.dataset.color || 'Default';
+      applyCardColor(card, color);
+    });
+  }
+
+  // Observe theme changes on documentElement and body to dynamically update card colors
+  if (typeof MutationObserver !== 'undefined' && typeof document !== 'undefined') {
+    const observer = new MutationObserver(() => {
+      reapplyAllCardColors();
+    });
+    if (document.documentElement) {
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+    }
   }
 
   const scheduleColors = {
@@ -178,7 +204,8 @@
     isDarkModeActive,
     hexToRgb,
     customColorToPalette,
-    applyCardColor
+    applyCardColor,
+    reapplyAllCardColors
   };
 
   global.scheduleColors = scheduleColors;
@@ -188,5 +215,6 @@
   global.hexToRgb = hexToRgb;
   global.customColorToPalette = customColorToPalette;
   global.applyCardColor = applyCardColor;
+  global.reapplyAllCardColors = reapplyAllCardColors;
 
 })(typeof window !== 'undefined' ? window : this);

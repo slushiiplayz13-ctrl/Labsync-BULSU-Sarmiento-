@@ -34,10 +34,22 @@ async function getAllLaboratories() {
         const scheduledProfName = room.Scheduled_Professor_Name || null;
         const currentHolderName = room.Current_Key_Holder_Name || null;
 
-        const isScheduledProfHolder = keyAbsent &&
-            room.Current_User_ID != null &&
-            room.Scheduled_User_ID != null &&
-            String(room.Current_User_ID) === String(room.Scheduled_User_ID);
+        const isScheduledProfHolder = keyAbsent && hasScheduledClass && (
+            (room.Current_User_ID != null && room.Scheduled_User_ID != null && String(room.Current_User_ID) === String(room.Scheduled_User_ID)) ||
+            (room.Current_User_ID == null && scheduledProfName != null)
+        );
+
+        let resolvedHolderName = currentHolderName;
+        if (!resolvedHolderName && keyAbsent && hasScheduledClass) {
+            resolvedHolderName = scheduledProfName;
+        }
+
+        const formattedScheduledProf = scheduledProfName
+            ? (scheduledProfName.startsWith('Prof.') ? scheduledProfName : `Prof. ${scheduledProfName}`)
+            : 'Faculty';
+        const formattedHolder = resolvedHolderName
+            ? (resolvedHolderName.startsWith('Prof.') ? resolvedHolderName : `Prof. ${resolvedHolderName}`)
+            : null;
 
         let currentStatus = 'Available';
         let currentClassInfo = 'None';
@@ -45,23 +57,17 @@ async function getAllLaboratories() {
         if (!keyAbsent) {
             currentStatus = 'Available';
             if (hasScheduledClass) {
-                currentClassInfo = `Scheduled: ${room.Subject_Name} (${room.Section}) - ${scheduledProfName || 'Faculty'}`;
+                currentClassInfo = 'Scheduled';
             } else {
                 currentClassInfo = 'None';
             }
         } else {
             if (hasScheduledClass && isScheduledProfHolder) {
-                currentStatus = 'In Use';
-                currentClassInfo = `${room.Subject_Name} (${room.Section}) - Prof. ${scheduledProfName || 'Faculty'}`;
+                currentStatus = 'In Session';
+                currentClassInfo = 'In Session';
             } else {
-                currentStatus = 'Claimed';
-                if (currentHolderName) {
-                    currentClassInfo = `Claimed by ${currentHolderName}${hasScheduledClass ? ` (Borrowed from ${scheduledProfName || 'Scheduled Slot'})` : ''}`;
-                } else if (hasScheduledClass) {
-                    currentClassInfo = `Claimed (Borrowed from Prof. ${scheduledProfName || 'Faculty'})`;
-                } else {
-                    currentClassInfo = 'Open Lab Session';
-                }
+                currentStatus = 'Borrowed';
+                currentClassInfo = 'Borrowed';
             }
         }
 
@@ -83,7 +89,7 @@ async function getAllLaboratories() {
                 startTime: room.Start_Time,
                 endTime: room.End_Time
             } : null,
-            Current_Key_Holder: currentHolderName,
+            Current_Key_Holder: resolvedHolderName,
             deviceOnline: isOnline,
             lastSeen: lastSeenTimestamp,
             pc_issues: roomIssueData.issues,
@@ -98,8 +104,10 @@ async function addLaboratory(roomNumber, building) {
     if (!roomNumber) {
         return { status: 400, error: 'Room number is required' };
     }
-    if (!/^\d+$/.test(roomNumber)) {
-        return { status: 400, error: 'Room number must contain only numbers.' };
+    const cleanNum = String(roomNumber).trim();
+    const numVal = parseInt(cleanNum, 10);
+    if (!/^\d{1,3}$/.test(cleanNum) || isNaN(numVal) || numVal < 1 || numVal > 999) {
+        return { status: 400, error: 'Room number must be a valid number between 1 and 999 (up to 3 digits).' };
     }
 
     const [existing] = await labRepository.findByRoomNumber(roomNumber);
@@ -116,8 +124,10 @@ async function updateLaboratory(roomId, roomNumber, building) {
     if (!roomNumber) {
         return { status: 400, error: 'Room number is required' };
     }
-    if (!/^\d+$/.test(roomNumber)) {
-        return { status: 400, error: 'Room number must contain only numbers.' };
+    const cleanNum = String(roomNumber).trim();
+    const numVal = parseInt(cleanNum, 10);
+    if (!/^\d{1,3}$/.test(cleanNum) || isNaN(numVal) || numVal < 1 || numVal > 999) {
+        return { status: 400, error: 'Room number must be a valid number between 1 and 999 (up to 3 digits).' };
     }
 
     const [existing] = await labRepository.findByRoomNumberExceptId(roomNumber, roomId);

@@ -38,22 +38,40 @@
     if (n.type === 'occupancy') {
       let titleText = '';
       const status = n.status || 'Access';
+      const hasUser = n.description && n.description !== 'Room Key';
+      const profText = hasUser
+        ? (n.description.startsWith('Prof.') ? n.description : `Prof. ${n.description}`)
+        : '';
+
       if (status === 'Key Taken') {
-        titleText = n.description && n.description !== 'Room Key'
-          ? `Room key for Room ${n.room_number || 'N/A'} taken by ${n.description}`
-          : `Room key for Room ${n.room_number || 'N/A'} taken`;
+        if (n.session_type === 'In Session') {
+          titleText = `Key taken by ${profText || 'Faculty'} (In Session)`;
+        } else if (n.session_type === 'Borrowed' || hasUser) {
+          titleText = `Key borrowed by ${profText || 'Faculty'}`;
+        } else {
+          titleText = `Key taken for Room ${n.room_number || 'N/A'}`;
+        }
       } else if (status === 'Key Returned') {
-        titleText = `Room key for Room ${n.room_number || 'N/A'} returned (Room Secured)`;
+        titleText = `Key returned for RM ${n.room_number || 'N/A'}`;
       } else {
         titleText = `Access verified for ${n.description || 'User'} in Room ${n.room_number || 'N/A'}`;
       }
+
+      const badgeLabel = (status === 'Key Taken' && n.session_type) ? n.session_type : status;
+      const badgeClass = status === 'Key Returned'
+        ? 'iot-online'
+        : (status === 'Key Taken' && n.session_type === 'In Session')
+          ? 'schedule'
+          : (status === 'Key Taken')
+            ? 'maint-pending'
+            : 'security';
 
       return {
         id: `occ-${n.id}`,
         title: titleText,
         meta: `${n.detail || 'System'} • Room ${n.room_number || 'N/A'}`,
-        badgeLabel: status,
-        badgeClass: status === 'Key Returned' ? 'iot-online' : status === 'Key Taken' ? 'schedule' : 'security',
+        badgeLabel: badgeLabel,
+        badgeClass: badgeClass,
         icon: status === 'Key Returned' ? 'check-circle' : 'key-round',
         timestamp: dateObj
       };

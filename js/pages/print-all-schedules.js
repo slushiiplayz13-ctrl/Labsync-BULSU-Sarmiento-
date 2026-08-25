@@ -107,13 +107,14 @@ async function initPrintAllSchedulesPage() {
 
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    // Generate 30-minute intervals from 7:00 AM to 9:00 PM
+    // Generate 30-minute intervals from 7:00 AM to 8:30 PM
     const times = [];
-    for (let h = 7; h <= 20; h++) {
+    for (let h = 7; h <= 19; h++) {
       times.push(`${h.toString().padStart(2, '0')}:00`);
       times.push(`${h.toString().padStart(2, '0')}:30`);
     }
-    times.push('21:00');
+    times.push('20:00');
+    times.push('20:30');
 
     // 2. Process each room
     for (const room of rooms) {
@@ -260,10 +261,6 @@ async function initPrintAllSchedulesPage() {
         pagesContainer.appendChild(pageBreak);
       }
     }
-
-    setTimeout(() => {
-      triggerDownload();
-    }, 1500);
 
   } catch (err) {
     console.error('Error generating all schedules:', err);

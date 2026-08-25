@@ -287,48 +287,118 @@
       animation: spin 1s linear infinite;
     }
 
+    /* Independent Scroll Panes with Compact Height */
+    .editor-layout-container {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      height: calc(100vh - 135px);
+      min-height: 520px;
+    }
+
+    #create-block-panel {
+      width: 300px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      background: var(--bg-white);
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      height: 100%;
+      max-height: 100%;
+      overflow-y: auto;
+      box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-light) transparent;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+    }
+
+    #create-block-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #create-block-panel::-webkit-scrollbar-thumb {
+      background: var(--border-light);
+      border-radius: 6px;
+    }
+
+    .editor-schedule-card {
+      flex: 1;
+      min-width: 0;
+      padding: 0 !important;
+      border-radius: 14px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-height: 100%;
+      background: var(--bg-white);
+      border: 1px solid var(--border-light);
+      box-sizing: border-box;
+      overflow: hidden !important;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    }
+
+    .schedule-header {
+      flex-shrink: 0;
+      padding: 10px 20px !important;
+    }
+
     /* Weekly Calendar Grid */
     .calendar-grid-container {
       width: 100%;
-      border: 1px solid var(--border-light);
-      border-radius: 20px;
+      flex: 1;
+      border: none;
+      border-radius: 0;
       background: var(--bg-white);
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+      box-shadow: none;
+      overflow-y: auto;
       overflow-x: auto;
       box-sizing: border-box;
       border-collapse: collapse;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-light) transparent;
+    }
+
+    .calendar-grid-container::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    .calendar-grid-container::-webkit-scrollbar-thumb {
+      background: var(--border-light);
+      border-radius: 6px;
     }
 
     .calendar-grid-header {
       display: flex;
       border-bottom: 2px solid var(--border-light);
       background: var(--bg-card);
-      border-top-left-radius: 20px;
-      border-top-right-radius: 20px;
       position: sticky;
       top: 0;
       z-index: 50;
     }
 
     .grid-header-cell {
-      flex: 1 0 160px;
-      padding: 18px 8px;
+      flex: 1 0 150px;
+      padding: 12px 6px;
       text-align: center;
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text-dark);
       border-left: 1px solid var(--border-light);
       box-sizing: border-box;
-      min-width: 160px;
+      min-width: 150px;
     }
 
     .grid-header-cell:first-child {
-      flex: 0 0 70px;
-      min-width: 70px;
+      flex: 0 0 65px;
+      min-width: 65px;
       border-left: none;
       color: var(--text-muted);
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -337,15 +407,15 @@
     .calendar-grid-body {
       display: flex;
       position: relative;
-      height: 1080px;
-      /* 24 slots * 45px */
+      height: 972px;
+      /* 27 slots * 36px (7:00 AM to 8:30 PM) */
       box-sizing: border-box;
       background: var(--bg-white);
     }
 
     .grid-time-column {
-      flex: 0 0 70px;
-      min-width: 70px;
+      flex: 0 0 65px;
+      min-width: 65px;
       height: 100%;
       background: var(--bg-card);
       border-right: 1px solid var(--border-light);
@@ -357,13 +427,13 @@
       position: absolute;
       left: 0;
       width: 100%;
-      height: 45px;
+      height: 36px;
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding-top: 6px;
+      padding-top: 4px;
       font-family: var(--font-body);
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
       color: var(--text-mid);
       border-bottom: 1px dashed var(--border-light);
@@ -371,14 +441,14 @@
     }
 
     .grid-day-column {
-      flex: 1 0 160px;
-      min-width: 160px;
+      flex: 1 0 150px;
+      min-width: 150px;
       height: 100%;
       position: relative;
       border-left: 1px solid var(--border-light);
       box-sizing: border-box;
-      background-image: linear-gradient(to bottom, transparent 44px, var(--border-light) 44px, var(--border-light) 45px);
-      background-size: 100% 45px;
+      background-image: linear-gradient(to bottom, transparent 35px, var(--border-light) 35px, var(--border-light) 36px);
+      background-size: 100% 36px;
       transition: background-color 0.2s ease;
     }
 
@@ -393,9 +463,9 @@
     /* Calendar Card Blocks inside Day Columns */
     .grid-card {
       position: absolute;
-      left: 6px;
-      right: 6px;
-      border-radius: 12px;
+      left: 4px;
+      right: 4px;
+      border-radius: 10px;
       box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
       box-sizing: border-box;
       display: flex;
@@ -531,47 +601,12 @@
       color: #0F172A !important;
     }
 
-    /* High-Contrast and Dark Mode Schedule Card Block Visibility Fixes */
+    /* High-Contrast and Dark Mode Schedule Card Block Visibility */
     html.dark-mode .grid-card,
     body.dark-mode .grid-card,
     [data-theme="dark"] .grid-card,
     html.high-contrast .grid-card {
-      background-color: rgba(15, 23, 42, 0.88) !important;
-      border-color: rgba(56, 189, 248, 0.5) !important;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-    }
-
-    html.dark-mode .grid-card-title,
-    body.dark-mode .grid-card-title,
-    [data-theme="dark"] .grid-card-title,
-    html.high-contrast .grid-card-title {
-      color: #FFFFFF !important;
-      font-weight: 700 !important;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
-    }
-
-    html.dark-mode .grid-card-section,
-    body.dark-mode .grid-card-section,
-    [data-theme="dark"] .grid-card-section,
-    html.high-contrast .grid-card-section,
-    html.dark-mode .grid-card-prof,
-    body.dark-mode .grid-card-prof,
-    [data-theme="dark"] .grid-card-prof,
-    html.high-contrast .grid-card-prof {
-      color: #E2E8F0 !important;
-      font-weight: 600 !important;
-    }
-
-    html.dark-mode .grid-card-time,
-    body.dark-mode .grid-card-time,
-    [data-theme="dark"] .grid-card-time,
-    html.high-contrast .grid-card-time,
-    html.dark-mode .grid-card-time-text,
-    body.dark-mode .grid-card-time-text,
-    [data-theme="dark"] .grid-card-time-text,
-    html.high-contrast .grid-card-time-text {
-      color: #38BDF8 !important;
-      font-weight: 700 !important;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
 
     /* Resize Handle */
@@ -669,12 +704,12 @@
 
     /* Grid Card Sizing Adaptations based on row span */
     .grid-card.span-1 {
-      padding: 4px 8px;
-      gap: 2px;
+      padding: 2px 6px;
+      gap: 1px;
     }
 
     .grid-card.span-1 .grid-card-title {
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 700;
     }
 
@@ -684,49 +719,48 @@
     }
 
     .grid-card.span-1 .grid-card-time {
-      font-size: 9px;
+      font-size: 8.5px;
     }
 
-
     .grid-card.span-2 {
-      padding: 8px 12px;
-      gap: 4px;
+      padding: 6px 10px;
+      gap: 2px;
     }
 
     .grid-card.span-2 .grid-card-title {
-      font-size: 13.5px;
+      font-size: 12.5px;
       font-weight: 700;
     }
 
     .grid-card.span-2 .grid-card-section,
     .grid-card.span-2 .grid-card-prof {
-      font-size: 11.5px;
+      font-size: 11px;
     }
 
     .grid-card.span-2 .grid-card-time {
-      font-size: 10.5px;
+      font-size: 10px;
     }
 
     .grid-card.span-3-plus {
-      padding: 12px 14px;
-      gap: 6px;
+      padding: 8px 12px;
+      gap: 3px;
     }
 
     .grid-card.span-3-plus .grid-card-title {
-      font-size: 15.5px;
+      font-size: 13.5px;
       font-weight: 800;
     }
 
     .grid-card.span-3-plus .grid-card-section,
     .grid-card.span-3-plus .grid-card-prof {
-      font-size: 13px;
+      font-size: 11.5px;
       font-weight: 600;
     }
 
     .grid-card.span-3-plus .grid-card-time {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
     /* Color Picker Button & Popover */
@@ -1015,57 +1049,52 @@
     </header>
 
     <!-- PAGE CONTENT -->
-    <main class="page-content" style="overflow-y: auto;">
+    <main class="page-content" style="padding: 14px 24px; overflow-y: hidden;">
 
-      <!-- PRINT HEADER REMOVED -->
-      <!-- Greeting + Clock Row -->
-      <div class="greeting-row" style="margin-bottom: 24px;">
-        <div class="greeting-left">
-          <h1 class="greeting-title" id="greetingText">Master Schedule Overview</h1>
-          <p class="greeting-sub" id="greetingSub">Comprehensive view of all laboratory schedules and faculty
-            assignments.</p>
-        </div>
-        <div class="clock-block">
-          <div class="clock-time" id="clockTime">--:--:-- --</div>
-          <div class="clock-date" id="clockDate">Loading…</div>
-        </div>
-      </div>
-
-      <!-- Custom Editor Header -->
-      <div class="schedule-editor-header">
-        <div class="seh-left" style="gap: 20px;">
+      <!-- Consolidated Room Schedule Header -->
+      <div class="schedule-editor-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <div class="seh-left" style="display: flex; align-items: center; gap: 16px;">
           <button class="back-btn" id="editor-back-btn" title="Back to Master Schedule"
-            style="width: 44px; height: 44px;">
-            <i data-lucide="chevron-left" style="width: 24px; height: 24px;"></i>
+            style="width: 42px; height: 42px; min-width: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: var(--bg-white); border: 1.5px solid var(--border-light); cursor: pointer; color: var(--text-dark); transition: all 0.2s;">
+            <i data-lucide="chevron-left" style="width: 22px; height: 22px;"></i>
           </button>
           <div>
             <h1
-              style="font-size: 24px; font-weight: 800; color: var(--text-dark); margin-bottom: 2px; font-family: var(--font-display); letter-spacing: -0.5px;">
+              style="font-size: 24px; font-weight: 800; color: var(--text-dark); margin: 0; font-family: var(--font-display); letter-spacing: -0.5px; line-height: 1.2;">
               Room 204 Schedule</h1>
-            <p style="font-size: 14px; color: #94A3B8; font-weight: 500;">Building B</p>
+            <p style="font-size: 13.5px; color: #94A3B8; font-weight: 500; margin: 3px 0 0 0;">Building B &bull; Master Schedule Editor</p>
           </div>
         </div>
-        <div class="seh-actions" style="display: flex; gap: 12px;">
-          <button id="print-schedule-btn" onclick="preparePrint()"
-            style="display: flex; align-items: center; gap: 8px; background: transparent; color: var(--primary-teal); border: 2px solid var(--primary-teal); padding: 12px 24px; border-radius: 24px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s;">
-            <i data-lucide="printer" style="width: 20px; height: 20px;"></i>
-            Print Schedule
-          </button>
-          <button id="save-schedule-btn" class="btn-primary"
-            style="display: flex; align-items: center; gap: 8px; background: var(--primary-teal); color: #fff; border: none; padding: 12px 24px; border-radius: 24px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3); transition: all 0.2s;">
-            <i data-lucide="save" style="width: 20px; height: 20px;"></i>
-            Save Schedule
-          </button>
+
+        <div style="display: flex; align-items: center; gap: 24px;">
+          <!-- Compact Real-time Clock -->
+          <div class="clock-block" style="text-align: right;">
+            <div class="clock-time" id="clockTime" style="font-size: 24px; font-weight: 800; color: var(--primary-teal); line-height: 1.1;">--:--:-- --</div>
+            <div class="clock-date" id="clockDate" style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px; font-weight: 500;">Loading…</div>
+          </div>
+
+          <!-- Actions -->
+          <div class="seh-actions" style="display: flex; align-items: center; gap: 12px;">
+            <button id="print-schedule-btn" onclick="preparePrint()"
+              style="display: flex; align-items: center; gap: 7px; background: transparent; color: var(--primary-teal); border: 1.5px solid var(--primary-teal); padding: 9px 18px; border-radius: 20px; font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+              <i data-lucide="printer" style="width: 17px; height: 17px;"></i>
+              Print Schedule
+            </button>
+            <button id="save-schedule-btn" class="btn-primary"
+              style="display: flex; align-items: center; gap: 7px; background: var(--primary-teal); color: #fff; border: none; padding: 9px 20px; border-radius: 20px; font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3); transition: all 0.2s;">
+              <i data-lucide="save" style="width: 17px; height: 17px;"></i>
+              Save Schedule
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Term Selector Panel Removed (now placed inside the table header) -->
 
-      <div class="editor-layout-container" style="display: flex; gap: 24px; align-items: stretch; flex-shrink: 0;">
+      <div class="editor-layout-container">
 
         <!-- Left Panel: Create Block -->
-        <div id="create-block-panel"
-          style="width: 320px; padding: 24px; display: flex; flex-direction: column; flex-shrink: 0; background: var(--bg-white); border: 1px solid #E2E8F0; border-radius: 12px; min-height: 550px;">
+        <div id="create-block-panel">
           <h3
             style="font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
             <i data-lucide="plus" style="width: 18px; height: 18px; color: var(--primary-teal);"></i>
@@ -1073,19 +1102,17 @@
           </h3>
 
           <div class="editor-form-grid" style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px;">
-            <div class="editor-field-group"
-              style="display: flex; flex-direction: column; width: 100%; position: relative;">
+            <div class="editor-field-group" style="display: flex; flex-direction: column; width: 100%;">
               <label class="editor-label"
                 style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px; display: block;">SUBJECT</label>
-              <div style="position: relative; width: 100%;">
-                <input type="text" class="editor-select" id="block-subject" placeholder="Select or type subject"
-                  style="width: 100%; box-sizing: border-box; padding-right: 36px; margin-bottom: 0;" autocomplete="off"
-                  onfocus="const d = document.getElementById('subject-select-dropdown'); if(d && d.children.length > 0) d.style.display = 'block';">
-                <i data-lucide="chevron-down"
-                  style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94A3B8; pointer-events: none;"></i>
-              </div>
-              <div id="subject-select-dropdown"
-                style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); color: var(--text-dark); border: 1.5px solid var(--border-light); border-radius: 8px; max-height: 220px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-top: 4px;">
+              <div class="custom-select-wrapper" id="subject-wrapper" style="width: 100%;">
+                <div class="custom-select-trigger"
+                  style="width: 100%; height: 45px; box-sizing: border-box; padding: 0 16px; font-size: 14px; border: 1.5px solid var(--border-light); border-radius: 8px; background: var(--bg-white); color: var(--text-dark); cursor: text; display: flex; align-items: center; justify-content: space-between;">
+                  <input type="text" class="custom-select-input" id="block-subject" placeholder="Select or type subject"
+                    autocomplete="off">
+                  <i data-lucide="chevron-down"></i>
+                </div>
+                <div class="custom-select-dropdown" id="subject-select-dropdown" style="width: 100%;"></div>
               </div>
             </div>
 
@@ -1106,7 +1133,7 @@
               <label class="editor-label"
                 style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px; display: block;">SECTION</label>
               <input type="text" class="editor-select" id="block-section" placeholder="Enter section"
-                style="width: 100%; box-sizing: border-box;">
+                style="width: 100%; height: 45px; box-sizing: border-box; padding: 12px 16px; font-size: 14px; border: 1.5px solid var(--border-light); border-radius: 8px; background: var(--bg-white); color: var(--text-dark); margin-bottom: 0;">
             </div>
           </div>
 
@@ -1130,8 +1157,7 @@
         </div>
 
         <!-- Right Panel: Schedule Table -->
-        <div class="dashboard-card"
-          style="flex: 1; padding: 0; overflow: visible !important; border-radius: 12px; position: relative;">
+        <div class="dashboard-card editor-schedule-card">
           <!-- Header -->
           <div class="schedule-header"
             style="background: var(--primary-teal); color: white; padding: 12px 24px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; font-size: 15px; border-radius: 12px 12px 0 0;">
@@ -1173,7 +1199,7 @@
             </div>
           </div>
 
-          <div class="calendar-grid-container" style="margin-top: 20px;">
+          <div class="calendar-grid-container">
             <div class="calendar-grid-header">
               <div class="grid-header-cell">Time</div>
               <div class="grid-header-cell">Monday</div>
@@ -1212,6 +1238,9 @@
                 <div class="grid-time-label" style="top: 945px;">05:30 PM</div>
                 <div class="grid-time-label" style="top: 990px;">06:00 PM</div>
                 <div class="grid-time-label" style="top: 1035px;">06:30 PM</div>
+                <div class="grid-time-label" style="top: 1080px;">07:00 PM</div>
+                <div class="grid-time-label" style="top: 1125px;">07:30 PM</div>
+                <div class="grid-time-label" style="top: 1170px;">08:00 PM</div>
               </div>
 
               <!-- Column drop zones for each day -->

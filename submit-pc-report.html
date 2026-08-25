@@ -5,8 +5,12 @@
   <meta charset="UTF-8" />
   <script>
     (function applyAccessibilitySettings() {
-      const savedScale = localStorage.getItem('labsync-text-scale') || 'normal';
-      document.documentElement.classList.add('text-scale-' + savedScale);
+      try {
+        const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
+        if (savedContrast) {
+          document.documentElement.classList.add('high-contrast');
+        }
+      } catch (e) {}
     })();
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -45,23 +49,6 @@
       --font-body: 'Plus Jakarta Sans', sans-serif;
       --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       --radius-card: 24px;
-    }
-
-    /* Accessibility: Text Scaling */
-    html.text-scale-small {
-      zoom: 0.9;
-    }
-
-    html.text-scale-normal {
-      zoom: 1;
-    }
-
-    html.text-scale-large {
-      zoom: 1.15;
-    }
-
-    html.text-scale-xlarge {
-      zoom: 1.3;
     }
 
     /* Accessibility: High Contrast Dark Mode */

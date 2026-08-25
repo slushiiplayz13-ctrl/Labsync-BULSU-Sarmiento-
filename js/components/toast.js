@@ -34,15 +34,16 @@
       if (targetParent) targetParent.appendChild(container);
     }
 
-    const isError = type === 'error' || (typeof message === 'string' && (message.toLowerCase().includes('failed') || message.toLowerCase().includes('error') || message.toLowerCase().includes('invalid')));
-    const isWarning = type === 'warning';
+    const lowerMsg = typeof message === 'string' ? message.toLowerCase() : '';
+    const isError = type === 'error' || (!type && (lowerMsg.includes('failed') || lowerMsg.includes('error') || lowerMsg.includes('invalid')));
+    const isWarning = type === 'warning' || (!type && (lowerMsg.includes('conflict') || lowerMsg.includes('overlap') || lowerMsg.includes('already scheduled') || lowerMsg.includes('already assigned') || lowerMsg.includes('warning')));
     const isInfo = type === 'info';
 
     const iconName = isError ? 'alert-triangle' : (isWarning ? 'alert-circle' : (isInfo ? 'info' : 'check-circle-2'));
     const iconColor = isError ? '#EF4444' : (isWarning ? '#F59E0B' : (isInfo ? '#3B82F6' : '#1EBBD7'));
     const iconBg = isError ? 'rgba(239, 68, 68, 0.12)' : (isWarning ? 'rgba(245, 158, 11, 0.12)' : (isInfo ? 'rgba(59, 130, 246, 0.12)' : 'rgba(30, 187, 215, 0.12)'));
     const borderColor = isError ? 'rgba(239, 68, 68, 0.25)' : (isWarning ? 'rgba(245, 158, 11, 0.25)' : (isInfo ? 'rgba(59, 130, 246, 0.25)' : 'rgba(30, 187, 215, 0.3)'));
-    const defaultTitle = isError ? 'Notice' : (isWarning ? 'Warning' : (isInfo ? 'Information' : 'Success'));
+    const defaultTitle = isError ? 'Notice' : (isWarning ? (lowerMsg.includes('conflict') || lowerMsg.includes('overlap') ? 'Schedule Conflict' : 'Warning') : (isInfo ? 'Information' : 'Success'));
     const toastTitle = title || defaultTitle;
 
     const card = document.createElement('div');
@@ -113,8 +114,25 @@
   // Override browser native alert to use LabSync UI Toast
   function customAlert(msg) {
     if (global.showToast) {
-      const isErr = typeof msg === 'string' && (msg.toLowerCase().includes('failed') || msg.toLowerCase().includes('error') || msg.toLowerCase().includes('invalid'));
-      global.showToast(msg, isErr ? 'error' : 'success');
+      const lower = typeof msg === 'string' ? msg.toLowerCase() : '';
+      const isErr = lower.includes('failed') || lower.includes('error') || lower.includes('invalid') || lower.includes('cannot');
+      const isWarn = lower.includes('conflict') || lower.includes('overlap') || lower.includes('already') || lower.includes('warning') || lower.includes('please');
+      const isSuccess = lower.includes('success') || lower.includes('saved') || lower.includes('updated') || lower.includes('added') || lower.includes('created') || lower.includes('resolved') || lower.includes('completed');
+
+      let type = 'info';
+      let title = null;
+      if (isErr) {
+        type = 'error';
+      } else if (isWarn) {
+        type = 'warning';
+        if (lower.includes('conflict') || lower.includes('overlap')) {
+          title = 'Schedule Conflict';
+        }
+      } else if (isSuccess) {
+        type = 'success';
+      }
+
+      global.showToast(msg, type, title);
     } else {
       console.log('[LabSync Alert]:', msg);
     }

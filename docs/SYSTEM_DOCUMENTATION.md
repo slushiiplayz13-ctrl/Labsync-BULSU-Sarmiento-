@@ -39,7 +39,7 @@
 | Problem | LabSync Solution |
 |---|---|
 | Manual, paper-based PC fault reports | Students scan a QR code per PC to submit structured digital tickets |
-| Unknown room availability at a glance | Real-time room status dashboard (Available / Claimed / In Use) |
+| Unknown room availability at a glance | Real-time room status dashboard (Available / In Session / Borrowed) |
 | Fragmented schedule management | Drag-and-drop schedule studio with conflict detection |
 | No maintenance pipeline visibility | Kanban-style maintenance tracker (Pending → In Progress → Resolved) |
 | Physical key management uncertainty | IoT ESP32 device detects key presence and reports state in real time |
@@ -143,7 +143,7 @@ LabSync/
 |-- services/                   # Business logic, IoT services, notifications
 |
 |-- css/
-|   |-- variables.css           # Design tokens, themes & text scaling
+|   |-- variables.css           # Design tokens, themes & contrast modes
 |   |-- reset.css               # Base resets & scrollbar rules
 |   |-- layouts.css             # Header, sidebar, page content & tooltips
 |   |-- components/             # Domain modular component stylesheets
@@ -215,7 +215,7 @@ LabSync has **4 distinct roles**, each with a dedicated set of pages and permiss
   - Mouse, Keyboard, Monitor, System Unit, Internet Connection, OS/Software, Others
 - Free-text remark and program/section input.
 - Submits to `POST /api/maintenance/report`.
-- Inherits user's **Text Scaling** and **High Contrast** accessibility preferences from `localStorage`.
+- Inherits user's **High Contrast** accessibility preferences from `localStorage`.
 
 ---
 
@@ -228,9 +228,9 @@ LabSync has **4 distinct roles**, each with a dedicated set of pages and permiss
 
 #### `room-status.html` — Lab Room Status
 - Displays all registered laboratory rooms with color-coded status badges:
-  - **Available** (Green) — Key present, no active class.
-  - **Claimed** (Orange) — Key absent (taken), no class.
-  - **In Use** (Red) — A class is currently scheduled.
+  - **Available** (Green) — Key present in dock.
+  - **In Session** (Red) — Key taken by the scheduled professor for an active class.
+  - **Borrowed** (Orange) — Key taken by another professor or during an unscheduled slot.
 - Status is computed **dynamically** server-side using schedule + key data.
 
 #### `faculty-pc-reports.html` — PC Reports Viewer
@@ -242,12 +242,14 @@ LabSync has **4 distinct roles**, each with a dedicated set of pages and permiss
 - Filterable by **Academic Year** (e.g., `2025-2026`) and **Semester** (`1st`, `2nd`, `Summer`).
 - Only displays schedules assigned to the currently logged-in faculty member.
 
-#### Accessibility Controls (Profile Dropdown — all Faculty pages)
+#### Profile Dropdown Controls (all authenticated pages)
 
 | Feature | Detail |
 |---|---|
-| **Text Scaling** | Options: 90%, 100%, 110%, 120%. Applied as `document.body.style.zoom`. Persisted in `localStorage`. |
-| **High Contrast** | Toggles an alternate `<link>` stylesheet for dark/high-contrast mode. Persisted in `localStorage`. |
+| **Account Settings** | Modal to manage profile info, password, and QR code access. |
+| **Dark Mode Toggle** | Direct toggle switch in the profile dropdown for dark high-contrast mode. Persisted in `localStorage`. |
+| **Help Center** | Role-tailored help and quick-start guide modal. |
+| **System Tutorial** | Interactive spotlight tour of the application. |
 
 ---
 
@@ -421,9 +423,9 @@ Each registered computer lab room.
 | `Key_Status` | VARCHAR(20) DEFAULT `'Present'` | IoT key state: `Present` or `Absent` |
 
 **Dynamic Status Logic** (computed server-side in `GET /api/laboratories`):
-- If a class is **currently scheduled** → status = **`In Use`**
-- Else if `Key_Status = 'Absent'` → status = **`Claimed`**
-- Else → status = **`Available`**
+- If `Key_Status = 'Present'` → status = **`Available`**
+- If `Key_Status = 'Absent'` and holder is the scheduled professor → status = **`In Session`**
+- If `Key_Status = 'Absent'` and holder is another professor or open slot → status = **`Borrowed`**
 
 ---
 

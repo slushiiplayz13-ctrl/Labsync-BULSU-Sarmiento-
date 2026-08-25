@@ -8,10 +8,10 @@
   'use strict';
 
   function getSlotHeight() {
-    return window.innerWidth <= 768 ? 30 : 45;
+    return window.innerWidth <= 768 ? 30 : 36;
   }
 
-  const TOTAL_SLOTS = 24; // 7am to 7pm
+  const TOTAL_SLOTS = 27; // 7am to 8:30pm (27 slots)
 
   /**
    * Initializes resize interaction on a schedule card handle.
@@ -92,7 +92,11 @@
           if (profCheck && profCheck.conflict) {
             const timeLabelStart = global.formatTimeLabel ? global.formatTimeLabel(profCheck.startTime) : profCheck.startTime;
             const timeLabelEnd = global.formatTimeLabel ? global.formatTimeLabel(profCheck.endTime) : profCheck.endTime;
-            alert(`Schedule Conflict: Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`);
+            if (global.showToast) {
+              global.showToast(`Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`, 'warning', 'Schedule Conflict');
+            } else {
+              alert(`Schedule Conflict: Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`);
+            }
 
             // Revert Resize
             card.style.height = `${(originalEndSlot - startSlot) * slotHeight}px`;
@@ -267,7 +271,11 @@
           }
 
           if (global.checkOverlap && global.checkOverlap(day, slotIndex, slotIndex + durationSlots, null)) {
-            alert('Schedule Conflict: There is already an assigned class in this time frame.');
+            if (global.showToast) {
+              global.showToast('This time slot overlaps with another scheduled class.', 'warning', 'Schedule Conflict');
+            } else {
+              alert('Schedule Conflict: This time slot overlaps with another scheduled class.');
+            }
             return;
           }
 
@@ -279,7 +287,11 @@
             if (profCheck && profCheck.conflict) {
               const timeLabelStart = global.formatTimeLabel ? global.formatTimeLabel(profCheck.startTime) : profCheck.startTime;
               const timeLabelEnd = global.formatTimeLabel ? global.formatTimeLabel(profCheck.endTime) : profCheck.endTime;
-              alert(`Schedule Conflict: Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`);
+              if (global.showToast) {
+                global.showToast(`Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`, 'warning', 'Schedule Conflict');
+              } else {
+                alert(`Schedule Conflict: Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`);
+              }
               return;
             }
           }
@@ -300,7 +312,11 @@
           }
 
           if (global.checkOverlap && global.checkOverlap(day, slotIndex, slotIndex + durationSlots, block.id)) {
-            alert('Schedule Conflict: Moving this card here overlaps with another class.');
+            if (global.showToast) {
+              global.showToast('This time slot overlaps with another scheduled class.', 'warning', 'Schedule Conflict');
+            } else {
+              alert('Schedule Conflict: This time slot overlaps with another scheduled class.');
+            }
             return;
           }
 
@@ -313,7 +329,11 @@
             if (profCheck && profCheck.conflict) {
               const timeLabelStart = global.formatTimeLabel ? global.formatTimeLabel(profCheck.startTime) : profCheck.startTime;
               const timeLabelEnd = global.formatTimeLabel ? global.formatTimeLabel(profCheck.endTime) : profCheck.endTime;
-              alert(`Schedule Conflict: Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`);
+              if (global.showToast) {
+                global.showToast(`Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`, 'warning', 'Schedule Conflict');
+              } else {
+                alert(`Schedule Conflict: Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`);
+              }
               return;
             }
           }
@@ -559,7 +579,11 @@
             }
 
             if (global.checkOverlap && global.checkOverlap(day, slotIndex, slotIndex + durationSlots, null)) {
-              alert('Schedule Conflict: There is already an assigned class in this time frame.');
+              if (global.showToast) {
+                global.showToast('This time slot overlaps with another scheduled class.', 'warning', 'Schedule Conflict');
+              } else {
+                alert('Schedule Conflict: This time slot overlaps with another scheduled class.');
+              }
             } else {
               const startTime = global.slotsToTime ? global.slotsToTime(slotIndex) : '';
               const endTime = global.slotsToTime ? global.slotsToTime(slotIndex + durationSlots) : '';
@@ -569,7 +593,11 @@
                 if (profCheck && profCheck.conflict) {
                   const timeLabelStart = global.formatTimeLabel ? global.formatTimeLabel(profCheck.startTime) : profCheck.startTime;
                   const timeLabelEnd = global.formatTimeLabel ? global.formatTimeLabel(profCheck.endTime) : profCheck.endTime;
-                  alert(`Schedule Conflict: Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`);
+                  if (global.showToast) {
+                    global.showToast(`Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`, 'warning', 'Schedule Conflict');
+                  } else {
+                    alert(`Schedule Conflict: Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`);
+                  }
                   if (typeof global.updateBlockCount === 'function') global.updateBlockCount();
                   draggedElement = null;
                   activeDropZone = null;
@@ -594,7 +622,11 @@
             }
 
             if (global.checkOverlap && global.checkOverlap(day, slotIndex, slotIndex + durationSlots, block.id)) {
-              alert('Schedule Conflict: Moving this card here overlaps with another class.');
+              if (global.showToast) {
+                global.showToast('This time slot overlaps with another scheduled class.', 'warning', 'Schedule Conflict');
+              } else {
+                alert('Schedule Conflict: This time slot overlaps with another scheduled class.');
+              }
             } else {
               const startTime = global.slotsToTime ? global.slotsToTime(slotIndex) : '';
               const endTime = global.slotsToTime ? global.slotsToTime(slotIndex + durationSlots) : '';
@@ -605,7 +637,11 @@
                 if (profCheck && profCheck.conflict) {
                   const timeLabelStart = global.formatTimeLabel ? global.formatTimeLabel(profCheck.startTime) : profCheck.startTime;
                   const timeLabelEnd = global.formatTimeLabel ? global.formatTimeLabel(profCheck.endTime) : profCheck.endTime;
-                  alert(`Schedule Conflict: Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`);
+                  if (global.showToast) {
+                    global.showToast(`Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`, 'warning', 'Schedule Conflict');
+                  } else {
+                    alert(`Schedule Conflict: Professor ${professor} is already scheduled in Room ${profCheck.conflictingRoom} from ${timeLabelStart} to ${timeLabelEnd} on ${day}.`);
+                  }
                   if (typeof global.updateBlockCount === 'function') global.updateBlockCount();
                   draggedElement = null;
                   activeDropZone = null;

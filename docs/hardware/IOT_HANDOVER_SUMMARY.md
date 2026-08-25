@@ -39,9 +39,9 @@ This file summarizes the current state of the LabSync IoT device wiring, softwar
   * Updated to dynamically format key events (e.g. showing "was taken from the holder" / "was returned (Room Secured)" instead of hardcoding the word "unlocked" for all actions).
   * Linked the room card rendering (`loadDashboardStatsAndLabs`) and timeline logs (`loadRoomStatusActivityLog`) directly into the 3-second notification polling loop. Now the dashboard cards and timeline list refresh dynamically in real time without manual F5 refreshes!
 * **Room Status Logic (Calculated dynamically in GET `/api/laboratories`)**:
-  * If a class is currently scheduled, the status is **"In Use"**.
-  * Otherwise, if the key is **Absent** (removed from the slot), the room status is **"Claimed"** (occupied).
-  * If the key is **Present** (inserted in the slot), the room status is **"Available"**.
+  * If the key is **Present** (docked in slot), the room status is **"Available"**.
+  * If the key is **Absent** (taken) and holder is the scheduled professor, the status is **"In Session"**.
+  * If the key is **Absent** (taken) and holder is another professor or open slot, the status is **"Borrowed"**.
 
 #### Endpoint Payload Structures:
 * **QR Scan Post**:

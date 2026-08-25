@@ -84,8 +84,8 @@ async function findUserSchedule(userId, ay, sem, executor = db) {
 async function findSummaryRoomsStatus(today, nowTime, executor = db) {
     return executor.query(`
         SELECT 
-            r.Room_ID, r.Room_Number, r.Key_Status,
-            s.Subject_Name, s.Section
+            r.Room_ID, r.Room_Number, r.Key_Status, r.Current_User_ID, r.Last_Seen,
+            s.Subject_Name, s.Section, s.User_ID AS Scheduled_User_ID
         FROM laboratories r
         LEFT JOIN schedules s ON r.Room_ID = s.Room_ID 
             AND s.Day_of_Week = ? 

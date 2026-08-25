@@ -47,58 +47,6 @@
   --badge-completed-border: #A7F3D0;
 }
 
-/* Accessibility: Text Scaling */
-html.text-scale-small {
-  zoom: 0.9;
-}
-
-html.text-scale-normal {
-  zoom: 1;
-}
-
-html.text-scale-large {
-  zoom: 1.15;
-}
-
-html.text-scale-xlarge {
-  zoom: 1.3;
-}
-
-/* Ensure scaled screens can scroll down without clipping or horizontal overflow */
-html.text-scale-large,
-html.text-scale-xlarge {
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-}
-
-html.text-scale-large body,
-html.text-scale-xlarge body {
-  height: auto !important;
-  min-height: 100vh !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-}
-
-html.text-scale-large .main-wrapper,
-html.text-scale-xlarge .main-wrapper {
-  height: auto !important;
-  min-height: 100vh !important;
-  overflow-x: hidden !important;
-  overflow-y: visible !important;
-}
-
-html.text-scale-large .page-content,
-html.text-scale-xlarge .page-content {
-  overflow-y: visible !important;
-  height: auto !important;
-}
-
-html.text-scale-large .dashboard-card,
-html.text-scale-xlarge .dashboard-card {
-  overflow: visible !important;
-  height: auto !important;
-}
-
 /* Accessibility: High Contrast Dark Mode */
 html.high-contrast {
   --primary-teal: #00A3C4;
@@ -919,10 +867,24 @@ html.high-contrast .report-card {
 }
 
 html.high-contrast .remarks-box {
-  background: rgba(15, 23, 42, 0.45) !important;
-  color: var(--text-dark) !important;
-  border-left-color: var(--primary-teal) !important;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  background: rgba(30, 41, 59, 0.6) !important;
+  color: #F1F5F9 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.high-contrast .remarks-text {
+  color: #F1F5F9 !important;
+}
+
+html.high-contrast .remarks-box.is-empty {
+  background: rgba(15, 23, 42, 0.35) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.15) !important;
+  color: #64748B !important;
+}
+
+html.high-contrast .remarks-empty-icon {
+  color: #64748B !important;
 }
 
 html.high-contrast div[style*="background:#E0F2FE"],
@@ -1647,7 +1609,8 @@ html.high-contrast .grid-time-label {
 
 html.high-contrast .grid-day-column {
   border-left-color: var(--border-light) !important;
-  background-image: linear-gradient(to bottom, transparent 44px, var(--border-light) 44px, var(--border-light) 45px) !important;
+  background-image: linear-gradient(to bottom, transparent 35px, var(--border-light) 35px, var(--border-light) 36px) !important;
+  background-size: 100% 36px !important;
 }
 
 html.high-contrast #create-block-panel {
@@ -1670,4 +1633,119 @@ html.high-contrast .sl-item.active {
   border-color: var(--primary-teal) !important;
   color: var(--primary-teal) !important;
   box-shadow: 0 4px 14px rgba(0, 163, 196, 0.25) !important;
+}
+
+/* --- Print Document Preview & Paper Simulation Dark Mode Protection --- */
+html.high-contrast .document-page,
+html.dark-mode .document-page,
+body.dark-mode .document-page,
+.document-page {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+}
+
+html.high-contrast .document-page *,
+html.dark-mode .document-page *,
+body.dark-mode .document-page *,
+.document-page * {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  text-shadow: none !important;
+}
+
+html.high-contrast .document-page img,
+html.dark-mode .document-page img,
+body.dark-mode .document-page img,
+.document-page img {
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+html.high-contrast .document-page .header-text h1,
+html.high-contrast .document-page .header-text h2,
+html.high-contrast .document-page .header-text p,
+html.high-contrast .document-page .print-room-title-block h3,
+html.high-contrast .document-page .print-room-title-block span,
+html.high-contrast .document-page .class-box .subject,
+html.high-contrast .document-page .class-box .section,
+html.high-contrast .document-page .class-box .instructor,
+html.high-contrast .document-page .sign-name,
+html.high-contrast .document-page .signature-line,
+html.high-contrast .document-page .signature-block span {
+  color: #000000 !important;
+}
+
+html.high-contrast .print-table th,
+html.dark-mode .print-table th,
+.print-table th {
+  background-color: #f2f2f2 !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+}
+
+html.high-contrast .print-table td,
+html.dark-mode .print-table td,
+.print-table td {
+  background-color: transparent !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+}
+
+html.high-contrast .print-table .time-col,
+html.dark-mode .print-table .time-col,
+.print-table .time-col {
+  background-color: #b4c6e7 !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+}
+
+html.high-contrast .bg-yellow,
+html.dark-mode .bg-yellow,
+.bg-yellow {
+  background-color: #fff2cc !important;
+  color: #000000 !important;
+}
+
+html.high-contrast .bg-gray,
+html.dark-mode .bg-gray,
+.bg-gray {
+  background-color: #e3e3e3 !important;
+  color: #000000 !important;
+}
+
+/* Print Ribbon Bar Dark Mode */
+html.high-contrast .print-actions,
+html.dark-mode .print-actions,
+body.dark-mode .print-actions {
+  background: var(--bg-card, #1e293b) !important;
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.1)) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.high-contrast .actions-left h1,
+html.dark-mode .actions-left h1,
+body.dark-mode .actions-left h1 {
+  color: var(--text-dark, #f8fafc) !important;
+}
+
+html.high-contrast .actions-left p,
+html.dark-mode .actions-left p,
+body.dark-mode .actions-left p {
+  color: var(--text-mid, #94a3b8) !important;
+}
+
+html.high-contrast .btn-close,
+html.dark-mode .btn-close,
+body.dark-mode .btn-close {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+html.high-contrast .btn-close:hover,
+html.dark-mode .btn-close:hover,
+body.dark-mode .btn-close:hover {
+  background-color: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
 }

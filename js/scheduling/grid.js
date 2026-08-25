@@ -15,7 +15,7 @@
    * @returns {number}
    */
   function getSlotHeight() {
-    return window.innerWidth <= 768 ? 30 : 45;
+    return window.innerWidth <= 768 ? 30 : 36;
   }
 
   /**

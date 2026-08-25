@@ -7,18 +7,17 @@
   'use strict';
 
   /**
-   * Apply stored accessibility settings (scale & contrast) immediately to prevent visual flash.
+   * Apply stored accessibility settings (high contrast) immediately to prevent visual flash.
    */
   function applyAccessibilitySettings() {
     try {
-      const savedScale = localStorage.getItem('labsync-text-scale') || 'normal';
-      const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
-
-      // Clean existing scale classes
+      // Clean up legacy text scaling artifacts if previously set
+      localStorage.removeItem('labsync-text-scale');
       document.documentElement.classList.remove('text-scale-small', 'text-scale-normal', 'text-scale-large', 'text-scale-xlarge');
-      document.documentElement.classList.add(`text-scale-${savedScale}`);
+      document.documentElement.removeAttribute('data-text-scale');
 
       // Clean and set high contrast class
+      const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
       if (savedContrast) {
         document.documentElement.classList.add('high-contrast');
       } else {
@@ -31,45 +30,6 @@
 
   // Run immediately upon script load
   applyAccessibilitySettings();
-
-  /**
-   * Highlight the active scale button inside the accessibility settings modal.
-   * @param {string} activeScale - 'small' | 'normal' | 'large' | 'xlarge'
-   */
-  function updateScaleButtonHighlights(activeScale) {
-    const scales = ['small', 'normal', 'large', 'xlarge'];
-    scales.forEach(scale => {
-      const btn = document.getElementById(`btn-scale-${scale}`);
-      if (btn) {
-        if (scale === activeScale) {
-          btn.style.background = 'var(--primary-teal)';
-          btn.style.color = '#fff';
-          btn.style.boxShadow = '0 4px 10px rgba(30, 187, 215, 0.25)';
-        } else {
-          btn.style.background = 'none';
-          btn.style.color = 'var(--text-mid)';
-          btn.style.boxShadow = 'none';
-        }
-      }
-    });
-  }
-
-  /**
-   * Set text scale preference, apply classes, and persist to localStorage.
-   * @param {string} scale - 'small' | 'normal' | 'large' | 'xlarge'
-   */
-  function setAccessibilityScale(scale) {
-    try {
-      localStorage.setItem('labsync-text-scale', scale);
-    } catch (e) {}
-
-    // Apply classes
-    document.documentElement.classList.remove('text-scale-small', 'text-scale-normal', 'text-scale-large', 'text-scale-xlarge');
-    document.documentElement.classList.add(`text-scale-${scale}`);
-
-    // Update UI highlights
-    updateScaleButtonHighlights(scale);
-  }
 
   /**
    * Toggle high contrast theme preference and persist to localStorage.
@@ -103,19 +63,18 @@
     modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px;';
 
     // Retrieve saved settings
-    const currentScale = localStorage.getItem('labsync-text-scale') || 'normal';
     const isContrast = localStorage.getItem('labsync-high-contrast') === 'true';
 
     modal.innerHTML = `
-      <div class="accessibility-modal-card" style="background:#fff;border-radius:20px;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;animation: modalScale 0.25s ease-out;">
+      <div class="accessibility-modal-card" style="background:#fff;border-radius:20px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;animation: modalScale 0.25s ease-out;">
         <!-- Header -->
-        <div class="accessibility-modal-header" style="padding:24px 32px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%);">
+        <div class="accessibility-modal-header" style="padding:20px 24px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%);">
           <div>
-            <h2 style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;display:flex;align-items:center;gap:10px;">
-              <i data-lucide="eye" style="width:22px;height:22px;color:var(--primary-teal);"></i>
+            <h2 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;display:flex;align-items:center;gap:10px;">
+              <i data-lucide="eye" style="width:20px;height:20px;color:var(--primary-teal);"></i>
               Accessibility Settings
             </h2>
-            <p style="font-size:13px;color:var(--text-mid);margin:0;">Adjust text size and color contrast for better readability</p>
+            <p style="font-size:12.5px;color:var(--text-mid);margin:0;">Adjust color contrast for better readability</p>
           </div>
           <button id="close-accessibility-modal" style="background:#F5F5F5;border:none;cursor:pointer;padding:8px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all 0.2s;">
             <i data-lucide="x" style="width:18px;height:18px;color:var(--text-mid);"></i>
@@ -123,24 +82,10 @@
         </div>
         
         <!-- Content -->
-        <div class="accessibility-modal-body" style="padding:32px;display:flex;flex-direction:column;gap:28px;">
+        <div class="accessibility-modal-body" style="padding:24px;display:flex;flex-direction:column;gap:20px;">
           
-          <!-- Text Size Option -->
-          <div>
-            <label style="display:block;font-size:14px;font-weight:700;color:var(--text-dark);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
-              <i data-lucide="type" style="width:16px;height:16px;color:var(--primary-teal);"></i>
-              Adjust Text Size
-            </label>
-            <div class="accessibility-scale-grid" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;background:#F8FAFC;padding:6px;border-radius:12px;border:1px solid var(--border-light);">
-              <button id="btn-scale-small" onclick="setAccessibilityScale('small')" class="accessibility-scale-btn scale-small" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Small (90%)</button>
-              <button id="btn-scale-normal" onclick="setAccessibilityScale('normal')" class="accessibility-scale-btn scale-normal" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Normal</button>
-              <button id="btn-scale-large" onclick="setAccessibilityScale('large')" class="accessibility-scale-btn scale-large" style="border:none;padding:10px;border-radius:8px;font-weight:600;font-size:16px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">Large</button>
-              <button id="btn-scale-xlarge" onclick="setAccessibilityScale('xlarge')" class="accessibility-scale-btn scale-xlarge" style="border:none;padding:10px;border-radius:8px;font-weight:700;font-size:18px;cursor:pointer;transition:all 0.2s;background:none;color:var(--text-mid);font-family:var(--font-body);">X-Large</button>
-            </div>
-          </div>
-
           <!-- High Contrast Mode Option -->
-          <div style="display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;padding:16px 20px;border-radius:12px;border:1px solid var(--border-light);gap:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;padding:16px 18px;border-radius:12px;border:1px solid var(--border-light);gap:12px;">
             <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
               <div style="width:36px;height:36px;min-width:36px;border-radius:50%;background:rgba(30, 187, 215, 0.1);color:var(--primary-teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <i data-lucide="contrast" style="width:18px;height:18px;"></i>
@@ -159,8 +104,8 @@
         </div>
 
         <!-- Footer -->
-        <div class="accessibility-modal-footer" style="padding:20px 32px;border-top:1px solid var(--border-light);background:#FAFAFA;display:flex;justify-content:flex-end;">
-          <button id="close-accessibility-settings-btn" style="padding:10px 24px;border:none;background:var(--primary-teal);color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);">Done</button>
+        <div class="accessibility-modal-footer" style="padding:16px 24px;border-top:1px solid var(--border-light);background:#FAFAFA;display:flex;justify-content:flex-end;">
+          <button id="close-accessibility-settings-btn" style="padding:9px 22px;border:none;background:var(--primary-teal);color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);box-shadow:0 2px 6px rgba(30, 187, 215, 0.25);">Done</button>
         </div>
       </div>
     `;
@@ -177,22 +122,6 @@
           max-height: 90vh !important;
           box-sizing: border-box !important;
         }
-        .accessibility-scale-grid {
-          box-sizing: border-box !important;
-          width: 100% !important;
-        }
-        .accessibility-scale-btn {
-          box-sizing: border-box !important;
-          min-width: 0 !important;
-          width: 100% !important;
-          text-align: center !important;
-          white-space: nowrap !important;
-          overflow: hidden !important;
-          text-overflow: ellipsis !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-        }
         @media (max-width: 520px) {
           #accessibility-settings-modal {
             padding: 12px !important;
@@ -205,19 +134,10 @@
           }
           .accessibility-modal-body {
             padding: 18px 14px !important;
-            gap: 20px !important;
+            gap: 16px !important;
           }
           .accessibility-modal-footer {
             padding: 14px 18px !important;
-          }
-          .accessibility-scale-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 8px !important;
-            padding: 8px !important;
-          }
-          .accessibility-scale-btn {
-            padding: 10px 6px !important;
-            font-size: 13px !important;
           }
         }
         .accessibility-switch {
@@ -260,9 +180,6 @@
       global.lucide.createIcons({ root: modal });
     }
 
-    // Highlight active scale button
-    updateScaleButtonHighlights(currentScale);
-
     // Bind close events
     const closeBtn = document.getElementById('close-accessibility-modal');
     const doneBtn = document.getElementById('close-accessibility-settings-btn');
@@ -275,7 +192,6 @@
 
   // Preserve global contracts for legacy scripts, inline onclick handlers, and HTML callers
   global.applyAccessibilitySettings = applyAccessibilitySettings;
-  global.setAccessibilityScale = setAccessibilityScale;
   global.toggleAccessibilityContrast = toggleAccessibilityContrast;
   global.openAccessibilitySettings = openAccessibilitySettings;
 

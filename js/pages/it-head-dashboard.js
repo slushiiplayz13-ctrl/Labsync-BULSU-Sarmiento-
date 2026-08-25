@@ -220,9 +220,16 @@
       }
 
     } catch (err) {
-      console.error('IT Head dashboard loading failed:', err);
+      console.error('[ITHeadDashboard] IT Head dashboard loading failed:', err);
       if (global.laboratoryService && typeof global.laboratoryService.renderLabCardsError === 'function') {
         global.laboratoryService.renderLabCardsError(labsContainer);
+      }
+    } finally {
+      const containerEl = typeof labsContainer === 'string' ? document.querySelector(labsContainer) : labsContainer;
+      if (containerEl && containerEl.querySelector('.animate-spin')) {
+        if (typeof global.renderLabCards === 'function') {
+          global.renderLabCards([], containerEl);
+        }
       }
     }
   }

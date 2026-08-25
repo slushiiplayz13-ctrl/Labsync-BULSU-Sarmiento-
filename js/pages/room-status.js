@@ -105,7 +105,7 @@
       const occupancyLogs = activities.filter(a => a.type === 'occupancy');
 
       // Build a data fingerprint so we only re-render when actual log entries change
-      const dataKey = occupancyLogs.map(l => `${l.id}-${l.status}-${l.room_number}-${l.description}`).join('|');
+      const dataKey = occupancyLogs.map(l => `${l.id}-${l.status}-${l.room_number}-${l.description}-${l.session_type || ''}`).join('|');
       const dataChanged = dataKey !== _activityLogLastDataKey;
 
       if (occupancyLogs.length === 0) {
@@ -135,16 +135,23 @@
         let html = '';
         occupancyLogs.forEach(log => {
           let activityText = '';
+          const hasUser = log.description && log.description !== 'Room Key';
+          const profText = hasUser
+            ? (log.description.startsWith('Prof.') ? log.description : `Prof. ${log.description}`)
+            : '';
+
           if (log.status === 'Key Taken') {
-            if (log.description && log.description !== 'Room Key') {
-              activityText = `Room key for Room ${log.room_number} taken by ${log.description} (Registered to system).`;
+            if (log.session_type === 'In Session') {
+              activityText = `Key taken by ${profText || 'Faculty'} (In Session)`;
+            } else if (log.session_type === 'Borrowed' || hasUser) {
+              activityText = `Key borrowed by ${profText || 'Faculty'}`;
             } else {
-              activityText = `Room key for Room ${log.room_number} was taken from the holder.`;
+              activityText = `Key taken for RM ${log.room_number || ''}`;
             }
           } else if (log.status === 'Key Returned') {
-            activityText = `Room key for Room ${log.room_number} was returned (Room Secured).`;
+            activityText = `Key returned for RM ${log.room_number || ''}`;
           } else {
-            activityText = `QR Code verified for ${log.description} (Awaiting key retrieval).`;
+            activityText = `QR Code verified for ${log.description || 'User'} (Awaiting key retrieval).`;
           }
 
           html += `

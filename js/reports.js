@@ -120,6 +120,9 @@ window.renderSingleCard = function (report) {
   });
 
   const parsed = window.parseIssueDescription(report.Issue_Description);
+  const rawRemarks = (parsed.remarks || '').trim();
+  const isEmptyRemarksText = !rawRemarks || rawRemarks.toLowerCase() === 'none' || rawRemarks.toLowerCase() === 'no remarks provided.';
+  const formattedRemarks = isEmptyRemarksText ? 'None' : escapeHtml(rawRemarks);
 
   // Determine actions based on status for MIS staff pages
   let actionsHtml = '';
@@ -143,6 +146,10 @@ window.renderSingleCard = function (report) {
   const roomNum = report.Room_Number != null ? report.Room_Number : 'N/A';
   const pcNum = report.PC_Number != null ? report.PC_Number : 'N/A';
 
+  const isResolved = (report.Status || '').toLowerCase() === 'resolved';
+  const badgeClass = isResolved ? 'resolved' : 'pending';
+  const badgeLabel = isResolved ? 'RESOLVED' : 'PENDING';
+
   return `
     <div class="report-card">
       <!-- Card Header -->
@@ -153,8 +160,8 @@ window.renderSingleCard = function (report) {
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <!-- Status Badge -->
-          <span class="status-badge ${statusStr.toLowerCase().replace(/\s+/g, '-')}">
-            ${statusStr}
+          <span class="status-badge ${badgeClass}">
+            ${badgeLabel}
           </span>
         </div>
       </div>
@@ -176,8 +183,15 @@ window.renderSingleCard = function (report) {
             <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:4px;">Reported Issue</span>
             <div style="display:flex; flex-wrap:wrap; gap:6px;">
               ${parsed.issues.split(',').map(comp => comp.trim()).filter(Boolean).map(comp => {
-    if (comp.toLowerCase() === 'none' || comp.toLowerCase() === 'others') {
+    const lower = comp.toLowerCase();
+    if (lower === 'none' || lower === 'n/a') {
+      if (!isEmptyRemarksText) {
+        return `<span class="issue-badge-other" style="display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:700; padding:4px 11px; border-radius:8px; background:#FEF3C7; color:#D97706; border:1.5px solid #FDE68A; box-shadow:0 1px 3px rgba(217,119,6,0.08);"><i data-lucide="alert-circle" style="width:14px;height:14px;color:#D97706;"></i> Others</span>`;
+      }
       return `<span class="issue-badge-none" style="display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600; padding:4px 10px; border-radius:8px; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0;"><i data-lucide="check-circle-2" style="width:13px;height:13px;color:#10B981;"></i> No Faults</span>`;
+    }
+    if (lower === 'others' || lower === 'other') {
+      return `<span class="issue-badge-other" style="display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:700; padding:4px 11px; border-radius:8px; background:#FEF3C7; color:#D97706; border:1.5px solid #FDE68A; box-shadow:0 1px 3px rgba(217,119,6,0.08);"><i data-lucide="alert-circle" style="width:14px;height:14px;color:#D97706;"></i> Others</span>`;
     }
     return `<span class="issue-badge-fault" style="display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:800; padding:4px 11px; border-radius:8px; background:#FEF2F2; color:#DC2626; border:1.5px solid #FCA5A5; box-shadow:0 1px 3px rgba(220,38,38,0.08);"><i data-lucide="alert-triangle" style="width:14px;height:14px;color:#EF4444;"></i> ${comp}</span>`;
   }).join('')}
@@ -195,7 +209,19 @@ window.renderSingleCard = function (report) {
         <!-- Right Column: Student Remarks -->
         <div class="report-card-remarks">
           <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.4px; display:block; margin-bottom:4px;">Remarks & Problem Details</span>
-          <div class="remarks-box">${parsed.remarks}</div>
+          ${isEmptyRemarksText ? `
+            <div class="remarks-box is-empty">
+              <i data-lucide="file-text" class="remarks-empty-icon"></i>
+              <span>No additional remarks provided</span>
+            </div>
+          ` : `
+            <div class="remarks-box">
+              <div class="remarks-content">
+                <i data-lucide="message-square" class="remarks-quote-icon"></i>
+                <span class="remarks-text">${escapeHtml(rawRemarks)}</span>
+              </div>
+            </div>
+          `}
         </div>
       </div>
 

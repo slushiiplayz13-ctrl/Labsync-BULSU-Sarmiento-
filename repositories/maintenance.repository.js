@@ -44,14 +44,25 @@ async function findAllNotifications(executor = db) {
     return executor.query(`
         (SELECT 'report' AS type, m.Report_ID AS id, m.Date_Reported AS time, m.Status AS status, 
                p.PC_Number AS pc_number, r.Room_Number AS room_number, m.Issue_Description AS description, 
-               m.Student_Name AS detail, m.Priority_Level AS priority
+               m.Student_Name AS detail, m.Priority_Level AS priority, NULL AS session_type
         FROM maintenance m
         JOIN lab_units p ON m.PC_ID = p.PC_ID
         JOIN laboratories r ON p.Room_ID = r.Room_ID)
         UNION ALL
         (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
                NULL AS pc_number, r.Room_Number AS room_number, IFNULL(u.Name, 'Room Key') AS description,
-               IFNULL(u.Role, 'System') AS detail, NULL AS priority
+               IFNULL(u.Role, 'System') AS detail, NULL AS priority,
+               (CASE 
+                   WHEN o.Auth_Method = 'Key Taken' AND o.User_ID IS NOT NULL AND EXISTS (
+                       SELECT 1 FROM schedules s 
+                       WHERE s.Room_ID = o.Room_ID 
+                         AND s.User_ID = o.User_ID 
+                         AND s.Day_of_Week = DAYNAME(o.Access_Time) 
+                         AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time
+                   ) THEN 'In Session'
+                   WHEN o.Auth_Method = 'Key Taken' AND o.User_ID IS NOT NULL THEN 'Borrowed'
+                   ELSE NULL
+                END) AS session_type
         FROM occupancy_log o
         LEFT JOIN users u ON o.User_ID = u.User_ID
         JOIN laboratories r ON o.Room_ID = r.Room_ID)
@@ -64,7 +75,7 @@ async function findNotificationsByRoomIds(roomIds, executor = db) {
     return executor.query(`
         (SELECT 'report' AS type, m.Report_ID AS id, m.Date_Reported AS time, m.Status AS status, 
                p.PC_Number AS pc_number, r.Room_Number AS room_number, m.Issue_Description AS description, 
-               m.Student_Name AS detail, m.Priority_Level AS priority
+               m.Student_Name AS detail, m.Priority_Level AS priority, NULL AS session_type
         FROM maintenance m
         JOIN lab_units p ON m.PC_ID = p.PC_ID
         JOIN laboratories r ON p.Room_ID = r.Room_ID
@@ -72,7 +83,18 @@ async function findNotificationsByRoomIds(roomIds, executor = db) {
         UNION ALL
         (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
                NULL AS pc_number, r.Room_Number AS room_number, IFNULL(u.Name, 'Room Key') AS description,
-               IFNULL(u.Role, 'System') AS detail, NULL AS priority
+               IFNULL(u.Role, 'System') AS detail, NULL AS priority,
+               (CASE 
+                   WHEN o.Auth_Method = 'Key Taken' AND o.User_ID IS NOT NULL AND EXISTS (
+                       SELECT 1 FROM schedules s 
+                       WHERE s.Room_ID = o.Room_ID 
+                         AND s.User_ID = o.User_ID 
+                         AND s.Day_of_Week = DAYNAME(o.Access_Time) 
+                         AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time
+                   ) THEN 'In Session'
+                   WHEN o.Auth_Method = 'Key Taken' AND o.User_ID IS NOT NULL THEN 'Borrowed'
+                   ELSE NULL
+                END) AS session_type
         FROM occupancy_log o
         LEFT JOIN users u ON o.User_ID = u.User_ID
         JOIN laboratories r ON o.Room_ID = r.Room_ID

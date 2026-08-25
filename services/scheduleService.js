@@ -146,8 +146,8 @@ async function getITHeadSummary(sessionUserId) {
 
     const totalRooms = rooms.length;
     let availableRooms = 0;
-    let claimedRooms = 0;
-    let inUseRooms = 0;
+    let borrowedRooms = 0;
+    let inSessionRooms = 0;
     let onlineRooms = 0;
     let offlineRooms = 0;
 
@@ -159,12 +159,19 @@ async function getITHeadSummary(sessionUserId) {
             offlineRooms++;
         }
 
-        if (r.Subject_Name) {
-            inUseRooms++;
-        } else if (r.Key_Status === 'Absent') {
-            claimedRooms++;
-        } else if (isOnline) {
+        const keyAbsent = r.Key_Status === 'Absent';
+        const hasScheduledClass = !!r.Subject_Name;
+        const isScheduledProfHolder = keyAbsent && hasScheduledClass && (
+            (r.Current_User_ID != null && r.Scheduled_User_ID != null && String(r.Current_User_ID) === String(r.Scheduled_User_ID)) ||
+            (r.Current_User_ID == null && r.Scheduled_Professor_Name != null)
+        );
+
+        if (!keyAbsent) {
             availableRooms++;
+        } else if (hasScheduledClass && isScheduledProfHolder) {
+            inSessionRooms++;
+        } else {
+            borrowedRooms++;
         }
     });
 
@@ -183,8 +190,10 @@ async function getITHeadSummary(sessionUserId) {
         data: {
             totalRooms,
             availableRooms,
-            claimedRooms,
-            inUseRooms,
+            borrowedRooms,
+            inSessionRooms,
+            claimedRooms: borrowedRooms,
+            inUseRooms: inSessionRooms,
             onlineRooms,
             offlineRooms,
             totalPcs,

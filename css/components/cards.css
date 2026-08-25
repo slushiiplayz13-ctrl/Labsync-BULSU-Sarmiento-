@@ -619,19 +619,23 @@ html.high-contrast .stat-title {
     padding: 14px 16px;
     gap: 8px;
   }
+
   .help-qs-icon {
     width: 38px;
     height: 38px;
     border-radius: 10px;
   }
+
   .help-qs-icon i,
   .help-qs-icon svg {
     width: 19px;
     height: 19px;
   }
+
   .help-qs-title {
     font-size: 15.5px;
   }
+
   .help-qs-text {
     font-size: 13.5px;
     padding-left: 0;
@@ -650,9 +654,9 @@ html.high-contrast .stat-title {
   box-sizing: border-box;
 }
 
-.section-header > .sh-legend,
-.section-header > .sh-right,
-.section-header > .sh-actions {
+.section-header>.sh-legend,
+.section-header>.sh-right,
+.section-header>.sh-actions {
   flex-shrink: 0;
   white-space: nowrap;
   margin-left: auto;
@@ -665,14 +669,16 @@ html.high-contrast .stat-title {
     gap: 8px;
     margin-bottom: 12px;
   }
-  .section-header > .sh-legend,
-  .section-header > .sh-right,
-  .section-header > .sh-actions {
+
+  .section-header>.sh-legend,
+  .section-header>.sh-right,
+  .section-header>.sh-actions {
     margin-left: 0;
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
   }
+
   .sh-legend {
     gap: 10px;
   }
@@ -1384,7 +1390,7 @@ body.dark-mode .activity-status-pill.system-info,
 /* ─── Laboratory Cards Grid & Base Theme Styles ─── */
 .labs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
   gap: 12px;
   min-width: 0;
   flex: 1;
@@ -1531,7 +1537,7 @@ body[data-page="it-head-room-status"] .content-card:has(.timeline-list),
 /* Dashboard Main Grid Labs & Timeline Expanding Containers */
 .dashboard-main-grid .labs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
   gap: 14px;
   flex: 1 1 0;
   min-height: 0;
@@ -1593,7 +1599,13 @@ html.high-contrast .labs-grid::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1100px) {
+
+  /* FIX 1: Raised from 1200px → 1100px.
+     At 1200px the old rule incorrectly collapsed 1280px laptops to 1-column
+     while 1366px stayed 2-column — an abrupt visual split on similar devices.
+     1100px only fires for genuinely narrow windows; both 1280 and 1366 stay
+     in the responsive 2-column layout defined by responsive.css (1025–1320px). */
   .dashboard-main-grid {
     grid-template-columns: 1fr;
   }
@@ -2118,15 +2130,14 @@ html.high-contrast .lab-card-back {
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-  cursor: pointer;
+  cursor: default;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
 }
 
 .sg-cell.filled:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 }
 
 .sg-time-badge {
@@ -2393,11 +2404,6 @@ html.high-contrast .lab-card-back {
 .sg-cell.empty {
   background: #F8FAFC;
   border: 1px dashed transparent;
-}
-
-.sg-cell.filled:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .sg-room {
@@ -2719,47 +2725,12 @@ html.high-contrast .card-info-icon svg {
   color: #0F172A !important;
 }
 
-/* High-Contrast and Dark Mode Schedule Card Block Visibility Fixes */
+/* High-Contrast and Dark Mode Schedule Card Block Visibility */
 html.dark-mode .grid-card,
 body.dark-mode .grid-card,
 [data-theme="dark"] .grid-card,
 html.high-contrast .grid-card {
-  background-color: rgba(15, 23, 42, 0.88) !important;
-  border-color: rgba(56, 189, 248, 0.5) !important;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-}
-
-html.dark-mode .grid-card-title,
-body.dark-mode .grid-card-title,
-[data-theme="dark"] .grid-card-title,
-html.high-contrast .grid-card-title {
-  color: #FFFFFF !important;
-  font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
-}
-
-html.dark-mode .grid-card-section,
-body.dark-mode .grid-card-section,
-[data-theme="dark"] .grid-card-section,
-html.high-contrast .grid-card-section,
-html.dark-mode .grid-card-prof,
-body.dark-mode .grid-card-prof,
-[data-theme="dark"] .grid-card-prof,
-html.high-contrast .grid-card-prof {
-  color: #E2E8F0 !important;
-  font-weight: 600 !important;
-}
-
-html.dark-mode .grid-card-time,
-body.dark-mode .grid-card-time,
-[data-theme="dark"] .grid-card-time,
-html.high-contrast .grid-card-time,
-html.dark-mode .grid-card-time-text,
-body.dark-mode .grid-card-time-text,
-[data-theme="dark"] .grid-card-time-text,
-html.high-contrast .grid-card-time-text {
-  color: #38BDF8 !important;
-  font-weight: 700 !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 /* ─── Faculty Management Grid & Faculty Subcomponent Cards Component Styles ─── */
@@ -3146,7 +3117,12 @@ html.high-contrast .grid-card-time-text {
   width: 100%;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 769px) {
+
+  /* FIX 2a: Changed from min-width:768px → 769px.
+     At exactly 768px, the old rule (4-col) fired simultaneously with
+     responsive.css max-width:768px (2-col !important), creating a cascade
+     conflict. Now 768px gets only the 2-col mobile rule; 769px+ gets 4-col. */
   .pc-grid-container {
     grid-template-columns: repeat(4, 1fr) !important;
     gap: 12px !important;
@@ -4176,6 +4152,10 @@ html.high-contrast .help-modal-close-btn:focus-visible {
   color: #0284C7 !important;
 }
 
+.amber-text {
+  color: #D97706 !important;
+}
+
 /* ─── Impeccable Lab Status Card Structure ─── */
 .lab-card {
   display: flex !important;
@@ -4263,7 +4243,7 @@ html.high-contrast .help-modal-close-btn:focus-visible {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 165px;
+  max-width: 185px;
 }
 
 /* Compact Separated Status Footer */
@@ -4420,7 +4400,7 @@ html.high-contrast .btn-health-view:hover {
 
 .greeting-left .greeting-title {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 800;
   color: var(--primary-teal);
   line-height: 1.2;
@@ -4428,9 +4408,9 @@ html.high-contrast .btn-health-view:hover {
 }
 
 .greeting-left .greeting-sub {
-  font-size: 14.5px;
+  font-size: 13.5px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: 3px;
   font-weight: 400;
 }
 
@@ -4440,17 +4420,17 @@ html.high-contrast .btn-health-view:hover {
 
 .clock-time {
   font-family: var(--font-display);
-  font-size: 33px;
+  font-size: 27px;
   font-weight: 800;
   color: var(--primary-teal);
   letter-spacing: -0.5px;
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .clock-date {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-muted);
-  margin-top: 5px;
+  margin-top: 4px;
   font-weight: 500;
 }
 
@@ -4551,104 +4531,130 @@ html.high-contrast .lab-filter-btn.active {
   color: #FFFFFF !important;
 }
 
-/* Ensure dashboard pages fit laptop viewports efficiently on Normal text size when side-by-side */
+/* Ensure dashboard pages fit laptop viewports efficiently when side-by-side */
 @media (min-width: 1141px) and (min-height: 720px) and (max-height: 850px) {
-  html.text-scale-normal body[data-page="dashboard"],
-  html.text-scale-normal body[data-page="it-head-dashboard"],
-  html.text-scale-normal body[data-page="mis-dashboard"] {
+
+  body[data-page="dashboard"],
+  body[data-page="it-head-dashboard"],
+  body[data-page="mis-dashboard"] {
     overflow: hidden !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .main-wrapper,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .main-wrapper,
-  html.text-scale-normal body[data-page="mis-dashboard"] .main-wrapper {
+
+  body[data-page="dashboard"] .main-wrapper,
+  body[data-page="it-head-dashboard"] .main-wrapper,
+  body[data-page="mis-dashboard"] .main-wrapper {
     height: 100vh !important;
     overflow: hidden !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .page-content,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .page-content,
-  html.text-scale-normal body[data-page="mis-dashboard"] .page-content {
+
+  body[data-page="dashboard"] .page-content,
+  body[data-page="it-head-dashboard"] .page-content,
+  body[data-page="mis-dashboard"] .page-content {
     overflow: hidden !important;
     padding: 14px 24px !important;
     height: calc(100vh - var(--header-height)) !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .greeting-row,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .greeting-row,
-  html.text-scale-normal body[data-page="mis-dashboard"] .greeting-row {
-    margin-bottom: 8px !important;
+
+  body[data-page="dashboard"] .greeting-row,
+  body[data-page="it-head-dashboard"] .greeting-row,
+  body[data-page="mis-dashboard"] .greeting-row {
+    margin-bottom: 10px !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .greeting-title,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .greeting-title,
-  html.text-scale-normal body[data-page="mis-dashboard"] .greeting-title {
-    font-size: 20px !important;
-    margin-bottom: 2px !important;
+
+  body[data-page="dashboard"] .greeting-title,
+  body[data-page="it-head-dashboard"] .greeting-title,
+  body[data-page="mis-dashboard"] .greeting-title {
+    font-size: 25px !important;
+    font-weight: 800 !important;
+    margin-bottom: 3px !important;
+    line-height: 1.2 !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .greeting-sub,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .greeting-sub,
-  html.text-scale-normal body[data-page="mis-dashboard"] .greeting-sub {
-    font-size: 12.5px !important;
+
+  body[data-page="dashboard"] .greeting-sub,
+  body[data-page="it-head-dashboard"] .greeting-sub,
+  body[data-page="mis-dashboard"] .greeting-sub {
+    font-size: 13.5px !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .clock-time,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .clock-time,
-  html.text-scale-normal body[data-page="mis-dashboard"] .clock-time {
-    font-size: 20px !important;
+
+  body[data-page="dashboard"] .clock-time,
+  body[data-page="it-head-dashboard"] .clock-time,
+  body[data-page="mis-dashboard"] .clock-time {
+    font-size: 27px !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .stat-card,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .stat-card,
-  html.text-scale-normal body[data-page="mis-dashboard"] .stat-card {
-    padding: 10px 14px !important;
-    min-height: 90px !important;
-    border-radius: 18px !important;
+
+  body[data-page="dashboard"] .clock-date,
+  body[data-page="it-head-dashboard"] .clock-date,
+  body[data-page="mis-dashboard"] .clock-date {
+    font-size: 13px !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .stat-value,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .stat-value,
-  html.text-scale-normal body[data-page="mis-dashboard"] .stat-value {
-    font-size: 26px !important;
+
+  body[data-page="dashboard"] .stat-card,
+  body[data-page="it-head-dashboard"] .stat-card,
+  body[data-page="mis-dashboard"] .stat-card {
+    padding: 12px 14px !important;
+    min-height: 105px !important;
+    border-radius: 16px !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .stat-title,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .stat-title,
-  html.text-scale-normal body[data-page="mis-dashboard"] .stat-title {
+
+  body[data-page="dashboard"] .stat-value,
+  body[data-page="it-head-dashboard"] .stat-value,
+  body[data-page="mis-dashboard"] .stat-value {
+    font-size: 28px !important;
+  }
+
+  body[data-page="dashboard"] .stat-title,
+  body[data-page="it-head-dashboard"] .stat-title,
+  body[data-page="mis-dashboard"] .stat-title {
     font-size: 11px !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .dashboard-card,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .dashboard-card,
-  html.text-scale-normal body[data-page="mis-dashboard"] .dashboard-card {
+
+  body[data-page="dashboard"] .dashboard-card,
+  body[data-page="it-head-dashboard"] .dashboard-card,
+  body[data-page="mis-dashboard"] .dashboard-card {
     overflow: hidden !important;
     padding: 10px 12px !important;
     flex: 1 !important;
     min-height: 0 !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .dashboard-overview,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .dashboard-overview,
-  html.text-scale-normal body[data-page="mis-dashboard"] .dashboard-overview {
+
+  body[data-page="dashboard"] .dashboard-overview,
+  body[data-page="it-head-dashboard"] .dashboard-overview,
+  body[data-page="mis-dashboard"] .dashboard-overview {
     overflow: hidden !important;
     gap: 8px !important;
     flex: 1 !important;
     min-height: 0 !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .dashboard-main-grid,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .dashboard-main-grid,
-  html.text-scale-normal body[data-page="mis-dashboard"] .dashboard-main-grid {
+
+  body[data-page="dashboard"] .dashboard-main-grid,
+  body[data-page="it-head-dashboard"] .dashboard-main-grid,
+  body[data-page="mis-dashboard"] .dashboard-main-grid {
     overflow: hidden !important;
     gap: 12px !important;
     flex: 1 !important;
     min-height: 0 !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .content-card,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .content-card,
-  html.text-scale-normal body[data-page="mis-dashboard"] .content-card {
+
+  body[data-page="dashboard"] .content-card,
+  body[data-page="it-head-dashboard"] .content-card,
+  body[data-page="mis-dashboard"] .content-card {
     overflow: hidden !important;
     padding: 12px 14px !important;
     flex: 1 !important;
     min-height: 0 !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .labs-grid,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .labs-grid {
+
+  body[data-page="dashboard"] .labs-grid,
+  body[data-page="it-head-dashboard"] .labs-grid {
     overflow-y: auto !important;
     flex: 1 !important;
     min-height: 0 !important;
   }
-  html.text-scale-normal body[data-page="dashboard"] .timeline-list,
-  html.text-scale-normal body[data-page="it-head-dashboard"] .timeline-list {
+
+  body[data-page="dashboard"] .timeline-list,
+  body[data-page="it-head-dashboard"] .timeline-list {
     overflow-y: auto !important;
     flex: 1 !important;
     min-height: 0 !important;

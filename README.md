@@ -59,7 +59,7 @@ LabSync/
 ├── services/                   # Business logic, IoT services, notifications
 │
 ├── css/                        # Modular CSS architecture
-│   ├── variables.css           # Design tokens, themes & text scaling
+│   ├── variables.css           # Design tokens, themes & contrast modes
 │   ├── reset.css               # Base resets & scrollbars
 │   ├── layouts.css             # Header, sidebar & page layout
 │   ├── components/             # Domain modular component stylesheets

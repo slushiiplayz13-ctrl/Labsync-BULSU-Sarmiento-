@@ -28,13 +28,13 @@ Faculty are general staff members responsible for their classroom slots.
 - **Faculty Dashboard (`index.html`)**: Overview of active lab rooms, total pending PC reports, classes today, and custom quick start guides based on the user's role.
 - **Laboratory Status (`room-status.html`)**: View real-time statuses of lab rooms:
   - `Available` (Green)
-  - `Claimed` (Orange)
-  - `In Use` (Red)
+  - `Borrowed` (Orange)
+  - `In Session` (Red)
 - **PC Reports List (`faculty-pc-reports.html`)**: View student-reported computer faults (broken mice, monitors, system units, etc.) for laboratories.
 - **My Schedule (`my-schedule.html`)**: Interactive weekly timetable filterable by Academic Year (e.g., `2025-2026`) and Semester (`1st Semester`, `2nd Semester`, `Summer`).
-- **Accessibility Adjustments**: Profile dropdown feature displaying adjustments for:
-  - **Text Scaling**: Adjust page zoom globally (`90%`, `100%`, `110%`, `120%`) to support low-vision users.
-  - **High Contrast Theme**: Toggle to switch active stylesheets to a dark high-contrast mode with optimized readability, persisting in `localStorage`.
+- **Profile Menu Controls**: Profile dropdown features including:
+  - **Account Settings**: Edit profile details, credentials, and QR code access.
+  - **Dark Mode Direct Toggle**: Switch active theme to dark high-contrast mode with optimized readability, persisting in `localStorage`.
 
 ---
 

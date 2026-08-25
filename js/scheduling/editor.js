@@ -288,21 +288,19 @@
           const item = document.createElement('div');
           const fullLabel = s.Subject_Code ? `${s.Subject_Code} - ${s.Subject_Name}` : s.Subject_Name;
           item.className = 'custom-select-option';
-          item.style.cssText = 'padding: 10px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border-light); color: var(--text-dark);';
+          item.dataset.value = fullLabel;
           item.textContent = fullLabel;
-          item.onmouseover = () => {
-            item.style.background = 'var(--primary-teal-light)';
-            item.style.color = 'var(--primary-teal)';
-          };
-          item.onmouseout = () => {
-            item.style.background = 'transparent';
-            item.style.color = 'var(--text-dark)';
-          };
           item.onclick = (e) => {
             e.stopPropagation();
             const input = document.getElementById('block-subject');
             if (input) input.value = fullLabel;
-            subjectWrapper.style.display = 'none';
+
+            const wrapper = document.getElementById('subject-wrapper');
+            if (wrapper) wrapper.classList.remove('open');
+
+            const options = subjectWrapper.querySelectorAll('.custom-select-option');
+            options.forEach(o => o.classList.remove('selected'));
+            item.classList.add('selected');
           };
           subjectWrapper.appendChild(item);
         });
@@ -576,14 +574,15 @@
     }
 
     // Grid layout styling
-    const slotHeight = window.innerWidth <= 768 ? 30 : 45;
+    const slotHeight = window.innerWidth <= 768 ? 30 : 36;
+    const totalSlots = (global.timeUtils && global.timeUtils.TOTAL_SLOTS) || 27;
     const gridBody = document.querySelector('.calendar-grid-body');
     if (gridBody) {
-      gridBody.style.height = `${24 * slotHeight}px`;
+      gridBody.style.height = `${totalSlots * slotHeight}px`;
     }
     document.querySelectorAll('.grid-day-column').forEach(col => {
       col.style.backgroundSize = `100% ${slotHeight}px`;
-      col.style.backgroundImage = `linear-gradient(to bottom, transparent ${slotHeight - 1}px, rgba(226, 232, 240, 0.4) ${slotHeight - 1}px, rgba(226, 232, 240, 0.4) ${slotHeight}px)`;
+      col.style.backgroundImage = `linear-gradient(to bottom, transparent ${slotHeight - 1}px, var(--border-light) ${slotHeight - 1}px, var(--border-light) ${slotHeight}px)`;
     });
     document.querySelectorAll('.grid-time-label').forEach((label, idx) => {
       label.style.top = `${idx * slotHeight}px`;
@@ -643,9 +642,26 @@
       });
     }
 
-    // Subject input search autocomplete
+    // Subject input search autocomplete & custom select wrapper handling
     const blockSubjectInput = document.getElementById('block-subject');
-    if (blockSubjectInput) {
+    const subjectWrapper = document.getElementById('subject-wrapper');
+    if (blockSubjectInput && subjectWrapper) {
+      const openSubjectDropdown = () => {
+        const dropdown = document.getElementById('subject-select-dropdown');
+        if (dropdown && dropdown.children.length > 0) {
+          document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+            if (w !== subjectWrapper) w.classList.remove('open');
+          });
+          subjectWrapper.classList.add('open');
+        }
+      };
+
+      blockSubjectInput.addEventListener('focus', openSubjectDropdown);
+      blockSubjectInput.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openSubjectDropdown();
+      });
+
       blockSubjectInput.addEventListener('input', () => {
         const filter = blockSubjectInput.value.toLowerCase().trim();
         const dropdown = document.getElementById('subject-select-dropdown');
@@ -655,24 +671,24 @@
         let matchCount = 0;
         items.forEach(item => {
           const text = item.textContent.toLowerCase();
-          if (!filter || text.includes(filter)) {
-            item.style.display = 'block';
-            matchCount++;
+          const isMatch = !filter || text.includes(filter);
+          item.style.display = isMatch ? 'flex' : 'none';
+          if (isMatch) matchCount++;
+
+          if (filter && text === filter) {
+            item.classList.add('selected');
           } else {
-            item.style.display = 'none';
+            item.classList.remove('selected');
           }
         });
-        dropdown.style.display = matchCount > 0 ? 'block' : 'none';
+
+        if (matchCount > 0) {
+          subjectWrapper.classList.add('open');
+        } else {
+          subjectWrapper.classList.remove('open');
+        }
       });
     }
-
-    document.addEventListener('click', (e) => {
-      const dropdown = document.getElementById('subject-select-dropdown');
-      const input = document.getElementById('block-subject');
-      if (dropdown && input && !dropdown.contains(e.target) && e.target !== input) {
-        dropdown.style.display = 'none';
-      }
-    });
 
     // Save schedule / Edit mode button
     const saveBtn = document.getElementById('save-schedule-btn');
