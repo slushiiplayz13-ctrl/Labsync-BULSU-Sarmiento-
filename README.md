@@ -2,44 +2,6 @@
 
 LabSync is a full-stack laboratory room status, faculty schedule management, and IoT-integrated access monitoring platform built for **Bulacan State University – Sarmiento Campus**.
 
----
-
-## 🚀 Quick Start
-
-### 1. Prerequisites
-- **Node.js** (v18 or higher)
-- **MySQL / MariaDB** (v10.4 or higher, e.g. XAMPP)
-
-### 2. Environment Configuration
-Create a `.env` file in the project root:
-```env
-PORT=3000
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=labsync
-SESSION_SECRET=your-secure-session-secret-here
-```
-
-### 3. Database Initialization
-1. Create the MySQL database `labsync`.
-2. Import the baseline snapshot schema from [`labsync.sql`](file:///c:/Users/andre/Downloads/LabSync/labsync.sql):
-   ```bash
-   mysql -u root -p labsync < labsync.sql
-   ```
-3. When the Node.js server starts, it will automatically execute any incremental schema migrations in [`database/migrations/`](file:///c:/Users/andre/Downloads/LabSync/database/migrations/) idempotently.
-
-### 4. Install & Run
-```bash
-# Install dependencies
-npm install
-
-# Start the application server
-npm start
-```
-Open your browser and navigate to: **`http://localhost:3000`**
-
----
 
 ## 🏛️ Project Architecture
 
@@ -82,10 +44,4 @@ LabSync/
 
 ---
 
-## 📖 Documentation
 
-Detailed documentation is available in the [`docs/`](file:///c:/Users/andre/Downloads/LabSync/docs/) directory:
-
-- 📘 [**System Documentation & API Specifications**](file:///c:/Users/andre/Downloads/LabSync/docs/SYSTEM_DOCUMENTATION.md)
-- 🔌 [**Hardware & IoT Handover Notes**](file:///c:/Users/andre/Downloads/LabSync/docs/hardware/IOT_HANDOVER_SUMMARY.md)
-- 📝 [**V1.0.0 Release Changelog**](file:///c:/Users/andre/Downloads/LabSync/docs/releases/v1_0_0_feature_summary.md)
