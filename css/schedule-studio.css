@@ -246,12 +246,30 @@
   flex-shrink: 0;
 }
 
-.theme-swatch.theme-midnight { background: linear-gradient(135deg, #090D16 0%, #1E293B 100%); }
-.theme-swatch.theme-teal { background: linear-gradient(135deg, #0A192F 0%, #0284C7 100%); }
-.theme-swatch.theme-academic { background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%); }
-.theme-swatch.theme-glass { background: linear-gradient(135deg, #334155 0%, #475569 100%); }
-.theme-swatch.theme-minimal { background: linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%); border: 1px solid #CBD5E1; }
-.theme-swatch.theme-sunset { background: linear-gradient(135deg, #4C1D95 0%, #831843 100%); }
+.theme-swatch.theme-midnight {
+  background: linear-gradient(135deg, #090D16 0%, #1E293B 100%);
+}
+
+.theme-swatch.theme-teal {
+  background: linear-gradient(135deg, #0A192F 0%, #0284C7 100%);
+}
+
+.theme-swatch.theme-academic {
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
+}
+
+.theme-swatch.theme-glass {
+  background: linear-gradient(135deg, #334155 0%, #475569 100%);
+}
+
+.theme-swatch.theme-minimal {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%);
+  border: 1px solid #CBD5E1;
+}
+
+.theme-swatch.theme-sunset {
+  background: linear-gradient(135deg, #4C1D95 0%, #831843 100%);
+}
 
 .theme-name {
   font-size: 12px;
@@ -323,12 +341,12 @@
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.studio-switch input:checked + .switch-slider {
+.studio-switch input:checked+.switch-slider {
   background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
   box-shadow: 0 2px 8px rgba(14, 165, 233, 0.35);
 }
 
-.studio-switch input:checked + .switch-slider::before {
+.studio-switch input:checked+.switch-slider::before {
   transform: translateX(18px);
 }
 
@@ -405,8 +423,14 @@
   padding-bottom: 14px;
 }
 
-.theme-midnight-card .canvas-user-title { color: #F8FAFC !important; }
-.theme-midnight-card .canvas-user-sub { color: #94A3B8 !important; }
+.theme-midnight-card .canvas-user-title {
+  color: #F8FAFC !important;
+}
+
+.theme-midnight-card .canvas-user-sub {
+  color: #94A3B8 !important;
+}
+
 .theme-midnight-card .canvas-meta-badge {
   background: rgba(56, 189, 248, 0.15) !important;
   color: #38BDF8 !important;
@@ -430,7 +454,9 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.theme-midnight-card .canvas-empty-day { color: #64748B; }
+.theme-midnight-card .canvas-empty-day {
+  color: #64748B;
+}
 
 /* 2. LabSync Blue Theme */
 .theme-teal-card {
@@ -443,8 +469,14 @@
   padding-bottom: 14px;
 }
 
-.theme-teal-card .canvas-user-title { color: #FFFFFF !important; }
-.theme-teal-card .canvas-user-sub { color: rgba(255, 255, 255, 0.85) !important; }
+.theme-teal-card .canvas-user-title {
+  color: #FFFFFF !important;
+}
+
+.theme-teal-card .canvas-user-sub {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
 .theme-teal-card .canvas-meta-badge {
   background: rgba(255, 255, 255, 0.15) !important;
   color: #FFFFFF !important;
@@ -468,7 +500,9 @@
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.theme-teal-card .canvas-empty-day { color: rgba(255, 255, 255, 0.6); }
+.theme-teal-card .canvas-empty-day {
+  color: rgba(255, 255, 255, 0.6);
+}
 
 /* 3. Academic Navy Theme */
 .theme-academic-card {
@@ -481,8 +515,14 @@
   padding-bottom: 14px;
 }
 
-.theme-academic-card .canvas-user-title { color: #FFFFFF !important; }
-.theme-academic-card .canvas-user-sub { color: #FDE68A !important; }
+.theme-academic-card .canvas-user-title {
+  color: #FFFFFF !important;
+}
+
+.theme-academic-card .canvas-user-sub {
+  color: #FDE68A !important;
+}
+
 .theme-academic-card .canvas-meta-badge {
   background: rgba(245, 158, 11, 0.2) !important;
   color: #FBBF24 !important;
@@ -505,7 +545,9 @@
   border-top: 1px solid rgba(251, 191, 36, 0.25);
 }
 
-.theme-academic-card .canvas-empty-day { color: rgba(255, 255, 255, 0.5); }
+.theme-academic-card .canvas-empty-day {
+  color: rgba(255, 255, 255, 0.5);
+}
 
 /* 4. Glassmorphism Theme */
 .theme-glass-card {
@@ -518,8 +560,14 @@
   padding-bottom: 14px;
 }
 
-.theme-glass-card .canvas-user-title { color: #F8FAFC !important; }
-.theme-glass-card .canvas-user-sub { color: #CBD5E1 !important; }
+.theme-glass-card .canvas-user-title {
+  color: #F8FAFC !important;
+}
+
+.theme-glass-card .canvas-user-sub {
+  color: #CBD5E1 !important;
+}
+
 .theme-glass-card .canvas-meta-badge {
   background: rgba(255, 255, 255, 0.15) !important;
   color: #F1F5F9 !important;
@@ -543,7 +591,9 @@
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.theme-glass-card .canvas-empty-day { color: #64748B; }
+.theme-glass-card .canvas-empty-day {
+  color: #64748B;
+}
 
 /* 5. Minimal Light Theme (Clean Crisp White UI) */
 .theme-minimal-card {
@@ -558,8 +608,14 @@
   padding-bottom: 14px;
 }
 
-.theme-minimal-card .canvas-user-title { color: #0F172A !important; }
-.theme-minimal-card .canvas-user-sub { color: #475569 !important; }
+.theme-minimal-card .canvas-user-title {
+  color: #0F172A !important;
+}
+
+.theme-minimal-card .canvas-user-sub {
+  color: #475569 !important;
+}
+
 .theme-minimal-card .canvas-meta-badge {
   background: #E0F2FE !important;
   color: #0369A1 !important;
@@ -582,7 +638,9 @@
   color: #64748B;
 }
 
-.theme-minimal-card .canvas-empty-day { color: #94A3B8; }
+.theme-minimal-card .canvas-empty-day {
+  color: #94A3B8;
+}
 
 /* 6. Sunset Warmth Theme */
 .theme-sunset-card {
@@ -595,8 +653,14 @@
   padding-bottom: 14px;
 }
 
-.theme-sunset-card .canvas-user-title { color: #FFFFFF !important; }
-.theme-sunset-card .canvas-user-sub { color: #FECDD3 !important; }
+.theme-sunset-card .canvas-user-title {
+  color: #FFFFFF !important;
+}
+
+.theme-sunset-card .canvas-user-sub {
+  color: #FECDD3 !important;
+}
+
 .theme-sunset-card .canvas-meta-badge {
   background: rgba(255, 255, 255, 0.2) !important;
   color: #FFF1F2 !important;
@@ -619,7 +683,9 @@
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.theme-sunset-card .canvas-empty-day { color: #FDA4AF; }
+.theme-sunset-card .canvas-empty-day {
+  color: #FDA4AF;
+}
 
 /* ── CANVAS INTERNAL ELEMENTS ─────────────────────────────── */
 
@@ -1269,10 +1335,9 @@ html[data-theme="dark"] .studio-preview-workspace,
 
 /* ── Hide Schedule Studio Feature on Mobile & Tablet Devices ── */
 @media (max-width: 1024px) {
+
   .btn-schedule-studio,
   .studio-modal-overlay {
     display: none !important;
   }
 }
-
-

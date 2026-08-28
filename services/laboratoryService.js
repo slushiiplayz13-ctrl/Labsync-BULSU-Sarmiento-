@@ -84,6 +84,8 @@ async function getAllLaboratories() {
             Current_Class: currentClassInfo,
             Scheduled_Class: hasScheduledClass ? {
                 subject: room.Subject_Name,
+                subjectCode: room.Subject_Code || '',
+                subjectName: room.Curriculum_Subject_Name || room.Subject_Name,
                 section: room.Section,
                 professor: scheduledProfName,
                 startTime: room.Start_Time,

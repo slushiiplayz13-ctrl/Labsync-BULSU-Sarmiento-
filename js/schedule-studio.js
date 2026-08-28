@@ -1,6 +1,6 @@
 // ── Schedule Studio Logic (Custom Schedule Image & Wallpaper Generator) ─────
 
-(function() {
+(function () {
   'use strict';
 
   // Default Studio State (Fixed to 16:9 Desktop format)
@@ -188,7 +188,7 @@
   }
 
   // Open Studio Modal (Desktop Only)
-  window.openScheduleStudio = function() {
+  window.openScheduleStudio = function () {
     if (window.innerWidth <= 1024) {
       return;
     }
@@ -199,7 +199,7 @@
   };
 
   // Close Studio Modal
-  window.closeScheduleStudio = function() {
+  window.closeScheduleStudio = function () {
     const overlay = document.getElementById('studio-modal-overlay');
     if (overlay) overlay.classList.remove('active');
   };
@@ -258,18 +258,19 @@
         items.forEach(item => {
           const timeStr = formatTimeRange(item.Start_Time, item.End_Time);
           const subjName = item.Subject_Name || 'Class';
+          const subjCode = item.Subject_Code || (subjName.includes(' - ') ? subjName.split(' - ')[0].trim() : subjName);
           let roomVal = item.Room_Name || item.Room_Number || 'TBA';
           if (roomVal !== 'TBA' && !roomVal.toLowerCase().includes('rm') && !roomVal.toLowerCase().includes('lab') && !roomVal.toLowerCase().includes('room')) {
             roomVal = `RM ${roomVal}`;
           }
           const sectionVal = item.Section_Name || item.Section || '';
-          
+
           itemsHTML += `
             <div class="canvas-class-block" style="background: ${item.bg || 'linear-gradient(135deg, #1D4ED8 0%, #1E3A8A 100%)'}; color: ${item.color || '#FFFFFF'};">
               <div class="canvas-class-time">
                 ${timeStr}
               </div>
-              <div class="canvas-class-subject" title="${escapeHtml(subjName)}">${escapeHtml(subjName)}</div>
+              <div class="canvas-class-subject" title="${escapeHtml(subjName)}">${escapeHtml(subjCode)}</div>
               <div class="canvas-class-meta">
                 <span>📍 ${escapeHtml(roomVal)}</span>
                 ${sectionVal ? `<span class="canvas-sec-tag">${escapeHtml(sectionVal)}</span>` : ''}
@@ -337,7 +338,7 @@
       const roomRaw = cell.querySelector('.sg-room-badge')?.textContent?.trim() || cell.querySelector('.sg-room')?.textContent?.trim() || '';
       const room = roomRaw.replace(/^[📍📍\s]+/, '').trim();
       const sec = cell.querySelector('.sg-section-badge')?.textContent?.trim() || cell.querySelector('.sg-badge')?.textContent?.trim() || '';
-      
+
       let dayFull = 'Monday';
       if (day === 'MON') dayFull = 'Monday';
       else if (day === 'TUE') dayFull = 'Tuesday';
@@ -378,10 +379,10 @@
     const s = formatTime12(startStr);
     const e = formatTime12(endStr);
     if (!s || !e) return `${s || ''} ${e || ''}`.trim();
-    
+
     const sMatch = s.match(/^(\d+:\d+)\s*(AM|PM)$/i);
     const eMatch = e.match(/^(\d+:\d+)\s*(AM|PM)$/i);
-    
+
     if (sMatch && eMatch) {
       const sPer = sMatch[2].toUpperCase();
       const ePer = eMatch[2].toUpperCase();

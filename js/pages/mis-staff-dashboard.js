@@ -200,7 +200,21 @@ async function loadDashboardData() {
  * @param {number} reportId
  */
 async function resolveDashboardTicket(reportId) {
-  if (!confirm(`Are you sure you want to resolve Ticket LS-TKT-${reportId}?`)) return;
+  const confirmFn = window.showConfirmModal || global.showConfirmModal;
+  let confirmed = false;
+  if (typeof confirmFn === 'function') {
+    confirmed = await confirmFn({
+      title: 'Resolve Ticket',
+      message: `Are you sure you want to mark Ticket LS-TKT-${reportId} as Resolved?`,
+      confirmText: 'Resolve Ticket',
+      cancelText: 'Cancel',
+      isDestructive: false
+    });
+  } else {
+    confirmed = confirm(`Are you sure you want to resolve Ticket LS-TKT-${reportId}?`);
+  }
+  if (!confirmed) return;
+
   try {
     const res = await fetch(`/api/reports/${reportId}/status`, {
       method: 'PUT',
@@ -209,7 +223,7 @@ async function resolveDashboardTicket(reportId) {
     });
     if (res.ok) {
       loadDashboardData();
-      if (window.showToast) window.showToast(`Ticket LS-TKT-${reportId} resolved successfully.`);
+      if (window.showToast) window.showToast(`Ticket LS-TKT-${reportId} resolved successfully.`, 'success');
     }
   } catch (err) {
     console.error('Error resolving ticket:', err);

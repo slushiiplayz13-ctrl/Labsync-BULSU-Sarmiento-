@@ -41,12 +41,13 @@
             <div>
               <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Full Name *</label>
               <input type="text" id="faculty-name" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:8px;font-size:14px;font-family:var(--font-body);outline:none;transition:border-color 0.2s;" placeholder="e.g. Juan Dela Cruz">
+              <div id="faculty-name-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i><span id="faculty-name-error-text">Numbers and symbols are not allowed in names.</span></div>
             </div>
             
             <div>
               <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Email Address *</label>
               <input type="email" id="faculty-email" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:8px;font-size:14px;font-family:var(--font-body);outline:none;transition:border-color 0.2s;" placeholder="e.g. juan.delacruz@bsu.edu.ph">
-              <div id="faculty-email-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Invalid email address (e.g., user@domain.com)</div>
+              <div id="faculty-email-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i><span id="faculty-email-error-text">Invalid email address (e.g., user@domain.com)</span></div>
             </div>
             
             <div class="alert-info-box">
@@ -81,9 +82,49 @@
         if (e.target === modal) modal.remove();
       });
 
-      // Live email validation
+      // Live Name Validation
+      const nameInput = document.getElementById('faculty-name');
+      const nameErrDiv = document.getElementById('faculty-name-error');
+      const nameErrText = document.getElementById('faculty-name-error-text');
+      const validateName = (name) => {
+        if (global.facultyUtils && typeof global.facultyUtils.validateFacultyName === 'function') {
+          return global.facultyUtils.validateFacultyName(name);
+        }
+        if (!name || !name.trim()) return { valid: false, error: 'Full name is required.' };
+        const trimmed = name.trim();
+        if (trimmed.length < 2) return { valid: false, error: 'Name must be at least 2 characters long.' };
+        if (/\d/.test(trimmed)) return { valid: false, error: 'Numbers are not allowed in faculty names.' };
+        const nameRegex = /^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s.',-]+$/;
+        if (!nameRegex.test(trimmed)) {
+          return { valid: false, error: 'Special symbols (@, #, $, etc.) are not allowed.' };
+        }
+        return { valid: true };
+      };
+
+      if (nameInput && nameErrDiv) {
+        nameInput.addEventListener('input', () => {
+          const val = nameInput.value;
+          if (val.trim()) {
+            const res = validateName(val);
+            if (!res.valid) {
+              nameInput.style.borderColor = '#EF4444';
+              if (nameErrText) nameErrText.textContent = res.error;
+              nameErrDiv.style.display = 'block';
+            } else {
+              nameInput.style.borderColor = 'var(--border-light)';
+              nameErrDiv.style.display = 'none';
+            }
+          } else {
+            nameInput.style.borderColor = 'var(--border-light)';
+            nameErrDiv.style.display = 'none';
+          }
+        });
+      }
+
+      // Live Email Validation
       const emailInput = document.getElementById('faculty-email');
       const emailErrDiv = document.getElementById('faculty-email-error');
+      const emailErrText = document.getElementById('faculty-email-error-text');
       const validateEmail = (email) => {
         if (global.facultyUtils && typeof global.facultyUtils.validateFacultyEmail === 'function') {
           return global.facultyUtils.validateFacultyEmail(email);
@@ -116,8 +157,30 @@
             role: 'Faculty'
           };
 
+          // Validate Name
+          const nameValResult = validateName(formData.name);
+          if (!nameValResult.valid) {
+            if (typeof global.showToast === 'function') {
+              global.showToast(nameValResult.error, 'error', 'Invalid Name');
+            } else {
+              alert('Invalid Name: ' + nameValResult.error);
+            }
+            if (nameInput) {
+              nameInput.focus();
+              nameInput.style.borderColor = '#EF4444';
+              if (nameErrText) nameErrText.textContent = nameValResult.error;
+              if (nameErrDiv) nameErrDiv.style.display = 'block';
+            }
+            return;
+          }
+
+          // Validate Email
           if (!validateEmail(formData.email)) {
-            alert('Security Warning: Invalid email address format!\n\nPlease enter a valid email address (e.g., name@example.com). Random letters or malformed email strings are not allowed.');
+            if (typeof global.showToast === 'function') {
+              global.showToast('Please enter a valid email address (e.g., user@domain.com).', 'error', 'Invalid Email');
+            } else {
+              alert('Security Warning: Invalid email address format!\n\nPlease enter a valid email address (e.g., name@example.com).');
+            }
             if (emailInput) {
               emailInput.focus();
               emailInput.style.borderColor = '#EF4444';
@@ -167,10 +230,31 @@
             }
           } catch (error) {
             console.error('Error adding faculty:', error);
+            const errorMsg = error.message || 'Failed to add faculty';
+            
+            // Check if error is related to name duplicate
+            if (errorMsg.toLowerCase().includes('already exists') && errorMsg.toLowerCase().includes('name')) {
+              if (nameInput) {
+                nameInput.focus();
+                nameInput.style.borderColor = '#EF4444';
+                if (nameErrText) nameErrText.textContent = errorMsg;
+                if (nameErrDiv) nameErrDiv.style.display = 'block';
+              }
+            } else if (errorMsg.toLowerCase().includes('email already exists')) {
+              if (emailInput) {
+                emailInput.focus();
+                emailInput.style.borderColor = '#EF4444';
+                if (emailErrText) emailErrText.textContent = 'Email already exists';
+                if (emailErrDiv) emailErrDiv.style.display = 'block';
+              }
+            }
+
             if (error.name === 'AbortError') {
               alert('The request took too long. The faculty account may have been created, but email delivery may be delayed.');
+            } else if (typeof global.showToast === 'function') {
+              global.showToast(errorMsg, 'error', 'Cannot Add Faculty');
             } else {
-              alert('Error: ' + (error.message || 'Failed to add faculty'));
+              alert(errorMsg);
             }
           } finally {
             clearTimeout(timeoutId);

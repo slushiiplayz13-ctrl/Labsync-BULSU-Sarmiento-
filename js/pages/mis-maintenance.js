@@ -376,7 +376,20 @@ function viewTicketModal(reportId) {
  * @param {string} newStatus
  */
 async function updateReportStatus(reportId, newStatus) {
-  if (!confirm(`Set Ticket LS-TKT-${reportId} status to '${newStatus}'?`)) return;
+  const confirmFn = window.showConfirmModal || global.showConfirmModal;
+  let confirmed = false;
+  if (typeof confirmFn === 'function') {
+    confirmed = await confirmFn({
+      title: 'Update Ticket Status',
+      message: `Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`,
+      confirmText: 'Update Status',
+      cancelText: 'Cancel',
+      isDestructive: false
+    });
+  } else {
+    confirmed = confirm(`Set Ticket LS-TKT-${reportId} status to '${newStatus}'?`);
+  }
+  if (!confirmed) return;
 
   try {
     const response = await fetch(`/api/reports/${reportId}/status`, {

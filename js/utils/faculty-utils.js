@@ -97,6 +97,31 @@
     },
 
     /**
+     * Comprehensive faculty name validation.
+     * Allows letters, spaces, hyphens, periods, apostrophes, and commas (min 2 chars).
+     * Rejects numbers and special symbols.
+     * @param {string} name
+     * @returns {{ valid: boolean, error?: string }}
+     */
+    validateFacultyName(name) {
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        return { valid: false, error: 'Full name is required.' };
+      }
+      const trimmed = name.trim();
+      if (trimmed.length < 2) {
+        return { valid: false, error: 'Name must be at least 2 characters long.' };
+      }
+      if (/\d/.test(trimmed)) {
+        return { valid: false, error: 'Numbers are not allowed in faculty names.' };
+      }
+      const nameRegex = /^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s.',-]+$/;
+      if (!nameRegex.test(trimmed)) {
+        return { valid: false, error: 'Special symbols (@, #, $, etc.) are not allowed.' };
+      }
+      return { valid: true };
+    },
+
+    /**
      * Checks if a member matches the current role filter.
      * @param {string} memberRole
      * @param {string} activeFilter
@@ -113,5 +138,7 @@
   };
 
   // Expose globally
-  global.facultyUtils = facultyUtils;
-})(typeof window !== 'undefined' ? window : this);
+  if (typeof global !== 'undefined' && global) {
+    global.facultyUtils = facultyUtils;
+  }
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));

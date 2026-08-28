@@ -285,7 +285,9 @@
               <div class="ui-empty-icon" style="background:#FEE2E2; color:#EF4444;">
                 <i data-lucide="alert-circle" style="width:24px;height:24px;"></i>
               </div>
-              <p>${escapeHtml(errorMsg)}</p>
+              <p style="font-weight:600; color:var(--text-dark, #1e293b); margin-top:8px; margin-bottom:4px;">${escapeHtml(errorMsg)}</p>
+              <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin-bottom:10px;">Please check your connection and try again.</p>
+              <button type="button" class="ui-empty-btn" onclick="initDashboard()"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Retry Connection</button>
             </div>
           `;
           if (global.lucide && typeof global.lucide.createIcons === 'function') {
@@ -343,13 +345,15 @@
         timelineList.style.alignItems = 'center';
         timelineList.style.flex = '1';
         timelineList.style.height = '100%';
+        const scheduleLink = window.location.pathname.includes('it-head') ? 'it-head-my-schedule.html' : 'my-schedule.html';
         timelineList.innerHTML = `
           <div class="ui-empty-state" style="grid-column: unset; width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; margin: auto 0;">
             <div class="ui-empty-icon" style="background:#E8F9FC; color:#1EBBD7;">
               <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
             </div>
             <p style="font-weight:600; color:var(--text-dark, #1e293b); margin-top:8px; margin-bottom:4px;">No classes scheduled for today.</p>
-            <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin:0;">Your teaching sessions will appear here when scheduled.</p>
+            <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin-bottom:12px;">Your teaching sessions will appear here when scheduled.</p>
+            <a href="${scheduleLink}" class="ui-empty-btn"><i data-lucide="calendar" style="width:14px;height:14px;"></i> View Full Schedule</a>
           </div>
         `;
         if (global.lucide && typeof global.lucide.createIcons === 'function') {

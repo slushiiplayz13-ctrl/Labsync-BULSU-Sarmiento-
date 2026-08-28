@@ -31,8 +31,20 @@
     }
   }
 
-  // Load room status & activity logs concurrently
+  // Load room status & activity logs concurrently with instant SWR cache
   async function loadRoomStatusAndLogs() {
+    // 1. Instant SWR pre-render from cache (0ms delay!)
+    try {
+      const cachedRooms = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+      if (Array.isArray(cachedRooms) && cachedRooms.length > 0) {
+        renderRoomStatusGrid(cachedRooms);
+      }
+      const cachedNotifs = JSON.parse(sessionStorage.getItem('labsync_cached_activities') || 'null');
+      if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
+        renderActivityLogList(cachedNotifs);
+      }
+    } catch (e) {}
+
     try {
       const [roomsRes, notifsRes] = await Promise.all([
         fetch('/api/laboratories', { credentials: 'include' }),
@@ -41,11 +53,13 @@
 
       if (roomsRes.ok) {
         const rooms = await roomsRes.json();
+        try { sessionStorage.setItem('labsync_cached_labs', JSON.stringify(rooms)); } catch (e) {}
         renderRoomStatusGrid(rooms);
       }
 
       if (notifsRes.ok) {
         const notifs = await notifsRes.json();
+        try { sessionStorage.setItem('labsync_cached_activities', JSON.stringify(notifs)); } catch (e) {}
         renderActivityLogList(notifs);
       }
     } catch (err) {

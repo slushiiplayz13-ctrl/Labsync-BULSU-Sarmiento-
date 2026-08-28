@@ -8,12 +8,39 @@ const facultyRepository = require('../repositories/faculty.repository');
 async function addFaculty(reqBody) {
     const { name, email, role } = reqBody;
 
+    // Validate Name Format
+    if (!name || typeof name !== 'string' || name.trim().length < 2) {
+        return { status: 400, error: 'Faculty name is required (minimum 2 characters).' };
+    }
+
+    const trimmedName = name.trim();
+
+    // Disallow numbers
+    if (/\d/.test(trimmedName)) {
+        return { status: 400, error: 'Numbers are not allowed in faculty names.' };
+    }
+
+    // Disallow forbidden symbols; only allow letters, spaces, hyphens, periods, apostrophes, and commas
+    const nameRegex = /^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s.',-]+$/;
+    if (!nameRegex.test(trimmedName)) {
+        return { status: 400, error: 'Special symbols are not allowed in faculty names.' };
+    }
+
+    // Check Duplicate Name (Case-insensitive)
+    console.time('[Faculty] findByName');
+    const [existingByName] = await facultyRepository.findByName(trimmedName);
+    console.timeEnd('[Faculty] findByName');
+
+    if (existingByName.length > 0) {
+        return { status: 400, error: `A faculty member with the name "${trimmedName}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).` };
+    }
+
     if (!email || !isValidEmailFormat(email)) {
         return { status: 400, error: 'Invalid email address. Please enter a valid email (e.g., user@domain.com).' };
     }
 
     console.time('[Faculty] findByEmail');
-    const [existing] = await facultyRepository.findByEmail(email);
+    const [existing] = await facultyRepository.findByEmail(email.trim().toLowerCase());
     console.timeEnd('[Faculty] findByEmail');
 
     if (existing.length > 0) {

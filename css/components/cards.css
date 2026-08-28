@@ -37,6 +37,39 @@
   max-width: 380px;
 }
 
+.ui-empty-state .ui-empty-btn,
+.empty-state-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 18px;
+  background: var(--primary-teal);
+  color: #ffffff !important;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px var(--primary-teal-glow);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.ui-empty-state .ui-empty-btn:hover,
+.empty-state-action-btn:hover {
+  background: var(--primary-teal-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px var(--primary-teal-glow);
+}
+
+.ui-empty-state .ui-empty-btn:active,
+.empty-state-action-btn:active {
+  transform: translateY(0);
+}
+
 /* ─── Main Content & Dashboard Container Cards ─── */
 .dashboard-card {
   background: var(--bg-card);
@@ -2202,6 +2235,8 @@ html.high-contrast .lab-card-back {
   line-height: 1.3;
   margin-top: 2px;
   color: inherit;
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* Color Themes for Schedule Cards */
@@ -2973,7 +3008,7 @@ html.high-contrast .grid-card {
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
   overflow: hidden;
   border: 1px solid var(--border-light);
 }
@@ -2982,7 +3017,7 @@ html.high-contrast .grid-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 28px;
+  padding: 22px 28px;
   border-bottom: 1px solid var(--border-light);
   background: var(--bg-card);
 }
@@ -2993,6 +3028,7 @@ html.high-contrast .grid-card {
   font-weight: 700;
   color: var(--text-dark);
   margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .sched-modal-subtitle {
@@ -3003,7 +3039,7 @@ html.high-contrast .grid-card {
 }
 
 .sched-modal-close-btn {
-  background: var(--bg-card);
+  background: var(--bg-white);
   border: 1px solid var(--border-light);
   border-radius: 50%;
   width: 32px;
@@ -3019,6 +3055,7 @@ html.high-contrast .grid-card {
 .sched-modal-close-btn:hover {
   background: var(--primary-teal-light);
   color: var(--primary-teal);
+  border-color: var(--primary-teal);
 }
 
 .sched-modal-close-btn i,
@@ -3028,31 +3065,112 @@ html.high-contrast .grid-card {
 }
 
 .sched-modal-card {
-  background: var(--bg-white);
+  background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-left: 4px solid var(--primary-teal);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 14px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all var(--transition);
+  gap: 16px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
 .sched-modal-card:hover {
-  background: var(--bg-card);
-  border-color: var(--primary-teal);
+  background: var(--bg-white);
+  border-color: rgba(0, 180, 216, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 180, 216, 0.08);
+}
+
+.sched-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.sched-card-subject {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  font-family: var(--font-display);
+  letter-spacing: -0.2px;
+  line-height: 1.3;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.sched-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 12.5px;
+  color: var(--text-mid);
+}
+
+.sched-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sched-meta-item svg,
+.sched-meta-item i {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.sched-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sched-time-badge {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: -0.1px;
+}
+
+.sched-time-badge svg,
+.sched-time-badge i {
+  color: var(--primary-teal);
+  flex-shrink: 0;
+}
+
+.sched-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  background: rgba(30, 187, 215, 0.1);
+  color: var(--primary-teal);
+  border: 1px solid rgba(30, 187, 215, 0.25);
 }
 
 .sched-modal-day-divider {
   font-size: 12px;
-  font-weight: 800;
-  color: var(--accent-blue);
-  letter-spacing: 1px;
+  font-weight: 600;
+  color: var(--primary-teal);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   border-bottom: 1px solid var(--border-light);
   padding-bottom: 6px;
-  margin-top: 8px;
+  margin-top: 10px;
+  margin-bottom: 2px;
   font-family: var(--font-body);
 }
 
@@ -4551,14 +4669,14 @@ html.high-contrast .lab-filter-btn.active {
   body[data-page="it-head-dashboard"] .page-content,
   body[data-page="mis-dashboard"] .page-content {
     overflow: hidden !important;
-    padding: 14px 24px !important;
+    padding: 24px !important;
     height: calc(100vh - var(--header-height)) !important;
   }
 
   body[data-page="dashboard"] .greeting-row,
   body[data-page="it-head-dashboard"] .greeting-row,
   body[data-page="mis-dashboard"] .greeting-row {
-    margin-bottom: 10px !important;
+    margin-bottom: 0 !important;
   }
 
   body[data-page="dashboard"] .greeting-title,
@@ -4728,4 +4846,335 @@ html.high-contrast .lab-filter-btn.active {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ─── Completed Tickets History Modal Styles ─────────────────────── */
+.completed-modal-container {
+  width: 960px !important;
+  max-width: 94vw !important;
+  height: 680px !important;
+  max-height: 88vh !important;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+}
+
+.completed-modal-container .modal-header {
+  flex-shrink: 0;
+}
+
+.completed-modal-container .modal-toolbar {
+  flex-shrink: 0;
+}
+
+.completed-modal-container .modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto !important;
+  padding: 18px 22px 22px 22px !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+.completed-modal-container .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.completed-modal-container .modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.completed-modal-container .modal-body::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 6px;
+}
+
+.completed-modal-container .modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.65);
+}
+
+.modal-count-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  background: #D1FAE5;
+  color: #059669;
+  padding: 2.5px 9px;
+  border-radius: 99px;
+  letter-spacing: 0.2px;
+}
+
+.modal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border-light, #E2E8F0);
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.modal-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.modal-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--text-muted, #94A3B8);
+  pointer-events: none;
+}
+
+.modal-search-wrapper input {
+  width: 100%;
+  height: 38px;
+  padding: 0 14px 0 34px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-light, #E2E8F0);
+  background: var(--bg-page, #F8FAFC);
+  font-size: 13px;
+  font-family: var(--font-body, inherit);
+  color: var(--text-dark, #0F172A);
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.modal-search-wrapper input:focus {
+  border-color: var(--primary-teal, #1EBBD7);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(30, 187, 215, 0.15);
+}
+
+.modal-time-filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.modal-filter-chip {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light, #E2E8F0);
+  background: var(--bg-page, #F8FAFC);
+  color: var(--text-mid, #475569);
+  font-size: 12.5px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: var(--font-body, inherit);
+}
+
+.modal-filter-chip:hover {
+  background: #E2E8F0;
+  color: var(--text-dark, #0F172A);
+}
+
+.modal-filter-chip.active {
+  background: var(--primary-teal, #1EBBD7);
+  color: #FFFFFF;
+  border-color: var(--primary-teal, #1EBBD7);
+  box-shadow: 0 2px 8px rgba(30, 187, 215, 0.25);
+}
+
+/* ─── 2-Column Grid for Completed Ticket Cards ───────────────────── */
+.modal-tickets-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+@media (max-width: 820px) {
+  .modal-tickets-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modal-ticket-card {
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-light, #E2E8F0);
+  border-radius: 14px;
+  padding: 15px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 11px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  min-height: 165px;
+}
+
+.modal-ticket-card:hover {
+  border-color: rgba(30, 187, 215, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.modal-ticket-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.modal-ticket-id {
+  font-family: var(--font-display, sans-serif);
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--primary-teal, #1EBBD7);
+  letter-spacing: -0.01em;
+}
+
+.modal-ticket-date {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2.5px 9px;
+  border-radius: 99px;
+  background: #F1F5F9;
+  color: var(--text-mid, #475569);
+}
+
+.modal-ticket-content-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modal-ticket-asset {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.modal-ticket-asset-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #E0F2FE;
+  color: #0284C7;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.modal-ticket-asset-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-dark, #0F172A);
+  font-family: var(--font-display, sans-serif);
+  line-height: 1.25;
+}
+
+.modal-ticket-reporter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-mid, #475569);
+  flex-shrink: 0;
+}
+
+.modal-ticket-remarks {
+  background: var(--bg-page, #F8FAFC);
+  border: 1px solid var(--border-light, #E2E8F0);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: auto;
+}
+
+.modal-remarks-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 750;
+  color: var(--text-muted, #94A3B8);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.modal-remarks-body {
+  font-size: 12.5px;
+  color: var(--text-dark, #1E293B);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.modal-remarks-body.is-empty {
+  color: var(--text-muted, #94A3B8);
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* High Contrast & Dark Mode Overrides */
+html.high-contrast .completed-modal-container {
+  background: #1E293B !important;
+}
+
+html.high-contrast .modal-toolbar {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+}
+
+html.high-contrast .modal-search-wrapper input {
+  background: #0F172A !important;
+  border-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .modal-filter-chip {
+  background: #0F172A !important;
+  border-color: #334155 !important;
+  color: #CBD5E1 !important;
+}
+
+html.high-contrast .modal-filter-chip.active {
+  background: var(--primary-teal) !important;
+  color: #FFFFFF !important;
+}
+
+html.high-contrast .modal-ticket-card {
+  background: #0F172A !important;
+  border-color: #334155 !important;
+}
+
+html.high-contrast .modal-ticket-card:hover {
+  border-color: var(--primary-teal) !important;
+}
+
+html.high-contrast .modal-ticket-asset-name {
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .modal-ticket-remarks {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+}
+
+html.high-contrast .modal-remarks-body {
+  color: #F8FAFC !important;
 }

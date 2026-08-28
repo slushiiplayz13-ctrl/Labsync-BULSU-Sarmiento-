@@ -448,14 +448,30 @@ async function submitAddPc() {
  * @param {number} pcId
  */
 async function deletePC(pcId) {
-  if (!confirm('Are you sure you want to delete this PC?')) return;
+  const confirmFn = window.showConfirmModal || global.showConfirmModal;
+  let confirmed = false;
+  if (typeof confirmFn === 'function') {
+    confirmed = await confirmFn({
+      title: 'Delete PC Unit',
+      message: 'Are you sure you want to permanently delete this PC unit from the room?',
+      confirmText: 'Delete PC',
+      cancelText: 'Cancel',
+      isDestructive: true
+    });
+  } else {
+    confirmed = confirm('Are you sure you want to delete this PC?');
+  }
+  if (!confirmed) return;
+
   try {
     const response = await fetch(`/api/pcs/${pcId}`, { method: 'DELETE' });
     if (!response.ok) throw new Error('Failed to delete PC');
+    if (window.showToast) window.showToast('PC unit deleted successfully.', 'success');
     await loadPCs(currentRoomId);
   } catch (error) {
     console.error('Error deleting PC:', error);
-    alert('Failed to delete PC');
+    if (window.showToast) window.showToast('Failed to delete PC.', 'error');
+    else alert('Failed to delete PC');
   }
 }
 

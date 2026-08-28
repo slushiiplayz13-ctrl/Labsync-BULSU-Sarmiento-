@@ -137,11 +137,14 @@
         <div class="schedule-legend">
           <span class="sl-title">SUBJECTS:</span>
           <div class="sl-item active" data-filter="all"><div class="dot all-dot"></div> All</div>
-          ${Array.from(subjectMap.entries()).map(([subjName, palette]) => `
-            <div class="sl-item" data-filter="${escapeHtml(subjName)}">
-              <div class="dot" style="background: ${palette.dot}; box-shadow: 0 0 0 3px ${palette.dot}33;"></div> ${escapeHtml(subjName)}
+          ${Array.from(subjectMap.entries()).map(([subjName, palette]) => {
+            const subjCode = subjName.includes(' - ') ? subjName.split(' - ')[0].trim() : subjName;
+            return `
+            <div class="sl-item" data-filter="${escapeHtml(subjName)}" title="${escapeHtml(subjName)}">
+              <div class="dot" style="background: ${palette.dot}; box-shadow: 0 0 0 3px ${palette.dot}33;"></div> ${escapeHtml(subjCode)}
             </div>
-          `).join('')}
+          `;
+          }).join('')}
         </div>
       </div>
 

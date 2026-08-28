@@ -13,7 +13,11 @@ async function fetchLaboratories() {
   if (!res.ok) {
     throw new Error('Failed to load laboratories');
   }
-  return await res.json();
+  const data = await res.json();
+  try {
+    sessionStorage.setItem('labsync_cached_labs', JSON.stringify(data));
+  } catch (e) {}
+  return data;
 }
 
 /**
@@ -72,7 +76,7 @@ function renderLabCards(labs, targetContainer) {
         </div>
         <p style="font-weight:600; color:var(--text-dark, #1e293b); margin-top:8px; margin-bottom:4px;">No rooms assigned to your schedule yet</p>
         <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin-bottom:14px;">Rooms will appear here when classes are added to your schedule.</p>
-        ${isDashboard ? `<button type="button" onclick="window.location.href='${roomStatusLink}'" style="padding:9px 20px; border:none; background:var(--primary-teal); color:#fff; border-radius:18px; font-weight:600; font-size:12.5px; cursor:pointer; font-family:var(--font-body); box-shadow: 0 4px 12px var(--primary-teal-glow); transition:all 0.2s;">View All Campus Rooms</button>` : ''}
+        ${isDashboard ? `<button type="button" onclick="window.location.href='${roomStatusLink}'" class="ui-empty-btn"><i data-lucide="layout-grid" style="width:14px;height:14px;"></i> View All Lab Rooms</button>` : ''}
       </div>
     `;
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -82,9 +86,7 @@ function renderLabCards(labs, targetContainer) {
   }
 
   // Fingerprint data to avoid destroying and recreating DOM nodes when data is unchanged
-  const dataSignature = labs.map(r => 
-    `${r.Room_ID || r.Room_Number}-${r.Current_Status}-${r.deviceOnline}-${r.Key_Status}-${r.Current_Key_Holder || ''}-${r.total_pc_issues}-${r.Scheduled_Class ? (r.Scheduled_Class.professor || '') : ''}`
-  ).join('|');
+  const dataSignature = labs.map(r => `${r.Room_ID || r.Room_Number}-${r.Current_Status}-${r.deviceOnline}-${r.Key_Status}-${r.Current_Key_Holder || ''}-${r.total_pc_issues}-${r.Scheduled_Class ? (r.Scheduled_Class.professor || '') + '-' + (r.Scheduled_Class.subject || '') : ''}`).join('|');
 
   const hasLoadingSpinner = container.querySelector('.animate-spin') !== null;
   if (!hasLoadingSpinner && container._lastRenderSignature === dataSignature) {
@@ -152,9 +154,7 @@ function renderLabCards(labs, targetContainer) {
     let scheduledProfText = 'None';
     if (room.Scheduled_Class && room.Scheduled_Class.professor) {
       const cleanProf = String(room.Scheduled_Class.professor).replace(/^Prof\.?\s*/i, '').trim();
-      if (cleanProf) {
-        scheduledProfText = cleanProf;
-      }
+      if (cleanProf) scheduledProfText = cleanProf;
     }
 
     const pcIssues = Array.isArray(room.pc_issues) ? room.pc_issues : [];
@@ -252,11 +252,13 @@ function renderLabCardsError(targetContainer) {
   if (!container) return;
 
   container.innerHTML = `
-    <div class="ui-empty-state">
+    <div class="ui-empty-state" style="grid-column: 1 / -1; padding: 28px 16px; width: 100%; flex: 1; height: 100%; min-height: 240px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0; box-sizing: border-box;">
       <div class="ui-empty-icon" style="background:#FEE2E2; color:#EF4444;">
-        <i data-lucide="alert-circle"></i>
+        <i data-lucide="alert-circle" style="width:24px;height:24px;"></i>
       </div>
-      <p>Unable to retrieve room status</p>
+      <p style="font-weight:600; color:var(--text-dark, #1e293b); margin-top:8px; margin-bottom:4px;">Unable to retrieve room status</p>
+      <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin-bottom:12px;">Connection to the laboratory sync gateway timed out.</p>
+      <button type="button" class="ui-empty-btn" onclick="window.location.reload()"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Reload Page</button>
     </div>
   `;
   if (window.lucide && typeof window.lucide.createIcons === 'function') {

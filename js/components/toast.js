@@ -111,6 +111,219 @@
     setTimeout(removeToast, 3800);
   }
 
+  /**
+   * Displays an animated, glassmorphic in-app confirmation modal.
+   * @param {Object|string} options - Configuration object or message string
+   * @param {string} [options.title='Confirm Action'] - Modal title
+   * @param {string} options.message - Confirmation prompt message
+   * @param {string} [options.confirmText='Confirm'] - Text for confirm button
+   * @param {string} [options.cancelText='Cancel'] - Text for cancel button
+   * @param {boolean} [options.isDestructive=false] - If true, displays warning/danger red theme
+   * @param {string} [options.icon='alert-triangle'] - Lucide icon name
+   * @returns {Promise<boolean>} Resolves to true if user confirmed, false otherwise
+   */
+  function showConfirmModal(options) {
+    return new Promise((resolve) => {
+      let config = {
+        title: 'Confirm Action',
+        message: '',
+        confirmText: 'Confirm',
+        cancelText: 'Cancel',
+        isDestructive: false,
+        icon: null
+      };
+
+      if (typeof options === 'string') {
+        config.message = options;
+        const lower = options.toLowerCase();
+        if (lower.includes('delete') || lower.includes('clear') || lower.includes('remove') || lower.includes('permanently')) {
+          config.isDestructive = true;
+          config.title = lower.includes('clear') ? 'Clear Subjects' : (lower.includes('delete') ? 'Delete Item' : 'Confirm Action');
+          config.confirmText = lower.includes('clear') ? 'Clear All' : (lower.includes('delete') ? 'Delete' : 'Confirm');
+        }
+      } else if (typeof options === 'object' && options !== null) {
+        config = { ...config, ...options };
+      }
+
+      // Remove existing confirm modal if any
+      const existing = document.getElementById('labsync-confirm-modal');
+      if (existing) existing.remove();
+
+      const isDestructive = config.isDestructive;
+      const iconName = config.icon || (isDestructive ? 'alert-triangle' : 'help-circle');
+      const iconBg = isDestructive ? 'rgba(239, 68, 68, 0.12)' : 'rgba(30, 187, 215, 0.12)';
+      const iconColor = isDestructive ? '#EF4444' : '#1EBBD7';
+      const confirmBtnBg = isDestructive ? '#EF4444' : 'var(--primary-teal, #1EBBD7)';
+      const confirmBtnShadow = isDestructive ? '0 4px 14px rgba(239, 68, 68, 0.3)' : '0 4px 14px var(--primary-teal-glow, rgba(30, 187, 215, 0.3))';
+
+      const overlay = document.createElement('div');
+      overlay.id = 'labsync-confirm-modal';
+      overlay.style.cssText = `
+        position: fixed;
+        inset: 0;
+        z-index: 9999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(8px);
+        opacity: 0;
+        transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        padding: 16px;
+        box-sizing: border-box;
+      `;
+
+      const isHighContrast = document.documentElement && document.documentElement.classList.contains('high-contrast');
+      const cardBg = isHighContrast ? '#1E293B' : '#FFFFFF';
+      const cardBorder = isHighContrast ? '1px solid #374151' : '1px solid rgba(226, 232, 240, 0.8)';
+      const titleColor = isHighContrast ? '#F8FAFC' : '#0F172A';
+      const msgColor = isHighContrast ? '#CBD5E1' : '#64748B';
+      const cancelBg = isHighContrast ? '#334155' : '#F1F5F9';
+      const cancelTextColor = isHighContrast ? '#F8FAFC' : '#334155';
+      const cancelBorder = isHighContrast ? '1px solid #475569' : '1px solid #E2E8F0';
+
+      const escapeFn = global.escapeHtml || window.escapeHtml || ((str) => String(str || ''));
+
+      overlay.innerHTML = `
+        <div class="labsync-confirm-card" style="
+          background: ${cardBg};
+          border: ${cardBorder};
+          border-radius: 20px;
+          padding: 28px 24px 22px 24px;
+          max-width: 420px;
+          width: 100%;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          transform: scale(0.94) translateY(8px);
+          transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+          font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+          box-sizing: border-box;
+        ">
+          <div style="
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: ${iconBg};
+            color: ${iconColor};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+          ">
+            <i data-lucide="${iconName}" style="width: 24px; height: 24px;"></i>
+          </div>
+
+          <h3 style="
+            font-family: var(--font-display, 'Poppins', sans-serif);
+            font-size: 17px;
+            font-weight: 700;
+            color: ${titleColor};
+            margin: 0 0 8px 0;
+            line-height: 1.3;
+          ">${escapeFn(config.title)}</h3>
+
+          <p style="
+            font-size: 13.5px;
+            color: ${msgColor};
+            line-height: 1.5;
+            margin: 0 0 22px 0;
+            word-break: break-word;
+          ">${escapeFn(config.message)}</p>
+
+          <div style="
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            width: 100%;
+          ">
+            <button type="button" class="btn-confirm-cancel" style="
+              flex: 1;
+              padding: 10px 16px;
+              border-radius: 12px;
+              background: ${cancelBg};
+              color: ${cancelTextColor};
+              border: ${cancelBorder};
+              font-size: 13.5px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              font-family: inherit;
+            ">${escapeFn(config.cancelText)}</button>
+
+            <button type="button" class="btn-confirm-ok" style="
+              flex: 1;
+              padding: 10px 16px;
+              border-radius: 12px;
+              background: ${confirmBtnBg};
+              color: #FFFFFF;
+              border: none;
+              font-size: 13.5px;
+              font-weight: 700;
+              cursor: pointer;
+              box-shadow: ${confirmBtnShadow};
+              transition: all 0.2s ease;
+              font-family: inherit;
+            ">${escapeFn(config.confirmText)}</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+
+      if (typeof global.renderIcons === 'function') {
+        global.renderIcons(overlay);
+      } else if (global.lucide && typeof global.lucide.createIcons === 'function') {
+        global.lucide.createIcons({ root: overlay });
+      }
+
+      requestAnimationFrame(() => {
+        overlay.style.opacity = '1';
+        const card = overlay.querySelector('.labsync-confirm-card');
+        if (card) card.style.transform = 'scale(1) translateY(0)';
+      });
+
+      const card = overlay.querySelector('.labsync-confirm-card');
+      const cancelBtn = overlay.querySelector('.btn-confirm-cancel');
+      const okBtn = overlay.querySelector('.btn-confirm-ok');
+
+      function cleanup(result) {
+        overlay.style.opacity = '0';
+        if (card) card.style.transform = 'scale(0.95) translateY(6px)';
+        window.removeEventListener('keydown', handleKey);
+        setTimeout(() => {
+          overlay.remove();
+          resolve(result);
+        }, 220);
+      }
+
+      function handleKey(e) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          cleanup(false);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          cleanup(true);
+        }
+      }
+
+      window.addEventListener('keydown', handleKey);
+
+      if (cancelBtn) cancelBtn.addEventListener('click', () => cleanup(false));
+      if (okBtn) okBtn.addEventListener('click', () => cleanup(true));
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) cleanup(false);
+      });
+
+      if (okBtn) okBtn.focus();
+    });
+  }
+
   // Override browser native alert to use LabSync UI Toast
   function customAlert(msg) {
     if (global.showToast) {
@@ -140,6 +353,9 @@
 
   // Preserve global contracts for legacy scripts and HTML callers
   global.showToast = showToast;
+  global.showConfirmModal = showConfirmModal;
+  global.confirmModal = showConfirmModal;
+  global.showConfirm = showConfirmModal;
   global.alert = customAlert;
 
 })(typeof window !== 'undefined' ? window : this);

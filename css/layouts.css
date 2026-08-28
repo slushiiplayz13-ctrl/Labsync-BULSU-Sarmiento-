@@ -67,19 +67,30 @@
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  transition: color var(--transition), background var(--transition);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
 }
 
 .sidebar-btn:hover {
   background: var(--primary-teal-light);
   color: var(--primary-teal);
+  transform: scale(1.05);
+}
+
+.sidebar-btn:active {
+  transform: scale(0.95);
 }
 
 .sidebar-btn.active {
   background: var(--primary-teal);
   color: #fff;
   box-shadow: 0 4px 14px var(--primary-teal-glow);
+  transform: scale(1);
+}
+
+.sidebar-btn:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 3px;
 }
 
 .sidebar-btn i {
@@ -116,6 +127,8 @@
 /* ─── Floating Tooltips on Hover (Desktop) ──────────────────────── */
 .sidebar-floating-tooltip {
   position: fixed;
+  display: inline-flex;
+  align-items: center;
   background: var(--primary-teal);
   color: #ffffff;
   font-family: var(--font-body);
@@ -130,8 +143,8 @@
   visibility: hidden;
   pointer-events: none;
   z-index: 999999;
-  transition: opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.18s;
-  transform: translateY(-50%) translateX(-6px);
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s;
+  transform: translateY(-50%) translateX(-8px);
   letter-spacing: 0.3px;
 }
 
@@ -341,6 +354,16 @@ img[src*="bsu"] {
   justify-content: center;
   color: var(--text-mid);
   transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.notif-btn i,
+.notif-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 .notif-btn:hover {
@@ -426,7 +449,20 @@ img[src*="bsu"] {
   color: var(--text-muted);
   display: flex;
   align-items: center;
+  justify-content: center;
   padding: 0;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.chevron-btn i,
+.chevron-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+  display: block;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 /* ─── PAGE CONTENT & SECTIONS ────────────────────────────────────── */
@@ -440,17 +476,6 @@ img[src*="bsu"] {
   min-height: 0;
   min-width: 0;
   max-width: 100%;
-  animation: fadeIn 0.3s ease-out forwards;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
 }
 
 .view-section {
@@ -462,4 +487,28 @@ img[src*="bsu"] {
 
 .view-section.active {
   display: flex;
+}
+
+/* ─── My Schedule Scroll UI Removal ────────────────────────────── */
+body[data-page="my-schedule"] .page-content,
+body[data-page="it-head-my-schedule"] .page-content,
+body[data-page="my-schedule"] .dashboard-card,
+body[data-page="it-head-my-schedule"] .dashboard-card,
+body[data-page="my-schedule"] #schedule-container,
+body[data-page="it-head-my-schedule"] #schedule-container,
+.schedule-columns {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+body[data-page="my-schedule"] .page-content::-webkit-scrollbar,
+body[data-page="it-head-my-schedule"] .page-content::-webkit-scrollbar,
+body[data-page="my-schedule"] .dashboard-card::-webkit-scrollbar,
+body[data-page="it-head-my-schedule"] .dashboard-card::-webkit-scrollbar,
+body[data-page="my-schedule"] #schedule-container::-webkit-scrollbar,
+body[data-page="it-head-my-schedule"] #schedule-container::-webkit-scrollbar,
+.schedule-columns::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }

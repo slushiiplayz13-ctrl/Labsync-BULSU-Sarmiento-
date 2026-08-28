@@ -1,10 +1,63 @@
 /**
  * LabSync – Sidebar Navigation & Admin Floating Menu | js/components/sidebar-nav.js
  * Extracted in Phase 1 (Frontend Architectural Refactor)
+ * Enhanced with anti-spam click throttling and active-page smooth scroll-to-top guards.
  */
 
 (function (global) {
   'use strict';
+
+  let lastNavTimestamp = 0;
+  let lastToggleTimestamp = 0;
+  const NAV_COOLDOWN_MS = 350;
+
+  /**
+   * Safely navigates to a target URL with active-page guard & spam-click throttling.
+   * @param {string} targetUrl
+   * @param {Event} [event]
+   */
+  function safeNavigate(targetUrl, event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (!targetUrl) return;
+
+    // Normalize URLs to detect active page
+    const currentPath = window.location.pathname.split('/').pop().split('?')[0] || 'index.html';
+    const targetPath = targetUrl.split('/').pop().split('?')[0] || 'index.html';
+
+    const isSamePage = (currentPath === targetPath) ||
+      (currentPath === '' && targetPath === 'index.html') ||
+      (currentPath === 'index.html' && targetPath === '');
+
+    // Active-page guard: Smoothly scroll to top without reloading or refetching
+    if (isSamePage && !targetUrl.includes('?')) {
+      const existingMenu = document.getElementById('admin-floating-menu');
+      if (existingMenu) existingMenu.remove();
+
+      const mainContent = document.querySelector('.page-content') || document.querySelector('.main-content');
+      if (mainContent && mainContent.scrollTo) {
+        mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Spam click throttle: reject rapid spam clicks within 350ms
+    const now = Date.now();
+    if (now - lastNavTimestamp < NAV_COOLDOWN_MS) {
+      return;
+    }
+    lastNavTimestamp = now;
+
+    // Close any floating overlays
+    const existingMenu = document.getElementById('admin-floating-menu');
+    if (existingMenu) existingMenu.remove();
+
+    window.location.href = targetUrl;
+  }
 
   /**
    * Toggles the floating quick navigation menu for Admin Panel (Master Schedule & Faculty Management).
@@ -16,6 +69,13 @@
       event.preventDefault();
       event.stopPropagation();
     }
+
+    // Debounce toggle clicks (200ms cooldown)
+    const now = Date.now();
+    if (now - lastToggleTimestamp < 200) {
+      return;
+    }
+    lastToggleTimestamp = now;
 
     // Close any existing menus first
     const existingMenu = document.getElementById('admin-floating-menu');
@@ -48,7 +108,7 @@
       min-width: 150px;
       max-width: calc(100vw - 24px);
       box-sizing: border-box;
-      animation: adminMenuFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: adminMenuFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     `;
 
     // High contrast mode override
@@ -63,7 +123,7 @@
       styleEl.id = 'admin-menu-keyframes';
       styleEl.innerHTML = `
         @keyframes adminMenuFadeIn {
-          from { opacity: 0; transform: translateY(5px); }
+          from { opacity: 0; transform: translateY(4px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `;
@@ -75,7 +135,7 @@
     const isFacultyActive = window.location.pathname.includes('faculty-management.html');
 
     menu.innerHTML = `
-      <button onclick="window.location.href='master-schedule.html'" class="admin-menu-item ${isMasterActive ? 'active' : ''}" style="
+      <button onclick="safeNavigate('master-schedule.html', event)" class="admin-menu-item ${isMasterActive ? 'active' : ''}" style="
         display: flex;
         align-items: center;
         gap: 8px;
@@ -90,14 +150,14 @@
         width: 100%;
         text-align: left;
         font-family: var(--font-body);
-        transition: all 0.2s;
+        transition: all 0.15s;
         white-space: nowrap;
         box-sizing: border-box;
       ">
         <i data-lucide="calendar" style="width:14px;height:14px;flex-shrink:0;color:${isMasterActive ? 'var(--primary-teal)' : '#64748B'};"></i>
         <span>Master Schedule</span>
       </button>
-      <button onclick="window.location.href='faculty-management.html'" class="admin-menu-item ${isFacultyActive ? 'active' : ''}" style="
+      <button onclick="safeNavigate('faculty-management.html', event)" class="admin-menu-item ${isFacultyActive ? 'active' : ''}" style="
         display: flex;
         align-items: center;
         gap: 8px;
@@ -112,7 +172,7 @@
         width: 100%;
         text-align: left;
         font-family: var(--font-body);
-        transition: all 0.2s;
+        transition: all 0.15s;
         white-space: nowrap;
         box-sizing: border-box;
       ">
@@ -199,7 +259,7 @@
   }
 
   /**
-   * Initializes floating tooltip attributes for standard sidebar navigation buttons.
+   * Initializes floating tooltip attributes and attaches anti-spam navigation listeners.
    */
   function initSidebarTooltips() {
     const tooltipMap = {
@@ -225,10 +285,34 @@
         btn.removeAttribute('title');
       }
 
+      const labelText = tooltip || btn.getAttribute('aria-label') || 'Navigation button';
+      btn.setAttribute('aria-label', labelText);
+
+      // Ensure child SVGs have aria-hidden
+      btn.querySelectorAll('svg').forEach(svg => {
+        if (!svg.hasAttribute('aria-hidden')) svg.setAttribute('aria-hidden', 'true');
+      });
+
+      // Attach safe navigation listener with spam throttling and active-page guard
+      if (!btn.dataset.safeNavAttached) {
+        btn.dataset.safeNavAttached = 'true';
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        const match = onclickAttr.match(/window\.location\.href\s*=\s*['"]([^'"]+)['"]/);
+        if (match && match[1]) {
+          const targetUrl = match[1];
+          btn.removeAttribute('onclick');
+          btn.addEventListener('click', (e) => {
+            safeNavigate(targetUrl, e);
+          });
+        }
+      }
+
       btn.addEventListener('mouseenter', () => {
         const text = btn.getAttribute('data-tooltip');
         if (!text || window.innerWidth <= 1024) return;
+        
         floatingTooltip.textContent = text;
+
         const rect = btn.getBoundingClientRect();
         floatingTooltip.style.top = `${rect.top + rect.height / 2}px`;
         floatingTooltip.style.left = `${rect.right + 12}px`;
@@ -259,5 +343,6 @@
   // Preserve global contracts for legacy scripts, inline onclick handlers, and HTML callers
   global.toggleAdminMenu = toggleAdminMenu;
   global.initSidebarTooltips = initSidebarTooltips;
+  global.safeNavigate = safeNavigate;
 
 })(typeof window !== 'undefined' ? window : this);

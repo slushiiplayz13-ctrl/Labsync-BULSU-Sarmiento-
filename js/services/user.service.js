@@ -26,9 +26,43 @@
   }
 
   /**
+   * Applies user payload to header UI elements.
+   * @param {Object} user
+   */
+  function applyUserToUI(user) {
+    if (!user) return;
+    const profileNameEl = document.querySelector('.profile-name');
+    const profileRoleEl = document.querySelector('.profile-role');
+    const avatarEl = document.querySelector('.avatar');
+
+    if (profileNameEl && user.name && profileNameEl.textContent !== user.name) {
+      profileNameEl.textContent = user.name;
+    }
+
+    if (profileRoleEl && user.role && profileRoleEl.textContent !== user.role) {
+      profileRoleEl.textContent = user.role;
+    }
+
+    if (avatarEl) {
+      if (user.profilePhoto) {
+        avatarEl.innerHTML = `<img src="${user.profilePhoto}" alt="Profile Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      } else if (user.name) {
+        const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        avatarEl.textContent = initials;
+      }
+    }
+  }
+
+  /**
    * Fetches currently authenticated user payload and updates header UI elements.
    */
   async function loadCurrentUser() {
+    // Instant pre-hydration from cached session
+    try {
+      const cached = JSON.parse(sessionStorage.getItem('labsync_user') || 'null');
+      if (cached) applyUserToUI(cached);
+    } catch (e) {}
+
     try {
       const response = await fetch('/api/user/current', {
         credentials: 'include'
@@ -36,28 +70,9 @@
       if (!response.ok) return;
 
       const user = await response.json();
+      try { sessionStorage.setItem('labsync_user', JSON.stringify(user)); } catch (e) {}
 
-      // Update profile name, role, and avatar
-      const profileNameEl = document.querySelector('.profile-name');
-      const profileRoleEl = document.querySelector('.profile-role');
-      const avatarEl = document.querySelector('.avatar');
-
-      if (profileNameEl) {
-        profileNameEl.textContent = user.name || 'User';
-      }
-
-      if (profileRoleEl) {
-        profileRoleEl.textContent = user.role || 'User';
-      }
-
-      if (avatarEl) {
-        if (user.profilePhoto) {
-          avatarEl.innerHTML = `<img src="${user.profilePhoto}" alt="Profile Photo">`;
-        } else {
-          const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
-          avatarEl.textContent = initials;
-        }
-      }
+      applyUserToUI(user);
 
       // Update dynamic greeting if on dashboard
       const pageType = document.body ? document.body.dataset.page : '';

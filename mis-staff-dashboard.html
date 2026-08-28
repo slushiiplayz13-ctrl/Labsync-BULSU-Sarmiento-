@@ -6,18 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LabSync - MIS Staff Dashboard</title>
   <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
-  <meta name="view-transition" content="same-origin" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
     rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <style id="auth-anti-flash">
-    body {
-      display: none !important;
-    }
-  </style>
   <script src="js/auth-check.js"></script>
   <link rel="stylesheet" href="style.css?v=1.0.3" />
 </head>
@@ -29,15 +23,15 @@
     <nav class="sidebar-nav">
       <button class="sidebar-btn active" data-tooltip="Dashboard" title="Dashboard"
         onclick="window.location.href='mis-staff-dashboard.html'">
-        <i data-lucide="home" style="width:24px;height:24px;"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       </button>
       <button class="sidebar-btn" data-tooltip="Maintenance Tracker" title="Maintenance Tracker"
         onclick="window.location.href='mis-maintenance.html'">
-        <i data-lucide="wrench" style="width:24px;height:24px;"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wrench"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
       </button>
       <button class="sidebar-btn" data-tooltip="PC & QR Management" title="PC & QR Management"
         onclick="window.location.href='mis-qr-generator.html'">
-        <i data-lucide="qr-code" style="width:24px;height:24px;"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
       </button>
     </nav>
 
@@ -45,19 +39,13 @@
 
     <div class="sidebar-bottom">
       <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
-        <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-help"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
       </button>
       <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
-        <i data-lucide="log-out" style="width:24px;height:24px;"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
       </button>
     </div>
   </aside>
-
-  <!-- Scroll Clue for Sidebar -->
-  <div id="sidebarScrollClue"
-    style="position: fixed; bottom: 16px; left: 30px; z-index: 105; color: var(--primary-teal); pointer-events: none; transition: opacity 0.3s ease;">
-    <i data-lucide="chevron-down" style="width: 20px; height: 20px; animation: bounce 2s infinite;"></i>
-  </div>
 
   <!-- MAIN WRAPPER -->
   <div class="main-wrapper">
@@ -77,23 +65,45 @@
       </div>
 
 
-      <!-- Right Profile -->
+            <!-- Right Profile -->
       <div class="header-right">
         <button class="notif-btn" title="Notifications">
-          <i data-lucide="bell" style="width:16px;height:16px;"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
           <span class="notif-dot"></span>
         </button>
 
         <div class="profile-dropdown">
-          <div class="avatar">VN</div>
+          <div class="avatar"></div>
           <div class="profile-info">
-            <span class="profile-name">MIS Staff</span>
-            <span class="profile-role">MIS Staff</span>
+            <span class="profile-name"></span>
+            <span class="profile-role"></span>
           </div>
           <button class="chevron-btn">
-            <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
           </button>
         </div>
+        <script>
+          (function(){
+            try {
+              var u = JSON.parse(sessionStorage.getItem("labsync_user") || "null");
+              var hr = document.currentScript.parentElement;
+              if (u && hr) {
+                var n = hr.querySelector(".profile-name");
+                var r = hr.querySelector(".profile-role");
+                var a = hr.querySelector(".avatar");
+                if (n && u.name) n.textContent = u.name;
+                if (r && u.role) r.textContent = u.role;
+                if (a) {
+                  if (u.profilePhoto) a.innerHTML = "<img src=\"" + u.profilePhoto + "\" alt=\"Profile\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%;\">";
+                  else if (u.name) a.textContent = u.name.split(" ").map(function(x){return x[0];}).join("").slice(0,2).toUpperCase();
+                }
+              }
+              var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
+              var d = hr ? hr.querySelector(".notif-dot") : null;
+              if (d) d.style.display = hasUnread ? "block" : "none";
+            } catch(e){}
+          })();
+        </script>
       </div>
 
     </header>

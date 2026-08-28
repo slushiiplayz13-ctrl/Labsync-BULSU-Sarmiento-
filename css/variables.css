@@ -198,6 +198,19 @@ html.high-contrast textarea::placeholder {
 html.high-contrast .ui-empty-state {
   background: var(--bg-card) !important;
   color: var(--text-muted) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .ui-empty-state .ui-empty-btn,
+html.high-contrast .empty-state-action-btn {
+  background: var(--primary-teal) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(0, 163, 196, 0.35) !important;
+}
+
+html.high-contrast .ui-empty-state .ui-empty-btn:hover,
+html.high-contrast .empty-state-action-btn:hover {
+  background: var(--primary-teal-hover) !important;
 }
 
 html.high-contrast .notif-btn {
@@ -1354,40 +1367,67 @@ html.high-contrast .faculty-dropdown-menu .menu-divider {
 }
 
 /* --- Faculty Schedule View & Success Modals High Contrast Overrides --- */
+html.high-contrast .sched-modal-dialog {
+  background: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+}
+
 html.high-contrast .sched-modal-header {
-  background: var(--bg-card) !important;
-  border-bottom-color: var(--border-light) !important;
+  background: #131f30 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.high-contrast .sched-modal-close-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94a3b8 !important;
+}
+
+html.high-contrast .sched-modal-close-btn:hover {
+  background: rgba(0, 180, 216, 0.15) !important;
+  color: #00b4d8 !important;
+  border-color: #00b4d8 !important;
 }
 
 html.high-contrast .sched-modal-card {
-  background: var(--bg-white) !important;
-  border-color: var(--border-light) !important;
-  border-left-color: var(--primary-teal) !important;
+  background: #131f30 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
 }
 
 html.high-contrast .sched-modal-card:hover {
-  background: var(--bg-card) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(0, 180, 216, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
 }
 
-html.high-contrast .sched-modal-card * {
-  color: var(--text-dark) !important;
+html.high-contrast .sched-card-subject {
+  color: #f8fafc !important;
 }
 
-html.high-contrast .sched-modal-card .rc-badge.in-progress {
-  background: rgba(59, 130, 246, 0.16) !important;
-  color: #60A5FA !important;
-  border-color: rgba(59, 130, 246, 0.3) !important;
+html.high-contrast .sched-card-meta {
+  color: #94a3b8 !important;
 }
 
-html.high-contrast .sched-modal-card .rc-badge.pending {
-  background: rgba(245, 158, 11, 0.15) !important;
-  color: #FBBF24 !important;
-  border-color: rgba(245, 158, 11, 0.3) !important;
+html.high-contrast .sched-time-badge {
+  color: #f8fafc !important;
+}
+
+html.high-contrast .sched-status-pill {
+  background: rgba(0, 180, 216, 0.12) !important;
+  color: #38bdf8 !important;
+  border-color: rgba(0, 180, 216, 0.3) !important;
+}
+
+html.high-contrast .sched-modal-day-divider {
+  color: #00b4d8 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
 }
 
 html.high-contrast .sched-modal-empty-icon {
-  background: var(--primary-teal-light) !important;
-  color: var(--primary-teal) !important;
+  background: rgba(0, 180, 216, 0.12) !important;
+  color: #00b4d8 !important;
 }
 
 html.high-contrast .heart-container {

@@ -94,24 +94,27 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 16px;
-  border-radius: 10px;
+  padding: 0 16px;
+  height: 42px;
+  border-radius: 12px;
   font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--primary-teal);
-  background: var(--primary-teal-light);
-  border: 1px solid rgba(2, 132, 199, 0.15);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--primary-teal, #0284C7);
+  background: var(--primary-teal-light, rgba(2, 132, 199, 0.08));
+  border: 1px solid rgba(2, 132, 199, 0.2);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition, 0.2s ease);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  white-space: nowrap;
 }
 
 .toggle-completed-btn:hover {
-  background: #E0F2FE;
-  border-color: rgba(2, 132, 199, 0.3);
+  background: var(--primary-teal, #0284C7) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary-teal, #0284C7) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.12);
+  box-shadow: 0 4px 14px var(--primary-teal-glow, rgba(2, 132, 199, 0.25));
 }
 
 /* ─── Modern Integrated PC Card Delete Button Component Styles ─── */

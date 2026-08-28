@@ -8,8 +8,6 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-light) transparent;
 }
 
 body {
@@ -22,43 +20,58 @@ body {
 }
 
 /* ─── SCROLLBAR ──────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
 }
 
-::-webkit-scrollbar-button {
+::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button,
+::-webkit-scrollbar-button:start,
+::-webkit-scrollbar-button:end,
+::-webkit-scrollbar-button:vertical:decrement,
+::-webkit-scrollbar-button:vertical:increment,
+::-webkit-scrollbar-button:horizontal:decrement,
+::-webkit-scrollbar-button:horizontal:increment {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
-}
-
-::-webkit-scrollbar-corner {
   background: transparent !important;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-corner {
+  background: transparent !important;
 }
 
-::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
   background: var(--border-light);
   border-radius: 99px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
-::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
-html.high-contrast ::-webkit-scrollbar-thumb {
+html.high-contrast ::-webkit-scrollbar-thumb,
+html.high-contrast *::-webkit-scrollbar-thumb {
   background: var(--border-light) !important;
 }
 
-html.high-contrast ::-webkit-scrollbar-thumb:hover {
+html.high-contrast ::-webkit-scrollbar-thumb:hover,
+html.high-contrast *::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted) !important;
 }
 

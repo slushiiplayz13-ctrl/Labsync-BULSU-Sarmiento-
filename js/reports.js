@@ -258,13 +258,10 @@ window.renderReports = function () {
   const toggleContainer = document.getElementById('completedToggleContainer');
   if (toggleContainer) {
     if (totalResolvedReports.length > 0) {
-      const buttonLabel = query
-        ? `View Completed Tickets (${resolvedReports.length} matching)`
-        : `View Completed Tickets (${totalResolvedReports.length})`;
       toggleContainer.innerHTML = `
         <button class="toggle-completed-btn" onclick="window.openCompletedModal()">
           <i data-lucide="history" style="width:16px;height:16px;"></i>
-          <span>${buttonLabel}</span>
+          <span>View Completed Tickets</span>
         </button>
       `;
     } else {
@@ -339,7 +336,20 @@ window.renderReports = function () {
 };
 
 window.updateReportStatus = async function (reportId, newStatus) {
-  if (!confirm(`Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`)) return;
+  const confirmFn = window.showConfirmModal || global.showConfirmModal;
+  let confirmed = false;
+  if (typeof confirmFn === 'function') {
+    confirmed = await confirmFn({
+      title: 'Update Ticket Status',
+      message: `Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`,
+      confirmText: 'Update Status',
+      cancelText: 'Cancel',
+      isDestructive: false
+    });
+  } else {
+    confirmed = confirm(`Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`);
+  }
+  if (!confirmed) return;
 
   try {
     const response = await fetch(`/api/reports/${reportId}/status`, {
@@ -351,6 +361,7 @@ window.updateReportStatus = async function (reportId, newStatus) {
     });
 
     if (response.ok) {
+      if (window.showToast) window.showToast(`Ticket LS-TKT-${reportId} updated to ${newStatus}`, 'success');
       await window.loadReports();
       // If modal is open, refresh resolved list
       const modal = document.getElementById('completedTicketsModal');
@@ -368,7 +379,20 @@ window.updateReportStatus = async function (reportId, newStatus) {
 };
 
 window.deleteReport = async function (reportId) {
-  if (!confirm(`Are you sure you want to permanently delete Ticket LS-TKT-${reportId}?`)) return;
+  const confirmFn = window.showConfirmModal || global.showConfirmModal;
+  let confirmed = false;
+  if (typeof confirmFn === 'function') {
+    confirmed = await confirmFn({
+      title: 'Delete Ticket',
+      message: `Are you sure you want to permanently delete Ticket LS-TKT-${reportId}? This action cannot be undone.`,
+      confirmText: 'Delete Ticket',
+      cancelText: 'Cancel',
+      isDestructive: true
+    });
+  } else {
+    confirmed = confirm(`Are you sure you want to permanently delete Ticket LS-TKT-${reportId}?`);
+  }
+  if (!confirmed) return;
 
   try {
     const response = await fetch(`/api/reports/${reportId}`, {
@@ -392,36 +416,174 @@ window.deleteReport = async function (reportId) {
   }
 };
 
-window.openCompletedModal = function () {
-  const modal = document.getElementById('completedTicketsModal');
-  const modalBody = document.getElementById('modalCompletedList');
-  if (!modal || !modalBody) return;
-
-  const searchInput = document.getElementById('reportSearchInput');
-  const query = searchInput ? searchInput.value.trim() : '';
-  const resolvedReports = (window.allReports || []).filter(r => {
-    const isResolved = (r.Status || '').toLowerCase() === 'resolved';
-    if (!isResolved) return false;
-    return window.matchesReportQuery(r, query);
+window.renderModalTicketCard = function (report) {
+  const dateObj = report.Date_Reported ? new Date(report.Date_Reported) : new Date();
+  const formattedDate = dateObj.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: dateObj.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+    hour: '2-digit',
+    minute: '2-digit'
   });
 
-  if (resolvedReports.length === 0) {
-    modalBody.innerHTML = `
-      <div class="ui-empty-state" style="padding: 40px 0;">
-        <div class="ui-empty-icon">
-          <i data-lucide="check-circle" style="width:24px;height:24px;"></i>
+  const parsed = window.parseIssueDescription(report.Issue_Description);
+  const rawRemarks = (parsed.remarks || '').trim();
+  const isEmptyRemarks = !rawRemarks || rawRemarks.toLowerCase() === 'none' || rawRemarks.toLowerCase() === 'no remarks provided.';
+
+  const studentName = report.Student_Name || 'Student';
+  const roomNum = report.Room_Number != null ? report.Room_Number : 'N/A';
+  const pcNum = report.PC_Number != null ? report.PC_Number : 'N/A';
+
+  // Issue badges
+  const issuePillsHtml = parsed.issues.split(',').map(comp => comp.trim()).filter(Boolean).map(comp => {
+    const lower = comp.toLowerCase();
+    if (lower === 'none' || lower === 'n/a') {
+      if (!isEmptyRemarks) {
+        return `<span class="issue-badge-other" style="display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; padding:3px 9px; border-radius:6px; background:#FEF3C7; color:#D97706; border:1px solid #FDE68A;"><i data-lucide="alert-circle" style="width:13px;height:13px;"></i> Others</span>`;
+      }
+      return `<span class="issue-badge-none" style="display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; padding:3px 9px; border-radius:6px; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0;"><i data-lucide="check-circle-2" style="width:13px;height:13px;color:#10B981;"></i> No Faults</span>`;
+    }
+    if (lower === 'others' || lower === 'other') {
+      return `<span class="issue-badge-other" style="display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; padding:3px 9px; border-radius:6px; background:#FEF3C7; color:#D97706; border:1px solid #FDE68A;"><i data-lucide="alert-circle" style="width:13px;height:13px;"></i> Others</span>`;
+    }
+    return `<span class="issue-badge-fault" style="display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:750; padding:3px 9px; border-radius:6px; background:#FEF2F2; color:#DC2626; border:1px solid #FCA5A5;"><i data-lucide="alert-triangle" style="width:13px;height:13px;"></i> ${escapeHtml(comp)}</span>`;
+  }).join('');
+
+  return `
+    <div class="modal-ticket-card">
+      <!-- Card Header -->
+      <div class="modal-ticket-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="modal-ticket-id">LS-TKT-${report.Report_ID}</span>
+          <span class="modal-ticket-date">${formattedDate}</span>
         </div>
-        <p>${query ? `No completed tickets match "${escapeHtml(query)}".` : 'No completed tickets found.'}</p>
+        <span class="status-badge resolved" style="font-size: 11px; padding: 3px 10px;">RESOLVED</span>
+      </div>
+
+      <!-- Asset, Issue & Reporter Info Row -->
+      <div class="modal-ticket-content-row">
+        <div class="modal-ticket-asset">
+          <div class="modal-ticket-asset-icon">
+            <i data-lucide="monitor" style="width: 17px; height: 17px;"></i>
+          </div>
+          <div>
+            <div class="modal-ticket-asset-name">Room ${roomNum} – PC ${pcNum}</div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap;">
+              ${issuePillsHtml}
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-ticket-reporter">
+          <i data-lucide="user" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+          <span>${escapeHtml(studentName)}</span>
+          ${parsed.section ? `<span style="font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: #F1F5F9; color: var(--text-mid);">${escapeHtml(parsed.section)}</span>` : ''}
+        </div>
+      </div>
+
+      <!-- Full-Width Remarks Callout -->
+      <div class="modal-ticket-remarks">
+        <div class="modal-remarks-header">
+          <i data-lucide="message-square" style="width: 12px; height: 12px;"></i>
+          <span>Remarks & Problem Details</span>
+        </div>
+        <div class="modal-remarks-body ${isEmptyRemarks ? 'is-empty' : ''}">
+          ${isEmptyRemarks ? 'No additional remarks provided' : `"${escapeHtml(rawRemarks)}"`}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+window._modalTimeFilter = 'all';
+
+window.filterCompletedTickets = function () {
+  const modal = document.getElementById('completedTicketsModal');
+  const modalBody = document.getElementById('modalCompletedList');
+  const countBadge = document.getElementById('modalResolvedCountBadge');
+  if (!modal || !modalBody) return;
+
+  const modalSearch = document.getElementById('modalTicketSearch');
+  const query = modalSearch ? modalSearch.value.trim() : '';
+
+  const allReports = window.allReports || [];
+  const now = Date.now();
+
+  let resolved = allReports.filter(r => (r.Status || '').toLowerCase() === 'resolved');
+
+  // Time filter
+  if (window._modalTimeFilter === '30days') {
+    const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+    resolved = resolved.filter(r => new Date(r.Date_Reported || 0).getTime() >= thirtyDaysAgo);
+  } else if (window._modalTimeFilter === '7days') {
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+    resolved = resolved.filter(r => new Date(r.Date_Reported || 0).getTime() >= sevenDaysAgo);
+  }
+
+  // Search filter
+  if (query) {
+    resolved = resolved.filter(r => window.matchesReportQuery(r, query));
+  }
+
+  if (countBadge) {
+    countBadge.textContent = `${resolved.length} Resolved`;
+  }
+
+  if (resolved.length === 0) {
+    modalBody.innerHTML = `
+      <div class="ui-empty-state" style="padding: 48px 0;">
+        <div class="ui-empty-icon" style="width: 48px; height: 48px; border-radius: 50%; background: #F1F5F9; color: #64748B; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+          <i data-lucide="check-circle-2" style="width: 24px; height: 24px;"></i>
+        </div>
+        <p style="font-size: 14px; font-weight: 600; color: var(--text-dark, #0F172A); margin: 0 0 4px 0;">No completed tickets found</p>
+        <p style="font-size: 12.5px; color: var(--text-muted, #94A3B8); margin: 0;">${query ? `No resolved logs match "${escapeHtml(query)}".` : 'There are no completed tickets in this time range.'}</p>
       </div>
     `;
   } else {
     modalBody.innerHTML = `
-      <div class="reports-list">
-        ${resolvedReports.map(r => window.renderSingleCard(r)).join('')}
+      <div class="modal-tickets-grid">
+        ${resolved.map(r => window.renderModalTicketCard(r)).join('')}
       </div>
     `;
   }
 
+  if (window.lucide) lucide.createIcons();
+};
+
+window.openCompletedModal = function () {
+  const modal = document.getElementById('completedTicketsModal');
+  if (!modal) return;
+
+  // Initialize event listeners once
+  if (!window._modalInitialized) {
+    window._modalInitialized = true;
+
+    const modalSearch = document.getElementById('modalTicketSearch');
+    if (modalSearch) {
+      modalSearch.addEventListener('input', () => {
+        window.filterCompletedTickets();
+      });
+    }
+
+    const timeChips = modal.querySelectorAll('[data-time-filter]');
+    timeChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        timeChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        window._modalTimeFilter = chip.dataset.timeFilter;
+        window.filterCompletedTickets();
+      });
+    });
+  }
+
+  // Pre-fill modal search with page search if available
+  const pageSearch = document.getElementById('reportSearchInput');
+  const modalSearch = document.getElementById('modalTicketSearch');
+  if (pageSearch && modalSearch && !modalSearch.value) {
+    modalSearch.value = pageSearch.value.trim();
+  }
+
+  window.filterCompletedTickets();
   modal.style.display = 'flex';
   if (window.lucide) lucide.createIcons();
 };
@@ -448,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.renderReports();
       const modal = document.getElementById('completedTicketsModal');
       if (modal && modal.style.display !== 'none') {
-        window.openCompletedModal();
+        window.filterCompletedTickets();
       }
     });
   }

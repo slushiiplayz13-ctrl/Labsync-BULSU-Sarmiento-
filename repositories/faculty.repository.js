@@ -6,6 +6,10 @@ async function findByEmail(email, executor = db) {
     return executor.query('SELECT * FROM users WHERE Email = ?', [email]);
 }
 
+async function findByName(name, executor = db) {
+    return executor.query('SELECT * FROM users WHERE LOWER(TRIM(Name)) = LOWER(TRIM(?))', [name]);
+}
+
 async function insertFaculty({ name, email, role, password, qrString }, executor = db) {
     return executor.query(
         'INSERT INTO users (Name, Email, Role, Password, ID_QR_String, Has_Completed_Tutorial) VALUES (?, ?, ?, ?, ?, 0)',
@@ -67,6 +71,7 @@ async function deleteFacultyCascade(userId) {
 
 module.exports = {
     findByEmail,
+    findByName,
     insertFaculty,
     findAllFaculty,
     demoteAllHeadsToFaculty,

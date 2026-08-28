@@ -44,7 +44,7 @@
 
       const modal = document.createElement('div');
       modal.id = 'schedule-view-modal';
-      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;transition:opacity 0.25s ease;';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;transition:opacity 0.25s ease;';
 
       modal.innerHTML = `
         <div class="sched-modal-dialog">
@@ -53,14 +53,14 @@
               <h2 class="sched-modal-title">Faculty Schedule</h2>
               <p class="sched-modal-subtitle">Weekly class assignments for <strong>${escapeHtml(profName)}</strong></p>
             </div>
-            <button id="close-sched-modal" class="sched-modal-close-btn">
-              <i data-lucide="x"></i>
+            <button id="close-sched-modal" class="sched-modal-close-btn" title="Close">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
           </div>
           
-          <div id="sched-modal-body" style="padding:28px;overflow-y:auto;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;">
-            <div class="sched-spinner" style="border: 3px solid #E5E7EB; border-top: 3px solid #1EBBD7; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom:12px;"></div>
-            <span style="font-family:var(--font-body);font-size:14px;color:#6B7280;">Loading schedule data from all rooms...</span>
+          <div id="sched-modal-body" style="padding:24px 28px;overflow-y:auto;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:220px;">
+            <div class="sched-spinner" style="border: 3px solid var(--border-light, #E5E7EB); border-top: 3px solid var(--primary-teal, #00b4d8); border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin-bottom:12px;"></div>
+            <span style="font-family:var(--font-body);font-size:13.5px;color:var(--text-muted, #6B7280);">Loading schedule data from all rooms...</span>
           </div>
         </div>
       `;
@@ -68,18 +68,10 @@
       document.body.appendChild(modal);
       setTimeout(() => {
         modal.style.opacity = '1';
-        const dialog = modal.querySelector('div');
-        if (dialog) dialog.style.transform = 'translateY(0)';
       }, 10);
-
-      if (global.lucide && typeof global.lucide.createIcons === 'function') {
-        global.lucide.createIcons();
-      }
 
       const closeModal = () => {
         modal.style.opacity = '0';
-        const dialog = modal.querySelector('div');
-        if (dialog) dialog.style.transform = 'translateY(20px)';
         setTimeout(() => modal.remove(), 250);
       };
 
@@ -111,15 +103,12 @@
           body.innerHTML = `
             <div class="sched-modal-empty">
               <div class="sched-modal-empty-icon">
-                <i data-lucide="calendar"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
               </div>
               <h3 class="sched-modal-empty-title">No Active Assignments</h3>
               <p class="sched-modal-empty-desc">This faculty member is not currently assigned to teach in any computer laboratories.</p>
             </div>
           `;
-          if (global.lucide && typeof global.lucide.createIcons === 'function') {
-            global.lucide.createIcons();
-          }
           return;
         }
 
@@ -133,7 +122,7 @@
           return (a.startTime || a.Start_Time || '').localeCompare(b.startTime || b.Start_Time || '');
         });
 
-        let html = `<div style="display:flex;flex-direction:column;gap:18px;font-family:var(--font-body);">`;
+        let html = `<div style="display:flex;flex-direction:column;gap:14px;font-family:var(--font-body);">`;
         let currentDay = '';
 
         profSchedules.forEach(s => {
@@ -152,16 +141,25 @@
 
           html += `
             <div class="sched-modal-card">
-              <div>
-                <div style="font-size:15px;font-weight:700;color:var(--text-dark);margin-bottom:3px;font-family:var(--font-display);">${escapeHtml(subj)}</div>
-                <div style="display:flex;align-items:center;gap:14px;font-size:12.5px;color:var(--text-mid);">
-                  <span style="display:flex;align-items:center;gap:4px;"><i data-lucide="users" style="width:14px;height:14px;color:var(--text-muted);"></i> Section: <strong>${escapeHtml(sec)}</strong></span>
-                  <span style="display:flex;align-items:center;gap:4px;"><i data-lucide="map-pin" style="width:14px;height:14px;color:var(--text-muted);"></i> ${escapeHtml(bldg)} Rm ${escapeHtml(rm)}</span>
+              <div class="sched-card-left">
+                <div class="sched-card-subject">${escapeHtml(subj)}</div>
+                <div class="sched-card-meta">
+                  <span class="sched-meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Section: <strong>${escapeHtml(sec)}</strong>
+                  </span>
+                  <span class="sched-meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                    ${escapeHtml(bldg)} Rm ${escapeHtml(rm)}
+                  </span>
                 </div>
               </div>
-              <div style="text-align:right;flex-shrink:0;">
-                <div style="font-size:13.5px;font-weight:600;color:var(--text-dark);display:flex;align-items:center;gap:5px;justify-content:flex-end;"><i data-lucide="clock" style="width:14px;height:14px;color:var(--primary-teal);"></i> ${start} - ${end}</div>
-                <span class="rc-badge in-progress" style="margin-top:4px;display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;">Scheduled</span>
+              <div class="sched-card-right">
+                <div class="sched-time-badge">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>${start} – ${end}</span>
+                </div>
+                <span class="sched-status-pill">Scheduled</span>
               </div>
             </div>
           `;
@@ -169,22 +167,16 @@
 
         html += `</div>`;
         body.innerHTML = html;
-        if (global.lucide && typeof global.lucide.createIcons === 'function') {
-          global.lucide.createIcons();
-        }
       } catch (error) {
         console.error('Failed to view faculty schedule:', error);
         const body = document.getElementById('sched-modal-body');
         if (body) {
           body.innerHTML = `
             <div style="text-align:center;padding:30px 10px;color:#EF4444;font-family:var(--font-body);">
-              <i data-lucide="alert-circle" style="width:36px;height:36px;margin-bottom:12px;"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
               <p style="margin:0;font-size:14px;font-weight:600;">Failed to load schedule. Please try again.</p>
             </div>
           `;
-          if (global.lucide && typeof global.lucide.createIcons === 'function') {
-            global.lucide.createIcons();
-          }
         }
       }
     }

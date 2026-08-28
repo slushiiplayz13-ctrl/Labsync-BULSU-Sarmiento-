@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LabSync – Professor Dashboard</title>
   <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
-  <meta name="view-transition" content="same-origin" />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,21 +18,10 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
   <!-- External Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=1.1.3" />
   <link rel="stylesheet" href="css/schedule-studio.css" />
+  <link rel="stylesheet" href="css/tutorial.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <style id="auth-anti-flash">
-    body {
-      display: none !important;
-    }
-  </style>
-  <script>
-    (function applyAccessibilitySettings() {
-      const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
-      if (savedContrast) {
-        document.documentElement.classList.add('high-contrast');
-      }
-    })();
-  </script>
   <script src="js/auth-check.js"></script>
   <style>
     .schedule-columns {
@@ -90,8 +78,6 @@
       cursor: pointer;
     }
   </style>
-
-  <link rel="stylesheet" href="style.css?v=1.0.3" />
 </head>
 
 <body data-page="my-schedule">
@@ -102,19 +88,19 @@
     <nav class="sidebar-nav">
       <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
         onclick="window.location.href='index.html'">
-        <i data-lucide="home" style="width:24px;height:24px;"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       </button>
       <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status"
         onclick="window.location.href='room-status.html'">
-        <i data-lucide="monitor-dot" style="width:24px;height:24px;"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-monitor-dot"><circle cx="19" cy="6" r="3"/><path d="M22 12v3a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
       </button>
       <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports"
         onclick="window.location.href='faculty-pc-reports.html'">
-        <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-bar-chart-2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-4"/><path d="M8 18v-2"/><path d="M16 18v-6"/></svg>
       </button>
       <button class="sidebar-btn active" data-tooltip="My Schedule" title="My Schedule"
         onclick="window.location.href='my-schedule.html'">
-        <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
       </button>
     </nav>
 
@@ -122,10 +108,10 @@
 
     <div class="sidebar-bottom">
       <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
-        <i data-lucide="circle-help" style="width:24px;height:24px;"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-help"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
       </button>
       <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
-        <i data-lucide="log-out" style="width:24px;height:24px;"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
       </button>
     </div>
   </aside>
@@ -145,23 +131,45 @@
       </div>
 
 
-      <!-- Right Profile -->
+            <!-- Right Profile -->
       <div class="header-right">
         <button class="notif-btn" title="Notifications">
-          <i data-lucide="bell" style="width:16px;height:16px;"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
           <span class="notif-dot"></span>
         </button>
 
         <div class="profile-dropdown">
-          <div class="avatar">U</div>
+          <div class="avatar"></div>
           <div class="profile-info">
-            <span class="profile-name">User</span>
-            <span class="profile-role">Professor</span>
+            <span class="profile-name"></span>
+            <span class="profile-role"></span>
           </div>
           <button class="chevron-btn">
-            <i data-lucide="chevron-down" style="width:14px;height:14px;"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
           </button>
         </div>
+        <script>
+          (function(){
+            try {
+              var u = JSON.parse(sessionStorage.getItem("labsync_user") || "null");
+              var hr = document.currentScript.parentElement;
+              if (u && hr) {
+                var n = hr.querySelector(".profile-name");
+                var r = hr.querySelector(".profile-role");
+                var a = hr.querySelector(".avatar");
+                if (n && u.name) n.textContent = u.name;
+                if (r && u.role) r.textContent = u.role;
+                if (a) {
+                  if (u.profilePhoto) a.innerHTML = "<img src=\"" + u.profilePhoto + "\" alt=\"Profile\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%;\">";
+                  else if (u.name) a.textContent = u.name.split(" ").map(function(x){return x[0];}).join("").slice(0,2).toUpperCase();
+                }
+              }
+              var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
+              var d = hr ? hr.querySelector(".notif-dot") : null;
+              if (d) d.style.display = hasUnread ? "block" : "none";
+            } catch(e){}
+          })();
+        </script>
       </div>
 
     </header>

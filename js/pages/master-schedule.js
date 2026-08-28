@@ -724,7 +724,22 @@
 
     if (clearCurriculumBtn) {
       clearCurriculumBtn.addEventListener('click', async () => {
-        if (!confirm('Are you sure you want to clear all imported subjects?')) return;
+        const confirmFn = global.showConfirmModal || window.showConfirmModal;
+        let confirmed = false;
+        if (typeof confirmFn === 'function') {
+          confirmed = await confirmFn({
+            title: 'Clear Imported Subjects',
+            message: 'Are you sure you want to clear all imported subjects? This will permanently remove all curriculum entries from the system.',
+            confirmText: 'Clear All',
+            cancelText: 'Cancel',
+            isDestructive: true
+          });
+        } else {
+          confirmed = confirm('Are you sure you want to clear all imported subjects?');
+        }
+
+        if (!confirmed) return;
+
         try {
           if (global.curriculumService && typeof global.curriculumService.deleteCurriculum === 'function') {
             await global.curriculumService.deleteCurriculum();
@@ -733,7 +748,11 @@
           }
           parsedCurriculumData = [];
           renderCurriculumTable();
-          alert('Subjects cleared successfully.');
+          if (global.showToast) {
+            global.showToast('Subjects cleared successfully.', 'success');
+          } else {
+            alert('Subjects cleared successfully.');
+          }
         } catch (err) {
           console.error('Error clearing subjects:', err);
         }
