@@ -1,0 +1,762 @@
+/* ================================================================
+   LabSync – Modular Component: Laboratory Cards | css/components/lab-cards.css
+   ================================================================ */
+
+/* ─── Laboratory Cards Grid & Base Theme Styles ─── */
+.labs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+  overflow-y: auto;
+  align-content: start;
+  padding-right: 4px;
+}
+
+.lab-card {
+  border-radius: 18px;
+  padding: 16px 18px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+  border: 1px solid var(--border-light);
+  background: var(--bg-white);
+}
+
+.lab-card.green-theme {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.01) 100%);
+  border-color: rgba(16, 185, 129, 0.16);
+}
+
+.lab-card.green-theme:hover {
+  border-color: rgba(16, 185, 129, 0.45);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.1);
+}
+
+.lab-card.orange-theme {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.01) 100%);
+  border-color: rgba(245, 158, 11, 0.16);
+}
+
+.lab-card.orange-theme:hover {
+  border-color: rgba(245, 158, 11, 0.45);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.1);
+}
+
+.lab-card.red-theme {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.01) 100%);
+  border-color: rgba(239, 68, 68, 0.16);
+}
+
+.lab-card.red-theme:hover {
+  border-color: rgba(239, 68, 68, 0.45);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.1);
+}
+
+.lab-card.offline-theme,
+.lab-card.gray-theme {
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.08) 0%, rgba(148, 163, 184, 0.02) 100%);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.lab-card.offline-theme:hover,
+.lab-card.gray-theme:hover {
+  border-color: rgba(148, 163, 184, 0.45);
+  box-shadow: 0 6px 20px rgba(100, 116, 139, 0.1);
+}
+
+/* Dashboard Main Grid Labs Container & Scrollbar */
+.dashboard-main-grid .labs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
+  gap: 14px;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  grid-auto-rows: max-content;
+  align-content: start;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  padding-right: 6px;
+  box-sizing: border-box;
+}
+
+.dashboard-main-grid .labs-grid .lab-card {
+  flex: none;
+  min-width: 0;
+  height: auto;
+}
+
+.dashboard-main-grid .labs-grid::-webkit-scrollbar,
+.labs-grid::-webkit-scrollbar {
+  width: 5px;
+}
+
+.dashboard-main-grid .labs-grid::-webkit-scrollbar-button,
+.labs-grid::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.dashboard-main-grid .labs-grid::-webkit-scrollbar-track,
+.labs-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-main-grid .labs-grid::-webkit-scrollbar-thumb,
+.labs-grid::-webkit-scrollbar-thumb {
+  background: var(--border-light, #CBD5E1);
+  border-radius: 99px;
+}
+
+.dashboard-main-grid .labs-grid::-webkit-scrollbar-thumb:hover,
+.labs-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--text-light, #94A3B8);
+}
+
+html.high-contrast .dashboard-main-grid .labs-grid::-webkit-scrollbar-thumb,
+html.high-contrast .labs-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ─── Lab Card Flip Guide Badge Component Styles ─── */
+.flip-hint-badge {
+  font-size: 10px;
+  font-weight: 800;
+  background: var(--primary-teal-light);
+  color: var(--primary-teal);
+  padding: 3px 10px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  border: 1px solid var(--primary-teal-glow);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flip-hint-badge span {
+  color: var(--primary-teal);
+  transition: color 0.25s ease;
+}
+
+.flip-hint-badge i,
+.flip-hint-badge svg {
+  color: var(--primary-teal);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s ease;
+}
+
+.lab-card-front:hover .flip-hint-badge {
+  background: var(--primary-teal) !important;
+  border-color: var(--primary-teal) !important;
+  box-shadow: 0 3px 10px var(--primary-teal-glow);
+}
+
+.lab-card-front:hover .flip-hint-badge span,
+.lab-card-front:hover .flip-hint-badge i,
+.lab-card-front:hover .flip-hint-badge svg {
+  color: #ffffff !important;
+}
+
+.lab-card-front:hover .flip-hint-badge i,
+.lab-card-front:hover .flip-hint-badge svg {
+  transform: translateX(3px);
+}
+
+html.high-contrast .flip-hint-badge {
+  background: rgba(0, 163, 196, 0.16) !important;
+  color: #00e5ff !important;
+  border-color: rgba(0, 163, 196, 0.3) !important;
+}
+
+html.high-contrast .flip-hint-badge span,
+html.high-contrast .flip-hint-badge i,
+html.high-contrast .flip-hint-badge svg {
+  color: #00e5ff !important;
+}
+
+html.high-contrast .lab-card-front:hover .flip-hint-badge {
+  background: #00a3c4 !important;
+  border-color: #00a3c4 !important;
+  box-shadow: none !important;
+}
+
+html.high-contrast .lab-card-front:hover .flip-hint-badge span,
+html.high-contrast .lab-card-front:hover .flip-hint-badge i,
+html.high-contrast .lab-card-front:hover .flip-hint-badge svg {
+  color: #111827 !important;
+}
+
+/* ─── Lab Card Flip Back Action Button Component Styles ─── */
+.flip-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-card);
+  color: var(--text-mid);
+  border: 1px solid var(--border-light);
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+
+.flip-back-btn:hover {
+  background: #F1F5F9;
+  color: var(--text-dark);
+  border-color: #CBD5E1;
+  box-shadow: var(--shadow-md);
+}
+
+html.high-contrast .flip-back-btn {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+
+html.high-contrast .flip-back-btn:hover {
+  background: #334155 !important;
+  border-color: #64748b !important;
+}
+
+/* ─── Active PC Report Details Subcard Item Component Styles ─── */
+.active-pc-problem-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(234, 88, 12, 0.02);
+  border: 1px solid rgba(234, 88, 12, 0.06);
+  transition: all var(--transition);
+}
+
+.active-pc-problem-item:hover {
+  background: rgba(234, 88, 12, 0.05);
+  border-color: rgba(234, 88, 12, 0.14);
+}
+
+html.high-contrast .active-pc-problem-item:hover {
+  background: rgba(251, 146, 60, 0.08) !important;
+  border-color: rgba(251, 146, 60, 0.25) !important;
+}
+
+/* ─── Active PC Problems Subcard List Scrollbar Component Styles ─── */
+.active-pc-problems-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.active-pc-problems-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.active-pc-problems-list::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.15);
+  border-radius: 4px;
+}
+
+/* ─── Flippable Lab Status Card Container & Face Presentation Component Styles ─── */
+.lab-card-container {
+  position: relative;
+  min-height: 160px;
+  /* ensures stable size for all cards and avoids bottom clipping */
+  min-width: 260px;
+  /* prevents card from shrinking below minimum content width */
+  width: 100%;
+}
+
+.lab-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.lab-card-front,
+.lab-card-back {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: opacity, transform;
+}
+
+.lab-card-front {
+  opacity: 1;
+  transform: translateY(0) !important;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.lab-card-container.flipped .lab-card-front {
+  opacity: 0;
+  transform: translateY(-12px) !important;
+  pointer-events: none;
+}
+
+.lab-card-back {
+  opacity: 0;
+  transform: translateY(12px) !important;
+  border-color: rgba(234, 88, 12, 0.24) !important;
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.04) 0%, rgba(234, 88, 12, 0.01) 100%) !important;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.lab-card-container.flipped .lab-card-back {
+  opacity: 1;
+  transform: translateY(0) !important;
+  pointer-events: auto;
+  z-index: 3;
+}
+
+html.high-contrast .lab-card-back {
+  background: #0f172a !important;
+  border-color: rgba(234, 88, 12, 0.6) !important;
+}
+
+/* ─── Laboratory Subcard Details, Timers & Legend Badges Component Styles ─── */
+.sh-legend {
+  display: flex;
+  gap: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-mid);
+}
+
+.legend-item .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot.green {
+  background: #4ADE80;
+}
+
+.dot.orange {
+  background: #FB923C;
+}
+
+.dot.red {
+  background: #EF4444;
+}
+
+.lab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+
+.room-num {
+  font-family: var(--font-display);
+  font-size: 18.5px;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: -0.3px;
+}
+
+.muted-text {
+  color: var(--text-muted) !important;
+  font-weight: 500 !important;
+}
+
+.lab-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex: 1;
+}
+
+.ld-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.ld-row>span:not(.flip-hint-badge) {
+  color: var(--text-mid);
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ld-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--primary-teal);
+  flex-shrink: 0;
+}
+
+.ld-row strong {
+  color: var(--text-dark);
+  font-weight: 700;
+  font-size: 14.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+.teal-text {
+  color: #0284C7 !important;
+}
+
+.amber-text {
+  color: #D97706 !important;
+}
+
+/* ─── Impeccable Lab Status Card Structure ─── */
+.lab-card {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  min-height: auto !important;
+  border-radius: 18px !important;
+  padding: 16px 18px 14px 18px !important;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease !important;
+  transform: none !important;
+}
+
+.lab-card:hover {
+  transform: none !important;
+}
+
+.lab-header.lc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.room-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.room-num {
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-size: 19px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.3px;
+  color: var(--text-dark, #0f172a);
+  margin: 0;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.room-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-light, #64748b);
+  white-space: nowrap;
+}
+
+.lab-details.lc-details {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  flex: 0 0 auto;
+  margin-bottom: 12px;
+}
+
+.ld-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.ld-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-mid, #64748b);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ld-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-light, #94a3b8);
+  flex-shrink: 0;
+}
+
+.ld-value {
+  font-size: 13px !important;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 185px;
+}
+
+/* Compact Separated Status Footer */
+.lab-card-footer {
+  margin-top: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light, #E2E8F0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.lab-card-footer .pc-status-row {
+  width: 100%;
+}
+
+.pc-status-row .issue-icon {
+  color: #E11D48;
+}
+
+.pc-status-row .issue-label {
+  color: #E11D48;
+  font-weight: 700;
+}
+
+/* Ghost Action Link */
+.btn-health-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #E11D48 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  font-family: var(--font-body);
+}
+
+.btn-health-view:hover {
+  color: #BE123C !important;
+  transform: translateX(2px);
+}
+
+.btn-health-view i,
+.btn-health-view svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.5;
+  transition: transform 0.15s ease;
+}
+
+.btn-health-view:hover i,
+.btn-health-view:hover svg {
+  transform: translateX(1px);
+}
+
+/* ─── Dark Mode & High-Contrast Overrides ─── */
+html.high-contrast .lab-card {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.high-contrast .room-num {
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .room-subtitle {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .ld-label {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .ld-icon {
+  color: #64748B !important;
+}
+
+html.high-contrast .ld-value {
+  color: #E2E8F0;
+}
+
+html.high-contrast .lab-card-footer {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.high-contrast .pc-status-row .issue-icon,
+html.high-contrast .pc-status-row .issue-label {
+  color: #FB7185 !important;
+}
+
+html.high-contrast .btn-health-view {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #FB7185 !important;
+}
+
+html.high-contrast .btn-health-view:hover {
+  color: #FDA4AF !important;
+  background: transparent !important;
+}
+
+.lab-details.empty-state {
+  justify-content: center;
+  gap: 6px;
+}
+
+.lab-details.empty-state span {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #15803D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lab-details.empty-state strong {
+  font-size: 15.5px;
+  color: #0F172A;
+  font-weight: 700;
+}
+
+.lab-timer {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  flex-shrink: 0;
+}
+
+.lab-card.red-theme .lab-timer {
+  color: #9F1239;
+}
+
+.lab-card.orange-theme .lab-timer {
+  color: #9A3412;
+}
+
+/* ─── Compact Laboratory Status Filter Component ─── */
+.lab-filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.lab-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1px solid var(--border-light, #E2E8F0);
+  background: var(--bg-white, #FFFFFF);
+  color: var(--text-mid, #64748B);
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.lab-filter-btn:hover {
+  background: #F1F5F9;
+  color: var(--text-dark, #1E293B);
+  border-color: #CBD5E1;
+}
+
+.lab-filter-btn.active {
+  background: var(--primary-teal, #1EBBD7);
+  border-color: var(--primary-teal, #1EBBD7);
+  color: #FFFFFF;
+}
+
+.lab-filter-btn .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.lab-filter-btn .dot.green {
+  background: #10B981;
+}
+
+.lab-filter-btn .dot.orange {
+  background: #F59E0B;
+}
+
+.lab-filter-btn .dot.red {
+  background: #EF4444;
+}
+
+.lab-filter-btn .dot.amber {
+  background: #F59E0B;
+}
+
+.lab-filter-btn.active .dot.green {
+  background: #A7F3D0;
+}
+
+.lab-filter-btn.active .dot.orange {
+  background: #FED7AA;
+}
+
+.lab-filter-btn.active .dot.red {
+  background: #FECACA;
+}
+
+.lab-filter-btn.active .dot.amber {
+  background: #FEF08A;
+}
+
+/* Dark Mode / High Contrast for Lab Filter Buttons */
+html.high-contrast .lab-filter-btn {
+  background: rgba(30, 41, 59, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .lab-filter-btn:hover {
+  background: rgba(51, 65, 85, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .lab-filter-btn.active {
+  background: var(--primary-teal, #00A3C4) !important;
+  border-color: var(--primary-teal, #00A3C4) !important;
+  color: #FFFFFF !important;
+}
