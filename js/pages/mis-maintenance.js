@@ -10,10 +10,17 @@ let activeFilter = 'all';
 
 /**
  * Parses raw Issue_Description string into section, issues list, and remarks.
+ * Delegates to canonical reportParser (js/reports/report.parser.js).
  * @param {string} desc - Raw issue description text
  * @returns {Object} Object containing section, issues, and remarks strings
  */
 function parseIssueDesc(desc) {
+  if (global.reportParser && typeof global.reportParser.parseIssueDescription === 'function') {
+    return global.reportParser.parseIssueDescription(desc);
+  }
+  if (typeof global.parseIssueDescription === 'function') {
+    return global.parseIssueDescription(desc);
+  }
   if (!desc) return { section: 'N/A', issues: 'Hardware Issue', remarks: '' };
 
   const sectionMatch = desc.match(/\[Program & Section:\s*([^\]]+)\]/i);
@@ -392,24 +399,32 @@ async function updateReportStatus(reportId, newStatus) {
   if (!confirmed) return;
 
   try {
-    const response = await fetch(`/api/reports/${reportId}/status`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ status: newStatus })
-    });
-
-    if (response.ok) {
-      if (window.showToast) window.showToast(`Ticket LS-TKT-${reportId} status updated to ${newStatus}`, 'success');
-      await loadMaintenanceData();
+    const service = global.reportService;
+    if (service && typeof service.updateReportStatus === 'function') {
+      await service.updateReportStatus(reportId, newStatus);
     } else {
-      const err = await response.json();
-      alert('Error: ' + err.error);
+      const response = await fetch(`/api/reports/${reportId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to update ticket status.');
+      }
     }
+
+    if (window.showToast) window.showToast(`Ticket LS-TKT-${reportId} status updated to ${newStatus}`, 'success');
+    await loadMaintenanceData();
   } catch (error) {
     console.error('Error updating status:', error);
-    alert('Failed to update ticket status.');
+    if (window.showToast) {
+      window.showToast(error.message || 'Failed to update ticket status.', 'error');
+    } else {
+      alert(error.message || 'Failed to update ticket status.');
+    }
   }
 }
 
@@ -418,9 +433,14 @@ async function updateReportStatus(reportId, newStatus) {
  */
 async function loadMaintenanceData() {
   try {
-    const response = await fetch('/api/reports');
-    if (!response.ok) throw new Error('Failed to fetch reports');
-    maintenanceReports = await response.json();
+    const service = global.reportService;
+    if (service && typeof service.fetchReports === 'function') {
+      maintenanceReports = await service.fetchReports();
+    } else {
+      const response = await fetch('/api/reports');
+      if (!response.ok) throw new Error('Failed to fetch reports');
+      maintenanceReports = await response.json();
+    }
 
     calculateStats(maintenanceReports);
     applyFiltersAndRender();
