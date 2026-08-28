@@ -1,10 +1,25 @@
 /**
- * LabSync DOM & Icon Utilities
- * Extracted in Phase 6A-03 (Shared UI Infrastructure)
+ * LabSync DOM & Sanitization Utilities | js/utils/dom-utils.js
+ * Provides safe HTML escaping and Lucide icon rendering helpers.
  */
 
 (function (global) {
   'use strict';
+
+  /**
+   * Safely escapes untrusted input strings for insertion into HTML templates.
+   * @param {string} str
+   * @returns {string}
+   */
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 
   /**
    * Safely renders Lucide icons across the document or within a specific subtree container.
@@ -24,7 +39,13 @@
     }
   }
 
-  // Preserve global contracts for legacy scripts and HTML callers
+  const domUtils = {
+    escapeHtml,
+    renderIcons
+  };
+
+  global.domUtils = domUtils;
+  global.escapeHtml = escapeHtml;
   global.renderIcons = renderIcons;
 
 })(typeof window !== 'undefined' ? window : this);
