@@ -306,7 +306,14 @@
                       <div>
                         <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Mobile Number *</label>
                         <input type="tel" id="settings-phone" required style="width:100%;box-sizing:border-box;padding:12px 16px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;background:var(--bg-card, #F8FAFC);color:var(--text-dark);" placeholder="09123456789">
+                        <p style="font-size:11.5px;color:var(--text-muted);margin:4px 0 0 0;">Format: 11-digit mobile number (e.g. 09XXXXXXXXX)</p>
                       </div>
+                    </div>
+
+                    <!-- Email & Mobile Change Security Notice -->
+                    <div style="background:rgba(14,165,233,0.1); border:1.5px solid rgba(14,165,233,0.25); border-radius:12px; padding:12px 16px; display:flex; gap:12px; align-items:flex-start; margin-top:4px;">
+                      <i data-lucide="shield-check" style="width:18px;height:18px;color:#0284C7;flex-shrink:0;margin-top:2px;"></i>
+                      <p style="margin:0;font-size:12.5px;line-height:1.5;color:var(--text-dark);">Changing your email address requires your <strong>Current Password</strong>. A <strong>Confirmation Approval Link</strong> will be sent to your current email address to authorize the update.</p>
                     </div>
                   </div>
                 </div>
@@ -336,6 +343,15 @@
                     <i data-lucide="key-round" style="width:15px;height:15px;"></i>
                     Change Password
                   </button>
+                </div>
+
+                <!-- Password Security Tip Box -->
+                <div style="background:rgba(245,158,11,0.12);border:1.5px solid rgba(245,158,11,0.25);border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-top:16px;">
+                  <i data-lucide="shield-check" style="width:20px;height:20px;color:#F59E0B;flex-shrink:0;margin-top:2px;"></i>
+                  <div>
+                    <div style="font-weight:700;font-size:13px;color:var(--text-dark);margin-bottom:2px;">Security Tip</div>
+                    <p style="font-size:12.5px;color:var(--text-mid);margin:0;line-height:1.4;">Use a strong password with at least 8 characters, including numbers and symbols to keep your account protected.</p>
+                  </div>
                 </div>
               </div>
 

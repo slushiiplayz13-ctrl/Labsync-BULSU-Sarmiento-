@@ -42,7 +42,16 @@
             <input type="password" id="cp-confirm-password" required minlength="8" style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="Re-enter new password">
           </div>
 
-          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+          <!-- Password Requirements Instruction Box -->
+          <div style="background:rgba(245,158,11,0.12);border:1.5px solid rgba(245,158,11,0.25);border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <i data-lucide="shield-check" style="width:18px;height:18px;color:#F59E0B;flex-shrink:0;margin-top:2px;"></i>
+            <div>
+              <p style="margin:0 0 2px 0;font-size:12.5px;font-weight:700;color:var(--text-dark);">Password Requirements</p>
+              <p style="margin:0;font-size:12px;color:var(--text-mid);line-height:1.4;">Must be at least 8 characters long with a combination of letters, numbers, or symbols.</p>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
             <button type="button" id="cancel-cp-btn" style="padding:10px 18px;border:1.5px solid var(--border-light);background:var(--bg-card, #fff);border-radius:10px;font-size:13.5px;font-weight:600;color:var(--text-dark);cursor:pointer;transition:all 0.2s;">Cancel</button>
             <button type="submit" id="submit-cp-btn" style="padding:10px 22px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px var(--primary-teal-glow);transition:all 0.2s;">Update Password</button>
           </div>
