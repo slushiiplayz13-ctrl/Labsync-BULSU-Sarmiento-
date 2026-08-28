@@ -417,4 +417,16 @@ html.high-contrast .btn-resolve-ticket {
   box-shadow: 0 10px 24px rgba(30, 187, 215, 0.4);
 }
 
+/* ─── Completed Tickets Toggle Button High-Contrast Theme Overrides ─── */
+html.high-contrast .toggle-completed-btn {
+  background: var(--bg-card) !important;
+  color: var(--primary-teal) !important;
+  border-color: var(--primary-teal) !important;
+}
+
+html.high-contrast .toggle-completed-btn:hover {
+  background: var(--primary-teal-light) !important;
+}
+
+
 

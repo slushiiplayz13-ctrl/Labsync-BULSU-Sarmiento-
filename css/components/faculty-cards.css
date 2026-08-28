@@ -269,3 +269,85 @@
   gap: 12px;
 }
 
+/* ─── Faculty Cards, Actions & Tribute High-Contrast Theme Overrides ─── */
+html.high-contrast .boss-role {
+  color: var(--primary-teal) !important;
+}
+
+html.high-contrast .faculty-card div[style*="color:#1F2937"] {
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .faculty-card div[style*="color:#6B7280"] {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .faculty-card i[style*="color:#9CA3AF"] {
+  color: var(--text-muted) !important;
+}
+
+html.high-contrast .faculty-dropdown-menu {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.high-contrast .faculty-dropdown-menu .menu-item {
+  color: var(--text-dark) !important;
+  background: transparent !important;
+}
+
+html.high-contrast .faculty-dropdown-menu .menu-item:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+
+html.high-contrast .faculty-dropdown-menu .menu-item i,
+html.high-contrast .faculty-dropdown-menu .menu-item svg {
+  color: var(--text-muted) !important;
+}
+
+html.high-contrast .faculty-dropdown-menu .menu-item:hover i,
+html.high-contrast .faculty-dropdown-menu .menu-item:hover svg {
+  color: var(--primary-teal) !important;
+}
+
+/* Ensure the Remove Faculty / danger items remain red in high contrast dark mode */
+html.high-contrast .faculty-dropdown-menu .menu-item[style*="color: #EF4444"],
+html.high-contrast .faculty-dropdown-menu .menu-item[style*="color:#EF4444"] {
+  color: #F87171 !important;
+}
+
+html.high-contrast .faculty-dropdown-menu .menu-item[style*="color: #EF4444"] i,
+html.high-contrast .faculty-dropdown-menu .menu-item[style*="color:#EF4444"] i {
+  color: #F87171 !important;
+}
+
+html.high-contrast .faculty-dropdown-menu .menu-divider {
+  background: var(--border-light) !important;
+}
+
+html.high-contrast .heart-container {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #F87171 !important;
+}
+
+html.high-contrast .tribute-card {
+  background: rgba(245, 158, 11, 0.1) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+html.high-contrast .tribute-card * {
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .successor-card {
+  background: rgba(20, 184, 166, 0.1) !important;
+  border-color: rgba(20, 184, 166, 0.3) !important;
+}
+
+html.high-contrast .successor-card * {
+  color: var(--text-dark) !important;
+}
+
+

@@ -742,4 +742,31 @@ body.dark-mode .notif-icon-default,
   color: #9ca3af !important;
 }
 
+/* ─── Notification Button & Item High-Contrast Overrides ─── */
+html.high-contrast .notif-btn {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .notif-btn:hover {
+  background: var(--primary-teal-light) !important;
+}
+
+html.high-contrast .notif-item {
+  border-bottom-color: var(--border-light) !important;
+}
+
+html.high-contrast .notif-item:hover {
+  background: var(--bg-card) !important;
+}
+
+html.high-contrast .notif-item.unread {
+  background: var(--primary-teal-light) !important;
+}
+
+html.high-contrast .notif-item.unread:hover {
+  background: rgba(0, 163, 196, 0.2) !important;
+}
+
+
 

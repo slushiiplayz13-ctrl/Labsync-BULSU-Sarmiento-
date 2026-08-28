@@ -50,3 +50,86 @@
     transform: translateY(0);
   }
 }
+
+/* ─── Account Settings & Accessibility Settings Theme Overrides ─── */
+html.high-contrast #account-settings-modal div[style*="background:#F8FAFC"],
+html.high-contrast #account-settings-modal div[style*="background: #F8FAFC"] {
+  background: var(--bg-card) !important;
+}
+
+#close-accessibility-settings-btn {
+  background: var(--primary-teal) !important;
+  color: #ffffff !important;
+  border: none !important;
+  transition: background var(--transition) !important;
+}
+
+#close-accessibility-settings-btn:hover {
+  background: var(--primary-teal-hover) !important;
+  color: #ffffff !important;
+}
+
+html.high-contrast #account-settings-form {
+  background: var(--bg-white) !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#F0F9FF"],
+html.high-contrast #account-settings-modal div[style*="background: #F0F9FF"] {
+  background: rgba(14, 165, 233, 0.15) !important;
+  border-color: rgba(14, 165, 233, 0.3) !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#F0F9FF"] p,
+html.high-contrast #account-settings-modal div[style*="background: #F0F9FF"] p {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#F0F9FF"] i,
+html.high-contrast #account-settings-modal div[style*="background: #F0F9FF"] i {
+  color: #38BDF8 !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#FEF3C7"],
+html.high-contrast #account-settings-modal div[style*="background: #FEF3C7"] {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#FEF3C7"] p,
+html.high-contrast #account-settings-modal div[style*="background: #FEF3C7"] p {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#FEF3C7"] div[style*="color:#92400E"],
+html.high-contrast #account-settings-modal div[style*="background: #FEF3C7"] div[style*="color:#92400E"] {
+  color: #FBBF24 !important;
+}
+
+html.high-contrast #account-settings-modal div[style*="background:#FEF3C7"] i,
+html.high-contrast #account-settings-modal div[style*="background: #FEF3C7"] i {
+  color: #FBBF24 !important;
+}
+
+html.high-contrast #panel-qrcode p {
+  color: var(--text-mid) !important;
+}
+
+/* Email Change Security Modal Dark Mode & Contrast Overrides */
+html.dark-mode #email-confirm-modal .email-alert-notice,
+body.dark-mode #email-confirm-modal .email-alert-notice {
+  background: rgba(245, 158, 11, 0.16) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+html.dark-mode #email-confirm-modal .email-alert-notice span,
+body.dark-mode #email-confirm-modal .email-alert-notice span,
+html.dark-mode #email-confirm-modal .email-alert-notice strong,
+body.dark-mode #email-confirm-modal .email-alert-notice strong {
+  color: var(--text-dark, #f8fafc) !important;
+}
+
+html.dark-mode #email-confirm-modal .email-alert-notice strong.highlight-text,
+body.dark-mode #email-confirm-modal .email-alert-notice strong.highlight-text {
+  color: #FBBF24 !important;
+}
+

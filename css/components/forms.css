@@ -424,3 +424,38 @@ html.high-contrast .remarks-quote-box {
   width: 100%;
   letter-spacing: 0.5px;
 }
+
+/* ─── Form Controls & Inputs High-Contrast Theme Overrides ─── */
+html.high-contrast .input-group input,
+html.high-contrast .input-field,
+html.high-contrast .remarks-textarea,
+html.high-contrast .editor-select,
+html.high-contrast .fm-search input {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .input-group input:focus,
+html.high-contrast .input-field:focus,
+html.high-contrast .remarks-textarea:focus,
+html.high-contrast .editor-select:focus,
+html.high-contrast .fm-search input:focus {
+  background: var(--bg-white) !important;
+  border-color: var(--primary-teal) !important;
+}
+
+html.high-contrast input::placeholder,
+html.high-contrast textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+html.high-contrast .search-input {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .search-input::placeholder {
+  color: var(--text-muted) !important;
+}

@@ -586,36 +586,173 @@ html.high-contrast .lab-card-back {
 
 /* ─── Dark Mode & High-Contrast Overrides ─── */
 html.high-contrast .lab-card {
-  background: rgba(15, 23, 42, 0.85) !important;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
 }
 
-html.high-contrast .room-num {
+html.high-contrast .lab-card.green-theme {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border-color: rgba(16, 185, 129, 0.28) !important;
+}
+
+html.high-contrast .lab-card.green-theme:hover {
+  border-color: rgba(16, 185, 129, 0.55) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.15) !important;
+}
+
+html.high-contrast .lab-card.orange-theme {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border-color: rgba(245, 158, 11, 0.28) !important;
+}
+
+html.high-contrast .lab-card.orange-theme:hover {
+  border-color: rgba(245, 158, 11, 0.55) !important;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.15) !important;
+}
+
+html.high-contrast .lab-card.red-theme {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border-color: rgba(239, 68, 68, 0.28) !important;
+}
+
+html.high-contrast .lab-card.red-theme:hover {
+  border-color: rgba(239, 68, 68, 0.55) !important;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.15) !important;
+}
+
+html.high-contrast .lab-card.offline-theme,
+html.high-contrast .lab-card.gray-theme {
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+}
+
+html.high-contrast .lab-card.offline-theme:hover,
+html.high-contrast .lab-card.gray-theme:hover {
+  border-color: rgba(148, 163, 184, 0.4) !important;
+}
+
+html.high-contrast .lab-card .room-num {
   color: #F8FAFC !important;
 }
 
-html.high-contrast .room-subtitle {
+html.high-contrast .lab-card .room-subtitle {
   color: #94A3B8 !important;
 }
 
-html.high-contrast .ld-label {
+html.high-contrast .lab-card .ld-label {
   color: #94A3B8 !important;
 }
 
-html.high-contrast .ld-icon {
+html.high-contrast .lab-card .ld-label span {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .lab-card .ld-icon {
   color: #64748B !important;
 }
 
-html.high-contrast .ld-value {
-  color: #E2E8F0;
+html.high-contrast .lab-card .ld-value {
+  color: #F1F5F9 !important;
 }
 
+html.high-contrast .lab-card .ld-value.teal-text {
+  color: #38BDF8 !important;
+}
+
+html.high-contrast .lab-card .ld-value.muted-text {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .lab-card .badge.green {
+  color: #34D399 !important;
+  background: rgba(16, 185, 129, 0.18) !important;
+  border: 1px solid rgba(52, 211, 153, 0.25) !important;
+}
+
+html.high-contrast .lab-card .badge.green::before {
+  background: #34D399 !important;
+}
+
+html.high-contrast .lab-card .badge.orange {
+  color: #FBBF24 !important;
+  background: rgba(245, 158, 11, 0.18) !important;
+  border: 1px solid rgba(251, 191, 36, 0.25) !important;
+}
+
+html.high-contrast .lab-card .badge.orange::before {
+  background: #FBBF24 !important;
+}
+
+html.high-contrast .lab-card .badge.red {
+  color: #F87171 !important;
+  background: rgba(239, 68, 68, 0.18) !important;
+  border: 1px solid rgba(248, 113, 113, 0.25) !important;
+}
+
+html.high-contrast .lab-card .badge.red::before {
+  background: #F87171 !important;
+}
+
+html.high-contrast .lab-card .badge.offline,
+html.high-contrast .lab-card .badge.gray {
+  color: #94A3B8 !important;
+  background: rgba(148, 163, 184, 0.12) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+}
+
+html.high-contrast .lab-card .badge.offline::before,
+html.high-contrast .lab-card .badge.gray::before {
+  background: #94A3B8 !important;
+  box-shadow: none !important;
+}
+
+/* PC Reports text visibility overrides inside status card in high contrast */
+html.high-contrast .lab-card .pc-reports-title {
+  color: #FB923C !important;
+}
+
+html.high-contrast .lab-card .active-pc-problems-list div {
+  color: #FB923C !important;
+}
+
+html.high-contrast .lab-card .active-pc-problems-list span {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .lab-card .pc-badge-tag {
+  background: rgba(249, 115, 22, 0.2) !important;
+  color: #FB923C !important;
+}
+
+/* Lab Health Bar in Dark Mode / High Contrast */
 html.high-contrast .lab-card-footer {
-  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 html.high-contrast .pc-status-row .issue-icon,
 html.high-contrast .pc-status-row .issue-label {
+  color: #FB7185 !important;
+}
+
+html.high-contrast .lab-health-bar {
+  background: transparent !important;
+  border: none !important;
+}
+
+html.high-contrast .is-healthy .health-bar-left {
+  color: #34D399 !important;
+}
+
+html.high-contrast .is-healthy .hb-icon {
+  color: #34D399 !important;
+}
+
+html.high-contrast .has-issues .health-bar-left {
+  color: #FB7185 !important;
+}
+
+html.high-contrast .has-issues .hb-icon {
   color: #FB7185 !important;
 }
 
@@ -627,8 +764,16 @@ html.high-contrast .btn-health-view {
 }
 
 html.high-contrast .btn-health-view:hover {
-  color: #FDA4AF !important;
   background: transparent !important;
+  color: #FDA4AF !important;
+}
+
+html.high-contrast .is-offline .health-bar-left {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .is-offline .hb-icon {
+  color: #94A3B8 !important;
 }
 
 .lab-details.empty-state {

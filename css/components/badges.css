@@ -430,6 +430,34 @@ html.high-contrast .status-badge-pulse.resolved {
   border: 1px solid rgba(110, 231, 183, 0.35) !important;
 }
 
+/* ─── Status & Priority Badges High-Contrast Theme Overrides ─── */
+html.high-contrast .status-badge.pending,
+html.high-contrast .priority-badge.medium {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #F59E0B !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+html.high-contrast .status-badge.in-progress,
+html.high-contrast .priority-badge.low {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #60A5FA !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+html.high-contrast .status-badge.resolved {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34D399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+html.high-contrast .priority-badge.high {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #F87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+
 
 
 

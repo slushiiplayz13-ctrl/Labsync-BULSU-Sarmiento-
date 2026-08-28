@@ -95,3 +95,37 @@
 .banner-mis-notice.warning .banner-text {
   color: #7F1D1D;
 }
+
+/* ─── Alert & Notice Boxes High-Contrast Theme Overrides ─── */
+html.high-contrast .alert-info-box {
+  background: rgba(14, 165, 233, 0.15) !important;
+  border-color: rgba(14, 165, 233, 0.3) !important;
+}
+
+html.high-contrast .alert-info-box i,
+html.high-contrast .alert-info-box svg {
+  color: #38BDF8 !important;
+}
+
+html.high-contrast .alert-info-box p {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .alert-warning-box {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+html.high-contrast .alert-warning-box i,
+html.high-contrast .alert-warning-box svg {
+  color: #FBBF24 !important;
+}
+
+html.high-contrast .alert-warning-box .alert-title {
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .alert-warning-box .alert-desc {
+  color: var(--text-mid) !important;
+}
+

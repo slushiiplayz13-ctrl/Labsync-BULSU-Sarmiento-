@@ -903,3 +903,123 @@ body[data-page="it-head-room-status"] .content-card:has(.timeline-list),
 .future-card .tc-time {
   color: #1E40AF;
 }
+
+/* ─── Activity Log & Room Status Timeline Dark Mode / High Contrast Overrides ─── */
+html.high-contrast .tc-title,
+html.high-contrast .timeline-item.active .tc-title,
+html.high-contrast .timeline-item.future .tc-title {
+  color: #FFFFFF !important;
+}
+
+html.high-contrast .tc-time {
+  color: #38BDF8 !important;
+}
+
+html.high-contrast .tc-room-badge {
+  background: rgba(14, 165, 233, 0.25) !important;
+  color: #38BDF8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+}
+
+html.high-contrast .tc-section-badge {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #F8FAFC !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+html.high-contrast .tc-status-pill.completed {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #E2E8F0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+html.high-contrast .tc-status-pill.ongoing {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #4ADE80 !important;
+  border: 1px solid rgba(74, 222, 128, 0.4) !important;
+}
+
+html.high-contrast .tc-status-pill.upcoming {
+  background: rgba(56, 189, 248, 0.18) !important;
+  color: #38BDF8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+html.high-contrast .time-marker {
+  border-color: var(--bg-white) !important;
+  box-shadow: 0 0 0 1px var(--border-light) !important;
+}
+
+html.high-contrast .timeline-badge,
+html.dark-mode .timeline-badge,
+body.dark-mode .timeline-badge,
+[data-theme="dark"] .timeline-badge {
+  background: rgba(30, 187, 215, 0.15) !important;
+  color: #38BDF8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+html.high-contrast .timeline-panel,
+html.dark-mode .timeline-panel,
+body.dark-mode .timeline-panel,
+[data-theme="dark"] .timeline-panel {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+html.high-contrast .timeline-panel:hover,
+html.dark-mode .timeline-panel:hover,
+body.dark-mode .timeline-panel:hover,
+[data-theme="dark"] .timeline-panel:hover {
+  background: #243044 !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.high-contrast .timeline-title,
+html.dark-mode .timeline-title,
+body.dark-mode .timeline-title,
+[data-theme="dark"] .timeline-title {
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .timeline-heading-meta,
+html.dark-mode .timeline-heading-meta,
+body.dark-mode .timeline-heading-meta,
+[data-theme="dark"] .timeline-heading-meta {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .timeline-body,
+html.dark-mode .timeline-body,
+body.dark-mode .timeline-body,
+[data-theme="dark"] .timeline-body,
+html.high-contrast .timeline-body p,
+html.dark-mode .timeline-body p,
+body.dark-mode .timeline-body p,
+[data-theme="dark"] .timeline-body p {
+  color: #CBD5E1 !important;
+}
+
+html.high-contrast .timeline-item::before,
+html.dark-mode .timeline-item::before,
+body.dark-mode .timeline-item::before,
+[data-theme="dark"] .timeline-item::before {
+  background: #334155 !important;
+}
+
+html.high-contrast .timeline-list::-webkit-scrollbar-thumb,
+html.dark-mode .timeline-list::-webkit-scrollbar-thumb,
+body.dark-mode .timeline-list::-webkit-scrollbar-thumb,
+[data-theme="dark"] .timeline-list::-webkit-scrollbar-thumb {
+  background: #475569 !important;
+}
+
+html.high-contrast .timeline-list::-webkit-scrollbar-thumb:hover,
+html.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
+body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .timeline-list::-webkit-scrollbar-thumb:hover {
+  background: #64748B !important;
+}
+

@@ -324,3 +324,64 @@ html.high-contrast .profile-menu-divider {
   background: rgba(255, 255, 255, 0.08);
 }
 
+/* ─── Custom Select & Filter Dropdowns High-Contrast Overrides ─── */
+html.high-contrast #filter-dropdown {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.high-contrast .filter-item {
+  color: var(--text-dark) !important;
+  background: transparent !important;
+}
+
+html.high-contrast .filter-item:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+
+html.high-contrast .custom-select-trigger {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .custom-select-dropdown,
+html.high-contrast #subject-select-dropdown {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.high-contrast .custom-select-option {
+  color: var(--text-dark) !important;
+  background: transparent !important;
+}
+
+html.high-contrast .custom-select-option:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+
+html.high-contrast .custom-select-option.selected {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+  font-weight: 700 !important;
+}
+
+html.high-contrast .custom-select-wrapper.header-select .custom-select-trigger {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .custom-select-wrapper.header-select .custom-select-trigger:hover,
+html.high-contrast .custom-select-wrapper.header-select.open .custom-select-trigger {
+  background: var(--primary-teal-light) !important;
+  border-color: var(--primary-teal) !important;
+  color: var(--primary-teal) !important;
+}
+
+
+

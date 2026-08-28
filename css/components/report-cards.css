@@ -476,3 +476,38 @@ html.high-contrast .modal-ticket-remarks {
 html.high-contrast .modal-remarks-body {
   color: #F8FAFC !important;
 }
+
+/* ─── PC Reports Details & Report Card High-Contrast Theme Overrides ─── */
+html.high-contrast div[style*="background:#FAFDFE"],
+html.high-contrast div[style*="background: #FAFDFE"] {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .report-card {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .remarks-box {
+  background: rgba(30, 41, 59, 0.6) !important;
+  color: #F1F5F9 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.high-contrast .remarks-text {
+  color: #F1F5F9 !important;
+}
+
+html.high-contrast .remarks-box.is-empty {
+  background: rgba(15, 23, 42, 0.35) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.15) !important;
+  color: #64748B !important;
+}
+
+html.high-contrast .remarks-empty-icon {
+  color: #64748B !important;
+}
+
+

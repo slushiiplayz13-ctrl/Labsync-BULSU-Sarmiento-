@@ -936,3 +936,256 @@ html.high-contrast .grid-card {
   animation: spin 1s linear infinite;
   margin-bottom: 12px;
 }
+
+/* ─── Schedule & Timetable High-Contrast Theme Overrides ─── */
+html.high-contrast .sg-cell.filled,
+html.high-contrast .canvas-class-block {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.high-contrast .day-column {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast div[style*="background: rgba(255,255,255,0.4)"],
+html.high-contrast div[style*="background:rgba(255,255,255,0.4)"] {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-muted) !important;
+}
+
+html.high-contrast .sg-cell.empty {
+  background: var(--bg-card) !important;
+}
+
+html.high-contrast .sched-modal-dialog {
+  background: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.high-contrast .sched-modal-header {
+  background: #131f30 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.high-contrast .sched-modal-close-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94a3b8 !important;
+}
+
+html.high-contrast .sched-modal-close-btn:hover {
+  background: rgba(0, 180, 216, 0.15) !important;
+  color: #00b4d8 !important;
+  border-color: #00b4d8 !important;
+}
+
+html.high-contrast .sched-modal-card {
+  background: #131f30 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+}
+
+html.high-contrast .sched-modal-card:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(0, 180, 216, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.high-contrast .sched-card-subject {
+  color: #f8fafc !important;
+}
+
+html.high-contrast .sched-card-meta {
+  color: #94a3b8 !important;
+}
+
+html.high-contrast .sched-time-badge {
+  color: #f8fafc !important;
+}
+
+html.high-contrast .sched-status-pill {
+  background: rgba(0, 180, 216, 0.12) !important;
+  color: #38bdf8 !important;
+  border-color: rgba(0, 180, 216, 0.3) !important;
+}
+
+html.high-contrast .sched-modal-day-divider {
+  color: #00b4d8 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.high-contrast .sched-modal-empty-icon {
+  background: rgba(0, 180, 216, 0.12) !important;
+  color: #00b4d8 !important;
+}
+
+html.high-contrast .room-select-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.high-contrast .room-select-card:hover {
+  background: var(--bg-card) !important;
+  border-color: var(--primary-teal) !important;
+  box-shadow: 0 12px 24px var(--primary-teal-glow) !important;
+}
+
+html.high-contrast .room-select-card .rsc-title {
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .room-select-card .rsc-subtitle {
+  color: var(--text-muted) !important;
+}
+
+html.high-contrast .room-edit-btn {
+  background: #2D3748 !important;
+  color: #F8FAFC !important;
+  border-color: #4A5568 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.high-contrast .room-edit-btn i,
+html.high-contrast .room-edit-btn svg {
+  color: #F8FAFC !important;
+  stroke: #F8FAFC !important;
+}
+
+html.high-contrast .room-edit-btn:hover {
+  background: var(--primary-teal) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary-teal) !important;
+  box-shadow: 0 4px 14px var(--primary-teal-glow) !important;
+}
+
+html.high-contrast .room-edit-btn:hover i,
+html.high-contrast .room-edit-btn:hover svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+html.high-contrast .grid-time-column {
+  background: var(--bg-card) !important;
+  border-right-color: var(--border-light) !important;
+}
+
+html.high-contrast .grid-time-label {
+  color: var(--text-mid) !important;
+  border-bottom: 1px dashed var(--border-light) !important;
+}
+
+html.high-contrast .grid-day-column {
+  border-left-color: var(--border-light) !important;
+  background-image: linear-gradient(to bottom, transparent 35px, var(--border-light) 35px, var(--border-light) 36px) !important;
+  background-size: 100% 36px !important;
+}
+
+html.high-contrast #create-block-panel {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .sl-item {
+  color: var(--text-mid) !important;
+}
+
+html.high-contrast .sl-item:hover {
+  background: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-dark) !important;
+}
+
+html.high-contrast .sl-item.active {
+  background: var(--bg-card) !important;
+  border-color: var(--primary-teal) !important;
+  color: var(--primary-teal) !important;
+  box-shadow: 0 4px 14px rgba(0, 163, 196, 0.25) !important;
+}
+
+/* ─── Custom Time Picker & Schedule Editor Blocks Overrides ─── */
+html.high-contrast .ctp-display {
+  background: var(--bg-white) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .ctp-dropdown {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast .ctp-option {
+  color: var(--text-dark) !important;
+  background: transparent !important;
+}
+
+html.high-contrast .ctp-option:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+}
+
+html.high-contrast .ctp-option.selected {
+  background: var(--primary-teal) !important;
+  color: #fff !important;
+}
+
+html.high-contrast #blocks-container {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-light) !important;
+}
+
+/* ─── Master Schedule Signature Settings & Room Delete Overrides ─── */
+html.high-contrast #openSignatureSettingsBtn {
+  background: var(--bg-card) !important;
+  color: var(--text-mid) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.high-contrast #openSignatureSettingsBtn:hover {
+  background: var(--primary-teal-light) !important;
+  color: var(--primary-teal) !important;
+  border-color: var(--primary-teal) !important;
+}
+
+html.high-contrast #deleteRoomBtn {
+  background: transparent !important;
+  color: #F87171 !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+html.high-contrast #deleteRoomBtn:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: #F87171 !important;
+}
+
+/* ─── Calendar Schedule Grid Dark Mode Overrides ─── */
+html.high-contrast .calendar-grid-container {
+  background: var(--bg-white) !important;
+  border-color: var(--border-light) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.high-contrast .calendar-grid-header {
+  background: var(--bg-card) !important;
+  border-bottom-color: var(--border-light) !important;
+}
+
+html.high-contrast .grid-header-cell {
+  color: var(--text-dark) !important;
+  border-left-color: var(--border-light) !important;
+}
+
+html.high-contrast .grid-header-cell:first-child {
+  color: var(--text-muted) !important;
+}
+
+html.high-contrast .calendar-grid-body {
+  background: var(--bg-white) !important;
+}
+
+
