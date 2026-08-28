@@ -21,29 +21,37 @@
 
     function pad(n) { return String(n).padStart(2, '0'); }
 
+    let _isHydrating = false;
+
     function hydrate() {
-        const now = new Date();
-        let h = now.getHours();
-        const m = now.getMinutes();
-        const s = now.getSeconds();
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        const formattedH = h % 12 || 12;
-
-        const clockTimeEl = document.getElementById('clockTime');
-        if (clockTimeEl) {
-            clockTimeEl.textContent = `${pad(formattedH)}:${pad(m)}:${pad(s)} ${ampm}`;
-        }
-
-        const clockDateEl = document.getElementById('clockDate');
-        if (clockDateEl) {
-            clockDateEl.textContent = `${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-        }
-
+        if (_isHydrating) return;
+        _isHydrating = true;
         try {
+            const now = new Date();
+            let h = now.getHours();
+            const m = now.getMinutes();
+            const s = now.getSeconds();
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const formattedH = h % 12 || 12;
+
+            const clockTimeEl = document.getElementById('clockTime');
+            if (clockTimeEl && clockTimeEl.textContent !== `${pad(formattedH)}:${pad(m)}:${pad(s)} ${ampm}`) {
+                clockTimeEl.textContent = `${pad(formattedH)}:${pad(m)}:${pad(s)} ${ampm}`;
+            }
+
+            const clockDateEl = document.getElementById('clockDate');
+            const expectedDate = `${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+            if (clockDateEl && clockDateEl.textContent !== expectedDate) {
+                clockDateEl.textContent = expectedDate;
+            }
+
             const hasUnread = sessionStorage.getItem('labsync_has_unread_notifs') === 'true';
             const notifDot = document.querySelector('.notif-dot');
             if (notifDot) {
-                notifDot.style.display = hasUnread ? 'block' : 'none';
+                const expectedDisp = hasUnread ? 'block' : 'none';
+                if (notifDot.style.display !== expectedDisp) {
+                    notifDot.style.display = expectedDisp;
+                }
             }
 
             const cachedUserStr = sessionStorage.getItem('labsync_user');
@@ -87,11 +95,26 @@
                     }
                 }
             }
-        } catch (e) {}
+        } catch (e) {
+        } finally {
+            _isHydrating = false;
+        }
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', hydrate);
+        const observer = new MutationObserver(() => {
+            hydrate();
+            const avatarEl = document.querySelector('.avatar');
+            if (avatarEl && avatarEl.dataset.hydrated) {
+                observer.disconnect();
+            }
+        });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+        document.addEventListener('DOMContentLoaded', () => {
+            observer.disconnect();
+            hydrate();
+        });
+        hydrate();
     } else {
         hydrate();
     }
@@ -140,7 +163,7 @@
                 revealPage();
             }
         }
-    } catch (e) {}
+    } catch (e) { }
 
     // Safety fallback: reveal page immediately
     revealPage();
@@ -151,13 +174,13 @@
         });
 
         if (!response.ok) {
-            try { sessionStorage.removeItem('labsync_user'); } catch (e) {}
+            try { sessionStorage.removeItem('labsync_user'); } catch (e) { }
             window.location.replace('/login.html');
             return;
         }
 
         const user = await response.json();
-        try { sessionStorage.setItem('labsync_user', JSON.stringify(user)); } catch (e) {}
+        try { sessionStorage.setItem('labsync_user', JSON.stringify(user)); } catch (e) { }
         const role = user.role || '';
 
         if (!isPageAuthorized(role, page)) {

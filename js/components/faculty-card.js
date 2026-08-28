@@ -62,7 +62,7 @@
            data-name="${escapeHtml((member.Name || '').toLowerCase())}" 
            data-dept="${escapeHtml((member.Email || '').toLowerCase())}" 
            data-search="${escapeHtml(searchString)}" 
-           style="background:#fff;border-radius:12px;padding:20px 18px;transition:all 0.3s ease;position:relative;${borderStyle}">
+           style="position:relative;${borderStyle}">
         
         <!-- Top: Avatar + Name + Status + Menu -->
         <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">
@@ -74,26 +74,26 @@
           </div>
           
           <div style="flex:1;min-width:0;">
-            <div style="font-size:16px;font-weight:700;color:#1F2937;margin-bottom:2px;font-family:var(--font-display);">${escapeHtml(member.Name)}</div>
+            <div style="font-size:16px;font-weight:700;color:#1F2937;margin-bottom:2px;font-family:var(--font-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(member.Name)}</div>
             ${roleTag}
           </div>
           
           <div style="display:flex;align-items:center;gap:6px;">
             <div style="position: relative;">
               <button class="faculty-menu-btn" onclick="toggleMenu(event, 'menu-${memberId}')">
-                <i data-lucide="more-vertical" style="width:16px;height:16px;"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-more-vertical"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
               </button>
               <div id="menu-${memberId}" class="faculty-dropdown-menu">
                 <div class="menu-item" onclick="viewFacultySchedule('${escapedProfName}')">
-                  <i data-lucide="calendar" style="width:15px;height:15px;"></i> View Schedule
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> View Schedule
                 </div>
                 ${isBoss ? '' : `
                 <div class="menu-item" onclick="changeFacultyRole('${member.User_ID}', '${escapedProfName}', '${escapedRole}')">
-                  <i data-lucide="shield" style="width:15px;height:15px;"></i> Change Role
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Change Role
                 </div>
                 <div class="menu-divider"></div>
                 <div class="menu-item" onclick="confirmDeleteFaculty('${member.User_ID}', '${escapedProfName}')" style="color: #EF4444;">
-                  <i data-lucide="user-x" style="width:15px;height:15px;color:#EF4444;"></i> Remove Faculty
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-x" style="color:#EF4444;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><line x1="17" x2="22" y1="8" y2="13"/><line x1="22" x2="17" y1="8" y2="13"/></svg> Remove Faculty
                 </div>
                 `}
               </div>
@@ -104,11 +104,11 @@
         <!-- Contact Info -->
         <div style="display:flex;flex-direction:column;gap:7px;">
           <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#6B7280;">
-            <i data-lucide="mail" style="width:15px;height:15px;color:var(--primary-teal);flex-shrink:0;"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail" style="color:var(--primary-teal);flex-shrink:0;"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
             <span>${escapeHtml(member.Email || 'No email')}</span>
           </div>
           <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#6B7280;">
-            <i data-lucide="phone" style="width:15px;height:15px;color:var(--primary-teal);flex-shrink:0;"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone" style="color:var(--primary-teal);flex-shrink:0;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             <span>${escapeHtml(member.Phone || 'Not specified')}</span>
           </div>
         </div>
@@ -130,18 +130,36 @@
       if (!container) return;
 
       if (!Array.isArray(facultyList) || facultyList.length === 0) {
-        container.innerHTML = `
-          <div class="ui-empty-state">
-            <div class="ui-empty-icon">
-              <i data-lucide="users" style="width:24px;height:24px;"></i>
+        if (!container.querySelector('.ui-empty-state')) {
+          container.innerHTML = `
+            <div class="ui-empty-state">
+              <div class="ui-empty-icon">
+                <i data-lucide="users" style="width:24px;height:24px;"></i>
+              </div>
+              <p>No faculty records yet. Add faculty or sync your directory to see members here.</p>
             </div>
-            <p>No faculty records yet. Add faculty or sync your directory to see members here.</p>
-          </div>
-        `;
-        if (global.lucide && typeof global.lucide.createIcons === 'function') {
-          global.lucide.createIcons({ root: container });
+          `;
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons({ root: container });
+          }
         }
         return;
+      }
+
+      const emptyState = container.querySelector('.ui-empty-state');
+      if (emptyState) {
+        emptyState.remove();
+      }
+
+      const existingCards = container.querySelectorAll('.faculty-card');
+      if (existingCards.length === facultyList.length) {
+        const existingNames = Array.from(existingCards).map(c => c.getAttribute('data-name') || '').join('|');
+        const newNames = facultyList.map(m => String(m.Name || '').toLowerCase()).join('|');
+        const hasMenu = container.querySelector('.faculty-menu-btn');
+        if (existingNames === newNames && hasMenu) {
+          // Roster matches pre-hydrated cards perfectly, keep DOM intact without reflow
+          return;
+        }
       }
 
       container.innerHTML = facultyList.map(member => facultyCard.createCardHtml(member)).join('');

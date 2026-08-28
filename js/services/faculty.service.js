@@ -19,7 +19,11 @@
       if (!response.ok) {
         throw new Error(`Failed to fetch faculty list: HTTP ${response.status}`);
       }
-      return await response.json();
+      const data = await response.json();
+      try {
+        sessionStorage.setItem('labsync_cached_faculty', JSON.stringify(data));
+      } catch (e) {}
+      return data;
     },
 
     /**

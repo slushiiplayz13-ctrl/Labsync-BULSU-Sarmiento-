@@ -310,7 +310,7 @@
       btn.addEventListener('mouseenter', () => {
         const text = btn.getAttribute('data-tooltip');
         if (!text || window.innerWidth <= 1024) return;
-        
+
         floatingTooltip.textContent = text;
 
         const rect = btn.getBoundingClientRect();

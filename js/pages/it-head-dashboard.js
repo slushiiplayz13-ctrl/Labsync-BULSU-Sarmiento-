@@ -193,11 +193,16 @@
       const elPendingMeta = document.getElementById('ithead-stat-pending-meta');
       if (elPendingMeta) elPendingMeta.textContent = `${stats.pendingReports || 0} active ticket(s)`;
 
-      // Stat Card 4: Classes Today
+      // Stat Card 4: Classes Today (Personal Schedule Count)
+      const myClassesCount = Array.isArray(stats.myClassesToday) ? stats.myClassesToday.length : 0;
       const elClasses = document.getElementById('ithead-stat-classes');
-      if (elClasses) elClasses.textContent = stats.classesToday ?? '0';
+      if (elClasses) elClasses.textContent = myClassesCount;
       const elClassesMeta = document.getElementById('ithead-stat-classes-meta');
-      if (elClassesMeta) elClassesMeta.textContent = `${stats.classesToday || 0} scheduled today campus-wide`;
+      if (elClassesMeta) {
+        elClassesMeta.textContent = myClassesCount > 0
+          ? `${myClassesCount} session(s) scheduled today`
+          : 'No classes today';
+      }
 
       // 4. Render Today's Schedule for IT Head
       renderMyTeachingSchedule(stats.myClassesToday || []);

@@ -21,10 +21,37 @@
       }
 
       const grid = document.querySelector('.room-selection-grid');
-      if (!grid) return;
+      if (!grid || !rooms.length) return;
 
-      const cards = grid.querySelectorAll('.room-select-card:not(#addRoomCardBtn)');
-      cards.forEach(c => c.remove());
+      const existingCards = grid.querySelectorAll('.room-select-card:not(#addRoomCardBtn)');
+      const addBtn = grid.querySelector('#addRoomCardBtn');
+
+      const currentRoomNums = Array.from(existingCards).map(c => {
+        const titleEl = c.querySelector('.rsc-title');
+        return titleEl ? titleEl.textContent.replace('Room ', '').trim() : '';
+      }).filter(Boolean);
+
+      const newRoomNums = rooms.map(r => String(r.Room_Number).trim());
+
+      if (currentRoomNums.length === newRoomNums.length && currentRoomNums.every((val, index) => val === newRoomNums[index])) {
+        // Room cards match pre-hydrated DOM perfectly, preserve existing nodes without reflow
+        existingCards.forEach((c, idx) => {
+          const room = rooms[idx];
+          c.onclick = () => {
+            window.location.href = `room-schedule-editor.html?room=${encodeURIComponent(room.Room_Number)}&bldg=${encodeURIComponent(room.Building || 'Bldg. B')}`;
+          };
+          const editBtn = c.querySelector('.room-edit-btn');
+          if (editBtn) {
+            editBtn.onclick = (e) => {
+              e.stopPropagation();
+              if (global.openEditModal) global.openEditModal(room);
+            };
+          }
+        });
+        return;
+      }
+
+      existingCards.forEach(c => c.remove());
 
       const renderer = global.roomRenderer;
       rooms.forEach(room => {
@@ -32,7 +59,8 @@
           const card = renderer.createRoomCard(room, (r) => {
             if (global.openEditModal) global.openEditModal(r);
           });
-          grid.appendChild(card);
+          if (addBtn) grid.insertBefore(card, addBtn);
+          else grid.appendChild(card);
         }
       });
 

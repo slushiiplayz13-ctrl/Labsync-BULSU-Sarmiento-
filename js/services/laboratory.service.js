@@ -16,7 +16,7 @@ async function fetchLaboratories() {
   const data = await res.json();
   try {
     sessionStorage.setItem('labsync_cached_labs', JSON.stringify(data));
-  } catch (e) {}
+  } catch (e) { }
   return data;
 }
 
@@ -129,9 +129,9 @@ function renderLabCards(labs, targetContainer) {
       keyHolderText = 'Offline';
       keyHolderColorClass = 'muted-text';
     } else {
-      const isAbsent = room.Key_Status === 'Absent' || 
-                       (room.Current_Status || '').toLowerCase() === 'borrowed' || 
-                       (room.Current_Status || '').toLowerCase() === 'in session';
+      const isAbsent = room.Key_Status === 'Absent' ||
+        (room.Current_Status || '').toLowerCase() === 'borrowed' ||
+        (room.Current_Status || '').toLowerCase() === 'in session';
       if (isAbsent) {
         let rawHolder = room.Current_Key_Holder;
         if (!rawHolder && room.Scheduled_Class && room.Scheduled_Class.professor) {

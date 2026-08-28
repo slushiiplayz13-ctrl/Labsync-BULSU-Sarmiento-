@@ -344,12 +344,12 @@
         }
         try {
           localStorage.setItem('shown_notification_toasts', JSON.stringify(newToastedKeys));
-        } catch (e) {}
+        } catch (e) { }
 
         if (notifDot) {
           const hasUnread = unreadCount > 0;
           notifDot.style.display = hasUnread ? 'block' : 'none';
-          try { sessionStorage.setItem('labsync_has_unread_notifs', String(hasUnread)); } catch (e) {}
+          try { sessionStorage.setItem('labsync_has_unread_notifs', String(hasUnread)); } catch (e) { }
         }
 
         // Build notification state signature including all fields that affect UI display
@@ -432,7 +432,7 @@
       clearNotifBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         localStorage.setItem('last_read_notifications', new Date().toISOString());
-        try { sessionStorage.setItem('labsync_has_unread_notifs', 'false'); } catch (e) {}
+        try { sessionStorage.setItem('labsync_has_unread_notifs', 'false'); } catch (e) { }
         if (notifDot) notifDot.style.display = 'none';
         loadNotifications();
       });

@@ -115,18 +115,28 @@
       <div class="greeting-row">
         <div class="greeting-left">
           <h1 class="greeting-title" id="greetingText">Good Evening, MIS Staff!</h1>
-          <p class="greeting-sub" id="greetingSub">Manage system-wide hardware reports, administrative tasks, and the
-            technical integrity of all IT laboratory spaces.</p>
+          <p class="greeting-sub" id="greetingSub">Manage system-wide hardware reports, administrative tasks, and the technical integrity of all IT laboratory spaces.</p>
         </div>
         <div class="clock-block">
-          <div class="clock-time" id="clockTime">--:--:-- --</div>
-          <div class="clock-date" id="clockDate">Loading...</div>
+          <div class="clock-time" id="clockTime"></div>
+          <div class="clock-date" id="clockDate"></div>
+          <script>
+            (function(){
+              try {
+                var d = new Date(), DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds(), ampm = h >= 12 ? 'PM' : 'AM', fh = h % 12 || 12;
+                var p = function(n){ return String(n).padStart(2, '0'); };
+                var t = document.getElementById('clockTime'), dt = document.getElementById('clockDate');
+                if (t) t.textContent = p(fh) + ':' + p(m) + ':' + p(s) + ' ' + ampm;
+                if (dt) dt.textContent = DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+              } catch(e){}
+            })();
+          </script>
         </div>
       </div>
 
       <!-- Main Content Card -->
       <div class="dashboard-card">
-        <!-- Dashboard Overview -->
         <div class="dashboard-overview">
 
           <!-- Stats Grid -->

@@ -42,7 +42,10 @@
       const ampm = h >= 12 ? 'PM' : 'AM';
       h = h % 12 || 12;
 
-      clockTimeEl.textContent = `${pad(h)}:${pad(m)}:${pad(s)} ${ampm}`;
+      const newTime = `${pad(h)}:${pad(m)}:${pad(s)} ${ampm}`;
+      if (clockTimeEl.textContent !== newTime) {
+        clockTimeEl.textContent = newTime;
+      }
     }
 
     if (clockDateEl) {
@@ -50,7 +53,10 @@
       const date = now.getDate();
       const mon = MONTHS[now.getMonth()];
       const yr = now.getFullYear();
-      clockDateEl.textContent = `${day}, ${mon} ${date}, ${yr}`;
+      const newDate = `${day}, ${mon} ${date}, ${yr}`;
+      if (clockDateEl.textContent !== newDate) {
+        clockDateEl.textContent = newDate;
+      }
     }
 
     // Update greeting based on current hour ONLY if dashboard is active

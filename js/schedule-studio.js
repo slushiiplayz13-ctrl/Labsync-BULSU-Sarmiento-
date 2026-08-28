@@ -282,7 +282,7 @@
 
       const itemCount = items.length;
       daysHTML += `
-        <div class="canvas-day-col day-count-${itemCount}">
+        <div class="canvas-day-col day-count-${itemCount} ${isGlobalDense ? 'global-dense' : ''}">
           <div class="canvas-day-title">${dayShorts[day]}</div>
           <div class="canvas-day-content">${itemsHTML}</div>
         </div>
@@ -308,7 +308,7 @@
       </div>
 
       <!-- Days Grid -->
-      <div class="canvas-days-grid">
+      <div class="canvas-days-grid ${isGlobalDense ? 'global-dense-grid' : ''}">
         ${daysHTML}
       </div>
 
@@ -374,24 +374,12 @@
     return `${hour}:${minute} ${ampm}`;
   }
 
-  // Concise single-line time range formatter
+  // Clean 12-hour AM/PM time range formatter
   function formatTimeRange(startStr, endStr) {
     const s = formatTime12(startStr);
     const e = formatTime12(endStr);
     if (!s || !e) return `${s || ''} ${e || ''}`.trim();
-
-    const sMatch = s.match(/^(\d+:\d+)\s*(AM|PM)$/i);
-    const eMatch = e.match(/^(\d+:\d+)\s*(AM|PM)$/i);
-
-    if (sMatch && eMatch) {
-      const sPer = sMatch[2].toUpperCase();
-      const ePer = eMatch[2].toUpperCase();
-      if (sPer === ePer) {
-        return `${sMatch[1]}–${eMatch[1]} ${ePer}`;
-      }
-      return `${sMatch[1]}${sPer[0]}–${eMatch[1]}${ePer[0]}`;
-    }
-    return `${s}–${e}`;
+    return `${s} – ${e}`;
   }
 
   // Helper escape

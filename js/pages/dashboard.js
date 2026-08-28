@@ -320,7 +320,7 @@
       if (classesTodayVal) classesTodayVal.textContent = todaySchedules.length;
       if (classesTodayMeta) {
         classesTodayMeta.textContent = todaySchedules.length > 0
-          ? `${todaySchedules.length} session(s) scheduled`
+          ? `${todaySchedules.length} session(s) scheduled today`
           : 'No classes today';
       }
 

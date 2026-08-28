@@ -1175,9 +1175,21 @@
           <!-- Compact Real-time Clock -->
           <div class="clock-block" style="text-align: right;">
             <div class="clock-time" id="clockTime"
-              style="font-size: 24px; font-weight: 800; color: var(--primary-teal); line-height: 1.1;">--:--:-- --</div>
+              style="font-size: 24px; font-weight: 800; color: var(--primary-teal); line-height: 1.1;"></div>
             <div class="clock-date" id="clockDate"
-              style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px; font-weight: 500;">Loading…</div>
+              style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px; font-weight: 500;"></div>
+            <script>
+              (function(){
+                try {
+                  var d = new Date(), DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                  var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds(), ampm = h >= 12 ? 'PM' : 'AM', fh = h % 12 || 12;
+                  var p = function(n){ return String(n).padStart(2, '0'); };
+                  var t = document.getElementById('clockTime'), dt = document.getElementById('clockDate');
+                  if (t) t.textContent = p(fh) + ':' + p(m) + ':' + p(s) + ' ' + ampm;
+                  if (dt) dt.textContent = DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+                } catch(e){}
+              })();
+            </script>
           </div>
 
           <!-- Actions -->
