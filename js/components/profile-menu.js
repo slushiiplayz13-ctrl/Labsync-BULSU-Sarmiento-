@@ -45,12 +45,6 @@
     }
   };
 
-  global.openSignatureModal = () => {
-    if (global.signatureModal && typeof global.signatureModal.openSignatureModal === 'function') {
-      return global.signatureModal.openSignatureModal();
-    }
-  };
-
   global.openChangePasswordModal = () => {
     if (global.passwordModal && typeof global.passwordModal.openChangePasswordModal === 'function') {
       return global.passwordModal.openChangePasswordModal();

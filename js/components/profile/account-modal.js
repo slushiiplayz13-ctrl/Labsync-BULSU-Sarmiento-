@@ -230,21 +230,21 @@
     modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px;';
 
     modal.innerHTML = `
-      <div class="settings-modal-content-box" style="background:#fff;border-radius:20px;width:100%;max-width:900px;height:85vh;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;">
+      <div class="settings-modal-content-box" style="background:var(--bg-white, #fff);border:1.5px solid var(--border-light, #374151);border-radius:20px;width:100%;max-width:900px;height:85vh;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;">
         <!-- Header -->
-        <div style="padding:28px 32px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%);flex-shrink:0;">
+        <div style="padding:28px 32px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;background:var(--bg-card, #F0F9FF);flex-shrink:0;">
           <div>
             <h2 style="font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">Account Settings</h2>
             <p style="font-size:13px;color:var(--text-mid);margin:0;">Manage your profile information and security settings</p>
           </div>
-          <button id="close-settings-modal" style="background:#F5F5F5;border:none;cursor:pointer;padding:8px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all 0.2s;">
-            <i data-lucide="x" style="width:20px;height:20px;color:var(--text-mid);"></i>
+          <button id="close-settings-modal" style="background:var(--bg-white, #F5F5F5);border:1px solid var(--border-light);cursor:pointer;padding:8px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all 0.2s;color:var(--text-dark);">
+            <i data-lucide="x" style="width:20px;height:20px;"></i>
           </button>
         </div>
         
         <!-- Body Split View -->
         <div class="settings-modal-body" style="flex:1; display:flex; min-height:0; position:relative; overflow:hidden;">
-          <div class="settings-modal-sidebar" style="width:240px; border-right:1px solid var(--border-light); background:#F8FAFC; padding:24px 16px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; overflow-y:auto;">
+          <div class="settings-modal-sidebar" style="width:240px; border-right:1px solid var(--border-light); background:var(--bg-page, #F8FAFC); padding:24px 16px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; overflow-y:auto;">
             <button type="button" class="settings-tab-btn active" onclick="switchSettingsTab('profile', this)">
               <i data-lucide="user" style="width:18px;height:18px;"></i>
               Profile Details
@@ -259,7 +259,7 @@
             </button>
           </div>
 
-          <form id="account-settings-form" class="settings-modal-form" style="flex:1; display:flex; flex-direction:column; min-height:0; background:var(--bg-card); margin:0;">
+          <form id="account-settings-form" class="settings-modal-form" style="flex:1; display:flex; flex-direction:column; min-height:0; background:var(--bg-white, #fff); margin:0;">
             <div class="settings-modal-scroll" style="flex:1; overflow-y:auto; padding:32px 40px;">
               
               <!-- PANEL 1: PROFILE DETAILS -->
@@ -278,7 +278,7 @@
                 </div>
 
                 <div style="display:flex; gap:36px; align-items:flex-start; flex-wrap:wrap;">
-                  <div style="width:190px; display:flex; flex-direction:column; align-items:center; gap:16px; padding:24px 16px; border:2px dashed var(--border-light); border-radius:16px; background:var(--bg-card); flex-shrink:0;">
+                  <div style="width:190px; display:flex; flex-direction:column; align-items:center; gap:16px; padding:24px 16px; border:2px dashed var(--border-light); border-radius:16px; background:var(--bg-card, #F8FAFC); flex-shrink:0;">
                     <div id="profile-photo-preview" style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg, #1EBBD7 0%, #0EA5E9 100%);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:#fff;font-family:var(--font-display);box-shadow:0 8px 20px rgba(30,187,215,0.25);position:relative;overflow:hidden;flex-shrink:0;">
                       <span id="avatar-initials">U</span>
                       <img id="profile-photo-img" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;display:none;">
@@ -288,24 +288,24 @@
                       <i data-lucide="upload" style="width:14px;height:14px;"></i>
                       Upload Photo
                     </button>
-                    <button type="button" id="remove-photo-btn" style="padding:6px 12px;border:1px solid var(--border-light);background:var(--bg-card);color:var(--text-mid);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);display:none;">Remove Photo</button>
+                    <button type="button" id="remove-photo-btn" style="padding:6px 12px;border:1.5px solid var(--border-light);background:var(--bg-card);color:var(--text-mid);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:var(--font-body);display:none;">Remove Photo</button>
                     <p style="font-size:11.5px;color:var(--text-muted);text-align:center;margin:0;line-height:1.4;">JPG, PNG or GIF<br>Max size: 2MB</p>
                   </div>
 
                   <div style="flex:1; min-width:260px; display:flex; flex-direction:column; gap:20px;">
                     <div>
                       <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Full Name *</label>
-                      <input type="text" id="settings-name" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;transition:all 0.2s;" placeholder="Your full name">
+                      <input type="text" id="settings-name" required style="width:100%;box-sizing:border-box;padding:12px 16px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;transition:all 0.2s;background:var(--bg-card, #F8FAFC);color:var(--text-dark);" placeholder="Your full name">
                     </div>
                     <div style="display:grid; grid-template-columns:1fr; gap:20px;">
                       <div>
                         <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Email Address</label>
-                        <input type="email" id="settings-email" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;" placeholder="your.email@bsu.edu.ph">
+                        <input type="email" id="settings-email" required style="width:100%;box-sizing:border-box;padding:12px 16px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;background:var(--bg-card, #F8FAFC);color:var(--text-dark);" placeholder="your.email@bsu.edu.ph">
                         <div id="settings-email-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Invalid email address (e.g., user@domain.com)</div>
                       </div>
                       <div>
                         <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Mobile Number *</label>
-                        <input type="tel" id="settings-phone" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;" placeholder="09123456789">
+                        <input type="tel" id="settings-phone" required style="width:100%;box-sizing:border-box;padding:12px 16px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;background:var(--bg-card, #F8FAFC);color:var(--text-dark);" placeholder="09123456789">
                       </div>
                     </div>
                   </div>
@@ -316,7 +316,7 @@
               <div id="panel-security" class="settings-tab-panel" style="display:none;">
                 <div style="margin-bottom:28px;">
                   <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">Security & Login</h3>
-                  <p style="font-size:13.5px;color:var(--text-mid);margin:0;">Manage password and digital signature</p>
+                  <p style="font-size:13.5px;color:var(--text-mid);margin:0;">Manage your account password and security credentials</p>
                 </div>
 
                 <div id="mis-password-notice" class="banner-mis-notice alert" style="display:none; border-radius:12px; padding:14px 16px; margin-bottom:24px; align-items:flex-start; gap:12px;">
@@ -327,25 +327,14 @@
                   </div>
                 </div>
 
-                <div style="background:#F8FAFC;border:1px solid var(--border-light);border-radius:14px;padding:24px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <div style="background:var(--bg-card, #F8FAFC);border:1.5px solid var(--border-light);border-radius:14px;padding:24px;display:flex;justify-content:space-between;align-items:center;">
                   <div>
                     <div style="font-weight:700;font-size:14px;color:var(--text-dark);margin-bottom:4px;">Change Account Password</div>
                     <div style="font-size:13px;color:var(--text-mid);">Update your login password regularly for security</div>
                   </div>
-                  <button type="button" id="open-change-password-modal-btn" style="padding:10px 18px;border:1px solid var(--border-light);background:var(--bg-card);color:var(--text-dark);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                  <button type="button" id="open-change-password-modal-btn" style="padding:10px 18px;border:1.5px solid var(--border-light);background:var(--bg-white, #fff);color:var(--text-dark);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.2s;">
                     <i data-lucide="key-round" style="width:15px;height:15px;"></i>
                     Change Password
-                  </button>
-                </div>
-
-                <div style="background:#F8FAFC;border:1px solid var(--border-light);border-radius:14px;padding:24px;display:flex;justify-content:space-between;align-items:center;">
-                  <div>
-                    <div style="font-weight:700;font-size:14px;color:var(--text-dark);margin-bottom:4px;">Faculty Digital E-Signature</div>
-                    <div style="font-size:13px;color:var(--text-mid);">Manage your registered signature for printable schedule forms</div>
-                  </div>
-                  <button type="button" id="open-signature-modal-btn" style="padding:10px 18px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;">
-                    <i data-lucide="pen-tool" style="width:15px;height:15px;"></i>
-                    Signature Canvas
                   </button>
                 </div>
               </div>
@@ -361,7 +350,7 @@
                   <div id="qr-code-container" style="width:240px;height:240px;padding:16px;background:#fff;border:2px solid var(--border-light);border-radius:20px;box-shadow:0 12px 30px rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:center;">
                     <div class="ui-empty-state"><i data-lucide="loader" style="animation:spin 1s linear infinite;"></i></div>
                   </div>
-                  <button type="button" id="download-qr-btn" style="padding:12px 24px;border:none;background:var(--primary-teal);color:#fff;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 14px var(--primary-teal-glow);">
+                  <button type="button" id="download-qr-btn" style="padding:12px 24px;border:none;background:var(--primary-teal);color:#fff;border-radius:12px;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 14px var(--primary-teal-glow);transition:all 0.2s;">
                     <i data-lucide="download" style="width:16px;height:16px;"></i>
                     Download High-Res QR
                   </button>
@@ -371,11 +360,11 @@
             </div>
 
             <!-- Footer Toolbar -->
-            <div style="padding:20px 36px;border-top:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;background:#fff;flex-shrink:0;">
+            <div style="padding:20px 36px;border-top:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;background:var(--bg-card, #fff);flex-shrink:0;">
               <span id="settings-last-updated" style="font-size:12.5px;color:var(--text-muted);">Last updated: Loading...</span>
               <div style="display:flex;gap:12px;">
-                <button type="button" id="cancel-settings-btn" style="padding:11px 22px;border:1px solid var(--border-light);background:var(--bg-card);color:var(--text-dark);border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;">Cancel</button>
-                <button type="submit" id="save-settings-btn" style="padding:11px 26px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 4px 14px var(--primary-teal-glow);">Save Changes</button>
+                <button type="button" id="cancel-settings-btn" style="padding:11px 22px;border:1.5px solid var(--border-light);background:var(--bg-white, #fff);color:var(--text-dark);border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all 0.2s;">Cancel</button>
+                <button type="submit" id="save-settings-btn" style="padding:11px 26px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 4px 14px var(--primary-teal-glow);transition:all 0.2s;">Save Changes</button>
               </div>
             </div>
           </form>
@@ -406,17 +395,6 @@
           global.passwordModal.openChangePasswordModal();
         } else if (typeof global.openChangePasswordModal === 'function') {
           global.openChangePasswordModal();
-        }
-      });
-    }
-
-    const openSigBtn = document.getElementById('open-signature-modal-btn');
-    if (openSigBtn) {
-      openSigBtn.addEventListener('click', () => {
-        if (global.signatureModal && typeof global.signatureModal.openSignatureModal === 'function') {
-          global.signatureModal.openSignatureModal();
-        } else if (typeof global.openSignatureModal === 'function') {
-          global.openSignatureModal();
         }
       });
     }

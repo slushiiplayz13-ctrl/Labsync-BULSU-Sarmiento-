@@ -15,15 +15,15 @@
     modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2200;padding:20px;';
 
     modal.innerHTML = `
-      <div style="background:#fff;border-radius:20px;width:100%;max-width:440px;padding:28px;box-shadow:0 25px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;gap:20px;font-family:var(--font-body);color:var(--text-dark);">
+      <div style="background:var(--bg-white, #ffffff);border:1.5px solid var(--border-light, #374151);border-radius:20px;width:100%;max-width:440px;padding:28px;box-shadow:0 25px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;gap:20px;font-family:var(--font-body);color:var(--text-dark);">
         <!-- Header -->
         <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-light);padding-bottom:16px;">
           <div>
             <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin:0 0 4px 0;color:var(--text-dark);">Change Password</h3>
             <p style="font-size:13px;color:var(--text-mid);margin:0;">Update your login credentials securely</p>
           </div>
-          <button id="close-password-modal-btn" style="background:#F1F5F9;border:none;cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;">
-            <i data-lucide="x" style="width:18px;height:18px;color:var(--text-mid);"></i>
+          <button id="close-password-modal-btn" type="button" style="background:var(--bg-card, #F1F5F9);border:1px solid var(--border-light);cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;color:var(--text-dark);">
+            <i data-lucide="x" style="width:18px;height:18px;"></i>
           </button>
         </div>
 
@@ -31,20 +31,20 @@
         <form id="change-password-form" style="display:flex;flex-direction:column;gap:16px;margin:0;">
           <div>
             <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-dark);">Current Password *</label>
-            <input type="password" id="cp-current-password" required style="width:100%;padding:10px 14px;border:1px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;" placeholder="Enter current password">
+            <input type="password" id="cp-current-password" required style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="Enter current password">
           </div>
           <div>
             <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-dark);">New Password *</label>
-            <input type="password" id="cp-new-password" required minlength="8" style="width:100%;padding:10px 14px;border:1px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;" placeholder="At least 8 characters">
+            <input type="password" id="cp-new-password" required minlength="8" style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="At least 8 characters">
           </div>
           <div>
             <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-dark);">Confirm New Password *</label>
-            <input type="password" id="cp-confirm-password" required minlength="8" style="width:100%;padding:10px 14px;border:1px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;" placeholder="Re-enter new password">
+            <input type="password" id="cp-confirm-password" required minlength="8" style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="Re-enter new password">
           </div>
 
           <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
-            <button type="button" id="cancel-cp-btn" style="padding:10px 18px;border:1px solid var(--border-light);background:#fff;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--text-dark);cursor:pointer;">Cancel</button>
-            <button type="submit" id="submit-cp-btn" style="padding:10px 22px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px var(--primary-teal-glow);">Update Password</button>
+            <button type="button" id="cancel-cp-btn" style="padding:10px 18px;border:1.5px solid var(--border-light);background:var(--bg-card, #fff);border-radius:10px;font-size:13.5px;font-weight:600;color:var(--text-dark);cursor:pointer;transition:all 0.2s;">Cancel</button>
+            <button type="submit" id="submit-cp-btn" style="padding:10px 22px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px var(--primary-teal-glow);transition:all 0.2s;">Update Password</button>
           </div>
         </form>
       </div>
