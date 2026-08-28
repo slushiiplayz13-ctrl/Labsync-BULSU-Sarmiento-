@@ -1,74 +1,6 @@
 /* ================================================================
-   LabSync – Modular Component: Cards & Empty States | css/components/cards.css
+   LabSync – Modular Component: Cards | css/components/cards.css
    ================================================================ */
-
-/* ─── Universal Reusable UI Empty State Component Styles ─── */
-.ui-empty-state {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: clamp(36px, 8vh, 72px) 24px;
-  text-align: center;
-  color: var(--text-muted);
-  border: 1px dashed var(--border-light);
-  border-radius: 16px;
-  background: rgba(248, 250, 252, 0.75);
-}
-
-.ui-empty-state .ui-empty-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary-teal-light);
-  color: var(--primary-teal);
-}
-
-.ui-empty-state p {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.5;
-  max-width: 380px;
-}
-
-.ui-empty-state .ui-empty-btn,
-.empty-state-action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 8px 18px;
-  background: var(--primary-teal);
-  color: #ffffff !important;
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: var(--radius-pill);
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 14px var(--primary-teal-glow);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  text-decoration: none;
-}
-
-.ui-empty-state .ui-empty-btn:hover,
-.empty-state-action-btn:hover {
-  background: var(--primary-teal-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px var(--primary-teal-glow);
-}
-
-.ui-empty-state .ui-empty-btn:active,
-.empty-state-action-btn:active {
-  transform: translateY(0);
-}
 
 /* ─── Main Content & Dashboard Container Cards ─── */
 .dashboard-card {
@@ -819,33 +751,6 @@ html.high-contrast .stat-title {
   line-height: 1.35;
 }
 
-/* ─── Dashboard Card Empty State Component Styles ─── */
-.card-empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  opacity: 0.4;
-  user-select: none;
-}
-
-.card-empty-state .empty-icon {
-  width: 52px;
-  height: 52px;
-  background: var(--primary-teal-light);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-teal);
-}
-
-.card-empty-state p {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
 /* ─── Warning Alert Box Component Styles ─── */
 .alert-warning-box {
   background: #FEF3C7;
@@ -1536,37 +1441,6 @@ body[data-page="it-head-room-status"] .content-card:has(.timeline-list),
   background: var(--text-light, #94a3b8);
 }
 
-.timeline-list:has(> .ui-empty-state) {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: center !important;
-  align-items: center !important;
-  flex: 1 !important;
-  height: 100% !important;
-}
-
-.timeline-list>.ui-empty-state,
-.labs-grid>.ui-empty-state {
-  width: 100% !important;
-  flex: 1 !important;
-  height: 100% !important;
-  margin: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.labs-grid:has(> .ui-empty-state) {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 !important;
-  height: 100% !important;
-  min-height: 0 !important;
-}
-
 /* Dashboard Main Grid Labs & Timeline Expanding Containers */
 .dashboard-main-grid .labs-grid {
   display: grid;
@@ -2044,25 +1918,6 @@ html.high-contrast .lab-card-back {
   flex-direction: column;
   height: 100%;
   min-height: 0;
-}
-
-#schedule-container:has(> .ui-empty-state) {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 !important;
-  height: 100% !important;
-  min-height: 0 !important;
-}
-
-#schedule-container>.ui-empty-state {
-  width: 100% !important;
-  flex: 1 !important;
-  height: 100% !important;
-  margin: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
 }
 
 /* ─── Weekly Schedule Columns & Day Container Component Styles ─── */
@@ -4777,26 +4632,6 @@ html.high-contrast .lab-filter-btn.active {
     flex: 1 !important;
     min-height: 0 !important;
   }
-}
-
-/* ─── List/Table Empty-State Placement Overrides ─── */
-.reports-list>.ui-empty-state {
-  width: 100%;
-  min-height: 220px;
-  flex: 1;
-}
-
-.faculty-grid>.ui-empty-state {
-  grid-column: 1 / -1;
-}
-
-.table-empty-row td {
-  padding: 48px 24px !important;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-muted);
-  border-bottom: none !important;
 }
 
 /* ─── Account Settings Tab Navigation & Transitions Component Styles ─── */
