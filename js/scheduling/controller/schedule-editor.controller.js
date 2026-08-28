@@ -451,6 +451,61 @@
       });
     }
 
+    // Subject input search autocomplete & custom select wrapper handling
+    const blockSubjectInput = document.getElementById('block-subject');
+    const subjectWrapper = document.getElementById('subject-wrapper');
+    const subjectTrigger = subjectWrapper ? subjectWrapper.querySelector('.custom-select-trigger') : null;
+
+    if (blockSubjectInput && subjectWrapper) {
+      const openSubjectDropdown = () => {
+        const dropdown = document.getElementById('subject-select-dropdown');
+        if (dropdown && dropdown.children.length > 0) {
+          document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+            if (w !== subjectWrapper) w.classList.remove('open');
+          });
+          subjectWrapper.classList.add('open');
+        }
+      };
+
+      blockSubjectInput.addEventListener('focus', openSubjectDropdown);
+      blockSubjectInput.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openSubjectDropdown();
+      });
+
+      if (subjectTrigger) {
+        subjectTrigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openSubjectDropdown();
+          blockSubjectInput.focus();
+        });
+      }
+
+      blockSubjectInput.addEventListener('input', () => {
+        const filter = blockSubjectInput.value.toLowerCase().trim();
+        const items = subjectWrapper.querySelectorAll('.custom-select-option');
+        let matchCount = 0;
+        items.forEach(item => {
+          const text = item.textContent.toLowerCase();
+          const isMatch = !filter || text.includes(filter);
+          item.style.display = isMatch ? 'flex' : 'none';
+          if (isMatch) matchCount++;
+
+          if (filter && text === filter) {
+            item.classList.add('selected');
+          } else {
+            item.classList.remove('selected');
+          }
+        });
+
+        if (matchCount > 0) {
+          subjectWrapper.classList.add('open');
+        } else {
+          subjectWrapper.classList.remove('open');
+        }
+      });
+    }
+
     // Modal Action Buttons
     const modalSaveBtn = document.getElementById('modal-save-btn');
     if (modalSaveBtn) modalSaveBtn.addEventListener('click', closeCardDetailModal);
@@ -475,32 +530,46 @@
       });
     }
 
-    // Save Button
+    // Save schedule / Edit mode button
     const saveBtn = document.getElementById('save-schedule-btn');
     if (saveBtn) {
       saveBtn.addEventListener('click', async () => {
-        try {
-          saveBtn.disabled = true;
-          saveBtn.textContent = 'Saving...';
-          if (persistence && typeof persistence.saveCurrentSchedule === 'function') {
-            await persistence.saveCurrentSchedule();
+        const isCurrentViewMode = document.body.classList.contains('view-mode');
+        if (!isCurrentViewMode) {
+          try {
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+            const saved = persistence && typeof persistence.saveCurrentSchedule === 'function'
+              ? await persistence.saveCurrentSchedule()
+              : true;
+            if (!saved) return;
+            if (global.showToast) {
+              global.showToast('Schedule saved successfully!', 'success');
+            }
+          } catch (err) {
+            console.error('Error saving schedule:', err);
+            if (global.showToast) {
+              global.showToast('Failed to save schedule. Please try again.', 'error');
+            } else {
+              alert('Failed to save schedule.');
+            }
+            return;
+          } finally {
+            saveBtn.disabled = false;
           }
-          if (global.showToast) {
-            global.showToast('Schedule saved successfully!', 'success');
-          } else {
-            alert('Schedule saved successfully!');
-          }
-        } catch (err) {
-          console.error('Error saving schedule:', err);
-          if (global.showToast) {
-            global.showToast('Failed to save schedule. Please try again.', 'error');
-          } else {
-            alert('Failed to save schedule.');
-          }
-        } finally {
-          saveBtn.disabled = false;
-          saveBtn.innerHTML = '<i data-lucide="save"></i> Save Schedule';
-          if (global.lucide) global.lucide.createIcons();
+
+          document.body.classList.add('view-mode');
+          saveBtn.innerHTML = '<i data-lucide="edit-2" style="width: 20px; height: 20px;"></i> Edit Schedule';
+          document.querySelectorAll('.schedule-block').forEach(b => b.draggable = false);
+          document.querySelectorAll('.grid-card').forEach(b => b.draggable = false);
+        } else {
+          document.body.classList.remove('view-mode');
+          saveBtn.innerHTML = '<i data-lucide="save" style="width: 20px; height: 20px;"></i> Save Schedule';
+          document.querySelectorAll('.schedule-block').forEach(b => b.draggable = true);
+          document.querySelectorAll('.grid-card').forEach(b => b.draggable = true);
+        }
+        if (global.lucide && typeof global.lucide.createIcons === 'function') {
+          global.lucide.createIcons({ root: saveBtn });
         }
       });
     }
