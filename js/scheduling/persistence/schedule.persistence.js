@@ -90,7 +90,8 @@
         const end = (s.End_Time || '').substring(0, 5);
 
         if (createCardFn) {
-          const card = createCardFn(s.Schedule_ID, s.Subject_Name, s.Professor_Name, s.Section, start, end, s.Color_Theme || 'Default');
+          const profName = s.Professor_Name || s.ProfessorName || s.professor || '';
+          const card = createCardFn(s.Schedule_ID, s.Subject_Name, profName, s.Section, start, end, s.Color_Theme || 'Default');
           col.appendChild(card);
         }
       });

@@ -15,7 +15,15 @@ async function deleteRoomSchedule(roomId, ay, sem, executor = db) {
 }
 
 async function findUserIdByName(professorName, executor = db) {
-    return executor.query('SELECT User_ID FROM users WHERE Name = ?', [professorName]);
+    if (!professorName || typeof professorName !== 'string') return [[]];
+    const cleanName = professorName.trim().replace(/\s+/g, ' ');
+    return executor.query(
+        `SELECT User_ID, Name FROM users 
+         WHERE LOWER(TRIM(REPLACE(Name, '  ', ' '))) = LOWER(?) 
+            OR LOWER(TRIM(Name)) = LOWER(?)
+            OR Name = ?`,
+        [cleanName, cleanName, professorName]
+    );
 }
 
 async function insertSchedule({ userId, roomId, subject, section, day, startTime, endTime, ay, sem, colorTheme }, executor = db) {
@@ -69,7 +77,7 @@ async function findProfessorSchedules(userId, ay, sem, excludeRoomNumber, execut
                    s.Subject_Name
                ) AS Subject_Name,
                c.Subject_Code, c.Subject_Name AS Curriculum_Subject_Name,
-               l.Room_Number, l.Building, u.Name as ProfessorName
+               l.Room_Number, l.Building, u.Name as ProfessorName, u.Name as Professor_Name
         FROM schedules s
         JOIN laboratories l ON s.Room_ID = l.Room_ID
         JOIN users u ON s.User_ID = u.User_ID
@@ -104,7 +112,8 @@ async function findRoomSchedules(roomId, ay, sem, executor = db) {
                    s.Subject_Name
                ) AS Subject_Name,
                c.Subject_Code, c.Subject_Name AS Curriculum_Subject_Name,
-               u.Name as ProfessorName
+               u.Name as ProfessorName,
+               u.Name as Professor_Name
         FROM schedules s
         LEFT JOIN users u ON s.User_ID = u.User_ID
         LEFT JOIN curriculum c ON (

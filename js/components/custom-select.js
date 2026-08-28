@@ -22,6 +22,14 @@
     const dropdown = wrapper.querySelector('.custom-select-dropdown');
     if (!trigger || !dropdown) return;
 
+    // Initialize wrapper.dataset.value from pre-selected option if not already defined
+    if (!wrapper.dataset.value) {
+      const preSelected = dropdown.querySelector('.custom-select-option.selected');
+      if (preSelected) {
+        wrapper.dataset.value = preSelected.getAttribute('data-value') !== null ? preSelected.getAttribute('data-value') : preSelected.textContent.trim();
+      }
+    }
+
     // Toggle dropdown on trigger click
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();

@@ -29,9 +29,16 @@
 
     try {
       const ayWrapper = document.getElementById('academic-year-wrapper') || document.getElementById('academic-year-start-wrapper');
+      const semWrapper = document.getElementById('semester-wrapper');
       const currentYear = new Date().getFullYear();
-      const ay = ayWrapper?.dataset?.value || `${currentYear}-${currentYear + 1}`;
-      const sem = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
+      const ay = ayWrapper?.dataset?.value ||
+                 ayWrapper?.querySelector('.custom-select-option.selected')?.getAttribute('data-value') ||
+                 ayWrapper?.querySelector('.custom-select-trigger span')?.textContent?.trim()?.replace('–', '-') ||
+                 `${currentYear}-${currentYear + 1}`;
+      const sem = semWrapper?.dataset?.value ||
+                  semWrapper?.querySelector('.custom-select-option.selected')?.getAttribute('data-value') ||
+                  semWrapper?.querySelector('.custom-select-trigger span')?.textContent?.trim() ||
+                  '1st Semester';
 
       let schedules = [];
       const schedService = global.scheduleService;
