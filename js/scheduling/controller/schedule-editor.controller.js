@@ -203,10 +203,13 @@
     global.pendingAction = action;
     global.revertSelectCallback = revertCallback;
 
-    const modal = document.getElementById('unsaved-changes-modal');
+    const modal = document.getElementById('unsavedChangesModal') || document.getElementById('unsaved-changes-modal');
     if (modal) {
       modal.style.display = 'flex';
       setTimeout(() => modal.classList.add('active'), 10);
+      if (global.lucide && typeof global.lucide.createIcons === 'function') {
+        global.lucide.createIcons({ root: modal });
+      }
     } else {
       const confirmLeave = confirm('You have unsaved changes. Are you sure you want to discard them?');
       if (confirmLeave) {
@@ -230,6 +233,80 @@
         e.returnValue = '';
       }
     });
+
+    // Back Button
+    const backBtn = document.getElementById('editor-back-btn');
+    if (backBtn) {
+      backBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isDirty = (global.scheduleState && global.scheduleState.isDirty) || global.isDirty;
+        if (isDirty) {
+          showUnsavedChangesModal(() => {
+            window.location.href = 'master-schedule.html';
+          });
+        } else {
+          window.location.href = 'master-schedule.html';
+        }
+      });
+    }
+
+    // Modal Confirmation Action Buttons
+    const cancelConfirmBtn = document.getElementById('confirm-cancel-btn');
+    const discardConfirmBtn = document.getElementById('confirm-discard-btn');
+    const saveConfirmBtn = document.getElementById('confirm-save-btn');
+
+    if (cancelConfirmBtn) {
+      cancelConfirmBtn.addEventListener('click', () => {
+        const confirmModal = document.getElementById('unsavedChangesModal') || document.getElementById('unsaved-changes-modal');
+        if (confirmModal) {
+          confirmModal.classList.remove('active');
+          setTimeout(() => { confirmModal.style.display = 'none'; }, 200);
+        }
+        const revertCallback = (global.scheduleState && global.scheduleState.getRevertSelectCallback && global.scheduleState.getRevertSelectCallback()) || global.revertSelectCallback;
+        if (typeof revertCallback === 'function') revertCallback();
+      });
+    }
+
+    if (discardConfirmBtn) {
+      discardConfirmBtn.addEventListener('click', () => {
+        if (global.scheduleState) global.scheduleState.isDirty = false;
+        global.isDirty = false;
+        const confirmModal = document.getElementById('unsavedChangesModal') || document.getElementById('unsaved-changes-modal');
+        if (confirmModal) {
+          confirmModal.classList.remove('active');
+          setTimeout(() => { confirmModal.style.display = 'none'; }, 200);
+        }
+        const pendingAction = (global.scheduleState && global.scheduleState.getPendingAction && global.scheduleState.getPendingAction()) || global.pendingAction;
+        if (typeof pendingAction === 'function') pendingAction();
+      });
+    }
+
+    if (saveConfirmBtn) {
+      saveConfirmBtn.addEventListener('click', async () => {
+        const persistence = global.schedulePersistence;
+        try {
+          if (persistence && typeof persistence.saveCurrentSchedule === 'function') {
+            await persistence.saveCurrentSchedule();
+          }
+          if (global.scheduleState) global.scheduleState.isDirty = false;
+          global.isDirty = false;
+          const confirmModal = document.getElementById('unsavedChangesModal') || document.getElementById('unsaved-changes-modal');
+          if (confirmModal) {
+            confirmModal.classList.remove('active');
+            setTimeout(() => { confirmModal.style.display = 'none'; }, 200);
+          }
+          const pendingAction = (global.scheduleState && global.scheduleState.getPendingAction && global.scheduleState.getPendingAction()) || global.pendingAction;
+          if (typeof pendingAction === 'function') pendingAction();
+        } catch (err) {
+          console.error('Error saving schedule before leaving:', err);
+          if (global.showToast) {
+            global.showToast('Failed to save schedule. Please try again.', 'error');
+          } else {
+            alert('Failed to save schedule.');
+          }
+        }
+      });
+    }
 
     document.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', (e) => {
