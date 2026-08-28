@@ -1,118 +1,66 @@
 /**
- * LabSync – Scheduling Domain Time Utilities | js/scheduling/time-utils.js
- * Extracted in Phase 2 (Scheduling Architecture Refactor)
- * Pure domain time calculations, slot conversions, and formatters.
+ * LabSync Scheduling Time Utilities Adapter | js/scheduling/time-utils.js
+ * Delegates to canonical js/utils/time-utils.js while preserving all scheduling exports.
  */
 
 (function (global) {
   'use strict';
 
-  const START_HOUR = 7;
-  const END_HOUR = 20.5;
-  const TOTAL_SLOTS = 27; // 13.5 hours from 7:00 AM to 8:30 PM (30 min per slot)
+  const utils = global.timeUtils || {};
 
-  /**
-   * Converts a "HH:MM" 24-hour time string to a slot index relative to start hour (0 to 24).
-   * @param {string} timeStr - Time in "HH:MM" format
-   * @param {number} [startHour=7] - Base starting hour
-   * @returns {number} Slot index
-   */
-  function timeToSlots(timeStr, startHour = START_HOUR) {
+  function slotsToTime(slotIndex) {
+    if (typeof utils.slotsToTime === 'function') return utils.slotsToTime(slotIndex);
+    const totalMinutes = 7 * 60 + Math.round(slotIndex * 30);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  }
+
+  function timeToSlots(timeStr) {
+    if (typeof utils.timeToSlots === 'function') return utils.timeToSlots(timeStr);
     if (!timeStr) return 0;
-    const [h, m] = timeStr.split(':').map(Number);
-    const diffMinutes = (h - startHour) * 60 + m;
-    return diffMinutes / 30;
+    const parts = timeStr.split(':');
+    const hours = parseInt(parts[0], 10);
+    const minutes = parseInt(parts[1] || '0', 10);
+    const totalMinutes = hours * 60 + minutes;
+    const slot = (totalMinutes - 7 * 60) / 30;
+    return Math.max(0, Math.min(27, Math.round(slot)));
   }
 
-  /**
-   * Converts a slot index back to a "HH:MM" 24-hour time string.
-   * @param {number} slotIndex - Slot index (0-based)
-   * @param {number} [startHour=7] - Base starting hour
-   * @returns {string} Time in "HH:MM" format
-   */
-  function slotsToTime(slotIndex, startHour = START_HOUR) {
-    const totalMinutes = slotIndex * 30;
-    const h = startHour + Math.floor(totalMinutes / 60);
-    const m = totalMinutes % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-  }
-
-  /**
-   * Formats a 24-hour time string "13:30" to 12-hour format with AM/PM "1:30 PM".
-   * @param {string} timeStr - Time in "HH:MM"
-   * @returns {string} Formatted 12-hour time
-   */
   function formatTimeLabel(timeStr) {
-    if (!timeStr) return '';
-    let [h, m] = timeStr.split(':');
-    h = parseInt(h, 10);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const displayH = h % 12 || 12;
-    return `${displayH}:${m} ${ampm}`;
+    if (typeof utils.formatTimeLabel === 'function') return utils.formatTimeLabel(timeStr);
+    if (typeof global.formatTime12 === 'function') return global.formatTime12(timeStr);
+    return timeStr;
   }
 
-  /**
-   * Formats a 24-hour time string "13:00" to short 12-hour format without AM/PM "1:00".
-   * @param {string} timeStr - Time in "HH:MM"
-   * @returns {string} Short 12-hour time
-   */
   function formatShortTime(timeStr) {
-    if (!timeStr) return '';
-    let [h, m] = timeStr.split(':');
-    h = parseInt(h, 10);
-    const displayH = h % 12 || 12;
-    return `${displayH}:${m}`;
+    if (typeof utils.formatShortTime === 'function') return utils.formatShortTime(timeStr);
+    return formatTimeLabel(timeStr);
   }
 
-  /**
-   * Formats a 24-hour time string to 12-hour "h:MM AM/PM" (print tables compatibility).
-   * @param {string} t - Time in "HH:MM"
-   * @returns {string} Formatted 12-hour time
-   */
   function formatTime24to12(t) {
     return formatTimeLabel(t);
   }
 
-  /**
-   * Concise single-line time range formatter (e.g. "8:00–10:00 AM" or "11:00 AM–1:00 PM").
-   * @param {string} startStr - Start time
-   * @param {string} endStr - End time
-   * @returns {string} Formatted range
-   */
   function formatTimeRange(startStr, endStr) {
+    if (typeof utils.formatTimeRange === 'function') return utils.formatTimeRange(startStr, endStr);
     const s = formatTimeLabel(startStr);
     const e = formatTimeLabel(endStr);
-    if (!s || !e) return `${s || ''} ${e || ''}`.trim();
-
-    const sMatch = s.match(/^(\d+:\d+)\s*(AM|PM)$/i);
-    const eMatch = e.match(/^(\d+:\d+)\s*(AM|PM)$/i);
-
-    if (sMatch && eMatch) {
-      const sPer = sMatch[2].toUpperCase();
-      const ePer = eMatch[2].toUpperCase();
-      if (sPer === ePer) {
-        return `${sMatch[1]}–${eMatch[1]} ${ePer}`;
-      }
-      return `${sMatch[1]}${sPer[0]}–${eMatch[1]}${ePer[0]}`;
-    }
-    return `${s}–${e}`;
+    return `${s} – ${e}`;
   }
 
-  const timeUtils = {
-    START_HOUR,
-    END_HOUR,
-    TOTAL_SLOTS,
-    timeToSlots,
+  const scheduleTimeUtils = {
     slotsToTime,
+    timeToSlots,
     formatTimeLabel,
     formatShortTime,
     formatTime24to12,
     formatTimeRange
   };
 
-  global.timeUtils = timeUtils;
-  global.timeToSlots = timeToSlots;
+  global.scheduleTimeUtils = scheduleTimeUtils;
   global.slotsToTime = slotsToTime;
+  global.timeToSlots = timeToSlots;
   global.formatTimeLabel = formatTimeLabel;
   global.formatShortTime = formatShortTime;
   global.formatTime24to12 = formatTime24to12;
