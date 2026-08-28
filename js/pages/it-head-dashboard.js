@@ -138,9 +138,13 @@
     const labsContainer = document.getElementById('ithead-labs-grid') || '.labs-grid';
 
     try {
+      const currentYear = new Date().getFullYear();
+      const ay = `${currentYear}-${currentYear + 1}`;
+      const sem = '1st Semester';
+
       // 1. Fetch Summary Metrics and Laboratory Data in parallel
       const [summaryRes, allLabsData] = await Promise.all([
-        fetch('/api/dashboard/it-head-summary', {
+        fetch(`/api/dashboard/it-head-summary?academicYear=${encodeURIComponent(ay)}&semester=${encodeURIComponent(sem)}`, {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         }).then(res => res.ok ? res.json() : null).catch(() => null),

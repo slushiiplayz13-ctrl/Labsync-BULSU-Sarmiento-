@@ -67,7 +67,8 @@ async function getUserSchedule(req, res, next) {
 async function getITHeadSummary(req, res, next) {
     try {
         const userId = req.session ? req.session.userId : null;
-        const result = await scheduleService.getITHeadSummary(userId);
+        const { academicYear, semester } = req.query;
+        const result = await scheduleService.getITHeadSummary(userId, academicYear, semester);
         return res.status(result.status).json(result.data);
     } catch (err) {
         next(err);

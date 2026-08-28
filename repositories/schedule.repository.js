@@ -150,7 +150,33 @@ async function findUserSchedule(userId, ay, sem, executor = db) {
     `, [userId, ay, sem]);
 }
 
-async function findSummaryRoomsStatus(today, nowTime, executor = db) {
+async function findSummaryRoomsStatus(today, nowTime, ay, sem, executor = db) {
+    if (ay && sem) {
+        return executor.query(`
+            SELECT 
+                r.Room_ID, r.Room_Number, r.Key_Status, r.Current_User_ID, r.Last_Seen,
+                COALESCE(
+                    CASE 
+                        WHEN c.Subject_Name IS NOT NULL AND s.Subject_Name = c.Subject_Code THEN CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
+                        WHEN c.Subject_Code IS NOT NULL AND s.Subject_Name = c.Subject_Name THEN CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
+                        ELSE s.Subject_Name
+                    END,
+                    s.Subject_Name
+                ) AS Subject_Name,
+                s.Section, s.User_ID AS Scheduled_User_ID
+            FROM laboratories r
+            LEFT JOIN schedules s ON r.Room_ID = s.Room_ID 
+                AND s.Day_of_Week = ? 
+                AND ? BETWEEN s.Start_Time AND s.End_Time
+                AND s.Academic_Year = ?
+                AND s.Semester = ?
+            LEFT JOIN curriculum c ON (
+                s.Subject_Name = c.Subject_Code 
+                OR s.Subject_Name = c.Subject_Name 
+                OR s.Subject_Name = CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
+            )
+        `, [today, nowTime, ay, sem]);
+    }
     return executor.query(`
         SELECT 
             r.Room_ID, r.Room_Number, r.Key_Status, r.Current_User_ID, r.Last_Seen,
@@ -183,11 +209,38 @@ async function countPendingReports(executor = db) {
     return executor.query("SELECT COUNT(*) AS pendingReports FROM maintenance WHERE Status != 'Resolved'");
 }
 
-async function countClassesToday(today, executor = db) {
+async function countClassesToday(today, ay, sem, executor = db) {
+    if (ay && sem) {
+        return executor.query("SELECT COUNT(*) AS classesToday FROM schedules WHERE Day_of_Week = ? AND Academic_Year = ? AND Semester = ?", [today, ay, sem]);
+    }
     return executor.query("SELECT COUNT(*) AS classesToday FROM schedules WHERE Day_of_Week = ?", [today]);
 }
 
-async function findUserClassesToday(userId, today, executor = db) {
+async function findUserClassesToday(userId, today, ay, sem, executor = db) {
+    if (ay && sem) {
+        return executor.query(`
+            SELECT s.Schedule_ID, s.User_ID, s.Room_ID, s.Section, s.Day_of_Week, s.Start_Time, s.End_Time, s.Academic_Year, s.Semester, s.Color_Theme,
+                   COALESCE(
+                       CASE 
+                           WHEN c.Subject_Name IS NOT NULL AND s.Subject_Name = c.Subject_Code THEN CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
+                           WHEN c.Subject_Code IS NOT NULL AND s.Subject_Name = c.Subject_Name THEN CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
+                           ELSE s.Subject_Name
+                       END,
+                       s.Subject_Name
+                   ) AS Subject_Name,
+                   c.Subject_Code, c.Subject_Name AS Curriculum_Subject_Name,
+                   r.Room_Number, r.Building
+            FROM schedules s
+            JOIN laboratories r ON s.Room_ID = r.Room_ID
+            LEFT JOIN curriculum c ON (
+                s.Subject_Name = c.Subject_Code 
+                OR s.Subject_Name = c.Subject_Name 
+                OR s.Subject_Name = CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
+            )
+            WHERE s.User_ID = ? AND s.Day_of_Week = ? AND s.Academic_Year = ? AND s.Semester = ?
+            ORDER BY s.Start_Time
+        `, [userId, today, ay, sem]);
+    }
     return executor.query(`
         SELECT s.Schedule_ID, s.User_ID, s.Room_ID, s.Section, s.Day_of_Week, s.Start_Time, s.End_Time, s.Academic_Year, s.Semester, s.Color_Theme,
                COALESCE(

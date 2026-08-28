@@ -136,13 +136,17 @@ async function getUserSchedule(userIdParam, academicYear, semester) {
     return { status: 200, data: schedules };
 }
 
-async function getITHeadSummary(sessionUserId) {
+async function getITHeadSummary(sessionUserId, academicYear, semester) {
     const userId = sessionUserId || null;
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const today = days[new Date().getDay()];
     const nowTime = new Date().toTimeString().split(' ')[0];
 
-    const [rooms] = await scheduleRepository.findSummaryRoomsStatus(today, nowTime);
+    const currentYear = new Date().getFullYear();
+    const ay = academicYear || `${currentYear}-${currentYear + 1}`;
+    const sem = semester || '1st Semester';
+
+    const [rooms] = await scheduleRepository.findSummaryRoomsStatus(today, nowTime, ay, sem);
 
     const totalRooms = rooms.length;
     let availableRooms = 0;
@@ -177,11 +181,11 @@ async function getITHeadSummary(sessionUserId) {
 
     const [[{ totalPcs }]] = await scheduleRepository.countTotalPCs();
     const [[{ pendingReports }]] = await scheduleRepository.countPendingReports();
-    const [[{ classesToday }]] = await scheduleRepository.countClassesToday(today);
+    const [[{ classesToday }]] = await scheduleRepository.countClassesToday(today, ay, sem);
 
     let myClassesToday = [];
     if (userId) {
-        const [myScheds] = await scheduleRepository.findUserClassesToday(userId, today);
+        const [myScheds] = await scheduleRepository.findUserClassesToday(userId, today, ay, sem);
         myClassesToday = myScheds;
     }
 
