@@ -1,0 +1,97 @@
+/* ================================================================
+   LabSync – Modular Component: Alerts & Notice Banners | css/components/alerts.css
+   ================================================================ */
+
+/* ─── Informational Alert Box Component Styles ─── */
+.alert-info-box {
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+.alert-info-box i,
+.alert-info-box svg {
+  width: 16px;
+  height: 16px;
+  color: #0EA5E9;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alert-info-box p {
+  margin: 0;
+  font-size: 12px;
+  color: #0C4A6E;
+  line-height: 1.5;
+}
+
+/* ─── Warning Alert Box Component Styles ─── */
+.alert-warning-box {
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+.alert-warning-box i,
+.alert-warning-box svg {
+  width: 18px;
+  height: 18px;
+  color: #F59E0B;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alert-warning-box .alert-title {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #92400E;
+}
+
+.alert-warning-box .alert-desc {
+  margin: 0;
+  font-size: 11px;
+  color: #92400E;
+  line-height: 1.5;
+}
+
+/* ─── MIS Department Notice & Alert Banner Component Styles ─── */
+.banner-mis-notice.info {
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+}
+
+.banner-mis-notice.info .banner-icon {
+  color: #0284C7;
+}
+
+.banner-mis-notice.info .banner-title {
+  color: #0369A1;
+}
+
+.banner-mis-notice.info .banner-text {
+  color: #0C4A6E;
+}
+
+.banner-mis-notice.warning {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+}
+
+.banner-mis-notice.warning .banner-icon {
+  color: #DC2626;
+}
+
+.banner-mis-notice.warning .banner-title {
+  color: #991B1B;
+}
+
+.banner-mis-notice.warning .banner-text {
+  color: #7F1D1D;
+}

@@ -489,6 +489,49 @@ img[src*="bsu"] {
   display: flex;
 }
 
+/* ─── DASHBOARD GREETING & DIGITAL CLOCK ────────────────────────── */
+.greeting-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.greeting-left .greeting-title {
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 800;
+  color: var(--primary-teal);
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.greeting-left .greeting-sub {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  font-weight: 400;
+}
+
+.clock-block {
+  text-align: right;
+}
+
+.clock-time {
+  font-family: var(--font-display);
+  font-size: 27px;
+  font-weight: 800;
+  color: var(--primary-teal);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.clock-date {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
 /* ─── My Schedule Scroll UI Removal ────────────────────────────── */
 body[data-page="my-schedule"] .page-content,
 body[data-page="it-head-my-schedule"] .page-content,
@@ -511,4 +554,135 @@ body[data-page="it-head-my-schedule"] #schedule-container::-webkit-scrollbar,
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+}
+
+
+/* ─── Dashboard Laptop Viewport Compact Optimizations (Side-by-Side Screens) ─── */
+@media (min-width: 1141px) and (min-height: 720px) and (max-height: 850px) {
+
+  body[data-page="dashboard"],
+  body[data-page="it-head-dashboard"],
+  body[data-page="mis-dashboard"] {
+    overflow: hidden !important;
+  }
+
+  body[data-page="dashboard"] .main-wrapper,
+  body[data-page="it-head-dashboard"] .main-wrapper,
+  body[data-page="mis-dashboard"] .main-wrapper {
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  body[data-page="dashboard"] .page-content,
+  body[data-page="it-head-dashboard"] .page-content,
+  body[data-page="mis-dashboard"] .page-content {
+    overflow: hidden !important;
+    padding: 24px !important;
+    height: calc(100vh - var(--header-height)) !important;
+  }
+
+  body[data-page="dashboard"] .greeting-row,
+  body[data-page="it-head-dashboard"] .greeting-row,
+  body[data-page="mis-dashboard"] .greeting-row {
+    margin-bottom: 0 !important;
+  }
+
+  body[data-page="dashboard"] .greeting-title,
+  body[data-page="it-head-dashboard"] .greeting-title,
+  body[data-page="mis-dashboard"] .greeting-title {
+    font-size: 25px !important;
+    font-weight: 800 !important;
+    margin-bottom: 3px !important;
+    line-height: 1.2 !important;
+  }
+
+  body[data-page="dashboard"] .greeting-sub,
+  body[data-page="it-head-dashboard"] .greeting-sub,
+  body[data-page="mis-dashboard"] .greeting-sub {
+    font-size: 13.5px !important;
+  }
+
+  body[data-page="dashboard"] .clock-time,
+  body[data-page="it-head-dashboard"] .clock-time,
+  body[data-page="mis-dashboard"] .clock-time {
+    font-size: 27px !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+  }
+
+  body[data-page="dashboard"] .clock-date,
+  body[data-page="it-head-dashboard"] .clock-date,
+  body[data-page="mis-dashboard"] .clock-date {
+    font-size: 13px !important;
+  }
+
+  body[data-page="dashboard"] .stat-card,
+  body[data-page="it-head-dashboard"] .stat-card,
+  body[data-page="mis-dashboard"] .stat-card {
+    padding: 12px 14px !important;
+    min-height: 105px !important;
+    border-radius: 16px !important;
+  }
+
+  body[data-page="dashboard"] .stat-value,
+  body[data-page="it-head-dashboard"] .stat-value,
+  body[data-page="mis-dashboard"] .stat-value {
+    font-size: 28px !important;
+  }
+
+  body[data-page="dashboard"] .stat-title,
+  body[data-page="it-head-dashboard"] .stat-title,
+  body[data-page="mis-dashboard"] .stat-title {
+    font-size: 11px !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-card,
+  body[data-page="it-head-dashboard"] .dashboard-card,
+  body[data-page="mis-dashboard"] .dashboard-card {
+    overflow: hidden !important;
+    padding: 10px 12px !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-overview,
+  body[data-page="it-head-dashboard"] .dashboard-overview,
+  body[data-page="mis-dashboard"] .dashboard-overview {
+    overflow: hidden !important;
+    gap: 8px !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-main-grid,
+  body[data-page="it-head-dashboard"] .dashboard-main-grid,
+  body[data-page="mis-dashboard"] .dashboard-main-grid {
+    overflow: hidden !important;
+    gap: 12px !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+  }
+
+  body[data-page="dashboard"] .content-card,
+  body[data-page="it-head-dashboard"] .content-card,
+  body[data-page="mis-dashboard"] .content-card {
+    overflow: hidden !important;
+    padding: 12px 14px !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+  }
+
+  body[data-page="dashboard"] .labs-grid,
+  body[data-page="it-head-dashboard"] .labs-grid {
+    overflow-y: auto !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+  }
+
+  body[data-page="dashboard"] .timeline-list,
+  body[data-page="it-head-dashboard"] .timeline-list {
+    overflow-y: auto !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+  }
 }

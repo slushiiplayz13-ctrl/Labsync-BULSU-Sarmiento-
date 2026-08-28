@@ -1,0 +1,655 @@
+/* ================================================================
+   LabSync – Modular Component: Help & Support Cards | css/components/help-cards.css
+   ================================================================ */
+
+/* ─── Help & Quick-Start Card Component Styles ─── */
+.help-qs-card {
+  padding: 18px 22px;
+  border-radius: 16px;
+  background: var(--bg-white, #FFFFFF);
+  border: 1px solid var(--border-light, #E2E8F0);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.help-qs-card:hover {
+  border-color: var(--primary-teal, #1EBBD7);
+  box-shadow: 0 6px 18px rgba(30, 187, 215, 0.14);
+  transform: translateY(-1px);
+}
+
+.help-qs-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.help-qs-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #F1F5F9;
+  color: var(--text-dark, #0F172A);
+  transition: all 0.2s ease;
+}
+
+.help-qs-icon i,
+.help-qs-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.help-qs-icon.theme-teal {
+  background: rgba(30, 187, 215, 0.12);
+  color: var(--primary-teal, #1EBBD7);
+}
+
+.help-qs-icon.theme-blue {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3B82F6;
+}
+
+.help-qs-icon.theme-green {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+}
+
+.help-qs-icon.theme-purple {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8B5CF6;
+}
+
+.help-qs-icon.theme-indigo {
+  background: rgba(99, 102, 241, 0.12);
+  color: #6366F1;
+}
+
+.help-qs-icon.theme-pink {
+  background: rgba(236, 72, 153, 0.12);
+  color: #EC4899;
+}
+
+.help-qs-icon.theme-red {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+}
+
+.help-qs-icon.theme-amber,
+.help-qs-icon.theme-warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: #F59E0B;
+}
+
+.help-qs-title {
+  font-family: var(--font-display, inherit);
+  font-weight: 700;
+  color: var(--text-dark, #0F172A);
+  font-size: 16.5px;
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.help-qs-text {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--text-mid, #64748B);
+  line-height: 1.6;
+  padding-left: 58px;
+}
+
+@media (max-width: 600px) {
+  .help-qs-card {
+    padding: 14px 16px;
+    gap: 8px;
+  }
+
+  .help-qs-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .help-qs-icon i,
+  .help-qs-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .help-qs-title {
+    font-size: 15.5px;
+  }
+
+  .help-qs-text {
+    font-size: 13.5px;
+    padding-left: 0;
+  }
+}
+
+/* ─── Card Feature Icon & Badge Component Styles ─── */
+.feature-icon-box,
+.help-feat-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(30, 187, 215, 0.12);
+  border: 1px solid rgba(30, 187, 215, 0.25);
+  color: var(--primary-teal, #0284C7);
+  flex-shrink: 0;
+}
+
+.feature-icon-box i,
+.feature-icon-box svg,
+.help-feat-icon-badge i,
+.help-feat-icon-badge svg {
+  width: 17px !important;
+  height: 17px !important;
+}
+
+/* ─── Shared Feature Card Base Component Styles ─── */
+.help-feature-card {
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-light, #E2E8F0);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.help-feat-title {
+  font-family: var(--font-display, inherit);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-dark, #0F172A);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.help-feat-desc {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-mid, #64748B);
+}
+
+.help-feat-title i,
+.help-feat-title svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ─── Help Support Box Card Component Styles ─── */
+.help-support-box {
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+  border: 1px solid #BAE6FD;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.help-support-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-support-title i,
+.help-support-title svg {
+  width: 18px;
+  height: 18px;
+  color: var(--primary-teal);
+}
+
+.help-support-desc {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+.help-support-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.help-support-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dark);
+}
+
+.help-support-item i,
+.help-support-item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--primary-teal);
+}
+
+.help-support-item strong {
+  font-weight: 700;
+}
+
+.help-support-item span.highlight {
+  color: var(--primary-teal);
+}
+
+/* ─── Help & Support Feature Cards Color Theme Highlights ─── */
+.help-feature-card.theme-purple {
+  background: #F3E8FF;
+  border: 1.5px solid #D8B4FE;
+  color: #581C87;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.08);
+}
+
+.help-feature-card.theme-purple .help-feat-title {
+  color: #7E22CE;
+}
+
+.help-feature-card.theme-purple .help-feat-desc {
+  color: #6B21A8;
+}
+
+.help-feature-card.theme-purple .feature-icon-box,
+.help-feature-card.theme-purple .help-feat-icon-badge {
+  background: #E9D5FF;
+  border: 1px solid #C084FC;
+  color: #7E22CE;
+}
+
+.help-feature-card.theme-blue {
+  background: #E0F2FE;
+  border: 1.5px solid #BAE6FD;
+  color: #0C4A6E;
+}
+
+.help-feature-card.theme-blue .help-feat-title {
+  color: #0284C7;
+}
+
+.help-feature-card.theme-blue .help-feat-desc {
+  color: #0369A1;
+}
+
+.help-feature-card.theme-blue .feature-icon-box,
+.help-feature-card.theme-blue .help-feat-icon-badge {
+  background: #BAE6FD;
+  border: 1px solid #38BDF8;
+  color: #0284C7;
+}
+
+.help-feature-card.theme-indigo {
+  background: #EEF2FF;
+  border: 1.5px solid #C7D2FE;
+  color: #1E3A8A;
+}
+
+.help-feature-card.theme-indigo .help-feat-title {
+  color: #4338CA;
+}
+
+.help-feature-card.theme-indigo .help-feat-desc {
+  color: #3730A3;
+}
+
+.help-feature-card.theme-indigo .feature-icon-box,
+.help-feature-card.theme-indigo .help-feat-icon-badge {
+  background: #C7D2FE;
+  border: 1px solid #818CF8;
+  color: #4338CA;
+}
+
+.help-feature-card.theme-amber {
+  background: #FEF3C7;
+  border: 1.5px solid #FDE68A;
+  color: #92400E;
+}
+
+.help-feature-card.theme-amber .help-feat-title {
+  color: #D97706;
+}
+
+.help-feature-card.theme-amber .help-feat-desc {
+  color: #B45309;
+}
+
+.help-feature-card.theme-amber .feature-icon-box,
+.help-feature-card.theme-amber .help-feat-icon-badge {
+  background: #FDE68A;
+  border: 1px solid #FBBF24;
+  color: #D97706;
+}
+
+.help-feature-card.theme-green {
+  background: #DCFCE7;
+  border: 1.5px solid #BBF7D0;
+  color: #14532D;
+}
+
+.help-feature-card.theme-green .help-feat-title {
+  color: #15803D;
+}
+
+.help-feature-card.theme-green .help-feat-desc {
+  color: #166534;
+}
+
+.help-feature-card.theme-green .feature-icon-box,
+.help-feature-card.theme-green .help-feat-icon-badge {
+  background: #BBF7D0;
+  border: 1px solid #4ADE80;
+  color: #15803D;
+}
+
+/* ─── Help & Support Feature Cards Grid & Action Buttons Component Styles ─── */
+.help-features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.help-feature-card {
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.help-feature-card.theme-blue {
+  background: #E0F2FE;
+  color: #0C4A6E;
+}
+
+.help-feature-card.theme-blue .help-feat-title {
+  color: #0284C7;
+}
+
+.help-feature-card.theme-indigo {
+  background: #DBEAFE;
+  color: #1E3A8A;
+}
+
+.help-feature-card.theme-indigo .help-feat-title {
+  color: #1E40AF;
+}
+
+.help-feature-card.theme-amber {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.help-feature-card.theme-amber .help-feat-title {
+  color: #D97706;
+}
+
+.help-feature-card.theme-green {
+  background: #DCFCE7;
+  color: #14532D;
+}
+
+.help-feature-card.theme-green .help-feat-title {
+  color: #16A34A;
+}
+
+.help-feat-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.help-feat-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.help-modal-footer {
+  padding: 20px 32px;
+  border-top: 1px solid var(--border-light);
+  background: #FAFAFA;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.help-modal-footer p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.help-modal-got-it-btn {
+  padding: 10px 24px;
+  border: none;
+  background: var(--primary-teal);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 4px 12px var(--primary-teal-glow);
+  font-family: var(--font-body);
+}
+
+.help-modal-got-it-btn:hover {
+  background: var(--primary-teal-hover);
+}
+
+/* ─── Help and Support Modal Base & Subcomponents ─── */
+.help-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.help-modal-dialog {
+  background: var(--bg-white);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 85vh;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+
+.help-modal-header {
+  padding: 28px 32px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, var(--primary-teal-light) 0%, var(--bg-white) 100%);
+}
+
+.help-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.help-modal-icon-box {
+  width: 48px;
+  height: 48px;
+  background: var(--primary-teal);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 12px var(--primary-teal-glow);
+}
+
+.help-modal-icon-box i,
+.help-modal-icon-box svg {
+  width: 24px;
+  height: 24px;
+}
+
+.help-modal-title-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.help-modal-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.help-modal-subtitle {
+  font-size: 13px;
+  color: var(--text-mid);
+  margin: 4px 0 0 0;
+}
+
+.help-modal-close-btn,
+.modal-close-btn,
+.btn-close-modal {
+  background: var(--bg-card, #FFFFFF);
+  border: 1px solid var(--border-light, #E2E8F0);
+  color: var(--text-mid, #64748B);
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.help-modal-close-btn:hover,
+.modal-close-btn:hover,
+.btn-close-modal:hover {
+  background: var(--primary-teal-light, #E0F2FE);
+  border-color: #BAE6FD;
+  color: var(--primary-teal, #0284C7);
+}
+
+.help-modal-close-btn:focus,
+.help-modal-close-btn:active,
+.modal-close-btn:focus,
+.modal-close-btn:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.help-modal-close-btn:focus-visible,
+.modal-close-btn:focus-visible {
+  outline: 2px solid var(--primary-teal, #06B6D4) !important;
+  outline-offset: 2px !important;
+}
+
+/* Dark Mode Overrides for Help Modal Close Button */
+html.dark-mode .help-modal-close-btn,
+body.dark-mode .help-modal-close-btn,
+[data-theme="dark"] .help-modal-close-btn,
+html.high-contrast .help-modal-close-btn,
+html.dark-mode #close-help-modal,
+body.dark-mode #close-help-modal,
+[data-theme="dark"] #close-help-modal,
+html.high-contrast #close-help-modal {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #94A3B8 !important;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease !important;
+}
+
+html.dark-mode .help-modal-close-btn:hover,
+body.dark-mode .help-modal-close-btn:hover,
+[data-theme="dark"] .help-modal-close-btn:hover,
+html.high-contrast .help-modal-close-btn:hover,
+html.dark-mode #close-help-modal:hover,
+body.dark-mode #close-help-modal:hover,
+[data-theme="dark"] #close-help-modal:hover,
+html.high-contrast #close-help-modal:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #F8FAFC !important;
+}
+
+html.dark-mode .help-modal-close-btn:focus,
+html.dark-mode .help-modal-close-btn:active,
+body.dark-mode .help-modal-close-btn:focus,
+body.dark-mode .help-modal-close-btn:active,
+[data-theme="dark"] .help-modal-close-btn:focus,
+[data-theme="dark"] .help-modal-close-btn:active,
+html.high-contrast .help-modal-close-btn:focus,
+html.high-contrast .help-modal-close-btn:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+html.dark-mode .help-modal-close-btn:focus-visible,
+body.dark-mode .help-modal-close-btn:focus-visible,
+[data-theme="dark"] .help-modal-close-btn:focus-visible,
+html.high-contrast .help-modal-close-btn:focus-visible {
+  outline: 2px solid #06B6D4 !important;
+  outline-offset: 2px !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  color: #94A3B8 !important;
+}
+
+.help-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}
+
+.help-modal-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-modal-section-title i,
+.help-modal-section-title svg {
+  width: 20px;
+  height: 20px;
+  color: var(--primary-teal);
+}
+
+.help-qs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

@@ -1,0 +1,271 @@
+/* ================================================================
+   LabSync – Modular Component: Faculty Cards | css/components/faculty-cards.css
+   ================================================================ */
+
+/* ─── Faculty Management Grid & Faculty Subcomponent Cards Component Styles ─── */
+.faculty-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  padding-bottom: 30px;
+}
+
+.faculty-card {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.faculty-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.faculty-card.boss-card {
+  border: 2px solid var(--primary-teal) !important;
+  box-shadow: 0 12px 25px -5px var(--primary-teal-glow) !important;
+  transform: translateY(-4px) !important;
+  z-index: 10 !important;
+}
+
+.boss-crown {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, var(--primary-teal) 0%, var(--accent-blue) 100%);
+  color: white;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px var(--primary-teal-glow);
+  border: 2px solid var(--bg-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.boss-crown i,
+.boss-crown svg {
+  width: 12px;
+  height: 12px;
+}
+
+.boss-role {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.fc-top {
+  display: flex;
+  gap: 16px;
+}
+
+.fc-avatar {
+  width: 50px;
+  height: 50px;
+  background: var(--primary-teal);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.fc-meta {
+  flex: 1;
+}
+
+.fc-name {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.fc-role {
+  font-size: 13px;
+  color: #64748B;
+  margin-bottom: 6px;
+}
+
+.fc-status-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.fc-menu-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #94A3B8;
+  padding: 2px;
+}
+
+.fc-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: #64748B;
+}
+
+.fc-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fc-divider {
+  height: 1px;
+  background: var(--border-light);
+  width: 100%;
+}
+
+.fc-stats {
+  display: flex;
+  justify-content: space-between;
+}
+
+.fc-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.fc-stat-icon {
+  color: #94A3B8;
+}
+
+.fc-stat-num {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-dark);
+}
+
+.fc-stat-label {
+  font-size: 11px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+/* ─── Faculty Action Dropdown Menu & Button Component Styles ─── */
+.faculty-menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border-radius: 4px;
+  transition: all var(--transition);
+}
+
+.faculty-menu-btn:hover {
+  background-color: var(--bg-card);
+  color: var(--text-dark);
+}
+
+.faculty-dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--bg-white);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  width: 175px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  z-index: 100;
+  padding: 6px 0;
+  margin-top: 4px;
+}
+
+.faculty-dropdown-menu .menu-item {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-dark);
+  font-family: var(--font-body);
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background var(--transition);
+}
+
+.faculty-dropdown-menu .menu-item:hover {
+  background-color: var(--bg-card);
+}
+
+.faculty-dropdown-menu .menu-item i,
+.faculty-dropdown-menu .menu-item svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+}
+
+.faculty-dropdown-menu .menu-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 4px 0;
+}
+
+
+/* ─── IT Leadership & Department Tribute / Successor Special Cards ─── */
+.heart-container {
+  width: 72px;
+  height: 72px;
+  background: #FEF2F2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px auto 24px auto;
+  color: #EF4444;
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.12);
+}
+
+.tribute-card {
+  background: #FFFDF5;
+  border: 1px solid #FEF3C7;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 14px;
+  text-align: left;
+  position: relative;
+}
+
+.successor-card {
+  background: #F0FDFA;
+  border: 1px solid #CCFBF1;
+  border-radius: 12px;
+  padding: 14px 18px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+

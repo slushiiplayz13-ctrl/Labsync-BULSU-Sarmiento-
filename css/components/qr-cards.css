@@ -1,0 +1,110 @@
+/* ================================================================
+   LabSync – Modular Component: PC QR Generator Cards | css/components/qr-cards.css
+   ================================================================ */
+
+/* ─── PC QR Code Generator Cards & Subcomponents Component Styles ─── */
+.pc-grid-container {
+  border: 2px solid var(--primary-teal);
+  border-radius: 16px;
+  padding: 20px;
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px !important;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (min-width: 769px) {
+  /* FIX 2a: Changed from min-width:768px → 769px.
+     At exactly 768px, the old rule (4-col) fired simultaneously with
+     responsive.css max-width:768px (2-col !important), creating a cascade
+     conflict. Now 768px gets only the 2-col mobile rule; 769px+ gets 4-col. */
+  .pc-grid-container {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 12px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pc-grid-container {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 14px !important;
+  }
+}
+
+.pc-qr-card {
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 26px 14px 20px 14px;
+  min-height: 125px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  position: relative;
+  background: var(--bg-white);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.pc-qr-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: #bae6fd;
+}
+
+.pc-qr-dot {
+  display: none !important;
+}
+
+.pc-qr-title {
+  color: var(--primary-teal);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.pc-qr-btn {
+  background: var(--primary-teal);
+  color: #fff;
+  border: none;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  width: 100%;
+  box-shadow: 0 3px 8px rgba(30, 187, 215, 0.25);
+  transition: background 0.2s;
+  box-sizing: border-box;
+}
+
+.pc-qr-btn:hover {
+  background: #18a3bb;
+}
+
+.generate-all-btn {
+  background: #10B981;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: background 0.2s;
+}
+
+.generate-all-btn:hover {
+  background: #059669;
+}
