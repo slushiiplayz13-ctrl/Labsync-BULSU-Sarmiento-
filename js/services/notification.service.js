@@ -17,7 +17,13 @@
         credentials: 'include'
       });
       if (!response.ok) return null;
-      return await response.json();
+      const data = await response.json();
+      try {
+        if (Array.isArray(data)) {
+          sessionStorage.setItem('labsync_cached_notifications', JSON.stringify(data));
+        }
+      } catch (e) { }
+      return data;
     } catch (err) {
       console.error('[NotificationService] Failed to fetch notifications:', err);
       return null;

@@ -9,21 +9,10 @@
   let parsedCurriculumData = [];
   let isFileUploadedToCurriculum = false;
 
-  function escapeHtmlString(str) {
-    if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
   function renderCurriculumTable() {
     const curriculumTableBody = document.getElementById('curriculumTableBody');
     if (!curriculumTableBody) return;
-    curriculumTableBody.innerHTML = '';
-
+    
     if (parsedCurriculumData.length === 0) {
       curriculumTableBody.innerHTML = `
         <tr>
@@ -33,16 +22,14 @@
       return;
     }
 
-    parsedCurriculumData.forEach((item, index) => {
-      const tr = document.createElement('tr');
-      tr.style.borderBottom = '1px solid var(--border-light)';
-      tr.innerHTML = `
-        <td style="padding: 10px 16px; font-weight: 600; color: var(--text-light); text-align: center; width: 60px;">${index + 1}</td>
-        <td style="padding: 10px 16px; font-weight: 700; color: var(--primary-teal);">${escapeHtmlString(item.Subject_Code || item.code || '-')}</td>
-        <td style="padding: 10px 16px; font-weight: 600; color: var(--text-dark);">${escapeHtmlString(item.Subject_Name || item.name || '')}</td>
-      `;
-      curriculumTableBody.appendChild(tr);
-    });
+    const escapeFn = global.escapeHtml || window.escapeHtml || ((s) => s || '');
+    curriculumTableBody.innerHTML = parsedCurriculumData.map((item, index) => `
+      <tr style="border-bottom: 1px solid var(--border-light); background: ${index % 2 === 0 ? 'var(--bg-white)' : 'var(--bg-body)'};">
+        <td style="padding: 10px 16px; text-align: center; color: var(--text-light); font-weight: 600;">${index + 1}</td>
+        <td style="padding: 10px 16px; font-weight: 700; color: var(--primary-teal);">${escapeFn(item.Subject_Code || item.code || '-')}</td>
+        <td style="padding: 10px 16px; font-weight: 600; color: var(--text-dark);">${escapeFn(item.Subject_Name || item.name || '')}</td>
+      </tr>
+    `).join('');
   }
 
   async function fetchExistingCurriculum() {

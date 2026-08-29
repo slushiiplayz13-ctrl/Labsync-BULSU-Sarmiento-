@@ -17,8 +17,31 @@ async function insertCurriculumItem(code, name, executor = db) {
     );
 }
 
+async function getConnection() {
+    return db.getConnection();
+}
+
+async function withTransaction(workFn) {
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+        const result = await workFn(connection);
+        await connection.commit();
+        return result;
+    } catch (err) {
+        await connection.rollback();
+        console.error('Error executing transaction in curriculumRepository:', err);
+        throw err;
+    } finally {
+        connection.release();
+    }
+}
+
 module.exports = {
     findAllCurriculum,
     deleteAllCurriculum,
-    insertCurriculumItem
+    insertCurriculumItem,
+    getConnection,
+    withTransaction
 };
+

@@ -28,9 +28,9 @@
     if (!confirmed) return;
 
     try {
-      const service = global.reportService;
-      if (service && typeof service.updateReportStatus === 'function') {
-        await service.updateReportStatus(reportId, newStatus);
+      const updateFn = global.updateReportStatus || (global.reportService && global.reportService.updateReportStatus);
+      if (typeof updateFn === 'function') {
+        await updateFn(reportId, newStatus);
       } else {
         const response = await fetch(`/api/reports/${encodeURIComponent(reportId)}/status`, {
           method: 'PUT',
@@ -86,9 +86,9 @@
     if (!confirmed) return;
 
     try {
-      const service = global.reportService;
-      if (service && typeof service.deleteReport === 'function') {
-        await service.deleteReport(reportId);
+      const deleteFn = global.deleteReport || (global.reportService && global.reportService.deleteReport);
+      if (typeof deleteFn === 'function') {
+        await deleteFn(reportId);
       } else {
         const response = await fetch(`/api/reports/${encodeURIComponent(reportId)}`, {
           method: 'DELETE',

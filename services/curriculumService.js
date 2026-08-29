@@ -1,6 +1,5 @@
 'use strict';
 
-const db = require('../database/connection');
 const curriculumRepository = require('../repositories/curriculum.repository');
 
 async function getCurriculum() {
@@ -13,10 +12,7 @@ async function importCurriculum(subjects, mode) {
         return { status: 400, error: 'No subject items provided.' };
     }
 
-    const connection = await db.getConnection();
-    try {
-        await connection.beginTransaction();
-
+    await curriculumRepository.withTransaction(async (connection) => {
         if (mode !== 'append') {
             await curriculumRepository.deleteAllCurriculum(connection);
         }
@@ -29,15 +25,7 @@ async function importCurriculum(subjects, mode) {
                 await curriculumRepository.insertCurriculumItem(code, name, connection);
             }
         }
-
-        await connection.commit();
-    } catch (err) {
-        await connection.rollback();
-        console.error('Error importing curriculum within transaction:', err);
-        throw err;
-    } finally {
-        connection.release();
-    }
+    });
 
     const [updatedRows] = await curriculumRepository.findAllCurriculum();
     return {

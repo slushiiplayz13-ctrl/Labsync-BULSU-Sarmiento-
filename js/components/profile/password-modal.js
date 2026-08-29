@@ -95,14 +95,19 @@
         }
 
         try {
-          const res = await fetch('/api/user/password', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass })
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Failed to update password');
+          const userService = global.userService;
+          if (userService && typeof userService.updatePassword === 'function') {
+            await userService.updatePassword(currentPass, newPass);
+          } else {
+            const res = await fetch('/api/user/update', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to update password');
+          }
 
           if (global.showToast) {
             global.showToast('Password updated successfully!', 'success');

@@ -33,7 +33,17 @@ async function updateSettings(settings, sessionUserId, sessionUserRole) {
     return { status: 200, message: 'System settings updated successfully.' };
 }
 
+async function checkHealth() {
+    const [rows] = await settingsRepository.pingDatabase();
+    return {
+        status: 200,
+        data: { message: 'Database connected successfully', result: rows[0].result }
+    };
+}
+
 module.exports = {
     getSettings,
-    updateSettings
+    updateSettings,
+    checkHealth
 };
+

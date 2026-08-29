@@ -1,0 +1,735 @@
+/* ================================================================
+   LabSync – Modals & Dialogs Component Styles  |  css/components/modals.css
+   ================================================================ */
+
+/* ─── Tablet & Mobile Viewports (Max Width: 1024px) ─────────────── */
+@media (max-width: 1024px) {
+  /* Modals & Dialogs */
+  .modal-container {
+    width: 95% !important;
+    max-height: 90vh !important;
+  }
+}
+
+/* ─── Mobile Viewports (Max Width: 767px) ────────────────────────── */
+@media (max-width: 767px) {
+  /* ── Account Settings Mobile Layout (Full Mobile Sheet Panel) ── */
+  #account-settings-modal {
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+  }
+
+  .settings-modal-content-box,
+  .settings-modal-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: var(--bg-white, #FFFFFF) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    animation: settingsModalSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes settingsModalSlideUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0.8;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* ── Header: Clear Hierarchy & Consistent Action ── */
+  #account-settings-modal .settings-modal-content-box > div:first-child {
+    padding: 16px 20px !important;
+    background: var(--bg-white, #FFFFFF) !important;
+    border-bottom: 1px solid var(--border-light) !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  #account-settings-modal .settings-modal-content-box > div:first-child h2 {
+    font-size: 19px !important;
+    font-weight: 700 !important;
+    font-family: var(--font-display) !important;
+    color: var(--text-dark) !important;
+    margin: 0 0 2px 0 !important;
+    line-height: 1.25 !important;
+  }
+
+  #account-settings-modal .settings-modal-content-box > div:first-child p {
+    font-size: 12.5px !important;
+    color: var(--text-muted) !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  #close-settings-modal {
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: var(--bg-card, #F8FAFC) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 10px !important;
+    color: var(--text-dark) !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+
+  #close-settings-modal:hover {
+    background: var(--border-light) !important;
+  }
+
+  #close-settings-modal i,
+  #close-settings-modal svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* ── Tab Navigation Bar: Segmented Horizontal Pills ── */
+  .settings-modal-body {
+    flex-direction: column !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+    flex: 1 !important;
+    display: flex !important;
+  }
+
+  .settings-modal-sidebar {
+    width: 100% !important;
+    flex-direction: row !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-light) !important;
+    padding: 10px 16px !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    background: var(--bg-page, #F8FAFC) !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+  }
+
+  .settings-modal-sidebar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  html.high-contrast .settings-modal-sidebar {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+  }
+
+  .settings-modal-sidebar .settings-tab-btn {
+    flex: 1 1 0% !important;
+    min-width: max-content !important;
+    width: auto !important;
+    padding: 9px 14px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 10px !important;
+    background: var(--bg-white, #FFFFFF) !important;
+    color: var(--text-mid) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .settings-modal-sidebar .settings-tab-btn i,
+  .settings-modal-sidebar .settings-tab-btn svg {
+    width: 15px !important;
+    height: 15px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .settings-modal-sidebar .settings-tab-btn.active {
+    background: var(--primary-teal) !important;
+    color: #FFFFFF !important;
+    border-color: var(--primary-teal) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 3px 10px var(--primary-teal-glow, rgba(0, 163, 196, 0.25)) !important;
+  }
+
+  .settings-modal-sidebar .settings-tab-btn.active i,
+  .settings-modal-sidebar .settings-tab-btn.active svg {
+    color: #FFFFFF !important;
+  }
+
+  /* ── Form & Scroll Container ── */
+  .settings-modal-form {
+    flex: 1 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    background: var(--bg-page, #F8FAFC) !important;
+  }
+
+  .settings-modal-scroll {
+    padding: 16px 16px 20px 16px !important;
+    background: var(--bg-page, #F8FAFC) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  html.high-contrast .settings-modal-scroll {
+    background: #0f172a !important;
+  }
+
+  /* ── Tab Panels: Clean Modern Cards ── */
+  .settings-tab-panel {
+    background: var(--bg-white, #FFFFFF) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 16px !important;
+    padding: 20px 16px !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  html.high-contrast .settings-tab-panel {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+  }
+
+  .settings-tab-panel h3 {
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    font-family: var(--font-display) !important;
+    color: var(--text-dark) !important;
+    margin: 0 0 3px 0 !important;
+  }
+
+  .settings-tab-panel p {
+    font-size: 12.5px !important;
+    color: var(--text-muted) !important;
+    margin: 0 !important;
+  }
+
+  .settings-tab-panel > div:first-of-type {
+    margin-bottom: 18px !important;
+  }
+
+  /* ── Form Inputs & Touch Targets ── */
+  .settings-modal-scroll input,
+  .settings-modal-scroll select,
+  .settings-modal-scroll textarea {
+    height: 44px !important;
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+    border-radius: 10px !important;
+    border: 1.5px solid var(--border-light) !important;
+    background: var(--bg-card, #F8FAFC) !important;
+    color: var(--text-dark) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+  }
+
+  .settings-modal-scroll input:focus,
+  .settings-modal-scroll select:focus,
+  .settings-modal-scroll textarea:focus {
+    border-color: var(--primary-teal) !important;
+    box-shadow: 0 0 0 3px rgba(30, 187, 215, 0.15) !important;
+    background: var(--bg-white, #FFFFFF) !important;
+  }
+
+  .settings-modal-scroll label {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--text-dark) !important;
+    margin-bottom: 6px !important;
+    display: block !important;
+  }
+
+  .settings-modal-scroll button[onclick*="togglePasswordVisibility"] {
+    right: 12px !important;
+  }
+
+  .settings-modal-scroll div[style*="display:flex; flex-direction:column; gap:20px"],
+  .settings-modal-scroll div[style*="display: flex; flex-direction: column; gap: 20px"],
+  .settings-modal-scroll div[style*="display:flex; flex-direction:column; gap: 20px"],
+  .settings-modal-scroll div[style*="display: flex; flex-direction: column; gap:20px"] {
+    gap: 16px !important;
+  }
+
+  /* ── Panel 1: Profile Details ── */
+  #panel-profile div[style*="gap:36px"],
+  #panel-profile div[style*="gap: 36px"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 18px !important;
+  }
+
+  #panel-profile div[style*="width:190px"],
+  #panel-profile div[style*="width: 190px"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 16px 0 !important;
+    padding: 18px 16px !important;
+    border: 1.5px dashed var(--border-light) !important;
+    border-radius: 14px !important;
+    background: var(--bg-card, #F8FAFC) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  #panel-profile div[style*="min-width:260px"],
+  #panel-profile div[style*="min-width: 260px"] {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #profile-photo-preview {
+    width: 88px !important;
+    height: 88px !important;
+    font-size: 32px !important;
+    font-weight: 700 !important;
+    border-radius: 50% !important;
+    border: 3px solid #FFFFFF !important;
+    box-shadow: 0 6px 18px rgba(30, 187, 215, 0.25) !important;
+  }
+
+  #profile-photo-preview + input + button {
+    padding: 9px 20px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    border-radius: 9999px !important;
+    background: var(--primary-teal) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 3px 10px var(--primary-teal-glow) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  #remove-photo-btn {
+    padding: 6px 14px !important;
+    font-size: 12px !important;
+    border-radius: 9999px !important;
+    border: 1px solid var(--border-light) !important;
+    background: var(--bg-white, #FFFFFF) !important;
+  }
+
+  /* ── Panel 2: Security & Login ── */
+  #panel-security div[style*="border-radius:14px"],
+  #panel-security div[style*="border-radius: 14px"] {
+    background: var(--bg-card, #F8FAFC) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 14px !important;
+    padding: 18px 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    align-items: stretch !important;
+    box-sizing: border-box !important;
+  }
+
+  #open-change-password-modal-btn {
+    width: 100% !important;
+    height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    background: var(--bg-white, #FFFFFF) !important;
+    border: 1.5px solid var(--border-light) !important;
+    border-radius: 10px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    color: var(--text-dark) !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+  }
+
+  #panel-security div[style*="grid-template-columns:1fr 1fr"],
+  #panel-security div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* ── Panel 3: QR Code ── */
+  #panel-qrcode div[style*="padding:32px 0"],
+  #panel-qrcode div[style*="padding: 32px 0"],
+  #panel-qrcode div[style*="display:flex; gap:32px"],
+  #panel-qrcode div[style*="display: flex; gap: 32px"] {
+    padding: 16px 0 !important;
+    gap: 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  #qr-code-container {
+    width: 190px !important;
+    height: 190px !important;
+    max-width: 100% !important;
+    padding: 12px !important;
+    background: #FFFFFF !important;
+    border: 2px solid var(--border-light) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+    align-self: center !important;
+    box-sizing: border-box !important;
+    margin: 0 auto !important;
+  }
+
+  #download-qr-btn {
+    align-self: center !important;
+    width: 100% !important;
+    max-width: 260px !important;
+    height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    border-radius: 12px !important;
+    padding: 0 20px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    background: var(--primary-teal) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 14px var(--primary-teal-glow) !important;
+    box-sizing: border-box !important;
+    margin: 4px auto 0 auto !important;
+  }
+
+  /* ── Modal Footer: Action Bar ── */
+  #account-settings-form > div:last-child {
+    padding: 14px 16px !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+    background: var(--bg-white, #FFFFFF) !important;
+    border-top: 1px solid var(--border-light) !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  html.high-contrast #account-settings-form > div:last-child {
+    background: #1e293b !important;
+    border-color: #374151 !important;
+  }
+
+  #account-settings-form #settings-last-updated {
+    font-size: 11.5px !important;
+    color: var(--text-muted) !important;
+    text-align: center !important;
+    display: block !important;
+    line-height: 1.3 !important;
+  }
+
+  #account-settings-form > div:last-child > div[style*="display:flex"],
+  #account-settings-form > div:last-child > div[style*="display: flex"] {
+    display: flex !important;
+    width: 100% !important;
+    gap: 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  #cancel-settings-btn,
+  #save-settings-btn {
+    flex: 1 1 0% !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    padding: 0 12px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+  }
+
+  #cancel-settings-btn {
+    background: var(--bg-card, #F8FAFC) !important;
+    border: 1.5px solid var(--border-light) !important;
+    color: var(--text-dark) !important;
+  }
+
+  #save-settings-btn {
+    background: var(--primary-teal) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    box-shadow: 0 4px 14px var(--primary-teal-glow) !important;
+  }
+
+  html.high-contrast #cancel-settings-btn {
+    background: #334155 !important;
+    border-color: #475569 !important;
+    color: #F8FAFC !important;
+  }
+
+  /* Sub-modals: Change Password & Email Confirmation */
+  #change-password-modal {
+    padding: 12px !important;
+  }
+
+  #change-password-modal > div {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 20px 14px !important;
+    border-radius: 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  #change-password-form > div[style*="justify-content:flex-end"],
+  #change-password-form > div[style*="justify-content: flex-end"] {
+    display: flex !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  #cancel-cp-btn,
+  #submit-cp-btn {
+    flex: 1 !important;
+    padding: 10px 8px !important;
+    font-size: 13px !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+  }
+
+  #email-confirm-modal {
+    padding: 12px !important;
+  }
+
+  #email-confirm-modal .email-confirm-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 22px 14px !important;
+    border-radius: 18px !important;
+    box-sizing: border-box !important;
+  }
+
+  #email-confirm-modal div[style*="display:flex;gap:12px;width:100%"],
+  #email-confirm-modal div[style*="display: flex; gap: 12px; width: 100%"],
+  #email-confirm-modal div[style*="display:flex; gap:12px; width:100%"],
+  #email-confirm-modal div[style*="display: flex; gap:12px; width:100%"] {
+    gap: 8px !important;
+  }
+
+  #cancel-email-confirm,
+  #proceed-email-confirm {
+    padding: 10px 8px !important;
+    font-size: 12.5px !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+  }
+
+  /* Modals Content scaling for master-schedule and faculty-management */
+  #addRoomModal .modal-content,
+  #downloadModal .modal-content,
+  .modal-content {
+    width: 90% !important;
+    max-width: 420px !important;
+    padding: 24px !important;
+  }
+}
+
+/* ─── Ultra-Narrow Mobile Viewports (Max Width: 340px) ───────────── */
+@media (max-width: 340px) {
+  #account-settings-modal .settings-modal-content-box > div:first-child {
+    padding: 12px 14px !important;
+  }
+
+  #account-settings-modal .settings-modal-content-box > div:first-child h2 {
+    font-size: 16.5px !important;
+  }
+
+  .settings-modal-sidebar {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+  }
+
+  .settings-modal-sidebar .settings-tab-btn {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+    gap: 4px !important;
+  }
+
+  .settings-modal-scroll {
+    padding: 12px 10px 16px 10px !important;
+  }
+
+  .settings-tab-panel {
+    padding: 14px 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .settings-tab-panel h3 {
+    font-size: 15px !important;
+  }
+
+  .settings-modal-scroll input,
+  .settings-modal-scroll select,
+  .settings-modal-scroll textarea {
+    height: 40px !important;
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+  }
+
+  #profile-photo-preview {
+    width: 76px !important;
+    height: 76px !important;
+    font-size: 26px !important;
+  }
+
+  #qr-code-container {
+    width: 160px !important;
+    height: 160px !important;
+    padding: 10px !important;
+  }
+
+  #account-settings-form > div:last-child {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+
+  #cancel-settings-btn,
+  #save-settings-btn {
+    height: 40px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* ─── Mobile Viewports (Max Width: 600px) ────────────────────────── */
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+
+  /* Accessibility Modal Mobile Layout */
+  .accessibility-modal-card {
+    max-width: 100% !important;
+    max-height: 90vh !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Import Curriculum Modal Mobile Layout */
+  .import-modal-content {
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+    width: 94% !important;
+    max-height: 90vh !important;
+    box-sizing: border-box !important;
+  }
+
+  .import-modal-top-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .import-dropzone {
+    padding: 16px 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .dropzone-text-desktop {
+    display: none !important;
+  }
+
+  .dropzone-text-mobile {
+    display: block !important;
+  }
+
+  .import-sample-btn {
+    width: 100% !important;
+    padding: 10px 12px !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .import-sample-btn i,
+  .import-sample-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .import-table-container {
+    margin-bottom: 14px !important;
+    max-height: 200px !important;
+  }
+
+  .import-table-container th,
+  .import-table-container td {
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+  }
+
+  .import-modal-footer {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .import-footer-right {
+    flex-direction: column-reverse !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .import-btn-save,
+  .import-btn-cancel,
+  .import-btn-clear {
+    width: 100% !important;
+    padding: 11px 12px !important;
+    text-align: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* ─── Compact Mobile Landscape Viewports (Max Height: 500px) ─────── */
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 1024px) {
+  .modal-container,
+  .modal-content,
+  .settings-modal-content-box,
+  .settings-modal-container {
+    max-height: 100vh !important;
+  }
+}

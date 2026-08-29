@@ -88,6 +88,61 @@
     }
   }
 
+  /**
+   * Updates user profile fields (name, phone, profilePhoto, email) via canonical PUT /api/user/update.
+   * @param {Object} payload
+   * @returns {Promise<Object>}
+   */
+  async function updateProfile(payload) {
+    const response = await fetch('/api/user/update', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update profile');
+    }
+
+    // Refresh stored user session cache & header avatar/name
+    try {
+      const cachedStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
+      let cached = cachedStr ? JSON.parse(cachedStr) : {};
+      const userObj = cached.user || cached;
+      if (payload.name) userObj.name = payload.name;
+      if (payload.phone !== undefined) userObj.phone = payload.phone;
+      if (payload.profilePhoto !== undefined) userObj.profilePhoto = payload.profilePhoto;
+      sessionStorage.setItem('labsync_user', JSON.stringify(cached));
+      localStorage.setItem('user', JSON.stringify(cached));
+      applyUserToUI(userObj);
+    } catch (e) {}
+
+    return data;
+  }
+
+  /**
+   * Updates user password via canonical PUT /api/user/update.
+   * @param {string} currentPassword
+   * @param {string} newPassword
+   * @returns {Promise<Object>}
+   */
+  async function updatePassword(currentPassword, newPassword) {
+    const response = await fetch('/api/user/update', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update password');
+    }
+    return data;
+  }
+
   // Auto-load current user on initial DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', loadCurrentUser);
@@ -100,7 +155,10 @@
   global.loadCurrentUser = loadCurrentUser;
   global.userService = {
     loadCurrentUser,
-    handleLogout
+    handleLogout,
+    updateProfile,
+    updatePassword,
+    applyUserToUI
   };
 
 })(typeof window !== 'undefined' ? window : this);

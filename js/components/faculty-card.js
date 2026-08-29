@@ -6,14 +6,16 @@
 'use strict';
 
 (function (global) {
-  /**
-   * Helper to escape HTML safely.
-   * @param {string} str
-   * @returns {string}
-   */
   function escapeHtml(str) {
-    if (typeof global.escapeHtml === 'function') return global.escapeHtml(str);
-    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    if (typeof global.escapeHtml === 'function') {
+      return global.escapeHtml(str);
+    }
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   const facultyCard = {

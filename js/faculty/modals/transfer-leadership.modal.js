@@ -6,11 +6,6 @@
 (function (global) {
   'use strict';
 
-  function escapeHtml(str) {
-    if (typeof global.escapeHtml === 'function') return global.escapeHtml(str);
-    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
   function showTransferConfirmation(name, onConfirm, onCancel) {
     const existing = document.getElementById('transfer-confirm-modal');
     if (existing) existing.remove();

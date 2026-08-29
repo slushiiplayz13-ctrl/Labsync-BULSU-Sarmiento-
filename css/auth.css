@@ -625,6 +625,32 @@ html.high-contrast .reset-card {
   border: 1px solid #374151;
 }
 
+html.high-contrast .login-error-banner,
+html.dark-mode .login-error-banner,
+body.dark-mode .login-error-banner,
+[data-theme="dark"] .login-error-banner,
+html.dark .login-error-banner,
+body.dark .login-error-banner {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #FCA5A5 !important;
+}
+
+html.high-contrast .login-error-banner i,
+html.high-contrast .login-error-banner svg,
+html.dark-mode .login-error-banner i,
+html.dark-mode .login-error-banner svg,
+body.dark-mode .login-error-banner i,
+body.dark-mode .login-error-banner svg,
+[data-theme="dark"] .login-error-banner i,
+[data-theme="dark"] .login-error-banner svg,
+html.dark .login-error-banner i,
+html.dark .login-error-banner svg,
+body.dark .login-error-banner i,
+body.dark .login-error-banner svg {
+  color: #F87171 !important;
+}
+
 html.high-contrast .left-content p,
 html.high-contrast .card-header-text p {
   color: #CBD5E1;

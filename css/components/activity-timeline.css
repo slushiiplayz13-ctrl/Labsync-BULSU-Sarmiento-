@@ -69,187 +69,203 @@
 }
 
 .activity-tile {
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  background: var(--bg-card, #F8FAFC);
+  border: 1px solid var(--border-light, #E2E8F0);
   border-radius: 12px;
   padding: 12px 14px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
 }
 
 .activity-tile:hover {
-  background: var(--bg-white);
-  border-color: rgba(30, 187, 215, 0.3);
-  transform: translateX(3px);
-  box-shadow: 0 4px 12px rgba(30, 187, 215, 0.08);
+  background: var(--bg-white, #FFFFFF);
+  border-color: rgba(30, 187, 215, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(30, 187, 215, 0.08);
+}
+
+.activity-tile-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
 }
 
 .activity-tile-icon {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   font-size: 15px;
+  transition: transform 0.2s ease;
+}
+
+.activity-tile:hover .activity-tile-icon {
+  transform: scale(1.05);
 }
 
 .activity-tile-icon svg,
 .activity-tile-icon i {
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
 }
 
-.activity-tile-meta {
+.activity-tile-details {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .activity-tile-title {
   font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-dark);
-  margin-bottom: 2px;
-  line-height: 1.3;
-}
-
-.activity-tile-desc {
-  font-size: 12px;
-  color: var(--text-mid);
-  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--text-dark, #1E293B);
+  margin: 0;
   line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
 }
 
-.activity-tile-time {
-  font-size: 11px;
-  color: var(--text-light);
+.activity-tile-meta {
+  font-size: 12px;
   font-weight: 500;
+  color: var(--text-muted, #64748B);
+  margin: 0;
+  line-height: 1.3;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.activity-tile-right {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .activity-status-pill {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 99px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
   text-transform: uppercase;
+  line-height: 1.2;
 }
 
-/* Category Color Systems */
-.activity-tile-icon.security {
-  background: #FEE2E2;
-  color: #DC2626;
+.activity-tile-time {
+  font-size: 11px;
+  color: var(--text-light, #94A3B8);
+  font-weight: 500;
+  white-space: nowrap;
 }
 
+/* Category Color Systems - Light Mode */
+.activity-tile-icon.iot-online,
+.activity-tile-icon.resolved,
+.activity-tile-icon.maint-resolved {
+  background: #E8FDF3;
+  color: #10B981;
+  border: 1px solid #C6F6D5;
+}
+
+.activity-status-pill.iot-online,
+.activity-status-pill.resolved,
+.activity-status-pill.maint-resolved {
+  background: #E8FDF3;
+  color: #047857;
+  border: 1px solid #A7F3D0;
+}
+
+.activity-tile-icon.maint-pending,
+.activity-tile-icon.pending,
 .activity-tile-icon.maintenance {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-.activity-tile-icon.report {
-  background: #E0E7FF;
-  color: #4F46E5;
-}
-
-.activity-tile-icon.schedule {
-  background: #E0F2FE;
-  color: #0284C7;
-}
-
-.activity-tile-icon.login {
-  background: #D1FAE5;
-  color: #059669;
-}
-
-.activity-tile-icon.iot-online {
-  background: #DCFCE7;
-  color: #16A34A;
-}
-
-.activity-tile-icon.system-alert {
-  background: #FEE2E2;
-  color: #EF4444;
-}
-
-.activity-tile-icon.system-info {
-  background: #E0F2FE;
-  color: #0284C7;
-}
-
-.activity-status-pill.security {
-  background: #FEE2E2;
-  color: #DC2626;
-  border: 1px solid #FECACA;
-}
-
-.activity-status-pill.maintenance {
   background: #FEF3C7;
   color: #D97706;
   border: 1px solid #FDE68A;
 }
 
-.activity-status-pill.report {
+.activity-status-pill.maint-pending,
+.activity-status-pill.pending,
+.activity-status-pill.maintenance {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.activity-tile-icon.maint-progress,
+.activity-tile-icon.in-progress,
+.activity-tile-icon.progress {
+  background: #EEF2FF;
+  color: #4F46E5;
+  border: 1px solid #C7D2FE;
+}
+
+.activity-status-pill.maint-progress,
+.activity-status-pill.in-progress,
+.activity-status-pill.progress {
+  background: #EEF2FF;
+  color: #4338CA;
+  border: 1px solid #C7D2FE;
+}
+
+.activity-tile-icon.schedule,
+.activity-tile-icon.access {
+  background: #E0F2FE;
+  color: #0284C7;
+  border: 1px solid #BAE6FD;
+}
+
+.activity-status-pill.schedule,
+.activity-status-pill.access {
+  background: #E0F2FE;
+  color: #0284C7;
+  border: 1px solid #BAE6FD;
+}
+
+.activity-tile-icon.security,
+.activity-tile-icon.system-alert {
+  background: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+}
+
+.activity-status-pill.security,
+.activity-status-pill.system-alert {
+  background: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+}
+
+.activity-tile-icon.report,
+.activity-tile-icon.system-info,
+.activity-tile-icon.login {
   background: #E0E7FF;
   color: #4F46E5;
   border: 1px solid #C7D2FE;
 }
 
-.activity-status-pill.schedule {
-  background: #E0F2FE;
-  color: #0284C7;
-  border: 1px solid #BAE6FD;
-}
-
+.activity-status-pill.report,
+.activity-status-pill.system-info,
 .activity-status-pill.login {
-  background: #D1FAE5;
-  color: #059669;
-  border: 1px solid #A7F3D0;
-}
-
-.activity-status-pill.iot-online {
-  background: #DCFCE7;
-  color: #16A34A;
-  border: 1px solid #BBF7D0;
-}
-
-.activity-status-pill.system-alert {
-  background: #FEE2E2;
-  color: #EF4444;
-  border: 1px solid #FECACA;
-}
-
-.activity-status-pill.system-info {
-  background: #E0F2FE;
-  color: #0284C7;
-  border: 1px solid #BAE6FD;
-}
-
-.activity-status-pill.pending {
-  background: #FEF3C7;
-  color: #D97706;
-  border: 1px solid #FDE68A;
-}
-
-.activity-status-pill.resolved {
-  background: #D1FAE5;
-  color: #059669;
-  border: 1px solid #A7F3D0;
-}
-
-.activity-status-pill.in-progress {
-  background: #E0F2FE;
-  color: #0284C7;
-  border: 1px solid #BAE6FD;
+  background: #E0E7FF;
+  color: #4F46E5;
+  border: 1px solid #C7D2FE;
 }
 
 /* Dark Mode Overrides for Activity Feed Tiles */
@@ -267,6 +283,7 @@ body.dark-mode .activity-tile:hover,
 html.high-contrast .activity-tile:hover {
   background: rgba(255, 255, 255, 0.06) !important;
   border-color: rgba(30, 187, 215, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
 }
 
 html.dark-mode .activity-tile-title,
@@ -291,116 +308,130 @@ html.high-contrast .activity-tile-time {
 }
 
 /* Dark Mode Category Badges & Icons */
-html.dark-mode .activity-tile-icon.security,
-body.dark-mode .activity-tile-icon.security,
-[data-theme="dark"] .activity-tile-icon.security,
-html.dark-mode .activity-status-pill.security,
-body.dark-mode .activity-status-pill.security,
-[data-theme="dark"] .activity-status-pill.security {
-  background: rgba(239, 68, 68, 0.15) !important;
-  color: #F87171 !important;
-  border-color: rgba(239, 68, 68, 0.3) !important;
+html.dark-mode .activity-tile-icon.iot-online,
+html.dark-mode .activity-tile-icon.resolved,
+html.dark-mode .activity-tile-icon.maint-resolved,
+body.dark-mode .activity-tile-icon.iot-online,
+body.dark-mode .activity-tile-icon.resolved,
+body.dark-mode .activity-tile-icon.maint-resolved,
+[data-theme="dark"] .activity-tile-icon.iot-online,
+[data-theme="dark"] .activity-tile-icon.resolved,
+[data-theme="dark"] .activity-tile-icon.maint-resolved,
+html.dark-mode .activity-status-pill.iot-online,
+html.dark-mode .activity-status-pill.resolved,
+html.dark-mode .activity-status-pill.maint-resolved,
+body.dark-mode .activity-status-pill.iot-online,
+body.dark-mode .activity-status-pill.resolved,
+body.dark-mode .activity-status-pill.maint-resolved,
+[data-theme="dark"] .activity-status-pill.iot-online,
+[data-theme="dark"] .activity-status-pill.resolved,
+[data-theme="dark"] .activity-status-pill.maint-resolved {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34D399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
 }
 
+html.dark-mode .activity-tile-icon.maint-pending,
+html.dark-mode .activity-tile-icon.pending,
 html.dark-mode .activity-tile-icon.maintenance,
+body.dark-mode .activity-tile-icon.maint-pending,
+body.dark-mode .activity-tile-icon.pending,
 body.dark-mode .activity-tile-icon.maintenance,
+[data-theme="dark"] .activity-tile-icon.maint-pending,
+[data-theme="dark"] .activity-tile-icon.pending,
 [data-theme="dark"] .activity-tile-icon.maintenance,
+html.dark-mode .activity-status-pill.maint-pending,
+html.dark-mode .activity-status-pill.pending,
 html.dark-mode .activity-status-pill.maintenance,
+body.dark-mode .activity-status-pill.maint-pending,
+body.dark-mode .activity-status-pill.pending,
 body.dark-mode .activity-status-pill.maintenance,
+[data-theme="dark"] .activity-status-pill.maint-pending,
+[data-theme="dark"] .activity-status-pill.pending,
 [data-theme="dark"] .activity-status-pill.maintenance {
   background: rgba(245, 158, 11, 0.15) !important;
   color: #FBBF24 !important;
-  border-color: rgba(245, 158, 11, 0.3) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
 }
 
-html.dark-mode .activity-tile-icon.report,
-body.dark-mode .activity-tile-icon.report,
-[data-theme="dark"] .activity-tile-icon.report,
-html.dark-mode .activity-status-pill.report,
-body.dark-mode .activity-status-pill.report,
-[data-theme="dark"] .activity-status-pill.report {
+html.dark-mode .activity-tile-icon.maint-progress,
+html.dark-mode .activity-tile-icon.in-progress,
+html.dark-mode .activity-tile-icon.progress,
+body.dark-mode .activity-tile-icon.maint-progress,
+body.dark-mode .activity-tile-icon.in-progress,
+body.dark-mode .activity-tile-icon.progress,
+[data-theme="dark"] .activity-tile-icon.maint-progress,
+[data-theme="dark"] .activity-tile-icon.in-progress,
+[data-theme="dark"] .activity-tile-icon.progress,
+html.dark-mode .activity-status-pill.maint-progress,
+html.dark-mode .activity-status-pill.in-progress,
+html.dark-mode .activity-status-pill.progress,
+body.dark-mode .activity-status-pill.maint-progress,
+body.dark-mode .activity-status-pill.in-progress,
+body.dark-mode .activity-status-pill.progress,
+[data-theme="dark"] .activity-status-pill.maint-progress,
+[data-theme="dark"] .activity-status-pill.in-progress,
+[data-theme="dark"] .activity-status-pill.progress {
   background: rgba(99, 102, 241, 0.15) !important;
   color: #818CF8 !important;
-  border-color: rgba(99, 102, 241, 0.3) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
 }
 
 html.dark-mode .activity-tile-icon.schedule,
+html.dark-mode .activity-tile-icon.access,
 body.dark-mode .activity-tile-icon.schedule,
+body.dark-mode .activity-tile-icon.access,
 [data-theme="dark"] .activity-tile-icon.schedule,
+[data-theme="dark"] .activity-tile-icon.access,
 html.dark-mode .activity-status-pill.schedule,
+html.dark-mode .activity-status-pill.access,
 body.dark-mode .activity-status-pill.schedule,
-[data-theme="dark"] .activity-status-pill.schedule {
+body.dark-mode .activity-status-pill.access,
+[data-theme="dark"] .activity-status-pill.schedule,
+[data-theme="dark"] .activity-status-pill.access {
   background: rgba(14, 165, 233, 0.15) !important;
   color: #38BDF8 !important;
-  border-color: rgba(14, 165, 233, 0.3) !important;
+  border: 1px solid rgba(14, 165, 233, 0.3) !important;
 }
 
-html.dark-mode .activity-tile-icon.login,
-body.dark-mode .activity-tile-icon.login,
-[data-theme="dark"] .activity-tile-icon.login,
-html.dark-mode .activity-status-pill.login,
-body.dark-mode .activity-status-pill.login,
-[data-theme="dark"] .activity-status-pill.login {
-  background: rgba(16, 185, 129, 0.15) !important;
-  color: #34D399 !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
-}
-
-html.dark-mode .activity-tile-icon.iot-online,
-body.dark-mode .activity-tile-icon.iot-online,
-[data-theme="dark"] .activity-tile-icon.iot-online,
-html.dark-mode .activity-status-pill.iot-online,
-body.dark-mode .activity-status-pill.iot-online,
-[data-theme="dark"] .activity-status-pill.iot-online {
-  background: rgba(34, 197, 94, 0.15) !important;
-  color: #4ADE80 !important;
-  border-color: rgba(34, 197, 94, 0.3) !important;
-}
-
+html.dark-mode .activity-tile-icon.security,
 html.dark-mode .activity-tile-icon.system-alert,
+body.dark-mode .activity-tile-icon.security,
 body.dark-mode .activity-tile-icon.system-alert,
+[data-theme="dark"] .activity-tile-icon.security,
 [data-theme="dark"] .activity-tile-icon.system-alert,
+html.dark-mode .activity-status-pill.security,
 html.dark-mode .activity-status-pill.system-alert,
+body.dark-mode .activity-status-pill.security,
 body.dark-mode .activity-status-pill.system-alert,
+[data-theme="dark"] .activity-status-pill.security,
 [data-theme="dark"] .activity-status-pill.system-alert {
   background: rgba(239, 68, 68, 0.15) !important;
   color: #F87171 !important;
-  border-color: rgba(239, 68, 68, 0.3) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
 }
 
+html.dark-mode .activity-tile-icon.report,
 html.dark-mode .activity-tile-icon.system-info,
+html.dark-mode .activity-tile-icon.login,
+body.dark-mode .activity-tile-icon.report,
 body.dark-mode .activity-tile-icon.system-info,
+body.dark-mode .activity-tile-icon.login,
+[data-theme="dark"] .activity-tile-icon.report,
 [data-theme="dark"] .activity-tile-icon.system-info,
+[data-theme="dark"] .activity-tile-icon.login,
+html.dark-mode .activity-status-pill.report,
 html.dark-mode .activity-status-pill.system-info,
+html.dark-mode .activity-status-pill.login,
+body.dark-mode .activity-status-pill.report,
 body.dark-mode .activity-status-pill.system-info,
-[data-theme="dark"] .activity-status-pill.system-info {
-  background: rgba(14, 165, 233, 0.15) !important;
-  color: #38BDF8 !important;
-  border-color: rgba(14, 165, 233, 0.3) !important;
-}
-
-html.dark-mode .activity-status-pill.pending,
-body.dark-mode .activity-status-pill.pending,
-[data-theme="dark"] .activity-status-pill.pending {
-  background: rgba(245, 158, 11, 0.15) !important;
-  color: #FBBF24 !important;
-  border-color: rgba(245, 158, 11, 0.3) !important;
-}
-
-html.dark-mode .activity-status-pill.resolved,
-body.dark-mode .activity-status-pill.resolved,
-[data-theme="dark"] .activity-status-pill.resolved {
-  background: rgba(16, 185, 129, 0.15) !important;
-  color: #34D399 !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
-}
-
-html.dark-mode .activity-status-pill.in-progress,
-body.dark-mode .activity-status-pill.in-progress,
-[data-theme="dark"] .activity-status-pill.in-progress {
-  background: rgba(14, 165, 233, 0.15) !important;
-  color: #38BDF8 !important;
-  border-color: rgba(14, 165, 233, 0.3) !important;
+body.dark-mode .activity-status-pill.login,
+[data-theme="dark"] .activity-status-pill.report,
+[data-theme="dark"] .activity-status-pill.system-info,
+[data-theme="dark"] .activity-status-pill.login {
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: #818CF8 !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
 }
 
 .activity-empty {
@@ -1022,4 +1053,78 @@ body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
 [data-theme="dark"] .timeline-list::-webkit-scrollbar-thumb:hover {
   background: #64748B !important;
 }
+
+/* ─── Mobile Activity Tile Layout & Natural Wrap (Max Width: 600px) ── */
+@media (max-width: 600px) {
+  .activity-tile {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+
+  .activity-tile-left {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .activity-tile-icon {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+    margin-top: 1px !important;
+  }
+
+  .activity-tile-icon i {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  .activity-tile-details {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .activity-tile-title {
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word !important;
+    line-height: 1.35 !important;
+  }
+
+  .activity-tile-meta {
+    font-size: 12px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word !important;
+    margin-top: 2px !important;
+  }
+
+  .activity-tile-right {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding-top: 6px !important;
+    border-top: 1px dashed var(--border-light, #E2E8F0) !important;
+    margin-top: 2px !important;
+  }
+
+  .activity-status-pill {
+    font-size: 11px !important;
+    padding: 3px 8px !important;
+  }
+
+  .activity-tile-time {
+    font-size: 12px !important;
+  }
+}
+
 

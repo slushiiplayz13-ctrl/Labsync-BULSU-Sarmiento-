@@ -1188,4 +1188,494 @@ html.high-contrast .calendar-grid-body {
   background: var(--bg-white) !important;
 }
 
+/* ─── Schedule & Schedule Editor Responsive Styles (Max Width: 1024px) ── */
+@media (max-width: 1024px) {
+  /* Schedule Editor Header & Stack Layout */
+  .schedule-editor-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    padding: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .seh-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .seh-left>div {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .seh-left h1 {
+    font-size: 18px !important;
+    line-height: 1.3 !important;
+    margin-bottom: 2px !important;
+    word-break: break-word !important;
+  }
+
+  .seh-left p {
+    font-size: 12.5px !important;
+  }
+
+  .seh-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .seh-actions button,
+  #print-schedule-btn,
+  #save-schedule-btn {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    border-radius: 12px !important;
+    white-space: nowrap !important;
+    height: 44px !important;
+    min-width: 0 !important;
+  }
+
+  .editor-layout-container {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  #create-block-panel {
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: auto !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+    position: static !important;
+  }
+
+  .editor-schedule-card {
+    height: auto !important;
+    max-height: none !important;
+    min-height: auto !important;
+  }
+
+  .calendar-grid-container {
+    max-height: 70vh !important;
+  }
+
+  #create-block-panel h3 {
+    margin-bottom: 16px !important;
+  }
+
+  .editor-form-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+  }
+
+  #create-block-btn {
+    margin-top: 4px !important;
+  }
+
+  .available-blocks-section {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-top: 1px solid var(--border-light) !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    padding: 16px 0 0 0 !important;
+    margin-top: 20px !important;
+    z-index: 1 !important;
+    box-sizing: border-box !important;
+  }
+
+  html.high-contrast .available-blocks-section {
+    background: transparent !important;
+  }
+
+  .available-blocks-section h4 {
+    font-size: 11px !important;
+    margin-bottom: 8px !important;
+    color: var(--text-dark) !important;
+    font-family: var(--font-display) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  #blocks-container {
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    max-height: 200px !important;
+    padding: 4px !important;
+    gap: 8px !important;
+    background-color: transparent !important;
+  }
+
+  #blocks-container::-webkit-scrollbar {
+    height: 4px !important;
+  }
+
+  #blocks-container::-webkit-scrollbar-thumb {
+    background: rgba(30, 187, 215, 0.2) !important;
+    border-radius: 99px !important;
+  }
+
+  #blocks-container .schedule-block {
+    flex: 0 0 140px !important;
+    margin-bottom: 0 !important;
+    height: auto !important;
+    display: inline-flex !important;
+    vertical-align: top !important;
+  }
+
+  #no-blocks-msg {
+    margin: 10px auto !important;
+    width: 100% !important;
+    text-align: center !important;
+    font-size: 11px !important;
+  }
+
+  .calendar-grid-container {
+    margin-bottom: 160px !important;
+  }
+
+  .editor-table {
+    min-width: 800px !important;
+  }
+
+  /* Sticky Time Axis Column on Horizontal Scroll */
+  .grid-header-cell:first-child {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 60 !important;
+    background: #F8FAFC !important;
+    border-right: 1px solid var(--border-light) !important;
+    box-shadow: 4px 0 8px rgba(15, 23, 42, 0.03) !important;
+  }
+
+  .grid-time-column {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 55 !important;
+    background: #F8FAFC !important;
+    border-right: 1px solid var(--border-light) !important;
+    box-shadow: 4px 0 8px rgba(15, 23, 42, 0.03) !important;
+  }
+
+  html.high-contrast .grid-header-cell:first-child,
+  html.high-contrast .grid-time-column {
+    background: #111827 !important;
+    border-right-color: #374151 !important;
+  }
+
+  /* Schedule Scroll Container */
+  #schedule-container {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Sleek Custom Scrollbars for mobile schedule containers */
+  .calendar-grid-container::-webkit-scrollbar,
+  #schedule-container::-webkit-scrollbar {
+    height: 5px !important;
+  }
+
+  .calendar-grid-container::-webkit-scrollbar-thumb,
+  #schedule-container::-webkit-scrollbar-thumb {
+    background: rgba(30, 187, 215, 0.3) !important;
+    border-radius: 99px !important;
+  }
+
+  .calendar-grid-container::-webkit-scrollbar-track,
+  #schedule-container::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+}
+
+/* ─── Compact Schedule & Room Selection Layout on Mobile (Max Width: 767px) ── */
+@media (max-width: 767px) {
+  body[data-page="schedule-editor"] .greeting-row {
+    display: none !important;
+  }
+
+  /* 2-column layout for room selection grid on mobile & tablet */
+  .room-selection-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .room-select-card {
+    padding: 16px 10px !important;
+    border-radius: 14px !important;
+  }
+
+  .room-select-card .rsc-icon {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 15px !important;
+    border-radius: 10px !important;
+    margin-bottom: 8px !important;
+    box-shadow: 0 3px 8px rgba(30, 187, 215, 0.2) !important;
+  }
+
+  .room-select-card .rsc-icon i,
+  .room-select-card .rsc-icon svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  .room-select-card .rsc-title {
+    font-size: 14px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .room-select-card .rsc-subtitle {
+    font-size: 11px !important;
+  }
+
+  .room-select-card .room-edit-btn {
+    width: 32px !important;
+    height: 32px !important;
+    top: 8px !important;
+    right: 8px !important;
+  }
+
+  .room-select-card .room-edit-btn i,
+  .room-select-card .room-edit-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  /* Weekly Schedule Header & Selectors */
+  .schedule-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+    height: auto !important;
+  }
+
+  .schedule-selectors {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  /* Room Selection Header & Buttons */
+  .room-selection-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+
+  .room-selection-header div[style*="display: flex"],
+  .room-selection-header div[style*="display:flex"] {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .room-selection-header button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .schedule-columns {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    gap: 12px !important;
+  }
+
+  .day-column {
+    min-height: auto !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+  }
+
+  .day-column.highlight-day {
+    border-width: 2px !important;
+  }
+
+  .day-column.empty-day {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 8px 16px !important;
+    background: rgba(248, 250, 252, 0.5) !important;
+  }
+
+  html.high-contrast .day-column.empty-day {
+    background: rgba(31, 41, 55, 0.4) !important;
+  }
+
+  .day-column.empty-day div:not(.day-header) {
+    display: none !important;
+  }
+
+  .day-column.empty-day .day-header {
+    margin-bottom: 0 !important;
+    font-size: 12px !important;
+    padding: 4px 10px !important;
+    box-shadow: none !important;
+    color: var(--text-light) !important;
+    background: var(--bg-card) !important;
+    border-color: var(--border-light) !important;
+  }
+
+  html.high-contrast .day-column.empty-day .day-header {
+    background: #111827 !important;
+  }
+
+  .day-column.empty-day::after {
+    content: 'No classes scheduled' !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    color: var(--text-muted) !important;
+    font-family: var(--font-body) !important;
+  }
+
+  /* Scale down Weekly Editor Calendar Grid for mobile viewports */
+  .grid-header-cell {
+    flex: 1 0 110px !important;
+    min-width: 110px !important;
+    padding: 12px 4px !important;
+    font-size: 12px !important;
+  }
+
+  .grid-header-cell:first-child {
+    flex: 0 0 60px !important;
+    min-width: 60px !important;
+  }
+
+  .grid-day-column {
+    flex: 1 0 110px !important;
+    min-width: 110px !important;
+  }
+
+  .grid-time-column {
+    flex: 0 0 60px !important;
+    min-width: 60px !important;
+  }
+
+  .grid-time-label {
+    font-size: 11px !important;
+    padding-top: 4px !important;
+  }
+
+  .grid-card {
+    padding: 6px 8px !important;
+    border-radius: 8px !important;
+    left: 4px !important;
+    right: 4px !important;
+  }
+
+  .grid-card-title {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+  }
+
+  .grid-card-section,
+  .grid-card-prof {
+    font-size: 9.5px !important;
+    margin-top: 1px !important;
+  }
+
+  .grid-card-time {
+    font-size: 9.5px !important;
+  }
+
+  .grid-card-time-text {
+    font-size: 9.5px !important;
+  }
+
+  .card-info-icon {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .card-info-icon i,
+  .card-info-icon svg {
+    width: 10px !important;
+    height: 10px !important;
+  }
+
+  /* Prevent full-page horizontal scrolling by keeping container constrained and scrolling inner contents */
+  .calendar-grid-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+  }
+
+  .calendar-grid-header,
+  .calendar-grid-body {
+    min-width: 720px !important;
+  }
+
+  /* Prevent whole body overflow */
+  body[data-page="schedule-editor"] {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  body[data-page="schedule-editor"] .main-wrapper,
+  body[data-page="schedule-editor"] .page-content {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* ─── Compact Mobile Landscape Viewports (Schedule Containment) ──── */
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 1024px) {
+  .calendar-grid-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .calendar-grid-header,
+  .calendar-grid-body {
+    min-width: 620px !important;
+  }
+
+  html.high-contrast .calendar-grid-header,
+  html.high-contrast .calendar-grid-body {
+    min-width: 620px !important;
+  }
+
+  #schedule-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .editor-layout-container {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+  }
+}
+
+
 

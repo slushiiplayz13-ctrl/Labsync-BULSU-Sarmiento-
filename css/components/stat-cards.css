@@ -379,3 +379,109 @@ html.high-contrast .mis-stats .stat-card.theme-green .stat-pill-badge {
 html.high-contrast .stat-title {
   color: #CBD5E1 !important;
 }
+
+/* ─── Desktop Resizing & Laptop Viewports (1025px to 1320px) ──────── */
+@media (min-width: 1025px) and (max-width: 1320px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+}
+
+/* ─── Tablet and Medium Mobile Viewports (Max Width: 1024px) ──────── */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+}
+
+/* ─── Mobile Viewports (Max Width: 600px) ────────────────────────── */
+@media (max-width: 600px) {
+  /* 2x2 grid for stats cards to save vertical space on mobile */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .stats-grid.mis-stats {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .mis-stats .stat-card {
+    padding: 14px 16px !important;
+    min-height: auto !important;
+    border-radius: 16px !important;
+    gap: 12px !important;
+  }
+
+  .mis-stats .stat-card .stat-header {
+    margin-bottom: 0 !important;
+    gap: 10px !important;
+  }
+
+  .mis-stats .stat-card .stat-value {
+    font-size: 24px !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .mis-stats .stat-card .stat-pill-badge {
+    font-size: 11px !important;
+    padding: 3px 8px !important;
+  }
+
+  .mis-stats .stat-card .stat-title {
+    font-size: 11px !important;
+    letter-spacing: 0.4px !important;
+  }
+
+  .mis-stats .stat-card .stat-icon {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 10px !important;
+  }
+
+  .mis-stats .stat-card .stat-icon i,
+  .mis-stats .stat-card .stat-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .stat-card {
+    padding: 12px 14px !important;
+    min-height: 90px !important;
+    border-radius: 16px !important;
+  }
+
+  .stat-value {
+    font-size: 26px !important;
+  }
+
+  .stat-title {
+    font-size: 11px !important;
+    letter-spacing: 0.4px !important;
+  }
+
+  .stat-icon {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+  }
+
+  .stat-icon i,
+  .stat-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .stat-meta-container {
+    margin-top: 4px !important;
+  }
+
+  .stat-meta {
+    font-size: 10.5px !important;
+  }
+}
+

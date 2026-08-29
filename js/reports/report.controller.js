@@ -16,9 +16,9 @@
   async function loadReports() {
     try {
       let reports = [];
-      const service = global.reportService;
-      if (service && typeof service.fetchReports === 'function') {
-        reports = await service.fetchReports();
+      const fetchFn = global.fetchReports || (global.reportService && global.reportService.fetchReports);
+      if (typeof fetchFn === 'function') {
+        reports = await fetchFn();
       } else {
         const response = await fetch('/api/reports', { credentials: 'include' });
         if (!response.ok) throw new Error('Failed to load reports');
@@ -50,18 +50,35 @@
   }
 
   /**
-   * Renders the dynamic reports list based on active search input and report status.
+   * Generates a stable signature for reports and query to prevent redundant DOM rewrites.
+   * @param {Array} reports
+   * @param {string} query
+   * @returns {string}
    */
-  function renderReports() {
-    const container = document.getElementById('dynamicReportsList');
+  function createReportSignature(reports, query) {
+    if (!Array.isArray(reports)) return '__EMPTY__';
+    const q = (query || '').trim().toLowerCase();
+    const rows = reports.map(r => `${r.Report_ID || ''}_${r.Status || ''}_${r.Room_Number || ''}_${r.PC_Number || ''}_${r.Student_Name || ''}_${r.Priority_Level || ''}_${r.Date_Reported || ''}`);
+    return `sig_${rows.join('|')}__q_${q}`;
+  }
+
+  /**
+   * Renders the dynamic reports list based on active search input and report status.
+   * @param {Array} [customReports] Optional custom reports list (e.g. from cache)
+   * @param {HTMLElement|string} [targetContainer] Optional target container element
+   */
+  function renderReports(customReports, targetContainer) {
+    const container = typeof targetContainer === 'string'
+      ? document.querySelector(targetContainer)
+      : (targetContainer || document.getElementById('dynamicReportsList'));
     if (!container) return;
 
     const searchInput = document.getElementById('reportSearchInput');
     const query = searchInput ? searchInput.value.trim() : '';
 
-    const reports = (global.reportStore && typeof global.reportStore.getReports === 'function')
+    const reports = customReports || ((global.reportStore && typeof global.reportStore.getReports === 'function')
       ? global.reportStore.getReports()
-      : (global.allReports || []);
+      : (global.allReports || []));
 
     const matchFn = (global.reportFilters && typeof global.reportFilters.matchesReportQuery === 'function')
       ? global.reportFilters.matchesReportQuery
@@ -71,6 +88,13 @@
     const filteredReports = reports.filter(r => matchFn(r, query));
     const activeReports = filteredReports.filter(r => (r.Status || '').toLowerCase() !== 'resolved');
     const resolvedReports = filteredReports.filter(r => (r.Status || '').toLowerCase() === 'resolved');
+
+    const signature = createReportSignature(filteredReports, query);
+    if (container._lastRenderSignature === signature && container.querySelector('.report-card, .ui-empty-state') !== null) {
+      // Data unchanged, skip DOM replacement to prevent flicker
+      return;
+    }
+    container._lastRenderSignature = signature;
 
     // Update view completed button in header
     const toggleContainer = document.getElementById('completedToggleContainer');
@@ -153,7 +177,10 @@
       container.innerHTML = htmlContent;
     }
 
-    if (global.lucide) global.lucide.createIcons();
+    if (global.lucide && typeof global.lucide.createIcons === 'function') {
+      global.lucide.createIcons({ root: container });
+      if (toggleContainer) global.lucide.createIcons({ root: toggleContainer });
+    }
   }
 
   /**

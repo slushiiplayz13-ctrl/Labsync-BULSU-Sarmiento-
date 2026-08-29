@@ -437,4 +437,157 @@ html.high-contrast .table-container tbody tr:hover {
   color: var(--text-dark, #0F172A);
 }
 
+/* ─── Data Tables Responsive Rules (Max Width: 1024px) ───────────── */
+@media (max-width: 1024px) {
+  .table-responsive::-webkit-scrollbar,
+  .table-container::-webkit-scrollbar {
+    height: 5px !important;
+  }
+
+  .table-responsive::-webkit-scrollbar-thumb,
+  .table-container::-webkit-scrollbar-thumb {
+    background: rgba(30, 187, 215, 0.3) !important;
+    border-radius: 99px !important;
+  }
+
+  .table-responsive::-webkit-scrollbar-track,
+  .table-container::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+}
+
+/* ─── Mobile Maintenance Cards Layout & Full-Width Actions (Max Width: 768px) ── */
+@media (max-width: 768px) {
+  .maint-table-wrapper {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .maint-table {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .maint-table thead {
+    display: none !important;
+  }
+
+  .maint-table tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .maint-table tr,
+  .maint-mobile-card,
+  .ticket-card-mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+    background: #FFFFFF !important;
+    border: 1px solid var(--border-light, #E2E8F0) !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  .maint-table td {
+    display: block !important;
+    padding: 0 !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .maint-table td.col-ticket {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+
+  .maint-table td.col-status {
+    display: flex !important;
+    justify-content: flex-end !important;
+    margin-top: -38px !important;
+    pointer-events: none;
+  }
+
+  .maint-table td.col-status .status-badge-pulse {
+    pointer-events: auto;
+  }
+
+  .maint-table td.col-date,
+  .maint-table td.col-room,
+  .maint-table td.col-pc {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-right: 12px !important;
+    font-size: 12.5px !important;
+  }
+
+  .maint-table td.col-actions {
+    margin-top: 4px !important;
+    padding-top: 10px !important;
+    border-top: 1px dashed var(--border-light, #E2E8F0) !important;
+    width: 100% !important;
+  }
+
+  .maint-table .btn-resolve-ticket,
+  .maint-table .completed-chip,
+  .maint-table .completed-label,
+  .maint-table .btn-completed,
+  .maint-mobile-card .btn-resolve-ticket,
+  .maint-mobile-card .completed-chip,
+  .ticket-card-mobile .btn-resolve-ticket,
+  .ticket-card-mobile .completed-chip {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* ─── Mobile Table Horizontal Scrolling & Containment (Max Width: 767px) ── */
+@media (max-width: 767px) {
+  /* Tables horizontally scrollable to prevent boundary clipping */
+  .table-responsive,
+  .table-container {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+  }
+}
+
+/* ─── Mobile Viewports Table Cell Compact Sizing (Max Width: 600px) ──────── */
+@media (max-width: 600px) {
+  .table-container {
+    min-height: 200px !important;
+  }
+
+  .table-container table th,
+  .table-container table td,
+  .table-header-cell,
+  .table-cell {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+  }
+
+  .table-cell.ticket-id-cell {
+    font-size: 13.5px !important;
+  }
+}
+
+
 

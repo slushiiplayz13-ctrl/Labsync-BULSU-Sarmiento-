@@ -16,9 +16,7 @@ const authController = require('../controllers/auth.controller');
 const usersController = require('../controllers/users.controller');
 const schedulesController = require('../controllers/schedules.controller');
 const maintenanceController = require('../controllers/maintenance.controller');
-
-// Database pool for health check
-const db = require('../database/connection');
+const settingsController = require('../controllers/settings.controller');
 
 // Authorization Middlewares
 const { requireAuth, requireRole, ADMIN_ROLES } = require('../middleware/auth');
@@ -64,13 +62,11 @@ router.get('/dashboard/it-head-summary', requireRole(ADMIN_ROLES), schedulesCont
 router.post('/qrcode/scan', usersController.scanQRCode);
 
 // GET /api/test -> Database & Server Health Check
-router.get('/test', async (req, res, next) => {
-    try {
-        const [rows] = await db.query('SELECT 1 + 1 AS result');
-        res.json({ message: 'Database connected successfully', result: rows[0].result });
-    } catch (err) {
-        next(err);
-    }
+router.get('/test', settingsController.healthCheck);
+
+// Fallback 404 JSON handler for unmatched /api routes
+router.use((req, res) => {
+    res.status(404).json({ error: `API endpoint not found: ${req.method} ${req.originalUrl}` });
 });
 
 module.exports = router;

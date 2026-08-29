@@ -7,27 +7,16 @@
 
 (function (global) {
   /**
-   * Helper to escape HTML safely.
-   */
-  function escapeHtml(str) {
-    if (typeof global.escapeHtml === 'function') return global.escapeHtml(str);
-    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
   /**
    * Formats time string (HH:MM or HH:MM:SS) to 12h AM/PM.
    */
   function formatTime(t) {
     if (!t) return '--';
-    if (global.timeUtils && typeof global.timeUtils.formatTime24to12 === 'function') {
-      return global.timeUtils.formatTime24to12(t);
+    if (global.timeUtils && typeof global.timeUtils.formatTime12 === 'function') {
+      return global.timeUtils.formatTime12(t);
     }
-    const parts = String(t).split(':');
-    let h = parseInt(parts[0], 10);
-    const m = parts[1] || '00';
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    return `${h}:${m} ${ampm}`;
+    if (typeof global.formatTime12 === 'function') return global.formatTime12(t);
+    return String(t);
   }
 
   const facultyScheduleModal = {
@@ -83,8 +72,12 @@
 
       try {
         let profSchedules = [];
-        if (global.facultyService && typeof global.facultyService.getFacultySchedule === 'function') {
-          profSchedules = await global.facultyService.getFacultySchedule(profName);
+        const getFacSchedFn = global.getFacultyScheduleByName ||
+          (global.scheduleService && global.scheduleService.getFacultyScheduleByName) ||
+          (global.facultyService && global.facultyService.getFacultySchedule);
+
+        if (typeof getFacSchedFn === 'function') {
+          profSchedules = await getFacSchedFn(profName);
         } else {
           const encodedName = encodeURIComponent(profName);
           const schedRes = await fetch(`/api/schedules/faculty/${encodedName}`);

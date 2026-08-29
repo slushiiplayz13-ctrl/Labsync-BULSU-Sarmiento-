@@ -46,14 +46,14 @@
             position: 'right'
         },
         {
-            selector: '.sidebar-bottom .sidebar-btn[data-tooltip="Help & Support"], .sidebar-bottom .sidebar-btn:first-child, .sidebar .sidebar-btn[title="Help & Support"]',
+            selector: '.sidebar-bottom .sidebar-btn[data-tooltip="Help & Support"], .sidebar-bottom .sidebar-btn:first-child, .sidebar .sidebar-btn[title="Help & Support"], .header-right .profile-dropdown, .header-right',
             title: '❓ Help & Support',
             badge: 'Menu 5: Help & Support',
             description: 'Access laboratory operational guidelines, campus safety instructions, and emergency department contact numbers whenever you need assistance.',
             position: 'right'
         },
         {
-            selector: '.header-right .profile-widget, .header-right .profile-info, .header-right .avatar, .header-right',
+            selector: '.header-right .profile-widget, .header-right .profile-info, .header-right .avatar, .header-right .profile-dropdown, .header-right',
             title: '🪪 Digital QR ID & Profile',
             badge: 'Menu 6: Profile & QR ID',
             description: 'Access your official digital QR access pass used as an electronic key to unlock laboratory doors, update account credentials, or customize theme preferences.',
@@ -92,28 +92,28 @@
             position: 'right'
         },
         {
-            selector: '.sidebar-nav .sidebar-btn[data-tooltip="Master Schedule"], .sidebar .sidebar-btn[title="Master Schedule"], .sidebar .sidebar-btn[data-tooltip="Admin Panel"]',
+            selector: '.sidebar-nav .sidebar-btn[data-tooltip="Master Schedule"], .sidebar .sidebar-btn[title="Master Schedule"], .sidebar .sidebar-btn[data-tooltip="Admin Panel"], .sidebar .sidebar-btn[title="Admin Panel"]',
             title: '📅 Master Schedule Planner',
             badge: 'Menu 5: Master Schedule',
             description: 'Build, configure, and manage semester-wide laboratory timetables, room assignments, instructor allocations, and prevent class schedule overlaps.',
             position: 'right'
         },
         {
-            selector: '.sidebar-nav .sidebar-btn[data-tooltip="Faculty Management"], .sidebar .sidebar-btn[title="Faculty Management"], .sidebar .sidebar-btn[data-tooltip="Admin Panel"]',
+            selector: '.sidebar-nav .sidebar-btn[data-tooltip="Faculty Management"], .sidebar .sidebar-btn[title="Faculty Management"], .sidebar .sidebar-btn[data-tooltip="Admin Panel"], .sidebar .sidebar-btn[title="Admin Panel"]',
             title: '👥 Faculty Management',
             badge: 'Menu 6: Faculty Management',
             description: 'Oversee department faculty accounts, register new instructors, view individual faculty teaching timetables, and manage administrative roles.',
             position: 'right'
         },
         {
-            selector: '.sidebar-bottom .sidebar-btn[data-tooltip="Help & Support"], .sidebar-bottom .sidebar-btn:first-child, .sidebar .sidebar-btn[title="Help & Support"]',
+            selector: '.sidebar-bottom .sidebar-btn[data-tooltip="Help & Support"], .sidebar-bottom .sidebar-btn:first-child, .sidebar .sidebar-btn[title="Help & Support"], .header-right .profile-dropdown, .header-right',
             title: '❓ Help & Support',
             badge: 'Menu 7: Help & Support',
             description: 'Access department administrative guidelines, system operational documentation, and IT escalation channels.',
             position: 'right'
         },
         {
-            selector: '.header-right .profile-widget, .header-right .profile-info, .header-right .avatar, .header-right',
+            selector: '.header-right .profile-widget, .header-right .profile-info, .header-right .avatar, .header-right .profile-dropdown, .header-right',
             title: '🪪 Digital QR ID & Profile',
             badge: 'Menu 8: Profile & QR ID',
             description: 'Access your official digital QR access pass used as an electronic key to unlock laboratory doors, manage account credentials, and customize settings.',
@@ -145,14 +145,14 @@
             position: 'right'
         },
         {
-            selector: '.sidebar-bottom .sidebar-btn[data-tooltip="Help & Support"], .sidebar-bottom .sidebar-btn:first-child, .sidebar .sidebar-btn[title="Help & Support"]',
+            selector: '.sidebar-bottom .sidebar-btn[data-tooltip="Help & Support"], .sidebar-bottom .sidebar-btn:first-child, .sidebar .sidebar-btn[title="Help & Support"], .header-right .profile-dropdown, .header-right',
             title: '❓ Help & Support',
             badge: 'Menu 4: Help & Support',
             description: 'Access technical documentation, maintenance standard operating procedures, and system manuals.',
             position: 'right'
         },
         {
-            selector: '.header-right .profile-widget, .header-right .profile-info, .header-right .avatar, .header-right',
+            selector: '.header-right .profile-widget, .header-right .profile-info, .header-right .avatar, .header-right .profile-dropdown, .header-right',
             title: '🪪 Digital QR ID & Profile',
             badge: 'Menu 5: Profile & Settings',
             description: 'Manage your MIS staff account credentials, update your password, and customize display preferences.',
@@ -286,6 +286,14 @@
      * @param {boolean} force
      */
     function startSystemTutorial(force = false) {
+        // Dismiss any open dropdowns or floating menus before tutorial starts
+        const profileMenu = document.getElementById('profile-menu');
+        if (profileMenu) profileMenu.style.display = 'none';
+        const notifMenu = document.getElementById('notif-menu');
+        if (notifMenu) notifMenu.style.display = 'none';
+        const adminMenu = document.getElementById('admin-floating-menu');
+        if (adminMenu) adminMenu.remove();
+
         activeTutorialSteps = getTutorialStepsForRole();
         createTutorialElements();
         currentStepIndex = 0;
@@ -296,6 +304,30 @@
         overlayEl.classList.add('active');
         cardEl.classList.add('active');
         showStep(currentStepIndex);
+    }
+
+    function scrollTargetIntoViewIfNeeded(targetEl) {
+        if (!targetEl) return;
+
+        // If target is inside fixed header or sidebar bottom nav, no scrolling needed
+        if (targetEl.closest('.sidebar') || targetEl.closest('.header') || targetEl.closest('header') || targetEl.closest('aside')) {
+            return;
+        }
+
+        const isMobile = window.innerWidth <= 1024;
+        const topHeaderHeight = isMobile ? 70 : 80;
+        const bottomNavHeight = isMobile ? 75 : 0;
+        const rect = targetEl.getBoundingClientRect();
+
+        // Check if target is obscured by header, bottom nav, or outside viewport
+        if (rect.top < topHeaderHeight + 10 || rect.bottom > window.innerHeight - bottomNavHeight - 10) {
+            const targetScrollY = window.scrollY + rect.top - topHeaderHeight - 20;
+            const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({
+                top: Math.max(0, targetScrollY),
+                behavior: prefersReducedMotion ? 'auto' : 'smooth'
+            });
+        }
     }
 
     function showStep(index) {
@@ -316,6 +348,7 @@
         if (targetEl) {
             activeHighlightedEl = targetEl;
             targetEl.classList.add('tutorial-target-highlight');
+            scrollTargetIntoViewIfNeeded(targetEl);
         }
 
         // Update Card Content
@@ -376,6 +409,7 @@
             if (overlayEl) overlayEl.classList.add('modal-fallback');
             cardEl.style.top = '50%';
             cardEl.style.left = '50%';
+            cardEl.style.width = '';
             cardEl.style.transform = 'translate(-50%, -50%) scale(1)';
             return;
         }
@@ -383,47 +417,95 @@
         if (overlayEl) overlayEl.classList.remove('modal-fallback');
         if (spotlightEl) spotlightEl.style.display = 'block';
 
+        const isMobile = window.innerWidth <= 1024;
         const rect = targetEl.getBoundingClientRect();
-        const padding = 8;
+        const padding = isMobile ? 6 : 8;
 
         // Position glowing spotlight focus ring
         spotlightEl.style.top = `${Math.max(0, rect.top - padding)}px`;
         spotlightEl.style.left = `${Math.max(0, rect.left - padding)}px`;
-        spotlightEl.style.width = `${rect.width + padding * 2}px`;
-        spotlightEl.style.height = `${rect.height + padding * 2}px`;
+        spotlightEl.style.width = `${Math.max(24, rect.width + padding * 2)}px`;
+        spotlightEl.style.height = `${Math.max(24, rect.height + padding * 2)}px`;
 
-        const cardWidth = Math.min(410, window.innerWidth - 32);
-        const cardHeight = cardEl.offsetHeight || 240;
+        if (isMobile) {
+            // Mobile-specific smart positioning
+            const cardWidth = Math.min(400, window.innerWidth - 24);
+            const cardHeight = cardEl.offsetHeight || 220;
+            const margin = 12;
+            const cardLeft = Math.max(margin, Math.round((window.innerWidth - cardWidth) / 2));
 
-        let cardTop = rect.bottom + 16;
-        let cardLeft = rect.left + (rect.width / 2) - (cardWidth / 2);
+            const isBottomNav = targetEl.closest('.sidebar') !== null;
+            const isHeader = targetEl.closest('.header') !== null || targetEl.closest('header') !== null;
 
-        if (preferredPos === 'right') {
-            cardLeft = rect.right + 24;
-            cardTop = rect.top + (rect.height / 2) - (cardHeight / 2);
-        } else if (preferredPos === 'bottom-left' || preferredPos === 'left') {
-            cardLeft = rect.right - cardWidth;
-            if (cardLeft < 16) {
-                cardLeft = rect.left;
+            let cardTop;
+
+            if (isBottomNav) {
+                // Target is in bottom navigation -> card sits cleanly above bottom nav
+                cardTop = rect.top - cardHeight - 12;
+            } else if (isHeader) {
+                // Target is in top header -> card sits cleanly below header
+                cardTop = rect.bottom + 12;
+            } else {
+                // In-page content target -> place above or below depending on vertical position
+                if (rect.top < window.innerHeight / 2) {
+                    cardTop = rect.bottom + 12;
+                } else {
+                    cardTop = rect.top - cardHeight - 12;
+                }
             }
-            cardTop = rect.bottom + 16;
-        }
 
-        // Keep inside viewport limits
-        const margin = 16;
-        if (cardLeft < margin) cardLeft = margin;
-        if (cardLeft + cardWidth > window.innerWidth - margin) {
-            cardLeft = window.innerWidth - cardWidth - margin;
-        }
+            // Keep card strictly within usable mobile viewport
+            const minTop = 68; // Below mobile header
+            const maxTop = window.innerHeight - 74 - cardHeight; // Above mobile bottom nav
 
-        if (cardTop + cardHeight > window.innerHeight - margin) {
-            cardTop = rect.top - cardHeight - 16;
-        }
-        if (cardTop < margin) cardTop = margin;
+            if (maxTop >= minTop) {
+                if (cardTop < minTop) cardTop = minTop;
+                if (cardTop > maxTop) cardTop = maxTop;
+            } else {
+                // Extreme height constraints (landscape mobile e.g. < 400px height)
+                cardTop = Math.max(8, (window.innerHeight - cardHeight) / 2);
+            }
 
-        cardEl.style.top = `${cardTop}px`;
-        cardEl.style.left = `${cardLeft}px`;
-        cardEl.style.transform = 'none';
+            cardEl.style.top = `${Math.round(cardTop)}px`;
+            cardEl.style.left = `${cardLeft}px`;
+            cardEl.style.width = `${cardWidth}px`;
+            cardEl.style.transform = 'none';
+        } else {
+            // Desktop standard positioning (Preserves 100% of existing desktop behavior)
+            const cardWidth = Math.min(410, window.innerWidth - 32);
+            const cardHeight = cardEl.offsetHeight || 240;
+
+            let cardTop = rect.bottom + 16;
+            let cardLeft = rect.left + (rect.width / 2) - (cardWidth / 2);
+
+            if (preferredPos === 'right') {
+                cardLeft = rect.right + 24;
+                cardTop = rect.top + (rect.height / 2) - (cardHeight / 2);
+            } else if (preferredPos === 'bottom-left' || preferredPos === 'left') {
+                cardLeft = rect.right - cardWidth;
+                if (cardLeft < 16) {
+                    cardLeft = rect.left;
+                }
+                cardTop = rect.bottom + 16;
+            }
+
+            // Keep inside viewport limits
+            const margin = 16;
+            if (cardLeft < margin) cardLeft = margin;
+            if (cardLeft + cardWidth > window.innerWidth - margin) {
+                cardLeft = window.innerWidth - cardWidth - margin;
+            }
+
+            if (cardTop + cardHeight > window.innerHeight - margin) {
+                cardTop = rect.top - cardHeight - 16;
+            }
+            if (cardTop < margin) cardTop = margin;
+
+            cardEl.style.top = `${cardTop}px`;
+            cardEl.style.left = `${cardLeft}px`;
+            cardEl.style.width = '';
+            cardEl.style.transform = 'none';
+        }
     }
 
     function handleReposition() {

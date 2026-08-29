@@ -6,24 +6,13 @@
 (function (global) {
   'use strict';
 
-  function escapeHtml(str) {
-    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
   function formatTime(timeStr) {
     const timeUtils = global.timeUtils || global.scheduleTimeUtils;
     if (timeUtils && typeof timeUtils.formatTime12 === 'function') {
       return timeUtils.formatTime12(timeStr);
     }
-    if (global.formatTimeLabel) return global.formatTimeLabel(timeStr);
-    if (!timeStr) return '';
-    if (timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
-    const parts = timeStr.split(':');
-    let hour = parseInt(parts[0], 10);
-    const minute = parts[1] || '00';
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12 || 12;
-    return `${hour}:${minute} ${ampm}`;
+    if (typeof global.formatTime12 === 'function') return global.formatTime12(timeStr);
+    return timeStr || '';
   }
 
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

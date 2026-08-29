@@ -12,7 +12,11 @@
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
     rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=1.0.3" />
   <script src="js/auth-check.js"></script>
+  <script src="js/utils/core-utils.js"></script>
+  <script src="js/utils/dom-utils.js"></script>
+  <script src="js/pages/mis-qr-generator/qr-generator.renderer.js"></script>
   <style>
     .qr-print-grid {
       display: grid;
@@ -191,7 +195,6 @@
       color: var(--primary-teal) !important;
     }
   </style>
-  <link rel="stylesheet" href="style.css?v=1.0.3" />
 </head>
 
 <body data-page="mis-qr-generator">
@@ -304,15 +307,40 @@
     <nav class="sidebar-nav">
       <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
         onclick="window.location.href='mis-staff-dashboard.html'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-home">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="Maintenance Tracker" title="Maintenance Tracker"
         onclick="window.location.href='mis-maintenance.html'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wrench"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-wrench">
+          <path
+            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
       </button>
       <button class="sidebar-btn active" data-tooltip="PC & QR Management" title="PC & QR Management"
         onclick="window.location.href='mis-qr-generator.html'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-qr-code">
+          <rect width="5" height="5" x="3" y="3" rx="1" />
+          <rect width="5" height="5" x="16" y="3" rx="1" />
+          <rect width="5" height="5" x="3" y="16" rx="1" />
+          <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+          <path d="M21 21v.01" />
+          <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+          <path d="M3 12h.01" />
+          <path d="M12 3h.01" />
+          <path d="M12 16v.01" />
+          <path d="M16 12h1" />
+          <path d="M21 12v.01" />
+          <path d="M12 21v-1" />
+        </svg>
       </button>
     </nav>
 
@@ -320,10 +348,22 @@
 
     <div class="sidebar-bottom">
       <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-help"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-circle-help">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <path d="M12 17h.01" />
+        </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-log-out">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" x2="9" y1="12" y2="12" />
+        </svg>
       </button>
     </div>
   </aside>
@@ -342,10 +382,15 @@
       </div>
 
 
-            <!-- Right Profile -->
+      <!-- Right Profile -->
       <div class="header-right">
         <button class="notif-btn" title="Notifications">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="lucide lucide-bell">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+          </svg>
           <span class="notif-dot"></span>
         </button>
 
@@ -356,11 +401,15 @@
             <span class="profile-role"></span>
           </div>
           <button class="chevron-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="lucide lucide-chevron-down">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
           </button>
         </div>
         <script>
-          (function(){
+          (function () {
             try {
               var u = JSON.parse(sessionStorage.getItem("labsync_user") || "null");
               var hr = document.currentScript.parentElement;
@@ -372,13 +421,13 @@
                 if (r && u.role) r.textContent = u.role;
                 if (a) {
                   if (u.profilePhoto) a.innerHTML = "<img src=\"" + u.profilePhoto + "\" alt=\"Profile\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%;\">";
-                  else if (u.name) a.textContent = u.name.split(" ").map(function(x){return x[0];}).join("").slice(0,2).toUpperCase();
+                  else if (u.name) a.textContent = u.name.split(" ").map(function (x) { return x[0]; }).join("").slice(0, 2).toUpperCase();
                 }
               }
               var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
               var d = hr ? hr.querySelector(".notif-dot") : null;
               if (d) d.style.display = hasUnread ? "block" : "none";
-            } catch(e){}
+            } catch (e) { }
           })();
         </script>
       </div>
@@ -392,21 +441,22 @@
       <div class="greeting-row">
         <div class="greeting-left">
           <h1 class="greeting-title" id="greetingText">PC & QR Management</h1>
-          <p class="greeting-sub" id="greetingSub">Manage computer units and generate QR stickers for laboratory assets.</p>
+          <p class="greeting-sub" id="greetingSub">Manage computer units and generate QR stickers for laboratory assets.
+          </p>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime"></div>
           <div class="clock-date" id="clockDate"></div>
           <script>
-            (function(){
+            (function () {
               try {
-                var d = new Date(), DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                var d = new Date(), DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                 var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds(), ampm = h >= 12 ? 'PM' : 'AM', fh = h % 12 || 12;
-                var p = function(n){ return String(n).padStart(2, '0'); };
+                var p = function (n) { return String(n).padStart(2, '0'); };
                 var t = document.getElementById('clockTime'), dt = document.getElementById('clockDate');
                 if (t) t.textContent = p(fh) + ':' + p(m) + ':' + p(s) + ' ' + ampm;
                 if (dt) dt.textContent = DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
-              } catch(e){}
+              } catch (e) { }
             })();
           </script>
         </div>
@@ -428,6 +478,21 @@
           <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-mid);">
             Loading rooms...
           </div>
+          <script>
+            (function () {
+              try {
+                var grid = document.getElementById('dynamicRoomGrid');
+                var cached = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+                if (Array.isArray(cached) && cached.length > 0 && grid && window.qrGeneratorRenderer && typeof window.qrGeneratorRenderer.renderRoomGrid === 'function') {
+                  window.qrGeneratorRenderer.renderRoomGrid(cached, grid, function (roomId, roomNumber) {
+                    if (typeof window.showPCGrid === 'function') {
+                      window.showPCGrid(roomId, roomNumber);
+                    }
+                  });
+                }
+              } catch (e) { }
+            })();
+          </script>
         </div>
       </div>
 
@@ -460,13 +525,12 @@
     </main>
   </div>
 
-  <script src="js/utils/core-utils.js"></script>
-  <script src="js/utils/dom-utils.js"></script>
   <script src="js/core/accessibility.js"></script>
   <script src="js/core/clock.js"></script>
   <script src="js/core/tutorial-launcher.js"></script>
   <script src="js/services/user.service.js"></script>
   <script src="js/services/notification.service.js"></script>
+  <script src="js/services/laboratory.service.js"></script>
   <script src="js/components/toast.js"></script>
   <script src="js/components/profile/profile-dropdown.js"></script>
   <script src="js/components/profile/account-modal.js"></script>
@@ -478,6 +542,9 @@
   <script src="js/components/sidebar-nav.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
+  <script src="js/pages/mis-qr-generator/qr-generator.print.js"></script>
+  <script src="js/pages/mis-qr-generator/qr-generator.actions.js"></script>
+  <script src="js/pages/mis-qr-generator/qr-generator.modal.js"></script>
   <script src="js/pages/mis-qr-generator.js"></script>
   <script src="js/tutorial.js"></script>
 </body>

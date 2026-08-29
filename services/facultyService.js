@@ -1,6 +1,5 @@
 'use strict';
 
-const db = require('../database/connection');
 const { isValidEmailFormat } = require('./authService');
 const { sendWelcomeEmail } = require('./emailService');
 const facultyRepository = require('../repositories/faculty.repository');
@@ -91,10 +90,7 @@ async function getAllFaculty() {
 
 async function updateFacultyRole(userId, role, currentSessionUserId, session) {
     if (role && role.toLowerCase().includes('head')) {
-        const connection = await db.getConnection();
-        try {
-            await connection.beginTransaction();
-
+        await facultyRepository.withTransaction(async (connection) => {
             await facultyRepository.demoteAllHeadsToFaculty(connection);
             await facultyRepository.updateUserRole(userId, role, connection);
 
@@ -104,15 +100,7 @@ async function updateFacultyRole(userId, role, currentSessionUserId, session) {
                     session.userRole = currentRows[0].Role;
                 }
             }
-
-            await connection.commit();
-        } catch (err) {
-            await connection.rollback();
-            console.error('Error updating faculty role within transaction:', err);
-            throw err;
-        } finally {
-            connection.release();
-        }
+        });
     } else {
         await facultyRepository.updateUserRole(userId, role);
     }

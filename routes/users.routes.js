@@ -7,6 +7,8 @@ const { requireAuth } = require('../middleware/auth');
 
 router.get('/current', requireAuth, usersController.getCurrentUser);
 router.put('/update', requireAuth, usersController.updateUser);
+router.put('/profile', requireAuth, usersController.updateUser);
+router.put('/password', requireAuth, usersController.updateUser);
 router.get('/verify-email', usersController.verifyEmail);
 router.get('/qrcode', requireAuth, usersController.getUserQRCode);
 router.post('/scan', usersController.scanQRCode);

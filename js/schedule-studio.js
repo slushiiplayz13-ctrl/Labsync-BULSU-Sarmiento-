@@ -361,32 +361,6 @@
     return list;
   }
 
-  // Format 12-hour time string
-  function formatTime12(timeStr) {
-    if (!timeStr) return '';
-    if (timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
-    const parts = timeStr.split(':');
-    let hour = parseInt(parts[0], 10);
-    const minute = parts[1] || '00';
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    hour = hour ? hour : 12;
-    return `${hour}:${minute} ${ampm}`;
-  }
-
-  // Clean 12-hour AM/PM time range formatter
-  function formatTimeRange(startStr, endStr) {
-    const s = formatTime12(startStr);
-    const e = formatTime12(endStr);
-    if (!s || !e) return `${s || ''} ${e || ''}`.trim();
-    return `${s} – ${e}`;
-  }
-
-  // Helper escape
-  function escapeHtml(str) {
-    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
   // Download razor-sharp Ultra-HD PNG Image using html2canvas
   async function downloadSchedulePNG() {
     const downloadBtn = document.getElementById('btn-studio-download');

@@ -1,6 +1,5 @@
 'use strict';
 
-const db = require('../database/connection');
 const scheduleRepository = require('../repositories/schedule.repository');
 const iotService = require('./iotService');
 
@@ -13,10 +12,7 @@ async function saveRoomSchedule(roomNumber, schedules, academicYear, semester) {
     if (rooms.length === 0) return { status: 404, error: 'Room not found' };
     const roomId = rooms[0].Room_ID;
 
-    const connection = await db.getConnection();
-    try {
-        await connection.beginTransaction();
-
+    await scheduleRepository.withTransaction(async (connection) => {
         await scheduleRepository.deleteRoomSchedule(roomId, ay, sem, connection);
 
         if (schedules && schedules.length > 0) {
@@ -38,15 +34,7 @@ async function saveRoomSchedule(roomNumber, schedules, academicYear, semester) {
                 }, connection);
             }
         }
-
-        await connection.commit();
-    } catch (err) {
-        await connection.rollback();
-        console.error('Error saving room schedule within transaction:', err);
-        throw err;
-    } finally {
-        connection.release();
-    }
+    });
 
     return { status: 200, message: 'Schedule saved successfully' };
 }

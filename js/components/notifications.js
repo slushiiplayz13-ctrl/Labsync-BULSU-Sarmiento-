@@ -267,14 +267,8 @@
 
     async function loadNotifications() {
       try {
-        const notifications = typeof global.fetchNotifications === 'function'
-          ? await global.fetchNotifications()
-          : (global.notificationService && typeof global.notificationService.fetchNotifications === 'function'
-            ? await global.notificationService.fetchNotifications()
-            : await (async () => {
-              const res = await fetch(`/api/notifications?_=${Date.now()}`, { credentials: 'include' });
-              return res.ok ? await res.json() : null;
-            })());
+        const fetchNotifsFn = global.fetchNotifications || (global.notificationService && global.notificationService.fetchNotifications);
+        const notifications = typeof fetchNotifsFn === 'function' ? await fetchNotifsFn() : null;
 
         if (!notifications || !Array.isArray(notifications)) return;
 

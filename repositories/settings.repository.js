@@ -14,7 +14,13 @@ async function upsertSetting(key, value, executor = db) {
     `, [key, value, value]);
 }
 
+async function pingDatabase(executor = db) {
+    return executor.query('SELECT 1 + 1 AS result');
+}
+
 module.exports = {
     findAllSettings,
-    upsertSetting
+    upsertSetting,
+    pingDatabase
 };
+

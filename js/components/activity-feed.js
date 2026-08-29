@@ -119,56 +119,30 @@
   }
 
   /**
-   * System Activity Stream & Audit Log Fetcher (Live API Data).
-   * @param {string|HTMLElement} targetContainer
-   * @param {Array|null} [optionalReports=null]
+   * Computes a deterministic signature of the rendered activities dataset.
+   * @param {Array} activities
+   * @returns {string}
    */
-  async function loadSystemActivityFeed(targetContainer, optionalReports = null) {
-    const container = typeof targetContainer === 'string'
-      ? document.getElementById(targetContainer)
-      : (targetContainer || document.getElementById('misDashboardActivityList') || document.querySelector('.activity-feed-list'));
+  function computeActivitySignature(activities) {
+    if (!Array.isArray(activities) || activities.length === 0) return 'empty';
+    return activities.slice(0, 10).map(act => {
+      const timeVal = act.timestamp instanceof Date ? act.timestamp.getTime() : (act.timestamp || '');
+      return `${act.id}_${act.badgeLabel}_${act.badgeClass}_${act.title}_${act.meta}_${timeVal}`;
+    }).join('|');
+  }
 
+  /**
+   * Authoritative DOM renderer for activity tiles with signature diffing.
+   * @param {Array} activities
+   * @param {HTMLElement} container
+   */
+  function renderActivityCards(activities, container) {
     if (!container) return;
 
-    let activities = [];
-
-    try {
-      // 1. Fetch real merged system audit notifications from Notification Service
-      const rawNotifs = typeof global.fetchNotifications === 'function'
-        ? await global.fetchNotifications()
-        : (global.notificationService && typeof global.notificationService.fetchNotifications === 'function'
-          ? await global.notificationService.fetchNotifications()
-          : await (async () => {
-            const res = await fetch('/api/notifications', { credentials: 'include' });
-            return res.ok ? await res.json() : null;
-          })());
-
-      if (Array.isArray(rawNotifs) && rawNotifs.length > 0) {
-        activities = rawNotifs.map(n => transformNotificationToActivity(n));
-      }
-    } catch (err) {
-      console.warn('[ActivityFeed] Could not fetch /api/notifications:', err);
-    }
-
-    // 2. Fallback / Merge with live PC reports from API if notifications empty or unauthenticated
-    if (activities.length === 0) {
-      let reports = optionalReports;
-      if (!reports) {
-        try {
-          const repRes = await fetch('/api/reports');
-          if (repRes.ok) reports = await repRes.json();
-        } catch (e) {
-          console.warn('[ActivityFeed] Could not fetch /api/reports fallback:', e);
-        }
-      }
-
-      if (Array.isArray(reports) && reports.length > 0) {
-        activities = reports.map(r => transformReportToActivity(r));
-      }
-    }
-
-    // If no data exists in database, render clean empty state
-    if (!activities || activities.length === 0) {
+    if (!Array.isArray(activities) || activities.length === 0) {
+      const sig = 'empty';
+      if (container._lastActivitySignature === sig) return;
+      container._lastActivitySignature = sig;
       container.innerHTML = `
         <div class="activity-empty">
           No recent system activity. System updates and audit logs will appear here.
@@ -177,8 +151,11 @@
       return;
     }
 
-    // Sort descending by timestamp
-    activities.sort((a, b) => b.timestamp - a.timestamp);
+    const signature = computeActivitySignature(activities);
+    if (container._lastActivitySignature === signature) {
+      return; // Signature match: identical dataset, skip DOM replacement and icon creation
+    }
+    container._lastActivitySignature = signature;
 
     container.innerHTML = activities.slice(0, 10).map(act => {
       const relTime = getRelativeTimeStr(act.timestamp);
@@ -207,13 +184,123 @@
   }
 
   /**
+   * Transforms raw notifications or reports and renders activity cards synchronously.
+   * @param {Array|null} notifications
+   * @param {Array|null} reports
+   * @param {HTMLElement} container
+   * @returns {boolean} True if items were rendered, false otherwise.
+   */
+  function renderFromRawData(notifications, reports, container) {
+    if (!container) return false;
+    let activities = [];
+
+    if (Array.isArray(notifications) && notifications.length > 0) {
+      activities = notifications.map(n => transformNotificationToActivity(n));
+    } else if (Array.isArray(reports) && reports.length > 0) {
+      activities = reports.map(r => transformReportToActivity(r));
+    }
+
+    if (activities.length > 0) {
+      activities.sort((a, b) => b.timestamp - a.timestamp);
+      renderActivityCards(activities, container);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * System Activity Stream & Audit Log Fetcher (Live API Data with SWR Cache & Signature Diffing).
+   * @param {string|HTMLElement} targetContainer
+   * @param {Array|null} [optionalReports=null]
+   * @param {Array|null} [optionalNotifications=null]
+   */
+  async function loadSystemActivityFeed(targetContainer, optionalReports = null, optionalNotifications = null) {
+    const container = typeof targetContainer === 'string'
+      ? document.getElementById(targetContainer)
+      : (targetContainer || document.getElementById('misDashboardActivityList') || document.querySelector('.activity-feed-list'));
+
+    if (!container) return;
+
+    // 1. SWR Fast-path: Pre-render from passed notifications/reports or session cache if container is unpopulated
+    if (!container._lastActivitySignature) {
+      let cachedNotifs = optionalNotifications;
+      if (!cachedNotifs) {
+        try {
+          cachedNotifs = JSON.parse(sessionStorage.getItem('labsync_cached_notifications') || 'null');
+        } catch (e) { }
+      }
+
+      let cachedReports = optionalReports;
+      if (!cachedReports) {
+        try {
+          cachedReports = JSON.parse(sessionStorage.getItem('labsync_cached_reports') || 'null');
+        } catch (e) { }
+      }
+
+      renderFromRawData(cachedNotifs, cachedReports, container);
+    }
+
+    let activities = [];
+
+    try {
+      // 2. Fetch real merged system audit notifications from Notification Service
+      const fetchNotifsFn = global.fetchNotifications || (global.notificationService && global.notificationService.fetchNotifications);
+      const rawNotifs = typeof fetchNotifsFn === 'function' ? await fetchNotifsFn() : null;
+
+      if (Array.isArray(rawNotifs) && rawNotifs.length > 0) {
+        activities = rawNotifs.map(n => transformNotificationToActivity(n));
+      }
+    } catch (err) {
+      console.warn('[ActivityFeed] Could not fetch /api/notifications:', err);
+    }
+
+    // 3. Fallback / Merge with live PC reports from API if notifications empty
+    if (activities.length === 0) {
+      let reports = optionalReports;
+      if (!reports) {
+        try {
+          const fetchFn = global.fetchReports || (global.reportService && global.reportService.fetchReports);
+          if (typeof fetchFn === 'function') {
+            reports = await fetchFn();
+          } else {
+            const repRes = await fetch('/api/reports');
+            if (repRes.ok) reports = await repRes.json();
+          }
+        } catch (e) {
+          console.warn('[ActivityFeed] Could not fetch /api/reports fallback:', e);
+        }
+      }
+
+      if (Array.isArray(reports) && reports.length > 0) {
+        activities = reports.map(r => transformReportToActivity(r));
+      }
+    }
+
+    // Sort descending by timestamp
+    if (activities.length > 0) {
+      activities.sort((a, b) => b.timestamp - a.timestamp);
+    }
+
+    // 4. Render with signature diffing (zero DOM writes if identical)
+    renderActivityCards(activities, container);
+  }
+
+  /**
    * Alias for backward compatibility with inline page callers.
    */
-  function renderEcosystemActivityFeed(reports, container) {
-    return loadSystemActivityFeed(container, reports);
+  function renderEcosystemActivityFeed(reports, container, optionalNotifications = null) {
+    return loadSystemActivityFeed(container, reports, optionalNotifications);
   }
 
   // Preserve global contracts for legacy scripts and HTML callers
+  global.activityFeed = {
+    computeActivitySignature,
+    renderActivityCards,
+    renderFromRawData,
+    loadSystemActivityFeed,
+    transformNotificationToActivity,
+    transformReportToActivity
+  };
   global.loadSystemActivityFeed = loadSystemActivityFeed;
   global.renderEcosystemActivityFeed = renderEcosystemActivityFeed;
 

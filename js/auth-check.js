@@ -1,4 +1,9 @@
-// Synchronously apply saved accessibility theme settings before any visual paint
+/**
+ * LabSync – Client-Side Authentication & Authorization Guard | js/auth-check.js
+ * Synchronously executes in <head> to enforce session validity and role access with zero UI flash.
+ */
+
+// 1. Synchronously apply saved accessibility theme settings before any visual paint
 (function initAntiFlashTheme() {
     try {
         localStorage.removeItem('labsync-text-scale');
@@ -14,7 +19,76 @@
     }
 })();
 
-// Synchronously pre-hydrate user profile, clock, date, and greeting from session cache
+/**
+ * Checks whether a given user role is permitted on the specified page.
+ * @param {string} role
+ * @param {string} page
+ * @returns {boolean}
+ */
+function isPageAuthorized(role, page) {
+    if (!role) return false;
+    const cleanRole = String(role).trim();
+    const isMisPage = page.startsWith('mis-');
+    const isItHeadPage = page.startsWith('it-head-') ||
+        page === 'master-schedule.html' ||
+        page === 'room-schedule-editor.html' ||
+        page === 'faculty-management.html' ||
+        page === 'print-all-schedules.html' ||
+        page === 'print-schedule.html';
+    const isFacultyPage = page === 'index.html' ||
+        page === 'room-status.html' ||
+        page === 'faculty-pc-reports.html' ||
+        page === 'my-schedule.html';
+
+    if (cleanRole.toLowerCase().includes('head')) {
+        return isItHeadPage || isFacultyPage;
+    } else if (cleanRole === 'MIS Staff') {
+        return isMisPage;
+    } else {
+        return isFacultyPage;
+    }
+}
+
+/**
+ * Reveals the protected page content once authentication is confirmed.
+ */
+function revealPage() {
+    const antiFlash = document.getElementById('auth-anti-flash');
+    if (antiFlash) antiFlash.remove();
+}
+
+// 2. Synchronous Anti-Flash Guard: Hides protected content immediately if unauthenticated
+(function initAntiFlashGuard() {
+    const path = window.location.pathname;
+    let page = path.substring(path.lastIndexOf('/') + 1);
+    if (!page || page === '/') page = 'index.html';
+
+    let isPreAuthorized = false;
+    try {
+        const cachedUserStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
+        if (cachedUserStr) {
+            const rawUser = JSON.parse(cachedUserStr);
+            const user = (rawUser && (rawUser.user || rawUser)) || {};
+            const role = user.role || '';
+            if (role && isPageAuthorized(role, page)) {
+                isPreAuthorized = true;
+            }
+        }
+    } catch (e) { }
+
+    // If no valid cached session for this page, hide the document immediately before rendering
+    if (!isPreAuthorized) {
+        let style = document.getElementById('auth-anti-flash');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = 'auth-anti-flash';
+            style.textContent = 'html { visibility: hidden !important; opacity: 0 !important; }';
+            (document.head || document.documentElement).appendChild(style);
+        }
+    }
+})();
+
+// 3. Synchronously pre-hydrate user profile, clock, date, and greeting from session cache
 (function initInstantPreHydration() {
     const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -54,9 +128,10 @@
                 }
             }
 
-            const cachedUserStr = sessionStorage.getItem('labsync_user');
+            const cachedUserStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
             if (cachedUserStr) {
-                const user = JSON.parse(cachedUserStr);
+                const rawUser = JSON.parse(cachedUserStr);
+                const user = (rawUser && (rawUser.user || rawUser)) || null;
                 if (user) {
                     const profileNameEl = document.querySelector('.profile-name');
                     if (profileNameEl && user.name && profileNameEl.textContent !== user.name) {
@@ -120,53 +195,11 @@
     }
 })();
 
-// Authentication & Role Authorization Check - Include this script in all protected pages
+// 4. Asynchronous Authentication & Role Authorization Check
 (async function checkAuth() {
-    function revealPage() {
-        const antiFlash = document.getElementById('auth-anti-flash');
-        if (antiFlash) antiFlash.remove();
-    }
-
-    function isPageAuthorized(role, page) {
-        if (!role) return false;
-        const isMisPage = page.startsWith('mis-');
-        const isItHeadPage = page.startsWith('it-head-') ||
-            page === 'master-schedule.html' ||
-            page === 'room-schedule-editor.html' ||
-            page === 'faculty-management.html' ||
-            page === 'print-all-schedules.html' ||
-            page === 'print-schedule.html';
-        const isFacultyPage = page === 'index.html' ||
-            page === 'room-status.html' ||
-            page === 'faculty-pc-reports.html' ||
-            page === 'my-schedule.html';
-
-        if (role.toLowerCase().includes('head')) {
-            return isItHeadPage || isFacultyPage;
-        } else if (role === 'MIS Staff') {
-            return isMisPage;
-        } else {
-            return isFacultyPage;
-        }
-    }
-
     const path = window.location.pathname;
     let page = path.substring(path.lastIndexOf('/') + 1);
     if (!page || page === '/') page = 'index.html';
-
-    // Synchronously check cached session user
-    try {
-        const cachedUserStr = sessionStorage.getItem('labsync_user');
-        if (cachedUserStr) {
-            const cachedUser = JSON.parse(cachedUserStr);
-            if (cachedUser && cachedUser.role && isPageAuthorized(cachedUser.role, page)) {
-                revealPage();
-            }
-        }
-    } catch (e) { }
-
-    // Safety fallback: reveal page immediately
-    revealPage();
 
     try {
         const response = await fetch('/api/user/current', {
@@ -174,12 +207,16 @@
         });
 
         if (!response.ok) {
-            try { sessionStorage.removeItem('labsync_user'); } catch (e) { }
+            try {
+                sessionStorage.removeItem('labsync_user');
+                localStorage.removeItem('user');
+            } catch (e) { }
             window.location.replace('/login.html');
             return;
         }
 
-        const user = await response.json();
+        const rawData = await response.json();
+        const user = (rawData && (rawData.user || rawData)) || {};
         try { sessionStorage.setItem('labsync_user', JSON.stringify(user)); } catch (e) { }
         const role = user.role || '';
 
@@ -191,8 +228,19 @@
             } else {
                 window.location.replace('/index.html');
             }
+            return;
         }
+
+        // Successfully authorized - reveal protected page
+        revealPage();
     } catch (error) {
         console.error('Auth check failed:', error);
+        // Fallback: if session was cached, reveal; otherwise redirect to login
+        const cachedUserStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
+        if (cachedUserStr) {
+            revealPage();
+        } else {
+            window.location.replace('/login.html');
+        }
     }
 })();

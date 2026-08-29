@@ -36,7 +36,20 @@ async function updateUserAccount(userId, reqBody, session) {
         return { status: 401, error: 'Not authenticated' };
     }
 
-    const { name, email, currentPassword, newPassword, profilePhoto, phone } = reqBody;
+    const { name, email, currentPassword, newPassword, profilePhoto } = reqBody;
+    const rawPhone = reqBody.phone !== undefined ? reqBody.phone : reqBody.contactNumber;
+    let validatedPhone = undefined;
+
+    if (rawPhone !== undefined && rawPhone !== null) {
+        if (typeof rawPhone !== 'string') {
+            return { status: 400, error: 'Contact number must contain exactly 11 digits.' };
+        }
+        const phoneTrim = rawPhone.trim();
+        if (!/^\d{11}$/.test(phoneTrim)) {
+            return { status: 400, error: 'Contact number must contain exactly 11 digits.' };
+        }
+        validatedPhone = phoneTrim;
+    }
 
     const [users] = await userRepository.findFullById(userId);
     if (users.length === 0) {
@@ -82,13 +95,13 @@ async function updateUserAccount(userId, reqBody, session) {
             name,
             password: newPassword,
             profilePhoto,
-            phone
+            phone: validatedPhone !== undefined ? validatedPhone : user.Phone
         });
     } else {
         await userRepository.updateUserProfile(userId, {
             name,
             profilePhoto,
-            phone
+            phone: validatedPhone !== undefined ? validatedPhone : user.Phone
         });
     }
 

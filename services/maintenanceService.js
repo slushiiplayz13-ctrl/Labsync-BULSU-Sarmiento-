@@ -1,6 +1,5 @@
 'use strict';
 
-const db = require('../database/connection');
 const maintenanceRepository = require('../repositories/maintenance.repository');
 const scheduleRepository = require('../repositories/schedule.repository');
 const labRepository = require('../repositories/laboratory.repository');
@@ -46,11 +45,8 @@ async function submitReport(reqBody) {
         }
     }
 
-    const connection = await db.getConnection();
     let insertId;
-    try {
-        await connection.beginTransaction();
-
+    await maintenanceRepository.withTransaction(async (connection) => {
         const [result] = await maintenanceRepository.insertReport({
             pcId,
             studentName,
@@ -62,15 +58,7 @@ async function submitReport(reqBody) {
         insertId = result.insertId;
 
         await labRepository.updateConditionStatus(pcId, pcCondition, connection);
-
-        await connection.commit();
-    } catch (err) {
-        await connection.rollback();
-        console.error('Error submitting maintenance report within transaction:', err);
-        throw err;
-    } finally {
-        connection.release();
-    }
+    });
 
     return {
         status: 200,
@@ -87,10 +75,7 @@ async function getAllReports() {
 }
 
 async function updateReportStatus(reportId, status) {
-    const connection = await db.getConnection();
-    try {
-        await connection.beginTransaction();
-
+    await maintenanceRepository.withTransaction(async (connection) => {
         await maintenanceRepository.updateReportStatus(reportId, status, connection);
 
         if (status === 'Resolved') {
@@ -103,24 +88,13 @@ async function updateReportStatus(reportId, status) {
                 }
             }
         }
-
-        await connection.commit();
-    } catch (err) {
-        await connection.rollback();
-        console.error('Error updating report status within transaction:', err);
-        throw err;
-    } finally {
-        connection.release();
-    }
+    });
 
     return { status: 200, message: `Report status updated to ${status} successfully.` };
 }
 
 async function deleteReport(reportId) {
-    const connection = await db.getConnection();
-    try {
-        await connection.beginTransaction();
-
+    await maintenanceRepository.withTransaction(async (connection) => {
         const [reports] = await maintenanceRepository.findPCIdAndStatusByReportId(reportId, connection);
         if (reports.length > 0) {
             const { PC_ID } = reports[0];
@@ -132,15 +106,7 @@ async function deleteReport(reportId) {
         } else {
             await maintenanceRepository.deleteReport(reportId, connection);
         }
-
-        await connection.commit();
-    } catch (err) {
-        await connection.rollback();
-        console.error('Error deleting report within transaction:', err);
-        throw err;
-    } finally {
-        connection.release();
-    }
+    });
 
     return { status: 200, message: 'Report deleted successfully.' };
 }

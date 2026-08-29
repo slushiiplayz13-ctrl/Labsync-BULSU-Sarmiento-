@@ -23,6 +23,15 @@
   <link rel="stylesheet" href="css/tutorial.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="js/auth-check.js"></script>
+  <script src="js/utils/core-utils.js"></script>
+  <script src="js/utils/dom-utils.js"></script>
+  <script src="js/services/schedule.service.js"></script>
+  <script src="js/scheduling/time-utils.js"></script>
+  <script src="js/scheduling/colors.js"></script>
+  <script src="js/faculty-schedule/faculty-schedule.colors.js"></script>
+  <script src="js/faculty-schedule/faculty-schedule.renderer.js"></script>
+  <script src="js/faculty-schedule/faculty-schedule.filters.js"></script>
+  <script src="js/faculty-schedule/faculty-schedule.controller.js"></script>
   <style>
     .schedule-columns {
       display: grid;
@@ -316,19 +325,27 @@
             </div>
             <p>Loading your schedule...</p>
           </div>
+          <script>
+            (function () {
+              try {
+                var container = document.getElementById('schedule-container');
+                var cached = JSON.parse(sessionStorage.getItem('labsync_cached_user_schedule') || 'null');
+                if (Array.isArray(cached) && container && window.facultyScheduleController && typeof window.facultyScheduleController.renderFacultySchedule === 'function') {
+                  window.facultyScheduleController.renderFacultySchedule(cached, container);
+                }
+              } catch (e) { }
+            })();
+          </script>
         </div>
       </div>
     </main>
   </div>
 
-  <script src="js/utils/core-utils.js"></script>
-  <script src="js/utils/dom-utils.js"></script>
   <script src="js/core/accessibility.js"></script>
   <script src="js/core/clock.js"></script>
   <script src="js/core/tutorial-launcher.js"></script>
   <script src="js/services/user.service.js"></script>
   <script src="js/services/notification.service.js"></script>
-  <script src="js/services/schedule.service.js"></script>
   <script src="js/components/toast.js"></script>
   <script src="js/components/profile/profile-dropdown.js"></script>
   <script src="js/components/profile/account-modal.js"></script>
@@ -338,12 +355,6 @@
   <script src="js/components/notifications.js"></script>
   <script src="js/components/custom-select.js"></script>
   <script src="js/components/sidebar-nav.js"></script>
-  <script src="js/scheduling/time-utils.js"></script>
-  <script src="js/scheduling/colors.js"></script>
-  <script src="js/faculty-schedule/faculty-schedule.colors.js"></script>
-  <script src="js/faculty-schedule/faculty-schedule.renderer.js"></script>
-  <script src="js/faculty-schedule/faculty-schedule.filters.js"></script>
-  <script src="js/faculty-schedule/faculty-schedule.controller.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
   <script src="js/schedule.js"></script>

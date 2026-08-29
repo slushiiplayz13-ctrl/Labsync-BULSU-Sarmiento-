@@ -46,19 +46,23 @@
     } catch (e) {}
 
     try {
-      const [roomsRes, notifsRes] = await Promise.all([
-        fetch('/api/laboratories', { credentials: 'include' }),
-        fetch('/api/notifications', { credentials: 'include' })
-      ]);
+      const fetchLabsFn = window.fetchLaboratories || (window.laboratoryService && window.laboratoryService.fetchLaboratories);
+      const roomsPromise = typeof fetchLabsFn === 'function'
+        ? fetchLabsFn().catch(() => [])
+        : fetch('/api/laboratories', { credentials: 'include' }).then(r => r.ok ? r.json() : []).catch(() => []);
 
-      if (roomsRes.ok) {
-        const rooms = await roomsRes.json();
-        try { sessionStorage.setItem('labsync_cached_labs', JSON.stringify(rooms)); } catch (e) {}
+      const fetchNotifsFn = window.fetchNotifications || (window.notificationService && window.notificationService.fetchNotifications);
+      const notifsPromise = typeof fetchNotifsFn === 'function'
+        ? fetchNotifsFn().then(n => n || []).catch(() => [])
+        : Promise.resolve([]);
+
+      const [rooms, notifs] = await Promise.all([roomsPromise, notifsPromise]);
+
+      if (Array.isArray(rooms) && rooms.length > 0) {
         renderRoomStatusGrid(rooms);
       }
 
-      if (notifsRes.ok) {
-        const notifs = await notifsRes.json();
+      if (Array.isArray(notifs) && notifs.length > 0) {
         try { sessionStorage.setItem('labsync_cached_activities', JSON.stringify(notifs)); } catch (e) {}
         renderActivityLogList(notifs);
       }
@@ -68,11 +72,15 @@
   }
 
   // Render room status cards using unified Laboratory Service design
-  function renderRoomStatusGrid(rooms) {
-    const grid = document.getElementById('ithead-room-grid');
+  function renderRoomStatusGrid(rooms, targetGrid) {
+    const grid = typeof targetGrid === 'string'
+      ? document.querySelector(targetGrid)
+      : (targetGrid || document.getElementById('ithead-room-grid'));
     if (!grid) return;
 
-    if (typeof window.renderLabCards === 'function') {
+    if (window.laboratoryService && typeof window.laboratoryService.renderLabCards === 'function') {
+      window.laboratoryService.renderLabCards(rooms, grid);
+    } else if (typeof window.renderLabCards === 'function') {
       window.renderLabCards(rooms, grid);
     } else if (typeof renderLabCards === 'function') {
       renderLabCards(rooms, grid);
@@ -97,16 +105,30 @@
   }
 
   // Render activity logs with scroll preservation & change fingerprinting
-  function renderActivityLogList(notifs) {
-    const container = document.getElementById('ithead-activity-list');
+  function renderActivityLogList(notifs, targetContainer) {
+    const container = typeof targetContainer === 'string'
+      ? document.querySelector(targetContainer)
+      : (targetContainer || document.getElementById('ithead-activity-list'));
     if (!container) return;
 
     // Only show occupancy logs (room key events & QR verification), not PC reports
     const occupancyOnly = (notifs || []).filter(n => n.type === 'occupancy');
 
     // Build a data fingerprint to detect real changes
-    const dataKey = occupancyOnly.map(n => `${n.id || ''}-${n.type}-${n.status}-${n.room_number}-${n.session_type || ''}`).join('|');
-    if (dataKey === _inlineActivityLogLastKey) return; // No change, skip re-render
+    const dataKey = occupancyOnly.length === 0
+      ? '__EMPTY__'
+      : occupancyOnly.map(n => `${n.id || ''}-${n.type}-${n.status}-${n.room_number}-${n.session_type || ''}`).join('|');
+
+    if (container._lastActivitySignature === dataKey) {
+      if (occupancyOnly.length === 0 && container.querySelector('.ui-empty-state')) {
+        return;
+      }
+      if (occupancyOnly.length > 0 && container.querySelector('.timeline-item')) {
+        return; // No change, skip re-render
+      }
+    }
+    container._lastActivitySignature = dataKey;
+    _inlineActivityLogLastKey = dataKey;
 
     // Save scroll position
     const savedScrollTop = container.scrollTop;
@@ -118,8 +140,9 @@
           <p>No recent activity events recorded.</p>
         </div>
       `;
-      if (window.lucide) lucide.createIcons();
-      _inlineActivityLogLastKey = dataKey;
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ root: container });
+      }
       return;
     }
 
@@ -171,8 +194,9 @@
       `;
     }).join('');
 
-    if (window.lucide) lucide.createIcons();
-    _inlineActivityLogLastKey = dataKey;
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons({ root: container });
+    }
 
     // Restore scroll position after re-render
     container.scrollTop = savedScrollTop;
@@ -184,9 +208,11 @@
     loadRoomStatusAndLogs();
   }
 
-  // Expose globally for real-time polling
+  // Expose globally for real-time polling and parser-time hydration
   window.loadITHeadRoomStatus = loadRoomStatusAndLogs;
   window.loadRoomStatusAndLogs = loadRoomStatusAndLogs;
+  window.renderRoomStatusGrid = renderRoomStatusGrid;
+  window.renderActivityLogList = renderActivityLogList;
 
   // Execute on DOM Ready or immediately
   if (document.readyState === 'loading') {

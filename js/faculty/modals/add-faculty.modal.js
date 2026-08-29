@@ -6,11 +6,6 @@
 (function (global) {
   'use strict';
 
-  function escapeHtml(str) {
-    if (typeof global.escapeHtml === 'function') return global.escapeHtml(str);
-    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
   function showAddFacultyModal(onSuccess) {
     const existing = document.getElementById('add-faculty-modal');
     if (existing) existing.remove();

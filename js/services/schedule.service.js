@@ -41,7 +41,11 @@
 
     const res = await fetch(url, { credentials: 'include' });
     if (!res.ok) throw new Error('Failed to fetch user schedule');
-    return await res.json();
+    const data = await res.json();
+    try {
+      sessionStorage.setItem('labsync_cached_user_schedule', JSON.stringify(data));
+    } catch (e) {}
+    return data;
   }
 
   /**
@@ -124,15 +128,70 @@
     return await res.json();
   }
 
+  /**
+   * Fetches IT Head summary metrics.
+   * @param {string} academicYear
+   * @param {string} semester
+   * @returns {Promise<object|null>}
+   */
+  async function getITHeadSummary(academicYear = '', semester = '') {
+    let url = '/api/dashboard/it-head-summary';
+    const params = [];
+    if (academicYear) params.push(`academicYear=${encodeURIComponent(academicYear)}`);
+    if (semester) params.push(`semester=${encodeURIComponent(semester)}`);
+    if (params.length > 0) url += `?${params.join('&')}`;
+
+    try {
+      const res = await fetch(url, { credentials: 'include', headers: { 'Accept': 'application/json' } });
+      if (!res.ok) return null;
+      const data = await res.json();
+      try {
+        sessionStorage.setItem('labsync_cached_ithead_summary', JSON.stringify(data));
+      } catch (e) {}
+      return data;
+    } catch (err) {
+      console.error('Error fetching IT Head summary:', err);
+      return null;
+    }
+  }
+
+  /**
+   * Fetches weekly teaching schedule for a specific faculty member by name.
+   * @param {string} facultyName
+   * @returns {Promise<Array>}
+   */
+  async function getFacultyScheduleByName(facultyName) {
+    if (!facultyName) return [];
+    try {
+      const encodedName = encodeURIComponent(facultyName);
+      const res = await fetch(`/api/schedules/faculty/${encodedName}`, { credentials: 'include' });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch (err) {
+      console.error('Error fetching faculty schedule:', err);
+      return [];
+    }
+  }
+
   const scheduleService = {
     getRoomSchedule,
     getUserSchedule,
     saveRoomSchedule,
     checkProfessorConflict,
     getProfessorSchedule,
-    getFaculty
+    getFaculty,
+    getITHeadSummary,
+    getFacultyScheduleByName
   };
 
+  global.getRoomSchedule = getRoomSchedule;
+  global.getUserSchedule = getUserSchedule;
+  global.saveRoomSchedule = saveRoomSchedule;
+  global.checkProfessorConflict = checkProfessorConflict;
+  global.getProfessorSchedule = getProfessorSchedule;
+  global.getFaculty = getFaculty;
+  global.getITHeadSummary = getITHeadSummary;
+  global.getFacultyScheduleByName = getFacultyScheduleByName;
   global.scheduleService = scheduleService;
 
 })(typeof window !== 'undefined' ? window : this);

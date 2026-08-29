@@ -26,7 +26,18 @@ async function updateSettings(req, res, next) {
     }
 }
 
+async function healthCheck(req, res, next) {
+    try {
+        const result = await settingsService.checkHealth();
+        return res.status(result.status).json(result.data);
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     getSettings,
-    updateSettings
+    updateSettings,
+    healthCheck
 };
+

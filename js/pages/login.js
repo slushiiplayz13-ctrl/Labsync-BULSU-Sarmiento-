@@ -186,6 +186,7 @@
 
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('loginBtn');
 
     const email = emailInput ? emailInput.value.trim() : '';
     const password = passwordInput ? passwordInput.value : '';
@@ -193,6 +194,11 @@
     if (!email || !password) {
       showLoginError("Please enter both email and password.");
       return;
+    }
+
+    if (loginBtn) {
+      loginBtn.disabled = true;
+      loginBtn.textContent = "Signing In...";
     }
 
     try {
@@ -206,19 +212,89 @@
 
       if (response.ok) {
         localStorage.setItem('user', JSON.stringify(data.user));
+        try { sessionStorage.setItem('labsync_user', JSON.stringify(data.user)); } catch (e) { }
         hideLoginError();
 
-        if (data.user.role && data.user.role.toLowerCase().includes('head')) {
+        const role = (data.user && data.user.role) || '';
+        const isItHead = role.toLowerCase().includes('head');
+        const isMis = role === 'MIS Staff';
+
+        // Pre-populate minimal destination dashboard session cache using canonical services
+        try {
+          if (isItHead) {
+            const promises = [];
+            if (window.scheduleService && typeof window.scheduleService.getITHeadSummary === 'function') {
+              promises.push(window.scheduleService.getITHeadSummary());
+            }
+            if (window.laboratoryService && typeof window.laboratoryService.fetchLaboratories === 'function') {
+              promises.push(window.laboratoryService.fetchLaboratories());
+            }
+            if (window.laboratoryService && typeof window.laboratoryService.getUserAssignedRooms === 'function') {
+              promises.push(window.laboratoryService.getUserAssignedRooms());
+            }
+            if (window.scheduleService && typeof window.scheduleService.getUserSchedule === 'function') {
+              promises.push(window.scheduleService.getUserSchedule());
+            }
+            if (promises.length > 0) {
+              await Promise.allSettled(promises);
+            }
+          } else if (isMis) {
+            // MIS Staff dashboard prefetch
+            const promises = [];
+            if (window.laboratoryService && typeof window.laboratoryService.fetchLaboratories === 'function') {
+              promises.push(window.laboratoryService.fetchLaboratories());
+            }
+            if (window.reportService && typeof window.reportService.fetchReports === 'function') {
+              promises.push(window.reportService.fetchReports());
+            }
+            if (window.notificationService && typeof window.notificationService.fetchNotifications === 'function') {
+              promises.push(window.notificationService.fetchNotifications());
+            }
+            if (promises.length > 0) {
+              await Promise.allSettled(promises);
+            }
+          } else {
+            // Faculty / Dean dashboard prefetch
+            const promises = [];
+            if (window.laboratoryService && typeof window.laboratoryService.fetchLaboratories === 'function') {
+              promises.push(window.laboratoryService.fetchLaboratories());
+            }
+            if (window.laboratoryService && typeof window.laboratoryService.getUserAssignedRooms === 'function') {
+              promises.push(window.laboratoryService.getUserAssignedRooms());
+            }
+            if (window.reportService && typeof window.reportService.fetchReports === 'function') {
+              promises.push(window.reportService.fetchReports());
+            }
+            if (window.scheduleService && typeof window.scheduleService.getUserSchedule === 'function') {
+              promises.push(window.scheduleService.getUserSchedule());
+            }
+            if (promises.length > 0) {
+              await Promise.allSettled(promises);
+            }
+          }
+        } catch (prefetchErr) {
+          console.warn('[Login] Dashboard prefetch warning:', prefetchErr);
+        }
+
+        if (isItHead) {
           window.location.href = 'it-head-dashboard.html';
-        } else if (data.user.role === 'MIS Staff') {
+        } else if (isMis) {
           window.location.href = 'mis-staff-dashboard.html';
         } else {
           window.location.href = 'index.html';
         }
       } else {
+        if (loginBtn) {
+          loginBtn.disabled = false;
+          loginBtn.textContent = "Sign In";
+        }
         showLoginError(data.error || "Login failed");
       }
     } catch (err) {
+      if (loginBtn) {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Sign In";
+      }
       console.error(err);
       showLoginError("Server connection failed. Is the server running?");
     }

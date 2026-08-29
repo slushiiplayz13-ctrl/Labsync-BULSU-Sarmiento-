@@ -20,6 +20,11 @@
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css?v=1.1.2" />
   <script src="js/auth-check.js"></script>
+  <script src="js/utils/core-utils.js"></script>
+  <script src="js/utils/dom-utils.js"></script>
+  <script src="js/services/notification.service.js"></script>
+  <script src="js/services/laboratory.service.js"></script>
+  <script src="js/pages/it-head-room-status.js"></script>
 </head>
 
 <body data-page="it-head-room-status">
@@ -280,6 +285,17 @@
                 </div>
                 <p>Loading room status data...</p>
               </div>
+              <script>
+                (function () {
+                  try {
+                    var grid = document.getElementById('ithead-room-grid');
+                    var cachedRooms = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+                    if (Array.isArray(cachedRooms) && cachedRooms.length > 0 && grid && typeof window.renderRoomStatusGrid === 'function') {
+                      window.renderRoomStatusGrid(cachedRooms, grid);
+                    }
+                  } catch (e) { }
+                })();
+              </script>
             </div>
           </div>
 
@@ -304,6 +320,20 @@
                 </div>
                 <p>Loading activity log...</p>
               </div>
+              <script>
+                (function () {
+                  try {
+                    var timeline = document.getElementById('ithead-activity-list');
+                    var cachedNotifs = JSON.parse(sessionStorage.getItem('labsync_cached_activities') || 'null');
+                    if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0 && timeline && typeof window.renderActivityLogList === 'function') {
+                      var occupancyLogs = cachedNotifs.filter(function (n) { return n.type === 'occupancy'; });
+                      if (occupancyLogs.length > 0) {
+                        window.renderActivityLogList(occupancyLogs, timeline);
+                      }
+                    }
+                  } catch (e) { }
+                })();
+              </script>
             </div>
           </div>
 
@@ -312,14 +342,10 @@
     </main>
   </div>
 
-  <script src="js/utils/core-utils.js"></script>
-  <script src="js/utils/dom-utils.js"></script>
   <script src="js/core/accessibility.js"></script>
   <script src="js/core/clock.js"></script>
   <script src="js/core/tutorial-launcher.js"></script>
   <script src="js/services/user.service.js"></script>
-  <script src="js/services/notification.service.js"></script>
-  <script src="js/services/laboratory.service.js?v=1.1.1"></script>
   <script src="js/components/toast.js"></script>
   <script src="js/components/profile/profile-dropdown.js"></script>
   <script src="js/components/profile/account-modal.js"></script>
@@ -328,7 +354,6 @@
   <script src="js/components/profile-menu.js"></script>
   <script src="js/components/notifications.js"></script>
   <script src="js/components/sidebar-nav.js"></script>
-  <script src="js/pages/it-head-room-status.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
   <script src="js/tutorial.js?v=1.1.0"></script>

@@ -6,21 +6,6 @@
 'use strict';
 
 /**
- * Formats a 24-hour time string (HH:MM) to 12-hour AM/PM format.
- * @param {string} t - Time string in "HH:MM"
- * @returns {string} Formatted string "h:MM AM/PM"
- */
-function formatTime24to12(t) {
-  if (window.formatTimeLabel) return window.formatTimeLabel(t);
-  if (!t) return '';
-  let [h, m] = t.split(':');
-  h = parseInt(h, 10);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  return `${h}:${m} ${ampm}`;
-}
-
-/**
  * Triggers PDF generation and download using html2pdf library.
  */
 function triggerDownload() {
@@ -122,8 +107,9 @@ async function initPrintAllSchedulesPage() {
       const bldgName = room.Building || 'Building B';
 
       let rawSchedules = [];
-      if (window.scheduleService && typeof window.scheduleService.getRoomSchedule === 'function') {
-        rawSchedules = await window.scheduleService.getRoomSchedule(roomNum, academicYear, semester);
+      const getRoomSchedFn = window.getRoomSchedule || (window.scheduleService && window.scheduleService.getRoomSchedule);
+      if (typeof getRoomSchedFn === 'function') {
+        rawSchedules = await getRoomSchedFn(roomNum, academicYear, semester);
       } else {
         const schedRes = await fetch(`/api/schedules/room/${encodeURIComponent(roomNum)}?academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}`, { credentials: 'include' });
         if (schedRes.ok) rawSchedules = await schedRes.json();

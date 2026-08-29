@@ -20,6 +20,12 @@
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css?v=1.1.2" />
   <script src="js/auth-check.js"></script>
+  <script src="js/utils/core-utils.js"></script>
+  <script src="js/utils/dom-utils.js"></script>
+  <script src="js/scheduling/time-utils.js"></script>
+  <script src="js/services/laboratory.service.js"></script>
+  <script src="js/services/schedule.service.js"></script>
+  <script src="js/pages/it-head-dashboard.js"></script>
 </head>
 
 <body data-page="it-head-dashboard">
@@ -324,6 +330,58 @@
                 <i data-lucide="calendar-clock"></i>
               </div>
             </div>
+            <script>
+              (function () {
+                try {
+                  var summary = JSON.parse(sessionStorage.getItem('labsync_cached_ithead_summary') || 'null');
+                  var labs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+                  var userSched = JSON.parse(sessionStorage.getItem('labsync_cached_user_schedule') || 'null');
+
+                  var totalRoomsCount = Array.isArray(labs) && labs.length > 0 ? labs.length : (summary ? (summary.totalRooms || 0) : null);
+                  if (totalRoomsCount !== null) {
+                    var elRooms = document.getElementById('ithead-stat-rooms');
+                    var elPcsMeta = document.getElementById('ithead-stat-pcs-meta');
+                    if (elRooms) elRooms.textContent = totalRoomsCount;
+                    if (elPcsMeta && summary && summary.totalPcs != null) elPcsMeta.textContent = summary.totalPcs + ' total PCs registered';
+
+                    var onlineCount = Array.isArray(labs) ? labs.filter(function (r) { return r.deviceOnline === true || r.deviceOnline === 1 || r.deviceOnline === 'true'; }).length : (summary ? (summary.onlineRooms || 0) : 0);
+                    var offlineCount = totalRoomsCount - onlineCount;
+                    var onlineAndAvail = Array.isArray(labs) ? labs.filter(function (r) {
+                      return (r.deviceOnline === true || r.deviceOnline === 1 || r.deviceOnline === 'true') && String(r.Current_Status || '').toLowerCase() === 'available';
+                    }).length : (summary ? (summary.availableRooms || 0) : 0);
+
+                    var elAvail = document.getElementById('ithead-stat-available');
+                    var elAvailMeta = document.getElementById('ithead-stat-avail-meta');
+                    if (elAvail) elAvail.textContent = onlineAndAvail;
+                    if (elAvailMeta) {
+                      if (offlineCount === totalRoomsCount && totalRoomsCount > 0) elAvailMeta.textContent = 'All ' + totalRoomsCount + ' lab hardware devices offline';
+                      else if (offlineCount > 0) elAvailMeta.textContent = onlineAndAvail + ' of ' + totalRoomsCount + ' available (' + offlineCount + ' offline)';
+                      else elAvailMeta.textContent = onlineAndAvail + ' of ' + totalRoomsCount + ' online & ready';
+                    }
+                  }
+
+                  if (summary && summary.pendingReports != null) {
+                    var elPending = document.getElementById('ithead-stat-pending');
+                    var elPendingMeta = document.getElementById('ithead-stat-pending-meta');
+                    if (elPending) elPending.textContent = summary.pendingReports;
+                    if (elPendingMeta) elPendingMeta.textContent = summary.pendingReports + ' active ticket(s)';
+                  }
+
+                  var myClasses = summary && Array.isArray(summary.myClassesToday) ? summary.myClassesToday : null;
+                  if (!myClasses && Array.isArray(userSched)) {
+                    var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    var today = days[new Date().getDay()].toLowerCase();
+                    myClasses = userSched.filter(function (s) { return String(s.Day_of_Week || '').trim().toLowerCase() === today; });
+                  }
+                  if (myClasses) {
+                    var elClasses = document.getElementById('ithead-stat-classes');
+                    var elClassesMeta = document.getElementById('ithead-stat-classes-meta');
+                    if (elClasses) elClasses.textContent = myClasses.length;
+                    if (elClassesMeta) elClassesMeta.textContent = myClasses.length > 0 ? myClasses.length + ' session(s) scheduled today' : 'No classes today';
+                  }
+                } catch (e) { }
+              })();
+            </script>
           </div>
 
           <!-- Main Grid -->
@@ -367,6 +425,24 @@
                   </div>
                   <p>Loading laboratory status...</p>
                 </div>
+                <script>
+                  (function () {
+                    try {
+                      var grid = document.getElementById('ithead-labs-grid');
+                      var cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+                      var assigned = JSON.parse(sessionStorage.getItem('labsync_cached_assigned_rooms') || 'null');
+                      if (Array.isArray(cachedLabs) && cachedLabs.length > 0 && grid && window.laboratoryService && typeof window.laboratoryService.renderLabCards === 'function') {
+                        var assignedSet = Array.isArray(assigned) ? new Set(assigned) : new Set();
+                        var myLabs = cachedLabs.filter(function (r) {
+                          var num = String(r.Room_Number || '').trim().replace(/^RM\s*/i, '').toLowerCase();
+                          return assignedSet.has(num);
+                        });
+                        var labsToDisplay = myLabs.length > 0 ? myLabs : cachedLabs;
+                        window.laboratoryService.renderLabCards(labsToDisplay, grid);
+                      }
+                    } catch (e) { }
+                  })();
+                </script>
               </div>
             </div>
 
@@ -388,11 +464,29 @@
                 style="padding-left:0; flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%;">
                 <div class="ui-empty-state"
                   style="grid-column: unset; width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; margin: auto 0;">
-                  <div class="ui-empty-icon">
+                  <div class="ui-empty-icon" style="background:#E8F9FC; color:#1EBBD7;">
                     <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
                   </div>
                   <p>No classes scheduled for today yet. Your sessions will list here when the schedule is loaded.</p>
                 </div>
+                <script>
+                  (function () {
+                    try {
+                      var timeline = document.getElementById('ithead-schedule-list');
+                      var summary = JSON.parse(sessionStorage.getItem('labsync_cached_ithead_summary') || 'null');
+                      var userSched = JSON.parse(sessionStorage.getItem('labsync_cached_user_schedule') || 'null');
+                      var myClasses = summary && Array.isArray(summary.myClassesToday) ? summary.myClassesToday : null;
+                      if (!myClasses && Array.isArray(userSched)) {
+                        var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                        var today = days[new Date().getDay()].toLowerCase();
+                        myClasses = userSched.filter(function (s) { return String(s.Day_of_Week || '').trim().toLowerCase() === today; });
+                      }
+                      if (Array.isArray(myClasses) && myClasses.length > 0 && timeline && typeof window.renderMyTeachingSchedule === 'function') {
+                        window.renderMyTeachingSchedule(myClasses, timeline);
+                      }
+                    } catch (e) { }
+                  })();
+                </script>
               </div>
 
             </div>
@@ -404,14 +498,11 @@
     </main>
   </div>
 
-  <script src="js/utils/core-utils.js"></script>
-  <script src="js/utils/dom-utils.js"></script>
   <script src="js/core/accessibility.js"></script>
   <script src="js/core/clock.js"></script>
   <script src="js/core/tutorial-launcher.js"></script>
   <script src="js/services/user.service.js"></script>
   <script src="js/services/notification.service.js"></script>
-  <script src="js/services/laboratory.service.js"></script>
   <script src="js/components/toast.js"></script>
   <script src="js/components/profile/profile-dropdown.js"></script>
   <script src="js/components/profile/account-modal.js"></script>
@@ -420,8 +511,6 @@
   <script src="js/components/profile-menu.js"></script>
   <script src="js/components/notifications.js"></script>
   <script src="js/components/sidebar-nav.js"></script>
-  <script src="js/scheduling/time-utils.js"></script>
-  <script src="js/pages/it-head-dashboard.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/tutorial.js?v=1.1.0"></script>
 </body>

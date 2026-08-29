@@ -1,0 +1,371 @@
+/* ================================================================
+   LabSync – Header, Top Bar & Profile Component Styles  |  css/components/header.css
+   ================================================================ */
+
+/* ─── Base Header Layout (Desktop) ───────────────────────────────── */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background: var(--bg-white);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 28px;
+  padding-right: 32px;
+  gap: 24px;
+  z-index: 110;
+  flex-shrink: 0;
+}
+
+/* ── Logos ── */
+.header-logos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  pointer-events: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
+.header-logos img,
+.logo-img,
+img[src*="labsync"],
+img[src*="bsu"] {
+  pointer-events: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
+.logo-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border-light);
+}
+
+.logo-img {
+  height: 36px;
+  width: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.logo-bulsu {
+  background: linear-gradient(135deg, #1a5276, #2e86c1);
+  color: #fff;
+  font-family: var(--font-display);
+}
+
+.logo-labsync-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.logo-labsync-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--primary-teal-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-teal);
+}
+
+.logo-labsync-text {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--primary-teal);
+  letter-spacing: -0.3px;
+}
+
+/* ── Large-Mode Branding Ported to Normal Default ── */
+.header-logos img[src*="bsu-sarmiento"] {
+  height: 46px !important;
+  width: auto !important;
+}
+
+.header-logos img[src*="labsync-logo"] {
+  height: 52px !important;
+  width: auto !important;
+}
+
+.header-logos .logo-divider {
+  height: 36px !important;
+}
+
+/* ── Center Nav ── */
+.header-nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-item {
+  padding: 7px 18px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  background: var(--primary-teal-light);
+  color: var(--primary-teal);
+}
+
+.nav-item.active {
+  background: var(--primary-teal);
+  color: #fff;
+  box-shadow: 0 3px 10px var(--primary-teal-glow);
+}
+
+/* ── Right Profile & Notifications ── */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.notif-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-mid);
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.notif-btn i,
+.notif-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.notif-btn:hover {
+  background: var(--primary-teal-light);
+  color: var(--primary-teal);
+}
+
+.notif-dot {
+  display: none;
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 7px;
+  height: 7px;
+  background: #EF4444;
+  border-radius: 50%;
+  border: 1.5px solid var(--bg-white, #fff);
+}
+
+.profile-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 5px 10px 5px 6px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-light);
+  background: var(--bg-white);
+  transition: all var(--transition);
+}
+
+.profile-dropdown:hover {
+  background: var(--primary-teal-light);
+  border-color: var(--primary-teal);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-teal), var(--accent-blue));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+  line-height: 1.3;
+  font-family: var(--font-display);
+}
+
+.profile-role {
+  font-size: 13px;
+  color: var(--primary-teal);
+  font-weight: 500;
+}
+
+.chevron-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.chevron-btn i,
+.chevron-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+  display: block;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+/* ─── Tablet & Mobile Header Customization (Max Width: 1024px) ───── */
+@media (max-width: 1024px) {
+  .header {
+    height: 70px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .header-nav {
+    display: none;
+    /* Hide central navigation link row, bottom nav takes over */
+  }
+
+  .logo-labsync-text {
+    font-size: 15px;
+  }
+
+  .profile-info {
+    display: none;
+    /* Hide profile textual descriptors to prevent header clutter */
+  }
+
+  .profile-dropdown {
+    border: none;
+    background: transparent;
+    padding: 0;
+    gap: 0;
+    box-shadow: none;
+  }
+
+  .profile-dropdown .chevron-btn,
+  .profile-dropdown button {
+    display: none;
+  }
+
+  .header-right {
+    gap: 10px;
+  }
+
+  .notif-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .profile-dropdown .avatar {
+    width: 38px;
+    height: 38px;
+    border: 2px solid var(--border-light);
+  }
+
+  html.high-contrast .profile-dropdown .avatar {
+    border-color: var(--primary-teal) !important;
+  }
+
+  .profile-help-btn {
+    display: flex;
+  }
+}
+
+/* ─── Extra Small Mobile Header Branding (Max Width: 640px) ──────── */
+@media (max-width: 640px) {
+
+  /* Scale down header logos and hide secondary logos */
+  .header-logos img[src*="bsu"],
+  .header-logos .logo-divider {
+    display: none !important;
+  }
+
+  .header-logos img[src*="labsync"] {
+    height: 34px !important;
+  }
+
+  .header-logos {
+    gap: 0 !important;
+  }
+}
+
+/* ─── Compact Mobile Landscape Viewports (Max Height: 500px) ─────── */
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 1024px) {
+  .header {
+    height: 52px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .header-logos img[src*="bsu"] {
+    height: 30px !important;
+  }
+
+  .header-logos img[src*="labsync"] {
+    height: 32px !important;
+  }
+}

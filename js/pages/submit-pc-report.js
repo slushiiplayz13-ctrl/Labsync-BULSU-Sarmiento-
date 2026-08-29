@@ -115,24 +115,30 @@ async function handleSubmit() {
   }
 
   try {
-    const response = await fetch('/api/reports/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        roomNumber: roomParam,
-        pcNumber: pcParam,
-        studentName: studentNameInput,
-        studentSection: studentSectionInput,
-        components: componentStates,
-        remarks: remarksInput
-      })
-    });
+    const reportPayload = {
+      roomNumber: roomParam,
+      pcNumber: pcParam,
+      studentName: studentNameInput,
+      studentSection: studentSectionInput,
+      components: componentStates,
+      remarks: remarksInput
+    };
 
-    const result = await response.json();
+    let result = null;
+    const submitFn = window.submitReport || (window.reportService && window.reportService.submitReport);
+    if (typeof submitFn === 'function') {
+      result = await submitFn(reportPayload);
+    } else {
+      const response = await fetch('/api/reports/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reportPayload)
+      });
+      result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to submit report');
+    }
 
-    if (response.ok) {
+    if (result && (result.ticketId || result.message)) {
       // Show Success Modal
       const ticketIdEl = document.getElementById('ticket-id');
       const successModalEl = document.getElementById('success-modal');

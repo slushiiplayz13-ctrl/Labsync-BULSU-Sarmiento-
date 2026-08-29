@@ -304,9 +304,10 @@
                         <div id="settings-email-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Invalid email address (e.g., user@domain.com)</div>
                       </div>
                       <div>
-                        <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Mobile Number *</label>
-                        <input type="tel" id="settings-phone" required style="width:100%;box-sizing:border-box;padding:12px 16px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;background:var(--bg-card, #F8FAFC);color:var(--text-dark);" placeholder="09123456789">
-                        <p style="font-size:11.5px;color:var(--text-muted);margin:4px 0 0 0;">Format: 11-digit mobile number (e.g. 09XXXXXXXXX)</p>
+                        <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Contact Number *</label>
+                        <input type="tel" id="settings-phone" inputmode="numeric" maxlength="11" pattern="[0-9]{11}" required style="width:100%;box-sizing:border-box;padding:12px 16px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;background:var(--bg-card, #F8FAFC);color:var(--text-dark);" placeholder="09171234567">
+                        <p style="font-size:11.5px;color:var(--text-muted);margin:4px 0 0 0;">Format: Exactly 11-digit mobile number (e.g. 09XXXXXXXXX)</p>
+                        <div id="settings-phone-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Contact number must contain exactly 11 digits.</div>
                       </div>
                     </div>
 
@@ -455,6 +456,33 @@
       });
     }
 
+    // Real-time Contact Number Sanitization (Digits only, max 11 digits, paste protection)
+    const phoneInput = document.getElementById('settings-phone');
+    const phoneErr = document.getElementById('settings-phone-error');
+    if (phoneInput) {
+      phoneInput.addEventListener('input', () => {
+        const digitsOnly = phoneInput.value.replace(/\D/g, '').slice(0, 11);
+        if (phoneInput.value !== digitsOnly) {
+          phoneInput.value = digitsOnly;
+        }
+        if (phoneErr && /^\d{11}$/.test(digitsOnly)) {
+          phoneErr.style.display = 'none';
+          phoneInput.style.borderColor = 'var(--border-light)';
+        }
+      });
+
+      phoneInput.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+        const digitsOnly = text.replace(/\D/g, '').slice(0, 11);
+        phoneInput.value = digitsOnly;
+        if (phoneErr && /^\d{11}$/.test(digitsOnly)) {
+          phoneErr.style.display = 'none';
+          phoneInput.style.borderColor = 'var(--border-light)';
+        }
+      });
+    }
+
     // Form submit
     const form = document.getElementById('account-settings-form');
     if (form) {
@@ -470,6 +498,19 @@
         if (!emailRegex.test(emailVal)) {
           const emailErr = document.getElementById('settings-email-error');
           if (emailErr) emailErr.style.display = 'block';
+          return;
+        }
+
+        const phoneRegex = /^\d{11}$/;
+        if (!phoneRegex.test(phoneVal)) {
+          if (phoneErr) phoneErr.style.display = 'block';
+          if (phoneInput) {
+            phoneInput.style.borderColor = '#EF4444';
+            phoneInput.focus();
+          }
+          if (global.showToast) {
+            global.showToast('Contact number must contain exactly 11 digits.', 'error');
+          }
           return;
         }
 
@@ -497,17 +538,17 @@
             if (userService && typeof userService.updateProfile === 'function') {
               updatedUser = await userService.updateProfile(payload);
             } else {
-              const res = await fetch('/api/user/profile', {
+              const res = await fetch('/api/user/update', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(payload)
               });
+              const resData = await res.json();
               if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(errData.error || 'Failed to update profile');
+                throw new Error(resData.error || 'Failed to update profile');
               }
-              updatedUser = await res.json();
+              updatedUser = resData;
             }
 
             if (global.showToast) {

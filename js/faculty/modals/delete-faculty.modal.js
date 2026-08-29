@@ -6,11 +6,6 @@
 (function (global) {
   'use strict';
 
-  function escapeHtml(str) {
-    if (typeof global.escapeHtml === 'function') return global.escapeHtml(str);
-    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
   function confirmDeleteFaculty(userId, name, onSuccess) {
     const existing = document.getElementById('delete-confirm-modal');
     if (existing) existing.remove();

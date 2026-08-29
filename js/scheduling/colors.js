@@ -59,13 +59,21 @@
   // Color palettes for dynamic timetable subject cards and legend dots
   const SUBJECT_COLOR_PALETTES = [
     { name: 'blue', class: 'subject-webdev', dot: '#3B82F6', bg: 'linear-gradient(135deg, #1D4ED8 0%, #1E3A8A 100%)', color: '#EFF6FF' },
+    { name: 'emerald', class: 'subject-prog', dot: '#10B981', bg: 'linear-gradient(135deg, #047857 0%, #064E3B 100%)', color: '#ECFDF5' },
+    { name: 'purple', class: 'subject-capstone', dot: '#A855F7', bg: 'linear-gradient(135deg, #7E22CE 0%, #581C87 100%)', color: '#FAF5FF' },
     { name: 'amber', class: 'subject-intro', dot: '#F59E0B', bg: 'linear-gradient(135deg, #B45309 0%, #78350F 100%)', color: '#FEF3C7' },
     { name: 'cyan', class: 'subject-network', dot: '#06B6D4', bg: 'linear-gradient(135deg, #0E7490 0%, #155E75 100%)', color: '#E0F2FE' },
-    { name: 'purple', class: 'subject-capstone', dot: '#A855F7', bg: 'linear-gradient(135deg, #7E22CE 0%, #581C87 100%)', color: '#FAF5FF' },
-    { name: 'emerald', class: 'subject-prog', dot: '#22C55E', bg: 'linear-gradient(135deg, #15803D 0%, #14532D 100%)', color: '#F0FDF4' },
     { name: 'rose', class: 'subject-rose', dot: '#F43F5E', bg: 'linear-gradient(135deg, #BE123C 0%, #881337 100%)', color: '#FFE4E6' },
     { name: 'indigo', class: 'subject-indigo', dot: '#6366F1', bg: 'linear-gradient(135deg, #4338CA 0%, #312E81 100%)', color: '#E0E7FF' },
-    { name: 'orange', class: 'subject-orange', dot: '#EA580C', bg: 'linear-gradient(135deg, #C2410C 0%, #7C2D12 100%)', color: '#FFEDD5' }
+    { name: 'orange', class: 'subject-orange', dot: '#EA580C', bg: 'linear-gradient(135deg, #C2410C 0%, #7C2D12 100%)', color: '#FFEDD5' },
+    { name: 'teal', class: 'subject-teal', dot: '#14B8A6', bg: 'linear-gradient(135deg, #0F766E 0%, #115E59 100%)', color: '#CCFBF1' },
+    { name: 'fuchsia', class: 'subject-fuchsia', dot: '#D946EF', bg: 'linear-gradient(135deg, #A21CAF 0%, #701A75 100%)', color: '#FAE8FF' },
+    { name: 'sky', class: 'subject-sky', dot: '#0EA5E9', bg: 'linear-gradient(135deg, #0369A1 0%, #075985 100%)', color: '#E0F2FE' },
+    { name: 'crimson', class: 'subject-crimson', dot: '#E11D48', bg: 'linear-gradient(135deg, #9F1239 0%, #4C0519 100%)', color: '#FFE4E6' },
+    { name: 'lime', class: 'subject-lime', dot: '#84CC16', bg: 'linear-gradient(135deg, #4D7C0F 0%, #365314 100%)', color: '#ECFCCB' },
+    { name: 'violet', class: 'subject-violet', dot: '#8B5CF6', bg: 'linear-gradient(135deg, #6D28D9 0%, #4C1D95 100%)', color: '#EDE9FE' },
+    { name: 'bronze', class: 'subject-bronze', dot: '#D97706', bg: 'linear-gradient(135deg, #92400E 0%, #451A03 100%)', color: '#FEF3C7' },
+    { name: 'slate', class: 'subject-slate', dot: '#64748B', bg: 'linear-gradient(135deg, #334155 0%, #1E293B 100%)', color: '#F1F5F9' }
   ];
 
   /**

@@ -1,6 +1,5 @@
 'use strict';
 
-const db = require('../../database/connection');
 const iotRepository = require('../../repositories/iot.repository');
 const scheduleRepository = require('../../repositories/schedule.repository');
 const labRepository = require('../../repositories/laboratory.repository');
@@ -80,23 +79,12 @@ async function logOccupancy(reqBody = {}) {
             claimService.clearClaim(roomNumber);
         }
 
-        const connection = await db.getConnection();
-        try {
-            await connection.beginTransaction();
-
+        await iotRepository.withTransaction(async (connection) => {
             await labRepository.updateKeyStatus(room.Room_ID, status, claimUserId, connection);
             if (!isDuplicateState) {
                 await iotRepository.insertOccupancyLog(claimUserId, room.Room_ID, keyEvent, connection);
             }
-
-            await connection.commit();
-        } catch (err) {
-            await connection.rollback();
-            console.error('Error logging key status occupancy within transaction:', err);
-            throw err;
-        } finally {
-            connection.release();
-        }
+        });
 
         return iotResponseService.createKeyStatusResponse(roomNumber, status, claimUserName);
     }

@@ -31,6 +31,10 @@ async function getUserAssignedRooms() {
     const schedules = await res.json();
     if (!Array.isArray(schedules)) return new Set();
 
+    try {
+      sessionStorage.setItem('labsync_cached_user_schedule', JSON.stringify(schedules));
+    } catch (e) {}
+
     const assignedRooms = new Set();
     schedules.forEach(s => {
       const raw = String(s.Room_Number || s.room_number || s.Room || '').trim();
@@ -39,6 +43,11 @@ async function getUserAssignedRooms() {
         if (clean) assignedRooms.add(clean);
       }
     });
+
+    try {
+      sessionStorage.setItem('labsync_cached_assigned_rooms', JSON.stringify(Array.from(assignedRooms)));
+    } catch (e) {}
+
     return assignedRooms;
   } catch (err) {
     console.error('Error fetching user assigned rooms:', err);
@@ -308,6 +317,11 @@ async function updateLaboratory(roomId, roomNumber, building) {
  * @param {string|number} roomId - Room ID
  * @returns {Promise<object>}
  */
+/**
+ * Deletes a laboratory room and its associated schedules.
+ * @param {string|number} roomId - Room ID
+ * @returns {Promise<object>}
+ */
 async function deleteLaboratory(roomId) {
   const res = await fetch(`/api/laboratories/${roomId}`, {
     method: 'DELETE',
@@ -318,6 +332,18 @@ async function deleteLaboratory(roomId) {
   return data;
 }
 
+/**
+ * Fetches the registered PC units for a specific laboratory room.
+ * @param {string|number} roomId - Room ID
+ * @returns {Promise<Array>}
+ */
+async function fetchRoomPCs(roomId) {
+  if (!roomId) return [];
+  const res = await fetch(`/api/laboratories/${encodeURIComponent(roomId)}/pcs`, { credentials: 'include' });
+  if (!res.ok) return [];
+  return await res.json();
+}
+
 const laboratoryService = {
   fetchLaboratories,
   getUserAssignedRooms,
@@ -325,7 +351,8 @@ const laboratoryService = {
   renderLabCardsError,
   addLaboratory,
   updateLaboratory,
-  deleteLaboratory
+  deleteLaboratory,
+  fetchRoomPCs
 };
 
 // Global exports for compatibility
@@ -336,5 +363,8 @@ window.renderLabCardsError = renderLabCardsError;
 window.addLaboratory = addLaboratory;
 window.updateLaboratory = updateLaboratory;
 window.deleteLaboratory = deleteLaboratory;
+window.fetchRoomPCs = fetchRoomPCs;
 window.laboratoryService = laboratoryService;
+
+
 

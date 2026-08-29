@@ -16,6 +16,12 @@
     }
   };
 
+  global.renderFacultySchedule = (schedules, targetContainer, academicYear, semester) => {
+    if (global.facultyScheduleController && typeof global.facultyScheduleController.renderFacultySchedule === 'function') {
+      return global.facultyScheduleController.renderFacultySchedule(schedules, targetContainer, academicYear, semester);
+    }
+  };
+
   global.initSchedulePage = () => {
     if (global.facultyScheduleController && typeof global.facultyScheduleController.initSchedulePage === 'function') {
       return global.facultyScheduleController.initSchedulePage();

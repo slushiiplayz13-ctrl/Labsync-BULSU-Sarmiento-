@@ -20,8 +20,21 @@
     })();
 
     (async function checkSession() {
+      let hasCachedSession = false;
       try {
-        const response = await fetch('/api/user/current');
+        hasCachedSession = Boolean(sessionStorage.getItem('labsync_user') || localStorage.getItem('user'));
+      } catch (e) { }
+
+      // If fully logged out with no session hint, reveal login form immediately without an unnecessary request
+      if (!hasCachedSession) {
+        const antiFlash = document.getElementById('auth-anti-flash');
+        if (antiFlash) antiFlash.remove();
+        return;
+      }
+
+      // Session hint exists: verify authoritatively against the server
+      try {
+        const response = await fetch('/api/user/current', { credentials: 'include' });
         if (response.ok) {
           const user = await response.json();
           if (user && user.role) {
@@ -36,10 +49,20 @@
               return;
             }
           }
+        } else if (response.status === 401) {
+          // Expected unauthenticated state on stale/expired session: silently clear stale hints
+          try {
+            sessionStorage.removeItem('labsync_user');
+            localStorage.removeItem('user');
+          } catch (e) { }
+        } else {
+          // Unexpected HTTP response status
+          console.warn('[Auth] Unexpected session check response:', response.status);
         }
       } catch (e) {
         console.error('Session check failed:', e);
       }
+
       const antiFlash = document.getElementById('auth-anti-flash');
       if (antiFlash) antiFlash.remove();
     })();
@@ -57,6 +80,9 @@
   <script src="js/utils/core-utils.js"></script>
   <script src="js/utils/dom-utils.js"></script>
   <script src="js/components/toast.js"></script>
+  <script src="js/services/laboratory.service.js"></script>
+  <script src="js/services/schedule.service.js"></script>
+  <script src="js/services/report.service.js"></script>
 
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="css/auth.css" />

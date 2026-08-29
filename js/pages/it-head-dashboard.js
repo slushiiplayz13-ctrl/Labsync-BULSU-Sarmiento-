@@ -7,41 +7,22 @@
 
 (function (global) {
   let _itHeadDashboardInitialized = false;
-
-  /**
-   * Escapes HTML string content for safe DOM injection.
-   * @param {string} str
-   * @returns {string}
-   */
-  function escapeHtml(str) {
-    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  /**
-   * Formats 24h time string (HH:MM:SS or HH:MM) to 12h AM/PM format.
-   * @param {string} timeStr
-   * @returns {string}
-   */
-  function formatTime12(timeStr) {
-    if (global.formatTimeLabel) return global.formatTimeLabel(timeStr);
-    if (!timeStr) return '';
-    const parts = timeStr.split(':');
-    let hour = parseInt(parts[0], 10);
-    const minute = parts[1] || '00';
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12 || 12;
-    return `${hour}:${minute} ${ampm}`;
-  }
-
   /**
    * Renders the IT Head teaching schedule timeline list for today.
    * @param {Array} myClasses - List of teaching class objects for today
    */
-  function renderMyTeachingSchedule(myClasses) {
-    const container = document.getElementById('ithead-schedule-list');
+  function renderMyTeachingSchedule(myClasses, targetContainer) {
+    const container = typeof targetContainer === 'string'
+      ? document.querySelector(targetContainer)
+      : (targetContainer || document.getElementById('ithead-schedule-list'));
     if (!container) return;
 
     if (!Array.isArray(myClasses) || myClasses.length === 0) {
+      if (container._lastScheduleSignature === '__EMPTY__' && container.querySelector('.ui-empty-state')) {
+        return;
+      }
+      container._lastScheduleSignature = '__EMPTY__';
+
       container.style.paddingLeft = '0';
       container.style.paddingRight = '0';
       container.style.display = 'flex';
@@ -65,6 +46,20 @@
       return;
     }
 
+    // Determine current time to mark items as active, future, or completed
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Sort chronologically
+    const sortedClasses = [...myClasses].sort((a, b) => (a.Start_Time || '').localeCompare(b.Start_Time || ''));
+
+    const currentSignature = sortedClasses.map(s => `${s.Schedule_ID || s.Subject_Name}-${s.Start_Time}-${s.End_Time}-${s.Room_Number}-${s.Section}`).join('|') + `_${Math.floor(nowMinutes / 5)}`;
+
+    if (container._lastScheduleSignature === currentSignature && container.querySelector('.timeline-item') !== null) {
+      return; // Data unchanged, skip DOM replacement to prevent flashing
+    }
+    container._lastScheduleSignature = currentSignature;
+
     container.style.paddingLeft = '';
     container.style.paddingRight = '';
     container.style.display = '';
@@ -73,13 +68,6 @@
     container.style.alignItems = '';
     container.style.flex = '';
     container.style.height = '';
-
-    // Sort chronologically
-    const sortedClasses = [...myClasses].sort((a, b) => (a.Start_Time || '').localeCompare(b.Start_Time || ''));
-
-    // Determine current time to mark items as active, future, or completed
-    const now = new Date();
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
     let html = '';
     sortedClasses.forEach((s) => {
@@ -144,14 +132,13 @@
 
       // 1. Fetch Summary Metrics and Laboratory Data in parallel
       const [summaryRes, allLabsData] = await Promise.all([
-        fetch(`/api/dashboard/it-head-summary?academicYear=${encodeURIComponent(ay)}&semester=${encodeURIComponent(sem)}`, {
-          credentials: 'include',
-          headers: { 'Accept': 'application/json' }
-        }).then(res => res.ok ? res.json() : null).catch(() => null),
+        ((global.getITHeadSummary || (global.scheduleService && global.scheduleService.getITHeadSummary))
+          ? (global.getITHeadSummary || global.scheduleService.getITHeadSummary)(ay, sem)
+          : fetch(`/api/dashboard/it-head-summary?academicYear=${encodeURIComponent(ay)}&semester=${encodeURIComponent(sem)}`, { credentials: 'include' }).then(res => res.ok ? res.json() : null).catch(() => null)),
 
-        (global.laboratoryService && typeof global.laboratoryService.fetchLaboratories === 'function')
-          ? global.laboratoryService.fetchLaboratories().catch(() => [])
-          : fetch('/api/laboratories', { credentials: 'include' }).then(res => res.ok ? res.json() : []).catch(() => [])
+        ((global.fetchLaboratories || (global.laboratoryService && global.laboratoryService.fetchLaboratories))
+          ? (global.fetchLaboratories || global.laboratoryService.fetchLaboratories)().catch(() => [])
+          : Promise.resolve([]))
       ]);
 
       const allLabs = Array.isArray(allLabsData) ? allLabsData : [];

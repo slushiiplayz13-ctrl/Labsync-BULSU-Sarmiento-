@@ -15,7 +15,11 @@
     if (!response.ok) {
       throw new Error(`Failed to load reports: ${response.statusText}`);
     }
-    return await response.json();
+    const data = await response.json();
+    try {
+      sessionStorage.setItem('labsync_cached_reports', JSON.stringify(data));
+    } catch (e) {}
+    return data;
   }
 
   /**
@@ -88,6 +92,10 @@
     deleteReport
   };
 
+  global.fetchReports = fetchReports;
+  global.submitReport = submitReport;
+  global.updateReportStatus = updateReportStatus;
+  global.deleteReport = deleteReport;
   global.reportService = reportService;
 
 })(typeof window !== 'undefined' ? window : this);

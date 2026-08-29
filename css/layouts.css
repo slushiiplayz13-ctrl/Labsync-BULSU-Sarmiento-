@@ -466,6 +466,18 @@ img[src*="bsu"] {
 }
 
 /* ─── PAGE CONTENT & SECTIONS ────────────────────────────────────── */
+@keyframes pageContentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .page-content {
   flex: 1;
   padding: 24px;
@@ -476,6 +488,18 @@ img[src*="bsu"] {
   min-height: 0;
   min-width: 0;
   max-width: 100%;
+}
+
+.page-content> :not(.greeting-row) {
+  animation: pageContentEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-content> :not(.greeting-row) {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 .view-section {

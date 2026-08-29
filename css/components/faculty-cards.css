@@ -350,4 +350,281 @@ html.high-contrast .successor-card * {
   color: var(--text-dark) !important;
 }
 
+/* ─── Faculty Management Responsive Layouts (Max Width: 767px) ───── */
+@media (max-width: 767px) {
+  /* 2-column layout for faculty grid on mobile devices */
+  .faculty-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding-bottom: 24px !important;
+  }
+
+  /* Responsive Faculty Cards for 2-column layout */
+  .faculty-card {
+    padding: 12px 10px !important;
+    border-radius: 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+
+  .faculty-card.hidden-card,
+  .faculty-card[style*="display: none"],
+  .faculty-card[style*="display:none"] {
+    display: none !important;
+  }
+
+  /* Top Section: Avatar + Name + Role + Action Menu */
+  .faculty-card > div[style*="display:flex"]:first-of-type,
+  .faculty-card > div[style*="display: flex"]:first-of-type {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    margin-bottom: 0 !important;
+    position: relative !important;
+    padding-right: 26px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Profile Avatar / Photo */
+  .faculty-card div[style*="width:50px"],
+  .faculty-card div[style*="width: 50px"] {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    font-size: 14px !important;
+  }
+
+  .faculty-card .boss-crown {
+    width: 18px !important;
+    height: 18px !important;
+    top: -3px !important;
+    right: -3px !important;
+  }
+
+  .faculty-card .boss-crown svg,
+  .faculty-card .boss-crown i {
+    width: 10px !important;
+    height: 10px !important;
+  }
+
+  /* Faculty Name */
+  .faculty-card div[style*="font-size:16px"],
+  .faculty-card div[style*="font-size: 16px"] {
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    margin-bottom: 2px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+  }
+
+  /* Role Badge / Tag */
+  .faculty-card .boss-role {
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    gap: 3px !important;
+  }
+
+  .faculty-card div[style*="font-size:12px"][style*="color:#6B7280"]:not([style*="display:flex"]),
+  .faculty-card div[style*="font-size: 12px"][style*="color:#6B7280"]:not([style*="display: flex"]),
+  .faculty-card div[style*="font-size:12px"][style*="color: #6B7280"]:not([style*="display:flex"]),
+  .faculty-card div[style*="font-size: 12px"][style*="color: #6B7280"]:not([style*="display: flex"]) {
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Action 3-Dot Button Container */
+  .faculty-card div[style*="gap:6px"],
+  .faculty-card div[style*="gap: 6px"] {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    align-items: center !important;
+    gap: 2px !important;
+  }
+
+  .faculty-card .faculty-menu-btn {
+    padding: 4px !important;
+  }
+
+  .faculty-card .faculty-dropdown-menu {
+    width: 150px !important;
+    max-width: calc(100vw - 24px) !important;
+    z-index: 200 !important;
+  }
+
+  .faculty-card .faculty-dropdown-menu .menu-item {
+    padding: 8px 10px !important;
+    font-size: 11.5px !important;
+    gap: 6px !important;
+  }
+
+  /* Contact Info (Email + Phone) */
+  .faculty-card div[style*="display:flex;flex-direction:column;gap:7px"],
+  .faculty-card div[style*="display: flex; flex-direction: column; gap: 7px"] {
+    gap: 4px !important;
+    margin-top: auto !important;
+    width: 100% !important;
+  }
+
+  .faculty-card div[style*="display:flex;flex-direction:column;gap:7px"] > div,
+  .faculty-card div[style*="display: flex; flex-direction: column; gap: 7px"] > div {
+    font-size: 11px !important;
+    gap: 5px !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .faculty-card div[style*="display:flex;flex-direction:column;gap:7px"] svg,
+  .faculty-card div[style*="display: flex; flex-direction: column; gap: 7px"] svg {
+    width: 13px !important;
+    height: 13px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .faculty-card div[style*="display:flex;flex-direction:column;gap:7px"] span,
+  .faculty-card div[style*="display: flex; flex-direction: column; gap: 7px"] span {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+    display: block !important;
+  }
+
+  /* ─── Faculty Management Toolbar (Single-Row on Mobile) ─── */
+  .fm-toolbar {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .fm-search-row {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: auto !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .fm-search {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  .fm-search input {
+    font-size: 13px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .fm-search i,
+  .fm-search svg {
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .fm-add-btn {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    height: 38px !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .fm-add-btn i,
+  .fm-add-btn svg {
+    width: 15px !important;
+    height: 15px !important;
+    flex-shrink: 0 !important;
+  }
+
+  #filter-dropdown {
+    right: 0 !important;
+    left: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* ─── Ultra-Narrow Mobile Fallback for 320px screens (Max Width: 340px) ── */
+@media (max-width: 340px) {
+  .faculty-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .faculty-card {
+    padding: 14px 12px !important;
+    width: 100% !important;
+  }
+
+  .faculty-card > div[style*="display:flex"]:first-of-type,
+  .faculty-card > div[style*="display: flex"]:first-of-type {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding-right: 32px !important;
+  }
+
+  .faculty-card div[style*="font-size:16px"],
+  .faculty-card div[style*="font-size: 16px"] {
+    font-size: 14px !important;
+  }
+
+  /* Ultra-narrow toolbar adjustments */
+  .fm-toolbar {
+    gap: 6px !important;
+  }
+
+  .fm-search {
+    padding: 7px 8px !important;
+  }
+
+  .fm-search input {
+    font-size: 12px !important;
+  }
+
+  .fm-add-btn {
+    padding: 7px 9px !important;
+    font-size: 11.5px !important;
+    gap: 4px !important;
+  }
+}
+
+
 

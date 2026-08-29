@@ -21,6 +21,11 @@
   <link rel="stylesheet" href="style.css?v=1.1.2" />
   <link rel="stylesheet" href="css/tutorial.css" />
   <script src="js/auth-check.js"></script>
+  <script src="js/utils/core-utils.js"></script>
+  <script src="js/utils/dom-utils.js"></script>
+  <script src="js/services/notification.service.js"></script>
+  <script src="js/services/laboratory.service.js"></script>
+  <script src="js/pages/room-status/room-status.timeline.js"></script>
 </head>
 
 <body data-page="room-status">
@@ -234,6 +239,17 @@
                 </div>
                 <p>No room status to display yet. Connected lab data will show here.</p>
               </div>
+              <script>
+                (function () {
+                  try {
+                    var grid = document.querySelector('.labs-grid');
+                    var cached = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+                    if (Array.isArray(cached) && cached.length > 0 && grid && window.laboratoryService && typeof window.laboratoryService.renderLabCards === 'function') {
+                      window.laboratoryService.renderLabCards(cached, grid);
+                    }
+                  } catch (e) { }
+                })();
+              </script>
             </div>
           </div>
 
@@ -258,6 +274,20 @@
                 </div>
                 <p>No activity yet. Recent room events will appear here when available.</p>
               </div>
+              <script>
+                (function () {
+                  try {
+                    var timeline = document.querySelector('.timeline-list');
+                    var cached = JSON.parse(sessionStorage.getItem('labsync_cached_activities') || 'null');
+                    if (Array.isArray(cached) && cached.length > 0 && timeline && window.roomStatusTimeline && typeof window.roomStatusTimeline.renderTimelineItems === 'function') {
+                      var occupancyLogs = cached.filter(function (a) { return a.type === 'occupancy'; });
+                      if (occupancyLogs.length > 0) {
+                        window.roomStatusTimeline.renderTimelineItems(occupancyLogs, timeline);
+                      }
+                    }
+                  } catch (e) { }
+                })();
+              </script>
             </div>
           </div>
 
@@ -266,14 +296,10 @@
     </main>
   </div>
 
-  <script src="js/utils/core-utils.js"></script>
-  <script src="js/utils/dom-utils.js"></script>
   <script src="js/core/accessibility.js"></script>
   <script src="js/core/clock.js"></script>
   <script src="js/core/tutorial-launcher.js"></script>
   <script src="js/services/user.service.js"></script>
-  <script src="js/services/notification.service.js"></script>
-  <script src="js/services/laboratory.service.js?v=1.1.1"></script>
   <script src="js/components/toast.js"></script>
   <script src="js/components/profile/profile-dropdown.js"></script>
   <script src="js/components/profile/account-modal.js"></script>

@@ -12,76 +12,18 @@
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=1.0.3" />
   <script src="js/auth-check.js"></script>
+  <script src="js/utils/core-utils.js"></script>
+  <script src="js/utils/dom-utils.js"></script>
+  <script src="js/reports/report.parser.js"></script>
+  <script src="js/pages/mis-maintenance/maintenance.renderer.js"></script>
   <style>
-    /* Modern Stat Cards */
-    .maint-stat-card {
-      flex: 1;
-      min-width: 220px;
-      border-radius: 16px;
-      padding: 20px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .maint-stat-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08);
-    }
-
-    .maint-stat-card.total {
-      background: linear-gradient(135deg, #1EBBD7 0%, #0EA5C9 100%);
-      color: #FFFFFF;
-      box-shadow: 0 8px 20px -4px rgba(30, 187, 215, 0.35);
-    }
-
-    .maint-stat-card.pending {
-      background: #FFFFFF;
-      border: 1.5px solid #FDE68A;
-      box-shadow: 0 4px 16px -2px rgba(245, 158, 11, 0.08);
-    }
-
-    .maint-stat-card.resolved {
-      background: #FFFFFF;
-      border: 1.5px solid #A7F3D0;
-      box-shadow: 0 4px 16px -2px rgba(16, 185, 129, 0.08);
-    }
-
-    .stat-icon-wrapper {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .maint-stat-card.total .stat-icon-wrapper {
-      background: rgba(255, 255, 255, 0.2);
-      color: #FFFFFF;
-      backdrop-filter: blur(4px);
-    }
-
-    .maint-stat-card.pending .stat-icon-wrapper {
-      background: #FEF3C7;
-      color: #D97706;
-    }
-
-    .maint-stat-card.resolved .stat-icon-wrapper {
-      background: #D1FAE5;
-      color: #059669;
-    }
-
     /* Filter Pills */
     .filter-pills-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: nowrap;
     }
 
@@ -89,15 +31,15 @@
       border: 1.5px solid var(--border-light);
       background: #FFFFFF;
       color: var(--text-mid);
-      padding: 7.5px 17px;
+      padding: 9px 22px;
       border-radius: 9999px;
-      font-size: 13.5px;
+      font-size: 14.5px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 7px;
+      gap: 8px;
       transition: all 0.2s ease;
       font-family: var(--font-body);
       white-space: nowrap;
@@ -105,8 +47,8 @@
 
     .filter-pill i,
     .filter-pill svg {
-      width: 15px !important;
-      height: 15px !important;
+      width: 16px !important;
+      height: 16px !important;
     }
 
     .filter-pill:hover {
@@ -283,9 +225,9 @@
       top: 0;
       background: transparent !important;
       z-index: 25;
-      padding-top: 2px;
-      padding-bottom: 4px;
-      margin-bottom: 6px;
+      padding-top: 4px;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -296,7 +238,7 @@
     .filter-pills-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: nowrap;
       margin-bottom: 0;
     }
@@ -341,22 +283,22 @@
     }
 
     .maint-table th {
-      padding: 13px 18px;
-      font-size: 11.5px;
+      padding: 16px 20px;
+      font-size: 13px;
       font-weight: 700;
       color: #334155;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
       border-bottom: 1.5px solid #CBD5E1;
       box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.4);
     }
 
     .maint-table td {
-      padding: 10px 10px;
+      padding: 18px 20px;
       vertical-align: middle;
       border-bottom: 1px solid #F1F5F9;
-      font-size: 12.5px;
+      font-size: 14.5px;
     }
 
     .maint-table tr:last-child td {
@@ -377,13 +319,13 @@
       font-family: monospace;
       color: var(--primary-teal);
       background: #E8F9FC;
-      padding: 5px 12px;
-      border-radius: 8px;
-      border: 1px solid #BCEEFA;
+      padding: 7px 14px;
+      border-radius: 9px;
+      border: 1.5px solid #BCEEFA;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-size: 13px;
+      gap: 5px;
+      font-size: 14px;
       cursor: pointer;
       transition: all 0.2s ease;
     }
@@ -396,13 +338,13 @@
 
     /* Component Tags */
     .issue-tag {
-      font-size: 11.5px;
+      font-size: 13px;
       font-weight: 700;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 8px;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
     }
 
     .issue-tag.bad {
@@ -418,14 +360,14 @@
 
     /* Remarks Quote Box */
     .remarks-quote-box {
-      font-size: 15px;
+      font-size: 14.5px;
       color: var(--text-dark);
       font-style: italic;
       background: #F8FAFC;
       border-left: 4px solid var(--primary-teal);
       padding: 12px 16px;
       border-radius: 0 10px 10px 0;
-      line-height: 1.5;
+      line-height: 1.55;
       display: block !important;
       height: auto !important;
       max-height: none !important;
@@ -433,17 +375,17 @@
       white-space: normal !important;
       word-break: break-word !important;
       overflow-wrap: anywhere !important;
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
     /* Status Badges with Pulse Dot */
     .status-badge-pulse {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-size: 11.5px;
+      gap: 8px;
+      font-size: 13.5px;
       font-weight: 700;
-      padding: 4px 12px;
+      padding: 6px 16px;
       border-radius: 99px;
     }
 
@@ -460,8 +402,8 @@
     }
 
     .pulse-dot {
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       display: inline-block;
     }
@@ -481,14 +423,14 @@
       border: none;
       background: linear-gradient(135deg, #10B981, #059669);
       color: #FFFFFF;
-      padding: 8px 18px;
+      padding: 10px 22px;
       border-radius: 99px;
-      font-size: 12.5px;
+      font-size: 13.5px;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       font-family: var(--font-body);
@@ -509,11 +451,11 @@
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      font-size: 14.5px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--badge-completed-text, #047857) !important;
       background: var(--badge-completed-bg, #ECFDF5);
-      padding: 9px 18px;
+      padding: 10px 20px;
       border-radius: 10px;
       border: 1.5px solid var(--badge-completed-border, #A7F3D0);
     }
@@ -594,7 +536,6 @@
       border-color: rgba(16, 185, 129, 0.3) !important;
     }
   </style>
-  <link rel="stylesheet" href="style.css?v=1.0.3" />
 </head>
 
 <body data-page="mis-maintenance">
@@ -604,15 +545,40 @@
     <nav class="sidebar-nav">
       <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
         onclick="window.location.href='mis-staff-dashboard.html'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-home">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
       </button>
       <button class="sidebar-btn active" data-tooltip="Maintenance Tracker" title="Maintenance Tracker"
         onclick="window.location.href='mis-maintenance.html'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wrench"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-wrench">
+          <path
+            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="PC & QR Management" title="PC & QR Management"
         onclick="window.location.href='mis-qr-generator.html'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-qr-code">
+          <rect width="5" height="5" x="3" y="3" rx="1" />
+          <rect width="5" height="5" x="16" y="3" rx="1" />
+          <rect width="5" height="5" x="3" y="16" rx="1" />
+          <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+          <path d="M21 21v.01" />
+          <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+          <path d="M3 12h.01" />
+          <path d="M12 3h.01" />
+          <path d="M12 16v.01" />
+          <path d="M16 12h1" />
+          <path d="M21 12v.01" />
+          <path d="M12 21v-1" />
+        </svg>
       </button>
     </nav>
 
@@ -620,10 +586,22 @@
 
     <div class="sidebar-bottom">
       <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-help"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-circle-help">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <path d="M12 17h.01" />
+        </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-log-out">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" x2="9" y1="12" y2="12" />
+        </svg>
       </button>
     </div>
   </aside>
@@ -643,10 +621,15 @@
       </div>
 
 
-            <!-- Right Profile -->
+      <!-- Right Profile -->
       <div class="header-right">
         <button class="notif-btn" title="Notifications">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="lucide lucide-bell">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+          </svg>
           <span class="notif-dot"></span>
         </button>
 
@@ -657,11 +640,15 @@
             <span class="profile-role"></span>
           </div>
           <button class="chevron-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="lucide lucide-chevron-down">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
           </button>
         </div>
         <script>
-          (function(){
+          (function () {
             try {
               var u = JSON.parse(sessionStorage.getItem("labsync_user") || "null");
               var hr = document.currentScript.parentElement;
@@ -673,13 +660,13 @@
                 if (r && u.role) r.textContent = u.role;
                 if (a) {
                   if (u.profilePhoto) a.innerHTML = "<img src=\"" + u.profilePhoto + "\" alt=\"Profile\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%;\">";
-                  else if (u.name) a.textContent = u.name.split(" ").map(function(x){return x[0];}).join("").slice(0,2).toUpperCase();
+                  else if (u.name) a.textContent = u.name.split(" ").map(function (x) { return x[0]; }).join("").slice(0, 2).toUpperCase();
                 }
               }
               var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
               var d = hr ? hr.querySelector(".notif-dot") : null;
               if (d) d.style.display = hasUnread ? "block" : "none";
-            } catch(e){}
+            } catch (e) { }
           })();
         </script>
       </div>
@@ -693,21 +680,22 @@
       <div class="greeting-row">
         <div class="greeting-left">
           <h1 class="greeting-title" id="greetingText">Maintenance Tracker</h1>
-          <p class="greeting-sub" id="greetingSub">Monitor, process, and resolve computer laboratory maintenance tickets.</p>
+          <p class="greeting-sub" id="greetingSub">Monitor, process, and resolve computer laboratory maintenance
+            tickets.</p>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime"></div>
           <div class="clock-date" id="clockDate"></div>
           <script>
-            (function(){
+            (function () {
               try {
-                var d = new Date(), DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                var d = new Date(), DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                 var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds(), ampm = h >= 12 ? 'PM' : 'AM', fh = h % 12 || 12;
-                var p = function(n){ return String(n).padStart(2, '0'); };
+                var p = function (n) { return String(n).padStart(2, '0'); };
                 var t = document.getElementById('clockTime'), dt = document.getElementById('clockDate');
                 if (t) t.textContent = p(fh) + ':' + p(m) + ':' + p(s) + ' ' + ampm;
                 if (dt) dt.textContent = DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
-              } catch(e){}
+              } catch (e) { }
             })();
           </script>
         </div>
@@ -716,59 +704,6 @@
       <!-- Main Content Card -->
       <div class="dashboard-card"
         style="padding: 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; min-height: 0;">
-
-        <!-- Dashboard Summary Cards (Matching Dashboard Theme & Watermark Animations) -->
-        <div class="stats-grid mis-stats">
-          <!-- Card 1 -->
-          <div class="stat-card theme-blue">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value"><span id="stat-total">0</span> <span class="stat-pill-badge">All Work Orders</span></div>
-                <div class="stat-title">Total Tickets</div>
-              </div>
-              <div class="stat-icon">
-                <i data-lucide="wrench"></i>
-              </div>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="wrench"></i>
-            </div>
-          </div>
-
-          <!-- Card 2 -->
-          <div class="stat-card theme-orange">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value"><span id="stat-pending">0</span> <span class="stat-pill-badge">Action
-                    Required</span></div>
-                <div class="stat-title">Pending Reports</div>
-              </div>
-              <div class="stat-icon">
-                <i data-lucide="clock"></i>
-              </div>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="clock"></i>
-            </div>
-          </div>
-
-          <!-- Card 3 -->
-          <div class="stat-card theme-green">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value"><span id="stat-resolved">0</span> <span class="stat-pill-badge">Completed</span>
-                </div>
-                <div class="stat-title">Resolved Reports</div>
-              </div>
-              <div class="stat-icon">
-                <i data-lucide="check-circle"></i>
-              </div>
-            </div>
-            <div class="stat-watermark">
-              <i data-lucide="check-circle"></i>
-            </div>
-          </div>
-        </div>
 
         <!-- Controls Row -->
         <div class="maint-controls-row">
@@ -788,11 +723,11 @@
 
           <!-- Right Search Input -->
           <div class="maint-search-wrap">
-            <div class="search-box" style="position: relative; width: 320px;">
+            <div class="search-box" style="position: relative; width: 360px;">
               <i data-lucide="search"
-                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94A3B8;"></i>
+                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
               <input type="text" id="maintenanceSearchInput" placeholder="Search by Ticket ID, Room, PC, or Details..."
-                style="width: 100%; padding: 10px 14px 10px 38px; border: 1.5px solid var(--border-light); border-radius: 12px; font-size: 13px; outline: none; font-family: var(--font-body); transition: border-color 0.2s;"
+                style="width: 100%; padding: 11px 16px 11px 42px; border: 1.5px solid var(--border-light); border-radius: 12px; font-size: 14px; outline: none; font-family: var(--font-body); transition: border-color 0.2s;"
                 onfocus="this.style.borderColor='var(--primary-teal)'"
                 onblur="this.style.borderColor='var(--border-light)'">
             </div>
@@ -819,6 +754,17 @@
                   Loading maintenance tickets...
                 </td>
               </tr>
+              <script>
+                (function () {
+                  try {
+                    var tbody = document.getElementById('dynamicMaintenanceRows');
+                    var cached = JSON.parse(sessionStorage.getItem('labsync_cached_reports') || 'null');
+                    if (Array.isArray(cached) && cached.length > 0 && tbody && window.maintenanceRenderer && typeof window.maintenanceRenderer.renderTableRows === 'function') {
+                      window.maintenanceRenderer.renderTableRows(cached, tbody);
+                    }
+                  } catch (e) { }
+                })();
+              </script>
             </tbody>
           </table>
         </div>
@@ -827,13 +773,12 @@
     </main>
   </div>
 
-  <script src="js/utils/core-utils.js"></script>
-  <script src="js/utils/dom-utils.js"></script>
   <script src="js/core/accessibility.js"></script>
   <script src="js/core/clock.js"></script>
   <script src="js/core/tutorial-launcher.js"></script>
   <script src="js/services/user.service.js"></script>
   <script src="js/services/notification.service.js"></script>
+  <script src="js/services/report.service.js"></script>
   <script src="js/components/toast.js"></script>
   <script src="js/components/profile/profile-dropdown.js"></script>
   <script src="js/components/profile/account-modal.js"></script>
@@ -845,6 +790,8 @@
   <script src="js/components/sidebar-nav.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
+  <script src="js/pages/mis-maintenance/maintenance.modal.js"></script>
+  <script src="js/pages/mis-maintenance/maintenance.actions.js"></script>
   <script src="js/pages/mis-maintenance.js"></script>
   <script src="js/tutorial.js"></script>
 </body>
