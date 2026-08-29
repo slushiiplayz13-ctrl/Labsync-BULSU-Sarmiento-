@@ -22,12 +22,10 @@
 8. [Responsive & Accessible Design](#-responsive--accessible-design)
 9. [Security & Authentication](#-security--authentication)
 10. [Repository Directory Structure](#-repository-directory-structure)
-11. [Installation & Setup](#-installation--setup)
-12. [Environment Configuration](#-environment-configuration)
-13. [Local Development & Execution](#-local-development--execution)
-14. [Testing & Quality Assurance](#-testing--quality-assurance)
-15. [Deployment Considerations](#-deployment-considerations)
-16. [Current Project Status](#-current-project-status)
+11. [Local Development & Execution](#-local-development--execution)
+12. [Testing & Quality Assurance](#-testing--quality-assurance)
+13. [Deployment Considerations](#-deployment-considerations)
+14. [Current Project Status](#-current-project-status)
 
 ---
 
@@ -311,77 +309,7 @@ LabSync/
     └── releases/                   # Version release summaries
 ```
 
----
 
-## 💻 Installation & Setup
-
-### Prerequisites
-- **Node.js**: v18.0.0 or higher
-- **npm**: v9.0.0 or higher
-- **MySQL / MariaDB**: Server v8.0 or v10.4+
-
-### Setup Steps
-
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/slushiiplayz13-ctrl/Labsync-BULSU-Sarmiento-.git
-   cd Labsync-BULSU-Sarmiento-
-   ```
-
-2. **Install Node Dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment Variables**:
-   Create a `.env` file in the root directory (see [Environment Configuration](#-environment-configuration)).
-
-4. **Initialize Database**:
-   Import the baseline database dump using MySQL CLI or phpMyAdmin:
-   ```bash
-   mysql -u root -p labsync < labsync.sql
-   ```
-   *(Note: The server will automatically execute any incremental SQL migrations from `database/migrations/` upon startup).*
-
-5. **Start the Application**:
-   ```bash
-   # Production mode
-   npm start
-
-   # Development mode (with file watcher)
-   npm run dev
-   ```
-
-6. **Access the Application**:
-   Open `http://localhost:3000/login.html` in your web browser.
-
----
-
-## ⚙️ Environment Configuration
-
-Configure the application by creating a `.env` file in the project root:
-
-```env
-# Database Configuration
-DB_HOST=your_database_host
-DB_USER=your_database_user
-DB_PASSWORD=your_database_password
-DB_NAME=your_database_name
-DB_PORT=your_database_port
-
-# Server Configuration
-PORT=your_server_port
-APP_URL=your_application_url
-SESSION_SECRET=your_session_secret
-
-# Transactional Email Configuration (SMTP)
-EMAIL_HOST=your_smtp_host
-EMAIL_PORT=your_smtp_port
-EMAIL_USER=your_smtp_username
-EMAIL_PASS=your_smtp_password
-```
-
----
 
 ## 🧪 Testing & Quality Assurance
 
