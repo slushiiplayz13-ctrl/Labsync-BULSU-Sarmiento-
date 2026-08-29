@@ -1,9 +1,7 @@
 # LabSync — Post-Refactor Validation Report
 
 **Project:** LabSync (Bulacan State University – Sarmiento Campus)  
-**Branch:** `refactor/full-architecture`  
-**Base Commit:** `16f9ff4` (`main`)  
-**Head Commit:** `7a9b732`  
+**Branch:** `main` (Verified Baseline)  
 **Date:** August 28, 2026  
 **Status:** VALIDATION COMPLETE
 

@@ -2,8 +2,8 @@
 
 **Project**: LabSync (Bulacan State University – Sarmiento Campus)  
 **Date**: August 2026  
-**Refactor Branch**: `refactor/full-architecture`  
-**Status**: Baseline Complete — Execution Ready  
+**Branch**: `main` (Baseline Production Architecture)  
+**Status**: Baseline Complete — Verified  
 
 ---
 

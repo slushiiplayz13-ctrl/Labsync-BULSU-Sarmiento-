@@ -2,9 +2,9 @@
 
 **Date & Time:** August 28, 2026  
 **Target Environment:** Local Node.js / Express Server (`http://localhost:3000`)  
-**Database:** MariaDB / MySQL (`labsync_db`)  
+**Database:** MariaDB / MySQL (`labsync`)  
 **Browser Engine:** Microsoft Edge (Playwright Headless Automation Suite)  
-**Refactor Branch:** `refactor/full-architecture`  
+**Branch:** `main` (Baseline Production Architecture)  
 **Overall Validation Result:** **ALL CORE WORKFLOWS PASS (39/39 Verified)**
 
 ---
@@ -19,12 +19,12 @@ Every requested critical user workflow—including authentication, session lifec
 
 ## Environment & Test Accounts
 
-| Account Role | Email | Password | Primary Routes Tested |
+| Account Role | Test Email Identifier | Authentication State | Primary Routes Tested |
 | :--- | :--- | :--- | :--- |
-| **IT Dept. Head** | `head@labsync.com` | `password123` | `it-head-dashboard.html`, `master-schedule.html`, `room-schedule-editor.html`, `it-head-pc-reports.html`, `faculty-management.html`, `it-head-my-schedule.html` |
-| **Faculty** | `faculty@labsync.com` | `password123` | `faculty-dashboard.html`, `my-schedule.html`, `pc-reports.html` |
-| **MIS Staff** | `mis@labsync.com` | `password123` | `mis-dashboard.html`, `mis-maintenance.html` |
-| **Public / Workstation** | *Unauthenticated* | N/A | `login.html`, `submit-pc-report.html?pc=1` |
+| **IT Dept. Head** | `head@example.com` | Authenticated (Admin) | `it-head-dashboard.html`, `master-schedule.html`, `room-schedule-editor.html`, `it-head-pc-reports.html`, `faculty-management.html`, `it-head-my-schedule.html` |
+| **Faculty** | `faculty@example.com` | Authenticated (Faculty) | `index.html`, `my-schedule.html`, `faculty-pc-reports.html` |
+| **MIS Staff** | `mis@example.com` | Authenticated (MIS Staff) | `mis-staff-dashboard.html`, `mis-maintenance.html` |
+| **Public / Workstation** | *Unauthenticated* | Public Guest | `login.html`, `submit-pc-report.html?pc=1` |
 
 ---
 

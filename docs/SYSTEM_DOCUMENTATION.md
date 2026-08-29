@@ -1,8 +1,8 @@
 # LabSync — Full System Documentation
 
-> **Version:** 1.0.0  
+> **Version:** 1.0.0 (Baseline Architecture)  
 > **Institution:** Bulacan State University — Sarmiento Campus  
-> **Environment:** Node.js + Express + MySQL (MariaDB)  
+> **Environment:** Node.js + Express v5 + MySQL / MariaDB  
 > **Last Updated:** August 2026
 
 ---
@@ -14,75 +14,75 @@
 3. [File & Folder Structure](#3-file--folder-structure)
 4. [User Roles & Access Control](#4-user-roles--access-control)
 5. [Pages & Features](#5-pages--features)
-   - [Public / Student](#51-public--student)
-   - [Faculty](#52-faculty)
-   - [IT Department Head](#53-it-department-head)
-   - [MIS Staff](#54-mis-staff)
-   - [Shared / Utility Pages](#55-shared--utility-pages)
-6. [CSS Architecture](#6-css-architecture)
-7. [JavaScript Modules](#7-javascript-modules)
-8. [Database Schema](#8-database-schema)
-9. [API Endpoints](#9-api-endpoints)
-10. [IoT Hardware Integration](#10-iot-hardware-integration)
-11. [Email System](#11-email-system)
-12. [Environment Configuration](#12-environment-configuration)
-13. [Running the Project](#13-running-the-project)
+   - [5.1 Public / Student Workstation Interaction](#51-public--student-workstation-interaction)
+   - [5.2 Faculty / Professor Features](#52-faculty--professor-features)
+   - [5.3 IT Department Head Features](#53-it-department-head-features)
+   - [5.4 MIS Staff Features](#54-mis-staff-features)
+   - [5.5 Print & Export Layouts](#55-print--export-layouts)
+   - [5.6 Authentication & Account Utilities](#56-authentication--account-utilities)
+6. [CSS Architecture & Design System](#6-css-architecture--design-system)
+7. [Frontend JavaScript Architecture](#7-frontend-javascript-architecture)
+8. [Backend Architecture & Data Flow](#8-backend-architecture--data-flow)
+9. [Database Schema & Migrations](#9-database-schema--migrations)
+10. [REST API Specifications](#10-rest-api-specifications)
+11. [IoT Hardware Integration](#11-iot-hardware-integration)
+12. [Transactional Email System](#12-transactional-email-system)
+13. [Environment Configuration](#13-environment-configuration)
+14. [Installation & Setup](#14-installation--setup)
 
 ---
 
 ## 1. Project Overview
 
-**LabSync** is a web-based Computer Laboratory Monitoring & Management System built for Bulacan State University's Sarmiento Campus. It centralizes lab room scheduling, PC health reporting, maintenance ticket tracking, faculty management, and real-time room occupancy — all in a single cohesive platform.
+**LabSync** is a web-based IT Laboratory Availability and Equipment Monitoring System developed for **Bulacan State University – Sarmiento Campus**. It centralizes physical laboratory room status tracking, drag-and-drop timetable management, workstation hardware fault reporting via QR codes, faculty access administration, and hardware-level IoT key dock monitoring into a single unified platform.
 
-### Core Problem Solved
+### Core Problems Solved
 
 | Problem | LabSync Solution |
 |---|---|
-| Manual, paper-based PC fault reports | Students scan a QR code per PC to submit structured digital tickets |
-| Unknown room availability at a glance | Real-time room status dashboard (Available / In Session / Borrowed) |
-| Fragmented schedule management | Drag-and-drop schedule studio with conflict detection |
-| No maintenance pipeline visibility | Kanban-style maintenance tracker (Pending → In Progress → Resolved) |
-| Physical key management uncertainty | IoT ESP32 device detects key presence and reports state in real time |
+| **Manual paper-based PC fault reports** | Students scan a physical QR code label on the workstation to submit structured digital repair tickets (`submit-pc-report.html`). |
+| **Unknown room availability at a glance** | Real-time room status engine computes room states (*Available* / *In Session* / *Borrowed*) using schedule slots and IoT key dock state. |
+| **Scheduling clashes & double-booking** | Drag-and-drop Schedule Studio (`room-schedule-editor.html`) with real-time overlap and cross-room professor conflict validation. |
+| **Maintenance pipeline blind spots** | Dedicated maintenance queue (`mis-maintenance.html`) tracking tickets through *Pending* → *In Progress* → *Resolved*. |
+| **Physical key management uncertainty** | ESP32 IoT device with switch sensors monitors room key presence and logs status changes to the backend in real time. |
 
 ---
 
 ## 2. Technology Stack
 
 ### Backend
-
-| Technology | Purpose |
-|---|---|
-| **Node.js** | Server runtime |
-| **Express v5** | Web framework & REST API |
-| **MySQL2** | Database driver (async/await support) |
-| **express-session** | Cookie-based session authentication |
-| **express-mysql-session** | Persists sessions in the MySQL database |
-| **Nodemailer** | Sends welcome emails and password reset emails |
-| **QRCode** | Generates QR code PNG data URLs for PC labels |
-| **dotenv** | Loads environment variables from `.env` |
-| **CORS** | Cross-origin resource sharing middleware |
-| **crypto** (built-in) | Generates secure random tokens for password reset |
+| Technology | Version / Specification | Purpose |
+|---|---|---|
+| **Node.js** | v18.0.0+ | Server runtime environment |
+| **Express** | ^5.2.1 | Web application framework and REST API routing |
+| **MySQL2** | ^3.22.3 | MySQL / MariaDB driver supporting async/await connection pooling |
+| **express-session** | ^1.19.0 | Server-side cookie session management |
+| **Nodemailer** | ^8.0.7 | Transactional email delivery (Welcome, Password Reset, Email Verification) |
+| **QRCode** | ^1.5.4 | Server-side cryptographic QR code data URL generation |
+| **dotenv** | ^17.4.2 | Environment variable configuration loader |
+| **cors** | ^2.8.6 | Configurable Cross-Origin Resource Sharing middleware |
+| **crypto** | Built-in | Cryptographic token generation for password resets |
 
 ### Frontend
-
-| Technology | Purpose |
-|---|---|
-| **Vanilla HTML5** | All page structure |
-| **Custom CSS3** (modular) | Design system via CSS variables |
-| **Vanilla JavaScript** | All client-side logic |
-| **Lucide Icons** | Icon library (CDN) |
-| **Google Fonts** | Typography (Plus Jakarta Sans) |
+| Technology | Specification | Purpose |
+|---|---|---|
+| **Vanilla HTML5** | Semantic standard | Page layouts and templates across 19 dedicated HTML files |
+| **Vanilla CSS3** | Modular design tokens | CSS variables, responsive breakpoints, dark mode, high contrast |
+| **Vanilla JavaScript** | Modular ES6+ (CommonJS backend) | Services, controllers, renderers, validators, and component facades |
+| **Lucide Icons** | CDN Distribution | Iconography across navigation, actions, and status chips |
+| **Google Fonts** | Poppins & Plus Jakarta Sans | University display and UI body typography |
+| **html2canvas** | CDN Distribution | Client-side wallpaper and timetable image export |
+| **SheetJS (xlsx)** | CDN Distribution | Client-side Excel/CSV curriculum parsing |
 
 ### IoT / Hardware
-
-| Component | Details |
-|---|---|
-| **ESP32 Dev Module** | Main microcontroller |
-| **GM65 QR Scanner** | Reads user QR tokens on room entry |
-| **I2C LCD 16x2** | Displays feedback messages to user |
-| **6.35mm Jack Socket** | Key detection sensor (INPUT_PULLUP) |
-| **Arduino Framework** | Sketch language for ESP32 |
-| **ArduinoJson** | Parses JSON responses from server |
+| Component | Specification | Purpose |
+|---|---|---|
+| **ESP32 Dev Module** | 30-pin Dual Core | IoT device controller and Wi-Fi HTTP client |
+| **GM65 Barcode Scanner** | UART (9600 baud) | QR code badge scanner for faculty authentication |
+| **6.35mm Switch Jack Sockets** | `INPUT_PULLUP` sensors | Physical laboratory key dock detection (Rooms 203, 204) |
+| **16x2 I2C LCD** | Address `0x27` (SDA 21 / SCL 22) | Real-time visual user feedback and scan status |
+| **Piezoelectric Buzzer** | Active Low (GPIO 25) | Audio feedback for successful scans and key events |
+| **Arduino Framework** | `LabSync_ESP32.ino` | ESP32 firmware sketch using `HTTPClient` and `ArduinoJson` |
 
 ---
 
@@ -90,686 +90,549 @@
 
 ```
 LabSync/
-|
-|-- server.js                   # Main Express server (API + static file serving)
-|-- db.js                       # MySQL connection pool
-|-- auth-check.js               # Client-side auth guard (redirects on role mismatch)
-|-- script.js                   # Primary client-side JS for main dashboards
-|-- schedule.js                 # Faculty "My Schedule" page logic
-|-- reports.js                  # PC reporting form logic
-|-- room-schedule-editor.js     # Schedule Studio drag-and-drop logic
-|
-|-- index.html                  # Faculty Dashboard
-|-- login.html                  # Login / Auth page
-|-- reset-password.html         # Password reset via token link
-|
-|-- room-status.html            # Faculty: Real-time lab room status
-|-- my-schedule.html            # Faculty: Personal weekly schedule
-|-- faculty-pc-reports.html     # Faculty: PC fault report viewer
-|
-|-- it-head-dashboard.html      # IT Head: Main dashboard
-|-- it-head-room-status.html    # IT Head: Room status view
-|-- it-head-my-schedule.html    # IT Head: Schedule view
-|-- it-head-pc-reports.html     # IT Head: PC reports view
-|
-|-- mis-staff-dashboard.html    # MIS Staff: Main dashboard
-|-- mis-maintenance.html        # MIS Staff: Maintenance ticket tracker
-|-- mis-pc-reports.html         # MIS Staff: PC reports summary
-|-- mis-qr-generator.html       # MIS Staff: QR code label generator
-|
-|-- master-schedule.html        # IT Head / MIS: Full master schedule viewer
-|-- room-schedule-editor.html   # IT Head: Drag-and-drop schedule editor
-|-- faculty-management.html     # IT Head: Faculty CRUD management
-|
-|-- submit-pc-report.html       # Student: Public PC issue reporting form
-|-- print-schedule.html         # Print individual room schedule (A4/Legal)
-|-- print-all-schedules.html    # Print all room schedules (bulk)
-|
-|-- labsync.sql                 # Initial database schema dump (MariaDB)
-|-- package.json                # Node.js project manifest
-|-- .env                        # Environment variables (not committed)
-|-- .gitignore                  # Git exclusion rules
-|-- README.md                   # Project overview and quickstart guide
-|-- labsync.sql                 # Baseline MySQL cold-start database schema dump
-|-- LabSync_ESP32.ino           # ESP32 firmware sketch
-|-- server.js                   # Application bootstrap entrypoint
-|
-|-- config/                     # Application & environment configuration
-|-- controllers/                # Domain route controllers
-|-- database/                   # Database connection, migration engine & migrations
-|-- middleware/                 # Auth, role check, and request middleware
-|-- repositories/               # Data access layer
-|-- routes/                     # Domain router aggregation & legacy bridges
-|-- services/                   # Business logic, IoT services, notifications
-|
-|-- css/
-|   |-- variables.css           # Design tokens, themes & contrast modes
-|   |-- reset.css               # Base resets & scrollbar rules
-|   |-- layouts.css             # Header, sidebar, page content & tooltips
-|   |-- components/             # Domain modular component stylesheets
-|   |-- responsive.css          # Viewport media queries & bottom navigation
-|   |-- auth.css                # Authentication pages stylesheet
-|   |-- tutorial.css            # Spotlight tutorial overlay styles
-|   `-- schedule-studio.css     # Wallpaper and export studio styles
-|
-|-- js/
-|   |-- core/                   # State, session, clock, accessibility
-|   |-- components/             # Reusable UI components & modals
-|   |-- services/               # Frontend API client services
-|   |-- pages/                  # Page-specific business logic controllers
-|   |-- scheduling/             # Scheduling engine, colors & time utils
-|   `-- utils/                  # UI helpers & formatters
-|
-|-- assets/                     # Static assets (images, logos, dev photos)
-`-- docs/                       # Project documentation hierarchy
-    |-- SYSTEM_DOCUMENTATION.md # Comprehensive system manual
-    |-- hardware/               # ESP32 wiring, sketch, and debugging notes
-    `-- releases/               # V1.0.0 feature and release changelogs
+├── server.js                       # Express bootstrap & HTTP server entry point
+├── package.json                    # Dependencies and npm lifecycle scripts
+├── labsync.sql                     # Baseline MySQL schema initialization dump
+├── LabSync_ESP32.ino               # ESP32 firmware sketch
+│
+├── config/                         # Environment & application configuration
+│   └── app.config.js               # Port, CORS origins, and session settings
+│
+├── controllers/                    # Domain request controllers
+│   ├── auth.controller.js          # Login, logout, session check, password reset
+│   ├── curriculum.controller.js    # Subject catalog management
+│   ├── faculty.controller.js       # Faculty CRUD and role management
+│   ├── iot.controller.js           # Occupancy logs, heartbeats, device pings
+│   ├── labs.controller.js          # Room CRUD, PC units, batch QR generation
+│   ├── maintenance.controller.js   # Maintenance tickets, status transitions, notifications
+│   ├── schedules.controller.js     # Timetable CRUD, conflict validation, summaries
+│   ├── settings.controller.js      # Signatories and health check
+│   └── users.controller.js         # User profile, avatars, QR access, tutorials
+│
+├── database/                       # Database persistence & migrations
+│   ├── connection.js               # mysql2 connection pool
+│   ├── migrate.js                  # Automated SQL migration runner
+│   └── migrations/                 # Incremental SQL migration scripts (001–009)
+│
+├── middleware/                     # Express request pipeline middlewares
+│   ├── auth.js                     # Authentication (requireAuth) & role guards (requireRole)
+│   └── errorHandler.js             # Centralized JSON error serialization
+│
+├── repositories/                   # Parameterized SQL data access layer
+│   ├── curriculum.repository.js
+│   ├── faculty.repository.js
+│   ├── iot.repository.js
+│   ├── laboratory.repository.js
+│   ├── maintenance.repository.js
+│   ├── schedule.repository.js
+│   ├── settings.repository.js
+│   └── user.repository.js
+│
+├── routes/                         # Centralized & domain REST route definitions
+│   ├── index.js                    # Router aggregator & legacy compatibility bridges
+│   ├── auth.routes.js              # /api/auth/*
+│   ├── users.routes.js             # /api/user/*
+│   ├── faculty.routes.js           # /api/faculty/*
+│   ├── labs.routes.js              # /api/laboratories/*
+│   ├── pcs.routes.js               # /api/pcs/*
+│   ├── schedules.routes.js         # /api/schedules/*
+│   ├── maintenance.routes.js       # /api/reports/*
+│   ├── settings.routes.js          # /api/settings/*
+│   ├── curriculum.routes.js        # /api/curriculum/*
+│   └── iot.routes.js               # /api/occupancy/*
+│
+├── services/                       # Business logic services
+│   ├── authService.js
+│   ├── curriculumService.js
+│   ├── dbInit.js
+│   ├── emailService.js
+│   ├── facultyService.js
+│   ├── iotService.js
+│   ├── laboratoryService.js
+│   ├── maintenanceService.js
+│   ├── scheduleService.js
+│   ├── settingsService.js
+│   ├── usersService.js
+│   ├── email/                      # Transactional email templates (welcome, reset, verify)
+│   └── iot/                        # IoT claim, heartbeat, and occupancy handlers
+│
+├── css/                            # Modular CSS design system
+│   ├── variables.css               # Design tokens, color palettes, and themes
+│   ├── reset.css                   # Box-sizing, margin/padding resets
+│   ├── layouts.css                 # Layout wrappers, headers, sidebars
+│   ├── responsive.css              # Responsive viewport breakpoints & bottom nav
+│   ├── auth.css                    # Login and recovery page styling
+│   ├── tutorial.css                # Spotlight tutorial overlay styles
+│   ├── schedule-studio.css         # Timetable grid & wallpaper studio styles
+│   └── components/                 # Component-specific stylesheets
+│
+├── js/                             # Modular frontend JavaScript
+│   ├── auth-check.js               # Client-side session and role guard
+│   ├── core/                       # App lifecycle, clock, accessibility, tutorials
+│   ├── components/                 # Reusable UI modals, dropdowns, toasts, cards
+│   │   └── profile/                # Account, help, password, and signature modals
+│   ├── services/                   # Client-side API request abstraction services
+│   ├── pages/                      # Page-specific coordinators
+│   ├── scheduling/                 # Timetable editor, collision math, drag/drop
+│   ├── reports/                    # Ticket parser, filters, renderers, actions
+│   ├── faculty/                    # Faculty management modals
+│   ├── faculty-schedule/           # Faculty personal schedule renderer
+│   ├── master-schedule/            # Master schedule rooms and curriculum modals
+│   └── utils/                      # DOM, time, and string utility helpers
+│
+├── assets/                         # Static images, university logos, icons
+└── docs/                           # Project documentation hierarchy
+    ├── SYSTEM_DOCUMENTATION.md     # Full technical manual
+    ├── hardware/                   # IoT wiring diagrams and sketch guide
+    └── releases/                   # Version release summaries
 ```
-
 
 ---
 
 ## 4. User Roles & Access Control
 
-LabSync has **4 distinct roles**, each with a dedicated set of pages and permissions.
+LabSync enforces strict access control across **3 authenticated roles** and **1 public student interaction path**:
 
-| Role | Dashboard Entry | Description |
+| Role | Default Dashboard | Description & Capabilities |
 |---|---|---|
-| `Faculty` | `index.html` | Professors / teaching staff |
-| `IT Head` | `it-head-dashboard.html` | Department head with full admin access |
-| `MIS Staff` | `mis-staff-dashboard.html` | Technical/maintenance staff |
-| *(Public)* | `submit-pc-report.html` | Students — no login required |
+| **IT Department Head** | `it-head-dashboard.html` | Full administrative access: master schedule viewing/editing, Schedule Studio, faculty CRUD, role modifications, room configurations, curriculum catalog, and signatory settings. |
+| **MIS Staff** | `mis-staff-dashboard.html` | Technical and hardware maintenance access: maintenance ticket tracker, ticket status progression (*Pending* → *In Progress* → *Resolved*), workstation QR generation, and master schedule viewing. |
+| **Faculty / Professor** | `index.html` | Instructional access: real-time room availability, personal weekly teaching timetable, laboratory PC fault reports viewer, and account settings. |
+| **Student / Public** *(No Login)* | `submit-pc-report.html` | Public workstation access: students scan physical QR codes affixed to lab PCs to submit hardware/software fault reports. No student account or dashboard exists. |
 
-### Authentication Flow
-
-1. User submits email + password on `login.html`.
-2. Server validates credentials against the `users` table.
-3. On success, `req.session.user` is populated with `User_ID`, `Name`, `Email`, `Role`.
-4. Client-side `auth-check.js` runs on every protected page's `<head>`:
-   - Fetches `/api/session` to verify active session.
-   - Checks that `role` matches the expected role for that page.
-   - Redirects to `login.html` if not authenticated or wrong role.
-   - Hides `<body>` contents until auth passes (anti-flash guard).
-5. All mutating API routes are protected server-side by `requireAuth` middleware.
-
-### Password Recovery
-
-1. User clicks "Forgot Password" on the login page.
-2. Enters their registered email in the modal.
-3. Server generates a `crypto.randomBytes(32)` token, stores it with expiry in `users.Reset_Token`.
-4. Nodemailer sends a reset link to the email containing the token.
-5. `reset-password.html` validates the token and allows setting a new password.
+### Authentication & Session Lifecycle
+1. **Credentials Submission**: The user submits email and password on `login.html`.
+2. **Authentication Handler**: Handled by `POST /api/auth/login` (or legacy `POST /api/login`), verifying credentials against the `users` table.
+3. **Session Cookie**: On success, `req.session.user` is populated with `User_ID`, `Name`, `Email`, and `Role`, returning HTTP 200 with session cookies.
+4. **Client-Side Guard (`js/auth-check.js`)**: Runs synchronously in the `<head>` of all protected pages:
+   - Queries `GET /api/user/current` (or `/api/session`).
+   - Verifies the active user role against the required page role.
+   - Redirects to `login.html` if unauthenticated or unauthorized.
+   - Suppresses page flash (`display: none !important`) until authentication is confirmed.
+5. **Server-Side Guard (`middleware/auth.js`)**: All mutating API routes enforce `requireAuth` and `requireRole(ADMIN_ROLES)`.
 
 ---
 
 ## 5. Pages & Features
 
-### 5.1 Public / Student
+### 5.1 Public / Student Workstation Interaction
 
-#### `submit-pc-report.html` — PC Issue Reporting Form
-- Publicly accessible — **no login required**.
-- Loaded when a student scans a QR code label affixed to a PC.
-- URL contains the `PC_QR_String` parameter to identify the specific machine.
-- Student selects from hardware/software fault checkboxes:
-  - Mouse, Keyboard, Monitor, System Unit, Internet Connection, OS/Software, Others
-- Free-text remark and program/section input.
-- Submits to `POST /api/maintenance/report`.
-- Inherits user's **High Contrast** accessibility preferences from `localStorage`.
+#### `submit-pc-report.html` — PC Fault Reporting Form
+- **Access**: Public (no login required).
+- **Trigger**: Scanned by student mobile devices from QR labels affixed to lab computers.
+- **Query Parameter**: Accepts `?pc=PC_QR_String` (or `?pc=PC_ID`) to automatically pre-select the workstation.
+- **Form Fields**:
+  - Hardware/Software categories: Mouse, Keyboard, Monitor, System Unit, Internet Connection, OS/Software, Others.
+  - Student Name, Student Program & Section.
+  - Free-text Issue Remarks.
+- **Submission**: Issues `POST /api/reports/submit` (or `/api/maintenance/report`).
+- **Accessibility**: Automatically respects high contrast theme preferences.
 
 ---
 
-### 5.2 Faculty
+### 5.2 Faculty / Professor Features
 
 #### `index.html` — Faculty Dashboard
-- Stats cards: Active Labs, Pending PC Reports, Classes Today.
-- Quick-start guide tiles tailored to the Faculty role.
-- Real-time room status feed from `/api/laboratories`.
+- Summary stat cards: Active Lab Rooms, Pending PC Reports, Classes Today.
+- Role-specific Quick Start Guide.
+- Live room status card grid with 3-second real-time polling.
 
-#### `room-status.html` — Lab Room Status
-- Displays all registered laboratory rooms with color-coded status badges:
+#### `room-status.html` — Laboratory Room Status
+- Visual cards for all laboratory rooms displaying dynamically calculated availability:
   - **Available** (Green) — Key present in dock.
-  - **In Session** (Red) — Key taken by the scheduled professor for an active class.
-  - **Borrowed** (Orange) — Key taken by another professor or during an unscheduled slot.
-- Status is computed **dynamically** server-side using schedule + key data.
+  - **In Session** (Red) — Key absent; holder is the scheduled faculty for an active class slot.
+  - **Borrowed** (Orange) — Key absent; holder is another faculty or taken during an unscheduled slot.
+- Real-time occupancy activity log showing recent key removals, returns, and QR scans.
 
-#### `faculty-pc-reports.html` — PC Reports Viewer
-- Faculty can view student-submitted PC fault tickets for their rooms.
-- Shows: PC number, fault type, student remarks, date reported.
+#### `my-schedule.html` — Personal Faculty Schedule
+- Interactive weekly timetable grid (Monday–Saturday).
+- Filterable by **Academic Year** and **Semester**.
+- Displays only classes assigned to the logged-in faculty member.
+- Includes Wallpaper / Schedule Studio export preview via `html2canvas`.
 
-#### `my-schedule.html` — Personal Schedule
-- Interactive weekly timetable (Mon–Sat grid).
-- Filterable by **Academic Year** (e.g., `2025-2026`) and **Semester** (`1st`, `2nd`, `Summer`).
-- Only displays schedules assigned to the currently logged-in faculty member.
-
-#### Profile Dropdown Controls (all authenticated pages)
-
-| Feature | Detail |
-|---|---|
-| **Account Settings** | Modal to manage profile info, password, and QR code access. |
-| **Dark Mode Toggle** | Direct toggle switch in the profile dropdown for dark high-contrast mode. Persisted in `localStorage`. |
-| **Help Center** | Role-tailored help and quick-start guide modal. |
-| **System Tutorial** | Interactive spotlight tour of the application. |
+#### `faculty-pc-reports.html` — PC Fault Reports Viewer
+- Faculty view of student-reported hardware issues for lab rooms.
+- Real-time query search and date filtering.
 
 ---
 
-### 5.3 IT Department Head
+### 5.3 IT Department Head Features
 
-#### `it-head-dashboard.html` — IT Head Dashboard
-- Overview stats: total labs, active reports, staff count, etc.
-- Quick-access nav tiles to all management tools.
+#### `it-head-dashboard.html` — Administrative Dashboard
+- Real-time digital clock, department statistics, and management quick-action tiles.
 
-#### `master-schedule.html` — Master Schedule Viewer
-- View all laboratory schedules across all rooms.
-- Filter by room, semester, and academic year.
-- Print button links to `print-all-schedules.html`.
+#### `master-schedule.html` — Master Timetable Grid
+- View and switch schedules across all laboratory rooms.
+- Filter by Academic Year, Semester, and Laboratory Room.
+- **Add Room Modal (`js/master-schedule/rooms/room.modal.js`)**: Create, update, or remove laboratory rooms.
+- **Curriculum Import Modal (`js/master-schedule/curriculum/curriculum-import.modal.js`)**: Upload and parse Excel/CSV subject catalogs.
+- **Download Schedule Modal (`js/master-schedule/modals/download-schedule.modal.js`)**: Bulk schedule PDF printing trigger.
+- **Signature Settings Modal (`js/master-schedule/modals/signature-settings.modal.js`)**: Configures Program Chair and Campus Dean signatories stored in `system_settings`.
 
 #### `room-schedule-editor.html` — Schedule Studio (Drag & Drop)
-- **Core feature**: Fully interactive drag-and-drop schedule builder.
-- Create schedule **blocks** with: Subject Name, Professor, Section, Color Theme.
-- Drag blocks onto the weekly timetable grid for a selected room.
-- Server-side and client-side **clash detection** (no overlapping times allowed).
-- Add/remove custom time rows dynamically.
-- Save schedules to the database via API.
+- **Course Block Creation**: Define Subject, Faculty, Section, and Block Color Theme.
+- **Drag-and-Drop Scheduling**: Drag blocks from tray onto weekly timetable slots.
+- **Collision Validation**: Client-side and server-side overlap prevention (`schedule.validator.js`).
+- **Cross-Room Conflict Check**: Queries `GET /api/schedules/check-professor-conflict` to prevent double-booking faculty across rooms.
+- **Ghost Schedule Overlays**: Visualizes transparent placeholder blocks for professor commitments in other labs.
+- **Mobile Touch Polyfill**: Custom touch drag-and-drop engine (`touch-drag.js`).
+- **Dirty State Guard**: Tracks unsaved changes and prompts confirmation before navigation.
 
-#### `faculty-management.html` — Faculty Directory (CRUD)
-- **Create**: Add new faculty/MIS staff accounts. Server auto-generates a secure random temporary password and sends a **Welcome Email** via Nodemailer.
-- **Read**: View all staff in a searchable, role-filterable card grid.
-- **Update**: Edit name, email, role; upload a profile photo (stored as Base64 in DB).
-- **Delete**: Remove faculty accounts (cascades to associated schedules/logs).
-- Profile photo fallback: displays name initials if no photo uploaded.
+#### `faculty-management.html` — Faculty & Staff Administration
+- Full CRUD interface for Faculty and MIS Staff accounts.
+- **Add Faculty**: Automatically generates secure random credentials and sends a branded welcome email via Nodemailer.
+- **Role Modification & Leadership Transfer**: Change staff roles or transfer IT Head administrative leadership with confirmation dialogs.
+- **Profile Photos**: Upload Base64-encoded profile photos with initials fallback.
 
-#### `print-schedule.html` — Single Room Print Layout
-- Formats a single room's schedule as a clean A4/Legal PDF-ready page.
-- Includes room number, building, program chair, and campus dean (from `system_settings` table).
-
-#### `print-all-schedules.html` — Bulk Print Layout
-- Renders all rooms' schedules in bulk, paginated, print-ready.
-
-#### IT Head Parallel Views
-- `it-head-room-status.html` — IT Head version of the room status view.
-- `it-head-my-schedule.html` — IT Head personal schedule view.
-- `it-head-pc-reports.html` — IT Head PC reports view with elevated data access.
+#### Parallel IT Head Views
+- `it-head-room-status.html`: Administrative room availability and activity feed.
+- `it-head-my-schedule.html`: IT Head personal teaching timetable.
+- `it-head-pc-reports.html`: Administrative PC fault reports viewer with resolution actions.
 
 ---
 
-### 5.4 MIS Staff
+### 5.4 MIS Staff Features
 
-#### `mis-staff-dashboard.html` — MIS Dashboard
-- Visual stat cards: open tickets, in-progress repairs, resolved count, lab connectivity.
+#### `mis-staff-dashboard.html` — Technical Dashboard
+- Visual stat indicators: Open Tickets, In Progress Repairs, Resolved Tickets, and Lab Connectivity.
+- Quick navigation tiles to maintenance tools and master schedules.
 
 #### `mis-maintenance.html` — Maintenance Ticket Tracker
-- Full Kanban-style queue:
-  - **Pending** — Student-reported, awaiting attention.
-  - **In Progress** — MIS staff accepted and working on it.
-  - **Resolved** — Ticket closed.
-- Filter by room, status, priority.
-- Ticket cards show: PC number, issue description, student name, date reported, priority badge.
+- Kanban status workflow:
+  - **Pending**: Student-submitted fault reports awaiting technician review.
+  - **In Progress**: Ticket accepted and undergoing evaluation/repair.
+  - **Resolved**: Repair verified and ticket closed.
+- Real-time search by ticket ID, room, PC number, and issue type.
+- **Completed Tickets History Modal**: Filterable archive of resolved maintenance tickets (All, 7 Days, 30 Days).
 
-#### `mis-pc-reports.html` — PC Reports Summary
-- Consolidated view of all reported faults across all labs.
-- Shows student program, section, specific hardware indicators, and remarks.
-
-#### `mis-qr-generator.html` — QR Code Label Generator
-- Select a **Room** and **Building**, input **PC count**.
-- Server calls `GET /api/qr/generate` to create individual QR strings per PC.
-- Displays downloadable/printable QR label cards per PC.
-- QR codes encode unique `PC_QR_String` identifiers that route to `submit-pc-report.html?pc=<string>`.
+#### `mis-qr-generator.html` — PC & QR Code Label Generator
+- Select Room and Building, set workstation count.
+- Batch generates unique cryptographic QR tokens (`LABSYNC-PC-XXXXX-XXXXXXXX`).
+- Generates high-resolution printable QR label cards with direct download and print capabilities.
 
 ---
 
-### 5.5 Shared / Utility Pages
+### 5.5 Print & Export Layouts
 
-| Page | Purpose |
+#### `print-schedule.html` — Individual Room Timetable Print
+- Formatted A4/Legal print-ready layout for a single room schedule.
+- Includes official headers, university branding, and dynamic signatories (Program Chair & Campus Dean).
+
+#### `print-all-schedules.html` — Bulk Room Timetable Print
+- Batch renders all registered laboratory schedules in paginated, print-ready format.
+
+---
+
+### 5.6 Authentication & Account Utilities
+
+| Page / Component | Responsibility |
 |---|---|
-| `login.html` | Email + password login; includes "Forgot Password" modal |
-| `reset-password.html` | Token-based password reset |
+| `login.html` | Email + password authentication with "Forgot Password" recovery modal. |
+| `reset-password.html` | Token-validated password reset form with live password strength checks. |
+| `#account-settings-modal` | Reusable modal across all authenticated pages for profile details, email verification, and QR tokens. |
+| `#change-password-modal` | In-app modal for updating account passwords with credential verification. |
+| `#faculty-signature-modal` | In-app HTML5 canvas digital signature capture pad. |
+| `#help-modal` | Role-tailored user manual and keyboard shortcut guide. |
 
 ---
 
-## 6. CSS Architecture
+## 6. CSS Architecture & Design System
 
-All stylesheets live in the `/css/` directory and are imported in this order on every page:
-
-```html
-<link rel="stylesheet" href="css/reset.css">
-<link rel="stylesheet" href="css/variables.css">
-<link rel="stylesheet" href="css/components.css">
-<link rel="stylesheet" href="css/layouts.css">
-<link rel="stylesheet" href="css/responsive.css">
-```
-
-| File | Role |
-|---|---|
-| `reset.css` | Normalizes browser defaults; box-sizing, margin/padding reset |
-| `variables.css` | All CSS custom properties — colors, typography scale, spacing tokens, shadow layers, border radii, transition durations |
-| `components.css` | Reusable components: stat cards, nav sidebar, modals, tables, badges, buttons, dropdowns, form inputs, toast notifications |
-| `layouts.css` | Page-level wrappers: sidebar + main layout, grid containers, header bars |
-| `responsive.css` | All `@media` breakpoints for tablet and mobile viewports |
-| `auth.css` | Login and reset page-specific styles (split-screen card layout) |
-| `schedule-studio.css` | Drag-and-drop grid styles, block colors, time slot rows |
-
-### Design Tokens (from `variables.css`)
-
-- **Color Palette**: Primary brand cyan (`--color-primary`), semantic status colors (success, warning, danger, info), neutral grays.
-- **Typography**: Font scale from `--text-xs` to `--text-5xl`, using **Plus Jakarta Sans**.
-- **Spacing**: `--space-1` through `--space-16` (4px base unit).
-- **Shadows**: Layered shadow tokens from `--shadow-sm` to `--shadow-xl`.
-- **Border Radius**: `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-full`.
-- **Transitions**: `--transition-fast`, `--transition-base`, `--transition-slow`.
-
----
-
-## 7. JavaScript Modules
-
-| File | Scope | Responsibility |
-|---|---|---|
-| `auth-check.js` | All protected pages (in `<head>`) | Session validation, role enforcement, redirect on failure |
-| `script.js` | Main dashboards | Dashboard stats, room status rendering, notification polling (3s interval), occupancy log/activity feed |
-| `schedule.js` | `my-schedule.html` | Fetches and renders faculty's personal weekly timetable; filter UI |
-| `reports.js` | `submit-pc-report.html` | PC fault form submission, QR string parsing from URL |
-| `room-schedule-editor.js` | `room-schedule-editor.html` | Full drag-and-drop schedule studio: block creation, grid rendering, clash detection, save/load |
-| `js/schedule-studio.js` | Schedule Studio (helper) | Supporting utilities for schedule studio interactions |
-
----
-
-## 8. Database Schema
-
-Database name: **`labsync`**  
-Engine: **InnoDB**, Charset: **utf8mb4**
-
-### Entity Relationships
+The styling layer is organized into a modular, token-based stylesheet structure in `/css/`:
 
 ```
-users ──────────┬──── schedules ──── laboratories ──── lab_units ──── maintenance
-                │                           |
-                └──── occupancy_log ────────┘
+css/
+├── variables.css           # Design tokens, color scales, radius, shadows, typography
+├── reset.css               # Box-sizing, margin/padding resets, scrollbars
+├── layouts.css             # Page wrappers, fixed header, sidebar, grid containers
+├── responsive.css          # Responsive breakpoints (320px–1024px) & bottom navigation
+├── auth.css                # Login, reset, and split-screen authentication styles
+├── tutorial.css            # Spotlight tutorial overlay styles
+├── schedule-studio.css     # Timetable grid & wallpaper studio styles
+└── components/             # Domain modular component stylesheets
+    ├── activity-timeline.css
+    ├── alerts.css
+    ├── badges.css
+    ├── buttons.css
+    ├── cards.css
+    ├── dropdowns.css
+    ├── empty-states.css
+    ├── faculty-cards.css
+    ├── forms.css
+    ├── header.css
+    ├── help-cards.css
+    ├── lab-cards.css
+    ├── modals.css
+    ├── notifications.css
+    ├── qr-cards.css
+    ├── report-cards.css
+    ├── schedule-cards.css
+    ├── settings-tabs.css
+    ├── sidebar.css
+    ├── stat-cards.css
+    └── tables.css
+```
+
+### Design Tokens (`variables.css`)
+- **Colors**: Primary Teal (`--primary-teal: #0d9488`), dark accents (`#115e59`), semantic statuses (success `#10b981`, warning `#f59e0b`, danger `#ef4444`, info `#3b82f6`).
+- **Typography**: Poppins for headings, Plus Jakarta Sans for UI text and data grids.
+- **Theme Modes**: High Contrast mode (`html.high-contrast`) provides pure black surfaces and elevated border contrast.
+
+---
+
+## 7. Frontend JavaScript Architecture
+
+The frontend follows a decoupled modular structure separating domain logic, API requests, rendering, and lifecycle management:
+
+```
+js/
+├── auth-check.js                   # Client-side session and role guard
+├── core/                           # Application runtime
+│   ├── accessibility.js            # Contrast and font scaling persistence
+│   ├── app.js                      # Core lifecycle and initialization
+│   ├── clock.js                    # Synchronized digital clock
+│   └── tutorial-launcher.js        # Onboarding coordinator
+├── services/                       # Centralized API abstraction services
+│   ├── curriculum.service.js
+│   ├── faculty.service.js
+│   ├── laboratory.service.js
+│   ├── notification.service.js
+│   ├── report.service.js
+│   ├── schedule.service.js
+│   ├── settings.service.js
+│   └── user.service.js
+├── scheduling/                     # Timetable editor subsystem
+│   ├── controller/                 # schedule-editor.controller.js
+│   ├── interactions/               # autoscroll.js, card-resize.js, mouse-drag.js, touch-drag.js
+│   ├── persistence/                # schedule.persistence.js
+│   ├── rendering/                  # ghost-schedule.renderer.js, schedule-card.renderer.js, tray-block.renderer.js
+│   ├── state/                      # schedule.state.js
+│   ├── utils/                      # slot-math.js
+│   └── validation/                 # schedule.validator.js
+├── reports/                        # PC fault reports subsystem
+│   ├── report.actions.js
+│   ├── report.controller.js
+│   ├── report.filters.js
+│   ├── report.modal.js
+│   ├── report.parser.js
+│   └── report.renderer.js
+├── faculty-schedule/               # Faculty personal schedule subsystem
+├── master-schedule/                # Master schedule rooms and curriculum subsystem
+├── faculty/                        # Faculty management modals
+└── utils/                          # Core DOM, time, and string utility helpers
 ```
 
 ---
 
-### Table: `users`
+## 8. Backend Architecture & Data Flow
 
-Stores all system accounts (Faculty, IT Head, MIS Staff).
-
-| Column | Type | Description |
-|---|---|---|
-| `User_ID` | INT AUTO_INCREMENT PK | Unique user identifier |
-| `Name` | VARCHAR(100) | Full name |
-| `Email` | VARCHAR(50) | Login email |
-| `Role` | VARCHAR(20) | `Faculty`, `IT Head`, `MIS Staff` |
-| `Password` | VARCHAR(255) | Password |
-| `ID_QR_String` | VARCHAR(255) | Unique QR token (e.g., `LABSYNC-USER-XXXXX-XXXXXXXX`) |
-| `Profile_Photo` | LONGTEXT | Base64-encoded profile image |
-| `Reset_Token` | VARCHAR(255) | Secure token for password reset |
-| `Reset_Token_Expiry` | DATETIME | Expiry timestamp for reset token |
-| `New_Email` | VARCHAR(255) | Pending new email address |
-| `Email_Verify_Token` | VARCHAR(255) | Token to verify new email address |
-| `Email_Verify_Token_Expiry` | DATETIME | Expiry for email verification token |
-| `Phone` | VARCHAR(20) | Optional phone number |
-
----
-
-### Table: `laboratories`
-
-Each registered computer lab room.
-
-| Column | Type | Description |
-|---|---|---|
-| `Room_ID` | INT AUTO_INCREMENT PK | Unique room identifier |
-| `Room_Number` | VARCHAR(10) | Room code (e.g., `204`) |
-| `Building` | VARCHAR(50) | Building name |
-| `Current_Status` | VARCHAR(255) | Legacy static status field |
-| `Key_Status` | VARCHAR(20) DEFAULT `'Present'` | IoT key state: `Present` or `Absent` |
-
-**Dynamic Status Logic** (computed server-side in `GET /api/laboratories`):
-- If `Key_Status = 'Present'` → status = **`Available`**
-- If `Key_Status = 'Absent'` and holder is the scheduled professor → status = **`In Session`**
-- If `Key_Status = 'Absent'` and holder is another professor or open slot → status = **`Borrowed`**
-
----
-
-### Table: `lab_units`
-
-Individual PCs within each lab room.
-
-| Column | Type | Description |
-|---|---|---|
-| `PC_ID` | INT AUTO_INCREMENT PK | Unique PC identifier |
-| `Room_ID` | INT FK → `laboratories` | Parent room (CASCADE DELETE) |
-| `PC_Number` | VARCHAR(10) | Human-readable PC label (e.g., `PC-01`) |
-| `Condition_Status` | TEXT | Current condition notes |
-| `PC_QR_String` | VARCHAR(255) | Unique QR identifier for the PC label |
-
----
-
-### Table: `maintenance`
-
-PC fault/maintenance tickets submitted by students or staff.
-
-| Column | Type | Description |
-|---|---|---|
-| `Report_ID` | INT AUTO_INCREMENT PK | Unique report identifier |
-| `PC_ID` | INT FK → `lab_units` | The affected PC (CASCADE DELETE) |
-| `User_ID` | INT FK → `users` | Staff who accepted the ticket (SET NULL on delete) |
-| `Student_Name` | VARCHAR(100) | Name of the reporting student |
-| `Issue_Description` | TEXT | Fault details and student remarks |
-| `Date_Reported` | DATETIME | Timestamp of submission |
-| `Status` | VARCHAR(20) | `Pending`, `In Progress`, `Resolved` |
-| `Priority_Level` | VARCHAR(20) | `Low`, `Medium`, `High` |
-
----
-
-### Table: `schedules`
-
-Class schedule slots assigned to faculty per room.
-
-| Column | Type | Description |
-|---|---|---|
-| `Schedule_ID` | INT AUTO_INCREMENT PK | Unique schedule entry |
-| `User_ID` | INT FK → `users` | Assigned faculty member (CASCADE DELETE) |
-| `Room_ID` | INT FK → `laboratories` | Assigned room (CASCADE DELETE) |
-| `Subject_Name` | VARCHAR(15) | Subject code/name |
-| `Section` | VARCHAR(10) | Class section (e.g., `IT-3A`) |
-| `Day_of_Week` | VARCHAR(20) | `Monday`, `Tuesday`, … `Saturday` |
-| `Start_Time` | TIME | Schedule start (24h format) |
-| `End_Time` | TIME | Schedule end (24h format) |
-| `Academic_Year` | VARCHAR(15) DEFAULT `'2025-2026'` | Academic year string |
-| `Semester` | VARCHAR(20) DEFAULT `'1st Semester'` | `1st Semester`, `2nd Semester`, `Summer` |
-| `Color_Theme` | VARCHAR(50) | UI block color assigned in Schedule Studio |
-
----
-
-### Table: `occupancy_log`
-
-Log of every room entry event (QR scan or key event).
-
-| Column | Type | Description |
-|---|---|---|
-| `Log_ID` | INT AUTO_INCREMENT PK | Unique log entry |
-| `User_ID` | INT FK → `users` (nullable) | User who scanned (NULL for key-only events) |
-| `Room_ID` | INT FK → `laboratories` | The accessed room |
-| `Access_Time` | DATETIME | Timestamp of the event |
-| `Auth_Method` | VARCHAR(20) | `QR Code`, `Key Taken`, `Key Returned` |
-
----
-
-### Table: `system_settings`
-
-Global configurable system values (used in print layouts).
-
-| Column | Type | Description |
-|---|---|---|
-| `Setting_Key` | VARCHAR(50) PK | Setting name |
-| `Setting_Value` | VARCHAR(255) | Setting value |
-
-Default seeded values:
-- `program_chair` → `ELENITA T. CAPARIÑO`
-- `campus_dean` → `DR. MARICEL BALIGOD`
-
----
-
-### Table: `curriculum`
-
-Master list of available subjects for the Schedule Studio.
-
-| Column | Type | Description |
-|---|---|---|
-| `Curriculum_ID` | INT AUTO_INCREMENT PK | Unique ID |
-| `Subject_Code` | VARCHAR(50) | Subject code (e.g., `IT 321`) |
-| `Subject_Name` | VARCHAR(255) | Full subject name |
-| `Created_At` | DATETIME DEFAULT `CURRENT_TIMESTAMP` | Entry date |
-
----
-
-## 9. API Endpoints
-
-All API routes are prefixed with `/api/`. The server listens on **port 3000** by default.
-
-### Authentication
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `POST` | `/api/login` | Public | Log in with email + password. Sets session. |
-| `POST` | `/api/logout` | Any | Destroys session. |
-| `GET` | `/api/session` | Any | Returns current session user object. |
-| `POST` | `/api/forgot-password` | Public | Sends password reset email. |
-| `POST` | `/api/reset-password` | Public | Validates token and updates password. |
-
-### Users / Faculty Management
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/users` | Auth | Get all users (for faculty management). |
-| `POST` | `/api/users` | IT Head | Create new user; sends welcome email. |
-| `PUT` | `/api/users/:id` | IT Head | Update user details. |
-| `DELETE` | `/api/users/:id` | IT Head | Delete a user. |
-| `PUT` | `/api/users/:id/photo` | Auth | Upload/update profile photo (Base64). |
-
-### Laboratories
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/laboratories` | Auth | Get all labs with dynamically computed statuses. |
-| `POST` | `/api/laboratories` | IT Head | Create a new lab room. |
-| `PUT` | `/api/laboratories/:id` | IT Head | Update room details. |
-| `DELETE` | `/api/laboratories/:id` | IT Head | Delete a lab room (cascades). |
-
-### Schedules
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/schedules` | Auth | Get all schedules (filterable by room, user, semester, year). |
-| `POST` | `/api/schedules` | IT Head | Create a new schedule block. |
-| `PUT` | `/api/schedules/:id` | IT Head | Update a schedule block. |
-| `DELETE` | `/api/schedules/:id` | IT Head | Delete a schedule block. |
-
-### Maintenance / PC Reports
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/maintenance` | Auth | Get all maintenance tickets. |
-| `POST` | `/api/maintenance/report` | Public | Student submits a PC fault report. |
-| `PUT` | `/api/maintenance/:id/status` | MIS Staff | Update ticket status (Pending → In Progress → Resolved). |
-| `DELETE` | `/api/maintenance/:id` | Auth | Delete a ticket. |
-
-### Lab Units (PCs)
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/lab-units` | Auth | Get all PCs (filterable by room). |
-| `POST` | `/api/lab-units` | IT Head | Add a PC to a room. |
-| `DELETE` | `/api/lab-units/:id` | IT Head | Remove a PC. |
-
-### QR Code
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/qr/generate` | MIS Staff | Generate QR codes for PCs in a room. |
-
-### Occupancy / IoT
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `POST` | `/api/occupancy/log` | Public (IoT Device) | Logs QR scan or key event from ESP32 device. |
-| `GET` | `/api/notifications` | Auth | Returns recent activity log (LEFT JOIN to include key events). |
-
-### System Settings / Curriculum
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/system-settings` | Auth | Get system settings (program chair, dean). |
-| `PUT` | `/api/system-settings` | IT Head | Update system settings. |
-| `GET` | `/api/curriculum` | Auth | Get all curriculum subjects. |
-| `POST` | `/api/curriculum` | IT Head | Add a subject to curriculum. |
-| `DELETE` | `/api/curriculum/:id` | IT Head | Remove a subject. |
-
----
-
-## 10. IoT Hardware Integration
-
-### Hardware Setup
-
-| Component | ESP32 Pin | Connection Notes |
-|---|---|---|
-| **I2C LCD (16x2)** | `GPIO 21` (SDA) / `GPIO 22` (SCL) | Standard I2C; auto-scanned on boot. Address typically `0x27`. |
-| **GM65 QR Scanner** | `GPIO 27` (RX2) / `GPIO 26` (TX2) | RX→27, TX→26. Baud Rate: **9600**. |
-| **6.35mm Key Jack Socket** | `GPIO 14` (D14) / `GND` | Configured as `INPUT_PULLUP`. LOW = key present (circuit closed). |
-
-### Device Behavior Flow
+The backend utilizes a structured Controller-Service-Repository pattern:
 
 ```
-Boot → Connect Wi-Fi → Show "Ready to Scan!" on LCD
-        |
-        |-- QR Scanner detects code
-        |     └── POST /api/occupancy/log { qrString, roomNumber, authMethod: "QR Code" }
-        |         |-- HTTP 200 → "Scan Confirmed! You May Take Key" (LCD)
-        |         └── HTTP error → "Access Denied! Invalid QR Code" (LCD)
-        |
-        └── Key slot state changes (D14 debounced 100ms)
-              |-- Key Removed → POST { keyEvent: "Key Taken", roomNumber }
-              └── Key Returned → POST { keyEvent: "Key Returned", roomNumber }
+HTTP Request
+    │
+    ▼
+[Middleware Layer] ──► auth.js (requireAuth, requireRole) / errorHandler.js
+    │
+    ▼
+[Router Layer] ──────► routes/index.js ──► Domain Routers (routes/*.routes.js)
+    │
+    ▼
+[Controller Layer] ──► controllers/*.controller.js (Input validation & status codes)
+    │
+    ▼
+[Service Layer] ─────► services/*.service.js (Business logic, IoT state, email)
+    │
+    ▼
+[Repository Layer] ──► repositories/*.repository.js (Parameterized SQL queries)
+    │
+    ▼
+[Database Layer] ────► database/connection.js (mysql2 connection pool)
 ```
-
-### API Payload Formats
-
-**QR Scan Event:**
-```json
-{
-  "qrString": "LABSYNC-USER-1778994645214-SE2SCZO3W",
-  "roomNumber": "204",
-  "authMethod": "QR Code"
-}
-```
-
-**Key Event:**
-```json
-{
-  "keyEvent": "Key Taken",
-  "roomNumber": "204"
-}
-```
-
-**Server LCD Response:**
-```json
-{
-  "lcdLine1": "Scan Confirmed!",
-  "lcdLine2": "You May Take Key"
-}
-```
-
-### Real-Time Dashboard Integration
-
-- The dashboard polls `GET /api/notifications` every **3 seconds**.
-- On each poll cycle, it also refreshes room status cards and the activity timeline log.
-- No manual page refresh needed — the dashboard updates live.
-
-### Key Detection Debugging Notes
-
-> See [IOT_HANDOVER_SUMMARY.md](./hardware/IOT_HANDOVER_SUMMARY.md) for full wiring details and the complete Arduino sketch.
-
-- **Working**: D14 grounding directly to GND changes pin state correctly.
-- **Issue**: Fully-metal 6.35mm plug may bridge both socket contacts, keeping the circuit permanently closed.
-- **Test**: Use a non-conductive plastic stick to push the spring leaf away from the contact tab to confirm mechanical vs. electrical issue.
 
 ---
 
-## 11. Email System
+## 9. Database Schema & Migrations
 
-LabSync uses **Nodemailer** for transactional email.
+Database Name: **`labsync`** | Engine: **InnoDB** | Charset: **`utf8mb4`**
 
-### Configured Events
+### Tables Summary
 
-| Trigger | Email Type | Content |
-|---|---|---|
-| New faculty account created | **Welcome Email** | Includes temporary credentials, login CTA button, branded HTML template |
-| Forgot password request | **Password Reset** | Contains reset link with secure token (`/reset-password.html?token=XXX`) |
-| Email change request | **Email Verification** | Sends verification link to new email address before confirming the change |
+1. **`users`**: System user accounts (Faculty, IT Head, MIS Staff) with roles, hashed passwords, avatars, and recovery tokens.
+2. **`laboratories`**: Computer lab rooms with building details and IoT `Key_Status` (*Present* / *Absent*).
+3. **`lab_units`**: Workstation PCs mapped to rooms with unique `PC_QR_String` identifiers.
+4. **`maintenance`**: PC fault tickets submitted by students/staff with category, remarks, priority, and status (*Pending*, *In Progress*, *Resolved*).
+5. **`schedules`**: Timetable class blocks mapped to faculty, room, day, time range, academic year, semester, and color theme.
+6. **`occupancy_log`**: Audit log recording room entry events (*QR Code*, *Key Taken*, *Key Returned*).
+7. **`system_settings`**: Key-value pairs for institution signatories (*Program Chair*, *Campus Dean*).
+8. **`curriculum`**: Master catalog of official academic subjects for timetable scheduling.
 
-### Configuration
-
-Email is configured via `.env` variables:
-```env
-EMAIL_HOST=sandbox.smtp.mailtrap.io
-EMAIL_PORT=2525
-EMAIL_USER=<mailtrap_user>
-EMAIL_PASS=<mailtrap_pass>
-```
-
-> **Production Note:** Replace Mailtrap credentials with your real SMTP provider (e.g., Gmail SMTP, SendGrid, Resend, etc.).
+### Automated Schema Migrations (`database/migrate.js`)
+On server startup, `initializeDatabase()` automatically applies any pending incremental SQL scripts from `database/migrations/`:
+- `001_add_user_fields.sql`
+- `002_add_laboratory_key_status.sql`
+- `003_add_schedule_fields.sql`
+- `004_create_system_settings.sql`
+- `005_seed_system_settings.sql`
+- `006_create_curriculum.sql`
+- `007_add_laboratory_current_user.sql`
+- `008_add_laboratory_last_seen.sql`
+- `009_expand_subject_name.sql`
 
 ---
 
-## 12. Environment Configuration
+## 10. REST API Specifications
 
-File: `.env` (not committed to version control — see `.gitignore`)
+All endpoints are prefixed with `/api/`.
+
+### Authentication (`/api/auth`)
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/login` | Public | Authenticates credentials and initializes session. |
+| `POST` | `/api/auth/logout` | Auth | Destroys active session. |
+| `GET` | `/api/auth/check` | Any | Returns authentication status. |
+| `POST` | `/api/auth/recover-password` | Public | Dispatches password reset token via email. |
+| `GET` | `/api/auth/validate-reset-token` | Public | Validates reset token parameter. |
+| `POST` | `/api/auth/reset-password` | Public | Updates user password using valid reset token. |
+
+### Users & Profile (`/api/user`)
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/user/current` | Auth | Returns current logged-in user session data. |
+| `PUT` | `/api/user/update` | Auth | Updates user profile information. |
+| `PUT` | `/api/user/password` | Auth | Updates account password. |
+| `GET` | `/api/user/verify-email` | Public | Verifies email update token. |
+| `GET` | `/api/user/qrcode` | Auth | Returns user badge QR code image. |
+| `PUT` | `/api/user/tutorial-status` | Auth | Updates user onboarding tutorial completion state. |
+
+### Faculty Management (`/api/faculty`)
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/faculty` | Auth | Returns all faculty and staff accounts. |
+| `POST` | `/api/faculty/add` | IT Head | Creates new staff account and sends welcome email. |
+| `PUT` | `/api/faculty/:userId/role` | IT Head | Updates user role or transfers leadership. |
+| `DELETE` | `/api/faculty/:userId` | IT Head | Removes a staff account. |
+
+### Laboratories & Workstations (`/api/laboratories`, `/api/pcs`)
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/laboratories` | Auth | Returns all labs with computed real-time statuses. |
+| `POST` | `/api/laboratories/add` | IT Head | Adds a new laboratory room. |
+| `PUT` | `/api/laboratories/:roomId` | IT Head | Updates laboratory room details. |
+| `DELETE` | `/api/laboratories/:roomId` | IT Head | Deletes a laboratory room. |
+| `GET` | `/api/laboratories/:roomId/pcs` | Auth | Returns all PC units in a room. |
+| `POST` | `/api/laboratories/:roomId/pcs/add` | IT Head | Adds a single PC unit to a room. |
+| `POST` | `/api/laboratories/:roomId/pcs/add-bulk`| IT Head | Batch creates PC units for a room. |
+| `GET` | `/api/laboratories/:roomId/pcs/qrcodes` | IT Head / MIS | Generates batch QR label tokens for a room. |
+| `DELETE` | `/api/pcs/:pcId` | IT Head | Removes a PC unit. |
+
+### Schedules (`/api/schedules`)
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/schedules/save` | IT Head | Batch saves/updates timetable grid cards for a room. |
+| `GET` | `/api/schedules/check-professor-conflict` | Auth | Checks if a faculty member has overlapping commitments. |
+| `GET` | `/api/schedules/professor` | Auth | Returns schedules for the active faculty user. |
+| `GET` | `/api/schedules/room/:roomNumber` | Auth | Returns all schedule entries for a specific room. |
+
+### Maintenance & PC Reports (`/api/reports`)
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/reports/submit` | Public | Student submits a PC fault report via QR scan. |
+| `GET` | `/api/reports` | Auth | Returns all maintenance tickets with filtering. |
+| `PUT` | `/api/reports/:reportId/status` | IT Head / MIS | Updates ticket status (*Pending* → *In Progress* → *Resolved*). |
+| `DELETE` | `/api/reports/:reportId` | IT Head / MIS | Deletes a maintenance ticket. |
+
+### IoT & Occupancy (`/api/occupancy`)
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/occupancy/log` | Public (IoT) | Logs key removal/return or QR badge scan from ESP32. |
+| `POST` | `/api/occupancy/heartbeat` | Public (IoT) | Device connectivity ping. |
+
+### System Settings & Curriculum (`/api/settings`, `/api/curriculum`)
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/settings` | IT Head / MIS | Returns institution signatories. |
+| `POST` | `/api/settings` | IT Head | Updates institution signatories. |
+| `GET` | `/api/curriculum` | Auth | Returns official curriculum subject catalog. |
+| `POST` | `/api/curriculum/import` | IT Head | Batch imports curriculum subjects from CSV/Excel. |
+| `DELETE` | `/api/curriculum` | IT Head | Clears curriculum catalog. |
+
+---
+
+## 11. IoT Hardware Integration
+
+### Pinout Mapping (ESP32)
+- **Key Slot Room 203**: `GPIO 32` (`INPUT_PULLUP` to GND).
+- **Key Slot Room 204**: `GPIO 33` (`INPUT_PULLUP` to GND).
+- **GM65 QR Scanner**: `GPIO 17` (RX2) / `GPIO 16` (TX2) at 9600 baud.
+- **I2C 16x2 LCD**: `GPIO 21` (SDA) / `GPIO 22` (SCL), I2C Address `0x27`.
+- **Buzzer**: `GPIO 25` (Active Low trigger).
+
+### Dynamic Room Availability Calculation
+```
+Key Present (Docked) ───────────────────► Status = "Available" (Green)
+Key Absent (Taken) + Matching Faculty ──► Status = "In Session" (Red)
+Key Absent (Taken) + Unscheduled Slot ──► Status = "Borrowed" (Orange)
+```
+
+---
+
+## 12. Transactional Email System
+
+Powered by **Nodemailer** with modular HTML email templates (`services/email/templates/`):
+- **Welcome Email (`welcome.js`)**: Dispatched when a new faculty or MIS staff member is added, providing temporary login credentials and an action button.
+- **Password Reset (`reset-password.js`)**: Dispatched on forgot password requests containing a secure tokenized link.
+- **Email Verification (`verification.js`)**: Dispatched when a user updates their email address in Account Settings.
+
+---
+
+## 13. Environment Configuration
+
+Configure the application by creating a `.env` file in the project root:
 
 ```env
-# Database
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=labsync
-DB_PORT=3306
+# Database Configuration
+DB_HOST=your_database_host
+DB_USER=your_database_user
+DB_PASSWORD=your_database_password
+DB_NAME=your_database_name
+DB_PORT=your_database_port
 
-# Server
-PORT=3000
+# Server Configuration
+PORT=your_server_port
+APP_URL=your_application_url
+SESSION_SECRET=your_session_secret
 
-# Email (Mailtrap for development)
-EMAIL_HOST=sandbox.smtp.mailtrap.io
-EMAIL_PORT=2525
-EMAIL_USER=<your_mailtrap_user>
-EMAIL_PASS=<your_mailtrap_pass>
-
-# Application URL (used in email links)
-APP_URL=http://localhost:3000
+# Transactional Email Configuration (SMTP)
+EMAIL_HOST=your_smtp_host
+EMAIL_PORT=your_smtp_port
+EMAIL_USER=your_smtp_username
+EMAIL_PASS=your_smtp_password
 ```
 
 ---
 
-## 13. Running the Project
+## 14. Installation & Setup
 
-### Prerequisites
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+2. **Import Initial Database**:
+   ```bash
+   mysql -u root -p labsync < labsync.sql
+   ```
+3. **Run Application**:
+   ```bash
+   # Production
+   npm start
 
-- **Node.js** v18+ installed
-- **MySQL / MariaDB** running locally
-- Database `labsync` created and schema imported from `labsync.sql`
-
-### Setup Steps
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Create and populate .env file (see Section 12 above)
-
-# 3. Import database schema (in phpMyAdmin or MySQL CLI)
-mysql -u root -p labsync < labsync.sql
-
-# 4. Start the server (production mode)
-npm start
-
-# 5. Start the server (development mode with auto-reload)
-npm run dev
-
-# 6. Open in browser
-# http://localhost:3000/login.html
-```
-
-### Creating the First Admin Account
-
-No default accounts are seeded. Insert an IT Head account directly via SQL:
-
-```sql
-INSERT INTO users (Name, Email, Role, Password)
-VALUES ('Admin', 'admin@labsync.edu.ph', 'IT Head', 'yourpassword');
-```
-
-Then use **Faculty Management** (`faculty-management.html`) to add additional staff via the UI.
+   # Development with auto-restart
+   npm run dev
+   ```
+4. **Access Web Application**:
+   Navigate to `http://localhost:3000/login.html`.
 
 ---
 
-*This document reflects the state of LabSync as of Version 1.0.0, August 2026.*  
-*For IoT-specific debugging, refer to [IOT_HANDOVER_SUMMARY.md](./hardware/IOT_HANDOVER_SUMMARY.md).*  
-*For the feature changelog, refer to [v1_0_0_feature_summary.md](./releases/v1_0_0_feature_summary.md).*
-
+*Documentation maintained for Bulacan State University – Sarmiento Campus.*

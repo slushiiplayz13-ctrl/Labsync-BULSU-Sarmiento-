@@ -1,7 +1,7 @@
 # LabSync — Full Code Architecture Refactor Report
 
 **Project:** LabSync (Bulacan State University – Sarmiento Campus)  
-**Branch:** `refactor/full-architecture`  
+**Branch:** `main` (Merged & Validated Baseline)  
 **Date:** August 28, 2026  
 **Status:** Completed & Validated
 
