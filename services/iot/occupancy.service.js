@@ -5,7 +5,7 @@ const scheduleRepository = require('../../repositories/schedule.repository');
 const labRepository = require('../../repositories/laboratory.repository');
 const userRepository = require('../../repositories/user.repository');
 
-const { DEFAULT_HARDWARE_ROOMS, getRoomKeyVariations } = require('./iot.config');
+const { DEFAULT_HARDWARE_ROOMS, getRoomKeyVariations, normalizeRoomNumber } = require('./iot.config');
 const deviceStateService = require('./device-state.service');
 const claimService = require('./claim.service');
 const iotResponseService = require('./iot-response.service');
@@ -19,9 +19,10 @@ const iotResponseService = require('./iot-response.service');
  * @param {string} [reqBody.authMethod]
  * @param {string} [reqBody.keyEvent]
  * @param {boolean} [reqBody.heartbeat]
+ * @param {object} [device] - Authenticated device from middleware
  * @returns {Promise<object>}
  */
-async function logOccupancy(reqBody = {}) {
+async function logOccupancy(reqBody = {}, device = null) {
     const { qrString, roomNumber, authMethod, keyEvent } = reqBody;
 
     if (!roomNumber) {
@@ -33,9 +34,35 @@ async function logOccupancy(reqBody = {}) {
         );
     }
 
+    const cleanRoom = normalizeRoomNumber(roomNumber);
+
+    // Enforce server-side device room authorization (anti-spoofing)
+    if (device && Array.isArray(device.authorizedRooms) && device.authorizedRooms.length > 0) {
+        const isAuthorized = device.authorizedRooms.some(r => normalizeRoomNumber(r) === cleanRoom);
+        if (!isAuthorized) {
+            const auditService = require('../auditService');
+            auditService.logSecurityEvent({
+                action: 'IOT_UNAUTHORIZED_ROOM',
+                resourceType: 'IOT_DEVICE',
+                resourceId: device.id,
+                details: { attemptedRoom: roomNumber, authorizedRooms: device.authorizedRooms },
+                result: 'DENIED'
+            });
+            return iotResponseService.createErrorResponse(
+                403,
+                `Device '${device.id}' is not authorized to report for Room ${roomNumber}.`,
+                'Access Denied',
+                'Unauthorized Rm'
+            );
+        }
+    }
+
     // Refresh device last seen timestamp on any active interaction for all rooms on the hardware box
     const now = Date.now();
-    const activeRoomKeys = getRoomKeyVariations([roomNumber, ...DEFAULT_HARDWARE_ROOMS]);
+    const activeRooms = (device && Array.isArray(device.authorizedRooms) && device.authorizedRooms.length > 0)
+        ? [roomNumber, ...device.authorizedRooms]
+        : [roomNumber, ...DEFAULT_HARDWARE_ROOMS];
+    const activeRoomKeys = getRoomKeyVariations(activeRooms);
     deviceStateService.recordDeviceSeen(activeRoomKeys, now);
 
     try {
@@ -56,13 +83,24 @@ async function logOccupancy(reqBody = {}) {
     }
     const room = rooms[0];
 
+    // Validate keyEvent enum if provided
+    const ALLOWED_KEY_EVENTS = ['Key Taken', 'Key Returned', 'Heartbeat', 'ping'];
+    if (keyEvent !== undefined && keyEvent !== null && !ALLOWED_KEY_EVENTS.includes(keyEvent)) {
+        return iotResponseService.createErrorResponse(
+            400,
+            `Invalid keyEvent: '${keyEvent}'. Allowed events: ${ALLOWED_KEY_EVENTS.join(', ')}.`,
+            'Error',
+            'Invalid Event'
+        );
+    }
+
     // 1. Heartbeat event sent to /log
     if (keyEvent === 'Heartbeat' || keyEvent === 'ping' || reqBody.heartbeat) {
         return iotResponseService.createHeartbeatResponse(roomNumber, now, true);
     }
 
     // 2. Physical Key Event (Key Taken / Key Returned)
-    if (keyEvent) {
+    if (keyEvent === 'Key Taken' || keyEvent === 'Key Returned') {
         const status = (keyEvent === 'Key Returned') ? 'Present' : 'Absent';
         const isDuplicateState = (room.Key_Status === status);
 

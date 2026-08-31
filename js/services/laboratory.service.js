@@ -85,9 +85,15 @@ function renderLabCards(labs, targetContainer) {
         </div>
         <p style="font-weight:600; color:var(--text-dark, #1e293b); margin-top:8px; margin-bottom:4px;">No rooms assigned to your schedule yet</p>
         <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin-bottom:14px;">Rooms will appear here when classes are added to your schedule.</p>
-        ${isDashboard ? `<button type="button" onclick="window.location.href='${roomStatusLink}'" class="ui-empty-btn"><i data-lucide="layout-grid" style="width:14px;height:14px;"></i> View All Lab Rooms</button>` : ''}
+        ${isDashboard ? `<button type="button" data-url="${roomStatusLink}" class="ui-empty-btn"><i data-lucide="layout-grid" style="width:14px;height:14px;"></i> View All Lab Rooms</button>` : ''}
       </div>
     `;
+    container.querySelectorAll('.ui-empty-btn[data-url]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const url = btn.getAttribute('data-url');
+        if (url) window.location.href = url;
+      });
+    });
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons({ root: container });
     }
@@ -181,7 +187,7 @@ function renderLabCards(labs, targetContainer) {
             <i data-lucide="alert-triangle" class="ld-icon issue-icon"></i>
             <span class="issue-label">${totalPcIssues} PC ${totalPcIssues === 1 ? 'Issue' : 'Issues'}</span>
           </span>
-          <button type="button" class="btn-health-view" onclick="window.location.href='${targetUrl}'" title="View reports for RM ${room.Room_Number}">
+          <button type="button" class="btn-health-view" data-url="${targetUrl}" title="View reports for RM ${room.Room_Number}">
             <span>View</span>
             <i data-lucide="arrow-right"></i>
           </button>
@@ -244,6 +250,13 @@ function renderLabCards(labs, targetContainer) {
     `;
   }).join('');
 
+  container.querySelectorAll('.btn-health-view[data-url]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.getAttribute('data-url');
+      if (url) window.location.href = url;
+    });
+  });
+
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons({ root: container });
   }
@@ -267,9 +280,16 @@ function renderLabCardsError(targetContainer) {
       </div>
       <p style="font-weight:600; color:var(--text-dark, #1e293b); margin-top:8px; margin-bottom:4px;">Unable to retrieve room status</p>
       <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin-bottom:12px;">Connection to the laboratory sync gateway timed out.</p>
-      <button type="button" class="ui-empty-btn" onclick="window.location.reload()"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Reload Page</button>
+      <button type="button" class="ui-empty-btn btn-reload-page"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Reload Page</button>
     </div>
   `;
+
+  container.querySelectorAll('.btn-reload-page').forEach(btn => {
+    btn.addEventListener('click', () => {
+      window.location.reload();
+    });
+  });
+
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons({ root: container });
   }

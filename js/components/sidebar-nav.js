@@ -135,7 +135,7 @@
     const isFacultyActive = window.location.pathname.includes('faculty-management.html');
 
     menu.innerHTML = `
-      <button onclick="safeNavigate('master-schedule.html', event)" class="admin-menu-item ${isMasterActive ? 'active' : ''}" style="
+      <button type="button" class="admin-menu-item ${isMasterActive ? 'active' : ''}" style="
         display: flex;
         align-items: center;
         gap: 8px;
@@ -157,7 +157,7 @@
         <i data-lucide="calendar" style="width:14px;height:14px;flex-shrink:0;color:${isMasterActive ? 'var(--primary-teal)' : '#64748B'};"></i>
         <span>Master Schedule</span>
       </button>
-      <button onclick="safeNavigate('faculty-management.html', event)" class="admin-menu-item ${isFacultyActive ? 'active' : ''}" style="
+      <button type="button" class="admin-menu-item ${isFacultyActive ? 'active' : ''}" style="
         display: flex;
         align-items: center;
         gap: 8px;
@@ -182,6 +182,16 @@
     `;
 
     document.body.appendChild(menu);
+
+    const masterItem = menu.querySelectorAll('.admin-menu-item')[0];
+    if (masterItem) {
+      masterItem.addEventListener('click', (e) => safeNavigate('master-schedule.html', e));
+    }
+    const facultyItem = menu.querySelectorAll('.admin-menu-item')[1];
+    if (facultyItem) {
+      facultyItem.addEventListener('click', (e) => safeNavigate('faculty-management.html', e));
+    }
+
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: menu });
     }
@@ -297,12 +307,32 @@
       if (!btn.dataset.safeNavAttached) {
         btn.dataset.safeNavAttached = 'true';
         const onclickAttr = btn.getAttribute('onclick') || '';
+        const dataUrl = btn.getAttribute('data-url');
         const match = onclickAttr.match(/window\.location\.href\s*=\s*['"]([^'"]+)['"]/);
-        if (match && match[1]) {
-          const targetUrl = match[1];
+        const targetUrl = dataUrl || (match ? match[1] : null);
+
+        if (targetUrl) {
           btn.removeAttribute('onclick');
           btn.addEventListener('click', (e) => {
             safeNavigate(targetUrl, e);
+          });
+        } else if (btn.id === 'sidebar-help-btn' || tooltip === 'Help & Support' || onclickAttr.includes('openHelpModal')) {
+          btn.removeAttribute('onclick');
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (typeof global.openHelpModal === 'function') global.openHelpModal();
+          });
+        } else if (btn.id === 'sidebar-logout-btn' || tooltip === 'Logout' || onclickAttr.includes('handleLogout')) {
+          btn.removeAttribute('onclick');
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (typeof global.handleLogout === 'function') global.handleLogout();
+          });
+        } else if (btn.id === 'sidebar-admin-btn' || tooltip === 'Admin Panel' || onclickAttr.includes('toggleAdminMenu')) {
+          btn.removeAttribute('onclick');
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleAdminMenu(e, btn);
           });
         }
       }

@@ -82,6 +82,15 @@ async function deletePC(pcId, executor = db) {
     return executor.query('DELETE FROM lab_units WHERE PC_ID = ?', [pcId]);
 }
 
+async function deletePCsBulk(pcIds, roomId, executor = db) {
+    if (!Array.isArray(pcIds) || pcIds.length === 0) return [{ affectedRows: 0 }];
+    const placeholders = pcIds.map(() => '?').join(',');
+    return executor.query(
+        `DELETE FROM lab_units WHERE Room_ID = ? AND PC_ID IN (${placeholders})`,
+        [roomId, ...pcIds]
+    );
+}
+
 async function findPCWithRoomDetails(pcId, executor = db) {
     return executor.query(
         'SELECT p.*, r.Room_Number FROM lab_units p JOIN laboratories r ON p.Room_ID = r.Room_ID WHERE p.PC_ID = ?',
@@ -136,6 +145,7 @@ module.exports = {
     findPCNumbersByRoomId,
     insertPC,
     deletePC,
+    deletePCsBulk,
     findPCWithRoomDetails,
     findRoomPCsWithRoomDetails,
     updateConditionStatus,

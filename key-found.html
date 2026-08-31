@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync — Found Laboratory Key</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=1.1.1" />
+
+  <style>
+    body {
+      background: var(--bg-body, #f8fafc);
+      color: var(--text-dark, #0f172a);
+      font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .public-header {
+      background: var(--bg-card, #ffffff);
+      border-bottom: 1px solid var(--border-light, #e2e8f0);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .public-container {
+      max-width: 560px;
+      width: 100%;
+      margin: 32px auto;
+      padding: 0 20px;
+      box-sizing: border-box;
+      flex: 1;
+    }
+
+    .public-card {
+      background: var(--bg-card, #ffffff);
+      border: 1px solid var(--border-light, #e2e8f0);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .key-badge-box {
+      background: var(--primary-teal-light, #ebf8fa);
+      border: 1px solid rgba(30, 187, 215, 0.25);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .key-bldg-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--primary-teal, #1ebbd7);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .key-room-label {
+      font-family: var(--font-display, 'Poppins', sans-serif);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-dark, #0f172a);
+      line-height: 1.2;
+    }
+
+    .key-code-sub {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-light, #64748b);
+      margin-top: 6px;
+      font-family: var(--font-display), monospace;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-dark, #0f172a);
+      margin-bottom: 8px;
+    }
+
+    .form-input, .form-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border-light, #e2e8f0);
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: var(--font-body, sans-serif);
+      outline: none;
+      background: var(--bg-white, #ffffff);
+      color: var(--text-dark, #0f172a);
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus, .form-textarea:focus {
+      border-color: var(--primary-teal, #1ebbd7);
+    }
+
+    .btn-submit-report {
+      width: 100%;
+      padding: 14px 20px;
+      background: var(--primary-teal, #1ebbd7);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--font-body, sans-serif);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(30, 187, 215, 0.3);
+      transition: all 0.2s;
+    }
+
+    .btn-submit-report:hover {
+      background: #189ca8;
+    }
+
+    .success-state {
+      display: none;
+      text-align: center;
+      padding: 24px 12px;
+    }
+
+    .success-icon-box {
+      width: 64px;
+      height: 64px;
+      background: rgba(16, 185, 129, 0.12);
+      color: #10B981;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px auto;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- PUBLIC HEADER -->
+  <header class="public-header">
+    <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo" style="height: 38px; width: auto; object-fit: contain;">
+    <div style="width: 1px; height: 28px; background: var(--border-light, #e2e8f0);"></div>
+    <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 42px; width: auto; object-fit: contain;">
+  </header>
+
+  <!-- PUBLIC CONTAINER -->
+  <main class="public-container">
+    <div class="public-card">
+
+      <!-- Loading State -->
+      <div id="loadingBox" style="text-align: center; padding: 40px 0; color: var(--text-mid, #475569);">
+        <i data-lucide="loader" class="spin" style="width: 32px; height: 32px; margin-bottom: 12px; color: var(--primary-teal, #1ebbd7);"></i>
+        <p style="font-weight: 600; margin: 0;">Identifying laboratory key...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="errorBox" style="display: none; text-align: center; padding: 32px 16px;">
+        <div style="width: 56px; height: 56px; background: rgba(239, 68, 68, 0.12); color: #EF4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+          <i data-lucide="alert-circle" style="width: 28px; height: 28px;"></i>
+        </div>
+        <h2 style="font-family: var(--font-display, sans-serif); font-size: 20px; font-weight: 700; color: var(--text-dark, #0f172a); margin: 0 0 8px 0;">Invalid Key QR</h2>
+        <p id="errorText" style="font-size: 14px; color: var(--text-mid, #475569); margin: 0 0 20px 0;">This QR code is invalid or missing key identification.</p>
+      </div>
+
+      <!-- Main Form View -->
+      <div id="mainFormView" style="display: none;">
+        
+        <!-- Header Info -->
+        <div style="text-align: center; margin-bottom: 24px;">
+          <span style="font-size: 11.5px; font-weight: 800; color: var(--primary-teal); text-transform: uppercase; letter-spacing: 0.5px;">LABSYNC — FOUND LAB KEY</span>
+          <h1 style="font-family: var(--font-display, sans-serif); font-size: 22px; font-weight: 800; color: var(--text-dark, #0f172a); margin: 4px 0 8px 0;">Have you found this key?</h1>
+          <p style="font-size: 13.5px; color: var(--text-mid, #475569); margin: 0; line-height: 1.4;">
+            Please return it to <strong>Campus Security</strong> or the <strong>IT/MIS Office</strong>.<br>
+            Can't return it right now? Use the quick form below to notify us.
+          </p>
+        </div>
+
+        <!-- Key Identification Box -->
+        <div class="key-badge-box">
+          <div class="key-bldg-label" id="dispBuilding">IT BUILDING</div>
+          <div class="key-room-label" id="dispRoom">LABORATORY 204</div>
+          <div class="key-code-sub" id="dispKeyCode">KEY-IT-204-A</div>
+        </div>
+
+        <!-- Submission Form -->
+        <form id="foundKeyForm">
+          <div class="form-group">
+            <label class="form-label" for="foundLocation">Where did you find the key? <span style="color: #EF4444;">*</span></label>
+            <input type="text" id="foundLocation" class="form-input" placeholder="e.g., 3rd Floor Hallway outside Room 204, Library Bench..." required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="foundAt">Date / Time Found <span style="color: #EF4444;">*</span></label>
+            <input type="datetime-local" id="foundAt" class="form-input" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="finderContact">Optional Contact Information</label>
+            <input type="text" id="finderContact" class="form-input" placeholder="e.g., Student ID / Phone Number / Email (Optional)" />
+            <span style="font-size: 11.5px; color: var(--text-muted); display: block; margin-top: 4px;">Personal contact info is completely optional.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="message">Optional Message</label>
+            <textarea id="message" class="form-textarea" rows="3" placeholder="e.g., Left key with Security Guard on duty, found near stairs..."></textarea>
+          </div>
+
+          <button type="submit" id="btnSubmitReport" class="btn-submit-report">
+            <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+            Submit Found Key Report
+          </button>
+        </form>
+
+      </div>
+
+      <!-- Success Confirmation View -->
+      <div id="successView" class="success-state">
+        <div class="success-icon-box">
+          <i data-lucide="check-circle-2" style="width: 36px; height: 36px;"></i>
+        </div>
+        <h2 style="font-family: var(--font-display, sans-serif); font-size: 22px; font-weight: 800; color: var(--text-dark, #0f172a); margin: 0 0 10px 0;">Report Submitted</h2>
+        <p style="font-size: 14px; color: var(--text-mid, #475569); line-height: 1.5; margin: 0 0 24px 0;">
+          Thank you for reporting this lost laboratory key! The IT/MIS Office and Campus Security have been notified.
+        </p>
+        <div style="background: var(--bg-body, #f8fafc); padding: 14px; border-radius: 12px; border: 1px solid var(--border-light, #e2e8f0); font-size: 13px; color: var(--text-dark);">
+          Please hand over the physical key to Campus Security or the IT/MIS Office when convenient.
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer style="text-align: center; padding: 20px; font-size: 12px; color: var(--text-muted, #94a3b8);">
+    Bulacan State University – Sarmiento Campus &bull; LabSync System
+  </footer>
+
+  <script src="js/pages/key-found.js"></script>
+</body>
+
+</html>

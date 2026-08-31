@@ -270,33 +270,34 @@ The system operates **two distinct QR code pipelines**:
 
 ---
 
-## Section 11 — Workstation Fault Reporting & Ticket Pipeline
+## Section 11 — Workstation Fault Reporting & Maintenance Issue Model
 
-### Report Submission Structure `[CODE-CONFIRMED]`
+### Report Submission & Issue Deduplication Pipeline `[CODE-CONFIRMED]`
 - **Endpoint:** `POST /api/reports/submit`
-- **Request Payload:**
-  ```json
-  {
-    "roomNumber": "203",
-    "pcNumber": "01",
-    "studentName": "Juan Dela Cruz",
-    "studentSection": "BSIT 3-A",
-    "components": {
-      "Monitor": "issue",
-      "Keyboard": "good",
-      "Mouse": "issue",
-      "System Unit": "good",
-      "Internet/LAN": "good"
-    },
-    "remarks": "Mouse left click broken, monitor flickering."
-  }
-  ```
+- **Pessimistic Concurrency Locking:** When a student scans a QR code and submits a report, the backend executes `SELECT PC_ID FROM lab_units WHERE PC_ID = ? FOR UPDATE` within a database transaction.
+- **Physical Issue Deduplication:**
+  - The backend checks for an existing active physical issue on the workstation for the given component/type (`CONCAT(PC_ID, ':', Issue_Type)`).
+  - **Duplicate Reports:** If an active physical issue already exists, the new student submission is linked directly to the existing `Maintenance_Issue_ID`. Both student reports are preserved in the `maintenance` table while presenting **one consolidated ticket** in the MIS Maintenance Tracker.
+  - **New Issues:** If no active issue exists for that component, a new physical ticket record is created in `maintenance_issues`.
+- **Workstation Status Safeguard:** The workstation's `Condition_Status` in `lab_units` is set to `Under Maintenance`.
 
-### Automated Priority Calculation Rule `[CODE-CONFIRMED]`
-- **High Priority (`High`):** If `PC/Laptop` or `System Unit` is flagged as an issue.
-- **Medium Priority (`Medium`):** If `Monitor` is flagged as an issue.
-- **Low Priority (`Low`):** Peripherals (Keyboard, Mouse, Cables, Headset, LAN) or remarks only.
-- **Auto-Resolved:** If 0 issues and no remarks are entered, the system marks the ticket `Resolved` and keeps PC `Functional`.
+### Request Payload Structure `[CODE-CONFIRMED]`
+```json
+{
+  "roomNumber": "203",
+  "pcNumber": "01",
+  "studentName": "Juan Dela Cruz",
+  "studentSection": "BSIT 3-A",
+  "components": {
+    "Monitor": "issue",
+    "Keyboard": "good",
+    "Mouse": "good",
+    "System Unit": "good",
+    "Internet/LAN": "good"
+  },
+  "remarks": "Monitor flickering."
+}
+```
 
 ---
 
@@ -304,18 +305,24 @@ The system operates **two distinct QR code pipelines**:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Pending: Student Submits QR Ticket (PC Marked 'Under Maintenance')
-    Pending --> In_Progress: MIS Staff Reviews & Begins Repair
-    In_Progress --> Resolved: MIS Staff Replaces Hardware / Solves Fault
-    Resolved --> [*]: If 0 Remaining Pending Tickets, PC Marked 'Functional'
+    [*] --> Pending: Student Submits Report (Workstation Marked 'Under Maintenance')
+    Pending --> Pending: Subsequent Students Report Same Issue (+N count badge updated)
+    Pending --> Resolved: MIS Technician Clicks 'Solve Issue'
+    Resolved --> [*]: If 0 Remaining Active Issues on PC, Workstation Restored to 'Functional'
 ```
 
-1. **Pending:** Ticket appears in red/amber badge in `mis-maintenance.html`. Workstation card reflects `Under Maintenance`.
-2. **In Progress:** MIS technician takes ownership of the physical workstation.
-3. **Resolved:** Ticket is marked complete. Database executes a transaction:
-   - Sets ticket `Status = 'Resolved'`.
-   - Executes `countPendingReportsByPCId(PC_ID)`.
-   - If pending count is 0, restores `lab_units.Condition_Status = 'Functional'`.
+### Main Maintenance Tracker UI (`mis-maintenance.html`) `[CODE-CONFIRMED]`
+- **Main Table Column Structure:**
+  `TICKET ID` │ `DATE & TIME` │ `LAB ROOM` │ `PC UNIT` │ `REPORTED BY` │ `ISSUE DETAILS & REMARKS` │ `ACTIONS`
+- **Interactive Reported By Column (`.reporter-chip`):**
+  - **Single Reporter:** Displays a clean pill badge featuring a person icon (`user`) and the student's name (e.g. `👤 Michael Vince`).
+  - **Multiple Reporters:** Displays an interactive pill badge featuring a person icon (`user`), first student's name, an embedded `+N` count badge, and a right chevron (`›`) (e.g. `👤 james james [+1] ›`). Clicking the chip opens the **Ticket Details Modal**.
+- **Issue Details & Remarks Card (`.remarks-quote-box`):** Modern rounded card with a Lucide speech bubble icon (`message-square`) displaying student issue remarks.
+- **Two-State Lifecycle:** Tickets operate strictly between **Pending** and **Resolved** (no redundant *In Progress* column or state).
+- **Resolution Workflow (`PUT /api/reports/:reportId/status`):**
+  - MIS staff reviews ticket and clicks **Solve Issue**.
+  - System updates `maintenance_issues.Status = 'Resolved'`.
+  - Executes `countActiveIssuesByPC(PC_ID)`. If **0 active issues** remain open on that PC, `lab_units.Condition_Status` is restored to `Functional`. If other component issues (e.g., Keyboard) remain active on the same PC, the PC stays `Under Maintenance`.
 
 ---
 
@@ -403,11 +410,11 @@ graph TD
 erDiagram
     users ||--o{ schedules : assigns
     users ||--o{ occupancy_log : logs
-    users ||--o{ maintenance : receives
     laboratories ||--o{ lab_units : contains
     laboratories ||--o{ schedules : hosts
     laboratories ||--o{ occupancy_log : records
-    lab_units ||--o{ maintenance : generates
+    lab_units ||--o{ maintenance_issues : generates
+    maintenance_issues ||--o{ maintenance : links
 
     users {
         int User_ID PK
@@ -441,15 +448,25 @@ erDiagram
         string PC_QR_String
     }
 
+    maintenance_issues {
+        int Issue_ID PK
+        int PC_ID FK
+        string Issue_Type
+        string Status
+        string Priority_Level
+        string Active_Issue_Key
+        datetime Created_At
+        datetime Resolved_At
+    }
+
     maintenance {
         int Report_ID PK
+        int Maintenance_Issue_ID FK
         int PC_ID FK
         int User_ID FK
         string Student_Name
         text Issue_Description
         datetime Date_Reported
-        string Status
-        string Priority_Level
     }
 
     schedules {

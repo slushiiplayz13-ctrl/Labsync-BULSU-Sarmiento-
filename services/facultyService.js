@@ -1,6 +1,7 @@
 'use strict';
 
-const { isValidEmailFormat } = require('./authService');
+const bcrypt = require('bcrypt');
+const { isValidEmailFormat, BCRYPT_SALT_ROUNDS } = require('./authService');
 const { sendWelcomeEmail } = require('./emailService');
 const facultyRepository = require('../repositories/faculty.repository');
 
@@ -47,6 +48,7 @@ async function addFaculty(reqBody) {
     }
 
     const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase();
+    const hashedPassword = await bcrypt.hash(generatedPassword, BCRYPT_SALT_ROUNDS || 12);
     const qrString = `LABSYNC-USER-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
     console.time('[Faculty] insertFaculty');
@@ -54,7 +56,7 @@ async function addFaculty(reqBody) {
         name,
         email,
         role,
-        password: generatedPassword,
+        password: hashedPassword,
         qrString
     });
     console.timeEnd('[Faculty] insertFaculty');
@@ -89,10 +91,20 @@ async function getAllFaculty() {
 }
 
 async function updateFacultyRole(userId, role, currentSessionUserId, session) {
-    if (role && role.toLowerCase().includes('head')) {
+    const parsedUserId = Number(userId);
+    if (!Number.isInteger(parsedUserId) || parsedUserId <= 0) {
+        return { status: 400, error: 'Invalid user ID. Must be a positive integer.' };
+    }
+
+    const ALLOWED_ROLES = ['IT Dept. Head', 'IT Head', 'MIS Staff', 'Faculty'];
+    if (!role || typeof role !== 'string' || !ALLOWED_ROLES.includes(role)) {
+        return { status: 400, error: `Invalid role: '${role}'. Allowed roles: ${ALLOWED_ROLES.join(', ')}.` };
+    }
+
+    if (role.toLowerCase().includes('head')) {
         await facultyRepository.withTransaction(async (connection) => {
             await facultyRepository.demoteAllHeadsToFaculty(connection);
-            await facultyRepository.updateUserRole(userId, role, connection);
+            await facultyRepository.updateUserRole(parsedUserId, role, connection);
 
             if (currentSessionUserId && session) {
                 const [currentRows] = await facultyRepository.findRoleById(currentSessionUserId, connection);
@@ -102,14 +114,19 @@ async function updateFacultyRole(userId, role, currentSessionUserId, session) {
             }
         });
     } else {
-        await facultyRepository.updateUserRole(userId, role);
+        await facultyRepository.updateUserRole(parsedUserId, role);
     }
 
     return { status: 200, message: 'Role updated successfully' };
 }
 
 async function deleteFaculty(userId) {
-    await facultyRepository.deleteFacultyCascade(userId);
+    const parsedUserId = Number(userId);
+    if (!Number.isInteger(parsedUserId) || parsedUserId <= 0) {
+        return { status: 400, error: 'Invalid user ID. Must be a positive integer.' };
+    }
+
+    await facultyRepository.deleteFacultyCascade(parsedUserId);
     return { status: 200, message: 'Faculty member removed successfully' };
 }
 

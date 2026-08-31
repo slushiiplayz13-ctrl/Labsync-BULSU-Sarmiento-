@@ -12,13 +12,12 @@
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
     rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=1.0.3" />
+  <link rel="stylesheet" href="style.css?v=1.1.1" />
   <script src="js/auth-check.js"></script>
   <script src="js/utils/core-utils.js"></script>
   <script src="js/utils/dom-utils.js"></script>
   <script src="js/reports/report.parser.js"></script>
-  <script src="js/pages/mis-staff-dashboard/staff-dashboard.reports.js"></script>
-  <script src="js/components/activity-feed.js"></script>
+  <script src="js/pages/mis-staff-dashboard/staff-dashboard.reports.js?v=1.0.8"></script>
 </head>
 
 <body data-page="mis-dashboard">
@@ -61,6 +60,15 @@
           <path d="M16 12h1" />
           <path d="M21 12v.01" />
           <path d="M12 21v-1" />
+        </svg>
+      </button>
+      <button class="sidebar-btn" data-tooltip="Key Management" title="Key Management"
+        onclick="window.location.href='mis-keys.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-key-round">
+          <path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"/>
+          <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
         </svg>
       </button>
     </nav>
@@ -279,45 +287,37 @@
             <!-- Left: Recent PC Reports -->
             <div class="content-card"
               style="padding: 20px 24px; display: flex; flex-direction: column; min-height: 0; box-sizing: border-box;">
-              <div class="section-header" style="margin-bottom: 16px;">
+              <div class="section-header" style="margin-bottom: 14px; align-items: center;">
                 <div class="sh-left">
-                  <div>
-                    <h3 class="card-section-title">Recent PC Reports</h3>
-                    <p class="card-section-subtitle">Track and manage all reported issues</p>
+                  <h3 class="card-section-title">Recent PC Reports</h3>
+                </div>
+                <div class="sh-right" style="display: flex; align-items: center; flex-shrink: 0; margin-left: auto;">
+                  <!-- Compact Header Search Box -->
+                  <div class="search-box search-box-header">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="dashboardSearchInput" class="search-input"
+                      placeholder="Search ticket, room, issue...">
                   </div>
                 </div>
-                <div style="flex-shrink: 0; white-space: nowrap; margin-left: auto;">
-                  <a href="mis-maintenance.html"
-                    style="color: var(--primary-teal); font-size: 15px; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 4px; white-space: nowrap;">View
-                    All <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i></a>
-                </div>
               </div>
 
-              <!-- Search Box -->
-              <div class="search-box search-box-prominent" style="margin-bottom: 16px;">
-                <i data-lucide="search" class="search-icon"></i>
-                <input type="text" id="dashboardSearchInput" class="search-input"
-                  placeholder="Search by ticket ID, room, or issue type...">
-              </div>
-
-              <!-- Table -->
+              <!-- Table (Full Height Expanded Container) -->
               <div class="table-container"
                 style="overflow-x: auto; overflow-y: auto; flex: 1 1 auto; min-height: 0; margin-bottom: 0;">
                 <table class="reports-table">
                   <thead class="reports-table-head">
                     <tr>
-                      <th class="table-header-cell">TICKET ID</th>
+                      <th class="table-header-cell col-ticket">TICKET ID</th>
                       <th class="table-header-cell col-date">DATE & TIME</th>
-                      <th class="table-header-cell text-center">LAB ROOM</th>
-                      <th class="table-header-cell text-center">PC ID</th>
-                      <th class="table-header-cell">ISSUE TYPE</th>
-                      <th class="table-header-cell text-center">STATUS</th>
-                      <th class="table-header-cell text-center">ACTION</th>
+                      <th class="table-header-cell col-room">LAB ROOM</th>
+                      <th class="table-header-cell col-pc">PC ID</th>
+                      <th class="table-header-cell col-issue">ISSUE TYPE</th>
+                      <th class="table-header-cell col-status text-center">STATUS</th>
                     </tr>
                   </thead>
                   <tbody id="misDashboardReportRows">
                     <tr>
-                      <td colspan="7" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
+                      <td colspan="6" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
                         Loading reports...
                       </td>
                     </tr>
@@ -336,49 +336,19 @@
                 </table>
               </div>
 
-              <!-- Pagination -->
-              <div class="table-pagination">
-                <div class="pagination-info">
-                  Showing <strong>0</strong> of <strong>0</strong> reports
-                </div>
-                <div class="pagination-controls">
-                  <button class="btn-page btn-prev" disabled>Previous</button>
-                  <button class="btn-page btn-next" disabled>Next</button>
-                </div>
-              </div>
-
             </div>
 
-            <!-- Right: Activity Feed -->
-            <div class="content-card activity-feed-card">
-              <div class="section-header activity-feed-header" style="margin-bottom: 18px;">
+            <!-- Right: Laboratory Issue Overview -->
+            <div class="content-card lab-issue-overview-card">
+              <div class="section-header" style="margin-bottom: 14px;">
                 <div class="sh-left">
-                  <div>
-                    <h3 class="card-section-title activity-feed-title">System Activity Feed</h3>
-                    <p class="card-section-subtitle activity-feed-subtitle">Recent system updates and alerts</p>
-                  </div>
+                  <h3 class="card-section-title">Laboratory Issue Overview</h3>
                 </div>
               </div>
 
-              <div class="activity-feed-container">
-                <div class="activity-feed-list" id="misDashboardActivityList">
-                  <div class="activity-empty">
-                    No recent activity. System updates will appear here.
-                  </div>
-                  <script>
-                    (function () {
-                      try {
-                        var container = document.getElementById('misDashboardActivityList');
-                        var cachedNotifs = JSON.parse(sessionStorage.getItem('labsync_cached_notifications') || 'null');
-                        var cachedReports = JSON.parse(sessionStorage.getItem('labsync_cached_reports') || 'null');
-                        if (container && window.activityFeed && typeof window.activityFeed.renderFromRawData === 'function') {
-                          window.activityFeed.renderFromRawData(cachedNotifs, cachedReports, container);
-                        } else if (container && typeof window.renderEcosystemActivityFeed === 'function') {
-                          window.renderEcosystemActivityFeed(cachedReports, container, cachedNotifs);
-                        }
-                      } catch (e) { }
-                    })();
-                  </script>
+              <div class="lab-issue-container" id="misLabIssueOverviewContainer">
+                <div class="lab-issue-empty">
+                  Loading laboratory issue overview...
                 </div>
               </div>
             </div>
@@ -408,7 +378,7 @@
   <script src="js/components/sidebar-nav.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
-  <script src="js/pages/mis-staff-dashboard.js"></script>
+  <script src="js/pages/mis-staff-dashboard.js?v=1.1.0"></script>
   <script src="js/tutorial.js"></script>
 </body>
 

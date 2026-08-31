@@ -1,8 +1,11 @@
 'use strict';
 
 const QRCode = require('qrcode');
+const pool = require('../database/connection');
 const labRepository = require('../repositories/laboratory.repository');
+const keysRepository = require('../repositories/keys.repository');
 const iotService = require('./iotService');
+const auditService = require('./auditService');
 
 async function getAllLaboratories() {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -102,7 +105,7 @@ async function getAllLaboratories() {
     return { status: 200, data: result };
 }
 
-async function addLaboratory(roomNumber, building) {
+async function addLaboratory(roomNumber, building, req = null) {
     if (!roomNumber) {
         return { status: 400, error: 'Room number is required' };
     }
@@ -117,12 +120,52 @@ async function addLaboratory(roomNumber, building) {
         return { status: 400, error: 'Room number already exists' };
     }
 
-    const [result] = await labRepository.insertLaboratory(roomNumber, building);
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
 
-    return { status: 200, message: 'Room added successfully', roomId: result.insertId };
+        const [result] = await labRepository.insertLaboratory(roomNumber, building, connection);
+        const roomId = result.insertId;
+
+        // Automatically create default laboratory key: KEY-IT-[Room_Number]-A
+        const defaultKeyCode = `KEY-IT-${cleanNum}-A`;
+        const [existingKey] = await keysRepository.findByKeyCode(defaultKeyCode, connection);
+        let keyId = null;
+        if (existingKey.length === 0) {
+            const [keyResult] = await keysRepository.insertKey(roomId, defaultKeyCode, 'ACTIVE', connection);
+            keyId = keyResult.insertId;
+        } else {
+            keyId = existingKey[0].Key_ID;
+        }
+
+        await connection.commit();
+
+        if (keyId) {
+            await auditService.logSecurityEvent({
+                req,
+                action: 'KEY_CREATED',
+                resourceType: 'LAB_KEY',
+                resourceId: keyId,
+                details: { roomId, keyCode: defaultKeyCode, autoCreated: true },
+                result: 'SUCCESS'
+            });
+        }
+
+        return { status: 200, message: 'Room added successfully', roomId, defaultKeyCode };
+    } catch (err) {
+        await connection.rollback();
+        throw err;
+    } finally {
+        connection.release();
+    }
 }
 
 async function updateLaboratory(roomId, roomNumber, building) {
+    const parsedRoomId = Number(roomId);
+    if (!Number.isInteger(parsedRoomId) || parsedRoomId <= 0) {
+        return { status: 400, error: 'Invalid room ID. Must be a positive integer.' };
+    }
+
     if (!roomNumber) {
         return { status: 400, error: 'Room number is required' };
     }
@@ -132,43 +175,63 @@ async function updateLaboratory(roomId, roomNumber, building) {
         return { status: 400, error: 'Room number must be a valid number between 1 and 999 (up to 3 digits).' };
     }
 
-    const [existing] = await labRepository.findByRoomNumberExceptId(roomNumber, roomId);
+    const [existing] = await labRepository.findByRoomNumberExceptId(roomNumber, parsedRoomId);
     if (existing.length > 0) {
         return { status: 400, error: 'Room number already exists' };
     }
 
-    await labRepository.updateLaboratory(roomId, roomNumber, building);
+    await labRepository.updateLaboratory(parsedRoomId, roomNumber, building);
 
     return { status: 200, message: 'Room updated successfully' };
 }
 
 async function deleteLaboratory(roomId) {
-    await labRepository.deleteLaboratory(roomId);
+    const parsedRoomId = Number(roomId);
+    if (!Number.isInteger(parsedRoomId) || parsedRoomId <= 0) {
+        return { status: 400, error: 'Invalid room ID. Must be a positive integer.' };
+    }
+
+    await labRepository.deleteLaboratory(parsedRoomId);
     return { status: 200, message: 'Room deleted successfully' };
 }
 
 async function getRoomPCs(roomId) {
-    const [pcs] = await labRepository.findPCsByRoomId(roomId);
+    const parsedRoomId = Number(roomId);
+    if (!Number.isInteger(parsedRoomId) || parsedRoomId <= 0) {
+        return { status: 400, error: 'Invalid room ID. Must be a positive integer.' };
+    }
+
+    const [pcs] = await labRepository.findPCsByRoomId(parsedRoomId);
     return { status: 200, data: pcs };
 }
 
 async function addPC(roomId, pcNumber) {
+    const parsedRoomId = Number(roomId);
+    if (!Number.isInteger(parsedRoomId) || parsedRoomId <= 0) {
+        return { status: 400, error: 'Invalid room ID. Must be a positive integer.' };
+    }
+
     if (!pcNumber) {
         return { status: 400, error: 'PC Number is required' };
     }
 
-    const [existing] = await labRepository.findPCByRoomAndNumber(roomId, pcNumber);
+    const [existing] = await labRepository.findPCByRoomAndNumber(parsedRoomId, pcNumber);
     if (existing.length > 0) {
         return { status: 400, error: 'This PC number already exists in this room.' };
     }
 
-    const qrString = `LABSYNC-PC-${roomId}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-    const [result] = await labRepository.insertPC(roomId, pcNumber, qrString);
+    const qrString = `LABSYNC-PC-${parsedRoomId}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    const [result] = await labRepository.insertPC(parsedRoomId, pcNumber, qrString);
 
     return { status: 200, message: 'PC added successfully', pcId: result.insertId, pcNumber };
 }
 
 async function addPCsBulk(roomId, pcNumbers) {
+    const parsedRoomId = Number(roomId);
+    if (!Number.isInteger(parsedRoomId) || parsedRoomId <= 0) {
+        return { status: 400, error: 'Invalid room ID. Must be a positive integer.' };
+    }
+
     if (!pcNumbers || !Array.isArray(pcNumbers) || pcNumbers.length === 0) {
         return { status: 400, error: 'At least one PC number is required.' };
     }
@@ -178,7 +241,7 @@ async function addPCsBulk(roomId, pcNumbers) {
         return { status: 400, error: 'Valid PC numbers are required.' };
     }
 
-    const [existing] = await labRepository.findPCNumbersByRoomId(roomId);
+    const [existing] = await labRepository.findPCNumbersByRoomId(parsedRoomId);
     const existingSet = new Set(existing.map(p => p.PC_Number.toString().trim()));
 
     const added = [];
@@ -189,8 +252,8 @@ async function addPCsBulk(roomId, pcNumbers) {
             skipped.push(num);
             continue;
         }
-        const qrString = `LABSYNC-PC-${roomId}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-        await labRepository.insertPC(roomId, num, qrString);
+        const qrString = `LABSYNC-PC-${parsedRoomId}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+        await labRepository.insertPC(parsedRoomId, num, qrString);
         added.push(num);
     }
 
@@ -207,12 +270,52 @@ async function addPCsBulk(roomId, pcNumbers) {
 }
 
 async function deletePC(pcId) {
-    await labRepository.deletePC(pcId);
+    const parsedPCId = Number(pcId);
+    if (!Number.isInteger(parsedPCId) || parsedPCId <= 0) {
+        return { status: 400, error: 'Invalid PC ID. Must be a positive integer.' };
+    }
+
+    await labRepository.deletePC(parsedPCId);
     return { status: 200, message: 'PC deleted successfully' };
 }
 
+async function deletePCsBulk(roomId, pcIds) {
+    const parsedRoomId = Number(roomId);
+    if (!Number.isInteger(parsedRoomId) || parsedRoomId <= 0) {
+        return { status: 400, error: 'Invalid room ID. Must be a positive integer.' };
+    }
+
+    if (!Array.isArray(pcIds) || pcIds.length === 0) {
+        return { status: 400, error: 'At least one PC ID is required for bulk deletion.' };
+    }
+
+    const cleanPcIds = pcIds
+        .map(id => Number(id))
+        .filter(id => Number.isInteger(id) && id > 0);
+
+    if (cleanPcIds.length === 0) {
+        return { status: 400, error: 'Valid PC IDs are required for bulk deletion.' };
+    }
+
+    const [result] = await labRepository.deletePCsBulk(cleanPcIds, parsedRoomId);
+    const affectedCount = result ? (result.affectedRows || 0) : cleanPcIds.length;
+
+    return {
+        status: 200,
+        data: {
+            message: `Successfully deleted ${affectedCount} PC(s).`,
+            deletedCount: affectedCount
+        }
+    };
+}
+
 async function getPCQRCode(pcId) {
-    const [pcs] = await labRepository.findPCWithRoomDetails(pcId);
+    const parsedPCId = Number(pcId);
+    if (!Number.isInteger(parsedPCId) || parsedPCId <= 0) {
+        return { status: 400, error: 'Invalid PC ID. Must be a positive integer.' };
+    }
+
+    const [pcs] = await labRepository.findPCWithRoomDetails(parsedPCId);
 
     if (pcs.length === 0) {
         return { status: 404, error: 'PC not found' };
@@ -270,6 +373,7 @@ module.exports = {
     addPC,
     addPCsBulk,
     deletePC,
+    deletePCsBulk,
     getPCQRCode,
     getBatchQRCodes
 };

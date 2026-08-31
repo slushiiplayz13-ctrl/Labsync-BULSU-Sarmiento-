@@ -1,6 +1,7 @@
 'use strict';
 
 const maintenanceService = require('../services/maintenanceService');
+const auditService = require('../services/auditService');
 
 async function submitReport(req, res, next) {
     try {
@@ -31,6 +32,16 @@ async function updateReportStatus(req, res, next) {
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
+
+        await auditService.logSecurityEvent({
+            req,
+            action: 'TICKET_STATUS_UPDATE',
+            resourceType: 'MAINTENANCE',
+            resourceId: reportId,
+            details: { newStatus: status },
+            result: 'SUCCESS'
+        });
+
         return res.status(result.status).json({ message: result.message });
     } catch (err) {
         next(err);
@@ -44,6 +55,15 @@ async function deleteReport(req, res, next) {
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
+
+        await auditService.logSecurityEvent({
+            req,
+            action: 'TICKET_DELETE',
+            resourceType: 'MAINTENANCE',
+            resourceId: reportId,
+            result: 'SUCCESS'
+        });
+
         return res.status(result.status).json({ message: result.message });
     } catch (err) {
         next(err);

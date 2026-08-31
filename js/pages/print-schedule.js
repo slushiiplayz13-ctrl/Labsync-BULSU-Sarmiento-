@@ -168,6 +168,27 @@ let _printScheduleInitialized = false;
 function bootstrapPrintSchedule() {
   if (_printScheduleInitialized) return;
   _printScheduleInitialized = true;
+
+  const closeBtn = document.querySelector('.btn-close');
+  if (closeBtn) {
+    closeBtn.removeAttribute('onclick');
+    closeBtn.addEventListener('click', () => {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.close();
+      }
+    });
+  }
+
+  const printBtn = document.querySelector('.btn-print');
+  if (printBtn) {
+    printBtn.removeAttribute('onclick');
+    printBtn.addEventListener('click', () => {
+      window.print();
+    });
+  }
+
   initPrintSchedulePage();
 }
 

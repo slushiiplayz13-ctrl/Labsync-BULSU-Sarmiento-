@@ -1,8 +1,9 @@
 'use strict';
 
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const QRCode = require('qrcode');
-const { isValidEmailFormat } = require('./authService');
+const { isValidEmailFormat, isBcryptHash, BCRYPT_SALT_ROUNDS } = require('./authService');
 const { sendEmailVerificationEmail } = require('./emailService');
 const userRepository = require('../repositories/user.repository');
 
@@ -87,15 +88,41 @@ async function updateUserAccount(userId, reqBody, session) {
     }
 
     if (currentPassword && newPassword) {
-        if (user.Password !== currentPassword) {
+        if (!user.Password) {
             return { status: 401, error: 'Current password is incorrect' };
         }
 
+        let isCurrentValid = false;
+        if (isBcryptHash(user.Password)) {
+            // Secure bcrypt verification
+            isCurrentValid = await bcrypt.compare(currentPassword, user.Password);
+        } else {
+            // Temporary legacy plaintext compatibility fallback
+            isCurrentValid = (user.Password === currentPassword);
+        }
+
+        if (!isCurrentValid) {
+            return { status: 401, error: 'Current password is incorrect' };
+        }
+
+        const hashedNewPassword = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS || 12);
+        const auditService = require('./auditService');
+
         await userRepository.updateUserProfile(userId, {
             name,
-            password: newPassword,
+            password: hashedNewPassword,
             profilePhoto,
             phone: validatedPhone !== undefined ? validatedPhone : user.Phone
+        });
+
+        auditService.logSecurityEvent({
+            userId: user.User_ID,
+            actorEmail: user.Email,
+            actorRole: user.Role,
+            action: 'PASSWORD_CHANGE',
+            resourceType: 'USER',
+            resourceId: user.User_ID,
+            result: 'SUCCESS'
         });
     } else {
         await userRepository.updateUserProfile(userId, {

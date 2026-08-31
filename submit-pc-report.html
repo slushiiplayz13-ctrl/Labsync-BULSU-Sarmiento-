@@ -89,80 +89,195 @@
       border-color: rgba(239, 68, 68, 0.4) !important;
     }
 
-    html.high-contrast .status-btn:not(.active) {
-      color: #64748B;
+    html.dark-mode .form-card,
+    body.dark-mode .form-card,
+    [data-theme="dark"] .form-card,
+    html.high-contrast .form-card {
+      background: var(--bg-card, #0F172A) !important;
+      border-color: var(--border-light, rgba(255, 255, 255, 0.12)) !important;
     }
 
-    html.high-contrast .status-btn:not(.active):hover {
-      background: #1F2937;
-      color: #F8FAFC;
-    }
-
-    html.high-contrast .input-field,
-    html.high-contrast .remarks-textarea {
-      background: #1F2937 !important;
-      border-color: #374151 !important;
+    html.dark-mode .equipment-card,
+    body.dark-mode .equipment-card,
+    [data-theme="dark"] .equipment-card,
+    html.high-contrast .equipment-card {
+      background: rgba(30, 41, 59, 0.6) !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
       color: #F8FAFC !important;
     }
 
+    html.dark-mode .equipment-card.status-working,
+    body.dark-mode .equipment-card.status-working,
+    [data-theme="dark"] .equipment-card.status-working,
+    html.high-contrast .equipment-card.status-working {
+      background: rgba(30, 41, 59, 0.6) !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+
+    html.dark-mode .equipment-card.status-issue,
+    body.dark-mode .equipment-card.status-issue,
+    [data-theme="dark"] .equipment-card.status-issue,
+    html.high-contrast .equipment-card.status-issue {
+      background: rgba(239, 68, 68, 0.1) !important;
+      border-color: rgba(239, 68, 68, 0.35) !important;
+    }
+
+    html.dark-mode .eq-controls,
+    body.dark-mode .eq-controls,
+    [data-theme="dark"] .eq-controls,
+    html.high-contrast .eq-controls {
+      background: rgba(15, 23, 42, 0.7) !important;
+    }
+
+    html.dark-mode .status-btn:not(.active),
+    body.dark-mode .status-btn:not(.active),
+    [data-theme="dark"] .status-btn:not(.active),
+    html.high-contrast .status-btn:not(.active) {
+      color: #94A3B8 !important;
+    }
+
+    html.dark-mode .status-btn:not(.active):hover,
+    body.dark-mode .status-btn:not(.active):hover,
+    [data-theme="dark"] .status-btn:not(.active):hover,
+    html.high-contrast .status-btn:not(.active):hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .input-group .input-wrapper input.input-field,
+    body.dark-mode .input-group .input-wrapper input.input-field,
+    [data-theme="dark"] .input-group .input-wrapper input.input-field,
+    html.high-contrast .input-group .input-wrapper input.input-field,
+    html.dark-mode .input-wrapper input.input-field,
+    body.dark-mode .input-wrapper input.input-field,
+    [data-theme="dark"] .input-wrapper input.input-field,
+    html.high-contrast .input-wrapper input.input-field,
+    html.dark-mode .input-field,
+    body.dark-mode .input-field,
+    [data-theme="dark"] .input-field,
+    html.high-contrast .input-field,
+    html.dark-mode .remarks-textarea,
+    body.dark-mode .remarks-textarea,
+    [data-theme="dark"] .remarks-textarea,
+    html.high-contrast .remarks-textarea {
+      background: rgba(30, 41, 59, 0.85) !important;
+      border-color: rgba(255, 255, 255, 0.18) !important;
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .input-group .input-wrapper input.input-field:focus,
+    body.dark-mode .input-group .input-wrapper input.input-field:focus,
+    [data-theme="dark"] .input-group .input-wrapper input.input-field:focus,
+    html.high-contrast .input-group .input-wrapper input.input-field:focus,
+    html.dark-mode .input-wrapper input.input-field:focus,
+    body.dark-mode .input-wrapper input.input-field:focus,
+    [data-theme="dark"] .input-wrapper input.input-field:focus,
+    html.high-contrast .input-wrapper input.input-field:focus,
+    html.dark-mode .input-field:focus,
+    body.dark-mode .input-field:focus,
+    [data-theme="dark"] .input-field:focus,
     html.high-contrast .input-field:focus,
+    html.dark-mode .remarks-textarea:focus,
+    body.dark-mode .remarks-textarea:focus,
+    [data-theme="dark"] .remarks-textarea:focus,
     html.high-contrast .remarks-textarea:focus {
-      background: #111827 !important;
-      border-color: #00A3C4 !important;
+      background: #0F172A !important;
+      border-color: #38BDF8 !important;
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.25) !important;
+      color: #FFFFFF !important;
     }
 
+    html.dark-mode .input-field::placeholder,
+    body.dark-mode .input-field::placeholder,
+    [data-theme="dark"] .input-field::placeholder,
+    html.dark-mode .remarks-textarea::placeholder,
+    body.dark-mode .remarks-textarea::placeholder,
+    [data-theme="dark"] .remarks-textarea::placeholder {
+      color: #64748B !important;
+    }
+
+    html.dark-mode .checkbox-custom,
+    body.dark-mode .checkbox-custom,
+    [data-theme="dark"] .checkbox-custom,
     html.high-contrast .checkbox-custom {
-      background: #111827 !important;
-      border-color: #64748B !important;
+      background: rgba(30, 41, 59, 0.7) !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
     }
 
+    html.dark-mode .confirm-row.checked .checkbox-custom,
+    body.dark-mode .confirm-row.checked .checkbox-custom,
+    [data-theme="dark"] .confirm-row.checked .checkbox-custom,
     html.high-contrast .confirm-row.checked .checkbox-custom {
-      background: #00A3C4 !important;
-      border-color: #00A3C4 !important;
+      background: #1EBBD7 !important;
+      border-color: #1EBBD7 !important;
+      color: #FFFFFF !important;
     }
 
+    html.dark-mode .confirm-text,
+    body.dark-mode .confirm-text,
+    [data-theme="dark"] .confirm-text,
     html.high-contrast .confirm-text {
       color: #CBD5E1 !important;
     }
 
-    html.high-contrast .success-card {
-      background: #111827 !important;
-      color: #F8FAFC !important;
+    html.dark-mode .submit-btn:disabled,
+    body.dark-mode .submit-btn:disabled,
+    [data-theme="dark"] .submit-btn:disabled,
+    html.high-contrast .submit-btn:disabled,
+    html.dark-mode .submit-btn.btn-disabled,
+    body.dark-mode .submit-btn.btn-disabled,
+    [data-theme="dark"] .submit-btn.btn-disabled {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: #64748B !important;
+      box-shadow: none !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      opacity: 0.7 !important;
     }
 
+    html.dark-mode .submit-btn:not(:disabled):not(.btn-disabled),
+    body.dark-mode .submit-btn:not(:disabled):not(.btn-disabled),
+    [data-theme="dark"] .submit-btn:not(:disabled):not(.btn-disabled),
+    html.high-contrast .submit-btn:not(:disabled):not(.btn-disabled) {
+      background: linear-gradient(135deg, #1EBBD7, #0EA5C9) !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 16px rgba(30, 187, 215, 0.35) !important;
+      cursor: pointer !important;
+    }
+
+    html.dark-mode .info-header-box,
+    body.dark-mode .info-header-box,
+    [data-theme="dark"] .info-header-box,
+    html.high-contrast .info-header-box {
+      background: rgba(14, 165, 233, 0.12) !important;
+      border-color: rgba(56, 189, 248, 0.25) !important;
+    }
+
+    html.dark-mode .info-item,
+    body.dark-mode .info-item,
+    [data-theme="dark"] .info-item,
+    html.high-contrast .info-item {
+      color: #38BDF8 !important;
+    }
+
+    html.dark-mode .success-card,
+    body.dark-mode .success-card,
+    [data-theme="dark"] .success-card,
+    html.high-contrast .success-card {
+      background: #0F172A !important;
+      color: #F8FAFC !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }
+
+    html.dark-mode .success-text,
+    body.dark-mode .success-text,
+    [data-theme="dark"] .success-text,
     html.high-contrast .success-text {
       color: #CBD5E1 !important;
     }
 
-    html.high-contrast .form-title {
-      background: none !important;
-      -webkit-text-fill-color: #F8FAFC !important;
-      color: #F8FAFC !important;
-    }
-
-    html.high-contrast .info-item {
-      color: #00A3C4 !important;
-    }
-
-    html.high-contrast .info-header-box {
-      background: #1A2E35 !important;
-      border-color: rgba(0, 163, 196, 0.25) !important;
-    }
-
-    html.high-contrast .eq-controls {
-      background: #0B0F19 !important;
-    }
-
-    html.high-contrast .success-btn {
-      background: #00A3C4 !important;
-      color: #ffffff !important;
-    }
-
-    html.high-contrast .success-btn:hover {
-      background: #008EA6 !important;
-    }
-
-    /* --- High Contrast / Dark Mode Logo Overrides --- */
+    html.dark-mode img[src*="labsync-logo"],
+    body.dark-mode img[src*="labsync-logo"],
+    [data-theme="dark"] img[src*="labsync-logo"],
     html.high-contrast img[src*="labsync-logo"] {
       content: url("assets/labsync-logo - dark mode.png") !important;
     }
@@ -413,7 +528,7 @@
       font-family: var(--font-body) !important;
       font-size: 14px !important;
       color: var(--text-dark) !important;
-      background: #F8FAFC !important;
+      background: var(--bg-body, #F8FAFC);
       outline: none !important;
       transition: all var(--transition) !important;
       box-sizing: border-box !important;
@@ -422,7 +537,7 @@
     .input-group .input-wrapper input.input-field:focus,
     .input-wrapper input.input-field:focus,
     .input-wrapper .input-field:focus {
-      background: #FFFFFF !important;
+      background: var(--bg-white, #FFFFFF);
       border-color: var(--primary-teal) !important;
       box-shadow: 0 0 0 4px rgba(30, 187, 215, 0.15) !important;
     }
@@ -559,6 +674,10 @@
       user-select: none;
     }
 
+    .status-btn * {
+      pointer-events: none !important;
+    }
+
     .status-btn:not(.active):hover {
       background: #E2E8F0;
       color: var(--text-dark);
@@ -566,16 +685,16 @@
 
     /* Green Working Active */
     .status-btn.working-btn.active {
-      background: var(--status-working);
-      color: #FFFFFF;
-      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+      background: #10B981 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35) !important;
     }
 
     /* Red Issue Active */
     .status-btn.issue-btn.active {
-      background: var(--status-issue);
-      color: #FFFFFF;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+      background: #EF4444 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35) !important;
     }
 
     /* ─── REMARKS ────────────────────────────────────────────────────── */
@@ -641,6 +760,10 @@
       gap: 10px;
       cursor: pointer;
       user-select: none;
+    }
+
+    .confirm-row * {
+      pointer-events: none !important;
     }
 
     .checkbox-custom {
@@ -1244,10 +1367,10 @@
                   <span class="eq-name">All-in-One PC/ Laptop</span>
                 </div>
                 <div class="eq-controls">
-                  <button class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
+                  <button type="button" class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
                     <i data-lucide="check" style="width:12px;height:12px;"></i>Working
                   </button>
-                  <button class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
+                  <button type="button" class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
                     <i data-lucide="x" style="width:12px;height:12px;"></i>Issue
                   </button>
                 </div>
@@ -1262,10 +1385,10 @@
                   <span class="eq-name">Monitor</span>
                 </div>
                 <div class="eq-controls">
-                  <button class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
+                  <button type="button" class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
                     <i data-lucide="check" style="width:12px;height:12px;"></i>Working
                   </button>
-                  <button class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
+                  <button type="button" class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
                     <i data-lucide="x" style="width:12px;height:12px;"></i>Issue
                   </button>
                 </div>
@@ -1280,10 +1403,10 @@
                   <span class="eq-name">System Unit</span>
                 </div>
                 <div class="eq-controls">
-                  <button class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
+                  <button type="button" class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
                     <i data-lucide="check" style="width:12px;height:12px;"></i>Working
                   </button>
-                  <button class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
+                  <button type="button" class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
                     <i data-lucide="x" style="width:12px;height:12px;"></i>Issue
                   </button>
                 </div>
@@ -1298,10 +1421,10 @@
                   <span class="eq-name">Keyboard</span>
                 </div>
                 <div class="eq-controls">
-                  <button class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
+                  <button type="button" class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
                     <i data-lucide="check" style="width:12px;height:12px;"></i>Working
                   </button>
-                  <button class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
+                  <button type="button" class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
                     <i data-lucide="x" style="width:12px;height:12px;"></i>Issue
                   </button>
                 </div>
@@ -1316,10 +1439,10 @@
                   <span class="eq-name">Mouse</span>
                 </div>
                 <div class="eq-controls">
-                  <button class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
+                  <button type="button" class="status-btn working-btn active" onclick="toggleStatus(this, 'working')">
                     <i data-lucide="check" style="width:12px;height:12px;"></i>Working
                   </button>
-                  <button class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
+                  <button type="button" class="status-btn issue-btn" onclick="toggleStatus(this, 'issue')">
                     <i data-lucide="x" style="width:12px;height:12px;"></i>Issue
                   </button>
                 </div>
@@ -1350,7 +1473,7 @@
           </section>
 
           <!-- Submit -->
-          <button class="submit-btn" id="submit-button" onclick="handleSubmit()" disabled>
+          <button class="submit-btn btn-disabled" id="submit-button" onclick="handleSubmit()">
             Submit Report
           </button>
         </div>

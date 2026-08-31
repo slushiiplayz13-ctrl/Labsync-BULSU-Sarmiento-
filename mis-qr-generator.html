@@ -28,45 +28,105 @@
 
     .qr-sticker,
     html.high-contrast .qr-sticker {
-      padding: 20px;
-      text-align: center;
+      width: 2.5in !important;
+      height: 0.9in !important;
+      min-width: 2.5in !important;
+      max-width: 2.5in !important;
+      min-height: 0.9in !important;
+      max-height: 0.9in !important;
+      padding: 0.04in 0.08in !important;
+      box-sizing: border-box !important;
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 0.08in !important;
       border: 1.5px dashed #cbd5e1 !important;
       page-break-inside: avoid;
       background: #ffffff !important;
       color: #0f172a !important;
-      border-radius: 12px;
+      border-radius: 8px;
       box-shadow: none !important;
+      overflow: hidden !important;
     }
 
+    .qr-sticker-left {
+      flex: 0 0 0.78in;
+      width: 0.78in;
+      height: 0.78in;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-sticker-left img,
     .qr-sticker img,
     html.high-contrast .qr-sticker img {
-      max-width: 150px;
-      height: auto;
+      width: 0.76in !important;
+      height: 0.76in !important;
+      max-width: 0.76in !important;
+      max-height: 0.76in !important;
+      object-fit: contain;
       display: block;
       margin: 0 auto;
     }
 
-    .qr-sticker h2,
-    html.high-contrast .qr-sticker h2 {
-      margin: 12px 0 4px !important;
-      color: #0f172a !important;
-      -webkit-text-fill-color: #0f172a !important;
-      font-size: 18px !important;
-      font-weight: 700 !important;
-      font-family: var(--font-display), sans-serif !important;
+    .qr-sticker-right {
+      flex: 1 !important;
+      min-width: 0 !important;
+      width: calc(100% - 0.86in) !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: flex-start !important;
+      text-align: left !important;
     }
 
+    .qr-sticker-right h2,
+    .qr-sticker h2,
+    html.high-contrast .qr-sticker h2 {
+      display: block !important;
+      width: 100% !important;
+      margin: 0 0 2px 0 !important;
+      padding: 0 !important;
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+      font-size: 16.5px !important;
+      font-weight: 800 !important;
+      line-height: 1.12 !important;
+      font-family: var(--font-display), sans-serif !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      letter-spacing: -0.3px !important;
+    }
+
+    .qr-sticker-right p,
     .qr-sticker p,
     html.high-contrast .qr-sticker p {
+      display: block !important;
+      width: 100% !important;
       margin: 0 !important;
-      color: #475569 !important;
-      -webkit-text-fill-color: #475569 !important;
-      font-size: 12px !important;
-      font-weight: 600 !important;
+      padding: 0 !important;
+      color: #0284c7 !important;
+      -webkit-text-fill-color: #0284c7 !important;
+      font-size: 9.2px !important;
+      font-weight: 700 !important;
+      line-height: 1.15 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.01em !important;
       font-family: var(--font-body), sans-serif !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
     }
 
     @media print {
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+
       body>*:not(#printArea) {
         display: none !important;
       }
@@ -83,23 +143,98 @@
         background: white !important;
       }
 
+      .qr-print-grid {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.12in !important;
+        padding: 0 !important;
+      }
+
       .qr-sticker,
       html.high-contrast .qr-sticker {
-        background: white !important;
+        width: 2.5in !important;
+        height: 0.9in !important;
+        min-width: 2.5in !important;
+        max-width: 2.5in !important;
+        min-height: 0.9in !important;
+        max-height: 0.9in !important;
+        padding: 0.04in 0.08in !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 0.08in !important;
+        border: 1px dashed #94a3b8 !important;
+        page-break-inside: avoid !important;
+        background: #ffffff !important;
         color: #0f172a !important;
-        border: 1px dashed #ccc !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
       }
 
+      .qr-sticker-left {
+        flex: 0 0 0.78in !important;
+        width: 0.78in !important;
+        height: 0.78in !important;
+        max-width: 0.78in !important;
+        max-height: 0.78in !important;
+      }
+
+      .qr-sticker-left img {
+        width: 0.76in !important;
+        height: 0.76in !important;
+        max-width: 0.76in !important;
+        max-height: 0.76in !important;
+        object-fit: contain !important;
+        margin: 0 !important;
+      }
+
+      .qr-sticker-right {
+        flex: 1 !important;
+        min-width: 0 !important;
+        width: calc(100% - 0.86in) !important;
+        height: 0.78in !important;
+        max-height: 0.78in !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: flex-start !important;
+      }
+
+      .qr-sticker-right h2,
       .qr-sticker h2,
       html.high-contrast .qr-sticker h2 {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 0 2px 0 !important;
+        padding: 0 !important;
         color: #0f172a !important;
         -webkit-text-fill-color: #0f172a !important;
+        font-size: 16.5px !important;
+        font-weight: 800 !important;
+        line-height: 1.12 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
       }
 
+      .qr-sticker-right p,
       .qr-sticker p,
       html.high-contrast .qr-sticker p {
-        color: #475569 !important;
-        -webkit-text-fill-color: #475569 !important;
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        color: #0284c7 !important;
+        -webkit-text-fill-color: #0284c7 !important;
+        font-size: 9.2px !important;
+        font-weight: 700 !important;
+        line-height: 1.15 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
       }
     }
 
@@ -211,7 +346,7 @@
           <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-light);" id="addPcRoomSubtitle">Add computer
             units to room</p>
         </div>
-        <button onclick="closeAddPcModal()"
+        <button type="button" id="btnCloseAddPcModal" data-action="close-add-pc-modal"
           style="background: none; border: none; cursor: pointer; color: var(--text-light); padding: 4px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
           <i data-lucide="x" style="width: 20px; height: 20px;"></i>
         </button>
@@ -220,11 +355,11 @@
       <!-- Prominent Mode Switcher Tabs -->
       <div
         style="display: flex; gap: 8px; margin-bottom: 20px; background: var(--bg-body); padding: 4px; border-radius: 10px; border: 1px solid var(--border-light);">
-        <button type="button" id="tabModeSimple" onclick="selectAddMode('simple')"
+        <button type="button" id="tabModeSimple" data-action="select-mode" data-mode="simple"
           style="flex: 1; padding: 10px 12px; border: none; background: var(--bg-white); color: var(--primary-teal); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font-body); display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); transition: all 0.2s;">
           <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i> Quick Add (Quantity)
         </button>
-        <button type="button" id="tabModeCustom" onclick="selectAddMode('custom')"
+        <button type="button" id="tabModeCustom" data-action="select-mode" data-mode="custom"
           style="flex: 1; padding: 10px 14px; border: none; background: transparent; color: var(--text-light); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font-body); display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
           <i data-lucide="hash" style="width: 16px; height: 16px;"></i> Specific PC Number
         </button>
@@ -238,15 +373,14 @@
 
         <!-- Quantity Input with Stepper -->
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-          <button type="button" onclick="adjustCount(-1)"
+          <button type="button" id="btnAdjustCountMinus" data-action="adjust-count" data-delta="-1"
             style="width: 44px; height: 44px; padding: 0; border: 1.5px solid var(--border-light); background: var(--bg-white); border-radius: 10px; cursor: pointer; color: var(--text-dark); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
             title="Decrease">
             <i data-lucide="minus" style="width: 18px; height: 18px;"></i>
           </button>
           <input type="number" id="pcCountInput" min="1" max="100" value="30"
-            style="flex: 1; height: 44px; box-sizing: border-box; text-align: center; border: 1.5px solid var(--border-light); border-radius: 10px; font-size: 16px; font-weight: 700; color: var(--primary-teal); background: var(--bg-white); outline: none; margin-bottom: 0;"
-            oninput="updateSimplePreview()">
-          <button type="button" onclick="adjustCount(1)"
+            style="flex: 1; height: 44px; box-sizing: border-box; text-align: center; border: 1.5px solid var(--border-light); border-radius: 10px; font-size: 16px; font-weight: 700; color: var(--primary-teal); background: var(--bg-white); outline: none; margin-bottom: 0;">
+          <button type="button" id="btnAdjustCountPlus" data-action="adjust-count" data-delta="1"
             style="width: 44px; height: 44px; padding: 0; border: 1.5px solid var(--border-light); background: var(--bg-white); border-radius: 10px; cursor: pointer; color: var(--text-dark); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
             title="Increase">
             <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
@@ -255,16 +389,16 @@
 
         <!-- Quick Presets -->
         <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-          <button type="button" onclick="setCountPreset(1)" class="pc-preset-btn"
+          <button type="button" class="pc-preset-btn" data-action="set-preset" data-count="1"
             style="flex: 1; padding: 8px 6px; border: 1px solid var(--border-light); background: var(--bg-white); border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-dark);">1
             PC</button>
-          <button type="button" onclick="setCountPreset(10)" class="pc-preset-btn"
+          <button type="button" class="pc-preset-btn" data-action="set-preset" data-count="10"
             style="flex: 1; padding: 8px 6px; border: 1px solid var(--border-light); background: var(--bg-white); border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-dark);">10
             PCs</button>
-          <button type="button" onclick="setCountPreset(20)" class="pc-preset-btn"
+          <button type="button" class="pc-preset-btn" data-action="set-preset" data-count="20"
             style="flex: 1; padding: 8px 6px; border: 1px solid var(--border-light); background: var(--bg-white); border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-dark);">20
             PCs</button>
-          <button type="button" onclick="setCountPreset(30)" class="pc-preset-btn"
+          <button type="button" class="pc-preset-btn" data-action="set-preset" data-count="30"
             style="flex: 1; padding: 8px 6px; border: 1px solid var(--border-light); background: var(--bg-white); border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-dark);">30
             PCs</button>
         </div>
@@ -283,8 +417,7 @@
           style="display: block; font-size: 13px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Enter
           Specific PC Number</label>
         <input type="number" id="newPcNumberInput" min="1" max="999" placeholder="Enter PC Number (e.g., 5, 12, 24...)"
-          style="width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1.5px solid var(--border-light); background: var(--bg-white); color: var(--text-dark); border-radius: 10px; font-size: 14px; outline: none; margin-bottom: 6px; font-weight: 600; transition: border-color 0.2s;"
-          oninput="validateSpecificPcInput()" />
+          style="width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1.5px solid var(--border-light); background: var(--bg-white); color: var(--text-dark); border-radius: 10px; font-size: 14px; outline: none; margin-bottom: 6px; font-weight: 600; transition: border-color 0.2s;" />
         <div id="specificPcErrorMsg"
           style="display: none; font-size: 12px; color: #EF4444; font-weight: 600; margin-bottom: 8px; align-items: center; gap: 6px; background: rgba(239,68,68,0.1); padding: 8px 12px; border-radius: 8px;">
           <i data-lucide="alert-circle" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
@@ -296,8 +429,43 @@
 
       <!-- Actions -->
       <div class="pc-modal-actions" style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px;">
-        <button class="pc-modal-btn cancel" onclick="closeAddPcModal()">Cancel</button>
-        <button class="pc-modal-btn add" id="submitAddPcBtn" onclick="submitAddPc()">Add PCs</button>
+        <button type="button" class="pc-modal-btn cancel" id="btnCancelAddPc"
+          data-action="close-add-pc-modal">Cancel</button>
+        <button type="button" class="pc-modal-btn add" id="submitAddPcBtn" data-action="submit-add-pc">Add PCs</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Delete Confirmation Modal with Unit Previews -->
+  <div id="bulkDeleteModalOverlay" class="pc-modal-overlay">
+    <div class="pc-modal" style="max-width: 480px;">
+      <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px;">
+        <div
+          style="background: rgba(239, 68, 68, 0.12); color: #EF4444; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i data-lucide="trash-2" style="width: 22px; height: 22px;"></i>
+        </div>
+        <div>
+          <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: var(--text-dark);" id="bulkDeleteModalTitle">
+            Delete Selected PCs</h3>
+          <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-light);">This action cannot be undone. Are you
+            sure you want to permanently delete these units?</p>
+        </div>
+      </div>
+
+      <div
+        style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-light, #e2e8f0); border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; max-height: 140px; overflow-y: auto;">
+        <div
+          style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-light, #64748b); letter-spacing: 0.5px; margin-bottom: 6px;">
+          Units to be deleted (<span id="bulkDeleteCountSpan">0</span>):</div>
+        <div id="bulkDeleteUnitsPreview"
+          style="font-size: 13px; font-weight: 600; color: #EF4444; line-height: 1.5; word-break: break-word;"></div>
+      </div>
+
+      <div class="pc-modal-actions">
+        <button type="button" class="pc-modal-btn cancel" id="btnCancelBulkDelete"
+          data-action="close-bulk-delete-modal">Cancel</button>
+        <button type="button" class="pc-modal-btn" id="btnConfirmBulkDelete" data-action="confirm-bulk-delete"
+          style="background: #EF4444; color: #ffffff;">Delete PCs</button>
       </div>
     </div>
   </div>
@@ -340,6 +508,15 @@
           <path d="M16 12h1" />
           <path d="M21 12v.01" />
           <path d="M12 21v-1" />
+        </svg>
+      </button>
+      <button class="sidebar-btn" data-tooltip="Key Management" title="Key Management"
+        onclick="window.location.href='mis-keys.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-key-round">
+          <path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"/>
+          <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
         </svg>
       </button>
     </nav>
@@ -497,27 +674,68 @@
       </div>
 
       <!-- VIEW 2: PC GRID -->
-      <div id="pcGridView" style="display: none; padding-top: 16px;">
+      <div id="pcGridView" style="display: none; padding-top: 16px; position: relative;">
 
         <!-- Controls Header -->
         <div class="pc-grid-header"
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <button class="back-btn" onclick="showRoomSelection()">
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <button type="button" class="back-btn" data-action="return-to-rooms" title="Back to Lab Rooms">
               <i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>
             </button>
             <h2 id="selectedRoomTitle"
               style="font-size: 20px; font-weight: 800; color: var(--primary-teal); font-family: var(--font-display); margin: 0;">
               Room 204</h2>
           </div>
-          <button class="generate-all-btn" onclick="generateAllQR()">
-            <i data-lucide="qr-code" style="width: 16px; height: 16px;"></i>
-            Generate QR ALL PC
-          </button>
+
+          <!-- Header Action Buttons -->
+          <div class="header-actions-group">
+            <button type="button" class="header-add-pc-btn" id="btnHeaderAddPc" data-action="header-add-pc"
+              title="Add PCs to this room">
+              <i data-lucide="plus-circle" style="width: 17px; height: 17px;"></i>
+              Add PCs
+            </button>
+            <button type="button" class="header-select-mode-btn" id="btnToggleSelectionMode"
+              data-action="toggle-selection-mode" title="Select multiple PCs for bulk actions">
+              <i data-lucide="check-square" style="width: 16px; height: 16px;"></i>
+              <span id="btnToggleSelectionModeText">Select PCs</span>
+            </button>
+            <button type="button" class="generate-all-btn" data-action="generate-all-qr"
+              title="Generate QR stickers for all PCs in this room">
+              <i data-lucide="qr-code" style="width: 16px; height: 16px;"></i>
+              Generate QR ALL PC
+            </button>
+          </div>
         </div>
 
         <!-- PCs Container -->
         <div id="dynamicPCGrid" class="pc-grid-container">
+        </div>
+
+        <!-- Floating Sticky Bulk Action Bar (Visible when in selection mode) -->
+        <div id="pcBulkActionBar" class="pc-bulk-action-bar" style="display: none;">
+          <div class="pc-bulk-info">
+            <span class="pc-bulk-badge" id="pcBulkSelectedBadge">0 Selected</span>
+            <button type="button" class="pc-bulk-select-all-btn" id="btnBulkSelectAll"
+              data-action="bulk-toggle-select-all">
+              <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+              <span id="btnBulkSelectAllText">Select All</span>
+            </button>
+          </div>
+          <div class="pc-bulk-actions">
+            <button type="button" class="pc-bulk-btn print" id="btnBulkPrintQR" data-action="bulk-print-qr">
+              <i data-lucide="printer" style="width: 15px; height: 15px;"></i>
+              Print Selected QRs
+            </button>
+            <button type="button" class="pc-bulk-btn delete" id="btnBulkDeletePCs" data-action="bulk-delete-pcs">
+              <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+              Delete Selected
+            </button>
+            <button type="button" class="pc-bulk-btn cancel" id="btnBulkCancelSelection"
+              data-action="cancel-selection-mode">
+              Done
+            </button>
+          </div>
         </div>
 
       </div>

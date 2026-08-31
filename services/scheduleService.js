@@ -3,19 +3,38 @@
 const scheduleRepository = require('../repositories/schedule.repository');
 const iotService = require('./iotService');
 
+const ALLOWED_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
 async function saveRoomSchedule(roomNumber, schedules, academicYear, semester) {
+    if (!roomNumber || (typeof roomNumber !== 'string' && typeof roomNumber !== 'number')) {
+        return { status: 400, error: 'Valid roomNumber is required.' };
+    }
+
+    if (schedules !== undefined && schedules !== null && !Array.isArray(schedules)) {
+        return { status: 400, error: 'schedules must be an Array of schedule entries.' };
+    }
+
     const currentYear = new Date().getFullYear();
-    const ay = academicYear || `${currentYear}-${currentYear + 1}`;
-    const sem = semester || '1st Semester';
+    const ay = (academicYear && typeof academicYear === 'string') ? academicYear.trim() : `${currentYear}-${currentYear + 1}`;
+    const sem = (semester && typeof semester === 'string') ? semester.trim() : '1st Semester';
 
     const [rooms] = await scheduleRepository.findRoomIdByNumber(roomNumber);
     if (rooms.length === 0) return { status: 404, error: 'Room not found' };
     const roomId = rooms[0].Room_ID;
 
+    // Validate individual schedule items if present
+    if (Array.isArray(schedules)) {
+        for (const sched of schedules) {
+            if (sched && sched.day && !ALLOWED_DAYS.includes(sched.day)) {
+                return { status: 400, error: `Invalid day: '${sched.day}'. Allowed days: ${ALLOWED_DAYS.join(', ')}.` };
+            }
+        }
+    }
+
     await scheduleRepository.withTransaction(async (connection) => {
         await scheduleRepository.deleteRoomSchedule(roomId, ay, sem, connection);
 
-        if (schedules && schedules.length > 0) {
+        if (Array.isArray(schedules) && schedules.length > 0) {
             for (const sched of schedules) {
                 const [users] = await scheduleRepository.findUserIdByName(sched.professor, connection);
                 const userId = users.length > 0 ? users[0].User_ID : null;
@@ -23,14 +42,14 @@ async function saveRoomSchedule(roomNumber, schedules, academicYear, semester) {
                 await scheduleRepository.insertSchedule({
                     userId,
                     roomId,
-                    subject: sched.subject,
-                    section: sched.section,
-                    day: sched.day,
-                    startTime: sched.startTime,
-                    endTime: sched.endTime,
+                    subject: sched.subject || '',
+                    section: sched.section || '',
+                    day: sched.day || 'Monday',
+                    startTime: sched.startTime || '07:00:00',
+                    endTime: sched.endTime || '08:00:00',
                     ay,
                     sem,
-                    colorTheme: sched.colorTheme
+                    colorTheme: sched.colorTheme || 'blue'
                 }, connection);
             }
         }
@@ -39,10 +58,14 @@ async function saveRoomSchedule(roomNumber, schedules, academicYear, semester) {
     return { status: 200, message: 'Schedule saved successfully' };
 }
 
-async function checkProfessorConflict(params) {
+async function checkProfessorConflict(params = {}) {
     const { professorName, day, startTime, endTime, academicYear, semester, excludeRoomNumber } = params;
     if (!professorName || !day || !startTime || !endTime) {
         return { status: 400, error: 'Missing required parameters' };
+    }
+
+    if (!ALLOWED_DAYS.includes(day)) {
+        return { status: 400, error: `Invalid day: '${day}'. Allowed days: ${ALLOWED_DAYS.join(', ')}.` };
     }
 
     const currentYear = new Date().getFullYear();

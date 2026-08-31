@@ -905,3 +905,273 @@ html.high-contrast .lab-filter-btn.active {
   border-color: var(--primary-teal, #00A3C4) !important;
   color: #FFFFFF !important;
 }
+
+/* ─── Laboratory Issue Overview Component Styles (MIS Dashboard) ─── */
+.lab-issue-overview-card {
+  padding: 20px 24px;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+  box-sizing: border-box;
+}
+
+.lab-issue-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.lab-issue-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.lab-issue-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.lab-issue-container::-webkit-scrollbar-thumb {
+  background: var(--border-light, #CBD5E1);
+  border-radius: 99px;
+}
+
+.lab-issue-container::-webkit-scrollbar-thumb:hover {
+  background: var(--text-light, #94A3B8);
+}
+
+.lab-issue-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-white);
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.lab-issue-item.has-issues {
+  cursor: pointer;
+}
+
+.lab-issue-item.has-issues:hover {
+  border-color: var(--primary-teal);
+  background: rgba(30, 187, 215, 0.04);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.lab-issue-item.has-issues:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+}
+
+.lab-issue-item.is-clear {
+  cursor: default;
+  opacity: 0.92;
+}
+
+.lab-issue-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.lab-issue-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+  color: #0284C7;
+  border: 1px solid #BAE6FD;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.12);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lab-issue-icon-wrap i,
+.lab-issue-icon-wrap svg {
+  width: 20px !important;
+  height: 20px !important;
+  stroke-width: 2.2px;
+}
+
+.lab-issue-item.has-issues .lab-issue-icon-wrap {
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+  color: #0284C7;
+  border-color: #BAE6FD;
+}
+
+.lab-issue-item.status-attention .lab-issue-icon-wrap {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  color: #D97706;
+  border-color: #FCD34D;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.15);
+}
+
+.lab-issue-item.status-urgent .lab-issue-icon-wrap {
+  background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+  color: #DC2626;
+  border-color: #FCA5A5;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+}
+
+/* Dark Mode & High Contrast Overrides */
+html.dark-mode .lab-issue-icon-wrap,
+body.dark-mode .lab-issue-icon-wrap,
+[data-theme="dark"] .lab-issue-icon-wrap,
+html.high-contrast .lab-issue-icon-wrap {
+  background: rgba(14, 165, 233, 0.18) !important;
+  color: #38BDF8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2) !important;
+}
+
+html.dark-mode .lab-issue-item.status-attention .lab-issue-icon-wrap,
+body.dark-mode .lab-issue-item.status-attention .lab-issue-icon-wrap,
+[data-theme="dark"] .lab-issue-item.status-attention .lab-issue-icon-wrap,
+html.high-contrast .lab-issue-item.status-attention .lab-issue-icon-wrap {
+  background: rgba(245, 158, 11, 0.18) !important;
+  color: #FBBF24 !important;
+  border: 1px solid rgba(251, 191, 36, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2) !important;
+}
+
+html.dark-mode .lab-issue-item.status-urgent .lab-issue-icon-wrap,
+body.dark-mode .lab-issue-item.status-urgent .lab-issue-icon-wrap,
+[data-theme="dark"] .lab-issue-item.status-urgent .lab-issue-icon-wrap,
+html.high-contrast .lab-issue-item.status-urgent .lab-issue-icon-wrap {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #F87171 !important;
+  border: 1px solid rgba(248, 113, 113, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2) !important;
+}
+
+.lab-issue-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lab-issue-room-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lab-issue-subtext {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lab-issue-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.lab-issue-status-badge.badge-clear {
+  background: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
+}
+
+.lab-issue-status-badge.badge-attention {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.lab-issue-status-badge.badge-urgent {
+  background: #FEE2E2;
+  color: #B91C1C;
+  border: 1px solid #FCA5A5;
+}
+
+.lab-issue-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: auto 0;
+}
+
+/* ─── Laboratory Issue Overview Dark & High-Contrast Overrides ─── */
+html.dark-mode .lab-issue-item,
+body.dark-mode .lab-issue-item,
+[data-theme="dark"] .lab-issue-item,
+html.high-contrast .lab-issue-item {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+html.dark-mode .lab-issue-item.has-issues:hover,
+body.dark-mode .lab-issue-item.has-issues:hover,
+[data-theme="dark"] .lab-issue-item.has-issues:hover,
+html.high-contrast .lab-issue-item.has-issues:hover {
+  background: rgba(30, 187, 215, 0.08) !important;
+  border-color: rgba(30, 187, 215, 0.35) !important;
+}
+
+html.dark-mode .lab-issue-status-badge.badge-clear,
+body.dark-mode .lab-issue-status-badge.badge-clear,
+[data-theme="dark"] .lab-issue-status-badge.badge-clear,
+html.high-contrast .lab-issue-status-badge.badge-clear {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+html.dark-mode .lab-issue-status-badge.badge-attention,
+body.dark-mode .lab-issue-status-badge.badge-attention,
+[data-theme="dark"] .lab-issue-status-badge.badge-attention,
+html.high-contrast .lab-issue-status-badge.badge-attention {
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: #fde68a !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+html.dark-mode .lab-issue-status-badge.badge-urgent,
+body.dark-mode .lab-issue-status-badge.badge-urgent,
+[data-theme="dark"] .lab-issue-status-badge.badge-urgent,
+html.high-contrast .lab-issue-status-badge.badge-urgent {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}

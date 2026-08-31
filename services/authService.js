@@ -1,8 +1,21 @@
 'use strict';
 
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const { sendResetPasswordEmail } = require('./emailService');
 const userRepository = require('../repositories/user.repository');
+
+const BCRYPT_SALT_ROUNDS = 12;
+const BCRYPT_HASH_REGEX = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
+
+/**
+ * Checks if a string conforms to the standard Modular Crypt Format for bcrypt hashes ($2a$, $2b$, or $2y$).
+ * @param {string} value
+ * @returns {boolean}
+ */
+function isBcryptHash(value) {
+    return typeof value === 'string' && BCRYPT_HASH_REGEX.test(value);
+}
 
 function isValidEmailFormat(email) {
     if (!email || typeof email !== 'string') return false;
@@ -35,13 +48,43 @@ async function loginUser(email, password) {
         return { status: 400, error: 'Please enter a valid email address format (e.g., user@domain.com).' };
     }
 
+    if (!password || typeof password !== 'string') {
+        return { status: 401, error: 'Invalid email or password' };
+    }
+
     const [users] = await userRepository.findByEmail(email);
 
-    if (users.length === 0 || users[0].Password !== password) {
+    if (users.length === 0) {
         return { status: 401, error: 'Invalid email or password' };
     }
 
     const user = users[0];
+    const storedPassword = user.Password;
+
+    if (!storedPassword) {
+        return { status: 401, error: 'Invalid email or password' };
+    }
+
+    if (isBcryptHash(storedPassword)) {
+        // Standard secure path: verify via bcrypt
+        const isMatch = await bcrypt.compare(password, storedPassword);
+        if (!isMatch) {
+            return { status: 401, error: 'Invalid email or password' };
+        }
+    } else {
+        // TEMPORARY LEGACY MIGRATION PATH:
+        // For existing accounts created prior to bcrypt hardening.
+        // Compare plaintext, and if valid, immediately upgrade database to a cost 12 bcrypt hash.
+        const isMatch = (storedPassword === password);
+        if (!isMatch) {
+            return { status: 401, error: 'Invalid email or password' };
+        }
+
+        const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+        await userRepository.updatePasswordOnly(user.User_ID, hashedPassword);
+        user.Password = hashedPassword;
+    }
+
     return {
         status: 200,
         data: {
@@ -57,6 +100,8 @@ async function loginUser(email, password) {
     };
 }
 
+const GENERIC_RECOVERY_MESSAGE = 'If an account exists with that email address, a password recovery link has been sent.';
+
 async function recoverPassword(email) {
     if (!email || !isValidEmailFormat(email)) {
         return { status: 400, error: 'Please enter a valid email address (e.g., user@domain.com).' };
@@ -64,7 +109,7 @@ async function recoverPassword(email) {
 
     const [users] = await userRepository.findBasicByEmail(email);
     if (users.length === 0) {
-        return { status: 404, error: 'No account found with this email address.' };
+        return { status: 200, message: GENERIC_RECOVERY_MESSAGE };
     }
 
     const user = users[0];
@@ -78,10 +123,10 @@ async function recoverPassword(email) {
     const emailSent = await sendResetPasswordEmail(user.Email, user.Name, resetLink);
 
     if (!emailSent) {
-        return { status: 500, error: 'Failed to send recovery email. Please try again later.' };
+        console.error(`[authService] Failed to dispatch password reset email to user ${user.User_ID}`);
     }
 
-    return { status: 200, message: 'Password recovery email sent. Please check your inbox.' };
+    return { status: 200, message: GENERIC_RECOVERY_MESSAGE };
 }
 
 async function validateResetToken(token) {
@@ -98,6 +143,8 @@ async function validateResetToken(token) {
     return { status: 200, valid: true };
 }
 
+const auditService = require('./auditService');
+
 async function resetPassword(token, password) {
     if (!token || !password) {
         return { status: 400, error: 'Token and new password are required.' };
@@ -110,12 +157,25 @@ async function resetPassword(token, password) {
     }
 
     const user = users[0];
-    await userRepository.updatePasswordReset(user.User_ID, password);
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+    await userRepository.updatePasswordReset(user.User_ID, hashedPassword);
+
+    auditService.logSecurityEvent({
+        userId: user.User_ID,
+        actorEmail: user.Email,
+        actorRole: user.Role,
+        action: 'PASSWORD_RESET',
+        resourceType: 'USER',
+        resourceId: user.User_ID,
+        result: 'SUCCESS'
+    });
 
     return { status: 200, message: 'Password has been reset successfully. You can now log in with your new password.' };
 }
 
 module.exports = {
+    BCRYPT_SALT_ROUNDS,
+    isBcryptHash,
     isValidEmailFormat,
     loginUser,
     recoverPassword,

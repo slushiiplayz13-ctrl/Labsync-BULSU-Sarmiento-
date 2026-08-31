@@ -53,14 +53,61 @@
     },
 
     /**
-     * Initializes global click-outside listener to dismiss menus.
+     * Initializes global click-outside and delegated action listeners.
      */
     initClickOutsideListener() {
-      document.addEventListener('click', () => {
-        facultyMenu.closeAllMenus();
+      if (facultyMenu._listenerInitialized) return;
+      facultyMenu._listenerInitialized = true;
+
+      document.addEventListener('click', (e) => {
+        const menuBtn = e.target.closest('.faculty-menu-btn');
+        if (menuBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          const menuId = menuBtn.getAttribute('data-menu-id') || menuBtn.nextElementSibling?.id;
+          if (menuId) {
+            facultyMenu.toggleMenu(e, menuId);
+          }
+          return;
+        }
+
+        const menuItem = e.target.closest('.faculty-dropdown-menu .menu-item');
+        if (menuItem) {
+          e.preventDefault();
+          e.stopPropagation();
+          const action = menuItem.getAttribute('data-action');
+          const prof = menuItem.getAttribute('data-prof');
+          const userId = menuItem.getAttribute('data-user-id');
+          const role = menuItem.getAttribute('data-role');
+          facultyMenu.closeAllMenus();
+
+          if (action === 'schedule' && typeof global.viewFacultySchedule === 'function') {
+            global.viewFacultySchedule(prof);
+          } else if (action === 'role' && typeof global.changeFacultyRole === 'function') {
+            global.changeFacultyRole(userId, prof, role);
+          } else if (action === 'delete' && typeof global.confirmDeleteFaculty === 'function') {
+            global.confirmDeleteFaculty(userId, prof);
+          }
+          return;
+        }
+
+        const filterBtn = e.target.closest('#filter-btn, .faculty-filter-btn');
+        if (filterBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          facultyMenu.toggleFacultyFilterDropdown(e);
+          return;
+        }
+
+        if (!e.target.closest('.faculty-dropdown-menu') && !e.target.closest('#filter-dropdown')) {
+          facultyMenu.closeAllMenus();
+        }
       });
     }
   };
+
+  // Auto-init delegated listeners
+  facultyMenu.initClickOutsideListener();
 
   // Expose globally
   global.facultyMenu = facultyMenu;

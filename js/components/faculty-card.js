@@ -82,19 +82,19 @@
           
           <div style="display:flex;align-items:center;gap:6px;">
             <div style="position: relative;">
-              <button class="faculty-menu-btn" onclick="toggleMenu(event, 'menu-${memberId}')">
+              <button type="button" class="faculty-menu-btn" data-menu-id="menu-${memberId}" aria-label="Faculty options">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-more-vertical"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
               </button>
               <div id="menu-${memberId}" class="faculty-dropdown-menu">
-                <div class="menu-item" onclick="viewFacultySchedule('${escapedProfName}')">
+                <div class="menu-item" data-action="schedule" data-prof="${escapedProfName}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> View Schedule
                 </div>
                 ${isBoss ? '' : `
-                <div class="menu-item" onclick="changeFacultyRole('${member.User_ID}', '${escapedProfName}', '${escapedRole}')">
+                <div class="menu-item" data-action="role" data-user-id="${member.User_ID}" data-prof="${escapedProfName}" data-role="${escapedRole}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Change Role
                 </div>
                 <div class="menu-divider"></div>
-                <div class="menu-item" onclick="confirmDeleteFaculty('${member.User_ID}', '${escapedProfName}')" style="color: #EF4444;">
+                <div class="menu-item" data-action="delete" data-user-id="${member.User_ID}" data-prof="${escapedProfName}" style="color: #EF4444;">
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-x" style="color:#EF4444;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><line x1="17" x2="22" y1="8" y2="13"/><line x1="22" x2="17" y1="8" y2="13"/></svg> Remove Faculty
                 </div>
                 `}

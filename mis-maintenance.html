@@ -12,12 +12,12 @@
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=1.0.3" />
+  <link rel="stylesheet" href="style.css?v=1.0.7" />
   <script src="js/auth-check.js"></script>
   <script src="js/utils/core-utils.js"></script>
   <script src="js/utils/dom-utils.js"></script>
   <script src="js/reports/report.parser.js"></script>
-  <script src="js/pages/mis-maintenance/maintenance.renderer.js"></script>
+  <script src="js/pages/mis-maintenance/maintenance.renderer.js?v=1.0.6"></script>
   <style>
     /* Filter Pills */
     .filter-pills-row {
@@ -225,9 +225,9 @@
       top: 0;
       background: transparent !important;
       z-index: 25;
-      padding-top: 4px;
-      padding-bottom: 8px;
-      margin-bottom: 10px;
+      padding-top: 0;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -282,16 +282,26 @@
       background: #94A3B8;
     }
 
+    .maint-table thead {
+      position: sticky;
+      top: -1px;
+      z-index: 12;
+    }
+
     .maint-table th {
-      padding: 16px 20px;
+      padding: 14px 18px;
       font-size: 13px;
       font-weight: 700;
       color: #334155;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
       background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
       border-bottom: 1.5px solid #CBD5E1;
       box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.4);
+      position: sticky;
+      top: -1px;
+      z-index: 10;
+      white-space: nowrap;
     }
 
     .maint-table td {
@@ -314,26 +324,115 @@
     }
 
     /* Ticket ID Badge */
-    .ticket-chip {
-      font-weight: 800;
-      font-family: monospace;
-      color: var(--primary-teal);
-      background: #E8F9FC;
-      padding: 7px 14px;
-      border-radius: 9px;
-      border: 1.5px solid #BCEEFA;
+    .ticket-chip,
+    .ticket-id-tag {
+      font-weight: 700;
+      font-family: var(--font-display);
+      color: #0284C7;
+      background: #E0F2FE;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      border: 1.5px solid #BAE6FD;
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      font-size: 14px;
+      font-size: 13.5px;
+      letter-spacing: 0.3px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
     }
 
-    .ticket-chip:hover {
-      background: var(--primary-teal);
+    .ticket-chip:hover,
+    .ticket-id-tag:hover {
+      background: #0284C7;
       color: #FFFFFF;
-      border-color: var(--primary-teal);
+      border-color: #0284C7;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
+    }
+
+    .btn-others-count:hover {
+      background: var(--primary-teal) !important;
+      color: #FFFFFF !important;
+      border-color: var(--primary-teal) !important;
+      box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3) !important;
+    }
+
+    /* Modern Interactive Reporter Chip */
+    .reporter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7.5px 14px;
+      border-radius: 9999px;
+      background: #F1F5F9;
+      border: 1.5px solid #CBD5E1;
+      color: #0F172A;
+      font-weight: 700;
+      font-size: 13.5px;
+      user-select: none;
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .reporter-chip.multi {
+      cursor: pointer;
+    }
+
+    .reporter-chip.single {
+      cursor: default !important;
+    }
+
+    .reporter-chip .reporter-chip-name {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: var(--text-dark);
+      letter-spacing: 0.1px;
+    }
+
+    .reporter-chip .reporter-count-badge {
+      font-size: 11px;
+      font-weight: 800;
+      background: rgba(30, 187, 215, 0.18);
+      color: var(--primary-teal);
+      padding: 2px 7px;
+      border-radius: 9999px;
+      margin-left: 2px;
+    }
+
+    .reporter-chip .reporter-chip-arrow {
+      transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .reporter-chip.multi:hover {
+      background: #E0F2FE;
+      border-color: #38BDF8;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.22);
+      transform: translateY(-1px);
+    }
+
+    .reporter-chip.multi:hover .reporter-chip-arrow {
+      transform: translateX(3px);
+      color: #0284C7 !important;
+      opacity: 1 !important;
+    }
+
+    /* Dark Mode Overrides for Reporter Chip */
+    html.dark-mode .reporter-chip,
+    body.dark-mode .reporter-chip,
+    [data-theme="dark"] .reporter-chip,
+    html.high-contrast .reporter-chip {
+      background: rgba(15, 23, 42, 0.6) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      color: #F1F5F9 !important;
+    }
+
+    html.dark-mode .reporter-chip.multi:hover,
+    body.dark-mode .reporter-chip.multi:hover,
+    [data-theme="dark"] .reporter-chip.multi:hover,
+    html.high-contrast .reporter-chip.multi:hover {
+      background: rgba(6, 182, 212, 0.15) !important;
+      border-color: #38BDF8 !important;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25) !important;
     }
 
     /* Component Tags */
@@ -360,22 +459,20 @@
 
     /* Remarks Quote Box */
     .remarks-quote-box {
-      font-size: 14.5px;
-      color: var(--text-dark);
-      font-style: italic;
-      background: #F8FAFC;
-      border-left: 4px solid var(--primary-teal);
-      padding: 12px 16px;
-      border-radius: 0 10px 10px 0;
-      line-height: 1.55;
-      display: block !important;
-      height: auto !important;
-      max-height: none !important;
-      overflow: visible !important;
-      white-space: normal !important;
-      word-break: break-word !important;
-      overflow-wrap: anywhere !important;
-      margin-top: 6px;
+      font-size: 13.5px;
+      color: #0F172A;
+      font-style: normal;
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      line-height: 1.4;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      margin-top: 8px;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     /* Status Badges with Pulse Dot */
@@ -480,16 +577,23 @@
     }
 
     /* High Contrast / Dark Mode Overrides */
-    html.high-contrast .maint-table-wrapper {
-      background: var(--bg-card) !important;
-      border-color: var(--border-light) !important;
+    html.high-contrast .maint-table-wrapper,
+    html.dark-mode .maint-table-wrapper,
+    body.dark-mode .maint-table-wrapper,
+    [data-theme="dark"] .maint-table-wrapper {
+      background: #0F172A !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
     }
 
-    html.high-contrast .maint-table th {
-      background: rgba(255, 255, 255, 0.05) !important;
-      color: var(--text-muted) !important;
-      border-bottom-color: var(--border-light) !important;
+    html.high-contrast .maint-table th,
+    html.dark-mode .maint-table th,
+    body.dark-mode .maint-table th,
+    [data-theme="dark"] .maint-table th {
+      background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%) !important;
+      color: #CBD5E1 !important;
+      border-bottom: 1.5px solid #334155 !important;
+      box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.6) !important;
     }
 
     html.high-contrast .maint-table td {
@@ -501,10 +605,17 @@
       background: rgba(30, 187, 215, 0.08) !important;
     }
 
-    html.high-contrast .ticket-chip {
-      background: rgba(30, 187, 215, 0.15) !important;
-      border-color: rgba(30, 187, 215, 0.3) !important;
-      color: var(--primary-teal) !important;
+    html.dark-mode .ticket-chip,
+    body.dark-mode .ticket-chip,
+    [data-theme="dark"] .ticket-chip,
+    html.high-contrast .ticket-chip,
+    html.dark-mode .ticket-id-tag,
+    body.dark-mode .ticket-id-tag,
+    [data-theme="dark"] .ticket-id-tag,
+    html.high-contrast .ticket-id-tag {
+      background: rgba(6, 182, 212, 0.15) !important;
+      border-color: rgba(56, 189, 248, 0.3) !important;
+      color: #38BDF8 !important;
     }
 
     html.high-contrast .filter-pill {
@@ -525,9 +636,13 @@
       border-color: var(--border-light) !important;
     }
 
-    html.high-contrast .remarks-quote-box {
-      background: rgba(255, 255, 255, 0.05) !important;
-      color: var(--text-dark) !important;
+    html.high-contrast .remarks-quote-box,
+    html.dark-mode .remarks-quote-box,
+    body.dark-mode .remarks-quote-box,
+    [data-theme="dark"] .remarks-quote-box {
+      background: rgba(15, 23, 42, 0.55) !important;
+      color: #F1F5F9 !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
     }
 
     html.high-contrast .completed-chip {
@@ -578,6 +693,15 @@
           <path d="M16 12h1" />
           <path d="M21 12v.01" />
           <path d="M12 21v-1" />
+        </svg>
+      </button>
+      <button class="sidebar-btn" data-tooltip="Key Management" title="Key Management"
+        onclick="window.location.href='mis-keys.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-key-round">
+          <path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"/>
+          <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
         </svg>
       </button>
     </nav>
@@ -703,20 +827,20 @@
 
       <!-- Main Content Card -->
       <div class="dashboard-card"
-        style="padding: 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; min-height: 0;">
+        style="padding: 16px 20px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0;">
 
         <!-- Controls Row -->
         <div class="maint-controls-row">
 
           <!-- Filter Pills -->
           <div class="filter-pills-row">
-            <button class="filter-pill active" id="filter-all" onclick="filterStatus('all')">
+            <button type="button" class="filter-pill active" id="filter-all">
               <i data-lucide="layers" style="width: 16px; height: 16px;"></i> All Tickets
             </button>
-            <button class="filter-pill" id="filter-pending" onclick="filterStatus('pending')">
+            <button type="button" class="filter-pill" id="filter-pending">
               <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i> Pending
             </button>
-            <button class="filter-pill" id="filter-resolved" onclick="filterStatus('resolved')">
+            <button type="button" class="filter-pill" id="filter-resolved">
               <i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i> Resolved
             </button>
           </div>
@@ -743,8 +867,8 @@
                 <th>Date & Time</th>
                 <th>Lab Room</th>
                 <th>PC Unit</th>
+                <th>Reported By</th>
                 <th>Issue Details & Remarks</th>
-                <th>Status</th>
                 <th style="text-align: center;">Actions</th>
               </tr>
             </thead>
@@ -790,9 +914,9 @@
   <script src="js/components/sidebar-nav.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
-  <script src="js/pages/mis-maintenance/maintenance.modal.js"></script>
-  <script src="js/pages/mis-maintenance/maintenance.actions.js"></script>
-  <script src="js/pages/mis-maintenance.js"></script>
+  <script src="js/pages/mis-maintenance/maintenance.modal.js?v=1.0.6"></script>
+  <script src="js/pages/mis-maintenance/maintenance.actions.js?v=1.0.6"></script>
+  <script src="js/pages/mis-maintenance.js?v=1.0.8"></script>
   <script src="js/tutorial.js"></script>
 </body>
 

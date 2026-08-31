@@ -131,6 +131,34 @@
   color: #059669;
 }
 
+/* Status Pill Dark Mode Theme Overrides */
+html.dark-mode .status-pill.pending,
+body.dark-mode .status-pill.pending,
+[data-theme="dark"] .status-pill.pending,
+html.high-contrast .status-pill.pending {
+  background: rgba(245, 158, 11, 0.18) !important;
+  color: #FBBF24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+html.dark-mode .status-pill.in-progress,
+body.dark-mode .status-pill.in-progress,
+[data-theme="dark"] .status-pill.in-progress,
+html.high-contrast .status-pill.in-progress {
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: #60A5FA !important;
+  border: 1px solid rgba(59, 130, 246, 0.35) !important;
+}
+
+html.dark-mode .status-pill.resolved,
+body.dark-mode .status-pill.resolved,
+[data-theme="dark"] .status-pill.resolved,
+html.high-contrast .status-pill.resolved {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #34D399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
+
 /* ─── Component Issue Tag Styles ─── */
 .issue-tag {
   display: inline-flex;
@@ -230,23 +258,27 @@ html.high-contrast .section-chip {
 }
 
 /* ─── Ticket ID Chip Badge Component Styles ─── */
-.ticket-chip {
+.ticket-chip,
+.ticket-id-tag {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-display);
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 700;
   color: #0284C7;
   background: #E0F2FE;
   border: 1.5px solid #BAE6FD;
-  padding: 6px 15px;
+  padding: 4px 13px;
   border-radius: 9999px;
   white-space: nowrap;
+  letter-spacing: 0.3px;
+  user-select: all;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.ticket-chip:hover {
+.ticket-chip:hover,
+.ticket-id-tag:hover {
   background: #0284C7;
   color: #ffffff;
   border-color: #0284C7;
@@ -259,6 +291,10 @@ html.dark-mode .ticket-chip,
 body.dark-mode .ticket-chip,
 [data-theme="dark"] .ticket-chip,
 html.high-contrast .ticket-chip,
+html.dark-mode .ticket-id-tag,
+body.dark-mode .ticket-id-tag,
+[data-theme="dark"] .ticket-id-tag,
+html.high-contrast .ticket-id-tag,
 html.dark-mode .badge-ticket-id,
 body.dark-mode .badge-ticket-id,
 [data-theme="dark"] .badge-ticket-id,
@@ -455,6 +491,13 @@ html.high-contrast .priority-badge.high {
   background: rgba(239, 68, 68, 0.15) !important;
   color: #F87171 !important;
   border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Hide Priority Badges globally across all PC Report views */
+.priority-badge,
+.notif-toast-tag[class*="priority-"],
+.rc-meta-item.priority {
+  display: none !important;
 }
 
 

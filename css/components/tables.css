@@ -12,6 +12,7 @@
   background: rgba(30, 187, 215, 0.04);
 }
 
+
 .table-cell {
   padding: 15px 18px;
   font-size: 15px;
@@ -24,9 +25,49 @@
 }
 
 .table-cell.ticket-id-cell {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 700;
   white-space: nowrap;
+}
+
+/* ─── Static Ticket ID Identifier Badge (View-Only) ─── */
+.ticket-id-tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0284C7;
+  background: #E0F2FE;
+  border: 1.5px solid #BAE6FD;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  user-select: all;
+  cursor: default;
+  transition: all 0.15s ease;
+}
+
+.ticket-id-tag:hover {
+  background: #0284C7;
+  color: #ffffff;
+  border-color: #0284C7;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
+}
+
+html.dark-mode .ticket-id-tag,
+body.dark-mode .ticket-id-tag,
+[data-theme="dark"] .ticket-id-tag,
+html.high-contrast .ticket-id-tag {
+  color: #38BDF8 !important;
+  background: rgba(6, 182, 212, 0.15) !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+/* Dashboard reports table row cursor and reading highlight */
+.reports-table tbody tr.table-data-row {
+  cursor: default;
 }
 
 .table-cell.date-cell {
@@ -40,6 +81,7 @@
   font-weight: 700;
   white-space: nowrap;
   font-size: 15.5px;
+  text-align: left;
 }
 
 .table-cell.issue-cell {
@@ -48,6 +90,50 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ─── Reports Table Column Width & Spacing Specifications ─── */
+.reports-table th.col-ticket,
+.reports-table td.col-ticket {
+  width: 15%;
+  min-width: 110px;
+  text-align: left;
+}
+
+.reports-table th.col-date,
+.reports-table td.col-date {
+  width: 20%;
+  min-width: 140px;
+  text-align: left;
+}
+
+.reports-table th.col-room,
+.reports-table td.col-room {
+  width: 16%;
+  min-width: 110px;
+  text-align: left;
+}
+
+.reports-table th.col-pc,
+.reports-table td.col-pc {
+  width: 13%;
+  min-width: 80px;
+  text-align: left;
+}
+
+.reports-table th.col-issue,
+.reports-table td.col-issue {
+  width: 19%;
+  min-width: 130px;
+  text-align: left;
+}
+
+.reports-table th.col-status,
+.reports-table td.col-status {
+  width: 17%;
+  min-width: 130px;
+  text-align: center;
+  padding-right: 64px !important;
 }
 
 .table-cell.issue-cell strong {
@@ -70,14 +156,14 @@
 }
 
 .maint-table th {
-  padding: 16px 18px;
-  font-size: 13.5px;
+  padding: 13px 18px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #334155;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  border-bottom: 1.5px solid var(--border-light);
-  background: var(--bg-white);
+  letter-spacing: 0.08em;
+  border-bottom: 1.5px solid #CBD5E1;
+  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -92,12 +178,63 @@
 }
 
 .maint-table tr {
-  transition: background 0.15s ease;
+  transition: background 0.2s ease;
 }
 
 .maint-table tr:hover {
   background: rgba(30, 187, 215, 0.04);
 }
+
+/* ─── Target Ticket Deep-Link Row Highlight ─── */
+.maint-table tr.maintenance-row.highlighted-ticket {
+  background: rgba(30, 187, 215, 0.14) !important;
+  animation: ticketRowPulse 3s ease-out forwards;
+}
+
+.maint-table tr.maintenance-row.highlighted-ticket td:first-child {
+  box-shadow: inset 5px 0 0 var(--primary-teal, #1EBBD7) !important;
+}
+
+@keyframes ticketRowPulse {
+  0% {
+    background: rgba(30, 187, 215, 0.32);
+  }
+  30% {
+    background: rgba(30, 187, 215, 0.22);
+  }
+  100% {
+    background: rgba(30, 187, 215, 0.12);
+  }
+}
+
+html.dark-mode .maint-table tr.maintenance-row.highlighted-ticket,
+body.dark-mode .maint-table tr.maintenance-row.highlighted-ticket,
+[data-theme="dark"] .maint-table tr.maintenance-row.highlighted-ticket,
+html.high-contrast .maint-table tr.maintenance-row.highlighted-ticket {
+  background: rgba(30, 187, 215, 0.22) !important;
+  animation: ticketRowPulseDark 3s ease-out forwards;
+}
+
+html.dark-mode .maint-table tr.maintenance-row.highlighted-ticket td:first-child,
+body.dark-mode .maint-table tr.maintenance-row.highlighted-ticket td:first-child,
+[data-theme="dark"] .maint-table tr.maintenance-row.highlighted-ticket td:first-child,
+html.high-contrast .maint-table tr.maintenance-row.highlighted-ticket td:first-child {
+  box-shadow: inset 5px 0 0 #38BDF8 !important;
+}
+
+@keyframes ticketRowPulseDark {
+  0% {
+    background: rgba(30, 187, 215, 0.40);
+  }
+  30% {
+    background: rgba(30, 187, 215, 0.26);
+  }
+  100% {
+    background: rgba(30, 187, 215, 0.16);
+  }
+}
+
+
 
 /* ─── Maintenance Table Date & Column Cell Component Styles ─── */
 .maint-table .col-date-wrap {
@@ -256,29 +393,35 @@ html.high-contrast .btn-page.btn-next:not(:disabled) {
   text-align: left;
 }
 
-.reports-table-head {
+.reports-table-head,
+.maint-table thead,
+thead {
   position: sticky;
-  top: 0;
-  z-index: 10;
+  top: -1px;
+  z-index: 12;
 }
 
 .table-header-cell,
 .reports-table th,
 .reports-table-head th,
 .maint-table th,
-.dashboard-table th {
-  padding: 13px 18px;
-  font-size: 11.5px;
+.dashboard-table th,
+.table-container th,
+.maint-table-wrapper th,
+table th,
+thead th {
+  padding: 14px 18px;
+  font-size: 13px;
   font-weight: 700;
   color: #334155;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
-  border-bottom: 1.5px solid #CBD5E1;
-  box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.4);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  letter-spacing: 0.05em;
+  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%) !important;
+  border-bottom: 1.5px solid #CBD5E1 !important;
+  box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.4) !important;
+  position: sticky !important;
+  top: -1px !important;
+  z-index: 10 !important;
   white-space: nowrap;
 }
 
@@ -294,15 +437,28 @@ html.dark-mode .reports-table th,
 html.dark-mode .reports-table-head th,
 html.dark-mode .maint-table th,
 html.dark-mode .dashboard-table th,
+html.dark-mode table th,
+html.dark-mode thead th,
 body.dark-mode .table-header-cell,
 body.dark-mode .reports-table th,
+body.dark-mode .reports-table-head th,
 body.dark-mode .maint-table th,
+body.dark-mode .dashboard-table th,
+body.dark-mode table th,
+body.dark-mode thead th,
 [data-theme="dark"] .table-header-cell,
 [data-theme="dark"] .reports-table th,
+[data-theme="dark"] .reports-table-head th,
 [data-theme="dark"] .maint-table th,
+[data-theme="dark"] .dashboard-table th,
+[data-theme="dark"] table th,
+[data-theme="dark"] thead th,
+html.dark table th,
+body.dark table th,
 html.high-contrast .table-header-cell,
 html.high-contrast .reports-table th,
-html.high-contrast .maint-table th {
+html.high-contrast .maint-table th,
+html.high-contrast table th {
   background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%) !important;
   border-bottom: 1.5px solid #334155 !important;
   box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.6) !important;

@@ -19,6 +19,7 @@
 
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css?v=1.1.2" />
+  <link rel="stylesheet" href="css/tutorial.css" />
   <script src="js/auth-check.js"></script>
   <script src="js/utils/core-utils.js"></script>
   <script src="js/utils/dom-utils.js"></script>
@@ -35,7 +36,7 @@
 
     <nav class="sidebar-nav">
       <button class="sidebar-btn active" data-tooltip="Dashboard" title="Dashboard"
-        onclick="window.location.href='it-head-dashboard.html'">
+        data-url="it-head-dashboard.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-home">
@@ -44,7 +45,7 @@
         </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status"
-        onclick="window.location.href='it-head-room-status.html'">
+        data-url="it-head-room-status.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-monitor-dot">
@@ -55,7 +56,7 @@
         </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports"
-        onclick="window.location.href='it-head-pc-reports.html'">
+        data-url="it-head-pc-reports.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-file-bar-chart-2">
@@ -67,7 +68,7 @@
         </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule"
-        onclick="window.location.href='it-head-my-schedule.html'">
+        data-url="it-head-my-schedule.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-calendar-days">
@@ -88,7 +89,7 @@
       </div>
 
       <button class="sidebar-btn desktop-only-btn" data-tooltip="Master Schedule" title="Master Schedule"
-        onclick="window.location.href='master-schedule.html'">
+        data-url="master-schedule.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-calendar">
@@ -99,7 +100,7 @@
         </svg>
       </button>
       <button class="sidebar-btn desktop-only-btn" data-tooltip="Faculty Management" title="Faculty Management"
-        onclick="window.location.href='faculty-management.html'">
+        data-url="faculty-management.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-users">
@@ -112,8 +113,7 @@
       <div class="mobile-only-divider"
         style="width: 1px; height: 32px; background: var(--border-light); margin: auto 6px; align-self: center; flex-shrink: 0;">
       </div>
-      <button class="sidebar-btn mobile-only-btn" data-tooltip="Admin Panel" title="Admin Panel"
-        onclick="toggleAdminMenu(event, this)">
+      <button class="sidebar-btn mobile-only-btn" id="sidebar-admin-btn" data-tooltip="Admin Panel" title="Admin Panel">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-folder-cog">
@@ -135,7 +135,7 @@
     <div class="sidebar-spacer"></div>
 
     <div class="sidebar-bottom">
-      <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
+      <button class="sidebar-btn" id="sidebar-help-btn" data-tooltip="Help & Support" title="Help & Support">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-circle-help">
@@ -144,7 +144,7 @@
           <path d="M12 17h.01" />
         </svg>
       </button>
-      <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
+      <button class="sidebar-btn" id="sidebar-logout-btn" data-tooltip="Logout" title="Logout">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-log-out">

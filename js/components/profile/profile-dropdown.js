@@ -20,7 +20,7 @@
       profileMenu.id = 'profile-menu';
       profileMenu.className = 'profile-menu';
       profileMenu.innerHTML = `
-        <button type="button" onclick="openAccountSettings()" class="profile-menu-item">
+        <button type="button" id="profile-menu-account-btn" class="profile-menu-item">
           <i data-lucide="user-cog" style="width:16px;height:16px;"></i>
           Account Settings
         </button>
@@ -29,27 +29,58 @@
             <i data-lucide="moon" id="profile-dark-mode-icon" style="width:16px;height:16px;"></i>
             <span>Dark Mode</span>
           </div>
-          <label class="menu-switch" onclick="event.stopPropagation()">
+          <label class="menu-switch" id="profile-dark-mode-switch">
             <input type="checkbox" id="profile-dark-mode-checkbox" aria-label="Toggle Dark Mode">
             <span class="menu-slider"></span>
           </label>
         </div>
         <div class="profile-menu-divider"></div>
-        <button type="button" onclick="openHelpModal()" class="profile-menu-item">
+        <button type="button" id="profile-menu-help-btn" class="profile-menu-item">
           <i data-lucide="circle-help" style="width:16px;height:16px;"></i>
           Help Center
         </button>
-        <button type="button" onclick="window.startSystemTutorial(true)" class="profile-menu-item">
+        <button type="button" id="profile-menu-tutorial-btn" class="profile-menu-item">
           <i data-lucide="play-circle" style="width:16px;height:16px;"></i>
           Watch System Tutorial
         </button>
         <div class="profile-menu-divider"></div>
-        <button type="button" onclick="handleLogout()" class="profile-menu-item logout">
+        <button type="button" id="profile-menu-logout-btn" class="profile-menu-item logout">
           <i data-lucide="log-out" style="width:16px;height:16px;"></i>
           Logout
         </button>
       `;
       headerRight.appendChild(profileMenu);
+
+      // Attach CSP-compliant click handlers to menu actions
+      const accountBtn = profileMenu.querySelector('#profile-menu-account-btn');
+      if (accountBtn) {
+        accountBtn.addEventListener('click', () => {
+          if (typeof global.openAccountSettings === 'function') global.openAccountSettings();
+        });
+      }
+      const switchLabel = profileMenu.querySelector('#profile-dark-mode-switch');
+      if (switchLabel) {
+        switchLabel.addEventListener('click', (e) => e.stopPropagation());
+      }
+      const helpBtn = profileMenu.querySelector('#profile-menu-help-btn');
+      if (helpBtn) {
+        helpBtn.addEventListener('click', () => {
+          if (typeof global.openHelpModal === 'function') global.openHelpModal();
+        });
+      }
+      const tutorialBtn = profileMenu.querySelector('#profile-menu-tutorial-btn');
+      if (tutorialBtn) {
+        tutorialBtn.addEventListener('click', () => {
+          if (typeof global.startSystemTutorial === 'function') global.startSystemTutorial(true);
+        });
+      }
+      const logoutBtn = profileMenu.querySelector('#profile-menu-logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          if (typeof global.handleLogout === 'function') global.handleLogout();
+        });
+      }
+
       if (global.lucide && typeof global.lucide.createIcons === 'function') {
         global.lucide.createIcons({ root: profileMenu });
       }

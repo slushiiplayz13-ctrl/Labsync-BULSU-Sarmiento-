@@ -248,6 +248,13 @@ async function initPrintAllSchedulesPage() {
       }
     }
 
+    const isAutoDownload = urlParams.get('download') === 'true' || urlParams.get('mode') === 'download';
+    if (isAutoDownload) {
+      setTimeout(() => {
+        triggerDownload();
+      }, 700);
+    }
+
   } catch (err) {
     console.error('Error generating all schedules:', err);
     pagesContainer.innerHTML = '<div style="padding: 40px; color: #ef4444; font-family: \'Plus Jakarta Sans\', sans-serif;">An error occurred while loading schedules.</div>';
@@ -258,6 +265,34 @@ let _printAllSchedulesInitialized = false;
 function bootstrapPrintAllSchedules() {
   if (_printAllSchedulesInitialized) return;
   _printAllSchedulesInitialized = true;
+
+  const closeBtn = document.querySelector('.btn-close');
+  if (closeBtn) {
+    closeBtn.removeAttribute('onclick');
+    closeBtn.addEventListener('click', () => {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.close();
+      }
+    });
+  }
+
+  const downloadBtn = document.querySelector('.btn-download, #btn-download-pdf');
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', () => {
+      triggerDownload();
+    });
+  }
+
+  const printBtn = document.querySelector('.btn-print');
+  if (printBtn) {
+    printBtn.removeAttribute('onclick');
+    printBtn.addEventListener('click', () => {
+      window.print();
+    });
+  }
+
   initPrintAllSchedulesPage();
 }
 

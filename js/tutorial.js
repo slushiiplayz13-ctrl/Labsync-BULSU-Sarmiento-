@@ -145,16 +145,23 @@
             position: 'right'
         },
         {
+            selector: '.sidebar-nav .sidebar-btn[data-tooltip*="Key Management"], .sidebar .sidebar-btn[title*="Key Management"]',
+            title: '🔑 Key Management & Tracking',
+            badge: 'Menu 4: Key Management',
+            description: 'Manage physical laboratory keys, print 2-sided QR keychain inserts, track Active/Missing/Found key status, and monitor IoT box access logs.',
+            position: 'right'
+        },
+        {
             selector: '.sidebar-bottom .sidebar-btn[data-tooltip="Help & Support"], .sidebar-bottom .sidebar-btn:first-child, .sidebar .sidebar-btn[title="Help & Support"], .header-right .profile-dropdown, .header-right',
             title: '❓ Help & Support',
-            badge: 'Menu 4: Help & Support',
+            badge: 'Menu 5: Help & Support',
             description: 'Access technical documentation, maintenance standard operating procedures, and system manuals.',
             position: 'right'
         },
         {
             selector: '.header-right .profile-widget, .header-right .profile-info, .header-right .avatar, .header-right .profile-dropdown, .header-right',
             title: '🪪 Digital QR ID & Profile',
-            badge: 'Menu 5: Profile & Settings',
+            badge: 'Menu 6: Profile & Settings',
             description: 'Manage your MIS staff account credentials, update your password, and customize display preferences.',
             position: 'bottom-left'
         }
@@ -277,6 +284,18 @@
         document.getElementById('tut-prev-btn').addEventListener('click', previousStep);
         document.getElementById('tut-next-btn').addEventListener('click', nextStep);
 
+        // Backdrop click to dismiss
+        overlayEl.addEventListener('click', (e) => {
+            if (e.target === overlayEl) skipTutorial();
+        });
+
+        // Escape key to dismiss
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlayEl && overlayEl.classList.contains('active')) {
+                skipTutorial();
+            }
+        });
+
         window.addEventListener('resize', handleReposition);
         window.addEventListener('scroll', handleReposition, { passive: true });
     }
@@ -298,11 +317,19 @@
         createTutorialElements();
         currentStepIndex = 0;
 
-        if (overlayEl) overlayEl.style.display = 'block';
-        if (cardEl) cardEl.style.display = 'block';
+        if (overlayEl) {
+            overlayEl.style.display = 'block';
+            overlayEl.classList.add('active');
+        }
+        if (cardEl) {
+            cardEl.style.display = 'block';
+            cardEl.style.opacity = '1';
+            cardEl.style.visibility = 'visible';
+            cardEl.style.pointerEvents = 'auto';
+            cardEl.style.zIndex = '99999';
+            cardEl.classList.add('active');
+        }
 
-        overlayEl.classList.add('active');
-        cardEl.classList.add('active');
         showStep(currentStepIndex);
     }
 
@@ -505,6 +532,10 @@
             cardEl.style.left = `${cardLeft}px`;
             cardEl.style.width = '';
             cardEl.style.transform = 'none';
+            cardEl.style.opacity = '1';
+            cardEl.style.visibility = 'visible';
+            cardEl.style.pointerEvents = 'auto';
+            cardEl.style.zIndex = '99999';
         }
     }
 

@@ -172,3 +172,501 @@
   }
 }
 
+
+/* ─── Top Header Action Buttons ────────────────────────────────── */
+.header-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.header-add-pc-btn {
+  background: var(--primary-teal, #1EBBD7);
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: var(--font-body, inherit);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(30, 187, 215, 0.25);
+  transition: all 0.2s ease;
+}
+
+.header-add-pc-btn:hover {
+  background: #189ca8;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(30, 187, 215, 0.32);
+}
+
+.header-select-mode-btn {
+  background: var(--bg-white, #ffffff);
+  color: var(--text-dark, #0f172a);
+  border: 1.5px solid var(--border-light, #cbd5e1);
+  padding: 10px 16px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: var(--font-body, inherit);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.header-select-mode-btn:hover {
+  border-color: var(--primary-teal, #1EBBD7);
+  color: var(--primary-teal, #1EBBD7);
+  background: rgba(30, 187, 215, 0.04);
+}
+
+.header-select-mode-btn.active {
+  background: var(--primary-teal-light, rgba(30, 187, 215, 0.12));
+  border-color: var(--primary-teal, #1EBBD7);
+  color: var(--primary-teal, #1EBBD7);
+}
+
+/* ─── Selection Mode on PC Cards ──────────────────────────────── */
+.pc-qr-card.in-selection-mode {
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.pc-qr-card.in-selection-mode:hover {
+  border-color: var(--primary-teal, #1EBBD7);
+  transform: translateY(-2px);
+}
+
+.pc-qr-card.is-selected {
+  border-color: var(--primary-teal, #1EBBD7) !important;
+  background-color: #f0fdfa !important;
+  box-shadow: 0 0 0 2px var(--primary-teal, #1EBBD7), 0 8px 20px rgba(30, 187, 215, 0.18) !important;
+}
+
+.pc-card-checkbox {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border-light, #cbd5e1);
+  background: var(--bg-white, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.pc-qr-card.is-selected .pc-card-checkbox {
+  background: var(--primary-teal, #1EBBD7);
+  border-color: var(--primary-teal, #1EBBD7);
+  color: #ffffff;
+}
+
+.pc-card-checkbox svg {
+  width: 14px;
+  height: 14px;
+  stroke: #ffffff;
+  stroke-width: 3;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.pc-qr-card.is-selected .pc-card-checkbox svg {
+  opacity: 1;
+}
+
+/* ─── Sticky Bulk Floating Action Bar ─────────────────────────── */
+.pc-bulk-action-bar {
+  position: sticky;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  margin: 20px auto 0 auto;
+  max-width: 860px;
+  width: calc(100% - 32px);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid var(--primary-teal, #1EBBD7);
+  border-radius: 16px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(30, 187, 215, 0.15);
+  z-index: 90;
+  animation: slideUpFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pc-bulk-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pc-bulk-badge {
+  background: var(--primary-teal, #1EBBD7);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.pc-bulk-select-all-btn {
+  background: none;
+  border: none;
+  color: var(--text-dark, #0f172a);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.pc-bulk-select-all-btn:hover {
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--primary-teal, #1EBBD7);
+}
+
+.pc-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pc-bulk-btn {
+  padding: 9px 16px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-body, inherit);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.pc-bulk-btn.print {
+  background: #10B981;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+.pc-bulk-btn.print:hover {
+  background: #059669;
+}
+
+.pc-bulk-btn.delete {
+  background: #EF4444;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+
+.pc-bulk-btn.delete:hover {
+  background: #DC2626;
+}
+
+.pc-bulk-btn.cancel {
+  background: transparent;
+  color: var(--text-light, #64748b);
+  border: 1px solid var(--border-light, #cbd5e1);
+}
+
+.pc-bulk-btn.cancel:hover {
+  background: var(--bg-white, #ffffff);
+  color: var(--text-dark, #0f172a);
+}
+
+@media (max-width: 767px) {
+  .pc-bulk-action-bar {
+    flex-direction: column;
+    align-items: stretch;
+    bottom: 12px;
+    padding: 12px;
+    width: calc(100% - 16px);
+  }
+  .pc-bulk-info {
+    justify-content: space-between;
+  }
+  .pc-bulk-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .pc-bulk-btn.cancel {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+  .header-actions-group {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .header-actions-group .generate-all-btn {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ================================================================
+   Dark Mode & High Contrast Overrides (html.high-contrast, html.dark-mode)
+   ================================================================ */
+html.high-contrast .pc-grid-container,
+html.dark-mode .pc-grid-container,
+[data-theme="dark"] .pc-grid-container {
+  border-color: rgba(0, 163, 196, 0.4) !important;
+  background: transparent !important;
+}
+
+html.high-contrast .pc-qr-card,
+html.dark-mode .pc-qr-card,
+[data-theme="dark"] .pc-qr-card {
+  background: var(--bg-card, #1F2937) !important;
+  border-color: var(--border-light, #374151) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.high-contrast .pc-qr-card:hover,
+html.dark-mode .pc-qr-card:hover,
+[data-theme="dark"] .pc-qr-card:hover {
+  border-color: var(--primary-teal, #00A3C4) !important;
+  box-shadow: 0 8px 20px rgba(0, 163, 196, 0.25) !important;
+}
+
+html.high-contrast .pc-qr-title,
+html.dark-mode .pc-qr-title,
+[data-theme="dark"] .pc-qr-title {
+  color: var(--primary-teal, #00A3C4) !important;
+}
+
+/* Header Buttons in Dark Mode */
+html.high-contrast .header-select-mode-btn,
+html.dark-mode .header-select-mode-btn,
+[data-theme="dark"] .header-select-mode-btn {
+  background: var(--bg-card, #1F2937) !important;
+  color: var(--text-dark, #F8FAFC) !important;
+  border-color: var(--border-light, #374151) !important;
+}
+
+html.high-contrast .header-select-mode-btn:hover,
+html.dark-mode .header-select-mode-btn:hover,
+[data-theme="dark"] .header-select-mode-btn:hover {
+  border-color: var(--primary-teal, #00A3C4) !important;
+  color: var(--primary-teal, #00A3C4) !important;
+  background: rgba(0, 163, 196, 0.12) !important;
+}
+
+html.high-contrast .header-select-mode-btn.active,
+html.dark-mode .header-select-mode-btn.active,
+[data-theme="dark"] .header-select-mode-btn.active {
+  background: rgba(0, 163, 196, 0.2) !important;
+  border-color: var(--primary-teal, #00A3C4) !important;
+  color: #38BDF8 !important;
+}
+
+/* Selection Mode Cards in Dark Mode */
+html.high-contrast .pc-qr-card.in-selection-mode:hover,
+html.dark-mode .pc-qr-card.in-selection-mode:hover,
+[data-theme="dark"] .pc-qr-card.in-selection-mode:hover {
+  border-color: var(--primary-teal, #00A3C4) !important;
+}
+
+html.high-contrast .pc-qr-card.is-selected,
+html.dark-mode .pc-qr-card.is-selected,
+[data-theme="dark"] .pc-qr-card.is-selected {
+  border-color: var(--primary-teal, #00A3C4) !important;
+  background-color: rgba(0, 163, 196, 0.16) !important;
+  box-shadow: 0 0 0 2px var(--primary-teal, #00A3C4), 0 8px 24px rgba(0, 163, 196, 0.25) !important;
+}
+
+html.high-contrast .pc-card-checkbox,
+html.dark-mode .pc-card-checkbox,
+[data-theme="dark"] .pc-card-checkbox {
+  background: var(--bg-card, #1F2937) !important;
+  border-color: var(--border-light, #4B5563) !important;
+}
+
+html.high-contrast .pc-qr-card.is-selected .pc-card-checkbox,
+html.dark-mode .pc-qr-card.is-selected .pc-card-checkbox,
+[data-theme="dark"] .pc-qr-card.is-selected .pc-card-checkbox {
+  background: var(--primary-teal, #00A3C4) !important;
+  border-color: var(--primary-teal, #00A3C4) !important;
+  color: #ffffff !important;
+}
+
+/* Sticky Bulk Action Bar in Dark Mode */
+html.high-contrast .pc-bulk-action-bar,
+html.dark-mode .pc-bulk-action-bar,
+[data-theme="dark"] .pc-bulk-action-bar {
+  background: rgba(31, 41, 55, 0.94) !important;
+  border-color: var(--border-light, #374151) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 163, 196, 0.3) !important;
+}
+
+html.high-contrast .pc-bulk-select-all-btn,
+html.dark-mode .pc-bulk-select-all-btn,
+[data-theme="dark"] .pc-bulk-select-all-btn {
+  color: var(--text-dark, #F8FAFC) !important;
+}
+
+html.high-contrast .pc-bulk-select-all-btn:hover,
+html.dark-mode .pc-bulk-select-all-btn:hover,
+[data-theme="dark"] .pc-bulk-select-all-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--primary-teal, #00A3C4) !important;
+}
+
+html.high-contrast .pc-bulk-btn.cancel,
+html.dark-mode .pc-bulk-btn.cancel,
+[data-theme="dark"] .pc-bulk-btn.cancel {
+  background: var(--bg-card, #1F2937) !important;
+  color: var(--text-mid, #CBD5E1) !important;
+  border-color: var(--border-light, #374151) !important;
+}
+
+html.high-contrast .pc-bulk-btn.cancel:hover,
+html.dark-mode .pc-bulk-btn.cancel:hover,
+[data-theme="dark"] .pc-bulk-btn.cancel:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-dark, #F8FAFC) !important;
+}
+
+/* Modals (Add PC Modal & Bulk Delete Modal) in Dark Mode */
+html.high-contrast .pc-modal,
+html.dark-mode .pc-modal,
+[data-theme="dark"] .pc-modal {
+  background: var(--bg-card, #1F2937) !important;
+  border-color: var(--border-light, #374151) !important;
+  color: var(--text-dark, #F8FAFC) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.high-contrast .pc-modal h3,
+html.dark-mode .pc-modal h3,
+[data-theme="dark"] .pc-modal h3 {
+  color: var(--text-dark, #F8FAFC) !important;
+}
+
+html.high-contrast .pc-modal input,
+html.dark-mode .pc-modal input,
+[data-theme="dark"] .pc-modal input {
+  background: var(--bg-white, #111827) !important;
+  color: var(--text-dark, #F8FAFC) !important;
+  border-color: var(--border-light, #374151) !important;
+}
+
+html.high-contrast .pc-modal-btn.cancel,
+html.dark-mode .pc-modal-btn.cancel,
+[data-theme="dark"] .pc-modal-btn.cancel {
+  background: var(--bg-white, #111827) !important;
+  color: var(--text-dark, #F8FAFC) !important;
+  border-color: var(--border-light, #374151) !important;
+}
+
+html.high-contrast .pc-modal-btn.cancel:hover,
+html.dark-mode .pc-modal-btn.cancel:hover,
+[data-theme="dark"] .pc-modal-btn.cancel:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.high-contrast .pc-preset-btn,
+html.dark-mode .pc-preset-btn,
+[data-theme="dark"] .pc-preset-btn {
+  background: var(--bg-white, #111827) !important;
+  color: var(--text-dark, #F8FAFC) !important;
+  border-color: var(--border-light, #374151) !important;
+}
+
+html.high-contrast .pc-preset-btn:hover,
+html.dark-mode .pc-preset-btn:hover,
+[data-theme="dark"] .pc-preset-btn:hover {
+  border-color: var(--primary-teal, #00A3C4) !important;
+  color: var(--primary-teal, #00A3C4) !important;
+  background: rgba(0, 163, 196, 0.12) !important;
+}
+
+html.high-contrast #btnAdjustCountMinus,
+html.high-contrast #btnAdjustCountPlus,
+html.dark-mode #btnAdjustCountMinus,
+html.dark-mode #btnAdjustCountPlus,
+[data-theme="dark"] #btnAdjustCountMinus,
+[data-theme="dark"] #btnAdjustCountPlus {
+  background: var(--bg-white, #111827) !important;
+  color: var(--text-dark, #F8FAFC) !important;
+  border-color: var(--border-light, #374151) !important;
+}
+
+html.high-contrast #simplePreviewBox,
+html.dark-mode #simplePreviewBox,
+[data-theme="dark"] #simplePreviewBox {
+  background: rgba(0, 163, 196, 0.15) !important;
+  border-color: rgba(0, 163, 196, 0.3) !important;
+  color: #38BDF8 !important;
+}
+
+html.high-contrast .tab-mode-active,
+html.dark-mode .tab-mode-active,
+[data-theme="dark"] .tab-mode-active {
+  background: var(--bg-card, #1F2937) !important;
+  color: var(--primary-teal, #00A3C4) !important;
+}
+
+html.high-contrast #tabModeSimple:not(.tab-mode-active),
+html.high-contrast #tabModeCustom:not(.tab-mode-active),
+html.dark-mode #tabModeSimple:not(.tab-mode-active),
+html.dark-mode #tabModeCustom:not(.tab-mode-active),
+[data-theme="dark"] #tabModeSimple:not(.tab-mode-active),
+[data-theme="dark"] #tabModeCustom:not(.tab-mode-active) {
+  background: transparent !important;
+  color: var(--text-muted, #94A3B8) !important;
+}
+
+html.high-contrast #bulkDeleteModalOverlay div[style*="background: var(--bg-body"],
+html.high-contrast #bulkDeleteModalOverlay div[style*="background:var(--bg-body"],
+html.dark-mode #bulkDeleteModalOverlay div[style*="background: var(--bg-body"],
+html.dark-mode #bulkDeleteModalOverlay div[style*="background:var(--bg-body"],
+[data-theme="dark"] #bulkDeleteModalOverlay div[style*="background: var(--bg-body"],
+[data-theme="dark"] #bulkDeleteModalOverlay div[style*="background:var(--bg-body"] {
+  background: var(--bg-white, #111827) !important;
+  border-color: var(--border-light, #374151) !important;
+}
+
+html.high-contrast #bulkDeleteUnitsPreview,
+html.dark-mode #bulkDeleteUnitsPreview,
+[data-theme="dark"] #bulkDeleteUnitsPreview {
+  color: #F87171 !important;
+}
+

@@ -23,24 +23,164 @@
   }
 
   /**
-   * Renders recent activity feed using shared ecosystem activity renderer.
-   * @param {Array} reports - List of report objects
+   * Renders the Laboratory Issue Overview summarizing active PC issues by laboratory room.
+   * Active Issues = Pending + In Progress (Resolved are excluded).
+   * @param {Array} rooms - List of laboratory objects
+   * @param {Array} reports - List of PC maintenance report objects
    */
-  function renderActivityFeed(reports) {
-    const feedContainer = document.getElementById('misDashboardActivityList') || document.querySelector('.activity-feed-list');
-    if (!feedContainer) return;
-    if (typeof global.renderEcosystemActivityFeed === 'function') {
-      global.renderEcosystemActivityFeed(reports, feedContainer);
+  function renderLabIssueOverview(rooms, reports) {
+    const container = document.getElementById('misLabIssueOverviewContainer');
+    if (!container) return;
+
+    if (!Array.isArray(rooms) || rooms.length === 0) {
+      container.innerHTML = `
+        <div class="lab-issue-empty">
+          <span>No laboratories registered.</span>
+        </div>
+      `;
+      return;
+    }
+
+    const reportList = Array.isArray(reports) ? reports : [];
+
+    // Group active reports by normalized room number
+    const roomIssueMap = new Map();
+    rooms.forEach(r => {
+      const roomNum = String(r.Room_Number || '').trim();
+      const normKey = roomNum.replace(/^RM\s*/i, '').toLowerCase();
+      roomIssueMap.set(normKey, {
+        room: r,
+        roomNumber: roomNum,
+        normKey: normKey,
+        pending: 0,
+        inProgress: 0,
+        activeTotal: 0
+      });
+    });
+
+    reportList.forEach(rep => {
+      const status = (rep.Status || '').toLowerCase();
+      // Only count active issues: Pending or In Progress (exclude Resolved)
+      if (status === 'resolved') return;
+
+      const repRoom = String(rep.Room_Number || '').trim();
+      const normKey = repRoom.replace(/^RM\s*/i, '').toLowerCase();
+
+      let entry = roomIssueMap.get(normKey);
+      if (!entry) {
+        entry = {
+          room: { Room_Number: repRoom },
+          roomNumber: repRoom,
+          normKey: normKey,
+          pending: 0,
+          inProgress: 0,
+          activeTotal: 0
+        };
+        roomIssueMap.set(normKey, entry);
+      }
+
+      if (status === 'in progress') {
+        entry.inProgress += 1;
+      } else {
+        entry.pending += 1;
+      }
+      entry.activeTotal += 1;
+    });
+
+    // Sort rooms: rooms with active issues first (descending), then room number ascending
+    const sortedEntries = Array.from(roomIssueMap.values()).sort((a, b) => {
+      if (b.activeTotal !== a.activeTotal) {
+        return b.activeTotal - a.activeTotal;
+      }
+      return String(a.roomNumber).localeCompare(String(b.roomNumber), undefined, { numeric: true });
+    });
+
+    container.innerHTML = sortedEntries.map(entry => {
+      const activeCount = entry.activeTotal;
+      const hasIssues = activeCount > 0;
+      
+      // Determine attention level and status badge
+      let statusClass = 'is-clear';
+      let badgeClass = 'badge-clear';
+      let badgeIcon = 'check-circle-2';
+      let badgeText = 'Clear';
+      let subtext = 'All PCs operational';
+
+      if (activeCount >= 3) {
+        statusClass = 'has-issues status-urgent';
+        badgeClass = 'badge-urgent';
+        badgeIcon = 'alert-octagon';
+        badgeText = `${activeCount} Active Issue${activeCount !== 1 ? 's' : ''}`;
+        const parts = [];
+        if (entry.pending > 0) parts.push(`${entry.pending} Pending`);
+        if (entry.inProgress > 0) parts.push(`${entry.inProgress} In Progress`);
+        subtext = parts.join(' • ') || 'Urgent attention required';
+      } else if (activeCount > 0) {
+        statusClass = 'has-issues status-attention';
+        badgeClass = 'badge-attention';
+        badgeIcon = 'alert-triangle';
+        badgeText = `${activeCount} Active Issue${activeCount !== 1 ? 's' : ''}`;
+        const parts = [];
+        if (entry.pending > 0) parts.push(`${entry.pending} Pending`);
+        if (entry.inProgress > 0) parts.push(`${entry.inProgress} In Progress`);
+        subtext = parts.join(' • ') || 'Needs attention';
+      }
+
+      const roomDisplay = entry.roomNumber.toLowerCase().startsWith('room')
+        ? entry.roomNumber
+        : `Room ${entry.roomNumber}`;
+
+      const encodedRoom = encodeURIComponent(entry.roomNumber);
+
+      return `
+        <div class="lab-issue-item ${statusClass}"
+             data-room="${encodedRoom}"
+             tabindex="${hasIssues ? '0' : '-1'}"
+             role="${hasIssues ? 'button' : 'region'}"
+             aria-label="${escapeStr(roomDisplay)}: ${badgeText}. ${escapeStr(subtext)}">
+          <div class="lab-issue-item-left">
+            <div class="lab-issue-icon-wrap">
+              <i data-lucide="${hasIssues ? 'monitor-x' : 'monitor-check'}" style="width: 18px; height: 18px;"></i>
+            </div>
+            <div class="lab-issue-details">
+              <div class="lab-issue-room-name">${escapeStr(roomDisplay)}</div>
+              <div class="lab-issue-subtext">${escapeStr(subtext)}</div>
+            </div>
+          </div>
+          <div class="lab-issue-status-badge ${badgeClass}">
+            <i data-lucide="${badgeIcon}" style="width: 13px; height: 13px;"></i>
+            <span>${badgeText}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (global.lucide && typeof global.lucide.createIcons === 'function') {
+      global.lucide.createIcons({ root: container });
     }
   }
 
-  let _currentReports = [];
+  function escapeStr(str) {
+    if (typeof global.escapeHtml === 'function') return global.escapeHtml(str);
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
 
-  // Initialize in-memory reports from session cache if available
+  let _currentReports = [];
+  let _currentRooms = [];
+
+  // Initialize in-memory reports and rooms from session cache if available
   try {
     const cachedReports = JSON.parse(sessionStorage.getItem('labsync_cached_reports') || 'null');
     if (Array.isArray(cachedReports)) {
       _currentReports = cachedReports;
+    }
+    const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+    if (Array.isArray(cachedLabs)) {
+      _currentRooms = cachedLabs;
     }
   } catch (e) { }
 
@@ -104,11 +244,11 @@
       const resolvedEl = document.getElementById('mis-stat-resolved');
       if (resolvedEl) resolvedEl.textContent = resolvedTickets;
 
-      // Render Recent Reports Table & Activity Feed
+      // Render Recent Reports Table & Laboratory Issue Overview
       if (global.staffDashboardReports && typeof global.staffDashboardReports.renderDashboardTable === 'function') {
         global.staffDashboardReports.renderDashboardTable(_currentReports);
       }
-      renderActivityFeed(reports);
+      renderLabIssueOverview(rooms, reports);
     } catch (err) {
       console.error('[MISDashboard] Error loading dashboard data:', err);
     }
@@ -129,6 +269,12 @@
     }
 
     updateMISGreeting();
+
+    // Initial render from in-memory session cache if present (zero layout shift)
+    if (_currentRooms.length > 0) {
+      renderLabIssueOverview(_currentRooms, _currentReports);
+    }
+
     loadDashboardData();
 
     // Fast in-memory live search filtering without refetching from server
@@ -147,6 +293,32 @@
         }
       });
     }
+
+    // Delegated click & keyboard listener for Laboratory Issue Overview deep-linking (CSP compliant)
+    const issueContainer = document.getElementById('misLabIssueOverviewContainer');
+    if (issueContainer) {
+      issueContainer.addEventListener('click', (e) => {
+        const item = e.target.closest('.lab-issue-item.has-issues');
+        if (!item) return;
+        const encodedRoom = item.getAttribute('data-room');
+        if (encodedRoom) {
+          window.location.href = `mis-maintenance.html?room=${encodedRoom}`;
+        }
+      });
+
+      issueContainer.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          const item = e.target.closest('.lab-issue-item.has-issues');
+          if (item && document.activeElement === item) {
+            e.preventDefault();
+            const encodedRoom = item.getAttribute('data-room');
+            if (encodedRoom) {
+              window.location.href = `mis-maintenance.html?room=${encodedRoom}`;
+            }
+          }
+        }
+      });
+    }
   }
 
   // Auto-initialize on DOMContentLoaded
@@ -158,12 +330,8 @@
     }
   }
 
-  // Global exports for inline HTML handlers & coordinator
+  // Global exports for coordinator
   global.loadDashboardData = loadDashboardData;
-  global.resolveDashboardTicket = function (reportId) {
-    if (global.staffDashboardReports && typeof global.staffDashboardReports.resolveDashboardTicket === 'function') {
-      return global.staffDashboardReports.resolveDashboardTicket(reportId, loadDashboardData);
-    }
-  };
+  global.renderLabIssueOverview = renderLabIssueOverview;
 
 })(typeof window !== 'undefined' ? window : this);

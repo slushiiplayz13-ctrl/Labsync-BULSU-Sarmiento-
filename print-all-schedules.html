@@ -84,6 +84,18 @@
             box-shadow: 0 6px 16px rgba(30, 187, 215, 0.3);
         }
 
+        .btn-download {
+            background-color: #0f766e;
+            color: white;
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
+        }
+
+        .btn-download:hover {
+            background-color: #115e59;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(15, 118, 110, 0.3);
+        }
+
         .btn-close {
             background-color: #f1f5f9;
             color: #475569;
@@ -406,8 +418,9 @@
             <p id="actions-subtitle">Review and verify before printing</p>
         </div>
         <div class="actions-right">
-            <button class="btn-action btn-close" onclick="window.close()">Close</button>
-            <button class="btn-action btn-print" onclick="window.print()">Print Document</button>
+            <button type="button" class="btn-action btn-close">Close</button>
+            <button type="button" class="btn-action btn-download" id="btn-download-pdf">Download PDF</button>
+            <button type="button" class="btn-action btn-print">Print Document</button>
         </div>
     </div>
 

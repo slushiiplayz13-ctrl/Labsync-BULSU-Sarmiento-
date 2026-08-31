@@ -17,6 +17,12 @@ const char* serverUrl = "http://192.168.100.59:3000/api/occupancy/log";
 const char* heartbeatUrl = "http://192.168.100.59:3000/api/occupancy/heartbeat";
 const char* defaultScanRoom = "203"; 
 
+// Device Authentication Credential
+// Unique 256-bit bearer token provisioned for this physical ESP32 device.
+// Limitation Note: The credential is provisioned directly to firmware and is protected from web
+// exposure, but physical flash extraction on an unencrypted microcontroller remains a physical limitation.
+const char* deviceToken = "PROVISIONED_DEVICE_TOKEN_PLACEHOLDER"; 
+
 // Key Slots Configuration
 #define KEY_PIN_203 32 // D32 -> Slot 203 (Expects Key 203: ~1800 ADC)
 #define KEY_PIN_204 33 // D33 -> Slot 204 (Expects Key 204: ~0 ADC)
@@ -86,6 +92,7 @@ void sendHeartbeatToServer() {
     http.begin(heartbeatUrl);
     http.setTimeout(800); // Fast 800ms non-blocking timeout
     http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", String("Bearer ") + deviceToken);
 
     String jsonPayload = "{\"deviceId\":\"ESP32-KeyBox\",\"rooms\":[\"203\",\"204\"]}";
     int code = http.POST(jsonPayload);
@@ -96,6 +103,7 @@ void sendHeartbeatToServer() {
       http.begin(serverUrl);
       http.setTimeout(800);
       http.addHeader("Content-Type", "application/json");
+      http.addHeader("Authorization", String("Bearer ") + deviceToken);
       http.POST("{\"keyEvent\":\"Heartbeat\",\"roomNumber\":\"203\"}");
     }
     http.end();
@@ -225,6 +233,7 @@ void sendScanToServer(String scannedToken) {
     http.begin(serverUrl);
     http.setTimeout(1200);
     http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", String("Bearer ") + deviceToken);
 
     StaticJsonDocument<256> reqDoc;
     reqDoc["qrString"] = scannedToken;
@@ -290,6 +299,7 @@ void sendKeyStatusToServer(String room, bool present) {
     http.begin(serverUrl);
     http.setTimeout(1000);
     http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", String("Bearer ") + deviceToken);
 
     String statusStr = present ? "Key Returned" : "Key Taken";
     String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + room + "\"}";

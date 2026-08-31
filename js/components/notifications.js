@@ -87,8 +87,8 @@
           text = `PC #${notif.pc_number} in Room ${notif.room_number} is now functional.`;
         } else {
           iconName = 'alert-triangle';
-          iconClass = notif.priority === 'High' ? 'notif-icon-high' : 'notif-icon-warning';
-          title = `New PC Report (${notif.priority} Priority)`;
+          iconClass = 'notif-icon-warning';
+          title = 'New PC Report';
           text = `PC #${notif.pc_number} in Room ${notif.room_number}: ${(notif.description || '').substring(0, 80)}`;
         }
       } else if (notif.type === 'occupancy') {
@@ -199,7 +199,6 @@
           <div class="notif-toast-footer-row">
             <div class="notif-toast-tags">
               ${roomNum ? `<span class="notif-toast-tag room"><i data-lucide="map-pin"></i> RM ${roomNum}</span>` : ''}
-              ${isReport && notif.priority ? `<span class="notif-toast-tag priority-${String(notif.priority).toLowerCase()}">${notif.priority} Priority</span>` : ''}
               ${!isReport && notif.session_type ? `<span class="notif-toast-tag session">${notif.session_type}</span>` : (!isReport && notif.status ? `<span class="notif-toast-tag status">${notif.status}</span>` : '')}
             </div>
             <span class="notif-toast-cta">View details <i data-lucide="chevron-right"></i></span>

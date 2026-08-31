@@ -298,11 +298,15 @@ LabSync enforces strict access control across **3 authenticated roles** and **1 
 - Quick navigation tiles to maintenance tools and master schedules.
 
 #### `mis-maintenance.html` — Maintenance Ticket Tracker
-- Kanban status workflow:
-  - **Pending**: Student-submitted fault reports awaiting technician review.
-  - **In Progress**: Ticket accepted and undergoing evaluation/repair.
-  - **Resolved**: Repair verified and ticket closed.
-- Real-time search by ticket ID, room, PC number, and issue type.
+- **Main Table Columns**: `Ticket ID` │ `Date & Time` │ `Lab Room` │ `PC Unit` │ `Reported By` │ `Issue Details & Remarks` │ `Actions`.
+- **Interactive Reported By Column (`.reporter-chip`)**:
+  - **Single Reporter**: Displays a clean pill badge featuring a person icon (`user`) and the student reporter's name.
+  - **Multiple Reporters**: Displays an interactive pill badge featuring a person icon (`user`), first reporter's name, an embedded `+N` count badge, and a right chevron (`›`) cue. Clicking the chip triggers the Ticket Details Modal.
+- **Issue Details & Remarks Card (`.remarks-quote-box`)**: Modern light/dark-mode compatible card displaying a Lucide speech bubble icon (`message-square`) and student remarks string.
+- **Two-State Maintenance Lifecycle**:
+  - **Pending**: Active physical PC fault issue awaiting technician resolution.
+  - **Resolved**: Repair verified and PC restored; issue marked completed.
+- **Ticket Details Modal**: Lists every linked student report submission individually with Student Name, Program & Section, Timestamp, and Remarks.
 - **Completed Tickets History Modal**: Filterable archive of resolved maintenance tickets (All, 7 Days, 30 Days).
 
 #### `mis-qr-generator.html` — PC & QR Code Label Generator
@@ -460,12 +464,14 @@ Database Name: **`labsync`** | Engine: **InnoDB** | Charset: **`utf8mb4`**
 
 1. **`users`**: System user accounts (Faculty, IT Head, MIS Staff) with roles, hashed passwords, avatars, and recovery tokens.
 2. **`laboratories`**: Computer lab rooms with building details and IoT `Key_Status` (*Present* / *Absent*).
-3. **`lab_units`**: Workstation PCs mapped to rooms with unique `PC_QR_String` identifiers.
-4. **`maintenance`**: PC fault tickets submitted by students/staff with category, remarks, priority, and status (*Pending*, *In Progress*, *Resolved*).
-5. **`schedules`**: Timetable class blocks mapped to faculty, room, day, time range, academic year, semester, and color theme.
-6. **`occupancy_log`**: Audit log recording room entry events (*QR Code*, *Key Taken*, *Key Returned*).
-7. **`system_settings`**: Key-value pairs for institution signatories (*Program Chair*, *Campus Dean*).
-8. **`curriculum`**: Master catalog of official academic subjects for timetable scheduling.
+3. **`lab_units`**: Workstation PCs mapped to rooms with unique `PC_QR_String` identifiers and condition status (*Functional* / *Under Maintenance*).
+4. **`maintenance_issues`**: Primary physical PC hardware/software maintenance issues (`Issue_ID`, `PC_ID`, `Issue_Type`, `Status`, `Priority_Level`). Enforces a unique stored generated index (`Active_Issue_Key = IF(Status != 'Resolved', CONCAT(PC_ID, ':', Issue_Type), NULL)`) to guarantee at most ONE active issue per `(PC_ID, Issue_Type)`.
+5. **`maintenance`**: Individual student report submissions (`Report_ID`, `Maintenance_Issue_ID`, `PC_ID`, `Student_Name`, `Issue_Description`, `Date_Reported`). Multiple duplicate reports from students for the same ongoing physical problem link to a single `Maintenance_Issue_ID`.
+6. **`schedules`**: Timetable class blocks mapped to faculty, room, day, time range, academic year, semester, and color theme.
+7. **`occupancy_log`**: Audit log recording room entry events (*QR Code*, *Key Taken*, *Key Returned*).
+8. **`system_settings`**: Key-value pairs for institution signatories (*Program Chair*, *Campus Dean*).
+9. **`curriculum`**: Master catalog of official academic subjects for timetable scheduling.
+10. **`key_logs` & `key_transactions`**: Audit logging and status tracking for laboratory key borrowing/returns.
 
 ### Automated Schema Migrations (`database/migrate.js`)
 On server startup, `initializeDatabase()` automatically applies any pending incremental SQL scripts from `database/migrations/`:
@@ -478,6 +484,10 @@ On server startup, `initializeDatabase()` automatically applies any pending incr
 - `007_add_laboratory_current_user.sql`
 - `008_add_laboratory_last_seen.sql`
 - `009_expand_subject_name.sql`
+- `010_create_iot_devices.sql`
+- `011_create_audit_logs.sql`
+- `012_create_key_management_tables.sql`
+- `013_create_maintenance_issues.sql` (Creates `maintenance_issues` entity table and links `maintenance.Maintenance_Issue_ID`)
 
 ---
 
@@ -537,10 +547,17 @@ All endpoints are prefixed with `/api/`.
 ### Maintenance & PC Reports (`/api/reports`)
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/reports/submit` | Public | Student submits a PC fault report via QR scan. |
-| `GET` | `/api/reports` | Auth | Returns all maintenance tickets with filtering. |
-| `PUT` | `/api/reports/:reportId/status` | IT Head / MIS | Updates ticket status (*Pending* → *In Progress* → *Resolved*). |
-| `DELETE` | `/api/reports/:reportId` | IT Head / MIS | Deletes a maintenance ticket. |
+| `POST` | `/api/reports/submit` | Public | Student submits a PC fault report via QR scan. Automatically links to an active `Maintenance_Issue_ID` or creates a new issue using pessimistic row locking. |
+| `GET` | `/api/reports` | Auth | Returns aggregated active and historical maintenance issues with `Report_Count` and linked `reports[]` array. |
+| `PUT` | `/api/reports/:reportId/status` | IT Head / MIS | Updates maintenance issue status (*Pending* → *Resolved*). Restores PC to *Functional* if 0 active issues remain. |
+| `DELETE` | `/api/reports/:reportId` | IT Head / MIS | Deletes a maintenance issue. |
+
+### Key Management (`/api/keys`)
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/keys/status` | Auth | Returns key dock statuses across all rooms. |
+| `POST` | `/api/keys/borrow` | Auth | Logs manual faculty room key borrowing. |
+| `POST` | `/api/keys/return` | Auth | Logs room key return and updates dock state. |
 
 ### IoT & Occupancy (`/api/occupancy`)
 | Method | Endpoint | Auth | Description |

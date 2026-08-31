@@ -317,6 +317,12 @@ body.dark-mode .activity-tile-icon.maint-resolved,
 [data-theme="dark"] .activity-tile-icon.iot-online,
 [data-theme="dark"] .activity-tile-icon.resolved,
 [data-theme="dark"] .activity-tile-icon.maint-resolved,
+html.high-contrast .activity-tile-icon.iot-online,
+html.high-contrast .activity-tile-icon.resolved,
+html.high-contrast .activity-tile-icon.maint-resolved,
+body.high-contrast .activity-tile-icon.iot-online,
+body.high-contrast .activity-tile-icon.resolved,
+body.high-contrast .activity-tile-icon.maint-resolved,
 html.dark-mode .activity-status-pill.iot-online,
 html.dark-mode .activity-status-pill.resolved,
 html.dark-mode .activity-status-pill.maint-resolved,
@@ -325,7 +331,13 @@ body.dark-mode .activity-status-pill.resolved,
 body.dark-mode .activity-status-pill.maint-resolved,
 [data-theme="dark"] .activity-status-pill.iot-online,
 [data-theme="dark"] .activity-status-pill.resolved,
-[data-theme="dark"] .activity-status-pill.maint-resolved {
+[data-theme="dark"] .activity-status-pill.maint-resolved,
+html.high-contrast .activity-status-pill.iot-online,
+html.high-contrast .activity-status-pill.resolved,
+html.high-contrast .activity-status-pill.maint-resolved,
+body.high-contrast .activity-status-pill.iot-online,
+body.high-contrast .activity-status-pill.resolved,
+body.high-contrast .activity-status-pill.maint-resolved {
   background: rgba(16, 185, 129, 0.15) !important;
   color: #34D399 !important;
   border: 1px solid rgba(16, 185, 129, 0.3) !important;
@@ -340,6 +352,12 @@ body.dark-mode .activity-tile-icon.maintenance,
 [data-theme="dark"] .activity-tile-icon.maint-pending,
 [data-theme="dark"] .activity-tile-icon.pending,
 [data-theme="dark"] .activity-tile-icon.maintenance,
+html.high-contrast .activity-tile-icon.maint-pending,
+html.high-contrast .activity-tile-icon.pending,
+html.high-contrast .activity-tile-icon.maintenance,
+body.high-contrast .activity-tile-icon.maint-pending,
+body.high-contrast .activity-tile-icon.pending,
+body.high-contrast .activity-tile-icon.maintenance,
 html.dark-mode .activity-status-pill.maint-pending,
 html.dark-mode .activity-status-pill.pending,
 html.dark-mode .activity-status-pill.maintenance,
@@ -348,7 +366,13 @@ body.dark-mode .activity-status-pill.pending,
 body.dark-mode .activity-status-pill.maintenance,
 [data-theme="dark"] .activity-status-pill.maint-pending,
 [data-theme="dark"] .activity-status-pill.pending,
-[data-theme="dark"] .activity-status-pill.maintenance {
+[data-theme="dark"] .activity-status-pill.maintenance,
+html.high-contrast .activity-status-pill.maint-pending,
+html.high-contrast .activity-status-pill.pending,
+html.high-contrast .activity-status-pill.maintenance,
+body.high-contrast .activity-status-pill.maint-pending,
+body.high-contrast .activity-status-pill.pending,
+body.high-contrast .activity-status-pill.maintenance {
   background: rgba(245, 158, 11, 0.15) !important;
   color: #FBBF24 !important;
   border: 1px solid rgba(245, 158, 11, 0.3) !important;
@@ -363,6 +387,12 @@ body.dark-mode .activity-tile-icon.progress,
 [data-theme="dark"] .activity-tile-icon.maint-progress,
 [data-theme="dark"] .activity-tile-icon.in-progress,
 [data-theme="dark"] .activity-tile-icon.progress,
+html.high-contrast .activity-tile-icon.maint-progress,
+html.high-contrast .activity-tile-icon.in-progress,
+html.high-contrast .activity-tile-icon.progress,
+body.high-contrast .activity-tile-icon.maint-progress,
+body.high-contrast .activity-tile-icon.in-progress,
+body.high-contrast .activity-tile-icon.progress,
 html.dark-mode .activity-status-pill.maint-progress,
 html.dark-mode .activity-status-pill.in-progress,
 html.dark-mode .activity-status-pill.progress,
@@ -371,7 +401,13 @@ body.dark-mode .activity-status-pill.in-progress,
 body.dark-mode .activity-status-pill.progress,
 [data-theme="dark"] .activity-status-pill.maint-progress,
 [data-theme="dark"] .activity-status-pill.in-progress,
-[data-theme="dark"] .activity-status-pill.progress {
+[data-theme="dark"] .activity-status-pill.progress,
+html.high-contrast .activity-status-pill.maint-progress,
+html.high-contrast .activity-status-pill.in-progress,
+html.high-contrast .activity-status-pill.progress,
+body.high-contrast .activity-status-pill.maint-progress,
+body.high-contrast .activity-status-pill.in-progress,
+body.high-contrast .activity-status-pill.progress {
   background: rgba(99, 102, 241, 0.15) !important;
   color: #818CF8 !important;
   border: 1px solid rgba(99, 102, 241, 0.3) !important;
@@ -383,12 +419,20 @@ body.dark-mode .activity-tile-icon.schedule,
 body.dark-mode .activity-tile-icon.access,
 [data-theme="dark"] .activity-tile-icon.schedule,
 [data-theme="dark"] .activity-tile-icon.access,
+html.high-contrast .activity-tile-icon.schedule,
+html.high-contrast .activity-tile-icon.access,
+body.high-contrast .activity-tile-icon.schedule,
+body.high-contrast .activity-tile-icon.access,
 html.dark-mode .activity-status-pill.schedule,
 html.dark-mode .activity-status-pill.access,
 body.dark-mode .activity-status-pill.schedule,
 body.dark-mode .activity-status-pill.access,
 [data-theme="dark"] .activity-status-pill.schedule,
-[data-theme="dark"] .activity-status-pill.access {
+[data-theme="dark"] .activity-status-pill.access,
+html.high-contrast .activity-status-pill.schedule,
+html.high-contrast .activity-status-pill.access,
+body.high-contrast .activity-status-pill.schedule,
+body.high-contrast .activity-status-pill.access {
   background: rgba(14, 165, 233, 0.15) !important;
   color: #38BDF8 !important;
   border: 1px solid rgba(14, 165, 233, 0.3) !important;
@@ -400,12 +444,20 @@ body.dark-mode .activity-tile-icon.security,
 body.dark-mode .activity-tile-icon.system-alert,
 [data-theme="dark"] .activity-tile-icon.security,
 [data-theme="dark"] .activity-tile-icon.system-alert,
+html.high-contrast .activity-tile-icon.security,
+html.high-contrast .activity-tile-icon.system-alert,
+body.high-contrast .activity-tile-icon.security,
+body.high-contrast .activity-tile-icon.system-alert,
 html.dark-mode .activity-status-pill.security,
 html.dark-mode .activity-status-pill.system-alert,
 body.dark-mode .activity-status-pill.security,
 body.dark-mode .activity-status-pill.system-alert,
 [data-theme="dark"] .activity-status-pill.security,
-[data-theme="dark"] .activity-status-pill.system-alert {
+[data-theme="dark"] .activity-status-pill.system-alert,
+html.high-contrast .activity-status-pill.security,
+html.high-contrast .activity-status-pill.system-alert,
+body.high-contrast .activity-status-pill.security,
+body.high-contrast .activity-status-pill.system-alert {
   background: rgba(239, 68, 68, 0.15) !important;
   color: #F87171 !important;
   border: 1px solid rgba(239, 68, 68, 0.3) !important;
@@ -420,6 +472,12 @@ body.dark-mode .activity-tile-icon.login,
 [data-theme="dark"] .activity-tile-icon.report,
 [data-theme="dark"] .activity-tile-icon.system-info,
 [data-theme="dark"] .activity-tile-icon.login,
+html.high-contrast .activity-tile-icon.report,
+html.high-contrast .activity-tile-icon.system-info,
+html.high-contrast .activity-tile-icon.login,
+body.high-contrast .activity-tile-icon.report,
+body.high-contrast .activity-tile-icon.system-info,
+body.high-contrast .activity-tile-icon.login,
 html.dark-mode .activity-status-pill.report,
 html.dark-mode .activity-status-pill.system-info,
 html.dark-mode .activity-status-pill.login,
@@ -428,11 +486,29 @@ body.dark-mode .activity-status-pill.system-info,
 body.dark-mode .activity-status-pill.login,
 [data-theme="dark"] .activity-status-pill.report,
 [data-theme="dark"] .activity-status-pill.system-info,
-[data-theme="dark"] .activity-status-pill.login {
+[data-theme="dark"] .activity-status-pill.login,
+html.high-contrast .activity-status-pill.report,
+html.high-contrast .activity-status-pill.system-info,
+html.high-contrast .activity-status-pill.login,
+body.high-contrast .activity-status-pill.report,
+body.high-contrast .activity-status-pill.system-info,
+body.high-contrast .activity-status-pill.login {
   background: rgba(99, 102, 241, 0.15) !important;
   color: #818CF8 !important;
   border: 1px solid rgba(99, 102, 241, 0.3) !important;
 }
+
+/* Fallback for generic/untyped activity-tile-icon in dark mode */
+html.dark-mode .activity-tile-icon,
+body.dark-mode .activity-tile-icon,
+[data-theme="dark"] .activity-tile-icon,
+html.high-contrast .activity-tile-icon,
+body.high-contrast .activity-tile-icon {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #CBD5E1;
+}
+
 
 .activity-empty {
   display: flex;

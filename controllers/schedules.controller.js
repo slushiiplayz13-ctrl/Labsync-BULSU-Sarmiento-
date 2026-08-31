@@ -1,6 +1,7 @@
 'use strict';
 
 const scheduleService = require('../services/scheduleService');
+const auditService = require('../services/auditService');
 
 async function saveSchedule(req, res, next) {
     try {
@@ -9,6 +10,20 @@ async function saveSchedule(req, res, next) {
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
+
+        await auditService.logSecurityEvent({
+            req,
+            action: 'SCHEDULE_UPDATE',
+            resourceType: 'SCHEDULE',
+            resourceId: roomNumber,
+            details: {
+                scheduleCount: Array.isArray(schedules) ? schedules.length : 0,
+                academicYear,
+                semester
+            },
+            result: 'SUCCESS'
+        });
+
         return res.status(result.status).json({ message: result.message });
     } catch (err) {
         next(err);

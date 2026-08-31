@@ -7,6 +7,23 @@
   'use strict';
 
   /**
+   * Safe HTML string escaper.
+   * @param {string} str
+   * @returns {string}
+   */
+  function escapeText(str) {
+    if (typeof global.escapeHtml === 'function') return global.escapeHtml(str);
+    if (typeof window !== 'undefined' && typeof window.escapeHtml === 'function') return window.escapeHtml(str);
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  /**
    * Helper to parse raw issue description.
    * Delegates to canonical reportParser (js/reports/report.parser.js).
    * @param {string} desc - Raw issue description text
@@ -134,7 +151,7 @@
       let actionsHtml = '';
       if (report.Status !== 'Resolved') {
         actionsHtml = `
-          <button class="btn-resolve-ticket" onclick="event.stopPropagation(); updateReportStatus(${report.Report_ID}, 'Resolved')">
+          <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket" data-report-id="${report.Report_ID}">
             <i data-lucide="check" style="width:14px;height:14px;"></i> Mark Resolved
           </button>
         `;
@@ -148,19 +165,41 @@
 
       const issueBadges = formatIssueBadges(parsed.issues, parsed.remarks, false);
 
-      const statusPill = report.Status === 'Resolved'
-        ? `<span class="status-badge-pulse resolved"><span class="pulse-dot"></span> Resolved</span>`
-        : `<span class="status-badge-pulse pending"><span class="pulse-dot"></span> Pending</span>`;
+      const linkedReports = Array.isArray(report.reports) && report.reports.length > 0
+        ? report.reports
+        : [{
+            Student_Name: report.Student_Name || 'Student',
+            Issue_Description: report.Issue_Description
+          }];
 
-      const isLongRemark = parsed.remarks && parsed.remarks.length > 70;
-      const readMoreBtn = isLongRemark
-        ? `<button class="btn-read-more" onclick="event.stopPropagation(); viewTicketModal(${report.Report_ID})">Expand <i data-lucide="maximize-2" style="width:11px;height:11px;"></i></button>`
-        : '';
+      const firstReport = linkedReports[0];
+      const firstStudentName = firstReport.Student_Name || report.Student_Name || 'Student';
+      const firstParsed = parseIssueDesc(firstReport.Issue_Description || report.Issue_Description);
+
+      let reporterHtml = '';
+      if (linkedReports.length <= 1) {
+        reporterHtml = `
+          <div class="reporter-chip single">
+            <i data-lucide="user" style="width:15px; height:15px; color:var(--primary-teal); flex-shrink:0;"></i>
+            <span class="reporter-chip-name">${escapeText(firstStudentName)}</span>
+          </div>
+        `;
+      } else {
+        const othersCount = linkedReports.length - 1;
+        reporterHtml = `
+          <div class="reporter-chip multi" data-action="view-ticket-details" data-report-id="${report.Report_ID}" title="Click to view all ${linkedReports.length} student reports">
+            <i data-lucide="user" style="width:15px; height:15px; color:var(--primary-teal); flex-shrink:0;"></i>
+            <span class="reporter-chip-name">${escapeText(firstStudentName)}</span>
+            <span class="reporter-count-badge">+${othersCount}</span>
+            <i data-lucide="chevron-right" class="reporter-chip-arrow" style="width:13px; height:13px; color:var(--text-muted); opacity:0.6;"></i>
+          </div>
+        `;
+      }
 
       return `
-        <tr onclick="viewTicketModal(${report.Report_ID})" style="cursor: pointer;" title="Tap to view full ticket details">
+        <tr class="maintenance-row" data-report-id="${report.Report_ID}">
           <td class="col-ticket" style="white-space: nowrap;">
-            <span class="ticket-chip" onclick="event.stopPropagation(); viewTicketModal(${report.Report_ID})" title="Click to view full ticket details">
+            <span class="ticket-chip" data-action="view-ticket-details" data-report-id="${report.Report_ID}">
               LS-TKT-${report.Report_ID}
             </span>
           </td>
@@ -185,18 +224,18 @@
               PC #${report.PC_Number}
             </div>
           </td>
+          <td class="col-reporter" style="white-space: nowrap;">
+            ${reporterHtml}
+          </td>
           <td class="col-issues" style="min-width: 200px; max-width: 360px;">
             <div class="ticket-badge-group">
               ${issueBadges}
               ${sectionChip}
             </div>
             <div class="remarks-quote-box">
-              "${parsed.remarks}"
+              <i data-lucide="message-square" style="width:16px; height:16px; color:var(--primary-teal); flex-shrink:0;"></i>
+              <span style="font-weight:500;">${escapeText(parsed.remarks)}</span>
             </div>
-            ${readMoreBtn}
-          </td>
-          <td class="col-status" style="white-space: nowrap;">
-            ${statusPill}
           </td>
           <td class="col-actions" style="text-align: center; white-space: nowrap;">
             ${actionsHtml}

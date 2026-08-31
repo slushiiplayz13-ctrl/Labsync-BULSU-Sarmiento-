@@ -162,6 +162,12 @@
 
         const misPasswordNotice = document.getElementById('mis-password-notice');
         if (misPasswordNotice) misPasswordNotice.style.display = 'flex';
+
+        // MIS Staff do not borrow laboratory room keys via IoT key box scanner; hide personal QR tab
+        const qrTabBtn = document.getElementById('tab-btn-qrcode');
+        if (qrTabBtn) qrTabBtn.style.display = 'none';
+        const qrPanel = document.getElementById('panel-qrcode');
+        if (qrPanel) qrPanel.style.display = 'none';
       }
 
       const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
@@ -190,24 +196,27 @@
         }
       }
 
-      const qrResponse = await fetch('/api/user/qrcode', { credentials: 'include' });
-      if (qrResponse.ok) {
-        const qrData = await qrResponse.json();
-        const qrContainer = document.getElementById('qr-code-container');
-        if (qrContainer) {
-          qrContainer.innerHTML = `<img src="${qrData.qrCode}" style="width:100%;height:100%;object-fit:contain;">`;
-        }
-        const dlBtn = document.getElementById('download-qr-btn');
-        if (dlBtn) {
-          dlBtn.addEventListener('click', () => {
-            const link = document.createElement('a');
-            link.download = `LabSync-QR-${(qrData.user && qrData.user.name ? qrData.user.name : 'user').replace(/\s+/g, '-')}.png`;
-            link.href = qrData.qrCode;
-            link.click();
-          });
-        }
-        if (global.lucide && typeof global.lucide.createIcons === 'function') {
-          global.lucide.createIcons();
+      // Skip fetching personal user QR code for MIS Staff (faculty-only IoT key box access)
+      if (!isMisStaff) {
+        const qrResponse = await fetch('/api/user/qrcode', { credentials: 'include' });
+        if (qrResponse.ok) {
+          const qrData = await qrResponse.json();
+          const qrContainer = document.getElementById('qr-code-container');
+          if (qrContainer) {
+            qrContainer.innerHTML = `<img src="${qrData.qrCode}" style="width:100%;height:100%;object-fit:contain;">`;
+          }
+          const dlBtn = document.getElementById('download-qr-btn');
+          if (dlBtn) {
+            dlBtn.addEventListener('click', () => {
+              const link = document.createElement('a');
+              link.download = `LabSync-QR-${(qrData.user && qrData.user.name ? qrData.user.name : 'user').replace(/\s+/g, '-')}.png`;
+              link.href = qrData.qrCode;
+              link.click();
+            });
+          }
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons();
+          }
         }
       }
     } catch (error) {
@@ -245,15 +254,15 @@
         <!-- Body Split View -->
         <div class="settings-modal-body" style="flex:1; display:flex; min-height:0; position:relative; overflow:hidden;">
           <div class="settings-modal-sidebar" style="width:240px; border-right:1px solid var(--border-light); background:var(--bg-page, #F8FAFC); padding:24px 16px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; overflow-y:auto;">
-            <button type="button" class="settings-tab-btn active" onclick="switchSettingsTab('profile', this)">
+            <button type="button" class="settings-tab-btn active" data-tab="profile">
               <i data-lucide="user" style="width:18px;height:18px;"></i>
               Profile Details
             </button>
-            <button type="button" class="settings-tab-btn" onclick="switchSettingsTab('security', this)">
+            <button type="button" class="settings-tab-btn" data-tab="security">
               <i data-lucide="lock" style="width:18px;height:18px;"></i>
               Security & Login
             </button>
-            <button type="button" class="settings-tab-btn" onclick="switchSettingsTab('qrcode', this)">
+            <button type="button" class="settings-tab-btn" id="tab-btn-qrcode" data-tab="qrcode">
               <i data-lucide="qr-code" style="width:18px;height:18px;"></i>
               My QR Code
             </button>
@@ -284,7 +293,7 @@
                       <img id="profile-photo-img" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;display:none;">
                     </div>
                     <input type="file" id="profile-photo-input" accept="image/*" style="display:none;">
-                    <button type="button" onclick="document.getElementById('profile-photo-input').click()" style="padding:10px 16px;border:none;background:var(--primary-teal);color:#fff;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 10px rgba(30,187,215,0.2);font-family:var(--font-body);display:flex;align-items:center;gap:6px;">
+                    <button type="button" id="upload-photo-btn" style="padding:10px 16px;border:none;background:var(--primary-teal);color:#fff;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 10px rgba(30,187,215,0.2);font-family:var(--font-body);display:flex;align-items:center;gap:6px;">
                       <i data-lucide="upload" style="width:14px;height:14px;"></i>
                       Upload Photo
                     </button>
@@ -403,6 +412,23 @@
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeModal();
     });
+
+    // Tab buttons
+    modal.querySelectorAll('.settings-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-tab');
+        if (tab) switchSettingsTab(tab, btn);
+      });
+    });
+
+    // Photo upload trigger button
+    const uploadTrigger = document.getElementById('upload-photo-btn');
+    if (uploadTrigger) {
+      uploadTrigger.addEventListener('click', () => {
+        const input = document.getElementById('profile-photo-input');
+        if (input) input.click();
+      });
+    }
 
     // Sub-modal triggers
     const openPassBtn = document.getElementById('open-change-password-modal-btn');

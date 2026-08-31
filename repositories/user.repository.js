@@ -34,7 +34,7 @@ async function updateResetToken(userId, token, expiry, executor = db) {
 
 async function findByResetToken(token, executor = db) {
     return executor.query(
-        'SELECT User_ID FROM users WHERE Reset_Token = ? AND Reset_Token_Expiry > NOW()',
+        'SELECT User_ID, Email, Role FROM users WHERE Reset_Token = ? AND Reset_Token_Expiry > NOW()',
         [token]
     );
 }
@@ -155,6 +155,10 @@ async function updateTutorialStatus(userId, completed, executor = db) {
     return executor.query('UPDATE users SET Has_Completed_Tutorial = ? WHERE User_ID = ?', [statusVal, userId]);
 }
 
+async function updatePasswordOnly(userId, passwordHash, executor = db) {
+    return executor.query('UPDATE users SET Password = ? WHERE User_ID = ?', [passwordHash, userId]);
+}
+
 module.exports = {
     findByEmail,
     findBasicByEmail,
@@ -164,6 +168,7 @@ module.exports = {
     updateResetToken,
     findByResetToken,
     updatePasswordReset,
+    updatePasswordOnly,
     updateEmailVerificationToken,
     findByEmailVerifyToken,
     applyVerifiedEmail,

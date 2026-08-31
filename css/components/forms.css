@@ -103,6 +103,75 @@
   box-shadow: 0 0 0 3px var(--primary-teal-light), 0 4px 12px rgba(2, 132, 199, 0.08);
 }
 
+/* ─── Compact Header Search Input Box (Card Actions Bar) ─── */
+.search-box-header {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 260px;
+  max-width: 100%;
+}
+
+.search-box-header .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.search-box-header .search-input {
+  width: 100%;
+  padding: 8px 14px 8px 36px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s ease;
+  color: var(--text-dark);
+  background: var(--bg-white);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  box-sizing: border-box;
+}
+
+.search-box-header .search-input::placeholder {
+  color: #94A3B8;
+  font-size: 13px;
+}
+
+.search-box-header .search-input:focus {
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 3px var(--primary-teal-light), 0 2px 8px rgba(2, 132, 199, 0.08);
+}
+
+html.dark-mode .search-box-header .search-input,
+body.dark-mode .search-box-header .search-input,
+[data-theme="dark"] .search-box-header .search-input,
+html.high-contrast .search-box-header .search-input {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--border-light) !important;
+}
+
+html.dark-mode .search-box-header .search-input:focus,
+body.dark-mode .search-box-header .search-input:focus,
+[data-theme="dark"] .search-box-header .search-input:focus,
+html.high-contrast .search-box-header .search-input:focus {
+  border-color: var(--primary-teal) !important;
+  background: var(--bg-card) !important;
+}
+
+@media (max-width: 768px) {
+  .search-box-header {
+    width: 100%;
+  }
+}
+
 /* ─── Form Field & Label Component Styles ─── */
 .editor-label {
   font-size: 10px;
@@ -304,20 +373,18 @@ select.editor-select option {
 
 /* ─── Remarks Quote Box Component Styles & Dark Mode Theme Overrides ─── */
 .remarks-quote-box {
-  background: #F8FAFC;
-  border-left: 4px solid var(--primary-teal);
-  border-radius: 0 10px 10px 0;
-  padding: 12px 16px;
-  font-size: 15px;
-  color: var(--text-dark);
-  line-height: 1.5;
-  font-style: italic;
-  margin-top: 4px;
-  display: block;
-  height: auto;
-  max-height: none;
-  overflow: visible;
-  white-space: normal;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: #0F172A;
+  line-height: 1.4;
+  font-style: normal;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
@@ -326,11 +393,10 @@ html.dark-mode .remarks-quote-box,
 body.dark-mode .remarks-quote-box,
 [data-theme="dark"] .remarks-quote-box,
 html.high-contrast .remarks-quote-box {
-  background-color: rgba(255, 255, 255, 0.04) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
-  border-left: 3px solid #06b6d4 !important;
-  color: #e2e8f0 !important;
-  font-style: italic !important;
+  background: rgba(15, 23, 42, 0.55) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #F1F5F9 !important;
+  font-style: normal !important;
   font-size: 13.5px !important;
 }
 

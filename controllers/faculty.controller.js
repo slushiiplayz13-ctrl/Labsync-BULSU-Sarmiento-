@@ -1,6 +1,7 @@
 'use strict';
 
 const facultyService = require('../services/facultyService');
+const auditService = require('../services/auditService');
 
 async function addFaculty(req, res, next) {
     try {
@@ -8,6 +9,16 @@ async function addFaculty(req, res, next) {
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
+
+        await auditService.logSecurityEvent({
+            req,
+            action: 'FACULTY_CREATE',
+            resourceType: 'FACULTY',
+            resourceId: result.data ? result.data.userId : null,
+            details: { role: req.body.role || 'Faculty' },
+            result: 'SUCCESS'
+        });
+
         return res.status(result.status).json(result.data);
     } catch (err) {
         next(err);
@@ -33,6 +44,16 @@ async function updateFacultyRole(req, res, next) {
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
+
+        await auditService.logSecurityEvent({
+            req,
+            action: 'FACULTY_ROLE_UPDATE',
+            resourceType: 'FACULTY',
+            resourceId: userId,
+            details: { newRole: role },
+            result: 'SUCCESS'
+        });
+
         return res.status(result.status).json({ message: result.message });
     } catch (err) {
         next(err);
@@ -43,6 +64,18 @@ async function deleteFaculty(req, res, next) {
     try {
         const { userId } = req.params;
         const result = await facultyService.deleteFaculty(userId);
+        if (result.error) {
+            return res.status(result.status).json({ error: result.error });
+        }
+
+        await auditService.logSecurityEvent({
+            req,
+            action: 'FACULTY_DELETE',
+            resourceType: 'FACULTY',
+            resourceId: userId,
+            result: 'SUCCESS'
+        });
+
         return res.status(result.status).json({ message: result.message });
     } catch (err) {
         next(err);

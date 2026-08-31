@@ -5,7 +5,9 @@
  * Session authentication & role authorization middleware.
  */
 
-const ADMIN_ROLES = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head', 'MIS Staff'];
+const IT_HEAD_ROLES = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head'];
+const ADMIN_ROLES = [...IT_HEAD_ROLES, 'MIS Staff'];
+const MIS_STAFF_ROLES = ['MIS Staff'];
 
 function requireAuth(req, res, next) {
     if (!req.session || !req.session.userId) {
@@ -34,5 +36,7 @@ function requireRole(allowedRoles) {
 module.exports = {
     requireAuth,
     requireRole,
-    ADMIN_ROLES
+    ADMIN_ROLES,
+    IT_HEAD_ROLES,
+    MIS_STAFF_ROLES
 };

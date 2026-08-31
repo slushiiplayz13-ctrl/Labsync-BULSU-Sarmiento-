@@ -59,11 +59,13 @@
 
     if (_isCustomMode) {
       if (tabCustom) {
+        tabCustom.classList.add('tab-mode-active');
         tabCustom.style.background = 'var(--bg-white)';
         tabCustom.style.color = 'var(--primary-teal)';
         tabCustom.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
       }
       if (tabSimple) {
+        tabSimple.classList.remove('tab-mode-active');
         tabSimple.style.background = 'transparent';
         tabSimple.style.color = 'var(--text-light)';
         tabSimple.style.boxShadow = 'none';
@@ -77,11 +79,13 @@
       if (input) input.focus();
     } else {
       if (tabSimple) {
+        tabSimple.classList.add('tab-mode-active');
         tabSimple.style.background = 'var(--bg-white)';
         tabSimple.style.color = 'var(--primary-teal)';
         tabSimple.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
       }
       if (tabCustom) {
+        tabCustom.classList.remove('tab-mode-active');
         tabCustom.style.background = 'transparent';
         tabCustom.style.color = 'var(--text-light)';
         tabCustom.style.boxShadow = 'none';
@@ -336,6 +340,72 @@
     }
   }
 
+  let _modalDelegationInitialized = false;
+
+  /**
+   * Attaches delegated click and input listeners for the Add PC modal (CSP-compliant).
+   * Guaranteed to initialize exactly once.
+   */
+  function initModalDelegation() {
+    if (_modalDelegationInitialized) return;
+    _modalDelegationInitialized = true;
+
+    // Click delegation — handles all button actions inside the modal
+    document.addEventListener('click', (e) => {
+      // Close × / Cancel buttons
+      if (e.target.closest('#btnCloseAddPcModal, [data-action="close-add-pc-modal"]')) {
+        e.preventDefault();
+        closeAddPcModal();
+        return;
+      }
+
+      // Mode tab buttons (Quick Add / Specific PC Number)
+      const modeBtn = e.target.closest('[data-action="select-mode"]');
+      if (modeBtn) {
+        const mode = modeBtn.getAttribute('data-mode');
+        if (mode) selectAddMode(mode);
+        return;
+      }
+
+      // ± stepper buttons
+      const adjustBtn = e.target.closest('[data-action="adjust-count"]');
+      if (adjustBtn) {
+        const delta = parseInt(adjustBtn.getAttribute('data-delta'), 10);
+        if (!isNaN(delta)) adjustCount(delta);
+        return;
+      }
+
+      // Preset quantity buttons (1 / 10 / 20 / 30 PCs)
+      const presetBtn = e.target.closest('[data-action="set-preset"]');
+      if (presetBtn) {
+        const count = parseInt(presetBtn.getAttribute('data-count'), 10);
+        if (!isNaN(count)) setCountPreset(count);
+        return;
+      }
+
+      // Submit "Add PCs" button
+      if (e.target.closest('[data-action="submit-add-pc"]')) {
+        e.preventDefault();
+        if (typeof global.submitAddPc === 'function') {
+          global.submitAddPc();
+        } else {
+          submitAddPc();
+        }
+        return;
+      }
+    });
+
+    // Input delegation — live preview (quantity) and duplicate validation (specific PC)
+    document.addEventListener('input', (e) => {
+      if (e.target.id === 'pcCountInput') {
+        updateSimplePreview();
+      }
+      if (e.target.id === 'newPcNumberInput') {
+        validateSpecificPcInput();
+      }
+    });
+  }
+
   const qrGeneratorModal = {
     parsePcInputString,
     selectAddMode,
@@ -346,9 +416,18 @@
     toggleCustomListInput,
     closeAddPcModal,
     validateSpecificPcInput,
-    submitAddPc
+    submitAddPc,
+    initModalDelegation
   };
 
   global.qrGeneratorModal = qrGeneratorModal;
 
+  // Auto-attach delegated listeners once DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initModalDelegation);
+  } else {
+    initModalDelegation();
+  }
+
 })(typeof window !== 'undefined' ? window : this);
+

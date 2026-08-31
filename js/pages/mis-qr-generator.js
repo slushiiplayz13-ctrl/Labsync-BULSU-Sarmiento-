@@ -14,6 +14,9 @@
   let currentRoomId = null;
   let currentRoomNumber = null;
   let currentPCs = [];
+  let allRooms = [];
+  let isSelectionMode = false;
+  let selectedPcIds = new Set();
 
   /**
    * Switches view to PC Grid for selected room.
@@ -23,6 +26,8 @@
   function showPCGrid(roomId, roomNumber) {
     currentRoomId = roomId;
     currentRoomNumber = roomNumber;
+    exitSelectionMode();
+
     const roomView = document.getElementById('roomSelectionView');
     const pcView = document.getElementById('pcGridView');
     const titleEl = document.getElementById('selectedRoomTitle');
@@ -30,6 +35,7 @@
     if (roomView) roomView.style.display = 'none';
     if (pcView) pcView.style.display = 'block';
     if (titleEl) titleEl.textContent = `Room ${roomNumber}`;
+
     loadPCs(roomId);
   }
 
@@ -37,6 +43,7 @@
    * Switches view back to Room Selection Grid.
    */
   function showRoomSelection() {
+    exitSelectionMode();
     const roomView = document.getElementById('roomSelectionView');
     const pcView = document.getElementById('pcGridView');
 
@@ -48,11 +55,30 @@
   }
 
   /**
+   * Renders the PC grid with the current selection state.
+   */
+  function refreshPCGridView() {
+    const renderer = global.qrGeneratorRenderer;
+    if (renderer && typeof renderer.renderPCGrid === 'function') {
+      renderer.renderPCGrid(currentPCs, null, {
+        roomId: currentRoomId,
+        isSelectionMode,
+        selectedPcIds,
+        onAddPC: (rId) => handleAddPC(rId),
+        onDeletePC: (pcId) => handleDeletePC(pcId),
+        onGenerateQR: (pcId) => handleGenerateQR(pcId),
+        onToggleSelectPC: (pcId) => handleToggleSelectPC(pcId)
+      });
+    }
+    updateBulkActionBarUI();
+  }
+
+  /**
    * Fetches PCs for a given room ID with SWR cache hydration and race-condition guards.
    * @param {number|string} roomId
    */
   async function loadPCs(roomId) {
-    const requestedRoomId = roomId;
+    const requestedRoomId = String(roomId);
     const renderer = global.qrGeneratorRenderer;
     const actions = global.qrGeneratorActions;
 
@@ -61,19 +87,12 @@
       ? actions.getCachedRoomPCs(roomId)
       : null;
 
-    if (Array.isArray(cachedPCs)) {
+    if (Array.isArray(cachedPCs) && cachedPCs.length > 0) {
       currentPCs = cachedPCs;
-      if (renderer && typeof renderer.renderPCGrid === 'function') {
-        renderer.renderPCGrid(currentPCs, null, {
-          roomId: roomId,
-          onAddPC: (rId) => handleAddPC(rId),
-          onDeletePC: (pcId) => handleDeletePC(pcId),
-          onGenerateQR: (pcId) => handleGenerateQR(pcId)
-        });
-      }
+      refreshPCGridView();
     } else {
-      // 2. First visit with no cache: Render layout-preserving skeleton grid (never a tiny collapsed text box)
-      if (renderer && typeof renderer.renderPCGridLoading === 'function') {
+      // 2. First visit with no cache: Render layout-preserving skeleton grid only if we have no existing PCs in view
+      if ((!Array.isArray(currentPCs) || currentPCs.length === 0) && renderer && typeof renderer.renderPCGridLoading === 'function') {
         renderer.renderPCGridLoading();
       }
     }
@@ -90,7 +109,7 @@
       }
 
       // 4. Stale-response guard: do NOT render if user already switched to another room or went back
-      if (currentRoomId !== requestedRoomId) {
+      if (String(currentRoomId) !== requestedRoomId) {
         return;
       }
 
@@ -99,18 +118,11 @@
         if (actions && typeof actions.cacheRoomPCs === 'function') {
           actions.cacheRoomPCs(roomId, freshPCs);
         }
-        if (renderer && typeof renderer.renderPCGrid === 'function') {
-          renderer.renderPCGrid(currentPCs, null, {
-            roomId: currentRoomId,
-            onAddPC: (rId) => handleAddPC(rId),
-            onDeletePC: (pcId) => handleDeletePC(pcId),
-            onGenerateQR: (pcId) => handleGenerateQR(pcId)
-          });
-        }
+        refreshPCGridView();
       }
     } catch (error) {
       console.error('[MISQRGenerator] Error loading PCs:', error);
-      if (currentRoomId !== requestedRoomId) return;
+      if (String(currentRoomId) !== requestedRoomId) return;
       if (!Array.isArray(currentPCs) || currentPCs.length === 0) {
         if (renderer && typeof renderer.renderPCGridError === 'function') {
           renderer.renderPCGridError();
@@ -139,8 +151,10 @@
         rooms = await response.json();
       }
 
+      allRooms = Array.isArray(rooms) ? rooms : [];
+
       if (renderer && typeof renderer.renderRoomGrid === 'function') {
-        renderer.renderRoomGrid(rooms, null, (roomId, roomNumber) => showPCGrid(roomId, roomNumber));
+        renderer.renderRoomGrid(allRooms, null, (roomId, roomNumber) => showPCGrid(roomId, roomNumber));
       }
     } catch (error) {
       console.error('[MISQRGenerator] Error loading rooms:', error);
@@ -149,6 +163,207 @@
       if (!hasCards && renderer && typeof renderer.renderRoomGridError === 'function') {
         renderer.renderRoomGridError();
       }
+    }
+  }
+
+  /**
+   * Toggles selection mode on/off.
+   */
+  function toggleSelectionMode() {
+    if (isSelectionMode) {
+      exitSelectionMode();
+    } else {
+      isSelectionMode = true;
+      selectedPcIds.clear();
+      updateModeButtonUI();
+      updateBulkActionBarUI();
+      refreshPCGridView();
+    }
+  }
+
+  /**
+   * Exits selection mode and clears selections.
+   */
+  function exitSelectionMode() {
+    isSelectionMode = false;
+    selectedPcIds.clear();
+    updateModeButtonUI();
+    updateBulkActionBarUI();
+    refreshPCGridView();
+  }
+
+  /**
+   * Updates the toggle selection button styling and text.
+   */
+  function updateModeButtonUI() {
+    const btn = document.getElementById('btnToggleSelectionMode');
+    const textSpan = document.getElementById('btnToggleSelectionModeText');
+    if (btn) {
+      if (isSelectionMode) {
+        btn.classList.add('active');
+        if (textSpan) textSpan.textContent = 'Cancel Selection';
+      } else {
+        btn.classList.remove('active');
+        if (textSpan) textSpan.textContent = 'Select PCs';
+      }
+    }
+  }
+
+  /**
+   * Toggles selection of a specific PC.
+   * @param {string|number} pcId
+   */
+  function handleToggleSelectPC(pcId) {
+    const idStr = String(pcId);
+    if (selectedPcIds.has(idStr)) {
+      selectedPcIds.delete(idStr);
+    } else {
+      selectedPcIds.add(idStr);
+    }
+    refreshPCGridView();
+  }
+
+  /**
+   * Toggles select all / deselect all visible PCs in current room.
+   */
+  function handleToggleSelectAll() {
+    const totalVisible = Array.isArray(currentPCs) ? currentPCs.length : 0;
+    if (totalVisible === 0) return;
+
+    if (selectedPcIds.size === totalVisible) {
+      // All selected -> deselect all
+      selectedPcIds.clear();
+    } else {
+      // Not all selected -> select all
+      selectedPcIds.clear();
+      currentPCs.forEach(pc => selectedPcIds.add(String(pc.PC_ID)));
+    }
+    refreshPCGridView();
+  }
+
+  /**
+   * Updates floating bulk action bar counters and visibility.
+   */
+  function updateBulkActionBarUI() {
+    const bar = document.getElementById('pcBulkActionBar');
+    const badge = document.getElementById('pcBulkSelectedBadge');
+    const selectAllText = document.getElementById('btnBulkSelectAllText');
+    const count = selectedPcIds.size;
+    const totalVisible = Array.isArray(currentPCs) ? currentPCs.length : 0;
+
+    if (!bar) return;
+
+    if (isSelectionMode) {
+      bar.style.display = 'flex';
+      if (badge) badge.textContent = `${count} Selected`;
+      if (selectAllText) {
+        selectAllText.textContent = (count === totalVisible && totalVisible > 0) ? 'Deselect All' : 'Select All';
+      }
+
+      // Disable/enable action buttons based on selection count
+      const btnDel = document.getElementById('btnBulkDeletePCs');
+      const btnPrint = document.getElementById('btnBulkPrintQR');
+      if (btnDel) {
+        btnDel.style.opacity = count > 0 ? '1' : '0.5';
+        btnDel.style.pointerEvents = count > 0 ? 'auto' : 'none';
+      }
+      if (btnPrint) {
+        btnPrint.style.opacity = count > 0 ? '1' : '0.5';
+        btnPrint.style.pointerEvents = count > 0 ? 'auto' : 'none';
+      }
+    } else {
+      bar.style.display = 'none';
+    }
+
+    if (global.lucide && bar) global.lucide.createIcons({ root: bar });
+  }
+
+  /**
+   * Opens the custom Bulk Delete confirmation modal with PC unit preview.
+   */
+  function openBulkDeleteModal() {
+    if (selectedPcIds.size === 0) {
+      const toastFn = global.showToast || (typeof window !== 'undefined' ? window.showToast : null);
+      if (typeof toastFn === 'function') {
+        toastFn('Please select at least one PC to delete.', 'warning');
+      } else {
+        alert('Please select at least one PC to delete.');
+      }
+      return;
+    }
+
+    const modal = document.getElementById('bulkDeleteModalOverlay');
+    const countSpan = document.getElementById('bulkDeleteCountSpan');
+    const previewDiv = document.getElementById('bulkDeleteUnitsPreview');
+
+    const selectedUnits = currentPCs
+      .filter(p => selectedPcIds.has(String(p.PC_ID)))
+      .map(p => `PC ${p.PC_Number}`);
+
+    if (countSpan) countSpan.textContent = selectedPcIds.size.toString();
+    if (previewDiv) {
+      previewDiv.textContent = selectedUnits.join(', ') || `${selectedPcIds.size} unit(s)`;
+    }
+
+    if (modal) modal.style.display = 'flex';
+    if (global.lucide && modal) global.lucide.createIcons({ root: modal });
+  }
+
+  /**
+   * Closes the Bulk Delete modal.
+   */
+  function closeBulkDeleteModal() {
+    const modal = document.getElementById('bulkDeleteModalOverlay');
+    if (modal) modal.style.display = 'none';
+  }
+
+  /**
+   * Executes the bulk deletion after user confirms in the modal.
+   */
+  async function confirmBulkDelete() {
+    const actions = global.qrGeneratorActions;
+    const confirmBtn = document.getElementById('btnConfirmBulkDelete');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Deleting...';
+    }
+
+    try {
+      const pcIdsArray = Array.from(selectedPcIds);
+      if (actions && typeof actions.deletePCsBulk === 'function') {
+        await actions.deletePCsBulk(currentRoomId, pcIdsArray, () => {
+          selectedPcIds.clear();
+          loadPCs(currentRoomId);
+        });
+      }
+      closeBulkDeleteModal();
+    } catch (err) {
+      console.error('[MISQRGenerator] Error in bulk delete:', err);
+    } finally {
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Delete PCs';
+      }
+    }
+  }
+
+  /**
+   * Prints QR codes for selected PCs.
+   */
+  function handleBulkPrintQR() {
+    if (selectedPcIds.size === 0) {
+      const toastFn = global.showToast || (typeof window !== 'undefined' ? window.showToast : null);
+      if (typeof toastFn === 'function') {
+        toastFn('Please select at least one PC to print.', 'warning');
+      } else {
+        alert('Please select at least one PC to print.');
+      }
+      return;
+    }
+
+    const print = global.qrGeneratorPrint;
+    if (print && typeof print.generateSelectedQR === 'function') {
+      print.generateSelectedQR(currentRoomId, selectedPcIds, currentPCs);
     }
   }
 
@@ -166,11 +381,17 @@
   /**
    * Deletes a PC unit and refreshes the current PC grid.
    * @param {number|string} pcId
+   * @param {string|number} [pcNumber]
    */
-  function handleDeletePC(pcId) {
+  function handleDeletePC(pcId, pcNumber) {
     const actions = global.qrGeneratorActions;
     if (actions && typeof actions.deletePCUnit === 'function') {
-      actions.deletePCUnit(pcId, () => loadPCs(currentRoomId), currentRoomId);
+      let resolvedNumber = pcNumber;
+      if (!resolvedNumber && Array.isArray(currentPCs)) {
+        const found = currentPCs.find(p => String(p.PC_ID) === String(pcId));
+        if (found) resolvedNumber = found.PC_Number;
+      }
+      actions.deletePCUnit(pcId, () => loadPCs(currentRoomId), currentRoomId, resolvedNumber);
     }
   }
 
@@ -214,10 +435,99 @@
     }
   }
 
+  let _pageDelegationInitialized = false;
+
   /**
-   * Initializes sidebar scroll clue listener and triggers room load.
+   * Initializes page-level delegated click listeners and triggers room load.
    */
   function initMISQRGeneratorPage() {
+    if (!_pageDelegationInitialized) {
+      _pageDelegationInitialized = true;
+
+      // Delegated listener for Return / Back, Selection toggle, Header Add, Bulk actions
+      document.addEventListener('click', (e) => {
+        // Return to rooms
+        const backBtn = e.target.closest('.back-btn, [data-action="return-to-rooms"]');
+        if (backBtn) {
+          e.preventDefault();
+          showRoomSelection();
+          return;
+        }
+
+        // Header Add PCs
+        const headerAddBtn = e.target.closest('#btnHeaderAddPc, [data-action="header-add-pc"]');
+        if (headerAddBtn) {
+          e.preventDefault();
+          handleAddPC(currentRoomId);
+          return;
+        }
+
+        // Toggle Selection Mode
+        const toggleSelBtn = e.target.closest('#btnToggleSelectionMode, [data-action="toggle-selection-mode"]');
+        if (toggleSelBtn) {
+          e.preventDefault();
+          toggleSelectionMode();
+          return;
+        }
+
+        // Cancel / Done Selection
+        const cancelSelBtn = e.target.closest('[data-action="cancel-selection-mode"]');
+        if (cancelSelBtn) {
+          e.preventDefault();
+          exitSelectionMode();
+          return;
+        }
+
+        // Bulk Select / Deselect All
+        const selectAllBtn = e.target.closest('[data-action="bulk-toggle-select-all"]');
+        if (selectAllBtn) {
+          e.preventDefault();
+          handleToggleSelectAll();
+          return;
+        }
+
+        // Bulk Print QRs
+        const bulkPrintBtn = e.target.closest('[data-action="bulk-print-qr"]');
+        if (bulkPrintBtn) {
+          e.preventDefault();
+          handleBulkPrintQR();
+          return;
+        }
+
+        // Bulk Delete trigger
+        const bulkDelBtn = e.target.closest('[data-action="bulk-delete-pcs"]');
+        if (bulkDelBtn) {
+          e.preventDefault();
+          openBulkDeleteModal();
+          return;
+        }
+
+        // Close bulk delete modal
+        const closeBulkDelBtn = e.target.closest('[data-action="close-bulk-delete-modal"]');
+        if (closeBulkDelBtn) {
+          e.preventDefault();
+          closeBulkDeleteModal();
+          return;
+        }
+
+        // Confirm bulk delete
+        const confirmBulkDelBtn = e.target.closest('[data-action="confirm-bulk-delete"]');
+        if (confirmBulkDelBtn) {
+          e.preventDefault();
+          confirmBulkDelete();
+          return;
+        }
+
+        // Generate All QR
+        const genAllBtn = e.target.closest('.generate-all-btn, [data-action="generate-all-qr"]');
+        if (genAllBtn) {
+          e.preventDefault();
+          handleGenerateAllQR();
+          return;
+        }
+      });
+    }
+
     const sidebar = document.querySelector('.sidebar');
     const scrollClue = document.getElementById('sidebarScrollClue');
 
@@ -254,6 +564,8 @@
   global.generateQR = handleGenerateQR;
   global.generateAllQR = handleGenerateAllQR;
   global.addPC = handleAddPC;
+  global.toggleSelectPC = handleToggleSelectPC;
+  global.toggleSelectionMode = toggleSelectionMode;
   global.closeAddPcModal = () => global.qrGeneratorModal?.closeAddPcModal();
   global.selectAddMode = (mode) => global.qrGeneratorModal?.selectAddMode(mode);
   global.adjustCount = (delta) => global.qrGeneratorModal?.adjustCount(delta);
@@ -261,5 +573,8 @@
   global.updateSimplePreview = () => global.qrGeneratorModal?.updateSimplePreview();
   global.validateSpecificPcInput = () => global.qrGeneratorModal?.validateSpecificPcInput(currentPCs);
   global.submitAddPc = handleSubmitAddPc;
+  global.openBulkDeleteModal = openBulkDeleteModal;
+  global.closeBulkDeleteModal = closeBulkDeleteModal;
+  global.confirmBulkDelete = confirmBulkDelete;
 
 })(typeof window !== 'undefined' ? window : this);

@@ -198,6 +198,26 @@
     updateStudioPreview();
   };
 
+  // Auto-bind click handlers for Schedule Studio buttons (CSP compliant)
+  function initScheduleStudioTriggers() {
+    document.querySelectorAll('.btn-schedule-studio').forEach(btn => {
+      if (!btn.dataset.studioBound) {
+        btn.dataset.studioBound = 'true';
+        btn.removeAttribute('onclick');
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.openScheduleStudio();
+        });
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initScheduleStudioTriggers);
+  } else {
+    initScheduleStudioTriggers();
+  }
+
   // Close Studio Modal
   window.closeScheduleStudio = function () {
     const overlay = document.getElementById('studio-modal-overlay');

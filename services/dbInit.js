@@ -14,6 +14,9 @@ async function initializeDatabase() {
         console.log('[dbInit] Database initialisation complete.');
     } catch (err) {
         console.error('[dbInit] Database initialisation failed:', err.message);
+        if (process.env.NODE_ENV === 'production') {
+            throw err;
+        }
     }
 }
 

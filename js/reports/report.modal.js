@@ -118,10 +118,56 @@
     if (modal) modal.style.display = 'none';
   }
 
+  /**
+   * Initializes delegated click listeners for completed tickets modal (CSP compliant).
+   */
+  function initCompletedModalDelegation() {
+    if (reportModal._delegationInitialized) return;
+    reportModal._delegationInitialized = true;
+
+    document.addEventListener('click', (e) => {
+      const openBtn = e.target.closest('.toggle-completed-btn, [data-action="open-completed-modal"], .open-completed-link');
+      if (openBtn) {
+        e.preventDefault();
+        openCompletedModal();
+        return;
+      }
+
+      const closeBtn = e.target.closest('.modal-close-btn, #closeCompletedModalBtn, [data-action="close-completed-modal"]');
+      if (closeBtn && e.target.closest('#completedTicketsModal')) {
+        e.preventDefault();
+        closeCompletedModal();
+        return;
+      }
+
+      const modal = document.getElementById('completedTicketsModal');
+      if (modal && e.target === modal) {
+        closeCompletedModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('completedTicketsModal');
+        if (modal && modal.style.display === 'flex') {
+          closeCompletedModal();
+        }
+      }
+    });
+  }
+
+  // Auto-initialize delegation
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCompletedModalDelegation);
+  } else {
+    initCompletedModalDelegation();
+  }
+
   const reportModal = {
     openCompletedModal,
     closeCompletedModal,
-    filterCompletedTickets
+    filterCompletedTickets,
+    initCompletedModalDelegation
   };
 
   global.reportModal = reportModal;

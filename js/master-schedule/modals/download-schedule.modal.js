@@ -34,10 +34,10 @@
     }
 
     if (downloadAllSchedulesBtn) {
-      downloadAllSchedulesBtn.onclick = (e) => {
+      downloadAllSchedulesBtn.addEventListener('click', (e) => {
         e.preventDefault();
         openDownloadModal();
-      };
+      });
     }
 
     if (closeDownloadModalBtn) {
@@ -54,7 +54,7 @@
         const ayWrapper = document.getElementById('academic-year-wrapper') || document.getElementById('academic-year-start-wrapper');
         const ay = ayWrapper ? (ayWrapper.dataset.value || `${currentYear}-${currentYear + 1}`) : `${currentYear}-${currentYear + 1}`;
         const sem = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
-        window.open(`print-all-schedules.html?academicYear=${encodeURIComponent(ay)}&semester=${encodeURIComponent(sem)}`, '_blank');
+        window.open(`print-all-schedules.html?academicYear=${encodeURIComponent(ay)}&semester=${encodeURIComponent(sem)}&download=true`, '_blank');
         closeDownloadModal();
       });
     }

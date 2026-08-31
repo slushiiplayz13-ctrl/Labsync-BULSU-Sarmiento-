@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync - Key Management</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=1.1.1" />
+  <script src="js/auth-check.js"></script>
+  <script src="js/utils/core-utils.js"></script>
+  <script src="js/utils/dom-utils.js"></script>
+
+  <style>
+    /* Two-Sided Keychain Insert Print & Preview Styles */
+    .key-tag-print-container {
+      display: flex;
+      flex-direction: row;
+      gap: 24px;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      background: #f8fafc;
+      border-radius: 16px;
+    }
+
+    .keychain-card {
+      width: 2.2in !important;
+      height: 3.2in !important;
+      min-width: 2.2in !important;
+      max-width: 2.2in !important;
+      min-height: 3.2in !important;
+      max-height: 3.2in !important;
+      padding: 0.16in !important;
+      box-sizing: border-box !important;
+      border: 1.5px solid #CBD5E1 !important;
+      border-radius: 14px;
+      background: #FFFFFF !important;
+      color: #0F172A !important;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .keychain-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #1EBBD7, #0EA5C9);
+    }
+
+    .keychain-side-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+
+    .keychain-front-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      width: 100%;
+    }
+
+    .keychain-front-logo {
+      height: 32px;
+      width: auto;
+      object-fit: contain;
+      margin-bottom: 2px;
+    }
+
+    /* Prevent dark mode CSS from swapping the keychain insert logo to dark-mode image */
+    html.dark-mode img.keychain-front-logo,
+    body.dark-mode img.keychain-front-logo,
+    [data-theme="dark"] img.keychain-front-logo,
+    html.high-contrast img.keychain-front-logo {
+      content: normal !important;
+      filter: none !important;
+      opacity: 1 !important;
+    }
+
+    .keychain-brand-title {
+      font-family: var(--font-display), sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #0F172A;
+      letter-spacing: 0.5px;
+      line-height: 1.1;
+    }
+
+    .keychain-brand-divider {
+      width: 32px;
+      height: 2px;
+      background: linear-gradient(90deg, #1EBBD7, #0EA5C9);
+      border-radius: 2px;
+      margin: 3px 0 4px 0;
+    }
+
+    .keychain-univ-title {
+      font-size: 7px;
+      font-weight: 800;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      line-height: 1.2;
+    }
+
+    .keychain-location-box {
+      margin: 6px 0;
+      padding: 7px 10px;
+      background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+      border: 1px solid #BAE6FD;
+      border-radius: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8);
+    }
+
+    .keychain-bldg-name {
+      font-size: 8.5px;
+      font-weight: 800;
+      color: #0284C7;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .keychain-room-name {
+      font-family: var(--font-display), sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: #0F172A;
+      line-height: 1.25;
+      letter-spacing: -0.2px;
+    }
+
+    .keychain-code-pill {
+      font-family: var(--font-display), monospace;
+      font-size: 12px;
+      font-weight: 800;
+      color: #FFFFFF;
+      background: linear-gradient(135deg, #0F172A, #1E293B);
+      padding: 5px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.8px;
+      margin-top: auto;
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.18);
+    }
+
+    .keychain-back-text {
+      font-size: 8.5px;
+      font-weight: 600;
+      color: #334155;
+      line-height: 1.35;
+      margin-bottom: 4px;
+      padding: 6px;
+      background: #F8FAFC;
+      border-radius: 8px;
+      border: 1px solid #F1F5F9;
+    }
+
+    .keychain-qr-wrapper {
+      width: 1.35in;
+      height: 1.35in;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: auto;
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 4px;
+      box-sizing: border-box;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    .keychain-qr-wrapper img {
+      width: 1.25in !important;
+      height: 1.25in !important;
+      object-fit: contain;
+    }
+
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+
+      body > *:not(#printArea) {
+        display: none !important;
+      }
+
+      body {
+        background: white !important;
+        color: black !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      #printArea {
+        display: block !important;
+        background: white !important;
+      }
+
+      .key-tag-print-container {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 0.25in !important;
+        padding: 0 !important;
+        background: transparent !important;
+      }
+
+      .keychain-card {
+        border: 1px dashed #94a3b8 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+      }
+    }
+
+    /* Modal Overlay Styles */
+    .key-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .key-modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      padding: 28px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      font-family: var(--font-body);
+      color: var(--text-dark);
+    }
+
+    /* Table Key Action Buttons Redesign */
+    .key-action-btn {
+      padding: 7px 14px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: var(--font-body), sans-serif;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      outline: none;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .key-action-btn i,
+    .key-action-btn svg {
+      width: 15px !important;
+      height: 15px !important;
+      stroke-width: 2.2px;
+    }
+
+    /* Tag Button (Vibrant Teal) */
+    .key-action-btn.btn-tag {
+      background: var(--primary-teal, #1EBBD7);
+      color: #FFFFFF !important;
+      box-shadow: 0 3px 10px rgba(30, 187, 215, 0.3);
+    }
+    .key-action-btn.btn-tag:hover {
+      background: #0284C7;
+      color: #FFFFFF !important;
+      box-shadow: 0 5px 16px rgba(2, 132, 199, 0.45);
+      transform: translateY(-1.5px);
+    }
+
+    /* Missing Button (Crimson Red) */
+    .key-action-btn.btn-missing {
+      background: #EF4444;
+      color: #FFFFFF !important;
+      box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);
+    }
+    .key-action-btn.btn-missing:hover {
+      background: #DC2626;
+      color: #FFFFFF !important;
+      box-shadow: 0 5px 16px rgba(220, 38, 38, 0.45);
+      transform: translateY(-1.5px);
+    }
+
+    /* Recovered Button (Emerald Green) */
+    .key-action-btn.btn-recovered {
+      background: #10B981;
+      color: #FFFFFF !important;
+      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+    }
+    .key-action-btn.btn-recovered:hover {
+      background: #059669;
+      color: #FFFFFF !important;
+      box-shadow: 0 5px 16px rgba(5, 150, 105, 0.45);
+      transform: translateY(-1.5px);
+    }
+
+    /* Reports Button (Purple) */
+    .key-action-btn.btn-reports {
+      background: #9333EA;
+      color: #FFFFFF !important;
+      box-shadow: 0 3px 10px rgba(147, 51, 234, 0.3);
+    }
+    .key-action-btn.btn-reports:hover {
+      background: #7E22CE;
+      color: #FFFFFF !important;
+      box-shadow: 0 5px 16px rgba(126, 34, 206, 0.45);
+      transform: translateY(-1.5px);
+    }
+
+    /* Dark Mode & High Contrast Overrides */
+    html.dark-mode .key-action-btn.btn-tag,
+    body.dark-mode .key-action-btn.btn-tag,
+    [data-theme="dark"] .key-action-btn.btn-tag,
+    html.high-contrast .key-action-btn.btn-tag {
+      background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4) !important;
+    }
+    html.dark-mode .key-action-btn.btn-missing,
+    body.dark-mode .key-action-btn.btn-missing,
+    [data-theme="dark"] .key-action-btn.btn-missing,
+    html.high-contrast .key-action-btn.btn-missing {
+      background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4) !important;
+    }
+    html.dark-mode .key-action-btn.btn-recovered,
+    body.dark-mode .key-action-btn.btn-recovered,
+    [data-theme="dark"] .key-action-btn.btn-recovered,
+    html.high-contrast .key-action-btn.btn-recovered {
+      background: linear-gradient(135deg, #10B981, #059669) !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
+    }
+    html.dark-mode .key-action-btn.btn-reports,
+    body.dark-mode .key-action-btn.btn-reports,
+    [data-theme="dark"] .key-action-btn.btn-reports,
+    html.high-contrast .key-action-btn.btn-reports {
+      background: linear-gradient(135deg, #A855F7, #7E22CE) !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4) !important;
+    }
+
+    /* Status Badge Pulse Component */
+    .status-badge-pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 9999px !important;
+      font-size: 12.5px;
+      font-weight: 700;
+      font-family: var(--font-body), sans-serif;
+      outline: none !important;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .status-badge-pulse .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+      animation: pulse-dot 1.8s infinite ease-in-out;
+    }
+
+    /* Light Mode Status Colors (High Contrast WCAG AAA) */
+    .status-badge-pulse.resolved {
+      background: #ECFDF5 !important;
+      color: #047857 !important;
+      border: 1px solid #A7F3D0 !important;
+    }
+    .status-badge-pulse.resolved .pulse-dot {
+      background: #059669 !important;
+      box-shadow: 0 0 6px rgba(5, 150, 105, 0.5);
+    }
+
+    .status-badge-pulse.pending {
+      background: #FEF2F2 !important;
+      color: #B91C1C !important;
+      border: 1px solid #FECACA !important;
+    }
+    .status-badge-pulse.pending .pulse-dot {
+      background: #DC2626 !important;
+      box-shadow: 0 0 6px rgba(220, 38, 38, 0.5);
+    }
+
+    .status-badge-pulse.found {
+      background: #FAF5FF !important;
+      color: #6B21A8 !important;
+      border: 1px solid #E9D5FF !important;
+    }
+    .status-badge-pulse.found .pulse-dot {
+      background: #7E22CE !important;
+      box-shadow: 0 0 6px rgba(126, 34, 206, 0.5);
+    }
+
+    /* Dark Mode & High Contrast Overrides */
+    html.dark-mode .status-badge-pulse.resolved,
+    body.dark-mode .status-badge-pulse.resolved,
+    [data-theme="dark"] .status-badge-pulse.resolved,
+    html.high-contrast .status-badge-pulse.resolved {
+      background: rgba(16, 185, 129, 0.18) !important;
+      color: #34D399 !important;
+      border: 1px solid rgba(52, 211, 153, 0.3) !important;
+    }
+    html.dark-mode .status-badge-pulse.resolved .pulse-dot,
+    body.dark-mode .status-badge-pulse.resolved .pulse-dot,
+    [data-theme="dark"] .status-badge-pulse.resolved .pulse-dot,
+    html.high-contrast .status-badge-pulse.resolved .pulse-dot {
+      background: #34D399 !important;
+      box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+    }
+
+    html.dark-mode .status-badge-pulse.pending,
+    body.dark-mode .status-badge-pulse.pending,
+    [data-theme="dark"] .status-badge-pulse.pending,
+    html.high-contrast .status-badge-pulse.pending {
+      background: rgba(239, 68, 68, 0.18) !important;
+      color: #F87171 !important;
+      border: 1px solid rgba(248, 113, 113, 0.3) !important;
+    }
+    html.dark-mode .status-badge-pulse.pending .pulse-dot,
+    body.dark-mode .status-badge-pulse.pending .pulse-dot,
+    [data-theme="dark"] .status-badge-pulse.pending .pulse-dot,
+    html.high-contrast .status-badge-pulse.pending .pulse-dot {
+      background: #F87171 !important;
+      box-shadow: 0 0 8px rgba(248, 113, 113, 0.6);
+    }
+
+    html.dark-mode .status-badge-pulse.found,
+    body.dark-mode .status-badge-pulse.found,
+    [data-theme="dark"] .status-badge-pulse.found,
+    html.high-contrast .status-badge-pulse.found {
+      background: rgba(147, 51, 234, 0.18) !important;
+      color: #C084FC !important;
+      border: 1px solid rgba(192, 132, 252, 0.3) !important;
+    }
+    html.dark-mode .status-badge-pulse.found .pulse-dot,
+    body.dark-mode .status-badge-pulse.found .pulse-dot,
+    [data-theme="dark"] .status-badge-pulse.found .pulse-dot,
+    html.high-contrast .status-badge-pulse.found .pulse-dot {
+      background: #C084FC !important;
+      box-shadow: 0 0 8px rgba(192, 132, 252, 0.6);
+    }
+
+    /* Stat Card Watermark Graphic */
+    html.dark-mode .stat-watermark,
+    body.dark-mode .stat-watermark,
+    [data-theme="dark"] .stat-watermark {
+      opacity: 0.08 !important;
+    }
+  </style>
+</head>
+
+<body data-page="mis-keys">
+  <div id="printArea" style="display: none;"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='mis-staff-dashboard.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-home">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+      </button>
+      <button class="sidebar-btn" data-tooltip="Maintenance Tracker" title="Maintenance Tracker"
+        onclick="window.location.href='mis-maintenance.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-wrench">
+          <path
+            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
+      </button>
+      <button class="sidebar-btn" data-tooltip="PC & QR Management" title="PC & QR Management"
+        onclick="window.location.href='mis-qr-generator.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-qr-code">
+          <rect width="5" height="5" x="3" y="3" rx="1" />
+          <rect width="5" height="5" x="16" y="3" rx="1" />
+          <rect width="5" height="5" x="3" y="16" rx="1" />
+          <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+          <path d="M21 21v.01" />
+          <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+          <path d="M3 12h.01" />
+          <path d="M12 3h.01" />
+          <path d="M12 16v.01" />
+          <path d="M16 12h1" />
+          <path d="M21 12v.01" />
+          <path d="M12 21v-1" />
+        </svg>
+      </button>
+      <button class="sidebar-btn active" data-tooltip="Key Management" title="Key Management"
+        onclick="window.location.href='mis-keys.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-key-round">
+          <path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"/>
+          <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
+        </svg>
+      </button>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-bottom">
+      <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-circle-help">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <path d="M12 17h.01" />
+        </svg>
+      </button>
+      <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-log-out">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" x2="9" y1="12" y2="12" />
+        </svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-logos" style="display: flex; align-items: center; gap: 14px;">
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo"
+          style="height: 40px; width: auto; object-fit: contain;">
+        <div class="logo-divider" style="width: 1px; height: 32px; background: var(--border-light);"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" style="height: 45px; width: auto; object-fit: contain;">
+      </div>
+
+      <div class="header-right">
+        <button class="notif-btn" title="Notifications">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="lucide lucide-bell">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+          </svg>
+          <span class="notif-dot"></span>
+        </button>
+
+        <div class="profile-dropdown">
+          <div class="avatar"></div>
+          <div class="profile-info">
+            <span class="profile-name"></span>
+            <span class="profile-role"></span>
+          </div>
+          <button class="chevron-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="lucide lucide-chevron-down">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+        </div>
+        <script>
+          (function () {
+            try {
+              var u = JSON.parse(sessionStorage.getItem("labsync_user") || "null");
+              var hr = document.currentScript.parentElement;
+              if (u && hr) {
+                var n = hr.querySelector(".profile-name");
+                var r = hr.querySelector(".profile-role");
+                var a = hr.querySelector(".avatar");
+                if (n && u.name) n.textContent = u.name;
+                if (r && u.role) r.textContent = u.role;
+                if (a) {
+                  if (u.profilePhoto) a.innerHTML = "<img src=\"" + u.profilePhoto + "\" alt=\"Profile\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%;\">";
+                  else if (u.name) a.textContent = u.name.split(" ").map(function (x) { return x[0]; }).join("").slice(0, 2).toUpperCase();
+                }
+              }
+              var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
+              var d = hr ? hr.querySelector(".notif-dot") : null;
+              if (d) d.style.display = hasUnread ? "block" : "none";
+            } catch (e) { }
+          })();
+        </script>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content" style="overflow-y: auto;">
+
+      <!-- Greeting + Clock Row -->
+      <div class="greeting-row">
+        <div class="greeting-left">
+          <h1 class="greeting-title" id="greetingText">Key Management & Tracking</h1>
+          <p class="greeting-sub" id="greetingSub">Manage physical laboratory keys, print two-sided keychain inserts with unique QR tags, and track lost/found reports.</p>
+        </div>
+        <div class="clock-block">
+          <div class="clock-time" id="clockTime"></div>
+          <div class="clock-date" id="clockDate"></div>
+          <script>
+            (function () {
+              try {
+                var d = new Date(), DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds(), ampm = h >= 12 ? 'PM' : 'AM', fh = h % 12 || 12;
+                var p = function (n) { return String(n).padStart(2, '0'); };
+                var t = document.getElementById('clockTime'), dt = document.getElementById('clockDate');
+                if (t) t.textContent = p(fh) + ':' + p(m) + ':' + p(s) + ' ' + ampm;
+                if (dt) dt.textContent = DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+              } catch (e) { }
+            })();
+          </script>
+        </div>
+      </div>
+
+      <!-- Main Dashboard Content -->
+      <div class="dashboard-card" style="padding: 24px;">
+
+        <!-- Stats Counters Row -->
+        <div class="stats-grid mis-stats" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+          <!-- Stat 1: Total Keys -->
+          <div class="stat-card theme-blue">
+            <div class="stat-header">
+              <div class="stat-info">
+                <div class="stat-value" id="statTotalKeys">0</div>
+                <div class="stat-title">Total Registered Keys</div>
+              </div>
+              <div class="stat-icon"><i data-lucide="key-round"></i></div>
+            </div>
+            <div class="stat-watermark"><i data-lucide="key-round"></i></div>
+          </div>
+
+          <!-- Stat 2: Active -->
+          <div class="stat-card theme-green">
+            <div class="stat-header">
+              <div class="stat-info">
+                <div class="stat-value" id="statActiveKeys">0</div>
+                <div class="stat-title">Active Keys</div>
+              </div>
+              <div class="stat-icon"><i data-lucide="check-circle"></i></div>
+            </div>
+            <div class="stat-watermark"><i data-lucide="check-circle"></i></div>
+          </div>
+
+          <!-- Stat 3: Missing -->
+          <div class="stat-card theme-red">
+            <div class="stat-header">
+              <div class="stat-info">
+                <div class="stat-value" id="statMissingKeys">0</div>
+                <div class="stat-title">Missing Keys</div>
+              </div>
+              <div class="stat-icon"><i data-lucide="alert-triangle"></i></div>
+            </div>
+            <div class="stat-watermark"><i data-lucide="alert-triangle"></i></div>
+          </div>
+
+          <!-- Stat 4: Found / Pending Return -->
+          <div class="stat-card theme-purple">
+            <div class="stat-header">
+              <div class="stat-info">
+                <div class="stat-value" id="statFoundKeys">0</div>
+                <div class="stat-title">Found / Pending</div>
+              </div>
+              <div class="stat-icon"><i data-lucide="search"></i></div>
+            </div>
+            <div class="stat-watermark"><i data-lucide="search"></i></div>
+          </div>
+        </div>
+
+        <!-- Inventory Header Controls -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
+          
+          <!-- Filter Tabs -->
+          <div style="display: flex; gap: 6px; background: var(--bg-body); padding: 4px; border-radius: 10px; border: 1px solid var(--border-light);">
+            <button type="button" class="key-filter-btn active" data-filter="ALL"
+              style="padding: 8px 14px; border: none; background: var(--bg-white); color: var(--primary-teal); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+              All Keys
+            </button>
+            <button type="button" class="key-filter-btn" data-filter="ACTIVE"
+              style="padding: 8px 14px; border: none; background: transparent; color: var(--text-light); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+              Active
+            </button>
+            <button type="button" class="key-filter-btn" data-filter="MISSING"
+              style="padding: 8px 14px; border: none; background: transparent; color: var(--text-light); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+              Missing
+            </button>
+            <button type="button" class="key-filter-btn" data-filter="FOUND"
+              style="padding: 8px 14px; border: none; background: transparent; color: var(--text-light); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+              Found / Pending
+            </button>
+          </div>
+
+          <!-- Right Actions (Search) -->
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="search-box search-box-header">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" id="keySearchInput" class="search-input" placeholder="Search key code, room, building..." />
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Keys Table Container -->
+        <div class="table-container" style="overflow-x: auto; min-height: 320px;">
+          <table class="reports-table maint-table">
+            <thead class="reports-table-head">
+              <tr>
+                <th class="table-header-cell col-ticket">KEY CODE</th>
+                <th class="table-header-cell col-building">BUILDING</th>
+                <th class="table-header-cell col-room">LAB ROOM</th>
+                <th class="table-header-cell col-status text-center">STATUS</th>
+                <th class="table-header-cell col-date">LAST TAKEN</th>
+                <th class="table-header-cell col-actions text-center" style="text-align: center;">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="keysTableBody">
+              <tr>
+                <td colspan="6" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
+                  Loading physical keys...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+
+
+  <!-- MODAL 2: Keychain Insert Print Preview Modal -->
+  <div id="printKeyModalOverlay" class="key-modal-overlay">
+    <div class="key-modal" style="max-width: 640px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h3 style="margin: 0; font-size: 20px; font-weight: 700; font-family: var(--font-display);">Two-Sided Photo Keychain Insert</h3>
+          <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--text-light);">Printable insert for physical key ring tag.</p>
+        </div>
+        <button type="button" id="btnClosePrintModal" style="background: none; border: none; cursor: pointer; color: var(--text-light); padding: 4px;">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <!-- Preview Container -->
+      <div id="keyTagPreviewContainer" class="key-tag-print-container" style="margin-bottom: 20px;">
+        <div style="text-align: center; color: var(--text-muted); padding: 20px;">Generating printable key insert...</div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" id="btnCancelPrintModal"
+          style="padding: 10px 18px; border-radius: 8px; border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-dark); font-weight: 600; cursor: pointer;">
+          Close
+        </button>
+        <button type="button" id="btnExecutePrintKeyTag"
+          style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--primary-teal); color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+          Print Insert
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: View Found Reports Modal -->
+  <div id="viewReportsModalOverlay" class="key-modal-overlay">
+    <div class="key-modal" style="max-width: 600px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h3 style="margin: 0; font-size: 20px; font-weight: 700; font-family: var(--font-display);" id="modalReportTitle">Found Key Reports</h3>
+          <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--text-light);" id="modalReportSubtitle">Reports submitted by public finders scanning key QR</p>
+        </div>
+        <button type="button" id="btnCloseReportsModal" style="background: none; border: none; cursor: pointer; color: var(--text-light); padding: 4px;">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <div id="reportsListContainer" style="max-height: 340px; overflow-y: auto; margin-bottom: 20px;">
+        <div style="text-align: center; color: var(--text-muted); padding: 20px;">Loading reports...</div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" id="btnDoneReportsModal"
+          style="padding: 10px 18px; border-radius: 8px; border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-dark); font-weight: 600; cursor: pointer;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/core/accessibility.js"></script>
+  <script src="js/core/clock.js"></script>
+  <script src="js/core/tutorial-launcher.js"></script>
+  <script src="js/services/user.service.js"></script>
+  <script src="js/services/notification.service.js"></script>
+  <script src="js/services/laboratory.service.js"></script>
+  <script src="js/services/keys.service.js"></script>
+  <script src="js/components/toast.js"></script>
+  <script src="js/components/profile/profile-dropdown.js"></script>
+  <script src="js/components/profile/account-modal.js"></script>
+  <script src="js/components/profile/password-modal.js"></script>
+  <script src="js/components/profile/help-modal.js"></script>
+  <script src="js/components/profile-menu.js"></script>
+  <script src="js/components/notifications.js"></script>
+  <script src="js/components/sidebar-nav.js"></script>
+  <script src="js/core/app.js"></script>
+  <script src="js/script.js?v=1.0.5"></script>
+  <script src="js/pages/mis-keys.js"></script>
+  <script src="js/tutorial.js"></script>
+</body>
+
+</html>

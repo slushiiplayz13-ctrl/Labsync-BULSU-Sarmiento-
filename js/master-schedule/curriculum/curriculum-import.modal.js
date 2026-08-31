@@ -117,6 +117,10 @@
     }
 
     if (dropZone) {
+      dropZone.addEventListener('click', () => {
+        if (curriculumFileInput) curriculumFileInput.click();
+      });
+
       ['dragenter', 'dragover'].forEach(evt => {
         dropZone.addEventListener(evt, (e) => {
           e.preventDefault();

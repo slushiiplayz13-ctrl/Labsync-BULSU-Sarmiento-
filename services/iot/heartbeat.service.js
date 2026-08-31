@@ -1,7 +1,7 @@
 'use strict';
 
 const labRepository = require('../../repositories/laboratory.repository');
-const { DEFAULT_HARDWARE_ROOMS, getRoomKeyVariations } = require('./iot.config');
+const { DEFAULT_HARDWARE_ROOMS, getRoomKeyVariations, normalizeRoomNumber } = require('./iot.config');
 const deviceStateService = require('./device-state.service');
 const iotResponseService = require('./iot-response.service');
 
@@ -12,13 +12,35 @@ const iotResponseService = require('./iot-response.service');
  * @param {string|number} [reqBody.roomNumber]
  * @param {string[]} [reqBody.rooms]
  * @param {string} [reqBody.deviceId]
- * @returns {Promise<{ status: number, data: { status: string, rooms: string[], timestamp: string } }>}
+ * @param {object} [device] - Authenticated device from middleware
+ * @returns {Promise<{ status: number, data?: object, error?: string }>}
  */
-async function recordHeartbeat(reqBody = {}) {
+async function recordHeartbeat(reqBody = {}, device = null) {
     const { roomNumber, rooms } = reqBody;
-    const targetRooms = rooms && Array.isArray(rooms) && rooms.length > 0
-        ? rooms
-        : (roomNumber ? [roomNumber] : [...DEFAULT_HARDWARE_ROOMS]);
+    
+    let targetRooms;
+    if (rooms && Array.isArray(rooms) && rooms.length > 0) {
+        targetRooms = rooms;
+    } else if (roomNumber) {
+        targetRooms = [roomNumber];
+    } else if (device && Array.isArray(device.authorizedRooms) && device.authorizedRooms.length > 0) {
+        targetRooms = [...device.authorizedRooms];
+    } else {
+        targetRooms = [...DEFAULT_HARDWARE_ROOMS];
+    }
+
+    // Enforce room authorization if authenticated device is present
+    if (device && Array.isArray(device.authorizedRooms) && device.authorizedRooms.length > 0) {
+        const unauthorizedRooms = targetRooms.filter(
+            r => !device.authorizedRooms.some(ar => normalizeRoomNumber(ar) === normalizeRoomNumber(r))
+        );
+        if (unauthorizedRooms.length > 0) {
+            return {
+                status: 403,
+                error: `Device '${device.id}' is not authorized for rooms: ${unauthorizedRooms.join(', ')}`
+            };
+        }
+    }
 
     const now = Date.now();
     const allRoomKeys = getRoomKeyVariations(targetRooms);

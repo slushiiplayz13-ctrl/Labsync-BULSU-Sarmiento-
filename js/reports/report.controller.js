@@ -101,7 +101,7 @@
     if (toggleContainer) {
       if (totalResolvedReports.length > 0) {
         toggleContainer.innerHTML = `
-          <button class="toggle-completed-btn" onclick="window.openCompletedModal()">
+          <button type="button" class="toggle-completed-btn" id="btn-view-completed-tickets" data-action="open-completed-modal">
             <i data-lucide="history" style="width:16px;height:16px;"></i>
             <span>View Completed Tickets</span>
           </button>
@@ -139,7 +139,7 @@
                 <i data-lucide="search" style="width:24px;height:24px;"></i>
               </div>
               <p>No active PC issue reports match "<strong>${escapeFn(query)}</strong>".</p>
-              <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Found ${resolvedReports.length} matching completed ticket(s). <a href="javascript:void(0)" onclick="window.openCompletedModal()" style="color:var(--primary-teal); font-weight:600; text-decoration:underline;">Click here to view completed history</a>.</p>
+              <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Found ${resolvedReports.length} matching completed ticket(s). <a href="javascript:void(0)" class="open-completed-link" data-action="open-completed-modal" style="color:var(--primary-teal); font-weight:600; text-decoration:underline; cursor:pointer;">Click here to view completed history</a>.</p>
             </div>
           `;
         } else {

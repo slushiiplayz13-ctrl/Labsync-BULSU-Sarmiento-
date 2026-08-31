@@ -142,6 +142,7 @@
       if (Array.isArray(maintenanceReports)) {
         calculateStats(maintenanceReports);
         applyFiltersAndRender();
+        processDeepLinkTicket();
       }
     } catch (error) {
       console.error('[MISMaintenance] Error loading maintenance data:', error);
@@ -149,6 +150,81 @@
           global.maintenanceRenderer && typeof global.maintenanceRenderer.renderTableError === 'function') {
         global.maintenanceRenderer.renderTableError();
       }
+    }
+  }
+
+  /**
+   * Safely checks for ?ticket=, ?id=, or ?room= in URL.
+   * - ?ticket= or ?id=: highlights row and opens matching ticket
+   * - ?room=: validates room param, sets search bar to the room, and applies filter
+   */
+  function processDeepLinkTicket() {
+    try {
+      if (typeof window === 'undefined' || !window.location || !window.location.search) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const ticketParam = urlParams.get('ticket') || urlParams.get('id');
+      const roomParam = urlParams.get('room');
+
+      // 1. Room deep-link handling
+      if (roomParam) {
+        const cleanRoom = decodeURIComponent(roomParam).trim();
+        // Validate room: alphanumeric + spaces/hyphens, reasonable length
+        if (cleanRoom && cleanRoom.length <= 30 && /^[\w\s-]+$/i.test(cleanRoom)) {
+          const searchInput = document.getElementById('maintenanceSearchInput');
+          if (searchInput) {
+            // Set filter to 'all' so active reports in that room are shown
+            filterStatus('all');
+            searchInput.value = cleanRoom.toLowerCase().startsWith('room') ? cleanRoom : `Room ${cleanRoom}`;
+            applyFiltersAndRender();
+          }
+        }
+        // Clean query parameter from URL
+        if (window.history && typeof window.history.replaceState === 'function') {
+          const cleanUrl = window.location.pathname + (window.location.hash || '');
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
+        return;
+      }
+
+      // 2. Ticket deep-link handling
+      if (!ticketParam) return;
+
+      // Extract numeric ID from patterns like "LS-TKT-18", "TKT-18", "18"
+      const match = ticketParam.match(/(\d+)/);
+      if (!match) return;
+
+      const reportId = Number(match[1]);
+      if (isNaN(reportId) || reportId <= 0) return;
+
+      const matchingReport = maintenanceReports.find(r => Number(r.Report_ID) === reportId);
+      if (matchingReport) {
+        // Ensure the report is visible in the table regardless of active status filter
+        const isResolved = (matchingReport.Status || '').toLowerCase() === 'resolved';
+        if (activeFilter === 'pending' && isResolved) {
+          filterStatus('all');
+        } else if (activeFilter === 'resolved' && !isResolved) {
+          filterStatus('all');
+        }
+
+        // Highlight matching row in the maintenance table and scroll it smoothly into view
+        setTimeout(() => {
+          const targetRow = document.querySelector(`tr.maintenance-row[data-report-id="${matchingReport.Report_ID}"]`);
+          if (targetRow) {
+            document.querySelectorAll('tr.maintenance-row.highlighted-ticket').forEach(el => el.classList.remove('highlighted-ticket'));
+            targetRow.classList.add('highlighted-ticket');
+            targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 120);
+
+        // Clean query parameter from URL to prevent re-triggering upon refresh
+        if (window.history && typeof window.history.replaceState === 'function') {
+          const cleanUrl = window.location.pathname + (window.location.hash || '');
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
+      }
+    } catch (e) {
+      // Safe fallback - do not crash page or expose internal errors
     }
   }
 
@@ -186,6 +262,81 @@
     if (searchInput) {
       searchInput.addEventListener('input', applyFiltersAndRender);
     }
+
+    // Delegated click listener for table actions, modals, and filters (CSP compliant)
+    document.addEventListener('click', (e) => {
+      // View Ticket Details / "+ N others" reporter button
+      const viewBtn = e.target.closest('[data-action="view-ticket-details"], .ticket-chip, .btn-others-count');
+      if (viewBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const reportId = viewBtn.getAttribute('data-report-id') || viewBtn.closest('[data-report-id]')?.getAttribute('data-report-id');
+        if (reportId) {
+          handleViewTicketModal(reportId);
+        }
+        return;
+      }
+
+      // Resolve button in table row
+      const resolveBtn = e.target.closest('.btn-resolve-ticket[data-action="resolve-ticket"]');
+      if (resolveBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const reportId = resolveBtn.getAttribute('data-report-id');
+        if (reportId && global.maintenanceActions && typeof global.maintenanceActions.updateReportStatus === 'function') {
+          global.maintenanceActions.updateReportStatus(reportId, 'Resolved');
+        } else if (reportId && typeof global.updateReportStatus === 'function') {
+          global.updateReportStatus(reportId, 'Resolved');
+        }
+        return;
+      }
+
+      // Resolve button inside modal
+      const resolveModalBtn = e.target.closest('.btn-resolve-ticket[data-action="resolve-ticket-modal"]');
+      if (resolveModalBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const reportId = resolveModalBtn.getAttribute('data-report-id');
+        if (global.maintenanceModal && typeof global.maintenanceModal.closeTicketModal === 'function') {
+          global.maintenanceModal.closeTicketModal();
+        } else {
+          const modal = document.getElementById('ticket-details-modal');
+          if (modal) modal.remove();
+        }
+        if (reportId && global.maintenanceActions && typeof global.maintenanceActions.updateReportStatus === 'function') {
+          global.maintenanceActions.updateReportStatus(reportId, 'Resolved');
+        } else if (reportId && typeof global.updateReportStatus === 'function') {
+          global.updateReportStatus(reportId, 'Resolved');
+        }
+        return;
+      }
+
+      // Modal close button or clicking outside the card on the backdrop
+      const closeBtn = e.target.closest('[data-action="close-modal"], .btn-modal-close');
+      const isBackdropClick = e.target.id === 'ticket-details-modal';
+      if (closeBtn || isBackdropClick) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (global.maintenanceModal && typeof global.maintenanceModal.closeTicketModal === 'function') {
+          global.maintenanceModal.closeTicketModal();
+        } else {
+          const modal = document.getElementById('ticket-details-modal');
+          if (modal) modal.remove();
+        }
+        return;
+      }
+
+
+      // Filter pills
+      const filterPill = e.target.closest('.filter-pill');
+      if (filterPill) {
+        e.preventDefault();
+        const id = filterPill.id || '';
+        const status = id.replace('filter-', '') || 'all';
+        filterStatus(status);
+        return;
+      }
+    });
 
     loadMaintenanceData();
   }

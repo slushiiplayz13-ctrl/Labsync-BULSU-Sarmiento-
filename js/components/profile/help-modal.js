@@ -63,6 +63,15 @@
         </div>
         <div class="help-qs-card">
           <div class="help-qs-header">
+            <div class="help-qs-icon theme-purple">
+              <i data-lucide="key-round"></i>
+            </div>
+            <div class="help-qs-title">Key Management & Tracking</div>
+          </div>
+          <p class="help-qs-text">Automatically creates lab keys upon room setup. Print 2-sided QR keychain inserts and manage Active, Missing, or Found status.</p>
+        </div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
             <div class="help-qs-icon theme-blue">
               <i data-lucide="qr-code"></i>
             </div>
@@ -72,6 +81,13 @@
         </div>`;
 
       featuresHTML = `
+        <div class="help-feature-card theme-purple">
+          <div class="help-feat-title">
+            <i data-lucide="key-round"></i>
+            Auto Keys & 2-Sided QR Inserts
+          </div>
+          <p class="help-feat-desc">New rooms auto-receive default keys. Generate printable 2-sided QR keychain inserts with lost-and-found scanning.</p>
+        </div>
         <div class="help-feature-card theme-indigo">
           <div class="help-feat-title">
             <i data-lucide="bell"></i>
@@ -85,13 +101,6 @@
             1-Click Ticket Repair
           </div>
           <p class="help-feat-desc">Resolving a ticket updates the work order and restores the PC unit to Functional condition in the database.</p>
-        </div>
-        <div class="help-feature-card theme-purple">
-          <div class="help-feat-title">
-            <i data-lucide="qr-code"></i>
-            QR Sticker Generator
-          </div>
-          <p class="help-feat-desc">Export high-resolution QR stickers per laboratory room for fast workstation scanning.</p>
         </div>
         <div class="help-feature-card theme-amber">
           <div class="help-feat-title">
@@ -267,15 +276,15 @@
             <div class="help-support-list">
               <div class="help-support-item">
                 <i data-lucide="mail"></i>
-                <strong>Email:</strong> <span class="highlight">support@labsync.bsu.edu.ph</span>
+                <strong>Email:</strong> <span class="highlight">mis.sarmiento@bulsu.edu.ph</span>
               </div>
               <div class="help-support-item">
                 <i data-lucide="phone"></i>
-                <strong>Phone:</strong> <span class="highlight">+63 123 456 7890</span>
+                <strong>Phone:</strong> <span class="highlight">+63 (044) 931-8600</span>
               </div>
               <div class="help-support-item">
                 <i data-lucide="map-pin"></i>
-                <strong>Office:</strong> <span>IT Department, BSU Sarmiento Campus</span>
+                <strong>Office:</strong> <span>IT & MIS Office, BulSU Sarmiento Campus</span>
               </div>
             </div>
           </div>

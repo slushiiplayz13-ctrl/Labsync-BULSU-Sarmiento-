@@ -195,7 +195,11 @@
     let activities = [];
 
     if (Array.isArray(notifications) && notifications.length > 0) {
-      activities = notifications.map(n => transformNotificationToActivity(n));
+      const isMisPage = typeof window !== 'undefined' && window.location.pathname.includes('mis-');
+      const filtered = isMisPage
+        ? notifications.filter(n => n.type === 'report')
+        : notifications;
+      activities = filtered.map(n => transformNotificationToActivity(n));
     } else if (Array.isArray(reports) && reports.length > 0) {
       activities = reports.map(r => transformReportToActivity(r));
     }
@@ -248,7 +252,11 @@
       const rawNotifs = typeof fetchNotifsFn === 'function' ? await fetchNotifsFn() : null;
 
       if (Array.isArray(rawNotifs) && rawNotifs.length > 0) {
-        activities = rawNotifs.map(n => transformNotificationToActivity(n));
+        const isMisPage = typeof window !== 'undefined' && window.location.pathname.includes('mis-');
+        const filteredNotifs = isMisPage
+          ? rawNotifs.filter(n => n.type === 'report')
+          : rawNotifs;
+        activities = filteredNotifs.map(n => transformNotificationToActivity(n));
       }
     } catch (err) {
       console.warn('[ActivityFeed] Could not fetch /api/notifications:', err);

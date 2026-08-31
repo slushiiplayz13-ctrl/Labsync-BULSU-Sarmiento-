@@ -92,7 +92,7 @@
       tbody.dataset.renderedSignature = sig;
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+          <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
             No PC reports available. Reports will appear here when submitted.
           </td>
         </tr>
@@ -118,7 +118,7 @@
     if (filtered.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
+          <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
             No reports match your search criteria.
           </td>
         </tr>
@@ -134,26 +134,17 @@
 
       return `
         <tr class="table-data-row">
-          <td class="table-cell ticket-id-cell">
-            <a href="mis-maintenance.html" class="ticket-id-link">LS-TKT-${r.Report_ID}</a>
+          <td class="table-cell ticket-id-cell col-ticket">
+            <span class="ticket-id-tag">LS-TKT-${r.Report_ID}</span>
           </td>
           <td class="table-cell date-cell col-date">${formattedDate}</td>
-          <td class="table-cell room-cell text-center">Room ${r.Room_Number || 'N/A'}</td>
-          <td class="table-cell pc-cell text-center">PC ${r.PC_Number || 'N/A'}</td>
-          <td class="table-cell issue-cell">${escapeText(displayIssue)}</td>
-          <td class="table-cell text-center">
+          <td class="table-cell room-cell col-room">Room ${r.Room_Number || 'N/A'}</td>
+          <td class="table-cell pc-cell col-pc">PC ${r.PC_Number || 'N/A'}</td>
+          <td class="table-cell issue-cell col-issue">${escapeText(displayIssue)}</td>
+          <td class="table-cell col-status text-center">
             <span class="status-pill ${isResolved ? 'resolved' : 'pending'}">
               ${r.Status || 'Pending'}
             </span>
-          </td>
-          <td class="table-cell text-center">
-            ${!isResolved ? `
-              <button onclick="resolveDashboardTicket(${r.Report_ID})" class="btn-resolve-ticket">
-                Resolve
-              </button>
-            ` : `
-              <span class="completed-chip"><i data-lucide="check-check"></i> Completed</span>
-            `}
           </td>
         </tr>
       `;
@@ -164,65 +155,12 @@
     }
   }
 
-  /**
-   * Resolves a ticket by Report_ID and refreshes dashboard data.
-   * @param {number|string} reportId
-   * @param {Function} [onComplete] - Callback to reload data
-   */
-  async function resolveDashboardTicket(reportId, onComplete) {
-    const confirmFn = global.showConfirmModal || (typeof window !== 'undefined' ? window.showConfirmModal : null);
-    let confirmed = false;
-
-    if (typeof confirmFn === 'function') {
-      confirmed = await confirmFn({
-        title: 'Resolve Ticket',
-        message: `Are you sure you want to mark Ticket LS-TKT-${reportId} as Resolved?`,
-        confirmText: 'Resolve Ticket',
-        cancelText: 'Cancel',
-        isDestructive: false
-      });
-    } else {
-      confirmed = confirm(`Are you sure you want to resolve Ticket LS-TKT-${reportId}?`);
-    }
-
-    if (!confirmed) return;
-
-    try {
-      const updateFn = (global.reportService && typeof global.reportService.updateReportStatus === 'function')
-        ? global.reportService.updateReportStatus
-        : (typeof global.updateReportStatus === 'function' ? global.updateReportStatus : null);
-
-      if (typeof updateFn !== 'function') {
-        throw new Error('reportService.updateReportStatus is unavailable');
-      }
-
-      await updateFn(reportId, 'Resolved');
-
-      if (typeof onComplete === 'function') {
-        await onComplete();
-      }
-
-      const toastFn = global.showToast || (typeof window !== 'undefined' ? window.showToast : null);
-      if (typeof toastFn === 'function') {
-        toastFn(`Ticket LS-TKT-${reportId} resolved successfully.`, 'success');
-      }
-    } catch (err) {
-      console.error('[StaffDashboardReports] Error resolving ticket:', err);
-      const toastFn = global.showToast || (typeof window !== 'undefined' ? window.showToast : null);
-      if (typeof toastFn === 'function') {
-        toastFn('Failed to resolve ticket.', 'error');
-      } else {
-        alert('Failed to resolve ticket');
-      }
-    }
-  }
-
   const staffDashboardReports = {
     renderDashboardTable,
-    resolveDashboardTicket,
     getDisplayIssue
   };
 
   global.staffDashboardReports = staffDashboardReports;
 
 })(typeof window !== 'undefined' ? window : this);
+

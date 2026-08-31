@@ -34,7 +34,7 @@
     if (!roomId || !Array.isArray(pcs)) return;
     try {
       sessionStorage.setItem(PC_CACHE_PREFIX + roomId, JSON.stringify(pcs));
-    } catch (e) {}
+    } catch (e) { }
   }
 
   /**
@@ -52,7 +52,7 @@
           }
         });
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   /**
@@ -102,7 +102,7 @@
             body: JSON.stringify({ pcNumber })
           });
           if (singleRes.ok) addedCount++;
-        } catch (e) {}
+        } catch (e) { }
       }
       invalidateCachedRoomPCs(roomId);
       return { message: `Added ${addedCount} PC(s) successfully!`, addedCount };
@@ -123,21 +123,24 @@
    * @param {number|string} pcId
    * @param {Function} [onComplete] - Callback on successful deletion
    * @param {number|string} [roomId] - Optional room ID for targeted cache invalidation
+   * @param {string|number} [pcNumber] - Optional PC number for clear confirmation display
    */
-  async function deletePCUnit(pcId, onComplete, roomId) {
+  async function deletePCUnit(pcId, onComplete, roomId, pcNumber) {
     const confirmFn = global.showConfirmModal || (typeof window !== 'undefined' ? window.showConfirmModal : null);
     let confirmed = false;
 
+    const unitDisplay = pcNumber ? `PC ${pcNumber}` : 'this PC unit';
+
     if (typeof confirmFn === 'function') {
       confirmed = await confirmFn({
-        title: 'Delete PC Unit',
-        message: 'Are you sure you want to permanently delete this PC unit from the room?',
+        title: `Delete ${unitDisplay}?`,
+        message: `This action cannot be undone. Are you sure you want to permanently delete ${unitDisplay} from the room?`,
         confirmText: 'Delete PC',
         cancelText: 'Cancel',
         isDestructive: true
       });
     } else {
-      confirmed = confirm('Are you sure you want to delete this PC?');
+      confirmed = confirm(`Are you sure you want to delete ${unitDisplay}?`);
     }
 
     if (!confirmed) return;
@@ -171,10 +174,84 @@
     }
   }
 
+  /**
+   * Sends atomic bulk deletion request for multiple PC units.
+   * @param {number|string} roomId
+   * @param {Array<number|string>} pcIds
+   * @param {Function} [onComplete]
+   */
+  async function deletePCsBulk(roomId, pcIds, onComplete) {
+    if (!roomId) throw new Error('Room ID is required.');
+    if (!Array.isArray(pcIds) || pcIds.length === 0) throw new Error('No PC IDs specified.');
+
+    const cleanIds = pcIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id) && id > 0);
+    if (cleanIds.length === 0) throw new Error('Invalid PC IDs specified.');
+
+    try {
+      let response = await fetch(`/api/laboratories/${encodeURIComponent(roomId)}/pcs/bulk`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ pcIds: cleanIds })
+      });
+
+      // Sequential fallback if 404
+      if (response.status === 404) {
+        let deleted = 0;
+        for (const pid of cleanIds) {
+          try {
+            const singleRes = await fetch(`/api/pcs/${encodeURIComponent(pid)}`, {
+              method: 'DELETE',
+              credentials: 'include'
+            });
+            if (singleRes.ok) deleted++;
+          } catch (e) { }
+        }
+        invalidateCachedRoomPCs(roomId);
+        const toastFn = global.showToast || (typeof window !== 'undefined' ? window.showToast : null);
+        if (typeof toastFn === 'function') {
+          toastFn(`Deleted ${deleted} PC(s) successfully.`, 'success');
+        }
+        if (typeof onComplete === 'function') await onComplete();
+        return { deletedCount: deleted };
+      }
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to delete PCs');
+      }
+
+      invalidateCachedRoomPCs(roomId);
+      const resData = await response.json();
+      const count = resData.deletedCount || cleanIds.length;
+
+      const toastFn = global.showToast || (typeof window !== 'undefined' ? window.showToast : null);
+      if (typeof toastFn === 'function') {
+        toastFn(`Deleted ${count} PC unit(s) successfully.`, 'success');
+      }
+
+      if (typeof onComplete === 'function') {
+        await onComplete();
+      }
+
+      return resData;
+    } catch (error) {
+      console.error('[PCActions] Error bulk deleting PCs:', error);
+      const toastFn = global.showToast || (typeof window !== 'undefined' ? window.showToast : null);
+      if (typeof toastFn === 'function') {
+        toastFn(error.message || 'Failed to delete selected PCs.', 'error');
+      } else {
+        alert(error.message || 'Failed to delete selected PCs.');
+      }
+      throw error;
+    }
+  }
+
   const qrGeneratorActions = {
     fetchRoomPCs,
     submitAddPCs,
     deletePCUnit,
+    deletePCsBulk,
     getCachedRoomPCs,
     cacheRoomPCs,
     invalidateCachedRoomPCs

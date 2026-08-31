@@ -282,9 +282,8 @@
               style="width: 18px; height: 18px; color: var(--primary-teal); transition: all 0.2s;"></i>
             Signature Settings
           </button>
-          <button id="downloadAllSchedulesBtn"
+          <button id="downloadAllSchedulesBtn" type="button"
             style="padding: 10px 20px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
-            onclick="printAllSchedules()"
             onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)';"
             onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none';">
             <i data-lucide="download" style="width: 18px; height: 18px;"></i>
@@ -510,12 +509,12 @@
         </div>
       </div>
 
-      <button id="confirmDownloadBtn"
+      <button id="confirmDownloadBtn" type="button"
         style="width: 100%; padding: 14px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
         onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(30, 187, 215, 0.45)';"
         onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(30, 187, 215, 0.35)';">
-        <i data-lucide="printer" style="width: 18px; height: 18px;"></i>
-        Print All Schedules
+        <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+        Download All Schedules
       </button>
     </div>
   </div>
@@ -597,8 +596,7 @@
       <div class="import-modal-top-row"
         style="display: flex; gap: 16px; margin-bottom: 20px; flex-shrink: 0; align-items: stretch;">
         <div id="dropZone" class="import-dropzone"
-          style="flex: 1; border: 2px dashed var(--primary-teal); background: rgba(30, 187, 215, 0.05); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s;"
-          onclick="document.getElementById('curriculumFileInput').click();">
+          style="flex: 1; border: 2px dashed var(--primary-teal); background: rgba(30, 187, 215, 0.05); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s;">
           <input type="file" id="curriculumFileInput" accept=".xlsx,.xls,.csv,.json,.txt" style="display: none;">
           <i data-lucide="upload-cloud"
             style="width: 32px; height: 32px; color: var(--primary-teal); margin-bottom: 8px;"></i>

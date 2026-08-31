@@ -3,9 +3,9 @@
 const express = require('express');
 const router = express.Router();
 const schedulesController = require('../controllers/schedules.controller');
-const { requireAuth, requireRole, ADMIN_ROLES } = require('../middleware/auth');
+const { requireAuth, requireRole, IT_HEAD_ROLES } = require('../middleware/auth');
 
-router.post('/save', requireRole(ADMIN_ROLES), schedulesController.saveSchedule);
+router.post('/save', requireRole(IT_HEAD_ROLES), schedulesController.saveSchedule);
 router.get('/check-professor-conflict', requireAuth, schedulesController.checkConflict);
 router.get('/professor', requireAuth, schedulesController.getProfessorSchedule);
 router.get('/faculty/:professorName', requireAuth, schedulesController.getFacultyScheduleByName);

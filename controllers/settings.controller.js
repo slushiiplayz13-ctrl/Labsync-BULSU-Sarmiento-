@@ -1,6 +1,7 @@
 'use strict';
 
 const settingsService = require('../services/settingsService');
+const auditService = require('../services/auditService');
 
 async function getSettings(req, res, next) {
     try {
@@ -20,6 +21,16 @@ async function updateSettings(req, res, next) {
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
+
+        const keysModified = (req.body && typeof req.body === 'object') ? Object.keys(req.body) : [];
+        await auditService.logSecurityEvent({
+            req,
+            action: 'SETTINGS_UPDATE',
+            resourceType: 'SETTINGS',
+            details: { updatedKeys: keysModified },
+            result: 'SUCCESS'
+        });
+
         return res.status(result.status).json({ message: result.message });
     } catch (err) {
         next(err);
