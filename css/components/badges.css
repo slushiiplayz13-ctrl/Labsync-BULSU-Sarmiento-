@@ -343,8 +343,8 @@ html.high-contrast .badge-ticket-id {
 
 .completed-chip svg,
 .completed-chip i {
-  width: 13px !important;
-  height: 13px !important;
+  width: 16px !important;
+  height: 16px !important;
   stroke-width: 2.5 !important;
   flex-shrink: 0 !important;
   display: inline-block !important;

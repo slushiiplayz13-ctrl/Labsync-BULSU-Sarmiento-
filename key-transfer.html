@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync — Key Transfer & Room Claim</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=1.1.1" />
+
+  <style>
+    body {
+      background: var(--bg-body, #f8fafc);
+      color: var(--text-dark, #0f172a);
+      font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .public-header {
+      background: var(--bg-card, #ffffff);
+      border-bottom: 1px solid var(--border-light, #e2e8f0);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .header-logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .public-container {
+      max-width: 580px;
+      width: 100%;
+      margin: 32px auto;
+      padding: 0 20px;
+      box-sizing: border-box;
+      flex: 1;
+    }
+
+    .transfer-card {
+      background: var(--bg-card, #ffffff);
+      border: 1px solid var(--border-light, #e2e8f0);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.06);
+    }
+
+    .key-badge-box {
+      background: var(--primary-teal-light, #ebf8fa);
+      border: 1.5px solid rgba(30, 187, 215, 0.3);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .key-bldg-label {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--primary-teal, #1ebbd7);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 4px;
+    }
+
+    .key-room-label {
+      font-family: var(--font-display, 'Poppins', sans-serif);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-dark, #0f172a);
+      line-height: 1.2;
+    }
+
+    .key-code-sub {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-light, #64748b);
+      margin-top: 8px;
+      padding: 4px 12px;
+      background: var(--bg-card, #ffffff);
+      border: 1px solid var(--border-light, #e2e8f0);
+      border-radius: 20px;
+      font-family: monospace;
+    }
+
+    .party-card {
+      background: var(--bg-body, #f8fafc);
+      border: 1px solid var(--border-light, #e2e8f0);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .party-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .party-avatar.prev {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1.5px solid #cbd5e1;
+    }
+
+    .party-avatar.receiving {
+      background: var(--primary-teal, #1ebbd7);
+      color: #ffffff;
+      box-shadow: 0 4px 12px var(--primary-teal-glow, rgba(30, 187, 215, 0.3));
+    }
+
+    .party-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .party-role-tag {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .party-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-dark, #0f172a);
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .party-sub {
+      font-size: 12px;
+      color: var(--text-muted, #94a3b8);
+      margin-top: 2px;
+    }
+
+    .transfer-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0;
+    }
+
+    .transfer-arrow-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--bg-card, #ffffff);
+      border: 1px solid var(--border-light, #e2e8f0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-teal, #1ebbd7);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-confirm-transfer {
+      width: 100%;
+      padding: 14px 20px;
+      background: var(--primary-teal, #1ebbd7);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--font-body, sans-serif);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 14px var(--primary-teal-glow, rgba(30, 187, 215, 0.3));
+      transition: all 0.2s ease;
+    }
+
+    .btn-confirm-transfer:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px var(--primary-teal-glow, rgba(30, 187, 215, 0.4));
+    }
+
+    .btn-confirm-transfer:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-cancel-transfer {
+      width: 100%;
+      padding: 12px 20px;
+      background: transparent;
+      color: var(--text-light, #64748b);
+      border: 1px solid var(--border-light, #e2e8f0);
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font-body, sans-serif);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel-transfer:hover {
+      background: var(--bg-body, #f8fafc);
+      color: var(--text-dark, #0f172a);
+    }
+
+    .spin {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Top Header -->
+  <header class="public-header">
+    <a href="/" class="header-logo-group">
+      <img src="assets/LabSync (Logo Only).png" alt="LabSync" style="width: 36px; height: 36px;" />
+      <div>
+        <span style="font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--primary-teal); letter-spacing: -0.5px;">LabSync</span>
+        <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: -3px;">BulSU Sarmiento Campus</span>
+      </div>
+    </a>
+    <div id="userHeaderBadge" style="font-size: 13px; font-weight: 600; color: var(--text-dark);">
+      <!-- Injected by script -->
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="public-container">
+    <div class="transfer-card">
+
+      <!-- Loading State -->
+      <div id="loadingBox" style="text-align: center; padding: 48px 20px;">
+        <i data-lucide="loader" class="spin" style="width: 38px; height: 38px; color: var(--primary-teal); margin-bottom: 16px;"></i>
+        <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 6px 0;">Identifying Key & Laboratory...</h3>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin: 0;">Please wait while we verify key records.</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="errorBox" style="display: none; text-align: center; padding: 32px 20px;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: #FEE2E2; color: #EF4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+          <i data-lucide="alert-triangle" style="width: 30px; height: 30px;"></i>
+        </div>
+        <h3 style="font-size: 19px; font-weight: 800; margin: 0 0 8px 0;" id="errorTitle">Key Lookup Failed</h3>
+        <p style="font-size: 14px; color: var(--text-mid); line-height: 1.5; margin: 0 0 24px 0;" id="errorText">Unable to identify key record.</p>
+        <button type="button" onclick="window.location.href='/'" class="btn-cancel-transfer">
+          Back to Dashboard
+        </button>
+      </div>
+
+      <!-- Unauthenticated State -->
+      <div id="unauthBox" style="display: none; text-align: center; padding: 24px 10px;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--primary-teal-light); color: var(--primary-teal); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+          <i data-lucide="key" style="width: 30px; height: 30px;"></i>
+        </div>
+        <h3 style="font-size: 20px; font-weight: 800; margin: 0 0 8px 0;">Authentication Required</h3>
+        <p style="font-size: 14px; color: var(--text-mid); line-height: 1.5; margin: 0 0 24px 0;">
+          This physical key belongs to an official BulSU computer laboratory.<br>
+          Please log in with your <strong>Faculty</strong> or <strong>Department Head</strong> account to claim or transfer this room key.
+        </p>
+        <button type="button" id="btnLoginRedirect" class="btn-confirm-transfer">
+          <i data-lucide="log-in" style="width: 18px; height: 18px;"></i>
+          Log In to Claim Key
+        </button>
+      </div>
+
+      <!-- Main Transfer Form View -->
+      <div id="mainTransferView" style="display: none;">
+
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(30, 187, 215, 0.12); color: var(--primary-teal); padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+            <i data-lucide="repeat" style="width: 14px; height: 14px;"></i>
+            Key Transfer & Room Claim
+          </div>
+          <h2 style="font-family: var(--font-display); font-size: 22px; font-weight: 800; margin: 0 0 6px 0; color: var(--text-dark);">
+            Physical Key Handoff
+          </h2>
+          <p style="font-size: 13px; color: var(--text-mid); margin: 0;">
+            Confirm receiving responsibility for this laboratory key from your colleague.
+          </p>
+        </div>
+
+        <!-- Key Identification Box -->
+        <div class="key-badge-box">
+          <div class="key-bldg-label" id="dispBuilding">IT BUILDING</div>
+          <div class="key-room-label" id="dispRoom">LABORATORY 203</div>
+          <div class="key-code-sub">
+            <i data-lucide="key" style="width: 14px; height: 14px; color: var(--primary-teal);"></i>
+            <span id="dispKeyCode">KEY-IT-203-A</span>
+          </div>
+        </div>
+
+        <!-- Transfer Parties Section -->
+        <div style="margin-bottom: 24px;">
+
+          <!-- Previous Holder -->
+          <div style="font-size: 11.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+            CURRENT KEY HOLDER
+          </div>
+          <div class="party-card">
+            <div class="party-avatar prev" id="dispPrevAvatar">
+              <i data-lucide="user-x" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div class="party-info">
+              <div class="party-role-tag" style="color: #64748b;" id="dispPrevRole">PREVIOUS HOLDER</div>
+              <h4 class="party-name" id="dispPrevName">No Active Holder</h4>
+              <div class="party-sub" id="dispPrevSub">Docked in IoT Key Box</div>
+            </div>
+          </div>
+
+          <!-- Arrow Divider -->
+          <div class="transfer-divider">
+            <div class="transfer-arrow-badge">
+              <i data-lucide="arrow-down" style="width: 18px; height: 18px;"></i>
+            </div>
+          </div>
+
+          <!-- Receiving Professor -->
+          <div style="font-size: 11.5px; font-weight: 800; color: var(--primary-teal); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+            RECEIVING PROFESSOR (YOU)
+          </div>
+          <div class="party-card" style="background: rgba(30, 187, 215, 0.05); border-color: rgba(30, 187, 215, 0.3);">
+            <div class="party-avatar receiving" id="dispRecvAvatar">
+              <i data-lucide="user-check" style="width: 22px; height: 22px;"></i>
+            </div>
+            <div class="party-info">
+              <div class="party-role-tag" style="color: var(--primary-teal);" id="dispRecvRole">FACULTY</div>
+              <h4 class="party-name" id="dispRecvName">Loading...</h4>
+              <div class="party-sub" id="dispRecvSub">Will be recorded as new key holder</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Notice / Restriction Message Box -->
+        <div id="restrictionNotice" style="display: none; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #92400E; line-height: 1.4;">
+          <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <i data-lucide="alert-circle" style="width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px;"></i>
+            <span id="restrictionNoticeText">MIS Staff accounts cannot claim keys.</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button" id="btnConfirmTransfer" class="btn-confirm-transfer">
+            <i data-lucide="check-circle-2" style="width: 18px; height: 18px;"></i>
+            Confirm Key Transfer
+          </button>
+          <button type="button" id="btnCancelTransfer" class="btn-cancel-transfer">
+            Cancel
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Success State View -->
+      <div id="successView" style="display: none; text-align: center; padding: 24px 10px;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: #D1FAE5; color: #10B981; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+          <i data-lucide="check-circle-2" style="width: 36px; height: 36px;"></i>
+        </div>
+        <h2 style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--text-dark); margin: 0 0 8px 0;">
+          Key Transferred Successfully!
+        </h2>
+        <p style="font-size: 14px; color: var(--text-mid); line-height: 1.5; margin: 0 0 20px 0;" id="successMsgText">
+          Responsibility for the laboratory key has been officially transferred.
+        </p>
+
+        <!-- Receipt Table -->
+        <div style="background: var(--bg-body); border: 1px solid var(--border-light); border-radius: 14px; padding: 16px; text-align: left; font-size: 13px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--border-light);">
+            <span style="color: var(--text-light);">Laboratory:</span>
+            <strong style="color: var(--text-dark);" id="recLab">Laboratory 203</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--border-light);">
+            <span style="color: var(--text-light);">Key Code:</span>
+            <strong style="color: var(--text-dark); font-family: monospace;" id="recKey">KEY-IT-203-A</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--border-light);">
+            <span style="color: var(--text-light);">Previous Holder:</span>
+            <span style="color: var(--text-dark);" id="recPrev">Prof. Juan</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--border-light);">
+            <span style="color: var(--text-light);">New Responsible Holder:</span>
+            <strong style="color: var(--primary-teal);" id="recNew">Prof. Maria</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 0;">
+            <span style="color: var(--text-light);">Date & Time:</span>
+            <span style="color: var(--text-dark);" id="recTime">2026-09-03 10:45</span>
+          </div>
+        </div>
+
+        <button type="button" id="btnGoDashboard" class="btn-confirm-transfer">
+          <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+          View Dashboard
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <footer style="text-align: center; padding: 20px; font-size: 12px; color: var(--text-muted);">
+    Bulacan State University – Sarmiento Campus &bull; LabSync Key Transfer System
+  </footer>
+
+  <script src="js/pages/key-transfer.js"></script>
+</body>
+
+</html>

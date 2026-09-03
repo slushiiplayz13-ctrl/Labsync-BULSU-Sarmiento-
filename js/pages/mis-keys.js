@@ -1,6 +1,7 @@
 /**
- * LabSync – MIS Key Management Page Script  |  js/pages/mis-keys.js
- * Controls physical laboratory key inventory, keychain insert printing, status lifecycle, and found reports.
+ * LabSync – MIS Key Inventory Management Script  |  js/pages/mis-keys.js
+ * Handles key inventory rendering, status visibility, search filtering,
+ * selection checkboxes, and batch 2-sided printable Key Transfer QR tag preview/printing.
  */
 
 (function () {
@@ -8,66 +9,142 @@
 
   let currentKeys = [];
   let currentFilter = 'ALL';
-  let activePrintKeyId = null;
+  let currentFilteredKeys = [];
+  const selectedKeyIds = new Set();
+  let activePrintKeyIds = [];
 
   document.addEventListener('DOMContentLoaded', () => {
-    initPage();
+    initKeysPage();
   });
 
-  async function initPage() {
+  async function initKeysPage() {
     setupEventListeners();
     await refreshKeys();
   }
 
   /**
-   * Fetches latest keys from server and renders table.
+   * Refreshes key list and summary metrics from API.
    */
   async function refreshKeys() {
     const tableBody = document.getElementById('keysTableBody');
     if (tableBody) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="6" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
-            Loading physical keys...
+          <td colspan="7" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
+            <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+            Loading laboratory keys...
           </td>
         </tr>
       `;
+      if (window.lucide) window.lucide.createIcons();
     }
 
     try {
       const res = await window.keysService.fetchKeys();
-      currentKeys = (res && res.keys) ? res.keys : [];
-      const summary = (res && res.summary) ? res.summary : { total: 0, active: 0, missing: 0, found: 0 };
-
+      currentKeys = res.keys || [];
+      const summary = res.summary || { total: 0, inDock: 0, inUse: 0 };
       updateStatsSummary(summary);
       renderKeysTable();
     } catch (err) {
-      console.error('[MISKeys] Failed to refresh keys:', err);
+      console.error('[MISKeys] Error fetching keys:', err);
       if (tableBody) {
         tableBody.innerHTML = `
           <tr>
-            <td colspan="6" class="table-cell text-center" style="padding: 40px; color: #EF4444; font-weight: 600;">
-              Failed to load keys: ${err.message}
+            <td colspan="7" class="table-cell text-center" style="padding: 40px; color: #EF4444;">
+              <i data-lucide="alert-circle" style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+              Failed to load key inventory: ${err.message}
             </td>
           </tr>
         `;
+        if (window.lucide) window.lucide.createIcons();
       }
     }
   }
 
   /**
-   * Updates stat counter cards and filter badges.
+   * Updates stat counter cards.
    */
   function updateStatsSummary(summary) {
     const elTotal = document.getElementById('statTotalKeys');
-    const elActive = document.getElementById('statActiveKeys');
-    const elMissing = document.getElementById('statMissingKeys');
-    const elFound = document.getElementById('statFoundKeys');
+    const elInDock = document.getElementById('statInDockKeys');
+    const elInUse = document.getElementById('statInUseKeys');
 
-    if (elTotal) elTotal.textContent = summary.total;
-    if (elActive) elActive.textContent = summary.active;
-    if (elMissing) elMissing.textContent = summary.missing;
-    if (elFound) elFound.textContent = summary.found;
+    if (elTotal) elTotal.textContent = summary.total ?? 0;
+    if (elInDock) elInDock.textContent = summary.inDock ?? 0;
+    if (elInUse) elInUse.textContent = summary.inUse ?? 0;
+  }
+
+  /**
+   * Updates the Select All checkbox state (checked, unchecked, or indeterminate).
+   */
+  function updateSelectAllCheckboxState() {
+    const selectAllCheckbox = document.getElementById('selectAllKeysCheckbox');
+    if (!selectAllCheckbox) return;
+
+    if (currentFilteredKeys.length === 0) {
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
+      return;
+    }
+
+    const selectedFilteredCount = currentFilteredKeys.filter(k => selectedKeyIds.has(Number(k.Key_ID))).length;
+
+    if (selectedFilteredCount === 0) {
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
+    } else if (selectedFilteredCount === currentFilteredKeys.length) {
+      selectAllCheckbox.checked = true;
+      selectAllCheckbox.indeterminate = false;
+    } else {
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = true;
+    }
+  }
+
+  /**
+   * Updates toolbar batch buttons and count indicators.
+   */
+  function updateBatchToolbar() {
+    const btnSelected = document.getElementById('btnBatchPrintSelected');
+    const btnSelectedText = document.getElementById('btnBatchPrintSelectedText');
+    const btnSelectedBadge = document.getElementById('btnBatchPrintSelectedBadge');
+    const btnAll = document.getElementById('btnBatchPrintAll');
+    const btnAllText = document.getElementById('btnBatchPrintAllText');
+
+    const selectedCount = selectedKeyIds.size;
+    const filteredCount = currentFilteredKeys.length;
+
+    if (btnSelected && btnSelectedText) {
+      btnSelectedText.textContent = 'Print Selected';
+      if (btnSelectedBadge) {
+        btnSelectedBadge.textContent = selectedCount;
+        btnSelectedBadge.style.display = selectedCount > 0 ? 'inline-flex' : 'none';
+      }
+      if (selectedCount > 0) {
+        btnSelected.disabled = false;
+        btnSelected.style.cursor = 'pointer';
+        btnSelected.style.opacity = '1';
+        btnSelected.style.background = '#F0F9FF';
+        btnSelected.style.borderColor = '#0EA5C9';
+        btnSelected.style.color = '#0284C7';
+        btnSelected.style.boxShadow = '0 2px 6px rgba(14, 165, 201, 0.15)';
+      } else {
+        btnSelected.disabled = true;
+        btnSelected.style.cursor = 'not-allowed';
+        btnSelected.style.opacity = '0.6';
+        btnSelected.style.background = 'var(--bg-white)';
+        btnSelected.style.borderColor = 'var(--border-light)';
+        btnSelected.style.color = 'var(--text-light)';
+        btnSelected.style.boxShadow = 'none';
+      }
+    }
+
+    if (btnAll && btnAllText) {
+      btnAllText.textContent = 'Print All';
+      btnAll.disabled = filteredCount === 0;
+      btnAll.style.cursor = filteredCount === 0 ? 'not-allowed' : 'pointer';
+      btnAll.style.opacity = filteredCount === 0 ? '0.6' : '1';
+    }
   }
 
   /**
@@ -80,131 +157,117 @@
     const searchInput = document.getElementById('keySearchInput');
     const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-    const filtered = currentKeys.filter(k => {
+    currentFilteredKeys = currentKeys.filter(k => {
+      const isPresent = (k.Room_Key_Status || 'Present') === 'Present';
+
       // Filter tab check
-      if (currentFilter !== 'ALL' && k.Status !== currentFilter) {
-        return false;
-      }
-      // Multi-keyword search check
+      if (currentFilter === 'PRESENT' && !isPresent) return false;
+      if (currentFilter === 'ABSENT' && isPresent) return false;
+
+      // Search check
       if (query) {
         const codeStr = String(k.Key_Code || '').toLowerCase();
         const rawRoom = String(k.Room_Number || '').toLowerCase();
         const roomStr = rawRoom.startsWith('room') ? rawRoom : `room ${rawRoom}`;
         const bldgStr = String(k.Building || '').toLowerCase();
-        const statusStr = String(k.Status || '').toLowerCase();
+        const holderStr = String(k.Current_Holder_Name || '').toLowerCase();
+        const statusStr = isPresent ? 'in key box docked available present' : 'in use with faculty absent';
 
-        const fullSearchable = `${codeStr} ${rawRoom} ${roomStr} ${bldgStr} ${statusStr}`;
+        const fullSearchable = `${codeStr} ${rawRoom} ${roomStr} ${bldgStr} ${holderStr} ${statusStr}`;
         const queryWords = query.split(/\s+/).filter(Boolean);
         return queryWords.every(word => fullSearchable.includes(word));
       }
       return true;
     });
 
-    if (filtered.length === 0) {
+    updateSelectAllCheckboxState();
+    updateBatchToolbar();
+
+    if (currentFilteredKeys.length === 0) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="6" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
-            No matching physical keys found.
+          <td colspan="7" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
+            No laboratory keys matching the criteria.
           </td>
         </tr>
       `;
       return;
     }
 
-    tableBody.innerHTML = filtered.map(k => {
+    tableBody.innerHTML = currentFilteredKeys.map(k => {
+      const keyId = Number(k.Key_ID);
+      const isChecked = selectedKeyIds.has(keyId);
       const rawRoom = String(k.Room_Number || '').trim();
       const roomFormatted = rawRoom.toLowerCase().startsWith('room') ? rawRoom : `Room ${rawRoom}`;
       const building = k.Building || 'IT Building';
-      
-      let dateDisplayHtml = '';
-      if (k.Last_Taken_At) {
-        const dateObj = new Date(k.Last_Taken_At);
-        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        dateDisplayHtml = `
-          <div class="col-date-wrap">
-            <i data-lucide="calendar" class="col-date-icon"></i>
-            <div class="col-date-text">
-              <span class="date-main">${dateStr}</span>
-              <span class="time-sub">${timeStr}</span>
-            </div>
+      const isPresent = (k.Room_Key_Status || 'Present') === 'Present';
+
+      // Last activity format
+      let dateStr = 'No recent activity';
+      if (k.Last_Activity_At || k.Last_Taken_At) {
+        const dateObj = new Date(k.Last_Activity_At || k.Last_Taken_At);
+        const m = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const t = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        dateStr = `${m}, ${t}`;
+      }
+
+      // System status read-only badge
+      const statusBadgeHtml = isPresent
+        ? '<span class="status-badge-pulse resolved" title="Key is docked in the IoT key box"><span class="pulse-dot"></span> In Key Box (Docked)</span>'
+        : '<span class="status-badge-pulse pending" title="Key is held by faculty"><span class="pulse-dot"></span> In Use (With Faculty)</span>';
+
+      // Current Holder / Activity display
+      let holderHtml = '';
+      if (k.Current_Holder_Name) {
+        const cleanName = k.Current_Holder_Name.startsWith('Prof.') ? k.Current_Holder_Name : `Prof. ${k.Current_Holder_Name}`;
+        holderHtml = `
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-weight: 700; color: var(--text-dark); font-size: 13.5px;">${cleanName}</span>
+            <span style="font-size: 11.5px; color: var(--text-muted);">${dateStr}</span>
           </div>
         `;
       } else {
-        dateDisplayHtml = `
-          <span style="font-size: 12.5px; color: var(--text-muted); font-weight: 600; font-style: italic;">Not Yet Taken</span>
-        `;
-      }
-
-      let statusBadgeHtml = '';
-      if (k.Status === 'ACTIVE') {
-        statusBadgeHtml = '<span class="status-badge-pulse resolved"><span class="pulse-dot"></span> Active</span>';
-      } else if (k.Status === 'MISSING') {
-        statusBadgeHtml = '<span class="status-badge-pulse pending"><span class="pulse-dot"></span> Missing</span>';
-      } else if (k.Status === 'FOUND') {
-        statusBadgeHtml = '<span class="status-badge-pulse found"><span class="pulse-dot"></span> Found Report</span>';
-      } else {
-        statusBadgeHtml = `<span class="status-badge-pulse resolved"><span class="pulse-dot"></span> ${k.Status}</span>`;
-      }
-
-      // Actions
-      let actionButtons = `
-        <button type="button" class="btn-table-action key-action-btn btn-tag" data-action="print-tag" data-id="${k.Key_ID}" title="Print 2-Sided Keychain Insert">
-          <i data-lucide="printer"></i> Tag
-        </button>
-      `;
-
-      if (k.Status === 'ACTIVE') {
-        actionButtons += `
-          <button type="button" class="btn-table-action key-action-btn btn-missing" data-action="mark-missing" data-id="${k.Key_ID}" title="Mark Key as Missing">
-            <i data-lucide="alert-triangle"></i> Missing
-          </button>
-        `;
-      } else if (k.Status === 'MISSING' || k.Status === 'FOUND') {
-        actionButtons += `
-          <button type="button" class="btn-table-action key-action-btn btn-recovered" data-action="mark-active" data-id="${k.Key_ID}" title="Mark Physical Key Recovered / Active">
-            <i data-lucide="check-circle"></i> Mark Recovered
-          </button>
-        `;
-      }
-
-      if (k.Status === 'FOUND' || (k.Open_Reports_Count && k.Open_Reports_Count > 0)) {
-        actionButtons += `
-          <button type="button" class="btn-table-action key-action-btn btn-reports" data-action="view-reports" data-id="${k.Key_ID}" title="View Public Found Key Reports">
-            <i data-lucide="search"></i> Reports (${k.Open_Reports_Count || 1})
-          </button>
+        holderHtml = `
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="color: var(--text-muted); font-size: 13px;">Key Box Dock (Available)</span>
+            <span style="font-size: 11.5px; color: var(--text-light);">${dateStr}</span>
+          </div>
         `;
       }
 
       return `
-        <tr class="maintenance-row">
-          <td class="col-ticket" style="white-space: nowrap;">
-            <span class="ticket-chip">
-              ${k.Key_Code}
-            </span>
+        <tr class="key-data-row ${isChecked ? 'row-selected' : ''}" data-key-id="${keyId}">
+          <td class="col-checkbox text-center" style="white-space: nowrap; text-align: center;">
+            <input type="checkbox" class="key-row-checkbox" data-id="${keyId}" ${isChecked ? 'checked' : ''} aria-label="Select Key ${k.Key_Code}" />
           </td>
-          <td class="col-building" style="white-space: nowrap;">
-            <div class="cell-icon-wrap">
-              <i data-lucide="building" class="cell-icon pc"></i>
-              ${building}
-            </div>
+          <td class="col-ticket" style="white-space: nowrap;">
+            <span class="key-code-chip">
+              <i data-lucide="key" class="key-chip-icon"></i>
+              <span>${k.Key_Code}</span>
+            </span>
           </td>
           <td class="col-room" style="white-space: nowrap;">
             <div class="cell-icon-wrap">
               <i data-lucide="map-pin" class="cell-icon room"></i>
-              ${roomFormatted}
+              <span style="font-weight: 700; color: var(--text-dark);">${roomFormatted}</span>
             </div>
           </td>
-          <td class="col-status text-center" style="white-space: nowrap;">
+          <td class="col-building" style="white-space: nowrap;">
+            <div class="cell-icon-wrap">
+              <i data-lucide="building" class="cell-icon bldg"></i>
+              <span>${building}</span>
+            </div>
+          </td>
+          <td class="col-status text-center" style="white-space: nowrap; text-align: center;">
             ${statusBadgeHtml}
           </td>
-          <td class="col-date" style="white-space: nowrap;">
-            ${dateDisplayHtml}
+          <td class="col-holder" style="white-space: nowrap;">
+            ${holderHtml}
           </td>
           <td class="col-actions text-center" style="white-space: nowrap; text-align: center;">
-            <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-              ${actionButtons}
-            </div>
+            <button type="button" class="btn-table-action key-action-btn btn-tag" data-action="print-tag" data-id="${keyId}" title="Preview & Print Key QR Tag" style="padding: 7px 14px; gap: 6px; font-weight: 700; border-radius: 8px;">
+              <i data-lucide="qr-code"></i> <span>Print QR Tag</span>
+            </button>
           </td>
         </tr>
       `;
@@ -216,7 +279,63 @@
   }
 
   /**
-   * Sets up event listeners for filters, search, buttons, and modals.
+   * Builds the side-by-side pair HTML for a single key (Side 1 Front + Side 2 Back).
+   */
+  function buildKeyPairHtml(tagData) {
+    const rawRoom = String(tagData.roomNumber || '').trim();
+    const roomStr = rawRoom.toLowerCase().startsWith('room') ? rawRoom : `Room ${rawRoom}`;
+    const buildingStr = tagData.building || 'BLDG. B';
+
+    return `
+      <div class="keychain-print-pair" data-key-id="${tagData.keyId}">
+        <div class="keychain-pair-header">
+          <span>${roomStr}</span>
+          <span>&bull;</span>
+          <span>${buildingStr}</span>
+        </div>
+        <div class="keychain-pair-slots">
+          <!-- FRONT SIDE (1.14in x 1.84in) -->
+          <div class="keychain-slot">
+            <div class="keychain-card-wrapper">
+              <div class="keychain-side-label">SIDE 1 — FRONT</div>
+              <div class="keychain-card keychain-front-card">
+                <div class="keychain-front-dark-header">
+                  <img src="assets/labsync-logo - dark mode.png" alt="LabSync" class="keychain-front-dark-logo" />
+                  <div class="keychain-front-univ-badge">BULSU - SARMIENTO CAMPUS</div>
+                </div>
+                
+                <div class="keychain-front-body">
+                  <div class="keychain-room-label">ROOM</div>
+                  <div class="keychain-room-number-huge">${tagData.roomNumber}</div>
+                  <div class="keychain-bldg-blue">${buildingStr}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BACK SIDE (1.14in x 1.84in) -->
+          <div class="keychain-slot">
+            <div class="keychain-card-wrapper">
+              <div class="keychain-side-label">SIDE 2 — BACK</div>
+              <div class="keychain-card keychain-back-card">
+                <div class="keychain-back-heading">KEY TRANSFER & CLAIM</div>
+                <div class="keychain-qr-wrapper">
+                  <img src="${tagData.qrCode}" alt="Key Transfer QR Code" />
+                </div>
+                <div class="keychain-back-instruction">
+                  <div class="instruction-lead">Need to transfer<br>or claim this room?</div>
+                  <div class="instruction-sub">Scan QR to continue.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Sets up event listeners for filters, search, selection, and tag printing.
    */
   function setupEventListeners() {
     // Filter tabs
@@ -229,17 +348,18 @@
           b.style.color = 'var(--text-light)';
           b.style.boxShadow = 'none';
         });
+
         btn.classList.add('active');
         btn.style.background = 'var(--bg-white)';
         btn.style.color = 'var(--primary-teal)';
         btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
 
-        currentFilter = btn.getAttribute('data-filter') || 'ALL';
+        currentFilter = btn.dataset.filter || 'ALL';
         renderKeysTable();
       });
     });
 
-    // Search input
+    // Real-time search
     const searchInput = document.getElementById('keySearchInput');
     if (searchInput) {
       searchInput.addEventListener('input', () => {
@@ -247,41 +367,109 @@
       });
     }
 
-    // Table action delegation
+    // Header "Select All" checkbox
+    const selectAllCheckbox = document.getElementById('selectAllKeysCheckbox');
+    if (selectAllCheckbox) {
+      selectAllCheckbox.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        currentFilteredKeys.forEach(k => {
+          const id = Number(k.Key_ID);
+          if (isChecked) {
+            selectedKeyIds.add(id);
+          } else {
+            selectedKeyIds.delete(id);
+          }
+        });
+
+        document.querySelectorAll('.key-row-checkbox').forEach(cb => {
+          cb.checked = isChecked;
+          cb.closest('tr')?.classList.toggle('row-selected', isChecked);
+        });
+
+        updateSelectAllCheckboxState();
+        updateBatchToolbar();
+      });
+    }
+
+    // Table checkbox toggle & Action button delegation
     const tableBody = document.getElementById('keysTableBody');
     if (tableBody) {
+      // Row checkbox change
+      tableBody.addEventListener('change', (e) => {
+        const cb = e.target.closest('.key-row-checkbox');
+        if (!cb) return;
+
+        const keyId = Number(cb.dataset.id);
+        if (cb.checked) {
+          selectedKeyIds.add(keyId);
+          cb.closest('tr')?.classList.add('row-selected');
+        } else {
+          selectedKeyIds.delete(keyId);
+          cb.closest('tr')?.classList.remove('row-selected');
+        }
+
+        updateSelectAllCheckboxState();
+        updateBatchToolbar();
+      });
+
+      // Print Tag single button click
       tableBody.addEventListener('click', async (e) => {
-        const btn = e.target.closest('.btn-table-action');
+        const btn = e.target.closest('.key-action-btn');
         if (!btn) return;
 
-        const action = btn.getAttribute('data-action');
-        const keyId = btn.getAttribute('data-id');
+        const action = btn.dataset.action;
+        const keyId = Number(btn.dataset.id);
 
         if (action === 'print-tag') {
-          await openPrintModal(keyId);
-        } else if (action === 'mark-missing') {
-          if (confirm('Are you sure you want to mark this key as MISSING?')) {
-            try {
-              const res = await window.keysService.markKeyMissing(keyId);
-              if (window.showToast) window.showToast(res.message);
-              await refreshKeys();
-            } catch (err) {
-              alert(err.message);
-            }
-          }
-        } else if (action === 'mark-active') {
-          if (confirm('Mark this physical key as recovered and ACTIVE?')) {
-            try {
-              const res = await window.keysService.markKeyActive(keyId);
-              if (window.showToast) window.showToast(res.message);
-              await refreshKeys();
-            } catch (err) {
-              alert(err.message);
-            }
-          }
-        } else if (action === 'view-reports') {
-          await openReportsModal(keyId);
+          await openBatchPrintModal([keyId]);
         }
+      });
+    }
+
+    // Toolbar Batch Print Buttons
+    const btnBatchPrintSelected = document.getElementById('btnBatchPrintSelected');
+    if (btnBatchPrintSelected) {
+      btnBatchPrintSelected.addEventListener('click', async () => {
+        if (selectedKeyIds.size === 0) return;
+        await openBatchPrintModal(Array.from(selectedKeyIds));
+      });
+    }
+
+    const btnBatchPrintAll = document.getElementById('btnBatchPrintAll');
+    if (btnBatchPrintAll) {
+      btnBatchPrintAll.addEventListener('click', async () => {
+        if (currentFilteredKeys.length === 0) return;
+        await openBatchPrintModal(currentFilteredKeys.map(k => Number(k.Key_ID)));
+      });
+    }
+
+    // Zoom controls for modal preview
+    const btnZoom100 = document.getElementById('btnZoom100');
+    const btnZoom140 = document.getElementById('btnZoom140');
+    const previewContainer = document.getElementById('keyTagPreviewContainer');
+
+    if (btnZoom100 && btnZoom140 && previewContainer) {
+      btnZoom100.addEventListener('click', () => {
+        previewContainer.classList.remove('zoomed-140');
+        btnZoom100.classList.add('active');
+        btnZoom100.style.background = 'var(--bg-white)';
+        btnZoom100.style.color = 'var(--primary-teal)';
+        btnZoom100.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+        btnZoom140.classList.remove('active');
+        btnZoom140.style.background = 'transparent';
+        btnZoom140.style.color = 'var(--text-light)';
+      });
+
+      btnZoom140.addEventListener('click', () => {
+        previewContainer.classList.add('zoomed-140');
+        btnZoom140.classList.add('active');
+        btnZoom140.style.background = 'var(--bg-white)';
+        btnZoom140.style.color = 'var(--primary-teal)';
+        btnZoom140.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+        btnZoom100.classList.remove('active');
+        btnZoom100.style.background = 'transparent';
+        btnZoom100.style.color = 'var(--text-light)';
+        btnZoom100.style.boxShadow = 'none';
       });
     }
 
@@ -293,7 +481,18 @@
 
     const closePrintModal = () => {
       if (modalPrint) modalPrint.style.display = 'none';
-      activePrintKeyId = null;
+      if (previewContainer) previewContainer.classList.remove('zoomed-140');
+      if (btnZoom100) {
+        btnZoom100.classList.add('active');
+        btnZoom100.style.background = 'var(--bg-white)';
+        btnZoom100.style.color = 'var(--primary-teal)';
+      }
+      if (btnZoom140) {
+        btnZoom140.classList.remove('active');
+        btnZoom140.style.background = 'transparent';
+        btnZoom140.style.color = 'var(--text-light)';
+      }
+      activePrintKeyIds = [];
     };
 
     if (btnClosePrint) btnClosePrint.addEventListener('click', closePrintModal);
@@ -304,86 +503,82 @@
         executePrintKeyInsert();
       });
     }
-
-    // View Reports Modal Close
-    const modalReports = document.getElementById('viewReportsModalOverlay');
-    const btnCloseReports = document.getElementById('btnCloseReportsModal');
-    const btnDoneReports = document.getElementById('btnDoneReportsModal');
-
-    const closeReportsModal = () => {
-      if (modalReports) modalReports.style.display = 'none';
-    };
-
-    if (btnCloseReports) btnCloseReports.addEventListener('click', closeReportsModal);
-    if (btnDoneReports) btnDoneReports.addEventListener('click', closeReportsModal);
   }
 
   /**
-   * Opens Print Preview Modal and generates key tag insert HTML.
+   * Opens Print Preview Modal and generates key tag insert HTML (1.14in x 1.84in) for one or multiple keys.
    */
-  async function openPrintModal(keyId) {
-    activePrintKeyId = keyId;
+  async function openBatchPrintModal(keyIds) {
+    if (!keyIds || keyIds.length === 0) return;
+    activePrintKeyIds = keyIds;
+
     const modalPrint = document.getElementById('printKeyModalOverlay');
     const previewContainer = document.getElementById('keyTagPreviewContainer');
+    const modalTitle = document.getElementById('printModalTitle');
+    const modalSubtitle = document.getElementById('printModalSubtitle');
+    const btnExecText = document.getElementById('btnExecutePrintText');
 
     if (modalPrint) modalPrint.style.display = 'flex';
+
+    const count = keyIds.length;
+    if (modalTitle) {
+      modalTitle.textContent = count === 1 ? 'Two-Sided Keychain Insert' : `Batch Keychain Inserts (${count} Keys)`;
+    }
+    if (modalSubtitle) {
+      modalSubtitle.innerHTML = count === 1
+        ? 'Exact Cutout Size: <strong>1.14 in × 1.84 in</strong> &bull; For Acrylic Key Tag'
+        : `Exact Cutout Size: <strong>1.14 in × 1.84 in</strong> &bull; ${count} Inserts (${count * 2} Printable Tags)`;
+    }
+    if (btnExecText) {
+      btnExecText.textContent = count === 1 ? 'Print Insert' : `Print ${count} Inserts (${count * 2} Tags)`;
+    }
+
     if (previewContainer) {
-      previewContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Generating printable key insert...</div>';
+      previewContainer.classList.remove('zoomed-140');
+      previewContainer.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 30px; width: 100%;">
+          <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-bottom: 8px;"></i>
+          <div style="font-size: 13.5px; font-weight: 600;">Generating ${count} printable key tag${count > 1 ? 's' : ''}...</div>
+        </div>
+      `;
+      if (window.lucide) window.lucide.createIcons();
     }
 
     try {
-      const tagData = await window.keysService.fetchKeyTag(keyId);
-      const rawRoom = String(tagData.roomNumber || '').trim();
-      const roomStr = rawRoom.toLowerCase().startsWith('room') ? rawRoom : `Room ${rawRoom}`;
+      const tagResults = await Promise.all(
+        keyIds.map(id => window.keysService.fetchKeyTag(id).catch(err => {
+          console.error(`[MISKeys] Error generating tag for key ${id}:`, err);
+          return null;
+        }))
+      );
 
-      const insertHtml = `
-        <!-- FRONT SIDE -->
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
-          <div class="keychain-side-label">SIDE 1 — FRONT</div>
-          <div class="keychain-card">
-            <div class="keychain-front-header">
-              <img src="assets/labsync-logo.png" alt="LabSync Logo" class="keychain-front-logo" />
-              <div class="keychain-brand-divider"></div>
-              <div class="keychain-univ-title">BULACAN STATE UNIVERSITY<br>SARMIENTO CAMPUS</div>
-            </div>
-            
-            <div class="keychain-location-box">
-              <div class="keychain-bldg-name">${tagData.building || 'IT BUILDING'}</div>
-              <div class="keychain-room-name">LABORATORY ${tagData.roomNumber}</div>
-            </div>
-            
-            <div class="keychain-code-pill">${tagData.keyCode}</div>
-          </div>
-        </div>
+      const validTags = tagResults.filter(Boolean);
 
-        <!-- BACK SIDE -->
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
-          <div class="keychain-side-label">SIDE 2 — BACK</div>
-          <div class="keychain-card">
-            <div class="keychain-back-text">
-              <strong>Found this key?</strong> Return it to Campus Security or the IT/MIS Office.<br><br>
-              <strong>Can’t return it now?</strong> Scan the QR to notify us.
-            </div>
-            <div class="keychain-qr-wrapper">
-              <img src="${tagData.qrCode}" alt="Key QR Code" />
-            </div>
-          </div>
-        </div>
-      `;
-
-      if (previewContainer) {
-        previewContainer.innerHTML = insertHtml;
+      if (validTags.length === 0) {
+        if (previewContainer) {
+          previewContainer.innerHTML = '<div style="color: #EF4444; font-weight: 600; padding: 24px; text-align: center;">Failed to generate printable key tags.</div>';
+        }
+        return;
       }
-    } catch (err) {
-      console.error('[MISKeys] Error building key tag preview:', err);
+
       if (previewContainer) {
-        previewContainer.innerHTML = `<div style="color: #EF4444; font-weight: 600; padding: 20px;">Failed to generate tag: ${err.message}</div>`;
+        previewContainer.innerHTML = validTags.map(buildKeyPairHtml).join('');
+      }
+      if (window.lucide) window.lucide.createIcons();
+    } catch (err) {
+      console.error('[MISKeys] Error building batch key tag preview:', err);
+      if (previewContainer) {
+        previewContainer.innerHTML = `<div style="color: #EF4444; font-weight: 600; padding: 20px;">Failed to generate tag preview: ${err.message}</div>`;
       }
     }
   }
 
+  // Alias for backward compatibility
+  const openPrintModal = (keyId) => openBatchPrintModal([Number(keyId)]);
+
   /**
-   * Executes window.print() for the two-sided keychain insert.
+   * Executes window.print() for the two-sided keychain inserts.
+   * Prints at exact 1.14in x 1.84in physical dimensions at 100% scale.
    */
   function executePrintKeyInsert() {
     const previewContainer = document.getElementById('keyTagPreviewContainer');
@@ -400,94 +595,7 @@
     setTimeout(() => {
       window.print();
       printArea.innerHTML = '';
-    }, 100);
-  }
-
-  /**
-   * Opens Found Reports modal and renders report history.
-   */
-  async function openReportsModal(keyId) {
-    const modalReports = document.getElementById('viewReportsModalOverlay');
-    const listContainer = document.getElementById('reportsListContainer');
-
-    if (modalReports) modalReports.style.display = 'flex';
-    if (listContainer) {
-      listContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Loading reports...</div>';
-    }
-
-    try {
-      const reports = await window.keysService.fetchFoundReports(keyId);
-
-      if (!Array.isArray(reports) || reports.length === 0) {
-        if (listContainer) {
-          listContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 24px;">No found key reports recorded yet for this key.</div>';
-        }
-        return;
-      }
-
-      const html = reports.map(r => {
-        const foundDate = r.Found_At ? new Date(r.Found_At).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Unknown date';
-        const createdDate = r.Created_At ? new Date(r.Created_At).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-        const isResolved = r.Status === 'RESOLVED';
-
-        return `
-          <div style="background: var(--bg-body); border: 1px solid var(--border-light); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-              <div>
-                <span style="font-size: 11px; font-weight: 800; color: var(--primary-teal); text-transform: uppercase;">KEY: ${r.Key_Code || 'KEY RECORD'} (Room ${r.Room_Number || ''})</span>
-                <h4 style="margin: 2px 0 0 0; font-size: 14px; font-weight: 700; color: var(--text-dark);">Found at: ${r.Found_Location}</h4>
-              </div>
-              <span style="font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; ${isResolved ? 'background:rgba(16,185,129,0.12); color:#10B981;' : 'background:rgba(147,51,234,0.15); color:#9333EA;'}">
-                ${r.Status}
-              </span>
-            </div>
-
-            <div style="font-size: 12.5px; color: var(--text-dark); margin-bottom: 6px;">
-              <strong>Date / Time Found:</strong> ${foundDate}
-            </div>
-
-            ${r.Finder_Contact ? `<div style="font-size: 12.5px; color: var(--text-dark); margin-bottom: 6px;"><strong>Finder Contact:</strong> ${r.Finder_Contact}</div>` : ''}
-            ${r.Message ? `<div style="font-size: 12.5px; color: var(--text-light); font-style: italic; background: var(--bg-white); padding: 8px 10px; border-radius: 8px; margin-top: 6px;">"${r.Message}"</div>` : ''}
-
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-light);">
-              <span style="font-size: 11px; color: var(--text-light);">Reported: ${createdDate}</span>
-              ${!isResolved ? `
-                <button type="button" class="btn-resolve-key-report" data-keyid="${r.Key_ID}"
-                  style="padding: 5px 10px; background: rgba(16,185,129,0.12); color: #10B981; border: none; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
-                  Mark Recovered / Active
-                </button>
-              ` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      if (listContainer) {
-        listContainer.innerHTML = html;
-
-        // Attach resolve listener inside modal
-        listContainer.querySelectorAll('.btn-resolve-key-report').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const keyIdToResolve = btn.getAttribute('data-keyid');
-            if (confirm('Mark this physical key as recovered and ACTIVE?')) {
-              try {
-                const res = await window.keysService.markKeyActive(keyIdToResolve);
-                if (window.showToast) window.showToast(res.message);
-                document.getElementById('viewReportsModalOverlay').style.display = 'none';
-                await refreshKeys();
-              } catch (err) {
-                alert(err.message);
-              }
-            }
-          });
-        });
-      }
-    } catch (err) {
-      console.error('[MISKeys] Error opening reports modal:', err);
-      if (listContainer) {
-        listContainer.innerHTML = `<div style="color: #EF4444; font-weight: 600; padding: 20px;">Failed to load reports: ${err.message}</div>`;
-      }
-    }
+    }, 120);
   }
 
 })();

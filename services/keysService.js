@@ -2,12 +2,16 @@
 
 /**
  * services/keysService.js
- * Business logic for physical key management, QR key tag generation, lost key reporting, and lifecycle state management.
+ * Business logic for physical key management, QR key tag generation,
+ * and authorized faculty key transfer / room claim workflow.
  */
 
 const QRCode = require('qrcode');
+const { APP_URL } = require('../config/app.config');
+const db = require('../database/connection');
 const keysRepository = require('../repositories/keys.repository');
 const auditService = require('./auditService');
+const { KEY_TRANSFER_ROLES } = require('../middleware/auth');
 
 /**
  * Fetches all registered physical lab keys and calculates summary metrics.
@@ -18,7 +22,8 @@ async function getAllKeys() {
     const total = keys.length;
     const active = keys.filter(k => k.Status === 'ACTIVE').length;
     const missing = keys.filter(k => k.Status === 'MISSING').length;
-    const found = keys.filter(k => k.Status === 'FOUND').length;
+    const inDock = keys.filter(k => (k.Room_Key_Status || 'Present') === 'Present').length;
+    const inUse = keys.filter(k => k.Room_Key_Status === 'Absent').length;
 
     return {
         status: 200,
@@ -28,7 +33,8 @@ async function getAllKeys() {
                 total,
                 active,
                 missing,
-                found
+                inDock,
+                inUse
             }
         }
     };
@@ -77,7 +83,7 @@ async function registerKey(roomId, keyCode, req = null) {
 }
 
 /**
- * Generates two-sided keychain insert metadata and server-side QR data URL for a key.
+ * Generates two-sided keychain insert metadata and server-side QR data URL for Key Transfer.
  */
 async function generateKeyTag(keyId, req = null) {
     const parsedKeyId = Number(keyId);
@@ -91,13 +97,13 @@ async function generateKeyTag(keyId, req = null) {
     }
 
     const key = rows[0];
-    const baseUrl = process.env.APP_URL || 'http://localhost:3000';
-    const publicUrl = `${baseUrl}/key-found.html?key=${encodeURIComponent(key.Key_Code)}`;
+    const baseUrl = APP_URL;
+    const transferUrl = `${baseUrl}/key-transfer.html?key=${encodeURIComponent(key.Key_Code)}`;
 
-    const qrCodeDataURL = await QRCode.toDataURL(publicUrl, {
+    const qrCodeDataURL = await QRCode.toDataURL(transferUrl, {
         width: 300,
         margin: 2,
-        color: { dark: '#0F172A', light: '#FFFFFF' }
+        color: { dark: '#0EA5C9', light: '#FFFFFF' }
     });
 
     await auditService.logSecurityEvent({
@@ -117,7 +123,7 @@ async function generateKeyTag(keyId, req = null) {
             roomNumber: key.Room_Number,
             building: key.Building || 'IT Building',
             qrCode: qrCodeDataURL,
-            publicUrl
+            transferUrl
         }
     };
 }
@@ -152,7 +158,7 @@ async function markKeyMissing(keyId, req = null) {
 }
 
 /**
- * Marks a recovered key as ACTIVE (FOUND -> ACTIVE or MISSING -> ACTIVE) and resolves any open found reports.
+ * Marks a physical key as ACTIVE.
  */
 async function markKeyActive(keyId, req = null) {
     const parsedKeyId = Number(keyId);
@@ -167,7 +173,6 @@ async function markKeyActive(keyId, req = null) {
 
     const key = rows[0];
     await keysRepository.updateKeyStatus(parsedKeyId, 'ACTIVE');
-    await keysRepository.resolveFoundReportsForKey(parsedKeyId);
 
     await auditService.logSecurityEvent({
         req,
@@ -178,113 +183,189 @@ async function markKeyActive(keyId, req = null) {
         result: 'SUCCESS'
     });
 
-    return { status: 200, message: `Key ${key.Key_Code} recovered and marked as ACTIVE.` };
+    return { status: 200, message: `Key ${key.Key_Code} marked as ACTIVE.` };
 }
 
 /**
- * Safe public lookup endpoint for non-authenticated users scanning key QR.
- * Exposes ONLY building, laboratory room number, and key code. Zero sensitive data.
+ * Fetches key transfer details for confirmation UI.
  */
-async function getPublicInfo(keyCode) {
+async function getKeyTransferInfo(keyCode, req = null) {
     if (!keyCode || typeof keyCode !== 'string' || !keyCode.trim()) {
         return { status: 400, error: 'Key identifier is required.' };
     }
 
     const cleanCode = keyCode.trim().toUpperCase();
-    const [rows] = await keysRepository.findByKeyCode(cleanCode);
+    const [rows] = await keysRepository.findKeyWithRoomAndHolder(cleanCode);
 
     if (rows.length === 0) {
         return { status: 404, error: 'Key identifier not found.' };
     }
 
     const key = rows[0];
+    const sessionUserId = req && req.session ? req.session.userId : null;
+    const sessionUserRole = req && req.session ? req.session.userRole : null;
+    const sessionUserName = req && req.session ? req.session.userName : null;
+
+    let currentHolder = null;
+    if (key.Current_User_ID) {
+        currentHolder = {
+            id: key.Current_User_ID,
+            name: key.Current_Holder_Name || 'Unknown Faculty',
+            email: key.Current_Holder_Email || '',
+            role: key.Current_Holder_Role || 'Faculty'
+        };
+    }
+
+    const isEligibleRole = sessionUserRole ? KEY_TRANSFER_ROLES.includes(sessionUserRole) : false;
+    const isSelf = Boolean(sessionUserId && key.Current_User_ID && String(sessionUserId) === String(key.Current_User_ID));
+
+    let cannotTransferReason = null;
+    if (!sessionUserId) {
+        cannotTransferReason = 'Please log in with your Faculty or Department Head account to transfer this key.';
+    } else if (sessionUserRole === 'MIS Staff') {
+        cannotTransferReason = 'MIS Staff accounts are key inventory custodians and cannot hold or transfer classroom keys. Only Faculty and Department Heads may claim or transfer this key.';
+    } else if (isSelf) {
+        cannotTransferReason = 'You are already the registered holder of this key.';
+    } else if (!isEligibleRole) {
+        cannotTransferReason = 'Only authorized Faculty and Department Heads can claim or transfer this key.';
+    }
+
+    const canTransfer = Boolean(sessionUserId && isEligibleRole && !isSelf);
+
     return {
         status: 200,
         data: {
             keyCode: key.Key_Code,
+            roomId: key.Room_ID,
             roomNumber: key.Room_Number,
-            building: key.Building || 'IT Building'
+            building: key.Building || 'IT Building',
+            keyStatus: key.Key_Status,
+            roomKeyStatus: key.Room_Key_Status,
+            currentHolder,
+            currentUser: sessionUserId ? {
+                id: sessionUserId,
+                name: sessionUserName,
+                role: sessionUserRole
+            } : null,
+            canTransfer,
+            cannotTransferReason
         }
     };
 }
 
 /**
- * Public submission of a found key report.
- * Updates key status to FOUND and logs audit event.
+ * Transfers key and room responsibility to the currently logged-in professor.
+ * Uses strict row-locking transaction to protect against concurrent duplicate transfers.
  */
-async function submitFoundKeyReport({ keyCode, foundLocation, foundAt, finderContact, message }, req = null) {
+async function transferKey(keyCode, req) {
+    if (!req.session || !req.session.userId) {
+        return { status: 401, error: 'Authentication required' };
+    }
+
+    const sessionRole = req.session.userRole;
+    if (!KEY_TRANSFER_ROLES.includes(sessionRole)) {
+        return {
+            status: 403,
+            error: 'Forbidden: Only Faculty and Department Heads are authorized to claim or transfer laboratory keys.'
+        };
+    }
+
     if (!keyCode || typeof keyCode !== 'string' || !keyCode.trim()) {
         return { status: 400, error: 'Key identifier is required.' };
     }
 
-    if (!foundLocation || typeof foundLocation !== 'string' || !foundLocation.trim()) {
-        return { status: 400, error: 'Please specify where you found the key.' };
-    }
-
-    if (!foundAt) {
-        return { status: 400, error: 'Please specify when you found the key.' };
-    }
-
     const cleanCode = keyCode.trim().toUpperCase();
-    const cleanLocation = foundLocation.trim().slice(0, 500);
-    const cleanContact = finderContact ? String(finderContact).trim().slice(0, 255) : null;
-    const cleanMessage = message ? String(message).trim().slice(0, 1000) : null;
+    const newUserId = req.session.userId;
+    const newUserName = req.session.userName;
 
-    let parsedFoundAt = new Date(foundAt);
-    if (isNaN(parsedFoundAt.getTime())) {
-        parsedFoundAt = new Date();
+    const connection = await db.getConnection();
+    let keyInfo = null;
+    let previousUserId = null;
+    let previousUserName = 'Key Dock / No Active Holder';
+
+    try {
+        await connection.beginTransaction();
+
+        // 1. Lock key and room row
+        const [rows] = await keysRepository.findKeyWithRoomForUpdate(cleanCode, connection);
+        if (rows.length === 0) {
+            await connection.rollback();
+            return { status: 404, error: 'Key identifier not found.' };
+        }
+
+        keyInfo = rows[0];
+        previousUserId = keyInfo.Current_User_ID;
+
+        // 2. Reject self-transfer
+        if (previousUserId && String(previousUserId) === String(newUserId)) {
+            await connection.rollback();
+            return { status: 400, error: 'You are already the registered holder of this key.' };
+        }
+
+        // 3. Resolve previous holder name for audit trail
+        if (previousUserId) {
+            const [prevUsers] = await connection.query('SELECT Name FROM users WHERE User_ID = ?', [previousUserId]);
+            if (prevUsers.length > 0 && prevUsers[0].Name) {
+                previousUserName = prevUsers[0].Name;
+            }
+        }
+
+        // 4. Update laboratory holder (key is in active handoff, status remains Absent from dock)
+        await connection.query(
+            'UPDATE laboratories SET Current_User_ID = ?, Key_Status = ?, Last_Seen = NOW() WHERE Room_ID = ?',
+            [newUserId, 'Absent', keyInfo.Room_ID]
+        );
+
+        // 5. Ensure physical key record is marked ACTIVE
+        await connection.query(
+            'UPDATE laboratory_keys SET Status = ?, Updated_At = NOW() WHERE Key_ID = ?',
+            ['ACTIVE', keyInfo.Key_ID]
+        );
+
+        // 6. Log historical accountability in occupancy_log with explicit 'Key Transfer' Auth_Method
+        await connection.query(
+            'INSERT INTO occupancy_log (User_ID, Room_ID, Access_Time, Auth_Method) VALUES (?, ?, NOW(), ?)',
+            [newUserId, keyInfo.Room_ID, 'Key Transfer']
+        );
+
+        await connection.commit();
+    } catch (err) {
+        await connection.rollback();
+        throw err;
+    } finally {
+        connection.release();
     }
-    const formattedFoundAt = parsedFoundAt.toISOString().slice(0, 19).replace('T', ' ');
 
-    const [rows] = await keysRepository.findByKeyCode(cleanCode);
-    if (rows.length === 0) {
-        return { status: 404, error: 'Key identifier not found.' };
-    }
-
-    const key = rows[0];
-
-    // Insert report record
-    await keysRepository.insertFoundReport(
-        key.Key_ID,
-        cleanLocation,
-        formattedFoundAt,
-        cleanContact,
-        cleanMessage
-    );
-
-    // Update key status to FOUND
-    await keysRepository.updateKeyStatus(key.Key_ID, 'FOUND');
-
+    // 7. Security audit event logging
     await auditService.logSecurityEvent({
         req,
-        action: 'KEY_FOUND_REPORTED',
+        action: 'KEY_TRANSFERRED',
         resourceType: 'LAB_KEY',
-        resourceId: key.Key_ID,
-        details: { keyCode: key.Key_Code, roomNumber: key.Room_Number, location: cleanLocation },
+        resourceId: keyInfo.Key_ID,
+        details: {
+            roomId: keyInfo.Room_ID,
+            roomNumber: keyInfo.Room_Number,
+            keyCode: keyInfo.Key_Code,
+            previousUserId: previousUserId || null,
+            previousUserName: previousUserName,
+            newUserId: newUserId,
+            newUserName: newUserName
+        },
         result: 'SUCCESS'
     });
 
     return {
         status: 200,
-        message: 'Thank you! Your report has been submitted to IT/MIS Office and Campus Security.'
-    };
-}
-
-/**
- * Retrieves found key reports history.
- */
-async function getFoundReports(keyId = null) {
-    if (keyId) {
-        const parsedKeyId = Number(keyId);
-        if (!Number.isInteger(parsedKeyId) || parsedKeyId <= 0) {
-            return { status: 400, error: 'Invalid Key ID.' };
+        message: `Key for Laboratory ${keyInfo.Room_Number} successfully transferred to ${newUserName}.`,
+        transfer: {
+            roomNumber: keyInfo.Room_Number,
+            keyCode: keyInfo.Key_Code,
+            building: keyInfo.Building,
+            previousHolder: previousUserName,
+            newHolder: newUserName,
+            transferredAt: new Date().toISOString()
         }
-        const [reports] = await keysRepository.findFoundReportsByKeyId(parsedKeyId);
-        return { status: 200, data: reports };
-    } else {
-        const [reports] = await keysRepository.findAllFoundReports();
-        return { status: 200, data: reports };
-    }
+    };
 }
 
 module.exports = {
@@ -293,7 +374,6 @@ module.exports = {
     generateKeyTag,
     markKeyMissing,
     markKeyActive,
-    getPublicInfo,
-    submitFoundKeyReport,
-    getFoundReports
+    getKeyTransferInfo,
+    transferKey
 };

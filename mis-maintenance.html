@@ -256,12 +256,28 @@
       border-radius: 16px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
       overflow-y: auto !important;
-      overflow-x: auto !important;
+      overflow-x: hidden !important;
       flex: 1 1 auto !important;
       min-height: 250px;
       max-height: none !important;
       -webkit-overflow-scrolling: touch;
+      width: 100% !important;
+      box-sizing: border-box;
     }
+
+    .maint-table {
+      table-layout: fixed !important;
+      width: 100% !important;
+      border-collapse: collapse;
+    }
+
+    .maint-table th.col-ticket, .maint-table td.col-ticket { width: 11% !important; }
+    .maint-table th.col-date, .maint-table td.col-date { width: 12% !important; }
+    .maint-table th.col-room, .maint-table td.col-room { width: 10% !important; }
+    .maint-table th.col-pc, .maint-table td.col-pc { width: 8% !important; }
+    .maint-table th.col-reporter, .maint-table td.col-reporter { width: 17% !important; overflow: hidden; }
+    .maint-table th.col-issues, .maint-table td.col-issues { width: 28% !important; }
+    .maint-table th.col-actions, .maint-table td.col-actions { width: 14% !important; text-align: center !important; }
 
     .maint-table-wrapper::-webkit-scrollbar {
       width: 6px;
@@ -289,15 +305,15 @@
     }
 
     .maint-table th {
-      padding: 14px 18px;
-      font-size: 13px;
+      padding: 12px 10px;
+      font-size: 11.5px;
       font-weight: 700;
-      color: #334155;
+      color: #475569;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
-      border-bottom: 1.5px solid #CBD5E1;
-      box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.4);
+      background: #F8FAFC;
+      border-bottom: 1px solid var(--border-light, #E2E8F0);
+      box-shadow: none;
       position: sticky;
       top: -1px;
       z-index: 10;
@@ -305,10 +321,10 @@
     }
 
     .maint-table td {
-      padding: 18px 20px;
+      padding: 14px 10px;
       vertical-align: middle;
       border-bottom: 1px solid #F1F5F9;
-      font-size: 14.5px;
+      font-size: 13.5px;
     }
 
     .maint-table tr:last-child td {
@@ -361,16 +377,18 @@
     .reporter-chip {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 7.5px 14px;
+      gap: 7px;
+      padding: 6px 12px;
       border-radius: 9999px;
       background: #F1F5F9;
       border: 1.5px solid #CBD5E1;
       color: #0F172A;
       font-weight: 700;
-      font-size: 13.5px;
+      font-size: 13px;
       user-select: none;
       white-space: nowrap;
+      max-width: 100%;
+      box-sizing: border-box;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -384,9 +402,15 @@
 
     .reporter-chip .reporter-chip-name {
       font-weight: 700;
-      font-size: 13.5px;
+      font-size: 13px;
       color: var(--text-dark);
       letter-spacing: 0.1px;
+      display: inline-block;
+      max-width: 125px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: middle;
     }
 
     .reporter-chip .reporter-count-badge {
@@ -397,10 +421,12 @@
       padding: 2px 7px;
       border-radius: 9999px;
       margin-left: 2px;
+      flex-shrink: 0;
     }
 
     .reporter-chip .reporter-chip-arrow {
       transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+      flex-shrink: 0;
     }
 
     .reporter-chip.multi:hover {
@@ -461,18 +487,160 @@
     .remarks-quote-box {
       font-size: 13.5px;
       color: #0F172A;
-      font-style: normal;
-      background: #F1F5F9;
-      border: 1px solid #CBD5E1;
-      padding: 10px 14px;
-      border-radius: 12px;
+      border-radius: 10px;
       line-height: 1.4;
       display: flex !important;
       align-items: center !important;
-      gap: 10px !important;
-      margin-top: 8px;
-      word-break: break-word;
-      overflow-wrap: anywhere;
+      gap: 7px !important;
+      margin-top: 6px;
+      box-sizing: border-box;
+      max-width: 100%;
+    }
+
+    .remarks-quote-box .remarks-icon {
+      color: var(--primary-teal, #1EBBD7) !important;
+      flex-shrink: 0 !important;
+      width: 14px !important;
+      height: 14px !important;
+    }
+
+    .remarks-quote-box.static {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      padding: 6px 11px;
+      color: #64748B;
+      cursor: default !important;
+      user-select: text;
+    }
+
+    .remarks-quote-box.static .remarks-text.static-text {
+      font-weight: 500;
+      color: #334155;
+      font-size: 13.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .remarks-quote-box.static.empty-remarks {
+      background: #F8FAFC;
+      border: 1px dashed #CBD5E1;
+      opacity: 0.85;
+    }
+
+    .remarks-quote-box.interactive {
+      background: #F0F9FF;
+      border: 1.5px solid #BAE6FD;
+      padding: 6px 11px;
+      cursor: pointer !important;
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      justify-content: space-between;
+    }
+
+    .remarks-quote-box.interactive:hover {
+      background: #E0F2FE;
+      border-color: #38BDF8;
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .remarks-main-content {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .remarks-quote-box .remarks-text.clamped {
+      font-weight: 500;
+      color: var(--text-dark, #0F172A);
+      font-size: 13.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+      line-height: 1.4;
+    }
+
+    .remarks-expand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #0284C7;
+      background: #E0F2FE;
+      border: 1px solid #BAE6FD;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-left: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .remarks-expand-badge i,
+    .remarks-expand-badge svg {
+      transition: transform 0.2s ease;
+      stroke-width: 2.5;
+    }
+
+    .remarks-quote-box.interactive:hover .remarks-expand-badge {
+      background: #0284C7;
+      color: #FFFFFF;
+      border-color: #0284C7;
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+    }
+
+    .remarks-quote-box.interactive:hover .remarks-expand-badge i,
+    .remarks-quote-box.interactive:hover .remarks-expand-badge svg {
+      transform: translateX(2px);
+    }
+
+    /* Dark Mode Support for Remarks */
+    html.dark-mode .remarks-quote-box.static,
+    body.dark-mode .remarks-quote-box.static,
+    [data-theme="dark"] .remarks-quote-box.static,
+    html.high-contrast .remarks-quote-box.static {
+      background: rgba(15, 23, 42, 0.4) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      color: #94A3B8 !important;
+    }
+
+    html.dark-mode .remarks-quote-box.static .remarks-text.static-text,
+    body.dark-mode .remarks-quote-box.static .remarks-text.static-text,
+    [data-theme="dark"] .remarks-quote-box.static .remarks-text.static-text {
+      color: #CBD5E1 !important;
+    }
+
+    html.dark-mode .remarks-quote-box.interactive,
+    body.dark-mode .remarks-quote-box.interactive,
+    [data-theme="dark"] .remarks-quote-box.interactive,
+    html.high-contrast .remarks-quote-box.interactive {
+      background: rgba(15, 23, 42, 0.6) !important;
+      border-color: rgba(56, 189, 248, 0.3) !important;
+      color: #F1F5F9 !important;
+    }
+
+    html.dark-mode .remarks-quote-box.interactive:hover,
+    body.dark-mode .remarks-quote-box.interactive:hover,
+    [data-theme="dark"] .remarks-quote-box.interactive:hover,
+    html.high-contrast .remarks-quote-box.interactive:hover {
+      background: rgba(6, 182, 212, 0.18) !important;
+      border-color: #38BDF8 !important;
+      box-shadow: 0 3px 10px rgba(56, 189, 248, 0.22) !important;
+    }
+
+    html.dark-mode .remarks-expand-badge,
+    body.dark-mode .remarks-expand-badge,
+    [data-theme="dark"] .remarks-expand-badge,
+    html.high-contrast .remarks-expand-badge {
+      background: rgba(2, 132, 199, 0.25) !important;
+      color: #38BDF8 !important;
+      border-color: rgba(56, 189, 248, 0.4) !important;
     }
 
     /* Status Badges with Pulse Dot */
@@ -520,14 +688,14 @@
       border: none;
       background: linear-gradient(135deg, #10B981, #059669);
       color: #FFFFFF;
-      padding: 10px 22px;
+      padding: 8px 14px;
       border-radius: 99px;
-      font-size: 13.5px;
+      font-size: 12.5px;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 7px;
+      gap: 5px;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       font-family: var(--font-body);
@@ -547,14 +715,24 @@
     .completed-chip {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      font-size: 14px;
+      gap: 6px;
+      font-size: 12.5px;
       font-weight: 700;
       color: var(--badge-completed-text, #047857) !important;
       background: var(--badge-completed-bg, #ECFDF5);
-      padding: 10px 20px;
+      padding: 7px 14px;
       border-radius: 10px;
       border: 1.5px solid var(--badge-completed-border, #A7F3D0);
+      white-space: nowrap;
+    }
+
+    .completed-chip svg,
+    .completed-chip i {
+      width: 16px !important;
+      height: 16px !important;
+      stroke-width: 2.5 !important;
+      flex-shrink: 0 !important;
+      display: inline-block !important;
     }
 
     /* Read More Expand Button */
@@ -590,10 +768,10 @@
     html.dark-mode .maint-table th,
     body.dark-mode .maint-table th,
     [data-theme="dark"] .maint-table th {
-      background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%) !important;
-      color: #CBD5E1 !important;
-      border-bottom: 1.5px solid #334155 !important;
-      box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.6) !important;
+      background: #161F30 !important;
+      color: #94A3B8 !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+      box-shadow: none !important;
     }
 
     html.high-contrast .maint-table td {
@@ -859,17 +1037,26 @@
         </div>
 
         <!-- Table Container -->
-        <div class="maint-table-wrapper" style="overflow-x: auto; flex: 1; min-height: 250px;">
-          <table class="maint-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+        <div class="maint-table-wrapper" style="overflow-x: hidden; flex: 1; min-height: 250px; width: 100%;">
+          <table class="maint-table" style="width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed;">
+            <colgroup>
+              <col style="width: 11%;">
+              <col style="width: 12%;">
+              <col style="width: 10%;">
+              <col style="width: 8%;">
+              <col style="width: 17%;">
+              <col style="width: 28%;">
+              <col style="width: 14%;">
+            </colgroup>
             <thead>
               <tr>
-                <th>Ticket ID</th>
-                <th>Date & Time</th>
-                <th>Lab Room</th>
-                <th>PC Unit</th>
-                <th>Reported By</th>
-                <th>Issue Details & Remarks</th>
-                <th style="text-align: center;">Actions</th>
+                <th class="col-ticket" style="width: 11%;">Ticket ID</th>
+                <th class="col-date" style="width: 12%;">Date & Time</th>
+                <th class="col-room" style="width: 10%;">Lab Room</th>
+                <th class="col-pc" style="width: 8%;">PC Unit</th>
+                <th class="col-reporter" style="width: 17%;">Reported By</th>
+                <th class="col-issues" style="width: 28%;">Issue Details & Remarks</th>
+                <th class="col-actions" style="width: 14%; text-align: center;">Actions</th>
               </tr>
             </thead>
             <tbody id="dynamicMaintenanceRows">

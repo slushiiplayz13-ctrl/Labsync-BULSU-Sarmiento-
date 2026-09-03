@@ -399,13 +399,13 @@
     }
 
     .brand-logos img.labsync-brand-logo {
-      height: 52px !important;
-      max-width: 180px !important;
+      height: 64px !important;
+      max-width: 220px !important;
     }
 
     .logo-divider {
       width: 2px !important;
-      height: 38px !important;
+      height: 42px !important;
       background: rgba(148, 163, 184, 0.4) !important;
       border-radius: 99px !important;
     }
@@ -552,6 +552,14 @@
       font-weight: 500;
     }
 
+    #student-section {
+      text-transform: uppercase !important;
+    }
+
+    #student-section::placeholder {
+      text-transform: none !important;
+    }
+
     /* ─── EQUIPMENT STATUS SECTION ───────────────────────────────────── */
     .section-title {
       font-family: var(--font-display);
@@ -655,6 +663,11 @@
       padding: 4px;
       border-radius: 99px;
       gap: 4px;
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+      user-select: none !important;
+      outline: none !important;
     }
 
     .status-btn {
@@ -671,11 +684,32 @@
       color: var(--text-muted);
       background: transparent;
       transition: all var(--transition);
-      user-select: none;
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-touch-callout: none !important;
+      outline: none !important;
+      -webkit-focus-ring-color: transparent !important;
+    }
+
+    .status-btn:focus,
+    .status-btn:focus-visible,
+    .status-btn:active {
+      outline: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-focus-ring-color: transparent !important;
     }
 
     .status-btn * {
       pointer-events: none !important;
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-touch-callout: none !important;
     }
 
     .status-btn:not(.active):hover {
@@ -753,17 +787,79 @@
       font-weight: 500;
     }
 
+    .remarks-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .remarks-header .section-title {
+      margin-bottom: 0;
+    }
+
+    .char-counter {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      transition: color var(--transition);
+      font-family: var(--font-body);
+    }
+
+    .char-counter.counter-near-limit {
+      color: #D97706;
+    }
+
+    .char-counter.counter-at-limit {
+      color: var(--status-issue);
+    }
+
+    html.dark-mode .char-counter,
+    body.dark-mode .char-counter,
+    [data-theme="dark"] .char-counter,
+    html.high-contrast .char-counter {
+      color: var(--text-muted, #94A3B8);
+    }
+
+    html.dark-mode .char-counter.counter-near-limit,
+    body.dark-mode .char-counter.counter-near-limit,
+    [data-theme="dark"] .char-counter.counter-near-limit,
+    html.high-contrast .char-counter.counter-near-limit {
+      color: #FBBF24;
+    }
+
+    html.dark-mode .char-counter.counter-at-limit,
+    body.dark-mode .char-counter.counter-at-limit,
+    [data-theme="dark"] .char-counter.counter-at-limit,
+    html.high-contrast .char-counter.counter-at-limit {
+      color: #F87171;
+    }
+
     /* ─── CONFIRMATION ────────────────────────────────────────────────── */
     .confirm-row {
       display: flex;
       align-items: flex-start;
       gap: 10px;
       cursor: pointer;
-      user-select: none;
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-touch-callout: none !important;
+      outline: none !important;
     }
 
     .confirm-row * {
       pointer-events: none !important;
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-touch-callout: none !important;
     }
 
     .checkbox-custom {
@@ -779,6 +875,8 @@
       flex-shrink: 0;
       transition: all var(--transition);
       margin-top: 1px;
+      -webkit-user-select: none !important;
+      user-select: none !important;
     }
 
     .confirm-row:hover .checkbox-custom {
@@ -804,6 +902,12 @@
       font-weight: 500;
       color: var(--text-mid);
       line-height: 1.5;
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-touch-callout: none !important;
     }
 
     /* ─── SUBMIT BUTTON ──────────────────────────────────────────────── */
@@ -959,42 +1063,24 @@
         gap: 12px;
       }
 
-      .logo-img {
-        height: 38px;
+      .brand-logos img,
+      .brand-logos .logo-img {
+        height: 40px !important;
+      }
+
+      .brand-logos img.labsync-brand-logo {
+        height: 46px !important;
+        max-width: 160px !important;
       }
 
       .logo-divider {
-        height: 24px;
+        height: 26px !important;
       }
 
       .form-title {
         font-size: 14px;
         font-weight: 600;
         line-height: 1.3;
-      }
-
-      .info-header-box {
-        flex-direction: row;
-        justify-content: space-between;
-        gap: 2px;
-        padding: 10px 6px;
-      }
-
-      .info-item {
-        font-size: 10.5px;
-        gap: 3px;
-      }
-
-      .info-item svg,
-      .info-item .lucide {
-        width: 13px;
-        height: 13px;
-      }
-
-      .info-divider {
-        display: block;
-        height: 14px;
-        background: rgba(30, 187, 215, 0.15);
       }
 
       .equipment-card {
@@ -1134,12 +1220,18 @@
         gap: 12px;
       }
 
-      .logo-img {
-        height: 38px;
+      .brand-logos img,
+      .brand-logos .logo-img {
+        height: 44px !important;
+      }
+
+      .brand-logos img.labsync-brand-logo {
+        height: 52px !important;
+        max-width: 180px !important;
       }
 
       .logo-divider {
-        height: 24px;
+        height: 30px !important;
       }
 
       .form-title {
@@ -1154,29 +1246,35 @@
       }
 
       .info-header-box {
-        padding: 9px 10px;
-        border-radius: 99px;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) auto minmax(0, 1fr);
-        align-items: center;
+        padding: 10px 14px !important;
+        border-radius: 14px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 8px 16px !important;
+      }
+
+      .info-divider {
+        display: none !important;
       }
 
       .info-item {
-        font-size: 11.5px;
-        gap: 4px;
-        justify-content: center;
+        font-size: 12.5px !important;
+        gap: 5px !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        background: transparent !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        box-sizing: border-box !important;
       }
 
       .info-item svg,
       .info-item .lucide {
-        width: 14px;
-        height: 14px;
-      }
-
-      .info-divider {
-        height: 15px;
-        margin: 0 2px;
-        background: rgba(30, 187, 215, 0.25);
+        width: 14px !important;
+        height: 14px !important;
       }
 
       .equipment-card {
@@ -1213,29 +1311,20 @@
 
     @media (max-width: 440px) {
       .info-header-box {
-        padding: 8px 6px;
-        border-radius: 99px;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) auto minmax(0, 1fr);
-        align-items: center;
+        padding: 8px 10px !important;
+        gap: 6px 12px !important;
       }
 
       .info-item {
-        font-size: 11px;
-        gap: 3px;
-        justify-content: center;
+        font-size: 11.5px !important;
+        padding: 0 !important;
+        gap: 4px !important;
       }
 
       .info-item svg,
       .info-item .lucide {
-        width: 13px;
-        height: 13px;
-      }
-
-      .info-divider {
-        display: block;
-        height: 14px;
-        margin: 0 1px;
+        width: 13px !important;
+        height: 13px !important;
       }
 
       .equipment-card {
@@ -1255,6 +1344,69 @@
         padding: 8px 12px;
         font-size: 12px;
       }
+    }
+
+    html.dark-mode .info-item,
+    body.dark-mode .info-item,
+    [data-theme="dark"] .info-item,
+    html.high-contrast .info-item {
+      color: #FFFFFF !important;
+      background: transparent !important;
+    }
+
+    html.dark-mode .info-item span,
+    body.dark-mode .info-item span,
+    [data-theme="dark"] .info-item span,
+    html.high-contrast .info-item span {
+      color: #FFFFFF !important;
+    }
+
+    html.dark-mode .info-item svg,
+    html.dark-mode .info-item .lucide,
+    body.dark-mode .info-item svg,
+    body.dark-mode .info-item .lucide,
+    [data-theme="dark"] .info-item svg,
+    [data-theme="dark"] .info-item .lucide,
+    html.high-contrast .info-item svg,
+    html.high-contrast .info-item .lucide {
+      color: #38BDF8 !important;
+    }
+
+    /* In-App Toast Notification Styling */
+    #labsync-toast-container {
+      position: fixed !important;
+      top: 20px !important;
+      right: 20px !important;
+      z-index: 999999 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      pointer-events: none !important;
+      max-width: calc(100vw - 40px) !important;
+    }
+
+    @media (max-width: 640px) {
+      #labsync-toast-container {
+        top: 14px !important;
+        right: 14px !important;
+        left: 14px !important;
+        align-items: center !important;
+        max-width: none !important;
+      }
+
+      .labsync-toast-card {
+        width: 100% !important;
+        max-width: 440px !important;
+      }
+    }
+
+    html.dark-mode .labsync-toast-card,
+    body.dark-mode .labsync-toast-card,
+    [data-theme="dark"] .labsync-toast-card,
+    html.high-contrast .labsync-toast-card {
+      background: #111827 !important;
+      color: #F8FAFC !important;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4) !important;
     }
 
     @media (min-width: 1024px) {
@@ -1456,16 +1608,19 @@
         <div class="form-right-col">
           <!-- Remarks -->
           <section class="remarks-group">
-            <h2 class="section-title">Remarks</h2>
+            <div class="remarks-header">
+              <h2 class="section-title">Issue Details</h2>
+              <span id="remarks-char-counter" class="char-counter" aria-live="polite">0 / 200 characters</span>
+            </div>
             <div class="textarea-wrapper">
-              <textarea id="remarks" class="remarks-textarea"
-                placeholder="Additional Details (Briefly describe the issue)"></textarea>
+              <textarea id="remarks" class="remarks-textarea" maxlength="200"
+                placeholder="Describe the problem and any details that may help identify the issue."></textarea>
               <i data-lucide="message-square"></i>
             </div>
           </section>
 
           <!-- Confirmation Checkbox -->
-          <section class="confirm-row" onclick="toggleCheckbox()">
+          <section class="confirm-row">
             <div class="checkbox-custom" id="custom-checkbox">
               <i data-lucide="check"></i>
             </div>
@@ -1499,14 +1654,15 @@
           Ticket Reference ID</div>
         <div class="ticket-badge" id="ticket-id">LS-TKT-99120</div>
       </div>
-      <button class="success-btn" onclick="closeSuccessModal()">Close Form</button>
+      <button class="success-btn" onclick="closeSuccessModal()">Close</button>
     </div>
   </div>
 
   <!-- JavaScript -->
-  <script src="js/services/report.service.js"></script>
-  <script src="js/tutorial.js"></script>
-  <script src="js/pages/submit-pc-report.js"></script>
+  <script src="js/services/report.service.js?v=1.0.5"></script>
+  <script src="js/components/toast.js?v=1.0.5"></script>
+  <script src="js/tutorial.js?v=1.0.5"></script>
+  <script src="js/pages/submit-pc-report.js?v=1.0.5"></script>
 </body>
 
 </html>

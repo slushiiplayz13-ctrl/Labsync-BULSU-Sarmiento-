@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+const { APP_URL } = require('../../../config/app.config');
 const { wrapEmailHtml, warningBox, ctaButton } = require('./shell');
 
 /**
@@ -58,7 +59,7 @@ function renderWelcomeEmail(recipientEmail, recipientName, password) {
         'For security reasons, you are required to change this temporary password immediately after your first sign-in.')}
 
         ${ctaButton('Access Your Account',
-        `${process.env.APP_URL || 'http://localhost:3000'}/login.html`)}
+        `${APP_URL}/login.html`)}
 
         <hr class="divider-line" style="border: 0; border-top: 1px solid #F1F5F9; margin: 32px 0 24px 0;">
         <p class="text-secondary" style="margin-bottom: 0; font-size: 14px; color: #64748B; line-height: 1.5;">

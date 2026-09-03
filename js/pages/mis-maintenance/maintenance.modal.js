@@ -105,8 +105,11 @@
 
           <div>
             <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase;">Student Remarks</div>
-            <div style="font-size:13.5px; color:var(--text-dark); background:var(--bg-body); border-left:4px solid var(--primary-teal); padding:12px 16px; border-radius:8px; line-height:1.5; font-weight:500; max-height:200px; overflow-y:auto;">
-              "${escapeText(singleParsed.remarks || 'No remarks provided.')}"
+            <div style="display:flex; align-items:center; gap:10px; background:var(--bg-body); border:1px solid var(--border-light); padding:14px 16px; border-radius:12px; max-height:200px; overflow-y:auto;">
+              <i data-lucide="message-square" style="width:18px; height:18px; min-width:18px; min-height:18px; color:var(--primary-teal, #0891B2); flex-shrink:0;"></i>
+              <div style="font-size:13.5px; color:var(--text-dark); line-height:1.5; font-weight:500; word-break:break-word; flex:1;">
+                ${escapeText(singleParsed.remarks || 'No remarks provided.')}
+              </div>
             </div>
           </div>
         </div>
@@ -117,18 +120,23 @@
         const repDate = rep.Date_Reported ? new Date(rep.Date_Reported) : new Date();
         const repTimeStr = repDate.toLocaleTimeString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         const repParsed = typeof parserFn === 'function' ? parserFn(rep.Issue_Description) : { section: 'N/A', remarks: rep.Issue_Description || 'None' };
+        const repRemarks = (repParsed.remarks || '').trim();
+        const isRepEmpty = !repRemarks || repRemarks.toLowerCase() === 'none' || repRemarks.toLowerCase() === 'n/a';
 
         return `
-          <div style="background:var(--bg-body); border-left:3px solid var(--primary-teal); padding:10px 14px; border-radius:8px; display:flex; flex-direction:column; gap:4px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px;">
-              <span style="font-weight:700; color:var(--text-dark);">
-                • ${escapeText(rep.Student_Name || 'Student')} 
-                <span style="font-size:10.5px; color:#0E7490; background:#E0F2FE; padding:1px 6px; border-radius:99px; font-weight:600; margin-left:4px;">${escapeText(repParsed.section || 'N/A')}</span>
-              </span>
-              <span style="font-size:11px; color:var(--text-muted); font-weight:500;">${repTimeStr}</span>
+          <div style="background:var(--bg-body); border:1px solid var(--border-light); padding:12px 14px; border-radius:10px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-weight:750; color:var(--text-dark); font-size:13.5px;">${escapeText(rep.Student_Name || 'Student')}</span>
+                <span style="font-size:11px; color:#0284C7; background:#E0F2FE; padding:1px 6px; border-radius:6px; font-weight:700;">${escapeText(repParsed.section || 'N/A')}</span>
+              </div>
+              <span style="font-size:11.5px; color:var(--text-muted); font-weight:500;">${repTimeStr}</span>
             </div>
-            <div style="font-size:12.5px; color:var(--text-dark); line-height:1.4; font-weight:500; margin-top:2px;">
-              "${escapeText(repParsed.remarks || 'No remarks provided.')}"
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i data-lucide="message-square" style="width:16px; height:16px; min-width:16px; min-height:16px; color:var(--primary-teal, #0891B2); flex-shrink:0;"></i>
+              <span style="font-size:13px; color:${isRepEmpty ? 'var(--text-muted)' : 'var(--text-dark)'}; ${isRepEmpty ? 'font-style:italic;' : ''} line-height:1.4; font-weight:500; word-break:break-word; flex:1;">
+                ${isRepEmpty ? 'No remarks provided.' : escapeText(repRemarks)}
+              </span>
             </div>
           </div>
         `;

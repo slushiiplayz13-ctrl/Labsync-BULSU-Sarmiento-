@@ -86,7 +86,7 @@
             <i data-lucide="key-round"></i>
             Auto Keys & 2-Sided QR Inserts
           </div>
-          <p class="help-feat-desc">New rooms auto-receive default keys. Generate printable 2-sided QR keychain inserts with lost-and-found scanning.</p>
+          <p class="help-feat-desc">New rooms auto-receive default keys. Generate printable 2-sided QR keychain inserts with Key Transfer and Room Claim scanning.</p>
         </div>
         <div class="help-feature-card theme-indigo">
           <div class="help-feat-title">

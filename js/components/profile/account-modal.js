@@ -577,6 +577,17 @@
               updatedUser = resData;
             }
 
+            const updatedTimestamp = (updatedUser && updatedUser.updatedAt) ? updatedUser.updatedAt : new Date().toISOString();
+            localStorage.setItem('labsync_last_updated', updatedTimestamp);
+            const lastUpdatedEl = document.getElementById('settings-last-updated');
+            if (lastUpdatedEl) {
+              const timeUtils = global.timeUtils || global.scheduleTimeUtils;
+              const formatTimeFn = (timeUtils && typeof timeUtils.formatLastUpdatedTime === 'function')
+                ? timeUtils.formatLastUpdatedTime
+                : (global.formatLastUpdatedTime || (() => 'Just now'));
+              lastUpdatedEl.textContent = `Last updated: ${formatTimeFn(updatedTimestamp)}`;
+            }
+
             if (global.showToast) {
               global.showToast('Profile updated successfully!', 'success');
             } else {

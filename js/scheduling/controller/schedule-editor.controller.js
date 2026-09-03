@@ -57,7 +57,7 @@
     };
     try {
       localStorage.setItem('print_schedule_data', JSON.stringify(printPayload));
-    } catch (e) {}
+    } catch (e) { }
 
     window.open(`print-schedule.html?room=${roomNum}&bldg=${encodeURIComponent(bldgName)}&academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}`, '_blank');
   }
@@ -448,6 +448,7 @@
           triggerText.style.color = '#94A3B8';
         }
         if (sectionSelect) sectionSelect.value = '';
+        resetSectionSelector();
       });
     }
 
@@ -589,13 +590,124 @@
     }
   }
 
+  // Section Selector State & Logic
+  let selectedYear = '';
+  let selectedLetter = '';
+  let selectedBatch = '';
+
+  /**
+   * Resets the section selector choices and preview value.
+   */
+  function resetSectionSelector() {
+    selectedYear = '';
+    selectedLetter = '';
+    selectedBatch = '';
+    const hiddenInput = document.getElementById('block-section');
+    if (hiddenInput) hiddenInput.value = '';
+    const preview = document.getElementById('section-preview');
+    if (preview) preview.textContent = '';
+
+    document.querySelectorAll('.sec-choice-btn:not(.sec-add-btn)').forEach(btn => {
+      btn.classList.remove('selected', 'active');
+    });
+  }
+
+  /**
+   * Recalculates and updates the composed section code (e.g. 2E1).
+   */
+  function updateSectionValue() {
+    const hiddenInput = document.getElementById('block-section');
+    const preview = document.getElementById('section-preview');
+
+    if (selectedYear && selectedLetter && selectedBatch) {
+      const code = `${selectedYear}${selectedLetter}${selectedBatch}`;
+      if (hiddenInput) hiddenInput.value = code;
+      if (preview) preview.textContent = code;
+    } else {
+      if (hiddenInput) hiddenInput.value = '';
+      const partial = `${selectedYear || '?'}${selectedLetter || '?'}${selectedBatch || '?'}`;
+      if (preview) preview.textContent = partial === '???' ? '' : partial;
+    }
+  }
+
+  /**
+   * Initializes Year, Section Letter (with '+' custom adder), and Batch buttons.
+   */
+  function initSectionSelector() {
+    const attachBtnHandler = (btn) => {
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = 'true';
+
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const type = btn.dataset.type;
+        const val = btn.dataset.value;
+        if (!type || !val) return;
+
+        const group = btn.closest('.simple-btn-group');
+        if (group) {
+          group.querySelectorAll('.sec-choice-btn:not(.sec-add-btn)').forEach(b => {
+            b.classList.remove('selected', 'active');
+          });
+        }
+        btn.classList.add('selected', 'active');
+
+        if (type === 'year') selectedYear = val;
+        else if (type === 'letter') selectedLetter = val;
+        else if (type === 'batch') selectedBatch = val;
+
+        updateSectionValue();
+      });
+    };
+
+    document.querySelectorAll('.sec-choice-btn:not(.sec-add-btn)').forEach(attachBtnHandler);
+
+    // '+' Button for adding custom section letter
+    const addBtn = document.getElementById('simple-add-letter-btn');
+    const letterGroup = document.getElementById('sec-letter-group');
+
+    if (addBtn && letterGroup && !addBtn.dataset.bound) {
+      addBtn.dataset.bound = 'true';
+      addBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const custom = prompt('Enter section letter (e.g. F, G):');
+        if (!custom) return;
+
+        const cleanVal = custom.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3);
+        if (!cleanVal) return;
+
+        let targetBtn = letterGroup.querySelector(`.sec-choice-btn[data-value="${cleanVal}"]`);
+        if (!targetBtn) {
+          targetBtn = document.createElement('button');
+          targetBtn.type = 'button';
+          targetBtn.className = 'sec-choice-btn';
+          targetBtn.dataset.type = 'letter';
+          targetBtn.dataset.value = cleanVal;
+          targetBtn.textContent = cleanVal;
+          attachBtnHandler(targetBtn);
+          letterGroup.insertBefore(targetBtn, addBtn);
+        }
+
+        letterGroup.querySelectorAll('.sec-choice-btn:not(.sec-add-btn)').forEach(b => {
+          b.classList.remove('selected', 'active');
+        });
+        targetBtn.classList.add('selected', 'active');
+        selectedLetter = cleanVal;
+        updateSectionValue();
+      });
+    }
+  }
+
   const scheduleEditorController = {
     initEditor,
     preparePrint,
     openCardDetailModal,
     closeCardDetailModal,
     showUnsavedChangesModal,
-    setupDirtyGuard
+    setupDirtyGuard,
+    initSectionSelector,
+    resetSectionSelector,
+    updateSectionValue
   };
 
   global.scheduleEditorController = scheduleEditorController;
@@ -604,5 +716,9 @@
   global.openCardDetailModal = openCardDetailModal;
   global.closeCardDetailModal = closeCardDetailModal;
   global.showUnsavedChangesModal = showUnsavedChangesModal;
+  global.resetSectionSelector = resetSectionSelector;
+  global.initSectionSelector = initSectionSelector;
 
 })(typeof window !== 'undefined' ? window : this);
+
+

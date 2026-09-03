@@ -5,7 +5,7 @@
 **Database:** MariaDB / MySQL (`labsync`)  
 **Browser Engine:** Microsoft Edge (Playwright Headless Automation Suite)  
 **Branch:** `main` (Baseline Production Architecture)  
-**Overall Validation Result:** **ALL CORE WORKFLOWS PASS (39/39 Verified)**
+**Overall Validation Result:** **ALL CORE WORKFLOWS PASS (46/46 Verified)**
 
 ---
 
@@ -65,13 +65,19 @@ Every requested critical user workflow—including authentication, session lifec
 | 31 | **Faculty Management Grid** | **PASS** | `faculty-management.html` renders faculty cards with role badges and department actions. |
 | 32 | **Add Faculty Modal** | **PASS** | `facultyModal.initAddFacultyModal` binds form validation and submission for new instructors. |
 | 33 | **Profile & Account Settings Modal** | **PASS** | `#account-settings-modal` opens with working tab switching (Profile, Security, Preferences). |
-| 34 | **Password Change UI** | **PASS** | `#change-password-modal` validates current password, new password, and confirmation rules. |
-| 35 | **Digital Signature Pad** | **PASS** | `#faculty-signature-modal` initializes HTML5 `<canvas>` with smooth drawing, clear, and save actions. |
+| 34 | **Password Change UI** | **PASS** | `#change-password-modal` validates current password, new password (min 8 chars), and updates Bcrypt hash. |
+| 35 | **Digital Signature Pad** | **DEPRECATED** | Legacy canvas signature modal cleanly removed (`0b3cf9f`) in favor of direct digital administrative accountability. |
 | 36 | **Help & User Guide Modal** | **PASS** | `#help-modal` opens with quick start guide, shortcuts, and troubleshooting instructions. |
 | 37 | **Notifications Dropdown** | **PASS** | Unread notifications dot and dropdown toggle active with real-time pollers. |
 | 38 | **Dark Mode & Contrast Theming** | **PASS** | Theme toggling switches `data-theme="dark"` / `data-theme="light"` and persists state across pages. |
-| 39 | **QR Code PC Report Submission** | **PASS** | `submit-pc-report.html?pc=1` renders student-facing issue report form for lab workstations. |
+| 39 | **QR Code PC Report Submission** | **PASS** | `submit-pc-report.html?room=203&pc=01` renders student-facing issue report form for lab workstations. |
 | 40 | **Logout Action** | **PASS** | `handleLogout()` clears session data, cookies, and redirects to `login.html`. |
+| 41 | **MIS Key Inventory Studio** | **PASS** | `mis-keys.html` loads registered physical keys, displays status toggles (`ACTIVE` / `MISSING`), and room details. |
+| 42 | **Keychain Insert Print Engine** | **PASS** | `mis-keys.html` renders calibrated 1.14" x 1.84" two-sided acrylic insert sheets with cut guides and high-contrast QR. |
+| 43 | **Mobile Key Transfer & Room Claim** | **PASS** | `key-transfer.html?key=KEY-IT-203-A` confirms key handoff, enforces role restrictions, and updates room holder atomically. |
+| 44 | **Fault Deduplication Engine** | **PASS** | Duplicate student reports link to single `Maintenance_Issue_ID`; UI displays `👤 Name [+N]` reporter chips. |
+| 45 | **Security Audit Trail** | **PASS** | High-value security actions record non-blockingly into `audit_logs` with 16+ credential fields stripped. |
+| 46 | **Rate Limiting Suite** | **PASS** | Express rate limiters protect login (10/15m), recovery (5/15m), and public PC reporting (5/10m). |
 
 ---
 

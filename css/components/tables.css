@@ -12,6 +12,19 @@
   background: rgba(30, 187, 215, 0.04);
 }
 
+html.dark-mode .table-data-row,
+body.dark-mode .table-data-row,
+[data-theme="dark"] .table-data-row,
+html.high-contrast .table-data-row {
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark-mode .table-data-row:hover,
+body.dark-mode .table-data-row:hover,
+[data-theme="dark"] .table-data-row:hover,
+html.high-contrast .table-data-row:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
 
 .table-cell {
   padding: 15px 18px;
@@ -153,17 +166,88 @@ html.high-contrast .ticket-id-tag {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  table-layout: fixed;
+}
+
+.maint-table th.col-ticket, .maint-table td.col-ticket { width: 11%; }
+.maint-table th.col-date, .maint-table td.col-date { width: 12%; }
+.maint-table th.col-room, .maint-table td.col-room { width: 10%; }
+.maint-table th.col-pc, .maint-table td.col-pc { width: 8%; }
+.maint-table th.col-reporter, .maint-table td.col-reporter { width: 17%; overflow: hidden; }
+.maint-table th.col-issues, .maint-table td.col-issues { width: 28%; }
+.maint-table th.col-actions, .maint-table td.col-actions { width: 14%; text-align: center; }
+
+/* ─── Physical Keys Management Table ─── */
+.keys-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  table-layout: fixed;
+}
+
+.keys-table th.col-ticket, .keys-table td.col-ticket { width: 16%; }
+.keys-table th.col-building, .keys-table td.col-building { width: 18%; }
+.keys-table th.col-room, .keys-table td.col-room { width: 16%; }
+.keys-table th.col-status, .keys-table td.col-status { width: 14%; text-align: center; }
+.keys-table th.col-date, .keys-table td.col-date { width: 16%; }
+.keys-table th.col-actions, .keys-table td.col-actions { width: 20%; text-align: center; }
+
+.keys-table th {
+  padding: 15px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border-light, #E2E8F0);
+  background: #F8FAFC;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.keys-table td {
+  padding: 16px 18px;
+  vertical-align: middle;
+  font-size: 15px;
+  color: var(--text-dark);
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.keys-table tr {
+  transition: background 0.15s ease;
+}
+
+.keys-table tbody tr:hover {
+  background: rgba(30, 187, 215, 0.03);
+}
+
+html.dark-mode .keys-table th,
+body.dark-mode .keys-table th,
+[data-theme="dark"] .keys-table th,
+html.high-contrast .keys-table th {
+  background: #161F30 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #94A3B8 !important;
+}
+
+html.dark-mode .keys-table td,
+body.dark-mode .keys-table td,
+[data-theme="dark"] .keys-table td,
+html.high-contrast .keys-table td {
+  color: #E2E8F0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
 .maint-table th {
-  padding: 13px 18px;
+  padding: 12px 10px;
   font-size: 11.5px;
   font-weight: 700;
-  color: #334155;
+  color: #64748B;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border-bottom: 1.5px solid #CBD5E1;
-  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border-light, #E2E8F0);
+  background: #F8FAFC;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -237,38 +321,44 @@ html.high-contrast .maint-table tr.maintenance-row.highlighted-ticket td:first-c
 
 
 /* ─── Maintenance Table Date & Column Cell Component Styles ─── */
-.maint-table .col-date-wrap {
+.maint-table .col-date-wrap,
+.keys-table .col-date-wrap {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.maint-table .col-date-icon {
+.maint-table .col-date-icon,
+.keys-table .col-date-icon {
   width: 18px;
   height: 18px;
-  color: var(--primary-teal, #1EBBD7);
+  color: var(--primary-teal, #1EBBD7) !important;
   flex-shrink: 0;
 }
 
-.maint-table .col-date-text {
+.maint-table .col-date-text,
+.keys-table .col-date-text {
   display: flex;
   flex-direction: column;
   line-height: 1.3;
 }
 
-.maint-table .date-main {
+.maint-table .date-main,
+.keys-table .date-main {
   font-weight: 700;
   color: var(--text-dark);
   font-size: 15px;
 }
 
-.maint-table .time-sub {
+.maint-table .time-sub,
+.keys-table .time-sub {
   font-size: 13.5px;
   color: #64748B;
   font-weight: 600;
 }
 
-.maint-table .cell-icon-wrap {
+.maint-table .cell-icon-wrap,
+.keys-table .cell-icon-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -278,30 +368,50 @@ html.high-contrast .maint-table tr.maintenance-row.highlighted-ticket td:first-c
   white-space: nowrap;
 }
 
-.maint-table .cell-icon {
+.maint-table .cell-icon,
+.keys-table .cell-icon {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
 }
 
 .maint-table .cell-icon.room,
-.maint-table .cell-icon.pc {
-  color: var(--primary-teal, #1EBBD7);
+.maint-table .cell-icon.pc,
+.keys-table .cell-icon.room,
+.keys-table .cell-icon.pc,
+.keys-table .cell-icon.bldg {
+  color: var(--primary-teal, #1EBBD7) !important;
 }
 
 /* ─── Maintenance Table Dark Mode & High Contrast Theme Overrides ─── */
 html.dark-mode .maint-table .col-date-icon,
 html.dark-mode .maint-table .cell-icon.room,
 html.dark-mode .maint-table .cell-icon.pc,
+html.dark-mode .keys-table .col-date-icon,
+html.dark-mode .keys-table .cell-icon.room,
+html.dark-mode .keys-table .cell-icon.pc,
+html.dark-mode .keys-table .cell-icon.bldg,
 body.dark-mode .maint-table .col-date-icon,
 body.dark-mode .maint-table .cell-icon.room,
 body.dark-mode .maint-table .cell-icon.pc,
+body.dark-mode .keys-table .col-date-icon,
+body.dark-mode .keys-table .cell-icon.room,
+body.dark-mode .keys-table .cell-icon.pc,
+body.dark-mode .keys-table .cell-icon.bldg,
 [data-theme="dark"] .maint-table .col-date-icon,
 [data-theme="dark"] .maint-table .cell-icon.room,
 [data-theme="dark"] .maint-table .cell-icon.pc,
+[data-theme="dark"] .keys-table .col-date-icon,
+[data-theme="dark"] .keys-table .cell-icon.room,
+[data-theme="dark"] .keys-table .cell-icon.pc,
+[data-theme="dark"] .keys-table .cell-icon.bldg,
 html.high-contrast .maint-table .col-date-icon,
 html.high-contrast .maint-table .cell-icon.room,
-html.high-contrast .maint-table .cell-icon.pc {
+html.high-contrast .maint-table .cell-icon.pc,
+html.high-contrast .keys-table .col-date-icon,
+html.high-contrast .keys-table .cell-icon.room,
+html.high-contrast .keys-table .cell-icon.pc,
+html.high-contrast .keys-table .cell-icon.bldg {
   color: var(--primary-teal, #1EBBD7) !important;
 }
 
@@ -411,14 +521,14 @@ thead {
 table th,
 thead th {
   padding: 14px 18px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  color: #334155;
+  color: #475569;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%) !important;
-  border-bottom: 1.5px solid #CBD5E1 !important;
-  box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.4) !important;
+  letter-spacing: 0.06em;
+  background: #F8FAFC !important;
+  border-bottom: 1px solid var(--border-light, #E2E8F0) !important;
+  box-shadow: none !important;
   position: sticky !important;
   top: -1px !important;
   z-index: 10 !important;
@@ -459,10 +569,10 @@ html.high-contrast .table-header-cell,
 html.high-contrast .reports-table th,
 html.high-contrast .maint-table th,
 html.high-contrast table th {
-  background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%) !important;
-  border-bottom: 1.5px solid #334155 !important;
-  box-shadow: inset 0 -2px 0 rgba(30, 187, 215, 0.6) !important;
-  color: #CBD5E1 !important;
+  background: #161F30 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: none !important;
+  color: #94A3B8 !important;
 }
 
 /* ─── Maintenance Table Wrapper, Desktop Expansion & Scrollbar Component Styles ─── */

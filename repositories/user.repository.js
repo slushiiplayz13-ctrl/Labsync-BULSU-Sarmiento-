@@ -12,7 +12,7 @@ async function findBasicByEmail(email, executor = db) {
 
 async function findById(userId, executor = db) {
     return executor.query(
-        'SELECT User_ID, Name, Email, Role, Profile_Photo, Phone, Has_Completed_Tutorial FROM users WHERE User_ID = ?',
+        'SELECT User_ID, Name, Email, Role, Profile_Photo, Phone, Has_Completed_Tutorial, Updated_At FROM users WHERE User_ID = ?',
         [userId]
     );
 }
@@ -67,32 +67,38 @@ async function applyVerifiedEmail(userId, newEmail, executor = db) {
     );
 }
 
-async function updateUserProfile(userId, { name, password, profilePhoto, phone }, executor = db) {
-    if (password !== undefined) {
-        if (profilePhoto !== undefined) {
-            return executor.query(
-                'UPDATE users SET Name = ?, Password = ?, Profile_Photo = ?, Phone = ? WHERE User_ID = ?',
-                [name, password, profilePhoto, phone !== undefined ? phone : null, userId]
-            );
-        } else {
-            return executor.query(
-                'UPDATE users SET Name = ?, Password = ?, Phone = ? WHERE User_ID = ?',
-                [name, password, phone !== undefined ? phone : null, userId]
-            );
-        }
-    } else {
-        if (profilePhoto !== undefined) {
-            return executor.query(
-                'UPDATE users SET Name = ?, Profile_Photo = ?, Phone = ? WHERE User_ID = ?',
-                [name, profilePhoto, phone !== undefined ? phone : null, userId]
-            );
-        } else {
-            return executor.query(
-                'UPDATE users SET Name = ?, Phone = ? WHERE User_ID = ?',
-                [name, phone !== undefined ? phone : null, userId]
-            );
-        }
+async function updateUserProfile(userId, { name, password, profilePhoto, phone } = {}, executor = db) {
+    const fields = [];
+    const values = [];
+
+    if (name !== undefined && name !== null) {
+        fields.push('Name = ?');
+        values.push(name);
     }
+    if (password !== undefined && password !== null) {
+        fields.push('Password = ?');
+        values.push(password);
+    }
+    if (profilePhoto !== undefined) {
+        fields.push('Profile_Photo = ?');
+        values.push(profilePhoto);
+    }
+    if (phone !== undefined) {
+        fields.push('Phone = ?');
+        values.push(phone);
+    }
+
+    if (fields.length === 0) {
+        return [{ affectedRows: 0, changedRows: 0 }];
+    }
+
+    fields.push('Updated_At = NOW()');
+
+    values.push(userId);
+    return executor.query(
+        `UPDATE users SET ${fields.join(', ')} WHERE User_ID = ?`,
+        values
+    );
 }
 
 async function findUserQR(userId, executor = db) {
@@ -156,7 +162,7 @@ async function updateTutorialStatus(userId, completed, executor = db) {
 }
 
 async function updatePasswordOnly(userId, passwordHash, executor = db) {
-    return executor.query('UPDATE users SET Password = ? WHERE User_ID = ?', [passwordHash, userId]);
+    return executor.query('UPDATE users SET Password = ?, Updated_At = NOW() WHERE User_ID = ?', [passwordHash, userId]);
 }
 
 module.exports = {

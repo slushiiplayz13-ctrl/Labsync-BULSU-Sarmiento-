@@ -31,15 +31,30 @@
         <form id="change-password-form" style="display:flex;flex-direction:column;gap:16px;margin:0;">
           <div>
             <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-dark);">Current Password *</label>
-            <input type="password" id="cp-current-password" required style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="Enter current password">
+            <div style="position:relative;">
+              <input type="password" id="cp-current-password" required style="width:100%;box-sizing:border-box;padding:10px 42px 10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="Enter current password">
+              <button type="button" id="toggle-cp-current-password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;color:var(--text-mid);border-radius:6px;outline:none;transition:color 0.2s;" aria-label="Show current password">
+                <i data-lucide="eye" style="width:18px;height:18px;"></i>
+              </button>
+            </div>
           </div>
           <div>
             <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-dark);">New Password *</label>
-            <input type="password" id="cp-new-password" required minlength="8" style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="At least 8 characters">
+            <div style="position:relative;">
+              <input type="password" id="cp-new-password" required minlength="8" style="width:100%;box-sizing:border-box;padding:10px 42px 10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="At least 8 characters">
+              <button type="button" id="toggle-cp-new-password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;color:var(--text-mid);border-radius:6px;outline:none;transition:color 0.2s;" aria-label="Show new password">
+                <i data-lucide="eye" style="width:18px;height:18px;"></i>
+              </button>
+            </div>
           </div>
           <div>
             <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-dark);">Confirm New Password *</label>
-            <input type="password" id="cp-confirm-password" required minlength="8" style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="Re-enter new password">
+            <div style="position:relative;">
+              <input type="password" id="cp-confirm-password" required minlength="8" style="width:100%;box-sizing:border-box;padding:10px 42px 10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="Re-enter new password">
+              <button type="button" id="toggle-cp-confirm-password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;color:var(--text-mid);border-radius:6px;outline:none;transition:color 0.2s;" aria-label="Show confirm new password">
+                <i data-lucide="eye" style="width:18px;height:18px;"></i>
+              </button>
+            </div>
           </div>
 
           <!-- Password Requirements Instruction Box -->
@@ -63,6 +78,34 @@
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: modal });
     }
+
+    function setupPasswordToggle(inputId, buttonId) {
+      const inputEl = document.getElementById(inputId);
+      const btnEl = document.getElementById(buttonId);
+      if (!inputEl || !btnEl) return;
+
+      btnEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isHidden = inputEl.type === 'password';
+        inputEl.type = isHidden ? 'text' : 'password';
+        btnEl.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        btnEl.innerHTML = `<i data-lucide="${isHidden ? 'eye-off' : 'eye'}" style="width:18px;height:18px;"></i>`;
+        if (global.lucide && typeof global.lucide.createIcons === 'function') {
+          global.lucide.createIcons({ root: btnEl });
+        }
+      });
+
+      btnEl.addEventListener('mouseenter', () => {
+        btnEl.style.color = 'var(--text-dark)';
+      });
+      btnEl.addEventListener('mouseleave', () => {
+        btnEl.style.color = 'var(--text-mid)';
+      });
+    }
+
+    setupPasswordToggle('cp-current-password', 'toggle-cp-current-password');
+    setupPasswordToggle('cp-new-password', 'toggle-cp-new-password');
+    setupPasswordToggle('cp-confirm-password', 'toggle-cp-confirm-password');
 
     const closeModal = () => modal.remove();
     document.getElementById('close-password-modal-btn').addEventListener('click', closeModal);
@@ -99,7 +142,7 @@
           if (userService && typeof userService.updatePassword === 'function') {
             await userService.updatePassword(currentPass, newPass);
           } else {
-            const res = await fetch('/api/user/update', {
+            const res = await fetch('/api/user/password', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               credentials: 'include',
@@ -107,6 +150,17 @@
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Failed to update password');
+          }
+
+          const updatedTimestamp = new Date().toISOString();
+          localStorage.setItem('labsync_last_updated', updatedTimestamp);
+          const lastUpdatedEl = document.getElementById('settings-last-updated');
+          if (lastUpdatedEl) {
+            const timeUtils = global.timeUtils || global.scheduleTimeUtils;
+            const formatTimeFn = (timeUtils && typeof timeUtils.formatLastUpdatedTime === 'function')
+              ? timeUtils.formatLastUpdatedTime
+              : (global.formatLastUpdatedTime || (() => 'Just now'));
+            lastUpdatedEl.textContent = `Last updated: ${formatTimeFn(updatedTimestamp)}`;
           }
 
           if (global.showToast) {

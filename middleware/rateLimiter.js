@@ -76,11 +76,45 @@ const publicReportLimiter = rateLimit({
     }
 });
 
+// 6. Public PC Report Rate Limiter (General spam protection: 5 reports / 10 minutes per IP)
+const publicPCReportLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 5, // 5 attempts per window
+    standardHeaders: true,
+    legacyHeaders: false,
+    statusCode: 429,
+    message: {
+        error: 'Too many reports submitted. Please try again in a moment.'
+    }
+});
+
+// 7. Public PC Duplicate Rate Limiter (Cooldown for same PC: 1 report / 1 minute per IP + PC)
+const pcDuplicateReportLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 1, // 1 report per PC per window
+    skipFailedRequests: true,
+    validate: { keyGeneratorIpFallback: false, ipv6SubnetOrKeyGenerator: false, default: true },
+    keyGenerator: (req) => {
+        const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
+        const room = req.body && req.body.roomNumber ? String(req.body.roomNumber).trim() : '0';
+        const pc = req.body && req.body.pcNumber ? String(req.body.pcNumber).trim() : '0';
+        return `${ip}__${room}__${pc}`;
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    statusCode: 429,
+    message: {
+        error: 'A report was recently submitted for this PC. Please wait a moment before submitting another.'
+    }
+});
+
 module.exports = {
     loginLimiter,
     passwordRecoveryLimiter,
     passwordResetLimiter,
     validateResetTokenLimiter,
-    publicReportLimiter
+    publicReportLimiter,
+    publicPCReportLimiter,
+    pcDuplicateReportLimiter
 };
 

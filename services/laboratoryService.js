@@ -1,6 +1,7 @@
 'use strict';
 
 const QRCode = require('qrcode');
+const { APP_URL } = require('../config/app.config');
 const pool = require('../database/connection');
 const labRepository = require('../repositories/laboratory.repository');
 const keysRepository = require('../repositories/keys.repository');
@@ -23,10 +24,11 @@ async function getAllLaboratories() {
                 issues: []
             };
         }
-        roomIssuesMap[row.Room_ID].total_issues += row.pc_count;
+        const count = row.issue_count || row.pc_count || 1;
+        roomIssuesMap[row.Room_ID].total_issues += count;
         roomIssuesMap[row.Room_ID].issues.push({
             issue: row.Issue_Description,
-            count: row.pc_count
+            count
         });
     }
 
@@ -322,7 +324,7 @@ async function getPCQRCode(pcId) {
     }
 
     const pc = pcs[0];
-    const reportUrl = `${process.env.APP_URL || 'http://localhost:3000'}/submit-pc-report.html?room=${pc.Room_Number}&pc=${pc.PC_Number}`;
+    const reportUrl = `${APP_URL}/submit-pc-report.html?room=${pc.Room_Number}&pc=${pc.PC_Number}`;
 
     const qrCodeDataURL = await QRCode.toDataURL(reportUrl, {
         width: 300,
@@ -344,7 +346,7 @@ async function getPCQRCode(pcId) {
 async function getBatchQRCodes(roomId) {
     const [pcs] = await labRepository.findRoomPCsWithRoomDetails(roomId);
 
-    const baseUrl = process.env.APP_URL || 'http://localhost:3000';
+    const baseUrl = APP_URL;
     const qrList = await Promise.all(pcs.map(async (pc) => {
         const reportUrl = `${baseUrl}/submit-pc-report.html?room=${pc.Room_Number}&pc=${pc.PC_Number}`;
         const qrCodeDataURL = await QRCode.toDataURL(reportUrl, {

@@ -18,192 +18,439 @@
   <script src="js/utils/dom-utils.js"></script>
 
   <style>
-    /* Two-Sided Keychain Insert Print & Preview Styles */
+    /* Two-Sided Keychain Insert Print & Preview Styles (Target: 1.14in x 1.84in) */
     .key-tag-print-container {
       display: flex;
       flex-direction: row;
-      gap: 24px;
+      flex-wrap: wrap;
+      gap: 20px;
       justify-content: center;
-      align-items: center;
-      padding: 24px;
+      align-items: flex-start;
+      padding: 20px;
       background: #f8fafc;
-      border-radius: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border-light);
+      box-sizing: border-box;
+      max-height: 58vh;
+      overflow-y: auto;
+      transition: all 0.25s ease;
+    }
+
+    .keychain-print-pair {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+      box-sizing: border-box;
+      transition: all 0.25s ease;
+    }
+
+    .keychain-pair-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      background: #F1F5F9;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      letter-spacing: 0.3px;
+    }
+
+    .keychain-pair-slots {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      justify-content: center;
+      align-items: flex-start;
+      flex-wrap: nowrap;
+    }
+
+    .keychain-slot {
+      width: 1.14in;
+      height: 2.19in;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      transition: width 0.25s ease, height 0.25s ease;
+    }
+
+    .keychain-card-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      width: 1.14in;
+      flex-shrink: 0;
+      transition: transform 0.25s ease;
+      transform-origin: top center;
     }
 
     .keychain-card {
-      width: 2.2in !important;
-      height: 3.2in !important;
-      min-width: 2.2in !important;
-      max-width: 2.2in !important;
-      min-height: 3.2in !important;
-      max-height: 3.2in !important;
-      padding: 0.16in !important;
+      width: 1.14in !important;
+      height: 1.84in !important;
+      min-width: 1.14in !important;
+      max-width: 1.14in !important;
+      min-height: 1.84in !important;
+      max-height: 1.84in !important;
       box-sizing: border-box !important;
-      border: 1.5px solid #CBD5E1 !important;
-      border-radius: 14px;
+      border: 1px solid #CBD5E1 !important;
+      border-radius: 6px;
       background: #FFFFFF !important;
       color: #0F172A !important;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
       align-items: center;
       text-align: center;
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
       position: relative;
       overflow: hidden;
     }
 
-    .keychain-card::before {
+    .keychain-card.keychain-front-card {
+      padding: 0 !important;
+      justify-content: flex-start !important;
+    }
+
+    .keychain-card.keychain-back-card {
+      padding: 0.10in 0.08in 0.11in 0.08in !important;
+      justify-content: space-between !important;
+    }
+
+    .keychain-card.keychain-back-card::before {
       content: '';
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #1EBBD7, #0EA5C9);
+      height: 2.5px;
+      background: linear-gradient(90deg, #1EBBD7, #0EA5C9) !important;
     }
 
     .keychain-side-label {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 800;
       color: #64748B;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 8px;
-    }
-
-    .keychain-front-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      width: 100%;
-    }
-
-    .keychain-front-logo {
-      height: 32px;
-      width: auto;
-      object-fit: contain;
+      letter-spacing: 0.5px;
+      text-align: center;
+      white-space: nowrap;
       margin-bottom: 2px;
     }
 
+    /* FRONT SIDE: Dark Header with LabSync Dark Mode Logo */
+    .keychain-front-dark-header {
+      background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%) !important;
+      border-bottom: 2px solid #1EBBD7 !important;
+      padding: 4.5px 6px 5px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .keychain-front-dark-logo {
+      max-width: 0.92in !important;
+      max-height: 20px !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
+      display: block !important;
+      margin: -1px auto 1px auto;
+      filter: none !important;
+      opacity: 1 !important;
+      content: normal !important;
+    }
+
     /* Prevent dark mode CSS from swapping the keychain insert logo to dark-mode image */
-    html.dark-mode img.keychain-front-logo,
-    body.dark-mode img.keychain-front-logo,
-    [data-theme="dark"] img.keychain-front-logo,
-    html.high-contrast img.keychain-front-logo {
+    html.dark-mode img.keychain-front-dark-logo,
+    body.dark-mode img.keychain-front-dark-logo,
+    [data-theme="dark"] img.keychain-front-dark-logo,
+    html.high-contrast img.keychain-front-dark-logo {
       content: normal !important;
       filter: none !important;
       opacity: 1 !important;
     }
 
-    .keychain-brand-title {
-      font-family: var(--font-display), sans-serif;
-      font-size: 13.5px;
-      font-weight: 800;
-      color: #0F172A;
-      letter-spacing: 0.5px;
-      line-height: 1.1;
-    }
-
-    .keychain-brand-divider {
-      width: 32px;
-      height: 2px;
-      background: linear-gradient(90deg, #1EBBD7, #0EA5C9);
-      border-radius: 2px;
-      margin: 3px 0 4px 0;
-    }
-
-    .keychain-univ-title {
-      font-size: 7px;
-      font-weight: 800;
-      color: #64748B;
+    .keychain-front-univ-badge {
+      font-size: 5.8px;
+      font-weight: 700;
+      color: #E2E8F0;
+      letter-spacing: 0.4px;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
-      line-height: 1.2;
+      line-height: 1.15;
+      margin-top: 2.5px;
+      text-align: center;
+      white-space: nowrap;
     }
 
-    .keychain-location-box {
-      margin: 6px 0;
-      padding: 7px 10px;
-      background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
-      border: 1px solid #BAE6FD;
-      border-radius: 10px;
+    /* FRONT SIDE: Clean White Body with Huge Room Number */
+    .keychain-front-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
       width: 100%;
+      padding: 4px 6px 6px 6px;
       box-sizing: border-box;
-      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8);
     }
 
-    .keychain-bldg-name {
-      font-size: 8.5px;
+    .keychain-room-label {
+      font-family: var(--font-display), 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      color: #64748B;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      line-height: 1;
+      margin-top: auto;
+      margin-bottom: 2px;
+      text-align: center;
+    }
+
+    .keychain-room-number-huge {
+      font-family: var(--font-display), 'Poppins', sans-serif;
+      font-size: 41px;
+      font-weight: 900;
+      color: #0F172A;
+      line-height: 0.95;
+      letter-spacing: -1.5px;
+      margin: 3px 0 2px 0;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .keychain-bldg-blue {
+      font-size: 11px;
       font-weight: 800;
       color: #0284C7;
+      letter-spacing: 1px;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      line-height: 1.15;
+      margin-bottom: auto;
+      margin-top: 2px;
+      text-align: center;
+      white-space: nowrap;
     }
 
-    .keychain-room-name {
-      font-family: var(--font-display), sans-serif;
-      font-size: 15px;
+    /* BACK SIDE: Refined Clean Hierarchy with Perfect Vertical Symmetry */
+    .keychain-back-heading {
+      font-family: var(--font-display), 'Poppins', sans-serif;
+      font-size: 7.0px;
       font-weight: 800;
-      color: #0F172A;
-      line-height: 1.25;
-      letter-spacing: -0.2px;
-    }
-
-    .keychain-code-pill {
-      font-family: var(--font-display), monospace;
-      font-size: 12px;
-      font-weight: 800;
-      color: #FFFFFF;
-      background: linear-gradient(135deg, #0F172A, #1E293B);
-      padding: 5px 14px;
-      border-radius: 999px;
-      letter-spacing: 0.8px;
-      margin-top: auto;
-      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.18);
-    }
-
-    .keychain-back-text {
-      font-size: 8.5px;
-      font-weight: 600;
-      color: #334155;
-      line-height: 1.35;
-      margin-bottom: 4px;
-      padding: 6px;
-      background: #F8FAFC;
-      border-radius: 8px;
-      border: 1px solid #F1F5F9;
+      color: #0EA5C9;
+      letter-spacing: 0.25px;
+      text-transform: uppercase;
+      line-height: 1.1;
+      margin: 0;
+      text-align: center;
+      white-space: nowrap;
+      padding: 0 6px;
+      box-sizing: border-box;
     }
 
     .keychain-qr-wrapper {
-      width: 1.35in;
-      height: 1.35in;
+      width: 0.86in;
+      height: 0.86in;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-top: auto;
       background: #FFFFFF;
-      border: 1px solid #E2E8F0;
-      border-radius: 12px;
-      padding: 4px;
+      border: 1px solid #BAE6FD;
+      border-radius: 6px;
+      padding: 2px;
       box-sizing: border-box;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 2px 6px rgba(14, 165, 201, 0.08);
+      margin: 0 auto;
     }
 
     .keychain-qr-wrapper img {
-      width: 1.25in !important;
-      height: 1.25in !important;
+      width: 0.80in !important;
+      height: 0.80in !important;
       object-fit: contain;
+      display: block;
+    }
+
+    /* Clean Instruction Text with Symmetrical Balance */
+    .keychain-back-instruction {
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3.5px;
+      margin: 0;
+      padding: 0 4px;
+    }
+
+    .keychain-back-instruction .instruction-lead {
+      font-family: var(--font-display), 'Poppins', sans-serif;
+      font-size: 8.2px;
+      font-weight: 800;
+      color: #0F172A;
+      line-height: 1.25;
+      text-align: center;
+      padding: 0 2px;
+      white-space: normal;
+    }
+
+    .keychain-back-instruction .instruction-sub {
+      font-size: 8.4px;
+      font-weight: 800;
+      color: #0284C7;
+      line-height: 1.25;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .key-tag-print-container.zoomed-140 {
+      gap: 36px !important;
+      padding: 24px 20px !important;
+    }
+
+    .key-tag-print-container.zoomed-140 .keychain-slot {
+      width: calc(1.14in * 1.4) !important;
+      height: calc(2.19in * 1.4) !important;
+    }
+
+    .key-tag-print-container.zoomed-140 .keychain-card-wrapper {
+      transform: scale(1.4);
+      transform-origin: top center;
+    }
+
+    .key-tag-print-container.zoomed-140 .keychain-pair-slots {
+      gap: 28px !important;
+    }
+
+    /* Modern Custom Checkbox & Batch Action Bar Styling */
+    .keys-table th.col-checkbox,
+    .keys-table td.col-checkbox {
+      width: 44px;
+      text-align: center;
+      padding: 10px 8px;
+      vertical-align: middle;
+    }
+
+    .key-row-checkbox,
+    #selectAllKeysCheckbox {
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      appearance: none !important;
+      width: 18px !important;
+      height: 18px !important;
+      border: 1.8px solid var(--border-light, #CBD5E1) !important;
+      border-radius: 5px !important;
+      background: var(--bg-card, #FFFFFF) !important;
+      cursor: pointer !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      vertical-align: middle !important;
+      position: relative !important;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      outline: none !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .key-row-checkbox:hover,
+    #selectAllKeysCheckbox:hover {
+      border-color: #0EA5C9 !important;
+      background: #F0F9FF !important;
+      box-shadow: 0 0 0 3px rgba(14, 165, 201, 0.12) !important;
+    }
+
+    .key-row-checkbox:checked,
+    #selectAllKeysCheckbox:checked {
+      background: linear-gradient(135deg, #1EBBD7, #0EA5C9) !important;
+      border-color: #0EA5C9 !important;
+      box-shadow: 0 2px 6px rgba(14, 165, 201, 0.3) !important;
+    }
+
+    .key-row-checkbox:checked::after,
+    #selectAllKeysCheckbox:checked::after {
+      content: '' !important;
+      display: block !important;
+      width: 4.5px !important;
+      height: 8.5px !important;
+      border: solid #FFFFFF !important;
+      border-width: 0 2.2px 2.2px 0 !important;
+      transform: rotate(45deg) translate(-0.5px, -0.5px) !important;
+      margin-bottom: 2px !important;
+    }
+
+    #selectAllKeysCheckbox:indeterminate {
+      background: linear-gradient(135deg, #1EBBD7, #0EA5C9) !important;
+      border-color: #0EA5C9 !important;
+      box-shadow: 0 2px 6px rgba(14, 165, 201, 0.3) !important;
+    }
+
+    #selectAllKeysCheckbox:indeterminate::after {
+      content: '' !important;
+      display: block !important;
+      width: 8px !important;
+      height: 2px !important;
+      background: #FFFFFF !important;
+      border-radius: 1px !important;
+    }
+
+    .key-data-row.row-selected {
+      background-color: rgba(14, 165, 201, 0.04) !important;
+    }
+
+    .btn-batch-print {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-batch-print .btn-count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #0EA5C9;
+      color: #FFFFFF;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 10px;
+      line-height: 1.2;
+    }
+
+    .btn-batch-print:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
     }
 
     @media print {
       @page {
         size: A4 portrait;
-        margin: 10mm;
+        margin: 8mm 10mm;
       }
 
-      body > *:not(#printArea) {
+      body>*:not(#printArea) {
         display: none !important;
       }
 
@@ -212,25 +459,148 @@
         color: black !important;
         margin: 0 !important;
         padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
 
       #printArea {
         display: block !important;
         background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
 
       .key-tag-print-container {
         display: flex !important;
         flex-direction: row !important;
-        gap: 0.25in !important;
+        flex-wrap: wrap !important;
+        gap: 14pt 18pt !important;
+        justify-content: flex-start !important;
+        align-items: flex-start !important;
         padding: 0 !important;
         background: transparent !important;
+        border: none !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+
+      .keychain-print-pair {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+
+      .keychain-pair-header {
+        font-size: 6.5pt !important;
+        font-weight: 700 !important;
+        color: #64748b !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin-bottom: 2pt !important;
+        text-transform: uppercase !important;
+        font-family: sans-serif !important;
+        display: flex !important;
+        gap: 4pt !important;
+      }
+
+      .keychain-pair-slots {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 4pt !important;
+        align-items: flex-start !important;
+      }
+
+      .keychain-slot {
+        width: 1.14in !important;
+        height: auto !important;
+        transform: none !important;
+      }
+
+      .keychain-card-wrapper {
+        transform: none !important;
+        margin-bottom: 0 !important;
+        gap: 2pt !important;
+        width: 1.14in !important;
       }
 
       .keychain-card {
-        border: 1px dashed #94a3b8 !important;
+        width: 1.14in !important;
+        height: 1.84in !important;
+        min-width: 1.14in !important;
+        max-width: 1.14in !important;
+        min-height: 1.84in !important;
+        max-height: 1.84in !important;
+        box-sizing: border-box !important;
+        border: 0.75pt dashed #94a3b8 !important; /* precise cut guide */
+        border-radius: 4px !important;
         box-shadow: none !important;
         page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        overflow: hidden !important;
+        transform: none !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .keychain-card.keychain-front-card {
+        padding: 0 !important;
+      }
+
+      .keychain-card.keychain-back-card {
+        padding: 0.10in 0.08in 0.11in 0.08in !important;
+      }
+
+      .keychain-card.keychain-back-card::before {
+        background: #1EBBD7 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .keychain-back-heading {
+        color: #0EA5C9 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .keychain-back-instruction .instruction-lead {
+        color: #0F172A !important;
+      }
+
+      .keychain-back-instruction .instruction-sub {
+        color: #0284C7 !important;
+      }
+
+      .keychain-front-dark-header {
+        background: #0F172A !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .keychain-front-univ-badge {
+        color: #E2E8F0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .keychain-bldg-blue {
+        color: #0284C7 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .keychain-side-label {
+        font-size: 6.5pt !important;
+        color: #94a3b8 !important;
+        text-transform: uppercase !important;
+        margin-bottom: 2pt !important;
+        font-family: sans-serif !important;
       }
     }
 
@@ -261,20 +631,50 @@
       color: var(--text-dark);
     }
 
+    @media (max-width: 640px) {
+      .key-modal {
+        padding: 16px !important;
+        margin: 10px !important;
+        max-height: 94vh !important;
+      }
+
+      .key-modal-controls-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+      }
+
+      .key-modal-footer {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+      }
+
+      .key-modal-footer-actions {
+        display: flex !important;
+        width: 100% !important;
+      }
+
+      .key-modal-footer-actions button {
+        flex: 1 !important;
+        justify-content: center !important;
+      }
+    }
+
     /* Table Key Action Buttons Redesign */
     .key-action-btn {
-      padding: 7px 14px;
+      padding: 8px 16px;
       border-radius: 9px;
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 700;
       font-family: var(--font-body), sans-serif;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      border: none;
+      gap: 7px;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
       outline: none;
       white-space: nowrap;
       line-height: 1;
@@ -287,100 +687,317 @@
       stroke-width: 2.2px;
     }
 
-    /* Tag Button (Vibrant Teal) */
+    /* Tag Button */
     .key-action-btn.btn-tag {
-      background: var(--primary-teal, #1EBBD7);
-      color: #FFFFFF !important;
-      box-shadow: 0 3px 10px rgba(30, 187, 215, 0.3);
+      background: #F0F9FF;
+      color: #0284C7 !important;
+      border-color: #BAE6FD;
+      box-shadow: none;
     }
+
     .key-action-btn.btn-tag:hover {
       background: #0284C7;
       color: #FFFFFF !important;
-      box-shadow: 0 5px 16px rgba(2, 132, 199, 0.45);
-      transform: translateY(-1.5px);
+      border-color: #0284C7;
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.25);
+      transform: translateY(-1px);
     }
 
-    /* Missing Button (Crimson Red) */
+    /* Missing Button */
     .key-action-btn.btn-missing {
-      background: #EF4444;
-      color: #FFFFFF !important;
-      box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);
+      background: #FEF2F2;
+      color: #DC2626 !important;
+      border-color: #FECACA;
+      box-shadow: none;
     }
+
     .key-action-btn.btn-missing:hover {
       background: #DC2626;
       color: #FFFFFF !important;
-      box-shadow: 0 5px 16px rgba(220, 38, 38, 0.45);
-      transform: translateY(-1.5px);
+      border-color: #DC2626;
+      box-shadow: 0 3px 10px rgba(220, 38, 38, 0.25);
+      transform: translateY(-1px);
     }
 
-    /* Recovered Button (Emerald Green) */
+    /* Recovered Button */
     .key-action-btn.btn-recovered {
-      background: #10B981;
-      color: #FFFFFF !important;
-      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+      background: #ECFDF5;
+      color: #059669 !important;
+      border-color: #A7F3D0;
+      box-shadow: none;
     }
+
     .key-action-btn.btn-recovered:hover {
       background: #059669;
       color: #FFFFFF !important;
-      box-shadow: 0 5px 16px rgba(5, 150, 105, 0.45);
-      transform: translateY(-1.5px);
+      border-color: #059669;
+      box-shadow: 0 3px 10px rgba(5, 150, 105, 0.25);
+      transform: translateY(-1px);
     }
 
-    /* Reports Button (Purple) */
+    /* Reports Button */
     .key-action-btn.btn-reports {
-      background: #9333EA;
-      color: #FFFFFF !important;
-      box-shadow: 0 3px 10px rgba(147, 51, 234, 0.3);
+      background: #FAF5FF;
+      color: #7E22CE !important;
+      border-color: #E9D5FF;
+      box-shadow: none;
     }
+
     .key-action-btn.btn-reports:hover {
       background: #7E22CE;
       color: #FFFFFF !important;
-      box-shadow: 0 5px 16px rgba(126, 34, 206, 0.45);
-      transform: translateY(-1.5px);
+      border-color: #7E22CE;
+      box-shadow: 0 3px 10px rgba(126, 34, 206, 0.25);
+      transform: translateY(-1px);
     }
 
-    /* Dark Mode & High Contrast Overrides */
+    /* Dark Mode & High Contrast Button Overrides */
     html.dark-mode .key-action-btn.btn-tag,
     body.dark-mode .key-action-btn.btn-tag,
     [data-theme="dark"] .key-action-btn.btn-tag,
     html.high-contrast .key-action-btn.btn-tag {
-      background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
-      color: #FFFFFF !important;
-      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4) !important;
+      background: rgba(14, 165, 233, 0.12) !important;
+      color: #38BDF8 !important;
+      border-color: rgba(56, 189, 248, 0.25) !important;
+      box-shadow: none !important;
     }
+
+    html.dark-mode .key-action-btn.btn-tag:hover,
+    body.dark-mode .key-action-btn.btn-tag:hover,
+    [data-theme="dark"] .key-action-btn.btn-tag:hover,
+    html.high-contrast .key-action-btn.btn-tag:hover {
+      background: #0284C7 !important;
+      color: #FFFFFF !important;
+      border-color: #0284C7 !important;
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35) !important;
+    }
+
     html.dark-mode .key-action-btn.btn-missing,
     body.dark-mode .key-action-btn.btn-missing,
     [data-theme="dark"] .key-action-btn.btn-missing,
     html.high-contrast .key-action-btn.btn-missing {
-      background: linear-gradient(135deg, #EF4444, #DC2626) !important;
-      color: #FFFFFF !important;
-      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4) !important;
+      background: rgba(239, 68, 68, 0.12) !important;
+      color: #F87171 !important;
+      border-color: rgba(248, 113, 113, 0.25) !important;
+      box-shadow: none !important;
     }
+
+    html.dark-mode .key-action-btn.btn-missing:hover,
+    body.dark-mode .key-action-btn.btn-missing:hover,
+    [data-theme="dark"] .key-action-btn.btn-missing:hover,
+    html.high-contrast .key-action-btn.btn-missing:hover {
+      background: #DC2626 !important;
+      color: #FFFFFF !important;
+      border-color: #DC2626 !important;
+      box-shadow: 0 3px 10px rgba(220, 38, 38, 0.35) !important;
+    }
+
     html.dark-mode .key-action-btn.btn-recovered,
     body.dark-mode .key-action-btn.btn-recovered,
     [data-theme="dark"] .key-action-btn.btn-recovered,
     html.high-contrast .key-action-btn.btn-recovered {
-      background: linear-gradient(135deg, #10B981, #059669) !important;
-      color: #FFFFFF !important;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
+      background: rgba(16, 185, 129, 0.12) !important;
+      color: #34D399 !important;
+      border-color: rgba(52, 211, 153, 0.25) !important;
+      box-shadow: none !important;
     }
+
+    html.dark-mode .key-action-btn.btn-recovered:hover,
+    body.dark-mode .key-action-btn.btn-recovered:hover,
+    [data-theme="dark"] .key-action-btn.btn-recovered:hover,
+    html.high-contrast .key-action-btn.btn-recovered:hover {
+      background: #059669 !important;
+      color: #FFFFFF !important;
+      border-color: #059669 !important;
+      box-shadow: 0 3px 10px rgba(5, 150, 105, 0.35) !important;
+    }
+
     html.dark-mode .key-action-btn.btn-reports,
     body.dark-mode .key-action-btn.btn-reports,
     [data-theme="dark"] .key-action-btn.btn-reports,
     html.high-contrast .key-action-btn.btn-reports {
-      background: linear-gradient(135deg, #A855F7, #7E22CE) !important;
+      background: rgba(168, 85, 247, 0.12) !important;
+      color: #C084FC !important;
+      border-color: rgba(192, 132, 252, 0.25) !important;
+      box-shadow: none !important;
+    }
+
+    html.dark-mode .key-action-btn.btn-reports:hover,
+    body.dark-mode .key-action-btn.btn-reports:hover,
+    [data-theme="dark"] .key-action-btn.btn-reports:hover,
+    html.high-contrast .key-action-btn.btn-reports:hover {
+      background: #7E22CE !important;
       color: #FFFFFF !important;
-      box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4) !important;
+      border-color: #7E22CE !important;
+      box-shadow: 0 3px 10px rgba(126, 34, 206, 0.35) !important;
+    }
+
+    html.dark-mode .keychain-print-pair,
+    body.dark-mode .keychain-print-pair,
+    [data-theme="dark"] .keychain-print-pair,
+    html.high-contrast .keychain-print-pair {
+      background: #1E293B !important;
+      border-color: #334155 !important;
+    }
+
+    html.dark-mode .keychain-pair-header,
+    body.dark-mode .keychain-pair-header,
+    [data-theme="dark"] .keychain-pair-header,
+    html.high-contrast .keychain-pair-header {
+      background: #0F172A !important;
+      color: #94A3B8 !important;
+    }
+
+    html.dark-mode #btnBatchPrintSelected,
+    body.dark-mode #btnBatchPrintSelected,
+    [data-theme="dark"] #btnBatchPrintSelected,
+    html.high-contrast #btnBatchPrintSelected {
+      background: #1E293B !important;
+      border-color: #334155 !important;
+      color: #E2E8F0 !important;
+    }
+
+    html.dark-mode #btnBatchPrintAll,
+    body.dark-mode #btnBatchPrintAll,
+    [data-theme="dark"] #btnBatchPrintAll,
+    html.high-contrast #btnBatchPrintAll {
+      background: rgba(14, 165, 233, 0.15) !important;
+      border-color: rgba(56, 189, 248, 0.3) !important;
+      color: #38BDF8 !important;
+    }
+
+    html.dark-mode .key-row-checkbox,
+    body.dark-mode .key-row-checkbox,
+    html.dark-theme .key-row-checkbox,
+    body.dark-theme .key-row-checkbox,
+    html.high-contrast .key-row-checkbox,
+    body.high-contrast .key-row-checkbox,
+    [data-theme="dark"] .key-row-checkbox,
+    html.dark-mode #selectAllKeysCheckbox,
+    body.dark-mode #selectAllKeysCheckbox,
+    html.dark-theme #selectAllKeysCheckbox,
+    body.dark-theme #selectAllKeysCheckbox,
+    html.high-contrast #selectAllKeysCheckbox,
+    body.high-contrast #selectAllKeysCheckbox,
+    [data-theme="dark"] #selectAllKeysCheckbox {
+      background: #1E293B !important;
+      border-color: #475569 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    html.dark-mode .key-row-checkbox:hover,
+    body.dark-mode .key-row-checkbox:hover,
+    html.dark-theme .key-row-checkbox:hover,
+    body.dark-theme .key-row-checkbox:hover,
+    html.high-contrast .key-row-checkbox:hover,
+    body.high-contrast .key-row-checkbox:hover,
+    [data-theme="dark"] .key-row-checkbox:hover,
+    html.dark-mode #selectAllKeysCheckbox:hover,
+    body.dark-mode #selectAllKeysCheckbox:hover,
+    html.dark-theme #selectAllKeysCheckbox:hover,
+    body.dark-theme #selectAllKeysCheckbox:hover,
+    html.high-contrast #selectAllKeysCheckbox:hover,
+    body.high-contrast #selectAllKeysCheckbox:hover,
+    [data-theme="dark"] #selectAllKeysCheckbox:hover {
+      background: #334155 !important;
+      border-color: #0EA5C9 !important;
+      box-shadow: 0 0 0 3px rgba(14, 165, 201, 0.25) !important;
+    }
+
+    html.dark-mode .key-row-checkbox:checked,
+    body.dark-mode .key-row-checkbox:checked,
+    html.dark-theme .key-row-checkbox:checked,
+    body.dark-theme .key-row-checkbox:checked,
+    html.high-contrast .key-row-checkbox:checked,
+    body.high-contrast .key-row-checkbox:checked,
+    [data-theme="dark"] .key-row-checkbox:checked,
+    html.dark-mode #selectAllKeysCheckbox:checked,
+    body.dark-mode #selectAllKeysCheckbox:checked,
+    html.dark-theme #selectAllKeysCheckbox:checked,
+    body.dark-theme #selectAllKeysCheckbox:checked,
+    html.high-contrast #selectAllKeysCheckbox:checked,
+    body.high-contrast #selectAllKeysCheckbox:checked,
+    [data-theme="dark"] #selectAllKeysCheckbox:checked,
+    html.dark-mode #selectAllKeysCheckbox:indeterminate,
+    body.dark-mode #selectAllKeysCheckbox:indeterminate,
+    html.dark-theme #selectAllKeysCheckbox:indeterminate,
+    body.dark-theme #selectAllKeysCheckbox:indeterminate,
+    html.high-contrast #selectAllKeysCheckbox:indeterminate,
+    body.high-contrast #selectAllKeysCheckbox:indeterminate,
+    [data-theme="dark"] #selectAllKeysCheckbox:indeterminate {
+      background: linear-gradient(135deg, #1EBBD7, #0EA5C9) !important;
+      border-color: #0EA5C9 !important;
+      box-shadow: 0 2px 6px rgba(14, 165, 201, 0.35) !important;
+    }
+
+    html.dark-mode .key-data-row.row-selected,
+    body.dark-mode .key-data-row.row-selected,
+    html.dark-theme .key-data-row.row-selected,
+    body.dark-theme .key-data-row.row-selected,
+    html.high-contrast .key-data-row.row-selected,
+    body.high-contrast .key-data-row.row-selected,
+    [data-theme="dark"] .key-data-row.row-selected {
+      background-color: rgba(14, 165, 201, 0.1) !important;
+    }
+
+    /* Key Code Monospace Chip Component */
+    .key-code-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Roboto Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #0284C7;
+      background: #F0F9FF;
+      border: 1.5px solid #BAE6FD;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      letter-spacing: 0.4px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      user-select: all;
+    }
+
+    .key-code-chip:hover {
+      background: #E0F2FE;
+      border-color: #7DD3FC;
+      color: #0369A1;
+    }
+
+    .key-code-chip .key-chip-icon {
+      width: 15px;
+      height: 15px;
+      opacity: 0.85;
+      stroke-width: 2.2px;
+      flex-shrink: 0;
+    }
+
+    html.dark-mode .key-code-chip,
+    body.dark-mode .key-code-chip,
+    [data-theme="dark"] .key-code-chip,
+    html.high-contrast .key-code-chip {
+      background: rgba(14, 165, 233, 0.12) !important;
+      color: #38BDF8 !important;
+      border-color: rgba(56, 189, 248, 0.3) !important;
+    }
+
+    html.dark-mode .key-code-chip:hover,
+    body.dark-mode .key-code-chip:hover,
+    [data-theme="dark"] .key-code-chip:hover,
+    html.high-contrast .key-code-chip:hover {
+      background: rgba(14, 165, 233, 0.2) !important;
+      border-color: rgba(56, 189, 248, 0.5) !important;
     }
 
     /* Status Badge Pulse Component */
     .status-badge-pulse {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 12px;
+      gap: 7px;
+      padding: 6px 14px;
       border-radius: 9999px !important;
-      font-size: 12.5px;
+      font-size: 13px;
       font-weight: 700;
       font-family: var(--font-body), sans-serif;
       outline: none !important;
@@ -397,15 +1014,16 @@
       animation: pulse-dot 1.8s infinite ease-in-out;
     }
 
-    /* Light Mode Status Colors (High Contrast WCAG AAA) */
+    /* Light Mode Status Colors */
     .status-badge-pulse.resolved {
       background: #ECFDF5 !important;
       color: #047857 !important;
       border: 1px solid #A7F3D0 !important;
     }
+
     .status-badge-pulse.resolved .pulse-dot {
       background: #059669 !important;
-      box-shadow: 0 0 6px rgba(5, 150, 105, 0.5);
+      box-shadow: 0 0 6px rgba(5, 150, 105, 0.4);
     }
 
     .status-badge-pulse.pending {
@@ -413,9 +1031,10 @@
       color: #B91C1C !important;
       border: 1px solid #FECACA !important;
     }
+
     .status-badge-pulse.pending .pulse-dot {
       background: #DC2626 !important;
-      box-shadow: 0 0 6px rgba(220, 38, 38, 0.5);
+      box-shadow: 0 0 6px rgba(220, 38, 38, 0.4);
     }
 
     .status-badge-pulse.found {
@@ -423,9 +1042,10 @@
       color: #6B21A8 !important;
       border: 1px solid #E9D5FF !important;
     }
+
     .status-badge-pulse.found .pulse-dot {
       background: #7E22CE !important;
-      box-shadow: 0 0 6px rgba(126, 34, 206, 0.5);
+      box-shadow: 0 0 6px rgba(126, 34, 206, 0.4);
     }
 
     /* Dark Mode & High Contrast Overrides */
@@ -433,48 +1053,51 @@
     body.dark-mode .status-badge-pulse.resolved,
     [data-theme="dark"] .status-badge-pulse.resolved,
     html.high-contrast .status-badge-pulse.resolved {
-      background: rgba(16, 185, 129, 0.18) !important;
+      background: rgba(16, 185, 129, 0.12) !important;
       color: #34D399 !important;
-      border: 1px solid rgba(52, 211, 153, 0.3) !important;
+      border: 1px solid rgba(52, 211, 153, 0.25) !important;
     }
+
     html.dark-mode .status-badge-pulse.resolved .pulse-dot,
     body.dark-mode .status-badge-pulse.resolved .pulse-dot,
     [data-theme="dark"] .status-badge-pulse.resolved .pulse-dot,
     html.high-contrast .status-badge-pulse.resolved .pulse-dot {
       background: #34D399 !important;
-      box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+      box-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
     }
 
     html.dark-mode .status-badge-pulse.pending,
     body.dark-mode .status-badge-pulse.pending,
     [data-theme="dark"] .status-badge-pulse.pending,
     html.high-contrast .status-badge-pulse.pending {
-      background: rgba(239, 68, 68, 0.18) !important;
+      background: rgba(239, 68, 68, 0.12) !important;
       color: #F87171 !important;
-      border: 1px solid rgba(248, 113, 113, 0.3) !important;
+      border: 1px solid rgba(248, 113, 113, 0.25) !important;
     }
+
     html.dark-mode .status-badge-pulse.pending .pulse-dot,
     body.dark-mode .status-badge-pulse.pending .pulse-dot,
     [data-theme="dark"] .status-badge-pulse.pending .pulse-dot,
     html.high-contrast .status-badge-pulse.pending .pulse-dot {
       background: #F87171 !important;
-      box-shadow: 0 0 8px rgba(248, 113, 113, 0.6);
+      box-shadow: 0 0 6px rgba(248, 113, 113, 0.5);
     }
 
     html.dark-mode .status-badge-pulse.found,
     body.dark-mode .status-badge-pulse.found,
     [data-theme="dark"] .status-badge-pulse.found,
     html.high-contrast .status-badge-pulse.found {
-      background: rgba(147, 51, 234, 0.18) !important;
+      background: rgba(147, 51, 234, 0.12) !important;
       color: #C084FC !important;
-      border: 1px solid rgba(192, 132, 252, 0.3) !important;
+      border: 1px solid rgba(192, 132, 252, 0.25) !important;
     }
+
     html.dark-mode .status-badge-pulse.found .pulse-dot,
     body.dark-mode .status-badge-pulse.found .pulse-dot,
     [data-theme="dark"] .status-badge-pulse.found .pulse-dot,
     html.high-contrast .status-badge-pulse.found .pulse-dot {
       background: #C084FC !important;
-      box-shadow: 0 0 8px rgba(192, 132, 252, 0.6);
+      box-shadow: 0 0 6px rgba(192, 132, 252, 0.5);
     }
 
     /* Stat Card Watermark Graphic */
@@ -482,6 +1105,360 @@
     body.dark-mode .stat-watermark,
     [data-theme="dark"] .stat-watermark {
       opacity: 0.08 !important;
+    }
+
+    /* Keys Table Layout & Balanced Proportions */
+    .keys-table-card {
+      border: 1px solid var(--border-light, #E2E8F0);
+      border-radius: 14px;
+      background: var(--bg-white, #FFFFFF);
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-x: auto;
+      overflow-y: auto;
+      width: 100%;
+    }
+
+    html.dark-mode .keys-table-card,
+    body.dark-mode .keys-table-card,
+    [data-theme="dark"] .keys-table-card,
+    html.high-contrast .keys-table-card {
+      background: #111827 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    /* Stat Cards Responsive Layout - 3 Equal Balanced Columns */
+    .stats-grid.mis-stats {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 16px !important;
+      margin-bottom: 24px !important;
+    }
+
+    @media (max-width: 860px) {
+      .stats-grid.mis-stats {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
+    }
+
+    /* Toolbar Responsive Styles */
+    .keys-toolbar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .keys-filter-group {
+      display: flex;
+      gap: 6px;
+      background: var(--bg-body);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-light);
+      flex-wrap: wrap;
+    }
+
+    .keys-toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-box-header {
+      min-width: 200px;
+      max-width: 320px;
+    }
+
+    @media (max-width: 1024px) {
+      .keys-toolbar-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .keys-filter-group {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .keys-toolbar-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .search-box-header {
+        flex: 1 1 200px;
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .keys-filter-group {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        width: 100%;
+        text-align: center;
+      }
+
+      .keys-filter-group .key-filter-btn {
+        text-align: center;
+        padding: 8px 4px !important;
+        font-size: 12px !important;
+      }
+
+      .keys-toolbar-right {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .keys-toolbar-right .btn-batch-print {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .search-box-header {
+        width: 100%;
+      }
+    }
+
+    /* Keys Table Balanced Proportions & Equal Gap Spacing */
+    .keys-table {
+      width: 100% !important;
+      min-width: 920px !important;
+      border-collapse: collapse !important;
+      text-align: left;
+      table-layout: fixed !important;
+    }
+
+    .keys-table th.col-checkbox,
+    .keys-table td.col-checkbox {
+      width: 48px !important;
+      min-width: 48px !important;
+      max-width: 48px !important;
+      text-align: center !important;
+      padding: 14px 6px !important;
+    }
+
+    .keys-table th.col-ticket,
+    .keys-table td.col-ticket {
+      width: 17% !important;
+      min-width: 140px !important;
+      text-align: left !important;
+      padding: 14px 16px !important;
+      white-space: nowrap !important;
+    }
+
+    .keys-table th.col-room,
+    .keys-table td.col-room {
+      width: 13% !important;
+      min-width: 110px !important;
+      text-align: left !important;
+      padding: 14px 16px !important;
+      white-space: nowrap !important;
+    }
+
+    .keys-table th.col-building,
+    .keys-table td.col-building {
+      width: 13% !important;
+      min-width: 110px !important;
+      text-align: left !important;
+      padding: 14px 16px !important;
+      white-space: nowrap !important;
+    }
+
+    .keys-table th.col-status,
+    .keys-table td.col-status {
+      width: 20% !important;
+      min-width: 180px !important;
+      text-align: center !important;
+      padding: 14px 48px 14px 0px !important;
+      white-space: nowrap !important;
+    }
+
+    .keys-table th.col-holder,
+    .keys-table td.col-holder {
+      width: 21% !important;
+      min-width: 185px !important;
+      text-align: left !important;
+      padding: 14px 16px 14px 54px !important;
+      white-space: nowrap !important;
+    }
+
+    .keys-table th.col-actions,
+    .keys-table td.col-actions {
+      width: 16% !important;
+      min-width: 150px !important;
+      text-align: center !important;
+      padding: 14px 12px !important;
+      white-space: nowrap !important;
+    }
+
+    .keys-table th {
+      padding: 15px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border-light, #E2E8F0);
+      background: #F8FAFC;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: none !important;
+    }
+
+    html.dark-mode .keys-table th,
+    body.dark-mode .keys-table th,
+    [data-theme="dark"] .keys-table th,
+    html.high-contrast .keys-table th {
+      background: #161F30 !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+      color: #94A3B8 !important;
+      box-shadow: none !important;
+    }
+
+    .keys-table td {
+      padding: 18px 18px;
+      vertical-align: middle;
+      font-size: 15px;
+      color: var(--text-dark);
+      border-bottom: 1px solid #F1F5F9;
+    }
+
+    html.dark-mode .keys-table td,
+    body.dark-mode .keys-table td,
+    [data-theme="dark"] .keys-table td,
+    html.high-contrast .keys-table td {
+      color: #E2E8F0 !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    }
+
+    .keys-table tbody tr:last-child td {
+      border-bottom: none !important;
+    }
+
+    .keys-table .cell-icon-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-dark);
+      white-space: nowrap;
+    }
+
+    html.dark-mode .keys-table .cell-icon-wrap,
+    body.dark-mode .keys-table .cell-icon-wrap,
+    [data-theme="dark"] .keys-table .cell-icon-wrap,
+    html.high-contrast .keys-table .cell-icon-wrap {
+      color: #F1F5F9 !important;
+    }
+
+    .keys-table .cell-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      stroke-width: 2.2px;
+    }
+
+    .keys-table .cell-icon.bldg,
+    .keys-table .cell-icon.room,
+    .keys-table .cell-icon.pc {
+      color: var(--primary-teal, #1EBBD7) !important;
+    }
+
+    html.dark-mode .keys-table .cell-icon.bldg,
+    html.dark-mode .keys-table .cell-icon.room,
+    html.dark-mode .keys-table .cell-icon.pc,
+    body.dark-mode .keys-table .cell-icon.bldg,
+    body.dark-mode .keys-table .cell-icon.room,
+    body.dark-mode .keys-table .cell-icon.pc,
+    [data-theme="dark"] .keys-table .cell-icon.bldg,
+    [data-theme="dark"] .keys-table .cell-icon.room,
+    [data-theme="dark"] .keys-table .cell-icon.pc,
+    html.high-contrast .keys-table .cell-icon.bldg,
+    html.high-contrast .keys-table .cell-icon.room,
+    html.high-contrast .keys-table .cell-icon.pc {
+      color: var(--primary-teal, #1EBBD7) !important;
+    }
+
+    .keys-table .col-date-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .keys-table .col-date-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--primary-teal, #1EBBD7) !important;
+      flex-shrink: 0;
+      stroke-width: 2.2px;
+    }
+
+    html.dark-mode .keys-table .col-date-icon,
+    body.dark-mode .keys-table .col-date-icon,
+    [data-theme="dark"] .keys-table .col-date-icon,
+    html.high-contrast .keys-table .col-date-icon {
+      color: var(--primary-teal, #1EBBD7) !important;
+    }
+
+    .keys-table .date-empty-text {
+      font-size: 13.5px;
+      color: var(--text-muted, #94A3B8);
+      font-weight: 600;
+      font-style: italic;
+    }
+
+    .keys-table .col-date-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.3;
+    }
+
+    .keys-table .date-main {
+      font-weight: 700;
+      color: var(--text-dark);
+      font-size: 14.5px;
+    }
+
+    html.dark-mode .keys-table .date-main,
+    body.dark-mode .keys-table .date-main,
+    [data-theme="dark"] .keys-table .date-main,
+    html.high-contrast .keys-table .date-main {
+      color: #F1F5F9 !important;
+    }
+
+    .keys-table .time-sub {
+      font-size: 12.5px;
+      color: var(--text-muted, #94A3B8);
+      font-weight: 600;
+    }
+
+    .keys-table tr {
+      transition: background 0.15s ease;
+    }
+
+    .keys-table tbody tr:hover {
+      background: rgba(30, 187, 215, 0.03);
+    }
+
+    html.dark-mode .keys-table tbody tr:hover,
+    body.dark-mode .keys-table tbody tr:hover,
+    [data-theme="dark"] .keys-table tbody tr:hover,
+    html.high-contrast .keys-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.03) !important;
     }
   </style>
 </head>
@@ -534,8 +1511,8 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-key-round">
-          <path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"/>
-          <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
+          <path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z" />
+          <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
         </svg>
       </button>
     </nav>
@@ -632,8 +1609,8 @@
       <!-- Greeting + Clock Row -->
       <div class="greeting-row">
         <div class="greeting-left">
-          <h1 class="greeting-title" id="greetingText">Key Management & Tracking</h1>
-          <p class="greeting-sub" id="greetingSub">Manage physical laboratory keys, print two-sided keychain inserts with unique QR tags, and track lost/found reports.</p>
+          <h1 class="greeting-title" id="greetingText">Laboratory Key Inventory</h1>
+          <p class="greeting-sub" id="greetingSub">Manage physical laboratory key records and generate printable Key Transfer QR tags.</p>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime"></div>
@@ -657,7 +1634,7 @@
       <div class="dashboard-card" style="padding: 24px;">
 
         <!-- Stats Counters Row -->
-        <div class="stats-grid mis-stats" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+        <div class="stats-grid mis-stats">
           <!-- Stat 1: Total Keys -->
           <div class="stat-card theme-blue">
             <div class="stat-header">
@@ -670,92 +1647,96 @@
             <div class="stat-watermark"><i data-lucide="key-round"></i></div>
           </div>
 
-          <!-- Stat 2: Active -->
+          <!-- Stat 2: In Dock -->
           <div class="stat-card theme-green">
             <div class="stat-header">
               <div class="stat-info">
-                <div class="stat-value" id="statActiveKeys">0</div>
-                <div class="stat-title">Active Keys</div>
+                <div class="stat-value" id="statInDockKeys">0</div>
+                <div class="stat-title">In Key Box (Docked)</div>
               </div>
-              <div class="stat-icon"><i data-lucide="check-circle"></i></div>
+              <div class="stat-icon"><i data-lucide="inbox"></i></div>
             </div>
-            <div class="stat-watermark"><i data-lucide="check-circle"></i></div>
+            <div class="stat-watermark"><i data-lucide="inbox"></i></div>
           </div>
 
-          <!-- Stat 3: Missing -->
-          <div class="stat-card theme-red">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value" id="statMissingKeys">0</div>
-                <div class="stat-title">Missing Keys</div>
-              </div>
-              <div class="stat-icon"><i data-lucide="alert-triangle"></i></div>
-            </div>
-            <div class="stat-watermark"><i data-lucide="alert-triangle"></i></div>
-          </div>
-
-          <!-- Stat 4: Found / Pending Return -->
+          <!-- Stat 3: In Use -->
           <div class="stat-card theme-purple">
             <div class="stat-header">
               <div class="stat-info">
-                <div class="stat-value" id="statFoundKeys">0</div>
-                <div class="stat-title">Found / Pending</div>
+                <div class="stat-value" id="statInUseKeys">0</div>
+                <div class="stat-title">In Use (With Faculty)</div>
               </div>
-              <div class="stat-icon"><i data-lucide="search"></i></div>
+              <div class="stat-icon"><i data-lucide="user-check"></i></div>
             </div>
-            <div class="stat-watermark"><i data-lucide="search"></i></div>
+            <div class="stat-watermark"><i data-lucide="user-check"></i></div>
           </div>
         </div>
 
         <!-- Inventory Header Controls -->
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
-          
+        <div class="keys-toolbar-row">
+
           <!-- Filter Tabs -->
-          <div style="display: flex; gap: 6px; background: var(--bg-body); padding: 4px; border-radius: 10px; border: 1px solid var(--border-light);">
+          <div class="keys-filter-group">
             <button type="button" class="key-filter-btn active" data-filter="ALL"
               style="padding: 8px 14px; border: none; background: var(--bg-white); color: var(--primary-teal); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
               All Keys
             </button>
-            <button type="button" class="key-filter-btn" data-filter="ACTIVE"
+            <button type="button" class="key-filter-btn" data-filter="PRESENT"
               style="padding: 8px 14px; border: none; background: transparent; color: var(--text-light); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-              Active
+              In Key Box
             </button>
-            <button type="button" class="key-filter-btn" data-filter="MISSING"
+            <button type="button" class="key-filter-btn" data-filter="ABSENT"
               style="padding: 8px 14px; border: none; background: transparent; color: var(--text-light); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-              Missing
-            </button>
-            <button type="button" class="key-filter-btn" data-filter="FOUND"
-              style="padding: 8px 14px; border: none; background: transparent; color: var(--text-light); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-              Found / Pending
+              In Use
             </button>
           </div>
 
-          <!-- Right Actions (Search) -->
-          <div style="display: flex; align-items: center; gap: 12px;">
+          <!-- Right Actions (Batch Printing & Search) -->
+          <div class="keys-toolbar-right">
+            <!-- Batch Print Buttons -->
+            <button type="button" id="btnBatchPrintSelected" class="btn-batch-print" disabled
+              style="border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-light); cursor: not-allowed; opacity: 0.6;"
+              title="Select one or more keys from the table to print tags">
+              <i data-lucide="check-square" style="width: 15px; height: 15px;"></i>
+              <span id="btnBatchPrintSelectedText">Print Selected</span>
+              <span id="btnBatchPrintSelectedBadge" class="btn-count-pill" style="display: none;">0</span>
+            </button>
+            <button type="button" id="btnBatchPrintAll" class="btn-batch-print"
+              style="border: 1px solid #BAE6FD; background: #F0F9FF; color: #0284C7; cursor: pointer;"
+              title="Print key tags for all matching keys">
+              <i data-lucide="printer" style="width: 15px; height: 15px;"></i>
+              <span id="btnBatchPrintAllText">Print All</span>
+            </button>
+
+            <!-- Search Box -->
             <div class="search-box search-box-header">
               <i data-lucide="search" class="search-icon"></i>
-              <input type="text" id="keySearchInput" class="search-input" placeholder="Search key code, room, building..." />
+              <input type="text" id="keySearchInput" class="search-input"
+                placeholder="Search key code, room, building, holder..." />
             </div>
           </div>
 
         </div>
 
         <!-- Keys Table Container -->
-        <div class="table-container" style="overflow-x: auto; min-height: 320px;">
-          <table class="reports-table maint-table">
-            <thead class="reports-table-head">
+        <div class="table-container keys-table-card" style="overflow-x: auto; overflow-y: auto; flex: 1 1 auto; min-height: 0; width: 100%;">
+          <table class="keys-table">
+            <thead>
               <tr>
+                <th class="table-header-cell col-checkbox text-center">
+                  <input type="checkbox" id="selectAllKeysCheckbox" aria-label="Select all keys" />
+                </th>
                 <th class="table-header-cell col-ticket">KEY CODE</th>
-                <th class="table-header-cell col-building">BUILDING</th>
                 <th class="table-header-cell col-room">LAB ROOM</th>
-                <th class="table-header-cell col-status text-center">STATUS</th>
-                <th class="table-header-cell col-date">LAST TAKEN</th>
-                <th class="table-header-cell col-actions text-center" style="text-align: center;">ACTIONS</th>
+                <th class="table-header-cell col-building">BUILDING</th>
+                <th class="table-header-cell col-status text-center">SYSTEM STATUS</th>
+                <th class="table-header-cell col-holder">CURRENT HOLDER</th>
+                <th class="table-header-cell col-actions text-center">ACTION</th>
               </tr>
             </thead>
             <tbody id="keysTableBody">
               <tr>
-                <td colspan="6" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
+                <td colspan="7" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
                   Loading physical keys...
                 </td>
               </tr>
@@ -771,15 +1752,36 @@
 
   <!-- MODAL 2: Keychain Insert Print Preview Modal -->
   <div id="printKeyModalOverlay" class="key-modal-overlay">
-    <div class="key-modal" style="max-width: 640px;">
+    <div class="key-modal" style="max-width: 720px; width: 95%; max-height: 90vh; overflow-y: auto;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <div>
-          <h3 style="margin: 0; font-size: 20px; font-weight: 700; font-family: var(--font-display);">Two-Sided Photo Keychain Insert</h3>
-          <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--text-light);">Printable insert for physical key ring tag.</p>
+          <h3 id="printModalTitle" style="margin: 0; font-size: 20px; font-weight: 700; font-family: var(--font-display);">Two-Sided Keychain Insert</h3>
+          <p id="printModalSubtitle" style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--text-light);">
+            Exact Cutout Size: <strong>1.14 in × 1.84 in</strong> &bull; For Acrylic Key Tag
+          </p>
         </div>
-        <button type="button" id="btnClosePrintModal" style="background: none; border: none; cursor: pointer; color: var(--text-light); padding: 4px;">
+        <button type="button" id="btnClosePrintModal"
+          style="background: none; border: none; cursor: pointer; color: var(--text-light); padding: 4px;">
           <i data-lucide="x" style="width: 20px; height: 20px;"></i>
         </button>
+      </div>
+
+      <!-- Size Badge & Zoom Controls Row -->
+      <div class="key-modal-controls-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(30,187,215,0.1); color: var(--primary-teal); padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700;">
+          <i data-lucide="ruler" style="width: 13px; height: 13px;"></i>
+          Physical Print Size: 1.14 in × 1.84 in
+        </div>
+        <div style="display: flex; gap: 4px; background: var(--bg-body); padding: 2px; border-radius: 8px; border: 1px solid var(--border-light);">
+          <button type="button" id="btnZoom100" class="btn-zoom active"
+            style="padding: 4px 10px; border: none; background: var(--bg-white); color: var(--primary-teal); border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            100% (1:1)
+          </button>
+          <button type="button" id="btnZoom140" class="btn-zoom"
+            style="padding: 4px 10px; border: none; background: transparent; color: var(--text-light); border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
+            140% Zoom
+          </button>
+        </div>
       </div>
 
       <!-- Preview Container -->
@@ -787,45 +1789,26 @@
         <div style="text-align: center; color: var(--text-muted); padding: 20px;">Generating printable key insert...</div>
       </div>
 
-      <div style="display: flex; justify-content: flex-end; gap: 12px;">
-        <button type="button" id="btnCancelPrintModal"
-          style="padding: 10px 18px; border-radius: 8px; border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-dark); font-weight: 600; cursor: pointer;">
-          Close
-        </button>
-        <button type="button" id="btnExecutePrintKeyTag"
-          style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--primary-teal); color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-          <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
-          Print Insert
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL 3: View Found Reports Modal -->
-  <div id="viewReportsModalOverlay" class="key-modal-overlay">
-    <div class="key-modal" style="max-width: 600px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <div>
-          <h3 style="margin: 0; font-size: 20px; font-weight: 700; font-family: var(--font-display);" id="modalReportTitle">Found Key Reports</h3>
-          <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--text-light);" id="modalReportSubtitle">Reports submitted by public finders scanning key QR</p>
+      <div class="key-modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="font-size: 11.5px; color: var(--text-muted);">
+          <i data-lucide="info" style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px; color: var(--primary-teal);"></i>
+          Ensure print scale is set to <strong>100% / Actual Size</strong>.
         </div>
-        <button type="button" id="btnCloseReportsModal" style="background: none; border: none; cursor: pointer; color: var(--text-light); padding: 4px;">
-          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
-        </button>
-      </div>
-
-      <div id="reportsListContainer" style="max-height: 340px; overflow-y: auto; margin-bottom: 20px;">
-        <div style="text-align: center; color: var(--text-muted); padding: 20px;">Loading reports...</div>
-      </div>
-
-      <div style="display: flex; justify-content: flex-end; gap: 12px;">
-        <button type="button" id="btnDoneReportsModal"
-          style="padding: 10px 18px; border-radius: 8px; border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-dark); font-weight: 600; cursor: pointer;">
-          Close
-        </button>
+        <div class="key-modal-footer-actions" style="display: flex; gap: 10px;">
+          <button type="button" id="btnCancelPrintModal"
+            style="padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-dark); font-weight: 600; cursor: pointer;">
+            Close
+          </button>
+          <button type="button" id="btnExecutePrintKeyTag"
+            style="padding: 9px 18px; border-radius: 8px; border: none; background: var(--primary-teal); color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(30,187,215,0.3);">
+            <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+            <span id="btnExecutePrintText">Print Inserts</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
+
 
   <script src="js/core/accessibility.js"></script>
   <script src="js/core/clock.js"></script>

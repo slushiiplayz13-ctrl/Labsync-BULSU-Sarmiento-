@@ -217,3 +217,29 @@ window.escapeHtml                  <-- HTML string escaper
 6. **Phase 6: Large Components Modularization** (`profile-menu` submodules, `faculty-modal` submodules).
 7. **Phase 7: Page Controllers & Backend Auditing** (Standardize services, verify legacy API bridges).
 8. **Phase 8: Regression Validation & Refactor Report** (`REFACTOR_REPORT.md`).
+
+---
+
+## 9. Phase 2 Architecture Expansion (September 2026)
+
+In September 2026, the architecture was expanded to address physical operational workflows and enterprise security:
+
+### 9.1 Physical Key Inventory & Keychain Tag Studio
+- **Backend**: Mounted `routes/keys.routes.js` with `controllers/keys.controller.js`, `services/keysService.js`, and `repositories/keys.repository.js`.
+- **Database**: `laboratory_keys` table mapping keys to rooms with status (`ACTIVE`, `MISSING`).
+- **Frontend Studio**: `mis-keys.html` and `js/pages/mis-keys.js` formatting calibrated two-sided acrylic keychain inserts (**1.14 in x 1.84 in**) with high-contrast QR codes (`#0EA5C9`).
+
+### 9.2 Mobile Key Transfer & Room Claim Protocol
+- **Mobile View**: `key-transfer.html` and `js/pages/key-transfer.js` enabling peer-to-peer room handoffs between faculty in hallways.
+- **Atomic Custody Transfer**: Updates `laboratories.Current_User_ID`, records `occupancy_log` entry with `KEY_TRANSFER` method, and dispatches an immutable audit event.
+
+### 9.3 Maintenance Issue Relational Deduplication
+- **Schema Addition**: `maintenance_issues` table with stored generated unique key `Active_Issue_Key = IF(Status != 'Resolved', CONCAT(PC_ID, ':', Issue_Type), NULL)`.
+- **Concurrency Safety**: `POST /api/reports/submit` acquires a row lock (`SELECT FOR UPDATE`) within a transaction, linking duplicate student reports to existing open issues.
+- **UI Presentation**: Renders `.reporter-chip` with person badge and `[+N]` count indicator, linking to a detailed reporter inspection modal.
+
+### 9.4 Security Hardening & Immutable Audit Trail
+- **Audit Logging**: `services/auditService.js` records high-value mutations into `audit_logs`, stripping 16+ forbidden credential parameters.
+- **Multi-Tier Rate Limiting**: `middleware/rateLimiter.js` guards login, password recovery, reset token validation, and public PC reports.
+- **Bcrypt Password Storage**: Upgraded to Bcrypt with 12 salt rounds (`BCRYPT_SALT_ROUNDS = 12`).
+- **E-Signature Decommissioning**: Legacy HTML5 signature pad (`signature-modal.js`) decommissioned in favor of direct administrative credential controls.

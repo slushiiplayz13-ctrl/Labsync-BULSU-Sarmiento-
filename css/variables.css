@@ -98,6 +98,11 @@ html.high-contrast td {
   color: var(--text-dark) !important;
 }
 
+html.high-contrast #fullReportModalTitle,
+html.high-contrast .full-report-ticket-title {
+  color: var(--primary-teal, #1EBBD7) !important;
+}
+
 html.high-contrast p,
 html.high-contrast .greeting-sub,
 html.high-contrast .editor-label,
@@ -295,7 +300,16 @@ html.high-contrast .form-title {
 }
 
 html.high-contrast .info-item {
-  color: var(--primary-teal) !important;
+  color: #FFFFFF !important;
+}
+
+html.high-contrast .info-item span {
+  color: #FFFFFF !important;
+}
+
+html.high-contrast .info-item svg,
+html.high-contrast .info-item .lucide {
+  color: #38BDF8 !important;
 }
 
 html.high-contrast .info-header-box {

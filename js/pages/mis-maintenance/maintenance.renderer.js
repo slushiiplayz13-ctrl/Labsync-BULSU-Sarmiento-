@@ -156,7 +156,7 @@
           </button>
         `;
       } else {
-        actionsHtml = `<span class="completed-chip"><i data-lucide="check-check" style="width:13px;height:13px;"></i> Completed</span>`;
+        actionsHtml = `<span class="completed-chip"><i data-lucide="check-check" style="width:16px;height:16px;"></i> Completed</span>`;
       }
 
       const sectionChip = parsed.section && parsed.section !== 'N/A'
@@ -179,7 +179,7 @@
       let reporterHtml = '';
       if (linkedReports.length <= 1) {
         reporterHtml = `
-          <div class="reporter-chip single">
+          <div class="reporter-chip single" title="${escapeText(firstStudentName)}">
             <i data-lucide="user" style="width:15px; height:15px; color:var(--primary-teal); flex-shrink:0;"></i>
             <span class="reporter-chip-name">${escapeText(firstStudentName)}</span>
           </div>
@@ -187,11 +187,53 @@
       } else {
         const othersCount = linkedReports.length - 1;
         reporterHtml = `
-          <div class="reporter-chip multi" data-action="view-ticket-details" data-report-id="${report.Report_ID}" title="Click to view all ${linkedReports.length} student reports">
+          <div class="reporter-chip multi" data-action="view-ticket-details" data-report-id="${report.Report_ID}" title="${escapeText(firstStudentName)} (+${othersCount} more) - Click to view all reports">
             <i data-lucide="user" style="width:15px; height:15px; color:var(--primary-teal); flex-shrink:0;"></i>
             <span class="reporter-chip-name">${escapeText(firstStudentName)}</span>
             <span class="reporter-count-badge">+${othersCount}</span>
-            <i data-lucide="chevron-right" class="reporter-chip-arrow" style="width:13px; height:13px; color:var(--text-muted); opacity:0.6;"></i>
+            <i data-lucide="chevron-right" class="reporter-chip-arrow" style="width:13px; height:13px; color:var(--text-muted); opacity:0.6; flex-shrink:0;"></i>
+          </div>
+        `;
+      }
+
+      const rawRemarks = (parsed.remarks || '').trim();
+      const lowerRemarks = rawRemarks.toLowerCase();
+      const isNone = !rawRemarks ||
+        lowerRemarks === 'none' ||
+        lowerRemarks === 'n/a' ||
+        lowerRemarks === 'no remarks provided' ||
+        lowerRemarks === 'no details provided.' ||
+        lowerRemarks === 'none.';
+
+      // Threshold: Single-line limit (~30 chars) before adding the View All expander
+      const isLong = !isNone && (rawRemarks.length > 30 || rawRemarks.includes('\n'));
+
+      let remarksHtml = '';
+      if (isNone) {
+        remarksHtml = `
+          <div class="remarks-quote-box static empty-remarks">
+            <i data-lucide="message-square" class="remarks-icon" style="width:14px; height:14px; color:var(--primary-teal); flex-shrink:0;"></i>
+            <span class="remarks-text static-text" style="color:#94A3B8; font-style:italic;">None</span>
+          </div>
+        `;
+      } else if (!isLong) {
+        remarksHtml = `
+          <div class="remarks-quote-box static short-remarks">
+            <i data-lucide="message-square" class="remarks-icon" style="width:14px; height:14px; color:var(--primary-teal); flex-shrink:0;"></i>
+            <span class="remarks-text static-text">${escapeText(rawRemarks)}</span>
+          </div>
+        `;
+      } else {
+        remarksHtml = `
+          <div class="remarks-quote-box interactive expandable" data-action="view-ticket-details" data-report-id="${report.Report_ID}" title="Click to view full student remarks: &#10;&quot;${escapeText(rawRemarks)}&quot;">
+            <div class="remarks-main-content">
+              <i data-lucide="message-square" class="remarks-icon" style="width:14px; height:14px; color:var(--primary-teal); flex-shrink:0;"></i>
+              <span class="remarks-text clamped">${escapeText(rawRemarks)}</span>
+            </div>
+            <span class="remarks-expand-badge">
+              <span>View all</span>
+              <i data-lucide="chevron-right" style="width:12px; height:12px;"></i>
+            </span>
           </div>
         `;
       }
@@ -224,18 +266,15 @@
               PC #${report.PC_Number}
             </div>
           </td>
-          <td class="col-reporter" style="white-space: nowrap;">
+          <td class="col-reporter">
             ${reporterHtml}
           </td>
-          <td class="col-issues" style="min-width: 200px; max-width: 360px;">
+          <td class="col-issues">
             <div class="ticket-badge-group">
               ${issueBadges}
               ${sectionChip}
             </div>
-            <div class="remarks-quote-box">
-              <i data-lucide="message-square" style="width:16px; height:16px; color:var(--primary-teal); flex-shrink:0;"></i>
-              <span style="font-weight:500;">${escapeText(parsed.remarks)}</span>
-            </div>
+            ${remarksHtml}
           </td>
           <td class="col-actions" style="text-align: center; white-space: nowrap;">
             ${actionsHtml}

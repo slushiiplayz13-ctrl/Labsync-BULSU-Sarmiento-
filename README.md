@@ -50,6 +50,10 @@
 ## 🚀 Key Features
 
 - **Real-Time Lab Room Status**: Dynamic availability calculation displayed across color-coded room cards with live 3-second activity polling.
+- **Physical Key Inventory Management (`mis-keys.html`)**: MIS custodian catalog for physical room keys (`KEY-IT-203-A`), status tracking (`ACTIVE` / `MISSING`), and keychain insert generator.
+- **Calibrated Keychain Insert Studio**: Generates calibrated 1.14" x 1.84" two-sided acrylic insert prints containing room branding and high-contrast transfer QR code.
+- **Mobile Key Transfer & Room Claim (`key-transfer.html`)**: Mobile peer-to-peer key handoff protocol allowing faculty to scan a key fob QR code and immediately assume classroom custody.
+- **Workstation Fault Deduplication Pipeline**: Relational deduplication via `maintenance_issues` table with stored hash `Active_Issue_Key`, grouping multi-reporter submissions (`👤 Name [+N]`).
 - **Interactive Schedule Studio (`room-schedule-editor.html`)**: Drag-and-drop schedule builder with custom subject blocks, color themes, resize handles, and touch polyfills.
 - **Conflict & Clash Prevention**: Real-time same-room overlap detection and cross-room professor ghost schedule overlays.
 - **QR PC Fault Reporting (`submit-pc-report.html`)**: Mobile-optimized, public fault submission form with hardware/software category checkboxes.
@@ -58,6 +62,7 @@
 - **Faculty Directory Management (`faculty-management.html`)**: Staff CRUD, role assignment, leadership transfer dialogs, and automated onboarding welcome emails.
 - **Academic Year & Semester Filters**: Term-based schedule filtering across personal faculty timetables and master views.
 - **Signatory PDF / Print Layouts**: Single room (`print-schedule.html`) and bulk (`print-all-schedules.html`) print templates with configurable Dean and Chair signatories.
+- **Security Audit Logging & Rate Limiting**: Centralized non-blocking audit trail (`audit_logs`) and multi-tier RFC-compliant brute-force protection.
 - **Interactive System Tutorial (`js/tutorial.js`)**: Guided spotlight onboarding tour for faculty and administrators.
 - **Accessibility & Theme System**: Dark mode and High Contrast accessibility themes persisted in `localStorage`.
 
@@ -128,18 +133,30 @@ The relational database utilizes MySQL / MariaDB (InnoDB engine, `utf8mb4` chars
 ```
 ┌──────────────┐       ┌───────────────┐       ┌────────────────┐
 │    users     ├───┬───┤   schedules   ├───┬───┤  laboratories  │
-└──────────────┘   │   └───────────────┘   │   └───────┬────────┘
-                   │                       │           │
-                   │   ┌───────────────┐   │   ┌───────▼────────┐
-                   └───┤ occupancy_log ├───┴───┤   lab_units    │
-                       └───────────────┘       └───────┬────────┘
-                                                       │
-                                               ┌───────▼────────┐
-                                               │  maintenance   │
-                                               └────────────────┘
+└──────┬───────┘   │   └───────────────┘   │   └───┬────────┬───┘
+       │           │                       │       │        │
+       │           │   ┌───────────────┐   │   ┌───▼────┐ ┌─▼──────────────┐
+       ├───────────┼───┤ occupancy_log ├───┴───┤lab_units│ │laboratory_keys│
+       │           │   └───────────────┘       └───┬────┘ └──────────────┘
+       │           │                               │
+       │           │                       ┌───────▼──────────┐
+       │           │                       │maintenance_issues│
+       │           │                       └───────┬──────────┘
+       │           │                               │
+       │           │                       ┌───────▼──────────┐
+       │           │                       │   maintenance    │
+       │           │                       └──────────────────┘
+       │           │
+┌──────▼───────┐   │   ┌───────────────┐       ┌────────────────┐
+│  audit_logs  │   └───┤  iot_devices  │       │system_settings │
+└──────────────┘       └───────────────┘       └────────────────┘
 ```
 
 Additional relational tables:
+- **`laboratory_keys`**: Physical key catalog, unique key codes (`KEY-IT-203-A`), status (`ACTIVE`, `MISSING`).
+- **`maintenance_issues`**: Component-level fault deduplication entity with stored generated hash `Active_Issue_Key`.
+- **`audit_logs`**: Immutable security audit trail tracking logins, password changes, key transfers, and admin actions.
+- **`iot_devices`**: Authorized ESP32 hardware docks and device credentials.
 - **`system_settings`**: Key-value pairs for institution signatories (*Program Chair*, *Campus Dean*).
 - **`curriculum`**: Master subject catalog for the Schedule Studio.
 

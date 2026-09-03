@@ -22,7 +22,21 @@ async function updateUser(req, res, next) {
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
-        return res.status(result.status).json({ message: result.message });
+        return res.status(result.status).json({ message: result.message, updatedAt: result.updatedAt });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function changePassword(req, res, next) {
+    try {
+        const userId = req.session ? req.session.userId : null;
+        const { currentPassword, newPassword } = req.body;
+        const result = await usersService.changePassword(userId, currentPassword, newPassword);
+        if (result.error) {
+            return res.status(result.status).json({ error: result.error });
+        }
+        return res.status(result.status).json({ message: result.message, updatedAt: result.updatedAt });
     } catch (err) {
         next(err);
     }
@@ -81,6 +95,7 @@ async function updateTutorialStatus(req, res, next) {
 module.exports = {
     getCurrentUser,
     updateUser,
+    changePassword,
     verifyEmail,
     getUserQRCode,
     scanQRCode,

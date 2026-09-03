@@ -86,14 +86,23 @@
     /* Report Card & List Grid */
     .reports-list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
       gap: 16px;
+      overflow-y: auto !important;
+      overflow-x: hidden;
+      flex: 1;
+      min-height: 0;
+      padding: 4px 6px 12px 2px;
+      box-sizing: border-box;
+      align-content: start;
     }
 
     #dynamicReportsList {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden !important;
       width: 100%;
     }
 

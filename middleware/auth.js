@@ -8,6 +8,7 @@
 const IT_HEAD_ROLES = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head'];
 const ADMIN_ROLES = [...IT_HEAD_ROLES, 'MIS Staff'];
 const MIS_STAFF_ROLES = ['MIS Staff'];
+const KEY_TRANSFER_ROLES = ['Faculty', ...IT_HEAD_ROLES];
 
 function requireAuth(req, res, next) {
     if (!req.session || !req.session.userId) {
@@ -38,5 +39,6 @@ module.exports = {
     requireRole,
     ADMIN_ROLES,
     IT_HEAD_ROLES,
-    MIS_STAFF_ROLES
+    MIS_STAFF_ROLES,
+    KEY_TRANSFER_ROLES
 };

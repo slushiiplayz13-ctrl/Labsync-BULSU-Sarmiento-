@@ -124,12 +124,12 @@ async function updateLastSeenByRoomNumbers(roomNumbers, executor = db) {
 
 async function findActivePCIssuesGroupedByRoom(executor = db) {
     return executor.query(`
-        SELECT p.Room_ID, m.Issue_Description, COUNT(DISTINCT m.PC_ID) AS pc_count
-        FROM maintenance m
-        JOIN lab_units p ON m.PC_ID = p.PC_ID
-        WHERE m.Status != 'Resolved'
-        GROUP BY p.Room_ID, m.Issue_Description
-        ORDER BY pc_count DESC, m.Issue_Description ASC
+        SELECT p.Room_ID, i.Issue_Type AS Issue_Description, COUNT(i.Issue_ID) AS issue_count, COUNT(DISTINCT i.PC_ID) AS pc_count
+        FROM maintenance_issues i
+        JOIN lab_units p ON i.PC_ID = p.PC_ID
+        WHERE i.Status != 'Resolved'
+        GROUP BY p.Room_ID, i.Issue_Type
+        ORDER BY issue_count DESC, i.Issue_Type ASC
     `);
 }
 

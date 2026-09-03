@@ -2,6 +2,7 @@
 
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
+const { APP_URL } = require('../config/app.config');
 const { sendResetPasswordEmail } = require('./emailService');
 const userRepository = require('../repositories/user.repository');
 
@@ -119,7 +120,7 @@ async function recoverPassword(email) {
 
     await userRepository.updateResetToken(user.User_ID, token, expiry);
 
-    const resetLink = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password.html?token=${token}`;
+    const resetLink = `${APP_URL}/reset-password.html?token=${token}`;
     const emailSent = await sendResetPasswordEmail(user.Email, user.Name, resetLink);
 
     if (!emailSent) {

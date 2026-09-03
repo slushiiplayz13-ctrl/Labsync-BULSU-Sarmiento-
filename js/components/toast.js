@@ -173,14 +173,14 @@
         box-sizing: border-box;
       `;
 
-      const isHighContrast = document.documentElement && document.documentElement.classList.contains('high-contrast');
-      const cardBg = isHighContrast ? '#1E293B' : '#FFFFFF';
-      const cardBorder = isHighContrast ? '1px solid #374151' : '1px solid rgba(226, 232, 240, 0.8)';
-      const titleColor = isHighContrast ? '#F8FAFC' : '#0F172A';
-      const msgColor = isHighContrast ? '#CBD5E1' : '#64748B';
-      const cancelBg = isHighContrast ? '#334155' : '#F1F5F9';
-      const cancelTextColor = isHighContrast ? '#F8FAFC' : '#334155';
-      const cancelBorder = isHighContrast ? '1px solid #475569' : '1px solid #E2E8F0';
+      const isDark = (document.documentElement && (document.documentElement.classList.contains('high-contrast') || document.documentElement.classList.contains('dark-mode') || document.documentElement.getAttribute('data-theme') === 'dark')) || (document.body && (document.body.classList.contains('high-contrast') || document.body.classList.contains('dark-mode'))) || localStorage.getItem('labsync-high-contrast') === 'true';
+      const cardBg = isDark ? '#1E293B' : '#FFFFFF';
+      const cardBorder = isDark ? '1px solid #374151' : '1px solid rgba(226, 232, 240, 0.8)';
+      const titleColor = isDark ? '#F8FAFC' : '#0F172A';
+      const msgColor = isDark ? '#CBD5E1' : '#64748B';
+      const cancelBg = isDark ? '#334155' : '#F1F5F9';
+      const cancelTextColor = isDark ? '#F8FAFC' : '#334155';
+      const cancelBorder = isDark ? '1px solid #475569' : '1px solid #E2E8F0';
 
       const escapeFn = global.escapeHtml || window.escapeHtml || ((str) => String(str || ''));
 

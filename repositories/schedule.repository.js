@@ -206,7 +206,7 @@ async function countTotalPCs(executor = db) {
 }
 
 async function countPendingReports(executor = db) {
-    return executor.query("SELECT COUNT(*) AS pendingReports FROM maintenance WHERE Status != 'Resolved'");
+    return executor.query("SELECT COUNT(*) AS pendingReports FROM maintenance_issues WHERE Status != 'Resolved'");
 }
 
 async function countClassesToday(today, ay, sem, executor = db) {

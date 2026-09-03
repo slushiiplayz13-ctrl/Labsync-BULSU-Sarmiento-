@@ -1190,6 +1190,7 @@ html.high-contrast .calendar-grid-body {
 
 /* ─── Schedule & Schedule Editor Responsive Styles (Max Width: 1024px) ── */
 @media (max-width: 1024px) {
+
   /* Schedule Editor Header & Stack Layout */
   .schedule-editor-header {
     flex-direction: column !important;
@@ -1677,5 +1678,86 @@ html.high-contrast .calendar-grid-body {
   }
 }
 
+/* ==========================================================================
+   Section Choice Selector (Year 1-4, Section A-E (+), Batch 1-2)
+   ========================================================================== */
 
+.section-choice-box {
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
 
+.sec-choice-btn {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light, #CBD5E1);
+  background: var(--bg-white, #FFFFFF);
+  color: var(--text-dark, #334155);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.sec-choice-btn:hover {
+  border-color: #1EBBD7;
+  color: #1EBBD7;
+  background: rgba(30, 187, 215, 0.08);
+}
+
+.sec-choice-btn.selected,
+.sec-choice-btn.active {
+  background: #1EBBD7 !important;
+  border-color: #1EBBD7 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(30, 187, 215, 0.35);
+}
+
+.sec-choice-btn.sec-add-btn {
+  border-style: dashed;
+  border-color: #94A3B8;
+  color: #64748B;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sec-choice-btn.sec-add-btn:hover {
+  border-color: #1EBBD7;
+  color: #1EBBD7;
+  border-style: solid;
+}
+
+body.dark-theme .section-choice-box,
+[data-theme="dark"] .section-choice-box {
+  background: #0F172A !important;
+  border-color: #334155 !important;
+}
+
+body.dark-theme .sec-choice-btn,
+[data-theme="dark"] .sec-choice-btn {
+  background: #1E293B;
+  border-color: #334155;
+  color: #E2E8F0;
+}
+
+body.dark-theme .sec-choice-btn:hover,
+[data-theme="dark"] .sec-choice-btn:hover {
+  border-color: #1EBBD7;
+  color: #1EBBD7;
+  background: rgba(30, 187, 215, 0.15);
+}
+
+body.dark-theme .sec-choice-btn.selected,
+body.dark-theme .sec-choice-btn.active,
+[data-theme="dark"] .sec-choice-btn.selected,
+[data-theme="dark"] .sec-choice-btn.active {
+  background: #1EBBD7 !important;
+  border-color: #1EBBD7 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(30, 187, 215, 0.45);
+}

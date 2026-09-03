@@ -50,8 +50,8 @@ async function submitReport(reqBody = {}) {
         if (typeof remarks !== 'string') {
             return { status: 400, error: 'Remarks must be a string.' };
         }
-        if (remarks.length > 500) {
-            return { status: 400, error: 'Remarks must not exceed 500 characters.' };
+        if (remarks.length > 200) {
+            return { status: 400, error: 'Issue details must not exceed 200 characters.' };
         }
     }
 
@@ -64,7 +64,7 @@ async function submitReport(reqBody = {}) {
     }
 
     const cleanStudentName = studentName.trim();
-    const cleanStudentSection = studentSection.trim();
+    const cleanStudentSection = studentSection.trim().toUpperCase();
     const cleanRemarks = typeof remarks === 'string' ? remarks.trim() : '';
 
     const [rooms] = await scheduleRepository.findRoomIdByNumber(roomNumber);

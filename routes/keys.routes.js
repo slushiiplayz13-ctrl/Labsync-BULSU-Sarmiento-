@@ -2,34 +2,30 @@
 
 /**
  * routes/keys.routes.js
- * Domain router for laboratory physical key management and public lost/found key reporting.
+ * Domain router for physical key management and authorized Key Transfer / Room Claim.
  */
 
 const express = require('express');
 const router = express.Router();
 const keysController = require('../controllers/keys.controller');
-const { requireAuth, requireRole, MIS_STAFF_ROLES } = require('../middleware/auth');
-const { publicReportLimiter } = require('../middleware/rateLimiter');
+const { requireAuth, requireRole, MIS_STAFF_ROLES, KEY_TRANSFER_ROLES } = require('../middleware/auth');
 
-// ─── 1. PUBLIC UNAUTHENTICATED ENDPOINTS ──────────────────────────────────────
-// GET /api/keys/public/info/:keyCode — Lookup minimal room location for QR scan
-router.get('/public/info/:keyCode', keysController.getPublicInfo);
+// ─── 1. KEY TRANSFER & ROOM CLAIM ENDPOINTS ──────────────────────────────────
+// GET /api/keys/transfer-info/:keyCode — Lookup key, room, and current holder for confirmation
+router.get('/transfer-info/:keyCode', requireAuth, keysController.getKeyTransferInfo);
 
-// POST /api/keys/public/report — Submit found key report from QR scan
-router.post('/public/report', publicReportLimiter, keysController.submitPublicReport);
+// POST /api/keys/transfer — Execute physical key handoff (Faculty and IT Dept Head only)
+router.post('/transfer', requireAuth, requireRole(KEY_TRANSFER_ROLES), keysController.transferKey);
 
 
-// ─── 2. MIS STAFF OPERATIONAL ENDPOINTS ───────────────────────────────────────
+// ─── 2. MIS STAFF KEY INVENTORY ENDPOINTS ─────────────────────────────────────
 // GET /api/keys — List all registered laboratory keys and summary statistics
 router.get('/', requireRole(MIS_STAFF_ROLES), keysController.getAllKeys);
 
 // POST /api/keys — Register a new key for a room
 router.post('/', requireRole(MIS_STAFF_ROLES), keysController.registerKey);
 
-// GET /api/keys/reports — View found key report histories
-router.get('/reports', requireRole(MIS_STAFF_ROLES), keysController.getFoundReports);
-
-// GET /api/keys/:keyId/tag — Generate QR code tag data and printable insert metadata
+// GET /api/keys/:keyId/tag — Generate QR code tag data and printable keychain insert
 router.get('/:keyId/tag', requireRole(MIS_STAFF_ROLES), keysController.getKeyTag);
 
 // PUT /api/keys/:keyId/missing — Mark key status as MISSING

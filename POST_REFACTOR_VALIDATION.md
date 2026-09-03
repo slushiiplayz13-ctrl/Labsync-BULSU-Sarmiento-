@@ -193,3 +193,19 @@ The application server was tested on `http://localhost:3000`. The following core
 The refactor has successfully decomposed the codebase into modular, decoupled, single-responsibility files while maintaining complete backward compatibility with all existing HTML pages, inline event handlers, and REST API contracts.
 
 **Validation Status:** **PASSED (100% Behavior & Runtime Preserved)**
+
+---
+
+## 10. Phase 2 Expansion Validation (September 2026)
+
+A follow-up validation pass was executed covering Phase 2 features and modules:
+
+| Subsystem / Feature | Syntax (`node -c`) | Runtime Verification | Security / Integrity Status | Verdict |
+|---|:---:|:---:|:---:|:---:|
+| **Key Inventory (`mis-keys.html`)** | Passed | Verified key status toggles & insert printing | MIS custodial role enforced | **PASS** |
+| **Key Transfer (`key-transfer.html`)** | Passed | Verified URL lookup, custody transition | Restricts MIS & non-faculty | **PASS** |
+| **Keychain Insert Studio** | Passed | Rendered 1.14" x 1.84" two-sided print sheet | High-contrast QR & cut marks | **PASS** |
+| **Issue Deduplication** | Passed | Tested concurrent reports on same component | Unique stored key `Active_Issue_Key` | **PASS** |
+| **Security Audit Logger** | Passed | Tested non-blocking log insertion | 16+ sensitive fields redacted | **PASS** |
+| **Rate Limiting Suite** | Passed | Tested 429 status on threshold breaches | RFC Draft-6/Draft-7 headers | **PASS** |
+| **Bcrypt Password Storage** | Passed | Tested 12 salt rounds hashing & compare | Plaintext storage eliminated | **PASS** |

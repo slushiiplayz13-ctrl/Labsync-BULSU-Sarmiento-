@@ -27,9 +27,63 @@ async function getCurrentUser(userId) {
             role: users[0].Role,
             profilePhoto: users[0].Profile_Photo,
             phone: users[0].Phone,
-            hasCompletedTutorial: users[0].Has_Completed_Tutorial === 1 || users[0].Has_Completed_Tutorial === true
+            hasCompletedTutorial: users[0].Has_Completed_Tutorial === 1 || users[0].Has_Completed_Tutorial === true,
+            updatedAt: users[0].Updated_At
         }
     };
+}
+
+async function changePassword(userId, currentPassword, newPassword) {
+    if (!userId) {
+        return { status: 401, error: 'Not authenticated' };
+    }
+
+    if (!currentPassword || !newPassword) {
+        return { status: 400, error: 'Current password and new password are required.' };
+    }
+
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
+        return { status: 400, error: 'New password must be at least 8 characters long.' };
+    }
+
+    const [users] = await userRepository.findFullById(userId);
+    if (users.length === 0) {
+        return { status: 404, error: 'User not found' };
+    }
+
+    const user = users[0];
+
+    if (!user.Password) {
+        return { status: 401, error: 'Current password is incorrect' };
+    }
+
+    let isCurrentValid = false;
+    if (isBcryptHash(user.Password)) {
+        isCurrentValid = await bcrypt.compare(currentPassword, user.Password);
+    } else {
+        isCurrentValid = (user.Password === currentPassword);
+    }
+
+    if (!isCurrentValid) {
+        return { status: 401, error: 'Current password is incorrect' };
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS || 12);
+    const auditService = require('./auditService');
+
+    await userRepository.updatePasswordOnly(userId, hashedNewPassword);
+
+    auditService.logSecurityEvent({
+        userId: user.User_ID,
+        actorEmail: user.Email,
+        actorRole: user.Role,
+        action: 'PASSWORD_CHANGE',
+        resourceType: 'USER',
+        resourceId: user.User_ID,
+        result: 'SUCCESS'
+    });
+
+    return { status: 200, message: 'Password updated successfully', updatedAt: new Date().toISOString() };
 }
 
 async function updateUserAccount(userId, reqBody, session) {
@@ -52,6 +106,14 @@ async function updateUserAccount(userId, reqBody, session) {
         validatedPhone = phoneTrim;
     }
 
+    let resolvedName = undefined;
+    if (name !== undefined && name !== null) {
+        if (typeof name !== 'string' || name.trim().length === 0) {
+            return { status: 400, error: 'Name cannot be empty.' };
+        }
+        resolvedName = name.trim();
+    }
+
     const [users] = await userRepository.findFullById(userId);
     if (users.length === 0) {
         return { status: 404, error: 'User not found' };
@@ -60,7 +122,7 @@ async function updateUserAccount(userId, reqBody, session) {
     const user = users[0];
 
     if (user.Role === 'MIS Staff') {
-        if ((email && email.trim().toLowerCase() !== user.Email.toLowerCase()) || (name && name.trim() !== user.Name)) {
+        if ((email && email.trim().toLowerCase() !== user.Email.toLowerCase()) || (resolvedName !== undefined && resolvedName !== user.Name)) {
             return { status: 403, error: 'Name and email modifications are restricted for shared MIS Staff accounts.' };
         }
     }
@@ -83,7 +145,7 @@ async function updateUserAccount(userId, reqBody, session) {
         await userRepository.updateEmailVerificationToken(userId, newEmailTrim, token, expiry);
 
         const verificationLink = `${process.env.APP_URL || 'http://localhost:3000'}/api/user/verify-email?token=${token}`;
-        await sendEmailVerificationEmail(newEmailTrim, name || user.Name, verificationLink);
+        await sendEmailVerificationEmail(newEmailTrim, resolvedName || user.Name, verificationLink);
         emailChangeRequested = true;
     }
 
@@ -105,15 +167,22 @@ async function updateUserAccount(userId, reqBody, session) {
             return { status: 401, error: 'Current password is incorrect' };
         }
 
+        if (typeof newPassword !== 'string' || newPassword.length < 8) {
+            return { status: 400, error: 'New password must be at least 8 characters long.' };
+        }
+
         const hashedNewPassword = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS || 12);
         const auditService = require('./auditService');
 
-        await userRepository.updateUserProfile(userId, {
-            name,
-            password: hashedNewPassword,
-            profilePhoto,
-            phone: validatedPhone !== undefined ? validatedPhone : user.Phone
-        });
+        await userRepository.updatePasswordOnly(userId, hashedNewPassword);
+
+        if (resolvedName !== undefined || profilePhoto !== undefined || validatedPhone !== undefined) {
+            await userRepository.updateUserProfile(userId, {
+                name: resolvedName,
+                profilePhoto,
+                phone: validatedPhone
+            });
+        }
 
         auditService.logSecurityEvent({
             userId: user.User_ID,
@@ -125,21 +194,24 @@ async function updateUserAccount(userId, reqBody, session) {
             result: 'SUCCESS'
         });
     } else {
-        await userRepository.updateUserProfile(userId, {
-            name,
-            profilePhoto,
-            phone: validatedPhone !== undefined ? validatedPhone : user.Phone
-        });
+        if (resolvedName !== undefined || profilePhoto !== undefined || validatedPhone !== undefined) {
+            await userRepository.updateUserProfile(userId, {
+                name: resolvedName,
+                profilePhoto,
+                phone: validatedPhone
+            });
+        }
     }
 
-    if (session) {
-        session.userName = name;
+    if (session && resolvedName !== undefined) {
+        session.userName = resolvedName;
     }
 
+    const nowIso = new Date().toISOString();
     if (emailChangeRequested) {
-        return { status: 200, message: 'Account settings updated. A verification link has been sent to your new email. Please verify it to complete the change.' };
+        return { status: 200, message: 'Account settings updated. A verification link has been sent to your new email. Please verify it to complete the change.', updatedAt: nowIso };
     } else {
-        return { status: 200, message: 'Account updated successfully' };
+        return { status: 200, message: 'Account updated successfully', updatedAt: nowIso };
     }
 }
 
@@ -315,6 +387,7 @@ async function updateTutorialStatus(userId, completed) {
 module.exports = {
     getCurrentUser,
     updateUserAccount,
+    changePassword,
     verifyEmailToken,
     getUserQRCode,
     scanQRCode,

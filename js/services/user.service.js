@@ -114,6 +114,9 @@
       if (payload.name) userObj.name = payload.name;
       if (payload.phone !== undefined) userObj.phone = payload.phone;
       if (payload.profilePhoto !== undefined) userObj.profilePhoto = payload.profilePhoto;
+      const updatedTimestamp = (data && data.updatedAt) ? data.updatedAt : new Date().toISOString();
+      userObj.updatedAt = updatedTimestamp;
+      localStorage.setItem('labsync_last_updated', updatedTimestamp);
       sessionStorage.setItem('labsync_user', JSON.stringify(cached));
       localStorage.setItem('user', JSON.stringify(cached));
       applyUserToUI(userObj);
@@ -123,13 +126,13 @@
   }
 
   /**
-   * Updates user password via canonical PUT /api/user/update.
+   * Updates user password via dedicated PUT /api/user/password.
    * @param {string} currentPassword
    * @param {string} newPassword
    * @returns {Promise<Object>}
    */
   async function updatePassword(currentPassword, newPassword) {
-    const response = await fetch('/api/user/update', {
+    const response = await fetch('/api/user/password', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -140,6 +143,20 @@
     if (!response.ok) {
       throw new Error(data.error || 'Failed to update password');
     }
+
+    const updatedTimestamp = (data && data.updatedAt) ? data.updatedAt : new Date().toISOString();
+    localStorage.setItem('labsync_last_updated', updatedTimestamp);
+    try {
+      const cachedStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
+      if (cachedStr) {
+        const cached = JSON.parse(cachedStr);
+        const userObj = cached.user || cached;
+        userObj.updatedAt = updatedTimestamp;
+        sessionStorage.setItem('labsync_user', JSON.stringify(cached));
+        localStorage.setItem('user', JSON.stringify(cached));
+      }
+    } catch (e) {}
+
     return data;
   }
 
