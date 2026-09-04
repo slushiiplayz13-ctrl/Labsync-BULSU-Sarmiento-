@@ -30,8 +30,8 @@
     if (tableBody) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="7" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
-            <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
+          <td colspan="7" class="empty-table-cell">
+            <i data-lucide="loader" class="spin" style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
             Loading laboratory keys...
           </td>
         </tr>
@@ -122,28 +122,19 @@
       }
       if (selectedCount > 0) {
         btnSelected.disabled = false;
-        btnSelected.style.cursor = 'pointer';
-        btnSelected.style.opacity = '1';
-        btnSelected.style.background = '#F0F9FF';
-        btnSelected.style.borderColor = '#0EA5C9';
-        btnSelected.style.color = '#0284C7';
-        btnSelected.style.boxShadow = '0 2px 6px rgba(14, 165, 201, 0.15)';
+        btnSelected.classList.add('has-selection');
+        btnSelected.removeAttribute('style');
       } else {
         btnSelected.disabled = true;
-        btnSelected.style.cursor = 'not-allowed';
-        btnSelected.style.opacity = '0.6';
-        btnSelected.style.background = 'var(--bg-white)';
-        btnSelected.style.borderColor = 'var(--border-light)';
-        btnSelected.style.color = 'var(--text-light)';
-        btnSelected.style.boxShadow = 'none';
+        btnSelected.classList.remove('has-selection');
+        btnSelected.removeAttribute('style');
       }
     }
 
     if (btnAll && btnAllText) {
       btnAllText.textContent = 'Print All';
       btnAll.disabled = filteredCount === 0;
-      btnAll.style.cursor = filteredCount === 0 ? 'not-allowed' : 'pointer';
-      btnAll.style.opacity = filteredCount === 0 ? '0.6' : '1';
+      btnAll.removeAttribute('style');
     }
   }
 
@@ -186,7 +177,7 @@
     if (currentFilteredKeys.length === 0) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="7" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
+          <td colspan="7" class="empty-table-cell">
             No laboratory keys matching the criteria.
           </td>
         </tr>
@@ -203,34 +194,71 @@
       const isPresent = (k.Room_Key_Status || 'Present') === 'Present';
 
       // Last activity format
-      let dateStr = 'No recent activity';
+      let hasRecentActivity = false;
+      let dateLine = 'No recent activity';
+      let timeStr = '';
+      let actionTag = '';
       if (k.Last_Activity_At || k.Last_Taken_At) {
         const dateObj = new Date(k.Last_Activity_At || k.Last_Taken_At);
         const m = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const t = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        dateStr = `${m}, ${t}`;
+        dateLine = m;
+        actionTag = isPresent ? 'Returned' : 'Taken';
+        timeStr = t;
+        hasRecentActivity = true;
       }
 
       // System status read-only badge
       const statusBadgeHtml = isPresent
-        ? '<span class="status-badge-pulse resolved" title="Key is docked in the IoT key box"><span class="pulse-dot"></span> In Key Box (Docked)</span>'
-        : '<span class="status-badge-pulse pending" title="Key is held by faculty"><span class="pulse-dot"></span> In Use (With Faculty)</span>';
+        ? '<span class="status-badge-pulse resolved" title="Key is docked in the IoT key box"><span class="pulse-dot"></span> In Key Box</span>'
+        : '<span class="status-badge-pulse pending" title="Key is held by faculty"><span class="pulse-dot"></span> In Use</span>';
 
-      // Current Holder / Activity display
-      let holderHtml = '';
-      if (k.Current_Holder_Name) {
-        const cleanName = k.Current_Holder_Name.startsWith('Prof.') ? k.Current_Holder_Name : `Prof. ${k.Current_Holder_Name}`;
-        holderHtml = `
-          <div style="display: flex; flex-direction: column; gap: 2px;">
-            <span style="font-weight: 700; color: var(--text-dark); font-size: 13.5px;">${cleanName}</span>
-            <span style="font-size: 11.5px; color: var(--text-muted);">${dateStr}</span>
+      // Status & Custody display
+      let custodyHtml = '';
+      if (isPresent) {
+        custodyHtml = `
+          <div class="custody-cell-wrap">
+            ${statusBadgeHtml}
           </div>
         `;
       } else {
-        holderHtml = `
-          <div style="display: flex; flex-direction: column; gap: 2px;">
-            <span style="color: var(--text-muted); font-size: 13px;">Key Box Dock (Available)</span>
-            <span style="font-size: 11.5px; color: var(--text-light);">${dateStr}</span>
+        const cleanName = k.Current_Holder_Name
+          ? (k.Current_Holder_Name.startsWith('Prof.') ? k.Current_Holder_Name : `Prof. ${k.Current_Holder_Name}`)
+          : 'Faculty Member';
+        custodyHtml = `
+          <div class="custody-cell-wrap">
+            ${statusBadgeHtml}
+            <div class="custody-holder-row">
+              <i data-lucide="user-check" class="custody-holder-icon"></i>
+              <span class="custody-holder-name">${cleanName}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // Last Activity display (prominent two-line date & time with status badge)
+      let activityHtml = '';
+      if (hasRecentActivity) {
+        const tagClass = isPresent ? 'action-tag-returned' : 'action-tag-taken';
+        activityHtml = `
+          <div class="activity-cell-wrap">
+            <span class="activity-date-line">${dateLine}</span>
+            <div class="activity-meta-line">
+              <span class="activity-time-text">
+                <i data-lucide="clock" class="activity-clock-icon"></i>
+                <span>${timeStr}</span>
+              </span>
+              <span class="activity-action-tag ${tagClass}">${actionTag}</span>
+            </div>
+          </div>
+        `;
+      } else {
+        activityHtml = `
+          <div class="activity-cell-wrap">
+            <span class="activity-empty-line">
+              <i data-lucide="minus" class="activity-clock-icon"></i>
+              <span>No recent activity</span>
+            </span>
           </div>
         `;
       }
@@ -249,23 +277,23 @@
           <td class="col-room" style="white-space: nowrap;">
             <div class="cell-icon-wrap">
               <i data-lucide="map-pin" class="cell-icon room"></i>
-              <span style="font-weight: 700; color: var(--text-dark);">${roomFormatted}</span>
+              <span class="cell-text-room">${roomFormatted}</span>
             </div>
           </td>
           <td class="col-building" style="white-space: nowrap;">
             <div class="cell-icon-wrap">
               <i data-lucide="building" class="cell-icon bldg"></i>
-              <span>${building}</span>
+              <span class="cell-text-bldg">${building}</span>
             </div>
           </td>
-          <td class="col-status text-center" style="white-space: nowrap; text-align: center;">
-            ${statusBadgeHtml}
+          <td class="col-custody" style="white-space: nowrap;">
+            ${custodyHtml}
           </td>
-          <td class="col-holder" style="white-space: nowrap;">
-            ${holderHtml}
+          <td class="col-activity" style="white-space: nowrap;">
+            ${activityHtml}
           </td>
           <td class="col-actions text-center" style="white-space: nowrap; text-align: center;">
-            <button type="button" class="btn-table-action key-action-btn btn-tag" data-action="print-tag" data-id="${keyId}" title="Preview & Print Key QR Tag" style="padding: 7px 14px; gap: 6px; font-weight: 700; border-radius: 8px;">
+            <button type="button" class="btn-table-action key-action-btn btn-tag" data-action="print-tag" data-id="${keyId}" title="Preview & Print Key QR Tag" style="padding: 7px 12px; gap: 6px; font-size: 13px; font-weight: 700; border-radius: 8px;">
               <i data-lucide="qr-code"></i> <span>Print QR Tag</span>
             </button>
           </td>
@@ -342,18 +370,8 @@
     const filterBtns = document.querySelectorAll('.key-filter-btn');
     filterBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        filterBtns.forEach(b => {
-          b.classList.remove('active');
-          b.style.background = 'transparent';
-          b.style.color = 'var(--text-light)';
-          b.style.boxShadow = 'none';
-        });
-
+        filterBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        btn.style.background = 'var(--bg-white)';
-        btn.style.color = 'var(--primary-teal)';
-        btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
-
         currentFilter = btn.dataset.filter || 'ALL';
         renderKeysTable();
       });

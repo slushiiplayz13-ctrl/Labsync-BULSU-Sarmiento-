@@ -424,6 +424,42 @@
       font-size: 12.5px;
       font-weight: 700;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border: 1px solid var(--border-light);
+      background: var(--bg-white);
+      color: var(--text-dark);
+    }
+
+    #btnBatchPrintAll {
+      border: 1px solid #BAE6FD;
+      background: #F0F9FF;
+      color: #0284C7;
+    }
+
+    #btnBatchPrintAll:hover:not(:disabled) {
+      background: #E0F2FE;
+      border-color: #7DD3FC;
+      color: #0369A1;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.15);
+    }
+
+    #btnBatchPrintSelected:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      background: var(--bg-white);
+      border-color: var(--border-light);
+      color: var(--text-muted);
+      box-shadow: none;
+    }
+
+    #btnBatchPrintSelected.has-selection {
+      opacity: 1;
+      cursor: pointer;
+      background: #F0F9FF;
+      border-color: #0EA5C9;
+      color: #0284C7;
+      box-shadow: 0 2px 8px rgba(14, 165, 201, 0.15);
     }
 
     .btn-batch-print .btn-count-pill {
@@ -848,22 +884,45 @@
       color: #94A3B8 !important;
     }
 
-    html.dark-mode #btnBatchPrintSelected,
-    body.dark-mode #btnBatchPrintSelected,
-    [data-theme="dark"] #btnBatchPrintSelected,
-    html.high-contrast #btnBatchPrintSelected {
-      background: #1E293B !important;
-      border-color: #334155 !important;
-      color: #E2E8F0 !important;
+    html.dark-mode #btnBatchPrintSelected:disabled,
+    body.dark-mode #btnBatchPrintSelected:disabled,
+    [data-theme="dark"] #btnBatchPrintSelected:disabled,
+    html.high-contrast #btnBatchPrintSelected:disabled {
+      background: #1B2433 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      color: #64748B !important;
+      opacity: 0.55 !important;
+      box-shadow: none !important;
+    }
+
+    html.dark-mode #btnBatchPrintSelected.has-selection,
+    body.dark-mode #btnBatchPrintSelected.has-selection,
+    [data-theme="dark"] #btnBatchPrintSelected.has-selection,
+    html.high-contrast #btnBatchPrintSelected.has-selection {
+      background: rgba(14, 165, 233, 0.22) !important;
+      border-color: #38BDF8 !important;
+      color: #38BDF8 !important;
+      opacity: 1 !important;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25) !important;
     }
 
     html.dark-mode #btnBatchPrintAll,
     body.dark-mode #btnBatchPrintAll,
     [data-theme="dark"] #btnBatchPrintAll,
     html.high-contrast #btnBatchPrintAll {
-      background: rgba(14, 165, 233, 0.15) !important;
-      border-color: rgba(56, 189, 248, 0.3) !important;
+      background: rgba(14, 165, 233, 0.16) !important;
+      border-color: rgba(56, 189, 248, 0.35) !important;
       color: #38BDF8 !important;
+    }
+
+    html.dark-mode #btnBatchPrintAll:hover:not(:disabled),
+    body.dark-mode #btnBatchPrintAll:hover:not(:disabled),
+    [data-theme="dark"] #btnBatchPrintAll:hover:not(:disabled),
+    html.high-contrast #btnBatchPrintAll:hover:not(:disabled) {
+      background: rgba(14, 165, 233, 0.28) !important;
+      border-color: #38BDF8 !important;
+      color: #7DD3FC !important;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.25) !important;
     }
 
     html.dark-mode .key-row-checkbox,
@@ -944,19 +1003,21 @@
     .key-code-chip {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
       font-family: 'JetBrains Mono', 'Fira Code', 'Roboto Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
-      font-size: 13.5px;
+      font-size: 12.5px;
       font-weight: 700;
       color: #0284C7;
       background: #F0F9FF;
       border: 1.5px solid #BAE6FD;
-      padding: 6px 14px;
+      padding: 4px 10px;
       border-radius: 9999px;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.3px;
       transition: all 0.15s ease;
       white-space: nowrap;
       user-select: all;
+      box-sizing: border-box;
+      flex-shrink: 0;
     }
 
     .key-code-chip:hover {
@@ -966,8 +1027,8 @@
     }
 
     .key-code-chip .key-chip-icon {
-      width: 15px;
-      height: 15px;
+      width: 14px;
+      height: 14px;
       opacity: 0.85;
       stroke-width: 2.2px;
       flex-shrink: 0;
@@ -1120,6 +1181,26 @@
       overflow-x: auto;
       overflow-y: auto;
       width: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .keys-table-card::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .keys-table-card::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.02);
+      border-radius: 8px;
+    }
+
+    .keys-table-card::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 8px;
+    }
+
+    .keys-table-card::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
     }
 
     html.dark-mode .keys-table-card,
@@ -1131,19 +1212,16 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
     }
 
-    /* Stat Cards Responsive Layout - 3 Equal Balanced Columns */
-    .stats-grid.mis-stats {
-      display: grid !important;
-      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-      gap: 16px !important;
-      margin-bottom: 24px !important;
+    html.dark-mode .keys-table-card::-webkit-scrollbar-track,
+    body.dark-mode .keys-table-card::-webkit-scrollbar-track,
+    [data-theme="dark"] .keys-table-card::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.03);
     }
 
-    @media (max-width: 860px) {
-      .stats-grid.mis-stats {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-      }
+    html.dark-mode .keys-table-card::-webkit-scrollbar-thumb,
+    body.dark-mode .keys-table-card::-webkit-scrollbar-thumb,
+    [data-theme="dark"] .keys-table-card::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.16);
     }
 
     /* Toolbar Responsive Styles */
@@ -1155,15 +1233,250 @@
       gap: 14px;
       margin-bottom: 20px;
     }
-
+    /* Filter Tabs Segmented Toolbar Control */
     .keys-filter-group {
-      display: flex;
-      gap: 6px;
-      background: var(--bg-body);
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #F1F5F9;
       padding: 4px;
-      border-radius: 10px;
-      border: 1px solid var(--border-light);
+      border-radius: 11px;
+      border: 1px solid #E2E8F0;
       flex-wrap: wrap;
+      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+      transition: all 0.2s ease;
+    }
+
+    /* Dark Mode & High Contrast Container */
+    html.dark-mode .keys-filter-group,
+    body.dark-mode .keys-filter-group,
+    html.high-contrast .keys-filter-group,
+    body.high-contrast .keys-filter-group,
+    html.dark-theme .keys-filter-group,
+    body.dark-theme .keys-filter-group,
+    [data-theme="dark"] .keys-filter-group {
+      background: #0E1626 !important;
+      border-color: rgba(255, 255, 255, 0.09) !important;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .key-filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 13px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #64748B;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      line-height: 1.2;
+      user-select: none;
+    }
+
+    .key-filter-btn .filter-tab-icon {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2.2px;
+      opacity: 0.8;
+      flex-shrink: 0;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .key-filter-btn:hover:not(.active) {
+      color: #1E293B;
+      background: rgba(255, 255, 255, 0.65);
+    }
+
+    .key-filter-btn:hover:not(.active) .filter-tab-icon {
+      opacity: 1;
+    }
+
+    .key-filter-btn.active {
+      background: #FFFFFF;
+      color: #0284C7;
+      font-weight: 700;
+      border-color: rgba(0, 0, 0, 0.04);
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .key-filter-btn.active .filter-tab-icon {
+      opacity: 1;
+      color: #0284C7;
+    }
+
+    /* Dark Mode Inactive & Hover Tabs */
+    html.dark-mode .key-filter-btn,
+    body.dark-mode .key-filter-btn,
+    html.high-contrast .key-filter-btn,
+    body.high-contrast .key-filter-btn,
+    html.dark-theme .key-filter-btn,
+    body.dark-theme .key-filter-btn,
+    [data-theme="dark"] .key-filter-btn {
+      color: #CBD5E1 !important;
+      background: transparent !important;
+      border-color: transparent !important;
+    }
+
+    html.dark-mode .key-filter-btn:hover:not(.active),
+    body.dark-mode .key-filter-btn:hover:not(.active),
+    html.high-contrast .key-filter-btn:hover:not(.active),
+    body.high-contrast .key-filter-btn:hover:not(.active),
+    html.dark-theme .key-filter-btn:hover:not(.active),
+    body.dark-theme .key-filter-btn:hover:not(.active),
+    [data-theme="dark"] .key-filter-btn:hover:not(.active) {
+      color: #FFFFFF !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    /* Dark Mode Active Tab */
+    html.dark-mode .key-filter-btn.active,
+    body.dark-mode .key-filter-btn.active,
+    html.high-contrast .key-filter-btn.active,
+    body.high-contrast .key-filter-btn.active,
+    html.dark-theme .key-filter-btn.active,
+    body.dark-theme .key-filter-btn.active,
+    [data-theme="dark"] .key-filter-btn.active {
+      background: #1B2538 !important;
+      color: #38BDF8 !important;
+      font-weight: 700 !important;
+      border-color: rgba(56, 189, 248, 0.35) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    }
+
+    html.dark-mode .key-filter-btn.active .filter-tab-icon,
+    body.dark-mode .key-filter-btn.active .filter-tab-icon,
+    html.high-contrast .key-filter-btn.active .filter-tab-icon,
+    body.high-contrast .key-filter-btn.active .filter-tab-icon,
+    html.dark-theme .key-filter-btn.active .filter-tab-icon,
+    body.dark-theme .key-filter-btn.active .filter-tab-icon,
+    [data-theme="dark"] .key-filter-btn.active .filter-tab-icon {
+      color: #38BDF8 !important;
+      opacity: 1;
+    }
+
+    /* Tab Counter Pills */
+    .tab-count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5px 7.5px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      min-width: 20px;
+      line-height: 1.25;
+      transition: all 0.18s ease;
+      box-sizing: border-box;
+      border: 1px solid transparent;
+      letter-spacing: 0.2px;
+    }
+
+    /* Light Mode Status Pills */
+    .tab-count-pill.pill-all {
+      background: #E2E8F0;
+      color: #475569;
+    }
+    .key-filter-btn.active .tab-count-pill.pill-all {
+      background: #E0F2FE;
+      color: #0284C7;
+      border-color: #BAE6FD;
+    }
+
+    .tab-count-pill.pill-docked {
+      background: #DCFCE7;
+      color: #15803D;
+    }
+    .key-filter-btn.active .tab-count-pill.pill-docked {
+      background: #BBF7D0;
+      color: #166534;
+      border-color: #86EFAC;
+    }
+
+    .tab-count-pill.pill-inuse {
+      background: #FEF3C7;
+      color: #B45309;
+    }
+    .key-filter-btn.active .tab-count-pill.pill-inuse {
+      background: #FDE68A;
+      color: #92400E;
+      border-color: #FCD34D;
+    }
+
+    /* Dark Mode & High Contrast Status Pills */
+    html.dark-mode .tab-count-pill.pill-all,
+    body.dark-mode .tab-count-pill.pill-all,
+    html.high-contrast .tab-count-pill.pill-all,
+    body.high-contrast .tab-count-pill.pill-all,
+    html.dark-theme .tab-count-pill.pill-all,
+    body.dark-theme .tab-count-pill.pill-all,
+    [data-theme="dark"] .tab-count-pill.pill-all {
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: #E2E8F0 !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }
+
+    html.dark-mode .key-filter-btn.active .tab-count-pill.pill-all,
+    body.dark-mode .key-filter-btn.active .tab-count-pill.pill-all,
+    html.high-contrast .key-filter-btn.active .tab-count-pill.pill-all,
+    body.high-contrast .key-filter-btn.active .tab-count-pill.pill-all,
+    html.dark-theme .key-filter-btn.active .tab-count-pill.pill-all,
+    body.dark-theme .key-filter-btn.active .tab-count-pill.pill-all,
+    [data-theme="dark"] .key-filter-btn.active .tab-count-pill.pill-all {
+      background: rgba(56, 189, 248, 0.25) !important;
+      color: #38BDF8 !important;
+      border: 1px solid rgba(56, 189, 248, 0.45) !important;
+    }
+
+    html.dark-mode .tab-count-pill.pill-docked,
+    body.dark-mode .tab-count-pill.pill-docked,
+    html.high-contrast .tab-count-pill.pill-docked,
+    body.high-contrast .tab-count-pill.pill-docked,
+    html.dark-theme .tab-count-pill.pill-docked,
+    body.dark-theme .tab-count-pill.pill-docked,
+    [data-theme="dark"] .tab-count-pill.pill-docked {
+      background: rgba(34, 197, 94, 0.18) !important;
+      color: #4ADE80 !important;
+      border: 1px solid rgba(34, 197, 94, 0.35) !important;
+    }
+
+    html.dark-mode .key-filter-btn.active .tab-count-pill.pill-docked,
+    body.dark-mode .key-filter-btn.active .tab-count-pill.pill-docked,
+    html.high-contrast .key-filter-btn.active .tab-count-pill.pill-docked,
+    body.high-contrast .key-filter-btn.active .tab-count-pill.pill-docked,
+    html.dark-theme .key-filter-btn.active .tab-count-pill.pill-docked,
+    body.dark-theme .key-filter-btn.active .tab-count-pill.pill-docked,
+    [data-theme="dark"] .key-filter-btn.active .tab-count-pill.pill-docked {
+      background: rgba(34, 197, 94, 0.28) !important;
+      color: #4ADE80 !important;
+      border: 1px solid rgba(34, 197, 94, 0.5) !important;
+    }
+
+    html.dark-mode .tab-count-pill.pill-inuse,
+    body.dark-mode .tab-count-pill.pill-inuse,
+    html.high-contrast .tab-count-pill.pill-inuse,
+    body.high-contrast .tab-count-pill.pill-inuse,
+    html.dark-theme .tab-count-pill.pill-inuse,
+    body.dark-theme .tab-count-pill.pill-inuse,
+    [data-theme="dark"] .tab-count-pill.pill-inuse {
+      background: rgba(245, 158, 11, 0.18) !important;
+      color: #FBBF24 !important;
+      border: 1px solid rgba(245, 158, 11, 0.35) !important;
+    }
+
+    html.dark-mode .key-filter-btn.active .tab-count-pill.pill-inuse,
+    body.dark-mode .key-filter-btn.active .tab-count-pill.pill-inuse,
+    html.high-contrast .key-filter-btn.active .tab-count-pill.pill-inuse,
+    body.high-contrast .key-filter-btn.active .tab-count-pill.pill-inuse,
+    html.dark-theme .key-filter-btn.active .tab-count-pill.pill-inuse,
+    body.dark-theme .key-filter-btn.active .tab-count-pill.pill-inuse,
+    [data-theme="dark"] .key-filter-btn.active .tab-count-pill.pill-inuse {
+      background: rgba(245, 158, 11, 0.28) !important;
+      color: #FBBF24 !important;
+      border: 1px solid rgba(245, 158, 11, 0.5) !important;
     }
 
     .keys-toolbar-right {
@@ -1231,75 +1544,69 @@
       }
     }
 
-    /* Keys Table Balanced Proportions & Equal Gap Spacing */
+    /* Keys Table Balanced Proportions & Responsive Layout */
     .keys-table {
       width: 100% !important;
-      min-width: 920px !important;
+      min-width: 1060px !important;
       border-collapse: collapse !important;
       text-align: left;
-      table-layout: fixed !important;
+      table-layout: auto !important;
     }
 
     .keys-table th.col-checkbox,
     .keys-table td.col-checkbox {
-      width: 48px !important;
-      min-width: 48px !important;
-      max-width: 48px !important;
+      width: 46px !important;
+      min-width: 46px !important;
+      max-width: 46px !important;
       text-align: center !important;
-      padding: 14px 6px !important;
+      padding: 13px 6px !important;
     }
 
     .keys-table th.col-ticket,
     .keys-table td.col-ticket {
-      width: 17% !important;
-      min-width: 140px !important;
+      min-width: 175px !important;
       text-align: left !important;
-      padding: 14px 16px !important;
+      padding: 13px 14px !important;
       white-space: nowrap !important;
     }
 
     .keys-table th.col-room,
     .keys-table td.col-room {
-      width: 13% !important;
-      min-width: 110px !important;
+      min-width: 125px !important;
       text-align: left !important;
-      padding: 14px 16px !important;
+      padding: 13px 14px !important;
       white-space: nowrap !important;
     }
 
     .keys-table th.col-building,
     .keys-table td.col-building {
-      width: 13% !important;
-      min-width: 110px !important;
+      min-width: 115px !important;
       text-align: left !important;
-      padding: 14px 16px !important;
+      padding: 13px 14px !important;
       white-space: nowrap !important;
     }
 
-    .keys-table th.col-status,
-    .keys-table td.col-status {
-      width: 20% !important;
-      min-width: 180px !important;
-      text-align: center !important;
-      padding: 14px 48px 14px 0px !important;
+    .keys-table th.col-custody,
+    .keys-table td.col-custody {
+      min-width: 215px !important;
+      text-align: left !important;
+      padding: 13px 14px !important;
       white-space: nowrap !important;
     }
 
-    .keys-table th.col-holder,
-    .keys-table td.col-holder {
-      width: 21% !important;
+    .keys-table th.col-activity,
+    .keys-table td.col-activity {
       min-width: 185px !important;
       text-align: left !important;
-      padding: 14px 16px 14px 54px !important;
+      padding: 13px 14px !important;
       white-space: nowrap !important;
     }
 
     .keys-table th.col-actions,
     .keys-table td.col-actions {
-      width: 16% !important;
-      min-width: 150px !important;
+      min-width: 165px !important;
       text-align: center !important;
-      padding: 14px 12px !important;
+      padding: 13px 14px !important;
       white-space: nowrap !important;
     }
 
@@ -1320,28 +1627,44 @@
 
     html.dark-mode .keys-table th,
     body.dark-mode .keys-table th,
-    [data-theme="dark"] .keys-table th,
-    html.high-contrast .keys-table th {
-      background: #161F30 !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-      color: #94A3B8 !important;
+    html.high-contrast .keys-table th,
+    body.high-contrast .keys-table th,
+    html.dark-theme .keys-table th,
+    body.dark-theme .keys-table th,
+    [data-theme="dark"] .keys-table th {
+      background: #131C2E !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #CBD5E1 !important;
       box-shadow: none !important;
     }
 
     .keys-table td {
-      padding: 18px 18px;
+      padding: 16px 14px;
       vertical-align: middle;
-      font-size: 15px;
-      color: var(--text-dark);
+      font-size: 14.5px;
+      color: var(--text-dark, #0F172A);
       border-bottom: 1px solid #F1F5F9;
     }
 
     html.dark-mode .keys-table td,
     body.dark-mode .keys-table td,
-    [data-theme="dark"] .keys-table td,
-    html.high-contrast .keys-table td {
-      color: #E2E8F0 !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    html.high-contrast .keys-table td,
+    body.high-contrast .keys-table td,
+    html.dark-theme .keys-table td,
+    body.dark-theme .keys-table td,
+    [data-theme="dark"] .keys-table td {
+      color: #F1F5F9 !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+    }
+
+    html.dark-mode .keys-table tr.key-data-row:hover td,
+    body.dark-mode .keys-table tr.key-data-row:hover td,
+    html.high-contrast .keys-table tr.key-data-row:hover td,
+    body.high-contrast .keys-table tr.key-data-row:hover td,
+    html.dark-theme .keys-table tr.key-data-row:hover td,
+    body.dark-theme .keys-table tr.key-data-row:hover td,
+    [data-theme="dark"] .keys-table tr.key-data-row:hover td {
+      background: rgba(255, 255, 255, 0.035) !important;
     }
 
     .keys-table tbody tr:last-child td {
@@ -1351,18 +1674,248 @@
     .keys-table .cell-icon-wrap {
       display: inline-flex;
       align-items: center;
-      gap: 9px;
-      font-size: 15px;
+      gap: 8px;
+      font-size: 14px;
       font-weight: 700;
-      color: var(--text-dark);
+      color: var(--text-dark, #0F172A);
       white-space: nowrap;
     }
 
     html.dark-mode .keys-table .cell-icon-wrap,
     body.dark-mode .keys-table .cell-icon-wrap,
-    [data-theme="dark"] .keys-table .cell-icon-wrap,
-    html.high-contrast .keys-table .cell-icon-wrap {
-      color: #F1F5F9 !important;
+    html.high-contrast .keys-table .cell-icon-wrap,
+    body.high-contrast .keys-table .cell-icon-wrap,
+    html.dark-theme .keys-table .cell-icon-wrap,
+    body.dark-theme .keys-table .cell-icon-wrap,
+    [data-theme="dark"] .keys-table .cell-icon-wrap {
+      color: #F8FAFC !important;
+    }
+
+    /* Activity Column Typography & Badges */
+    .activity-cell-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .activity-date-line {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #0F172A;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .activity-meta-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+    }
+
+    .activity-time-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #64748B;
+      font-weight: 500;
+    }
+
+    .activity-clock-icon {
+      width: 12px;
+      height: 12px;
+      opacity: 0.75;
+      stroke-width: 2.2px;
+      flex-shrink: 0;
+    }
+
+    .activity-action-tag {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 1.5px 7px;
+      border-radius: 9999px;
+      line-height: 1.25;
+      letter-spacing: 0.2px;
+      border: 1px solid transparent;
+    }
+
+    .activity-action-tag.action-tag-returned {
+      background: #DCFCE7;
+      color: #15803D;
+      border-color: #BBF7D0;
+    }
+
+    .activity-action-tag.action-tag-taken {
+      background: #FEF3C7;
+      color: #B45309;
+      border-color: #FDE68A;
+    }
+
+    .activity-empty-line {
+      font-size: 12.5px;
+      color: #94A3B8;
+      font-style: italic;
+    }
+
+    /* Custody Column Elements */
+    .custody-cell-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-start;
+    }
+
+    .custody-holder-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0F172A;
+    }
+
+    .custody-holder-icon {
+      width: 14px;
+      height: 14px;
+      color: #64748B;
+      stroke-width: 2.2px;
+      flex-shrink: 0;
+    }
+
+    .cell-text-room {
+      font-weight: 700;
+      color: #0F172A;
+    }
+
+    .cell-text-bldg {
+      color: #475569;
+      font-weight: 500;
+    }
+
+    /* Dark Mode & High Contrast Table Overrides */
+    html.dark-mode .activity-date-line,
+    body.dark-mode .activity-date-line,
+    html.high-contrast .activity-date-line,
+    body.high-contrast .activity-date-line,
+    html.dark-theme .activity-date-line,
+    body.dark-theme .activity-date-line,
+    [data-theme="dark"] .activity-date-line {
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .activity-time-text,
+    body.dark-mode .activity-time-text,
+    html.high-contrast .activity-time-text,
+    body.high-contrast .activity-time-text,
+    html.dark-theme .activity-time-text,
+    body.dark-theme .activity-time-text,
+    [data-theme="dark"] .activity-time-text {
+      color: #CBD5E1 !important;
+    }
+
+    html.dark-mode .activity-clock-icon,
+    body.dark-mode .activity-clock-icon,
+    html.high-contrast .activity-clock-icon,
+    body.high-contrast .activity-clock-icon,
+    html.dark-theme .activity-clock-icon,
+    body.dark-theme .activity-clock-icon,
+    [data-theme="dark"] .activity-clock-icon {
+      color: #94A3B8 !important;
+      opacity: 0.9 !important;
+    }
+
+    html.dark-mode .activity-action-tag.action-tag-returned,
+    body.dark-mode .activity-action-tag.action-tag-returned,
+    html.high-contrast .activity-action-tag.action-tag-returned,
+    body.high-contrast .activity-action-tag.action-tag-returned,
+    html.dark-theme .activity-action-tag.action-tag-returned,
+    body.dark-theme .activity-action-tag.action-tag-returned,
+    [data-theme="dark"] .activity-action-tag.action-tag-returned {
+      background: rgba(34, 197, 94, 0.18) !important;
+      color: #4ADE80 !important;
+      border-color: rgba(34, 197, 94, 0.4) !important;
+    }
+
+    html.dark-mode .activity-action-tag.action-tag-taken,
+    body.dark-mode .activity-action-tag.action-tag-taken,
+    html.high-contrast .activity-action-tag.action-tag-taken,
+    body.high-contrast .activity-action-tag.action-tag-taken,
+    html.dark-theme .activity-action-tag.action-tag-taken,
+    body.dark-theme .activity-action-tag.action-tag-taken,
+    [data-theme="dark"] .activity-action-tag.action-tag-taken {
+      background: rgba(245, 158, 11, 0.18) !important;
+      color: #FBBF24 !important;
+      border-color: rgba(245, 158, 11, 0.4) !important;
+    }
+
+    html.dark-mode .activity-empty-line,
+    body.dark-mode .activity-empty-line,
+    html.high-contrast .activity-empty-line,
+    body.high-contrast .activity-empty-line,
+    html.dark-theme .activity-empty-line,
+    body.dark-theme .activity-empty-line,
+    [data-theme="dark"] .activity-empty-line {
+      color: #94A3B8 !important;
+    }
+
+    html.dark-mode .custody-holder-row,
+    body.dark-mode .custody-holder-row,
+    html.high-contrast .custody-holder-row,
+    body.high-contrast .custody-holder-row,
+    html.dark-theme .custody-holder-row,
+    body.dark-theme .custody-holder-row,
+    [data-theme="dark"] .custody-holder-row {
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .custody-holder-icon,
+    body.dark-mode .custody-holder-icon,
+    html.high-contrast .custody-holder-icon,
+    body.high-contrast .custody-holder-icon,
+    html.dark-theme .custody-holder-icon,
+    body.dark-theme .custody-holder-icon,
+    [data-theme="dark"] .custody-holder-icon {
+      color: #94A3B8 !important;
+    }
+
+    html.dark-mode .cell-text-room,
+    body.dark-mode .cell-text-room,
+    html.high-contrast .cell-text-room,
+    body.high-contrast .cell-text-room,
+    html.dark-theme .cell-text-room,
+    body.dark-theme .cell-text-room,
+    [data-theme="dark"] .cell-text-room {
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .cell-text-bldg,
+    body.dark-mode .cell-text-bldg,
+    html.high-contrast .cell-text-bldg,
+    body.high-contrast .cell-text-bldg,
+    html.dark-theme .cell-text-bldg,
+    body.dark-theme .cell-text-bldg,
+    [data-theme="dark"] .cell-text-bldg {
+      color: #CBD5E1 !important;
+    }
+
+    html.dark-mode .empty-table-cell,
+    body.dark-mode .empty-table-cell,
+    html.high-contrast .empty-table-cell,
+    body.high-contrast .empty-table-cell,
+    html.dark-theme .empty-table-cell,
+    body.dark-theme .empty-table-cell,
+    [data-theme="dark"] .empty-table-cell {
+      color: #CBD5E1 !important;
+    }
+
+    html.dark-mode .custody-holder-name,
+    body.dark-mode .custody-holder-name,
+    html.high-contrast .custody-holder-name,
+    body.high-contrast .custody-holder-name,
+    html.dark-theme .custody-holder-name,
+    body.dark-theme .custody-holder-name,
+    [data-theme="dark"] .custody-holder-name {
+      color: #F8FAFC !important;
     }
 
     .keys-table .cell-icon {
@@ -1633,61 +2186,25 @@
       <!-- Main Dashboard Content -->
       <div class="dashboard-card" style="padding: 24px;">
 
-        <!-- Stats Counters Row -->
-        <div class="stats-grid mis-stats">
-          <!-- Stat 1: Total Keys -->
-          <div class="stat-card theme-blue">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value" id="statTotalKeys">0</div>
-                <div class="stat-title">Total Registered Keys</div>
-              </div>
-              <div class="stat-icon"><i data-lucide="key-round"></i></div>
-            </div>
-            <div class="stat-watermark"><i data-lucide="key-round"></i></div>
-          </div>
-
-          <!-- Stat 2: In Dock -->
-          <div class="stat-card theme-green">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value" id="statInDockKeys">0</div>
-                <div class="stat-title">In Key Box (Docked)</div>
-              </div>
-              <div class="stat-icon"><i data-lucide="inbox"></i></div>
-            </div>
-            <div class="stat-watermark"><i data-lucide="inbox"></i></div>
-          </div>
-
-          <!-- Stat 3: In Use -->
-          <div class="stat-card theme-purple">
-            <div class="stat-header">
-              <div class="stat-info">
-                <div class="stat-value" id="statInUseKeys">0</div>
-                <div class="stat-title">In Use (With Faculty)</div>
-              </div>
-              <div class="stat-icon"><i data-lucide="user-check"></i></div>
-            </div>
-            <div class="stat-watermark"><i data-lucide="user-check"></i></div>
-          </div>
-        </div>
-
         <!-- Inventory Header Controls -->
         <div class="keys-toolbar-row">
 
-          <!-- Filter Tabs -->
+          <!-- Filter Tabs with Integrated Stat Counts -->
           <div class="keys-filter-group">
-            <button type="button" class="key-filter-btn active" data-filter="ALL"
-              style="padding: 8px 14px; border: none; background: var(--bg-white); color: var(--primary-teal); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-              All Keys
+            <button type="button" class="key-filter-btn active" data-filter="ALL" aria-label="Filter all keys">
+              <i data-lucide="layers" class="filter-tab-icon"></i>
+              <span>All Keys</span>
+              <span class="tab-count-pill pill-all" id="statTotalKeys">0</span>
             </button>
-            <button type="button" class="key-filter-btn" data-filter="PRESENT"
-              style="padding: 8px 14px; border: none; background: transparent; color: var(--text-light); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-              In Key Box
+            <button type="button" class="key-filter-btn" data-filter="PRESENT" aria-label="Filter keys in key box">
+              <i data-lucide="inbox" class="filter-tab-icon"></i>
+              <span>In Key Box</span>
+              <span class="tab-count-pill pill-docked" id="statInDockKeys">0</span>
             </button>
-            <button type="button" class="key-filter-btn" data-filter="ABSENT"
-              style="padding: 8px 14px; border: none; background: transparent; color: var(--text-light); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-              In Use
+            <button type="button" class="key-filter-btn" data-filter="ABSENT" aria-label="Filter keys with faculty">
+              <i data-lucide="user-check" class="filter-tab-icon"></i>
+              <span>With Faculty</span>
+              <span class="tab-count-pill pill-inuse" id="statInUseKeys">0</span>
             </button>
           </div>
 
@@ -1695,14 +2212,12 @@
           <div class="keys-toolbar-right">
             <!-- Batch Print Buttons -->
             <button type="button" id="btnBatchPrintSelected" class="btn-batch-print" disabled
-              style="border: 1px solid var(--border-light); background: var(--bg-white); color: var(--text-light); cursor: not-allowed; opacity: 0.6;"
               title="Select one or more keys from the table to print tags">
               <i data-lucide="check-square" style="width: 15px; height: 15px;"></i>
               <span id="btnBatchPrintSelectedText">Print Selected</span>
               <span id="btnBatchPrintSelectedBadge" class="btn-count-pill" style="display: none;">0</span>
             </button>
             <button type="button" id="btnBatchPrintAll" class="btn-batch-print"
-              style="border: 1px solid #BAE6FD; background: #F0F9FF; color: #0284C7; cursor: pointer;"
               title="Print key tags for all matching keys">
               <i data-lucide="printer" style="width: 15px; height: 15px;"></i>
               <span id="btnBatchPrintAllText">Print All</span>
@@ -1729,8 +2244,8 @@
                 <th class="table-header-cell col-ticket">KEY CODE</th>
                 <th class="table-header-cell col-room">LAB ROOM</th>
                 <th class="table-header-cell col-building">BUILDING</th>
-                <th class="table-header-cell col-status text-center">SYSTEM STATUS</th>
-                <th class="table-header-cell col-holder">CURRENT HOLDER</th>
+                <th class="table-header-cell col-custody">STATUS & CUSTODY</th>
+                <th class="table-header-cell col-activity">LAST ACTIVITY</th>
                 <th class="table-header-cell col-actions text-center">ACTION</th>
               </tr>
             </thead>

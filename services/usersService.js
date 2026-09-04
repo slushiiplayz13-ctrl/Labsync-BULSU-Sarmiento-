@@ -53,6 +53,10 @@ async function changePassword(userId, currentPassword, newPassword) {
 
     const user = users[0];
 
+    if (user.Role === 'MIS Staff') {
+        return { status: 403, error: 'Password changes for the shared MIS Department account are restricted. Please contact the IT Department Head.' };
+    }
+
     if (!user.Password) {
         return { status: 401, error: 'Current password is incorrect' };
     }
@@ -122,9 +126,7 @@ async function updateUserAccount(userId, reqBody, session) {
     const user = users[0];
 
     if (user.Role === 'MIS Staff') {
-        if ((email && email.trim().toLowerCase() !== user.Email.toLowerCase()) || (resolvedName !== undefined && resolvedName !== user.Name)) {
-            return { status: 403, error: 'Name and email modifications are restricted for shared MIS Staff accounts.' };
-        }
+        return { status: 403, error: 'Profile modifications for the shared MIS Department account are restricted. Please contact the IT Department Head.' };
     }
 
     let emailChangeRequested = false;
