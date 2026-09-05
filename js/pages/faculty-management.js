@@ -26,7 +26,7 @@
   /**
    * Loads faculty roster from server and renders cards.
    */
-  async function loadFacultyMembers() {
+  async function loadFacultyMembers(force = false) {
     const grid = document.getElementById('faculty-grid');
     if (!grid) return;
 
@@ -57,7 +57,7 @@
 
       // Delegate rendering to facultyCard component
       if (global.facultyCard && typeof global.facultyCard.renderFacultyCards === 'function') {
-        global.facultyCard.renderFacultyCards(faculty, grid);
+        global.facultyCard.renderFacultyCards(faculty, grid, force);
       }
 
       applySearchAndFilter();

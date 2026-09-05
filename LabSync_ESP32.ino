@@ -21,7 +21,7 @@ const char* defaultScanRoom = "203";
 // Unique 256-bit bearer token provisioned for this physical ESP32 device.
 // Limitation Note: The credential is provisioned directly to firmware and is protected from web
 // exposure, but physical flash extraction on an unencrypted microcontroller remains a physical limitation.
-const char* deviceToken = "PROVISIONED_DEVICE_TOKEN_PLACEHOLDER"; 
+const char* deviceToken = "labsync-esp32-keybox-token-2026"; 
 
 // Key Slots Configuration
 #define KEY_PIN_203 32 // D32 -> Slot 203 (Expects Key 203: ~1800 ADC)

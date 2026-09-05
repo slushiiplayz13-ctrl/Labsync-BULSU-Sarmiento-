@@ -151,7 +151,10 @@
     if (closeBtn) closeBtn.addEventListener('click', closeScheduleStudio);
     if (overlay) {
       overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) closeScheduleStudio();
+        e.stopPropagation();
+      });
+      overlay.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
       });
     }
 
@@ -194,7 +197,10 @@
     }
     injectStudioModal();
     const overlay = document.getElementById('studio-modal-overlay');
-    if (overlay) overlay.classList.add('active');
+    if (overlay) {
+      overlay.classList.add('active');
+      if (window.setModalOpenState) window.setModalOpenState(true);
+    }
     updateStudioPreview();
   };
 
@@ -221,7 +227,10 @@
   // Close Studio Modal
   window.closeScheduleStudio = function () {
     const overlay = document.getElementById('studio-modal-overlay');
-    if (overlay) overlay.classList.remove('active');
+    if (overlay) {
+      overlay.classList.remove('active');
+      if (window.setModalOpenState) window.setModalOpenState(false);
+    }
   };
 
   // Update Live Preview Canvas
@@ -244,7 +253,10 @@
     const schedules = window.latestUserSchedules || extractSchedulesFromDOM();
 
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const dayShorts = { Monday: 'MON', Tuesday: 'TUE', Wednesday: 'WED', Thursday: 'THU', Friday: 'FRI', Saturday: 'SAT' };
+    const dayShorts = { Monday: 'MON', Tuesday: 'TUE', Wednesday: 'WED', Thursday: 'THU', Friday: 'FRI', Saturday: 'SAT', Sunday: 'SUN' };
+    if (schedules.some(s => (s.Day_of_Week || '').trim().toLowerCase() === 'sunday') && !days.includes('Sunday')) {
+      days.push('Sunday');
+    }
 
     // Group schedules by Day
     const schedulesByDay = {};
@@ -303,7 +315,10 @@
       const itemCount = items.length;
       daysHTML += `
         <div class="canvas-day-col day-count-${itemCount} ${isGlobalDense ? 'global-dense' : ''}">
-          <div class="canvas-day-title">${dayShorts[day]}</div>
+          <div class="canvas-day-title">
+            <span class="canvas-day-full">${escapeHtml(day)}</span>
+            <span class="canvas-day-short">${escapeHtml(dayShorts[day] || day)}</span>
+          </div>
           <div class="canvas-day-content">${itemsHTML}</div>
         </div>
       `;
@@ -352,7 +367,10 @@
   function extractSchedulesFromDOM() {
     const list = [];
     document.querySelectorAll('.sg-cell.filled').forEach(cell => {
-      const day = cell.closest('.day-column')?.querySelector('.day-header')?.textContent?.trim();
+      const dayCol = cell.closest('.day-column');
+      const dataDay = dayCol?.getAttribute('data-day');
+      const headerText = dayCol?.querySelector('.day-header')?.textContent?.trim() || '';
+      const day = (dataDay || headerText).toUpperCase();
       const time = cell.querySelector('.sg-time-badge')?.textContent?.replace(/[\s\S]*?(?=\d)/, '')?.trim() || cell.querySelector('.sg-time')?.textContent?.trim();
       const subj = cell.querySelector('.sg-title')?.textContent?.trim() || cell.querySelector('.sg-subject')?.textContent?.trim();
       const roomRaw = cell.querySelector('.sg-room-badge')?.textContent?.trim() || cell.querySelector('.sg-room')?.textContent?.trim() || '';
@@ -360,12 +378,13 @@
       const sec = cell.querySelector('.sg-section-badge')?.textContent?.trim() || cell.querySelector('.sg-badge')?.textContent?.trim() || '';
 
       let dayFull = 'Monday';
-      if (day === 'MON') dayFull = 'Monday';
-      else if (day === 'TUE') dayFull = 'Tuesday';
-      else if (day === 'WED') dayFull = 'Wednesday';
-      else if (day === 'THU') dayFull = 'Thursday';
-      else if (day === 'FRI') dayFull = 'Friday';
-      else if (day === 'SAT') dayFull = 'Saturday';
+      if (day.includes('MON')) dayFull = 'Monday';
+      else if (day.includes('TUE')) dayFull = 'Tuesday';
+      else if (day.includes('WED')) dayFull = 'Wednesday';
+      else if (day.includes('THU')) dayFull = 'Thursday';
+      else if (day.includes('FRI')) dayFull = 'Friday';
+      else if (day.includes('SAT')) dayFull = 'Saturday';
+      else if (day.includes('SUN')) dayFull = 'Sunday';
 
       list.push({
         Day_of_Week: dayFull,

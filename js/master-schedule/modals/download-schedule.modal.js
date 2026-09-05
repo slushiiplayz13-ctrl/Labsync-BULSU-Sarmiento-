@@ -16,7 +16,12 @@
     const confirmDownloadBtn = document.getElementById('confirmDownloadBtn');
 
     function openDownloadModal() {
+      const wasAlreadyOpen = downloadModal.style.display === 'flex' && !downloadModal.classList.contains('closing');
+      downloadModal.classList.remove('closing');
+      downloadModal.removeAttribute('data-closing');
       downloadModal.style.display = 'flex';
+      downloadModal.style.pointerEvents = 'auto';
+      if (!wasAlreadyOpen && global.setModalOpenState) global.setModalOpenState(true);
       void downloadModal.offsetWidth;
       downloadModal.style.opacity = '1';
       if (downloadModalContent) downloadModalContent.style.transform = 'translateY(0)';
@@ -26,10 +31,18 @@
     }
 
     function closeDownloadModal() {
+      if (downloadModal.style.display === 'none' && !downloadModal.classList.contains('closing')) return;
+      downloadModal.classList.add('closing');
+      downloadModal.setAttribute('data-closing', 'true');
       downloadModal.style.opacity = '0';
+      downloadModal.style.pointerEvents = 'none';
       if (downloadModalContent) downloadModalContent.style.transform = 'translateY(20px)';
+      if (global.setModalOpenState) global.setModalOpenState(false);
       setTimeout(() => {
         downloadModal.style.display = 'none';
+        downloadModal.classList.remove('closing');
+        downloadModal.removeAttribute('data-closing');
+        if (global.setModalOpenState) global.setModalOpenState(null);
       }, 300);
     }
 
@@ -45,7 +58,10 @@
     }
 
     downloadModal.addEventListener('click', (e) => {
-      if (e.target === downloadModal) closeDownloadModal();
+      e.stopPropagation();
+    });
+    downloadModal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     if (confirmDownloadBtn) {

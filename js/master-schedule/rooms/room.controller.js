@@ -20,6 +20,12 @@
         if (res.ok) rooms = await res.json();
       }
 
+      if (Array.isArray(rooms) && rooms.length) {
+        try {
+          sessionStorage.setItem('labsync_cached_labs', JSON.stringify(rooms));
+        } catch (e) {}
+      }
+
       const grid = document.querySelector('.room-selection-grid');
       if (!grid || !rooms.length) return;
 
@@ -37,6 +43,20 @@
         // Room cards match pre-hydrated DOM perfectly, preserve existing nodes without reflow
         existingCards.forEach((c, idx) => {
           const room = rooms[idx];
+          c.dataset.roomId = room.Room_ID || '';
+          c.dataset.roomNumber = room.Room_Number || '';
+          c.dataset.building = room.Building || 'Bldg. B';
+
+          const titleEl = c.querySelector('.rsc-title');
+          if (titleEl) {
+            titleEl.textContent = `Room ${room.Room_Number}`;
+          }
+
+          const subtitleEl = c.querySelector('.rsc-subtitle');
+          if (subtitleEl) {
+            subtitleEl.textContent = room.Building || 'Bldg. B';
+          }
+
           c.onclick = () => {
             window.location.href = `room-schedule-editor.html?room=${encodeURIComponent(room.Room_Number)}&bldg=${encodeURIComponent(room.Building || 'Bldg. B')}`;
           };
@@ -104,18 +124,88 @@
    */
   async function updateRoom(roomId, roomNumber, building) {
     const labService = global.laboratoryService;
+    let data;
     if (labService && typeof labService.updateLaboratory === 'function') {
-      return await labService.updateLaboratory(roomId, roomNumber, building);
+      data = await labService.updateLaboratory(roomId, roomNumber, building);
+    } else {
+      const res = await fetch(`/api/laboratories/${encodeURIComponent(roomId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ roomNumber, building })
+      });
+      data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update room');
     }
-    const res = await fetch(`/api/laboratories/${encodeURIComponent(roomId)}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ roomNumber, building })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to update room');
+
+    try {
+      const cachedStr = sessionStorage.getItem('labsync_cached_labs');
+      if (cachedStr) {
+        const cached = JSON.parse(cachedStr);
+        if (Array.isArray(cached)) {
+          const item = cached.find(r => (roomId && String(r.Room_ID) === String(roomId)) || String(r.Room_Number) === String(roomNumber));
+          if (item) {
+            item.Building = building;
+            item.Room_Number = roomNumber;
+          }
+          sessionStorage.setItem('labsync_cached_labs', JSON.stringify(cached));
+        }
+      }
+    } catch (e) {}
+
     return data;
+  }
+
+  /**
+   * Immediately updates an affected room card's UI in the current overview DOM.
+   * @param {number|string} roomId
+   * @param {string|number} roomNumber
+   * @param {string} building
+   */
+  function updateRoomCardInUI(roomId, roomNumber, building) {
+    const grid = document.querySelector('.room-selection-grid');
+    if (!grid) return;
+
+    const cards = grid.querySelectorAll('.room-select-card:not(#addRoomCardBtn)');
+    for (const card of cards) {
+      const cardId = card.dataset.roomId;
+      const titleEl = card.querySelector('.rsc-title');
+      const cardNum = card.dataset.roomNumber || (titleEl ? titleEl.textContent.replace('Room ', '').trim() : '');
+
+      if ((roomId && cardId && String(cardId) === String(roomId)) || (cardNum && String(cardNum) === String(roomNumber))) {
+        card.dataset.roomId = roomId || cardId || '';
+        card.dataset.roomNumber = roomNumber;
+        card.dataset.building = building || 'Bldg. B';
+
+        if (titleEl) {
+          titleEl.textContent = `Room ${roomNumber}`;
+        }
+
+        const subtitleEl = card.querySelector('.rsc-subtitle');
+        if (subtitleEl) {
+          subtitleEl.textContent = building || 'Bldg. B';
+        }
+
+        card.onclick = () => {
+          window.location.href = `room-schedule-editor.html?room=${encodeURIComponent(roomNumber)}&bldg=${encodeURIComponent(building || 'Bldg. B')}`;
+        };
+
+        const updatedRoom = {
+          Room_ID: roomId || cardId,
+          Room_Number: roomNumber,
+          Building: building || 'Bldg. B'
+        };
+
+        const editBtn = card.querySelector('.room-edit-btn');
+        if (editBtn) {
+          editBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (global.openEditModal) global.openEditModal(updatedRoom);
+          };
+        }
+        break;
+      }
+    }
   }
 
   /**
@@ -126,7 +216,7 @@
   function showDeleteRoomConfirmation(roomId, roomNum = '') {
     const modal = document.createElement('div');
     modal.id = 'delete-confirm-modal';
-    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1100;opacity:0;transition:opacity 0.25s ease;';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2600 !important;opacity:0;transition:opacity 0.25s ease;';
 
     const escapeFn = global.escapeHtml || window.escapeHtml || ((s) => s || '');
 
@@ -150,6 +240,7 @@
     `;
 
     document.body.appendChild(modal);
+    if (global.setModalOpenState) global.setModalOpenState(true);
     setTimeout(() => {
       modal.style.opacity = '1';
       const dialog = modal.querySelector('div');
@@ -161,6 +252,7 @@
     }
 
     const closeConfirmModal = () => {
+      if (global.setModalOpenState) global.setModalOpenState(false);
       modal.style.opacity = '0';
       const dialog = modal.querySelector('div');
       if (dialog) dialog.style.transform = 'translateY(20px)';
@@ -170,7 +262,10 @@
     const cancelBtn = document.getElementById('cancel-delete-room-btn');
     if (cancelBtn) cancelBtn.addEventListener('click', closeConfirmModal);
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeConfirmModal();
+      e.stopPropagation();
+    });
+    modal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     const confirmBtn = document.getElementById('confirm-delete-room-btn');
@@ -206,11 +301,13 @@
     loadRooms,
     addRoom,
     updateRoom,
+    updateRoomCardInUI,
     showDeleteRoomConfirmation
   };
 
   global.roomController = roomController;
   global.loadRooms = loadRooms;
+  global.updateRoomCardInUI = updateRoomCardInUI;
   global.deleteRoom = showDeleteRoomConfirmation;
 
 })(typeof window !== 'undefined' ? window : this);

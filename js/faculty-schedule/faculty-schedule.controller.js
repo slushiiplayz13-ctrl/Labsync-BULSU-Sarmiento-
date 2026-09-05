@@ -14,13 +14,16 @@
    */
   function getSelectedAcademicYear() {
     const ayWrapper = document.getElementById('academic-year-wrapper') || document.getElementById('academic-year-start-wrapper');
-    const currentYear = new Date().getFullYear();
     const raw = ayWrapper?.dataset?.value ||
       ayWrapper?.querySelector('.custom-select-option.selected')?.getAttribute('data-value') ||
       ayWrapper?.querySelector('.custom-select-trigger span')?.textContent?.trim()?.replace('–', '-');
     if (raw && raw !== 'Select' && /^\d{4}-\d{4}$/.test(raw)) {
       return raw;
     }
+    if (global.AcademicTerm && typeof global.AcademicTerm.getSelectedTerm === 'function') {
+      return global.AcademicTerm.getSelectedTerm('my_schedule').academicYear;
+    }
+    const currentYear = new Date().getFullYear();
     return `${currentYear}-${currentYear + 1}`;
   }
 
@@ -35,6 +38,9 @@
       semWrapper?.querySelector('.custom-select-trigger span')?.textContent?.trim();
     if (raw && raw !== 'Select') {
       return raw;
+    }
+    if (global.AcademicTerm && typeof global.AcademicTerm.getSelectedTerm === 'function') {
+      return global.AcademicTerm.getSelectedTerm('my_schedule').semester;
     }
     return '1st Semester';
   }
@@ -169,17 +175,28 @@
     if (_schedulePageInitialized) return;
     _schedulePageInitialized = true;
 
-    const currentYear = new Date().getFullYear();
+    const termInfo = (global.AcademicTerm && typeof global.AcademicTerm.getSelectedTerm === 'function')
+      ? global.AcademicTerm.getSelectedTerm('my_schedule')
+      : { academicYear: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`, semester: '1st Semester' };
+
+    function onFilterChange() {
+      const ay = getSelectedAcademicYear();
+      const sem = getSelectedSemester();
+      if (global.AcademicTerm && typeof global.AcademicTerm.setSelectedTerm === 'function') {
+        global.AcademicTerm.setSelectedTerm('my_schedule', ay, sem);
+      }
+      loadUserSchedule();
+    }
+
     if (global.populateCustomYearSelectors) {
-      global.populateCustomYearSelectors('academic-year-wrapper', `${currentYear}-${currentYear + 1}`, () => {
-        loadUserSchedule();
-      });
+      global.populateCustomYearSelectors('academic-year-wrapper', termInfo.academicYear, onFilterChange);
     }
 
     if (global.initCustomSelect) {
-      global.initCustomSelect('semester-wrapper', () => {
-        loadUserSchedule();
-      });
+      global.initCustomSelect('semester-wrapper', onFilterChange);
+      if (global.setCustomSelectValue) {
+        global.setCustomSelectValue('semester-wrapper', termInfo.semester);
+      }
     }
 
     loadUserSchedule();

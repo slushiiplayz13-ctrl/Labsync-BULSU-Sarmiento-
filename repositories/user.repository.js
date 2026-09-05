@@ -165,12 +165,22 @@ async function updatePasswordOnly(userId, passwordHash, executor = db) {
     return executor.query('UPDATE users SET Password = ?, Updated_At = NOW() WHERE User_ID = ?', [passwordHash, userId]);
 }
 
+async function findByNameExcludingUser(name, userId, executor = db) {
+    if (!name) return [[]];
+    const cleanName = String(name).trim().replace(/\s+/g, ' ');
+    return executor.query(
+        "SELECT User_ID, Name, Email FROM users WHERE LOWER(REGEXP_REPLACE(TRIM(Name), '[[:space:]]+', ' ')) = LOWER(?) AND User_ID != ?",
+        [cleanName, userId]
+    );
+}
+
 module.exports = {
     findByEmail,
     findBasicByEmail,
     findById,
     findFullById,
     findByEmailExceptId,
+    findByNameExcludingUser,
     updateResetToken,
     findByResetToken,
     updatePasswordReset,

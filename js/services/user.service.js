@@ -13,6 +13,8 @@
     try {
       localStorage.removeItem('user');
       localStorage.removeItem('labsync_tutorial_completed');
+      localStorage.removeItem('labsync_last_activity');
+      localStorage.removeItem('labsync_session_expired');
       sessionStorage.clear();
       await fetch('/api/logout', {
         method: 'POST',
@@ -61,7 +63,7 @@
     try {
       const cached = JSON.parse(sessionStorage.getItem('labsync_user') || 'null');
       if (cached) applyUserToUI(cached);
-    } catch (e) {}
+    } catch (e) { }
 
     try {
       const response = await fetch('/api/user/current', {
@@ -70,7 +72,7 @@
       if (!response.ok) return;
 
       const user = await response.json();
-      try { sessionStorage.setItem('labsync_user', JSON.stringify(user)); } catch (e) {}
+      try { sessionStorage.setItem('labsync_user', JSON.stringify(user)); } catch (e) { }
 
       applyUserToUI(user);
 
@@ -103,7 +105,11 @@
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to update profile');
+      let errorMsg = data.error || 'Failed to update profile';
+      if (typeof errorMsg === 'string' && (errorMsg.includes('max_allowed_packet') || errorMsg.includes('packet bigger'))) {
+        errorMsg = 'The selected profile photo is too large to save. Please choose a smaller image and try again.';
+      }
+      throw new Error(errorMsg);
     }
 
     // Refresh stored user session cache & header avatar/name
@@ -120,7 +126,7 @@
       sessionStorage.setItem('labsync_user', JSON.stringify(cached));
       localStorage.setItem('user', JSON.stringify(cached));
       applyUserToUI(userObj);
-    } catch (e) {}
+    } catch (e) { }
 
     return data;
   }
@@ -155,7 +161,7 @@
         sessionStorage.setItem('labsync_user', JSON.stringify(cached));
         localStorage.setItem('user', JSON.stringify(cached));
       }
-    } catch (e) {}
+    } catch (e) { }
 
     return data;
   }
@@ -165,6 +171,15 @@
     document.addEventListener('DOMContentLoaded', loadCurrentUser);
   } else {
     loadCurrentUser();
+  }
+
+  // Ensure session inactivity monitoring is active on authenticated pages
+  if (typeof document !== 'undefined' && !window.location.pathname.includes('login.html') && !window.location.pathname.includes('reset-password.html')) {
+    if (typeof global.sessionService === 'undefined') {
+      const s = document.createElement('script');
+      s.src = 'js/services/session.service.js';
+      document.head.appendChild(s);
+    }
   }
 
   // Preserve global contracts for legacy scripts and HTML callers

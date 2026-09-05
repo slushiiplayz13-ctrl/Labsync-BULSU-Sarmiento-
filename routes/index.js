@@ -56,6 +56,9 @@ router.post('/login', loginLimiter, authController.login);
 // POST /api/logout -> authController.logout (active caller: js/services/user.service.js)
 router.post('/logout', requireAuth, authController.logout);
 
+// POST /api/touch-session -> authController.touchSession (active session refresh)
+router.post('/touch-session', requireAuth, authController.touchSession);
+
 // GET /api/notifications -> maintenanceController.getNotifications (active callers: notification & dashboard services)
 router.get('/notifications', requireAuth, maintenanceController.getNotifications);
 

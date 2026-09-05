@@ -499,6 +499,7 @@
 
     const closePrintModal = () => {
       if (modalPrint) modalPrint.style.display = 'none';
+      if (global.setModalOpenState) global.setModalOpenState(false);
       if (previewContainer) previewContainer.classList.remove('zoomed-140');
       if (btnZoom100) {
         btnZoom100.classList.add('active');
@@ -515,6 +516,14 @@
 
     if (btnClosePrint) btnClosePrint.addEventListener('click', closePrintModal);
     if (btnCancelPrint) btnCancelPrint.addEventListener('click', closePrintModal);
+    if (modalPrint) {
+      modalPrint.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      modalPrint.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+      });
+    }
 
     if (btnExecPrint) {
       btnExecPrint.addEventListener('click', () => {
@@ -536,7 +545,10 @@
     const modalSubtitle = document.getElementById('printModalSubtitle');
     const btnExecText = document.getElementById('btnExecutePrintText');
 
-    if (modalPrint) modalPrint.style.display = 'flex';
+    if (modalPrint) {
+      modalPrint.style.display = 'flex';
+      if (global.setModalOpenState) global.setModalOpenState(true);
+    }
 
     const count = keyIds.length;
     if (modalTitle) {

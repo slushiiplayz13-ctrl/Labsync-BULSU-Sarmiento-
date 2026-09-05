@@ -14,7 +14,10 @@
   async function fetchNotifications() {
     try {
       const response = await fetch(`/api/notifications?_=${Date.now()}`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'X-Background-Poll': 'true'
+        }
       });
       if (!response.ok) return null;
       const data = await response.json();

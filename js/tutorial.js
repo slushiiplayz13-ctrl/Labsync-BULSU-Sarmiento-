@@ -4,7 +4,7 @@
  * Supports Faculty, IT Department Head, and MIS Staff roles.
  */
 
-(function () {
+(function (global) {
     'use strict';
 
     let currentStepIndex = 0;
@@ -172,8 +172,8 @@
      * @returns {'head' | 'mis' | 'faculty'}
      */
     function getUserRole() {
-        if (window.currentUser && window.currentUser.Role) {
-            const r = String(window.currentUser.Role).toLowerCase();
+        if (window.currentUser && (window.currentUser.Role || window.currentUser.role)) {
+            const r = String(window.currentUser.Role || window.currentUser.role).toLowerCase();
             if (r.includes('head')) return 'head';
             if (r.includes('mis') || r.includes('staff')) return 'mis';
             return 'faculty';
@@ -284,9 +284,12 @@
         document.getElementById('tut-prev-btn').addEventListener('click', previousStep);
         document.getElementById('tut-next-btn').addEventListener('click', nextStep);
 
-        // Backdrop click to dismiss
+        // Backdrop click interception (do not dismiss on backdrop click)
         overlayEl.addEventListener('click', (e) => {
-            if (e.target === overlayEl) skipTutorial();
+            e.stopPropagation();
+        });
+        overlayEl.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
         });
 
         // Escape key to dismiss
@@ -438,6 +441,9 @@
             cardEl.style.left = '50%';
             cardEl.style.width = '';
             cardEl.style.transform = 'translate(-50%, -50%) scale(1)';
+            cardEl.style.opacity = '1';
+            cardEl.style.visibility = 'visible';
+            cardEl.style.pointerEvents = 'auto';
             return;
         }
 
@@ -569,6 +575,14 @@
     }
 
     async function completeTutorial() {
+        if (!currentUserId) {
+            try {
+                const cachedUser = JSON.parse(sessionStorage.getItem('labsync_user') || 'null');
+                if (cachedUser && (cachedUser.id || cachedUser.User_ID || cachedUser.userId)) {
+                    currentUserId = cachedUser.id || cachedUser.User_ID || cachedUser.userId;
+                }
+            } catch (e) {}
+        }
         if (currentUserId) {
             localStorage.setItem('labsync_tut_done_' + currentUserId, 'true');
             sessionStorage.setItem('labsync_tut_session_' + currentUserId, 'true');
@@ -579,6 +593,14 @@
     }
 
     async function skipTutorial() {
+        if (!currentUserId) {
+            try {
+                const cachedUser = JSON.parse(sessionStorage.getItem('labsync_user') || 'null');
+                if (cachedUser && (cachedUser.id || cachedUser.User_ID || cachedUser.userId)) {
+                    currentUserId = cachedUser.id || cachedUser.User_ID || cachedUser.userId;
+                }
+            } catch (e) {}
+        }
         if (currentUserId) {
             localStorage.setItem('labsync_tut_done_' + currentUserId, 'true');
             sessionStorage.setItem('labsync_tut_session_' + currentUserId, 'true');
@@ -620,7 +642,11 @@
     }
 
     function showToastNotification(msg) {
-        if (window.showToast) {
+        if (typeof global !== 'undefined' && typeof global.showToast === 'function') {
+            global.showToast(msg, 'info');
+            return;
+        }
+        if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
             window.showToast(msg, 'info');
             return;
         }
@@ -648,8 +674,12 @@
     }
 
     // Export globally for manual trigger ("Watch System Tutorial")
-    window.startFacultyTutorial = startSystemTutorial;
-    window.startSystemTutorial = startSystemTutorial;
+    global.startFacultyTutorial = startSystemTutorial;
+    global.startSystemTutorial = startSystemTutorial;
+    if (typeof window !== 'undefined') {
+        window.startFacultyTutorial = startSystemTutorial;
+        window.startSystemTutorial = startSystemTutorial;
+    }
 
     // Run automatically on page load for newly registered accounts
     if (document.readyState === 'loading') {
@@ -657,4 +687,4 @@
     } else {
         checkAndInitTutorial();
     }
-})();
+})(typeof window !== 'undefined' ? window : this);

@@ -136,7 +136,10 @@
 
     selectAddMode('simple');
     const modalOverlay = document.getElementById('addPcModalOverlay');
-    if (modalOverlay) modalOverlay.style.display = 'flex';
+    if (modalOverlay) {
+      modalOverlay.style.display = 'flex';
+      if (global.setModalOpenState) global.setModalOpenState(true);
+    }
     if (global.lucide && modalOverlay) global.lucide.createIcons({ root: modalOverlay });
   }
 
@@ -203,7 +206,10 @@
    */
   function closeAddPcModal() {
     const modalOverlay = document.getElementById('addPcModalOverlay');
-    if (modalOverlay) modalOverlay.style.display = 'none';
+    if (modalOverlay) {
+      modalOverlay.style.display = 'none';
+      if (global.setModalOpenState) global.setModalOpenState(false);
+    }
     _pendingAddRoomId = null;
   }
 
@@ -356,6 +362,12 @@
       if (e.target.closest('#btnCloseAddPcModal, [data-action="close-add-pc-modal"]')) {
         e.preventDefault();
         closeAddPcModal();
+        return;
+      }
+
+      // Intercept clicks on overlay backdrop
+      if (e.target.id === 'addPcModalOverlay' || e.target.id === 'bulkDeleteModalOverlay') {
+        e.stopPropagation();
         return;
       }
 

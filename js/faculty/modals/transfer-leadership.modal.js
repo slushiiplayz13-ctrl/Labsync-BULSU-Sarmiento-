@@ -12,7 +12,7 @@
 
     const confirmModal = document.createElement('div');
     confirmModal.id = 'transfer-confirm-modal';
-    confirmModal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1100;opacity:0;transition:opacity 0.25s ease;';
+    confirmModal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2600 !important;opacity:0;transition:opacity 0.25s ease;';
 
     confirmModal.innerHTML = `
       <div style="background:#fff;border-radius:18px;width:90%;max-width:440px;padding:32px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3);transform:translateY(20px);transition:transform 0.25s ease;text-align:center;">
@@ -35,11 +35,19 @@
     `;
 
     document.body.appendChild(confirmModal);
+    if (global.setModalOpenState) global.setModalOpenState(true);
     setTimeout(() => {
       confirmModal.style.opacity = '1';
       const dialog = confirmModal.querySelector('div');
       if (dialog) dialog.style.transform = 'translateY(0)';
     }, 10);
+
+    confirmModal.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    confirmModal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
 
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons();
@@ -48,6 +56,7 @@
     const cancelTransferBtn = document.getElementById('btn-cancel-transfer');
     if (cancelTransferBtn) {
       cancelTransferBtn.addEventListener('click', () => {
+        if (global.setModalOpenState) global.setModalOpenState(false);
         confirmModal.style.opacity = '0';
         const dialog = confirmModal.querySelector('div');
         if (dialog) dialog.style.transform = 'translateY(20px)';
@@ -61,6 +70,7 @@
     const confirmTransferBtn = document.getElementById('btn-confirm-transfer');
     if (confirmTransferBtn) {
       confirmTransferBtn.addEventListener('click', () => {
+        if (global.setModalOpenState) global.setModalOpenState(false);
         confirmModal.style.opacity = '0';
         const dialog = confirmModal.querySelector('div');
         if (dialog) dialog.style.transform = 'translateY(20px)';
@@ -72,16 +82,31 @@
     }
   }
 
-  function showSuccessGreetingModal(newName) {
+  function showSuccessGreetingModal(newName, onDismiss) {
     const existing = document.getElementById('success-greeting-modal');
     if (existing) existing.remove();
 
     const currentHead = (global.allFacultyMembers || []).find(m => m.Role && m.Role.toLowerCase().includes('head'));
     const currentHeadName = currentHead ? currentHead.Name : 'Department Head';
 
+    const handleDismiss = () => {
+      if (global.setModalOpenState) global.setModalOpenState(false);
+      successModal.style.opacity = '0';
+      const dialog = successModal.querySelector('div');
+      if (dialog) dialog.style.transform = 'scale(0.9)';
+      setTimeout(() => {
+        successModal.remove();
+        if (typeof onDismiss === 'function') {
+          onDismiss();
+        } else {
+          window.location.replace('index.html');
+        }
+      }, 250);
+    };
+
     const successModal = document.createElement('div');
     successModal.id = 'success-greeting-modal';
-    successModal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1200;opacity:0;transition:opacity 0.3s ease;';
+    successModal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:2600 !important;opacity:0;transition:opacity 0.3s ease;';
 
     successModal.innerHTML = `
       <div class="sched-modal-dialog" style="max-width:520px;padding:36px 32px;text-align:center;position:relative;overflow:hidden;">
@@ -124,11 +149,19 @@
     `;
 
     document.body.appendChild(successModal);
+    if (global.setModalOpenState) global.setModalOpenState(true);
     setTimeout(() => {
       successModal.style.opacity = '1';
       const dialog = successModal.querySelector('div');
       if (dialog) dialog.style.transform = 'scale(1)';
     }, 10);
+
+    successModal.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    successModal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
 
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons();
@@ -136,12 +169,7 @@
 
     const closeSuccessBtn = document.getElementById('btn-close-success');
     if (closeSuccessBtn) {
-      closeSuccessBtn.addEventListener('click', () => {
-        successModal.style.opacity = '0';
-        const dialog = successModal.querySelector('div');
-        if (dialog) dialog.style.transform = 'scale(0.9)';
-        setTimeout(() => successModal.remove(), 250);
-      });
+      closeSuccessBtn.addEventListener('click', handleDismiss);
     }
   }
 

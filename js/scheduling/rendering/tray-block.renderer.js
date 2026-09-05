@@ -96,8 +96,9 @@
     const block = btn ? btn.closest('.schedule-block') : null;
     if (block) {
       block.remove();
-      if (global.scheduleState) global.scheduleState.isDirty = true;
-      global.isDirty = true;
+      if (global.scheduleState && typeof global.scheduleState.updateSaveButtonState === 'function') {
+        global.scheduleState.updateSaveButtonState();
+      }
       updateBlockCount();
     }
   }

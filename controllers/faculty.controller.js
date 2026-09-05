@@ -54,7 +54,18 @@ async function updateFacultyRole(req, res, next) {
             result: 'SUCCESS'
         });
 
-        return res.status(result.status).json({ message: result.message });
+        if (req.session) {
+            req.session.save((saveErr) => {
+                if (saveErr) console.error('Session save error on role update:', saveErr);
+                return res.status(result.status).json({
+                    message: result.message,
+                    currentRole: result.currentRole || req.session.userRole
+                });
+            });
+            return;
+        }
+
+        return res.status(result.status).json({ message: result.message, currentRole: result.currentRole });
     } catch (err) {
         next(err);
     }

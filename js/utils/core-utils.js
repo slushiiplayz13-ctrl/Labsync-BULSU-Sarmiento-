@@ -60,8 +60,144 @@
     }
   }
 
+  let activeModalCount = 0;
+
+  /**
+   * Helper to verify if a modal element is actually visible and not closing/hidden.
+   * @param {HTMLElement} el
+   * @returns {boolean}
+   */
+  function isModalElementVisible(el) {
+    if (!el || !document.contains(el)) return false;
+    if (el.classList.contains('closing') || el.getAttribute('data-closing') === 'true') return false;
+    if (el.style && (el.style.display === 'none' || el.style.visibility === 'hidden')) return false;
+
+    if (typeof window !== 'undefined' && typeof window.getComputedStyle === 'function') {
+      try {
+        const comp = window.getComputedStyle(el);
+        if (comp.display === 'none' || comp.visibility === 'hidden') return false;
+      } catch (e) {}
+    }
+
+    return true;
+  }
+
+  /**
+   * Safely tracks open modal instances and controls document.body.classList.toggle('modal-open').
+   * Correctly handles nested/multiple modals, backdrop clicks, and dynamically removed elements.
+   * @param {boolean|null} isOpen - true when a modal opens, false when it closes, or null to sync
+   */
+  function setModalOpenState(isOpen) {
+    if (typeof document === 'undefined' || !document.body) return;
+
+    if (isOpen === true) {
+      activeModalCount = Math.max(1, activeModalCount + 1);
+    } else if (isOpen === false) {
+      activeModalCount = Math.max(0, activeModalCount - 1);
+    }
+
+    // Verify against actual visible modal elements currently in DOM
+    const visibleModalSelectors = [
+      '.modal-backdrop.active',
+      '.modal-backdrop[style*="display: flex"]',
+      '.modal-backdrop[style*="display: block"]',
+      '.modal-overlay.active',
+      '.help-modal-overlay.active',
+      '.confirm-modal-overlay.active',
+      '.key-modal-overlay[style*="display: flex"]',
+      '.pc-modal-overlay[style*="display: flex"]',
+      '.studio-modal-overlay.active',
+      '#account-settings-modal',
+      '#help-modal',
+      '#change-password-modal',
+      '#email-confirm-modal',
+      '#add-faculty-modal',
+      '#role-edit-modal',
+      '#delete-confirm-modal',
+      '#transfer-confirm-modal',
+      '#success-greeting-modal',
+      '#schedule-view-modal',
+      '#addRoomModal[style*="display: flex"]',
+      '#addRoomModal[style*="display: block"]',
+      '#editRoomModal[style*="display: flex"]',
+      '#editRoomModal[style*="display: block"]',
+      '#downloadModal[style*="display: flex"]',
+      '#downloadModal[style*="display: block"]',
+      '#signatureSettingsModal[style*="display: flex"]',
+      '#signatureSettingsModal[style*="display: block"]',
+      '#importCurriculumModal[style*="display: flex"]',
+      '#importCurriculumModal[style*="display: block"]',
+      '#card-detail-modal.active',
+      '#ticket-details-modal',
+      '#accessibility-modal',
+      '#accessibility-settings-modal'
+    ];
+
+    let actualVisibleCount = 0;
+    try {
+      const found = document.querySelectorAll(visibleModalSelectors.join(','));
+      found.forEach(el => {
+        if (isModalElementVisible(el)) {
+          actualVisibleCount++;
+        }
+      });
+    } catch (e) { }
+
+    // Multi-modal synchronization:
+    // If no modal is visible in the DOM, force activeModalCount to 0 to prevent stranded counters
+    if (actualVisibleCount === 0) {
+      activeModalCount = 0;
+    } else {
+      activeModalCount = Math.max(activeModalCount, actualVisibleCount);
+    }
+
+    const shouldBeOpen = (actualVisibleCount > 0);
+    if (!shouldBeOpen) {
+      activeModalCount = 0;
+      document.body.classList.remove('modal-open');
+    } else {
+      document.body.classList.add('modal-open');
+    }
+  }
+
+  // Auto-sync observer: ensure removing modal DOM nodes or changing display never leaves body.modal-open stranded
+  if (typeof window !== 'undefined' && typeof MutationObserver !== 'undefined') {
+    const initObserver = () => {
+      if (!document.body) return;
+      let syncScheduled = false;
+      const observer = new MutationObserver((mutations) => {
+        if (!document.body.classList.contains('modal-open')) return;
+
+        const hasRelevantMutation = mutations.some(m => m.type === 'childList' || m.target !== document.body);
+        if (!hasRelevantMutation) return;
+
+        if (!syncScheduled) {
+          syncScheduled = true;
+          const scheduleFn = typeof window.requestAnimationFrame === 'function'
+            ? window.requestAnimationFrame
+            : (fn) => setTimeout(fn, 16);
+          scheduleFn(() => {
+            syncScheduled = false;
+            if (document.body.classList.contains('modal-open')) {
+              setModalOpenState(null);
+            }
+          });
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initObserver);
+    } else {
+      initObserver();
+    }
+  }
+
   // Preserve global contracts for legacy scripts and HTML callers
   global.formatTime12 = formatTime12;
   global.formatLastUpdatedTime = formatLastUpdatedTime;
+  global.setModalOpenState = setModalOpenState;
+  global.getActiveModalCount = () => activeModalCount;
 
 })(typeof window !== 'undefined' ? window : this);

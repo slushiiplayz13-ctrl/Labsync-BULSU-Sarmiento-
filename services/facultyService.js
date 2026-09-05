@@ -13,7 +13,11 @@ async function addFaculty(reqBody) {
         return { status: 400, error: 'Faculty name is required (minimum 2 characters).' };
     }
 
-    const trimmedName = name.trim();
+    const trimmedName = name.trim().replace(/\s+/g, ' ');
+
+    if (trimmedName.length > 60) {
+        return { status: 400, error: 'Full name must not exceed 60 characters.' };
+    }
 
     // Disallow numbers
     if (/\d/.test(trimmedName)) {
@@ -53,7 +57,7 @@ async function addFaculty(reqBody) {
 
     console.time('[Faculty] insertFaculty');
     const [result] = await facultyRepository.insertFaculty({
-        name,
+        name: trimmedName,
         email,
         role,
         password: hashedPassword,
@@ -62,7 +66,7 @@ async function addFaculty(reqBody) {
     console.timeEnd('[Faculty] insertFaculty');
 
     // Dispatch welcome email asynchronously so HTTP response is not blocked by SMTP networking
-    sendWelcomeEmail(email, name, generatedPassword)
+    sendWelcomeEmail(email, trimmedName, generatedPassword)
         .then(emailSent => {
             if (!emailSent) {
                 console.warn(`[Faculty] Welcome email failed for ${email}; manual credential delivery required.`);
@@ -115,9 +119,13 @@ async function updateFacultyRole(userId, role, currentSessionUserId, session) {
         });
     } else {
         await facultyRepository.updateUserRole(parsedUserId, role);
+        if (currentSessionUserId && session && Number(currentSessionUserId) === parsedUserId) {
+            session.userRole = role;
+        }
     }
 
-    return { status: 200, message: 'Role updated successfully' };
+    const currentRole = session ? session.userRole : null;
+    return { status: 200, message: 'Role updated successfully', currentRole };
 }
 
 async function deleteFaculty(userId) {

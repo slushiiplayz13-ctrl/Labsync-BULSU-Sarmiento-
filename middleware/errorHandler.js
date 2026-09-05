@@ -24,6 +24,13 @@ function errorHandler(err, req, res, next) {
             ? err.statusCode
             : 500;
 
+    // Intercept database/network packet size errors and return user-friendly message
+    if (err && (err.code === 'ER_NET_PACKET_TOO_LARGE' || err.errno === 1153 || (typeof err.message === 'string' && (err.message.includes('max_allowed_packet') || err.message.includes('packet bigger'))))) {
+        return res.status(400).json({
+            error: 'The selected profile photo is too large to save. Please choose a smaller image and try again.'
+        });
+    }
+
     // Production mode returns safe generic error messages for 5xx server errors
     const errorMessage = (isProd && statusCode >= 500)
         ? 'Internal server error'

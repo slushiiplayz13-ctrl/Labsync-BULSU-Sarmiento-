@@ -63,6 +63,24 @@ function revealPage() {
     let page = path.substring(path.lastIndexOf('/') + 1);
     if (!page || page === '/') page = 'index.html';
 
+    const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
+    const timeout = (typeof window !== 'undefined' && window.__LABSYNC_SESSION_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS;
+
+    try {
+        const lastActivityStr = localStorage.getItem('labsync_last_activity');
+        if (lastActivityStr) {
+            const lastActivity = parseInt(lastActivityStr, 10);
+            if (!isNaN(lastActivity) && (Date.now() - lastActivity >= timeout)) {
+                localStorage.removeItem('user');
+                localStorage.removeItem('labsync_last_activity');
+                localStorage.setItem('labsync_session_expired', Date.now().toString());
+                sessionStorage.clear();
+                window.location.replace('/login.html?reason=inactivity');
+                return;
+            }
+        }
+    } catch (e) { }
+
     let isPreAuthorized = false;
     try {
         const cachedUserStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
@@ -207,11 +225,23 @@ function revealPage() {
         });
 
         if (!response.ok) {
+            let isExpired = false;
+            try {
+                const data = await response.json();
+                if (data && (data.code === 'SESSION_EXPIRED' || (data.error && data.error.includes('expired')))) {
+                    isExpired = true;
+                }
+            } catch (e) {}
+
             try {
                 sessionStorage.removeItem('labsync_user');
                 localStorage.removeItem('user');
+                localStorage.removeItem('labsync_last_activity');
+                if (isExpired) {
+                    localStorage.setItem('labsync_session_expired', Date.now().toString());
+                }
             } catch (e) { }
-            window.location.replace('/login.html');
+            window.location.replace(isExpired ? '/login.html?reason=inactivity' : '/login.html');
             return;
         }
 
@@ -231,7 +261,12 @@ function revealPage() {
             return;
         }
 
-        // Successfully authorized - reveal protected page
+        // Successfully authorized - reveal protected page and initialize activity timestamp
+        try {
+            if (!localStorage.getItem('labsync_last_activity')) {
+                localStorage.setItem('labsync_last_activity', Date.now().toString());
+            }
+        } catch (e) {}
         revealPage();
     } catch (error) {
         console.error('Auth check failed:', error);

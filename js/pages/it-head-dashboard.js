@@ -126,9 +126,11 @@
     const labsContainer = document.getElementById('ithead-labs-grid') || '.labs-grid';
 
     try {
-      const currentYear = new Date().getFullYear();
-      const ay = `${currentYear}-${currentYear + 1}`;
-      const sem = '1st Semester';
+      const termInfo = (global.AcademicTerm && typeof global.AcademicTerm.getActiveTerm === 'function')
+        ? global.AcademicTerm.getActiveTerm()
+        : { academicYear: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`, semester: '1st Semester' };
+      const ay = termInfo.academicYear;
+      const sem = termInfo.semester;
 
       // 1. Fetch Summary Metrics and Laboratory Data in parallel
       const [summaryRes, allLabsData] = await Promise.all([

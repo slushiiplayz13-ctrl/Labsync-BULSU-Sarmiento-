@@ -815,7 +815,7 @@ html.high-contrast .status-badge.resolved .status-dot {
 .modal-search-wrapper input {
   width: 100%;
   height: 38px;
-  padding: 0 14px 0 34px;
+  padding: 0 38px 0 34px;
   border-radius: 10px;
   border: 1.5px solid var(--border-light, #E2E8F0);
   background: var(--bg-page, #F8FAFC);
@@ -831,6 +831,42 @@ html.high-contrast .status-badge.resolved .status-dot {
   border-color: var(--primary-teal, #1EBBD7);
   background: #FFFFFF;
   box-shadow: 0 0 0 3px rgba(30, 187, 215, 0.15);
+}
+
+.modal-search-clear-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: var(--text-muted, #94A3B8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  line-height: 0;
+  z-index: 2;
+}
+
+.modal-search-clear-btn:hover {
+  color: var(--text-dark, #0F172A);
+  background: rgba(148, 163, 184, 0.15);
+}
+
+.modal-search-clear-btn:focus-visible {
+  outline: 2px solid var(--primary-teal, #1EBBD7);
+  outline-offset: 1px;
+}
+
+.modal-search-clear-btn[hidden] {
+  display: none !important;
 }
 
 .modal-time-filters {
@@ -907,6 +943,13 @@ html.high-contrast .status-badge.resolved .status-dot {
   flex-wrap: wrap;
 }
 
+.modal-ticket-header-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .modal-ticket-id {
   font-family: var(--font-display, sans-serif);
   font-size: 13.5px;
@@ -922,30 +965,33 @@ html.high-contrast .status-badge.resolved .status-dot {
   border-radius: 99px;
   background: #F1F5F9;
   color: var(--text-mid, #475569);
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
 }
 
 .modal-ticket-content-row {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .modal-ticket-asset {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px;
   flex: 1;
-  min-width: 160px;
+  min-width: 180px;
 }
 
 .modal-ticket-asset-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   background: #E0F2FE;
   color: #0284C7;
@@ -954,21 +1000,54 @@ html.high-contrast .status-badge.resolved .status-dot {
 }
 
 .modal-ticket-asset-name {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 800;
   color: var(--text-dark, #0F172A);
   font-family: var(--font-display, sans-serif);
   line-height: 1.25;
 }
 
-.modal-ticket-reporter {
+.modal-ticket-issues-list {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.modal-ticket-meta-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.modal-ticket-reporter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-mid, #475569);
   flex-shrink: 0;
+}
+
+.reporter-section-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #F1F5F9;
+  color: var(--text-mid, #475569);
+  letter-spacing: 0.2px;
+}
+
+.modal-ticket-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .modal-ticket-remarks {
@@ -1146,6 +1225,25 @@ body.dark .completed-modal-container .modal-search-icon {
   color: var(--text-muted, #94A3B8) !important;
 }
 
+html.dark-mode .modal-search-clear-btn,
+body.dark-mode .modal-search-clear-btn,
+html.high-contrast .modal-search-clear-btn,
+[data-theme="dark"] .modal-search-clear-btn,
+html.dark .modal-search-clear-btn,
+body.dark .modal-search-clear-btn {
+  color: #94A3B8 !important;
+}
+
+html.dark-mode .modal-search-clear-btn:hover,
+body.dark-mode .modal-search-clear-btn:hover,
+html.high-contrast .modal-search-clear-btn:hover,
+[data-theme="dark"] .modal-search-clear-btn:hover,
+html.dark .modal-search-clear-btn:hover,
+body.dark .modal-search-clear-btn:hover {
+  color: #F8FAFC !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
 html.dark-mode .completed-modal-container .modal-filter-chip,
 body.dark-mode .completed-modal-container .modal-filter-chip,
 html.high-contrast .completed-modal-container .modal-filter-chip,
@@ -1190,6 +1288,12 @@ body.dark .completed-modal-container .modal-body {
   scrollbar-color: rgba(148, 163, 184, 0.25) transparent !important;
 }
 
+html.dark-mode .modal-ticket-card,
+body.dark-mode .modal-ticket-card,
+html.high-contrast .modal-ticket-card,
+[data-theme="dark"] .modal-ticket-card,
+html.dark .modal-ticket-card,
+body.dark .modal-ticket-card,
 html.dark-mode .completed-modal-container .modal-ticket-card,
 body.dark-mode .completed-modal-container .modal-ticket-card,
 html.high-contrast .completed-modal-container .modal-ticket-card,
@@ -1201,6 +1305,12 @@ body.dark .completed-modal-container .modal-ticket-card {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
+html.dark-mode .modal-ticket-card:hover,
+body.dark-mode .modal-ticket-card:hover,
+html.high-contrast .modal-ticket-card:hover,
+[data-theme="dark"] .modal-ticket-card:hover,
+html.dark .modal-ticket-card:hover,
+body.dark .modal-ticket-card:hover,
 html.dark-mode .completed-modal-container .modal-ticket-card:hover,
 body.dark-mode .completed-modal-container .modal-ticket-card:hover,
 html.high-contrast .completed-modal-container .modal-ticket-card:hover,
@@ -1211,71 +1321,77 @@ body.dark .completed-modal-container .modal-ticket-card:hover {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
 }
 
-html.dark-mode .completed-modal-container .modal-ticket-id,
-body.dark-mode .completed-modal-container .modal-ticket-id,
-html.high-contrast .completed-modal-container .modal-ticket-id,
-[data-theme="dark"] .completed-modal-container .modal-ticket-id,
-html.dark .completed-modal-container .modal-ticket-id,
-body.dark .completed-modal-container .modal-ticket-id {
+html.dark-mode .modal-ticket-id,
+body.dark-mode .modal-ticket-id,
+html.high-contrast .modal-ticket-id,
+[data-theme="dark"] .modal-ticket-id,
+html.dark .modal-ticket-id,
+body.dark .modal-ticket-id {
   color: var(--primary-teal, #1EBBD7) !important;
 }
 
-html.dark-mode .completed-modal-container .modal-ticket-date,
-body.dark-mode .completed-modal-container .modal-ticket-date,
-html.high-contrast .completed-modal-container .modal-ticket-date,
-[data-theme="dark"] .completed-modal-container .modal-ticket-date,
-html.dark .completed-modal-container .modal-ticket-date,
-body.dark .completed-modal-container .modal-ticket-date {
+html.dark-mode .modal-ticket-date,
+body.dark-mode .modal-ticket-date,
+html.high-contrast .modal-ticket-date,
+[data-theme="dark"] .modal-ticket-date,
+html.dark .modal-ticket-date,
+body.dark .modal-ticket-date {
   background: rgba(255, 255, 255, 0.08) !important;
   color: var(--text-mid, #CBD5E1) !important;
 }
 
-html.dark-mode .completed-modal-container .status-badge.resolved,
-body.dark-mode .completed-modal-container .status-badge.resolved,
-html.high-contrast .completed-modal-container .status-badge.resolved,
-[data-theme="dark"] .completed-modal-container .status-badge.resolved,
-html.dark .completed-modal-container .status-badge.resolved,
-body.dark .completed-modal-container .status-badge.resolved {
+html.dark-mode .status-badge.resolved,
+body.dark-mode .status-badge.resolved,
+html.high-contrast .status-badge.resolved,
+[data-theme="dark"] .status-badge.resolved,
+html.dark .status-badge.resolved,
+body.dark .status-badge.resolved {
   background: rgba(16, 185, 129, 0.15) !important;
   color: #34D399 !important;
   border: 1px solid rgba(52, 211, 153, 0.3) !important;
 }
 
-html.dark-mode .completed-modal-container .modal-ticket-asset-icon,
-body.dark-mode .completed-modal-container .modal-ticket-asset-icon,
-html.high-contrast .completed-modal-container .modal-ticket-asset-icon,
-[data-theme="dark"] .completed-modal-container .modal-ticket-asset-icon,
-html.dark .completed-modal-container .modal-ticket-asset-icon,
-body.dark .completed-modal-container .modal-ticket-asset-icon {
+html.dark-mode .modal-ticket-asset-icon,
+body.dark-mode .modal-ticket-asset-icon,
+html.high-contrast .modal-ticket-asset-icon,
+[data-theme="dark"] .modal-ticket-asset-icon,
+html.dark .modal-ticket-asset-icon,
+body.dark .modal-ticket-asset-icon {
   background: rgba(14, 165, 201, 0.15) !important;
   color: #38BDF8 !important;
   border: 1px solid rgba(56, 189, 248, 0.25) !important;
 }
 
-html.dark-mode .completed-modal-container .modal-ticket-asset-name,
-body.dark-mode .completed-modal-container .modal-ticket-asset-name,
-html.high-contrast .completed-modal-container .modal-ticket-asset-name,
-[data-theme="dark"] .completed-modal-container .modal-ticket-asset-name,
-html.dark .completed-modal-container .modal-ticket-asset-name,
-body.dark .completed-modal-container .modal-ticket-asset-name {
+html.dark-mode .modal-ticket-asset-name,
+body.dark-mode .modal-ticket-asset-name,
+html.high-contrast .modal-ticket-asset-name,
+[data-theme="dark"] .modal-ticket-asset-name,
+html.dark .modal-ticket-asset-name,
+body.dark .modal-ticket-asset-name {
   color: var(--text-dark, #F8FAFC) !important;
 }
 
-html.dark-mode .completed-modal-container .modal-ticket-reporter,
-body.dark-mode .completed-modal-container .modal-ticket-reporter,
-html.high-contrast .completed-modal-container .modal-ticket-reporter,
-[data-theme="dark"] .completed-modal-container .modal-ticket-reporter,
-html.dark .completed-modal-container .modal-ticket-reporter,
-body.dark .completed-modal-container .modal-ticket-reporter {
+html.dark-mode .modal-ticket-reporter,
+body.dark-mode .modal-ticket-reporter,
+html.high-contrast .modal-ticket-reporter,
+[data-theme="dark"] .modal-ticket-reporter,
+html.dark .modal-ticket-reporter,
+body.dark .modal-ticket-reporter {
   color: var(--text-mid, #CBD5E1) !important;
 }
 
-html.dark-mode .completed-modal-container .modal-ticket-reporter span[style*="background"],
-body.dark-mode .completed-modal-container .modal-ticket-reporter span[style*="background"],
-html.high-contrast .completed-modal-container .modal-ticket-reporter span[style*="background"],
-[data-theme="dark"] .completed-modal-container .modal-ticket-reporter span[style*="background"],
-html.dark .completed-modal-container .modal-ticket-reporter span[style*="background"],
-body.dark .completed-modal-container .modal-ticket-reporter span[style*="background"] {
+html.dark-mode .modal-ticket-reporter span[style*="background"],
+body.dark-mode .modal-ticket-reporter span[style*="background"],
+html.high-contrast .modal-ticket-reporter span[style*="background"],
+[data-theme="dark"] .modal-ticket-reporter span[style*="background"],
+html.dark .modal-ticket-reporter span[style*="background"],
+body.dark .modal-ticket-reporter span[style*="background"],
+html.dark-mode .reporter-section-badge,
+body.dark-mode .reporter-section-badge,
+html.high-contrast .reporter-section-badge,
+[data-theme="dark"] .reporter-section-badge,
+html.dark .reporter-section-badge,
+body.dark .reporter-section-badge {
   background: rgba(255, 255, 255, 0.08) !important;
   color: var(--text-mid, #CBD5E1) !important;
 }
@@ -1313,40 +1429,40 @@ body.dark .completed-modal-container .issue-badge-none {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-html.dark-mode .completed-modal-container .modal-ticket-remarks,
-body.dark-mode .completed-modal-container .modal-ticket-remarks,
-html.high-contrast .completed-modal-container .modal-ticket-remarks,
-[data-theme="dark"] .completed-modal-container .modal-ticket-remarks,
-html.dark .completed-modal-container .modal-ticket-remarks,
-body.dark .completed-modal-container .modal-ticket-remarks {
+html.dark-mode .modal-ticket-remarks,
+body.dark-mode .modal-ticket-remarks,
+html.high-contrast .modal-ticket-remarks,
+[data-theme="dark"] .modal-ticket-remarks,
+html.dark .modal-ticket-remarks,
+body.dark .modal-ticket-remarks {
   background: rgba(15, 23, 42, 0.6) !important;
   border: 1px solid var(--border-light, #374151) !important;
 }
 
-html.dark-mode .completed-modal-container .modal-remarks-header,
-body.dark-mode .completed-modal-container .modal-remarks-header,
-html.high-contrast .completed-modal-container .modal-remarks-header,
-[data-theme="dark"] .completed-modal-container .modal-remarks-header,
-html.dark .completed-modal-container .modal-remarks-header,
-body.dark .completed-modal-container .modal-remarks-header {
+html.dark-mode .modal-remarks-header,
+body.dark-mode .modal-remarks-header,
+html.high-contrast .modal-remarks-header,
+[data-theme="dark"] .modal-remarks-header,
+html.dark .modal-remarks-header,
+body.dark .modal-remarks-header {
   color: var(--text-muted, #94A3B8) !important;
 }
 
-html.dark-mode .completed-modal-container .modal-remarks-body,
-body.dark-mode .completed-modal-container .modal-remarks-body,
-html.high-contrast .completed-modal-container .modal-remarks-body,
-[data-theme="dark"] .completed-modal-container .modal-remarks-body,
-html.dark .completed-modal-container .modal-remarks-body,
-body.dark .completed-modal-container .modal-remarks-body {
+html.dark-mode .modal-remarks-body,
+body.dark-mode .modal-remarks-body,
+html.high-contrast .modal-remarks-body,
+[data-theme="dark"] .modal-remarks-body,
+html.dark .modal-remarks-body,
+body.dark .modal-remarks-body {
   color: var(--text-dark, #F8FAFC) !important;
 }
 
-html.dark-mode .completed-modal-container .modal-remarks-body.is-empty,
-body.dark-mode .completed-modal-container .modal-remarks-body.is-empty,
-html.high-contrast .completed-modal-container .modal-remarks-body.is-empty,
-[data-theme="dark"] .completed-modal-container .modal-remarks-body.is-empty,
-html.dark .completed-modal-container .modal-remarks-body.is-empty,
-body.dark .completed-modal-container .modal-remarks-body.is-empty {
+html.dark-mode .modal-remarks-body.is-empty,
+body.dark-mode .modal-remarks-body.is-empty,
+html.high-contrast .modal-remarks-body.is-empty,
+[data-theme="dark"] .modal-remarks-body.is-empty,
+html.dark .modal-remarks-body.is-empty,
+body.dark .modal-remarks-body.is-empty {
   color: #64748B !important;
 }
 

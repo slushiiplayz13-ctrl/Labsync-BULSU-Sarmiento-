@@ -124,7 +124,7 @@
      * @param {Array} facultyList
      * @param {HTMLElement|string} containerTarget
      */
-    renderFacultyCards(facultyList, containerTarget) {
+    renderFacultyCards(facultyList, containerTarget, force = false) {
       const container = typeof containerTarget === 'string'
         ? document.querySelector(containerTarget)
         : containerTarget;
@@ -154,12 +154,12 @@
       }
 
       const existingCards = container.querySelectorAll('.faculty-card');
-      if (existingCards.length === facultyList.length) {
-        const existingNames = Array.from(existingCards).map(c => c.getAttribute('data-name') || '').join('|');
-        const newNames = facultyList.map(m => String(m.Name || '').toLowerCase()).join('|');
+      if (!force && existingCards.length === facultyList.length) {
+        const existingSignatures = Array.from(existingCards).map(c => `${c.getAttribute('data-name') || ''}:${c.getAttribute('data-role') || ''}`).join('|');
+        const newSignatures = facultyList.map(m => `${String(m.Name || '').toLowerCase()}:${String(m.Role || '').toLowerCase()}`).join('|');
         const hasMenu = container.querySelector('.faculty-menu-btn');
-        if (existingNames === newNames && hasMenu) {
-          // Roster matches pre-hydrated cards perfectly, keep DOM intact without reflow
+        if (existingSignatures === newSignatures && hasMenu) {
+          // Both names and roles match perfectly, keep DOM intact without reflow
           return;
         }
       }

@@ -121,8 +121,12 @@
           if (global.applyCardColor) {
             global.applyCardColor(card, themeName);
           }
-          if (global.scheduleState) global.scheduleState.isDirty = true;
-          global.isDirty = true;
+          if (global.scheduleState && typeof global.scheduleState.updateSaveButtonState === 'function') {
+            global.scheduleState.updateSaveButtonState();
+          } else {
+            if (global.scheduleState) global.scheduleState.isDirty = true;
+            global.isDirty = true;
+          }
           modalColorPicker.querySelectorAll('.color-dot, .color-wheel-btn').forEach(el => {
             el.style.border = '1.5px solid rgba(15, 23, 42, 0.15)';
           });
@@ -149,8 +153,12 @@
         if (global.applyCardColor) {
           global.applyCardColor(card, hexVal);
         }
-        if (global.scheduleState) global.scheduleState.isDirty = true;
-        global.isDirty = true;
+        if (global.scheduleState && typeof global.scheduleState.updateSaveButtonState === 'function') {
+          global.scheduleState.updateSaveButtonState();
+        } else {
+          if (global.scheduleState) global.scheduleState.isDirty = true;
+          global.isDirty = true;
+        }
         modalColorPicker.querySelectorAll('.color-dot, .color-wheel-btn').forEach(el => {
           el.style.border = '1.5px solid rgba(15, 23, 42, 0.15)';
           el.classList.remove('selected-theme');
@@ -166,6 +174,7 @@
     }
 
     detailModal.style.display = 'flex';
+    if (global.setModalOpenState) global.setModalOpenState(true);
     setTimeout(() => {
       detailModal.classList.add('active');
     }, 10);
@@ -185,6 +194,7 @@
       setTimeout(() => {
         detailModal.style.display = 'none';
       }, 200);
+      if (global.setModalOpenState) global.setModalOpenState(false);
     }
     activeEditingCard = null;
     if (global.scheduleState) global.scheduleState.setActiveEditingCard(null);
@@ -206,10 +216,17 @@
     const modal = document.getElementById('unsavedChangesModal') || document.getElementById('unsaved-changes-modal');
     if (modal) {
       modal.style.display = 'flex';
+      if (global.setModalOpenState) global.setModalOpenState(true);
       setTimeout(() => modal.classList.add('active'), 10);
       if (global.lucide && typeof global.lucide.createIcons === 'function') {
         global.lucide.createIcons({ root: modal });
       }
+      modal.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      modal.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+      });
     } else {
       const confirmLeave = confirm('You have unsaved changes. Are you sure you want to discard them?');
       if (confirmLeave) {
@@ -261,6 +278,7 @@
         if (confirmModal) {
           confirmModal.classList.remove('active');
           setTimeout(() => { confirmModal.style.display = 'none'; }, 200);
+          if (global.setModalOpenState) global.setModalOpenState(false);
         }
         const revertCallback = (global.scheduleState && global.scheduleState.getRevertSelectCallback && global.scheduleState.getRevertSelectCallback()) || global.revertSelectCallback;
         if (typeof revertCallback === 'function') revertCallback();
@@ -275,6 +293,7 @@
         if (confirmModal) {
           confirmModal.classList.remove('active');
           setTimeout(() => { confirmModal.style.display = 'none'; }, 200);
+          if (global.setModalOpenState) global.setModalOpenState(false);
         }
         const pendingAction = (global.scheduleState && global.scheduleState.getPendingAction && global.scheduleState.getPendingAction()) || global.pendingAction;
         if (typeof pendingAction === 'function') pendingAction();
@@ -294,6 +313,7 @@
           if (confirmModal) {
             confirmModal.classList.remove('active');
             setTimeout(() => { confirmModal.style.display = 'none'; }, 200);
+            if (global.setModalOpenState) global.setModalOpenState(false);
           }
           const pendingAction = (global.scheduleState && global.scheduleState.getPendingAction && global.scheduleState.getPendingAction()) || global.pendingAction;
           if (typeof pendingAction === 'function') pendingAction();
@@ -423,8 +443,9 @@
           return;
         }
 
-        if (global.scheduleState) global.scheduleState.isDirty = true;
-        global.isDirty = true;
+        if (global.scheduleState && typeof global.scheduleState.updateSaveButtonState === 'function') {
+          global.scheduleState.updateSaveButtonState();
+        }
 
         const emptyMsg = document.getElementById('no-blocks-msg');
         if (emptyMsg) emptyMsg.remove();
@@ -517,6 +538,9 @@
         if (activeEditingCard && persistence && typeof persistence.deleteGridCardRef === 'function') {
           persistence.deleteGridCardRef(activeEditingCard);
         }
+        if (global.scheduleState && typeof global.scheduleState.updateSaveButtonState === 'function') {
+          global.scheduleState.updateSaveButtonState();
+        }
         closeCardDetailModal();
       });
     }
@@ -527,50 +551,53 @@
     const detailModal = document.getElementById('card-detail-modal');
     if (detailModal) {
       detailModal.addEventListener('click', (e) => {
-        if (e.target === detailModal) closeCardDetailModal();
+        e.stopPropagation();
+      });
+      detailModal.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
       });
     }
 
-    // Save schedule / Edit mode button
+    // Save schedule button
     const saveBtn = document.getElementById('save-schedule-btn');
     if (saveBtn) {
       saveBtn.addEventListener('click', async () => {
-        const isCurrentViewMode = document.body.classList.contains('view-mode');
-        if (!isCurrentViewMode) {
-          try {
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
-            const saved = persistence && typeof persistence.saveCurrentSchedule === 'function'
-              ? await persistence.saveCurrentSchedule()
-              : true;
-            if (!saved) return;
-            if (global.showToast) {
-              global.showToast('Schedule saved successfully!', 'success');
-            }
-          } catch (err) {
-            console.error('Error saving schedule:', err);
-            if (global.showToast) {
-              global.showToast('Failed to save schedule. Please try again.', 'error');
-            } else {
-              alert('Failed to save schedule.');
-            }
-            return;
-          } finally {
-            saveBtn.disabled = false;
+        const state = global.scheduleState;
+        if (state && typeof state.hasChanges === 'function' && !state.hasChanges()) {
+          return;
+        }
+
+        try {
+          saveBtn.disabled = true;
+          saveBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width: 17px; height: 17px;"></i> Saving...';
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons({ root: saveBtn });
           }
 
-          document.body.classList.add('view-mode');
-          saveBtn.innerHTML = '<i data-lucide="edit-2" style="width: 20px; height: 20px;"></i> Edit Schedule';
-          document.querySelectorAll('.schedule-block').forEach(b => b.draggable = false);
-          document.querySelectorAll('.grid-card').forEach(b => b.draggable = false);
-        } else {
-          document.body.classList.remove('view-mode');
-          saveBtn.innerHTML = '<i data-lucide="save" style="width: 20px; height: 20px;"></i> Save Schedule';
-          document.querySelectorAll('.schedule-block').forEach(b => b.draggable = true);
-          document.querySelectorAll('.grid-card').forEach(b => b.draggable = true);
-        }
-        if (global.lucide && typeof global.lucide.createIcons === 'function') {
-          global.lucide.createIcons({ root: saveBtn });
+          const saved = persistence && typeof persistence.saveCurrentSchedule === 'function'
+            ? await persistence.saveCurrentSchedule()
+            : true;
+          if (!saved) return;
+          if (global.showToast) {
+            global.showToast('Schedule saved successfully!', 'success');
+          }
+        } catch (err) {
+          console.error('Error saving schedule:', err);
+          if (global.showToast) {
+            global.showToast('Failed to save schedule. Please try again.', 'error');
+          } else {
+            alert('Failed to save schedule.');
+          }
+        } finally {
+          saveBtn.innerHTML = '<i data-lucide="save" style="width: 17px; height: 17px;"></i> Save Schedule';
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons({ root: saveBtn });
+          }
+          if (state && typeof state.updateSaveButtonState === 'function') {
+            state.updateSaveButtonState();
+          } else {
+            saveBtn.disabled = false;
+          }
         }
       });
     }
@@ -579,6 +606,25 @@
     const printBtn = document.getElementById('print-schedule-btn');
     if (printBtn) {
       printBtn.addEventListener('click', preparePrint);
+    }
+
+    // Set up MutationObserver on grid body to monitor any card additions, removals, moves, or attribute modifications
+    if (gridBody && typeof MutationObserver !== 'undefined') {
+      const gridObserver = new MutationObserver(() => {
+        if (global.scheduleState && typeof global.scheduleState.updateSaveButtonState === 'function') {
+          global.scheduleState.updateSaveButtonState();
+        }
+      });
+      gridObserver.observe(gridBody, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['data-start', 'data-end', 'data-color', 'style']
+      });
+    }
+
+    if (global.scheduleState && typeof global.scheduleState.updateSaveButtonState === 'function') {
+      global.scheduleState.updateSaveButtonState();
     }
 
     setupDirtyGuard();

@@ -13,6 +13,7 @@ const {
 
 router.post('/login', loginLimiter, authController.login);
 router.post('/logout', requireAuth, authController.logout);
+router.post('/touch-session', requireAuth, authController.touchSession);
 router.get('/check', authController.checkAuth);
 router.post('/recover-password', passwordRecoveryLimiter, authController.recoverPassword);
 router.get('/validate-reset-token', validateResetTokenLimiter, authController.validateResetToken);

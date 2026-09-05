@@ -94,7 +94,7 @@
     </div>
     <div class="header-right">
       <a href="#" id="aboutLink">About</a>
-      <a href="#">Contact</a>
+      <a href="#" id="contactLink">Contact</a>
     </div>
   </header>
 
@@ -117,7 +117,7 @@
 
       <div class="form-group">
         <input type="email" id="email" placeholder="Enter Email" autocomplete="username">
-        <button type="button" id="emailClear" class="form-icon input-icon-btn" aria-label="Clear email" hidden>
+        <button type="button" id="emailClear" class="form-icon input-icon-btn" aria-label="Clear email" style="display: none;" hidden>
           <i data-lucide="x-circle" style="width: 18px; height: 18px;"></i>
         </button>
       </div>
@@ -125,7 +125,7 @@
       <div class="form-group">
         <input type="password" id="password" placeholder="Password" autocomplete="current-password">
         <button type="button" id="passwordToggle" class="form-icon input-icon-btn" aria-label="Show password"
-          aria-pressed="false">
+          aria-pressed="false" style="display: none;" hidden>
           <i data-lucide="eye-off" style="width: 18px; height: 18px;"></i>
         </button>
       </div>
@@ -236,6 +236,20 @@
       <div class="about-footer">
         © 2026 LabSync • BulSU Sarmiento Campus
       </div>
+    </div>
+  </div>
+
+  <!-- Contact Modal -->
+  <div id="contactModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle">
+    <div class="modal-card">
+      <button type="button" class="modal-close-btn" id="closeContactModalBtn"
+        aria-label="Close contact modal">&times;</button>
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--primary-teal-light); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: var(--primary-teal);">
+        <i data-lucide="mail" style="width: 24px; height: 24px;"></i>
+      </div>
+      <h2 id="contactModalTitle">Contact LabSync</h2>
+      <p>Contact information is currently unavailable.<br>Please check back later for the appropriate contact details.</p>
+      <button type="button" class="submit-btn" id="closeContactActionBtn" style="max-width: 140px; padding: 12px 20px; font-size: 14px;">Close</button>
     </div>
   </div>
 

@@ -15,6 +15,14 @@
   function showToast(message, type = 'success', title = null) {
     if (!message) return;
 
+    let displayMsg = typeof message === 'string' ? message : String(message || '');
+    if (displayMsg.includes('max_allowed_packet') || displayMsg.includes('packet bigger')) {
+      displayMsg = 'The selected profile photo is too large to save. Please choose a smaller image and try again.';
+      if (!type || type === 'info' || type === 'success') {
+        type = 'error';
+      }
+    }
+
     let container = document.getElementById('labsync-toast-container');
     if (!container) {
       container = document.createElement('div');
@@ -34,8 +42,8 @@
       if (targetParent) targetParent.appendChild(container);
     }
 
-    const lowerMsg = typeof message === 'string' ? message.toLowerCase() : '';
-    const isError = type === 'error' || (!type && (lowerMsg.includes('failed') || lowerMsg.includes('error') || lowerMsg.includes('invalid')));
+    const lowerMsg = displayMsg.toLowerCase();
+    const isError = type === 'error' || (!type && (lowerMsg.includes('failed') || lowerMsg.includes('error') || lowerMsg.includes('invalid') || lowerMsg.includes('too large') || lowerMsg.includes('exceed')));
     const isWarning = type === 'warning' || (!type && (lowerMsg.includes('conflict') || lowerMsg.includes('overlap') || lowerMsg.includes('already scheduled') || lowerMsg.includes('already assigned') || lowerMsg.includes('warning')));
     const isInfo = type === 'info';
 
@@ -82,7 +90,7 @@
           <span>${escapeFn(toastTitle)}</span>
           <button class="labsync-toast-close" style="background: none; border: none; font-size: 16px; color: var(--text-muted, #94A3B8); cursor: pointer; padding: 0 4px; line-height: 1; margin-left: 8px;">&times;</button>
         </div>
-        <div style="font-size: 13.5px; color: var(--text-mid, #475569); line-height: 1.4; word-break: break-word;">${escapeFn(message)}</div>
+        <div style="font-size: 13.5px; color: var(--text-mid, #475569); line-height: 1.4; word-break: break-word;">${escapeFn(displayMsg)}</div>
       </div>
     `;
 
@@ -274,6 +282,7 @@
       `;
 
       document.body.appendChild(overlay);
+      if (global.setModalOpenState) global.setModalOpenState(true);
 
       if (typeof global.renderIcons === 'function') {
         global.renderIcons(overlay);
@@ -297,6 +306,7 @@
         window.removeEventListener('keydown', handleKey);
         setTimeout(() => {
           overlay.remove();
+          if (global.setModalOpenState) global.setModalOpenState(false);
           resolve(result);
         }, 220);
       }
@@ -317,7 +327,10 @@
       if (okBtn) okBtn.addEventListener('click', () => cleanup(true));
 
       overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) cleanup(false);
+        e.stopPropagation();
+      });
+      overlay.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
       });
 
       if (okBtn) okBtn.focus();
@@ -327,10 +340,15 @@
   // Override browser native alert to use LabSync UI Toast
   function customAlert(msg) {
     if (global.showToast) {
-      const lower = typeof msg === 'string' ? msg.toLowerCase() : '';
-      const isErr = lower.includes('failed') || lower.includes('error') || lower.includes('invalid') || lower.includes('cannot');
-      const isWarn = lower.includes('conflict') || lower.includes('overlap') || lower.includes('already') || lower.includes('warning') || lower.includes('please');
-      const isSuccess = lower.includes('success') || lower.includes('saved') || lower.includes('updated') || lower.includes('added') || lower.includes('created') || lower.includes('resolved') || lower.includes('completed');
+      let displayMsg = typeof msg === 'string' ? msg : String(msg || '');
+      if (displayMsg.includes('max_allowed_packet') || displayMsg.includes('packet bigger')) {
+        displayMsg = 'The selected profile photo is too large to save. Please choose a smaller image and try again.';
+      }
+
+      const lower = displayMsg.toLowerCase();
+      const isErr = lower.includes('failed') || lower.includes('error') || lower.includes('invalid') || lower.includes('cannot') || lower.includes('too large') || lower.includes('exceed') || lower.includes('packet');
+      const isWarn = lower.includes('conflict') || lower.includes('overlap') || lower.includes('already') || lower.includes('warning') || (lower.includes('please') && !isErr);
+      const isSuccess = (lower.includes('success') || lower.includes('saved') || lower.includes('updated') || lower.includes('added') || lower.includes('created') || lower.includes('resolved') || lower.includes('completed')) && !isErr;
 
       let type = 'info';
       let title = null;
@@ -345,7 +363,7 @@
         type = 'success';
       }
 
-      global.showToast(msg, type, title);
+      global.showToast(displayMsg, type, title);
     } else {
       console.log('[LabSync Alert]:', msg);
     }

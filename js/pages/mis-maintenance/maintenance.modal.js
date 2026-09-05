@@ -23,6 +23,7 @@
   function closeTicketModal() {
     const existingModal = document.getElementById('ticket-details-modal');
     if (existingModal) {
+      if (global.setModalOpenState) global.setModalOpenState(false);
       existingModal.remove();
     }
   }
@@ -223,6 +224,13 @@
     `;
 
     document.body.appendChild(modal);
+    if (global.setModalOpenState) global.setModalOpenState(true);
+    modal.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    modal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: modal });
     }

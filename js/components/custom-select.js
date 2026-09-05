@@ -143,7 +143,10 @@
    */
   function populateCustomYearSelectors(arg1, arg2, arg3, arg4) {
     let targetId = 'academic-year-wrapper';
-    let initAY = `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+    let defaultAY = (global.AcademicTerm && typeof global.AcademicTerm.getCurrentAcademicYear === 'function')
+      ? global.AcademicTerm.getCurrentAcademicYear()
+      : `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+    let initAY = defaultAY;
     let callback = null;
 
     if (typeof arg1 === 'string' && document.getElementById(arg1)) {
@@ -166,11 +169,15 @@
     const dropdown = wrapper.querySelector('.custom-select-dropdown');
     if (!dropdown) return;
 
-    const currentYear = new Date().getFullYear();
-    const yearOptions = [];
-
-    for (let y = currentYear; y <= currentYear + 6; y++) {
-      yearOptions.push(`${y}-${y + 1}`);
+    let yearOptions = (global.AcademicTerm && typeof global.AcademicTerm.getAvailableAcademicYears === 'function')
+      ? global.AcademicTerm.getAvailableAcademicYears(initAY, 0, 5)
+      : [];
+    if (!yearOptions || yearOptions.length === 0) {
+      const currentYear = new Date().getFullYear();
+      yearOptions = [];
+      for (let y = currentYear; y <= currentYear + 5; y++) {
+        yearOptions.push(`${y}-${y + 1}`);
+      }
     }
 
     dropdown.innerHTML = '';
@@ -184,7 +191,7 @@
     });
 
     if (!/^\d{4}-\d{4}$/.test(initAY)) {
-      initAY = `${currentYear}-${currentYear + 1}`;
+      initAY = defaultAY;
     }
 
     initCustomSelect(wrapper.id, () => {

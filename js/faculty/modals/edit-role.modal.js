@@ -12,7 +12,7 @@
 
     const modal = document.createElement('div');
     modal.id = 'role-edit-modal';
-    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;transition:opacity 0.25s ease;';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2500 !important;opacity:0;transition:opacity 0.25s ease;';
 
     modal.innerHTML = `
       <div style="background:#fff;border-radius:18px;width:90%;max-width:440px;padding:28px;box-shadow:0 20px 40px rgba(0,0,0,0.2);transform:translateY(20px);transition:transform 0.25s ease;">
@@ -56,6 +56,7 @@
     `;
 
     document.body.appendChild(modal);
+    if (global.setModalOpenState) global.setModalOpenState(true);
     setTimeout(() => {
       modal.style.opacity = '1';
       const dialog = modal.querySelector('div');
@@ -70,6 +71,7 @@
     }
 
     const closeModal = () => {
+      if (global.setModalOpenState) global.setModalOpenState(false);
       modal.style.opacity = '0';
       const dialog = modal.querySelector('div');
       if (dialog) dialog.style.transform = 'translateY(20px)';
@@ -81,7 +83,10 @@
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
+      e.stopPropagation();
+    });
+    modal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     const roleForm = document.getElementById('change-role-form');
@@ -110,7 +115,7 @@
             if (typeof onSuccess === 'function') {
               await onSuccess();
             } else if (typeof global.loadFacultyMembers === 'function') {
-              await global.loadFacultyMembers();
+              await global.loadFacultyMembers(true);
             }
 
             if (newRole === 'IT Dept. Head') {
@@ -128,9 +133,59 @@
                 } catch (err) {}
               }
 
+              const cachedSessionUser = sessionStorage.getItem('labsync_user');
+              if (cachedSessionUser) {
+                try {
+                  const sUserObj = JSON.parse(cachedSessionUser);
+                  sUserObj.role = 'Faculty';
+                  sessionStorage.setItem('labsync_user', JSON.stringify(sUserObj));
+                } catch (err) {}
+              }
+
+              // Broadcast role change across all open tabs
+              try {
+                localStorage.setItem('labsync_role_updated', JSON.stringify({
+                  role: 'Faculty',
+                  timestamp: Date.now()
+                }));
+              } catch (err) {}
+
+              // Immediately remove restricted administrative controls from active DOM
+              const addBtn = document.getElementById('add-faculty-btn');
+              if (addBtn) addBtn.remove();
+
+              // Remove restricted IT Head sidebar buttons from active navigation
+              document.querySelectorAll('.sidebar-btn[title="Master Schedule"], .sidebar-btn[title="Faculty Management"], .sidebar-btn[data-tooltip="Master Schedule"], .sidebar-btn[data-tooltip="Faculty Management"]').forEach(b => {
+                b.remove();
+              });
+
+              // Remove faculty admin action menus
+              document.querySelectorAll('.faculty-menu-btn, .faculty-dropdown-menu').forEach(el => el.remove());
+
               const transferModal = global.transferLeadershipModal;
               if (transferModal && typeof transferModal.showSuccessGreetingModal === 'function') {
-                transferModal.showSuccessGreetingModal(name);
+                transferModal.showSuccessGreetingModal(name, () => {
+                  window.location.replace('index.html');
+                });
+              } else {
+                window.location.replace('index.html');
+              }
+            } else {
+              // Check if user edited their own account
+              try {
+                const curUser = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || '{}');
+                const curUserId = (curUser.user || curUser).User_ID || (curUser.user || curUser).userId;
+                if (curUserId && String(curUserId) === String(userId)) {
+                  (curUser.user || curUser).role = newRole;
+                  localStorage.setItem('user', JSON.stringify(curUser));
+                  sessionStorage.setItem('labsync_user', JSON.stringify(curUser));
+                  const profileRoleEl = document.querySelector('.profile-role');
+                  if (profileRoleEl) profileRoleEl.textContent = newRole;
+                }
+              } catch (e) {}
+
+              if (typeof global.showToast === 'function') {
+                global.showToast(`Role for ${name} updated to ${newRole}.`, 'success', 'Role Updated');
               }
             }
           } catch (err) {

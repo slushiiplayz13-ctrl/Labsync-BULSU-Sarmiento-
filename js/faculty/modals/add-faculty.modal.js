@@ -12,7 +12,7 @@
 
     const modal = document.createElement('div');
     modal.id = 'add-faculty-modal';
-    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2500 !important;';
 
     modal.innerHTML = `
       <div style="background:#fff;border-radius:16px;width:90%;max-width:500px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
@@ -26,7 +26,7 @@
         <form id="add-faculty-form" style="display:flex;flex-direction:column;gap:20px;">
           <div>
             <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Full Name *</label>
-            <input type="text" id="faculty-name" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:8px;font-size:14px;font-family:var(--font-body);outline:none;transition:border-color 0.2s;" placeholder="e.g. Juan Dela Cruz">
+            <input type="text" id="faculty-name" maxlength="60" required style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:8px;font-size:14px;font-family:var(--font-body);outline:none;transition:border-color 0.2s;" placeholder="e.g. Juan Dela Cruz">
             <div id="faculty-name-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i><span id="faculty-name-error-text">Numbers and symbols are not allowed in names.</span></div>
           </div>
           
@@ -50,6 +50,7 @@
     `;
 
     document.body.appendChild(modal);
+    if (global.setModalOpenState) global.setModalOpenState(true);
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: modal });
     }
@@ -59,12 +60,20 @@
       if (input) input.focus();
     }, 100);
 
+    const closeModal = () => {
+      if (global.setModalOpenState) global.setModalOpenState(false);
+      modal.remove();
+    };
+
     const closeBtn = document.getElementById('close-modal');
     const cancelBtn = document.getElementById('cancel-btn');
-    if (closeBtn) closeBtn.addEventListener('click', () => modal.remove());
-    if (cancelBtn) cancelBtn.addEventListener('click', () => modal.remove());
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.remove();
+      e.stopPropagation();
+    });
+    modal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     const nameInput = document.getElementById('faculty-name');
@@ -72,15 +81,29 @@
     const nameErrText = document.getElementById('faculty-name-error-text');
     const validateName = (name) => {
       if (global.facultyUtils && typeof global.facultyUtils.validateFacultyName === 'function') {
-        return global.facultyUtils.validateFacultyName(name);
+        return global.facultyUtils.validateFacultyName(name, global.allFacultyMembers);
       }
       if (!name || !name.trim()) return { valid: false, error: 'Full name is required.' };
-      const trimmed = name.trim();
+      const trimmed = name.trim().replace(/\s+/g, ' ');
       if (trimmed.length < 2) return { valid: false, error: 'Name must be at least 2 characters long.' };
+      if (trimmed.length > 60) return { valid: false, error: 'Full name must not exceed 60 characters.' };
       if (/\d/.test(trimmed)) return { valid: false, error: 'Numbers are not allowed in faculty names.' };
       const nameRegex = /^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s.',-]+$/;
       if (!nameRegex.test(trimmed)) {
         return { valid: false, error: 'Special symbols (@, #, $, etc.) are not allowed.' };
+      }
+      if (Array.isArray(global.allFacultyMembers) && global.allFacultyMembers.length > 0) {
+        const norm = trimmed.toLowerCase();
+        const exists = global.allFacultyMembers.some(f => {
+          const fName = (f.Name || f.name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+          return fName === norm;
+        });
+        if (exists) {
+          return {
+            valid: false,
+            error: `A faculty member with the name "${trimmed}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`
+          };
+        }
       }
       return { valid: true };
     };
@@ -200,7 +223,7 @@
             alert(`Faculty member added successfully! Login credentials delivered to ${formData.email}.`);
           }
 
-          modal.remove();
+          closeModal();
 
           if (typeof onSuccess === 'function') {
             await onSuccess();

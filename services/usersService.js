@@ -115,7 +115,30 @@ async function updateUserAccount(userId, reqBody, session) {
         if (typeof name !== 'string' || name.trim().length === 0) {
             return { status: 400, error: 'Name cannot be empty.' };
         }
-        resolvedName = name.trim();
+        const trimmedName = name.trim().replace(/\s+/g, ' ');
+        if (trimmedName.length < 2) {
+            return { status: 400, error: 'Full name must be at least 2 characters long.' };
+        }
+        if (trimmedName.length > 60) {
+            return { status: 400, error: 'Full name must not exceed 60 characters.' };
+        }
+        if (/\d/.test(trimmedName)) {
+            return { status: 400, error: 'Numbers are not allowed in full name.' };
+        }
+        const nameRegex = /^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s.',-]+$/;
+        if (!nameRegex.test(trimmedName)) {
+            return { status: 400, error: 'Special symbols are not allowed in full name.' };
+        }
+
+        const [existingUsersWithName] = await userRepository.findByNameExcludingUser(trimmedName, userId);
+        if (existingUsersWithName && existingUsersWithName.length > 0) {
+            return {
+                status: 400,
+                error: `A user with the name "${trimmedName}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`
+            };
+        }
+
+        resolvedName = trimmedName;
     }
 
     const [users] = await userRepository.findFullById(userId);
@@ -178,12 +201,22 @@ async function updateUserAccount(userId, reqBody, session) {
 
         await userRepository.updatePasswordOnly(userId, hashedNewPassword);
 
-        if (resolvedName !== undefined || profilePhoto !== undefined || validatedPhone !== undefined) {
-            await userRepository.updateUserProfile(userId, {
-                name: resolvedName,
-                profilePhoto,
-                phone: validatedPhone
-            });
+        try {
+            if (resolvedName !== undefined || profilePhoto !== undefined || validatedPhone !== undefined) {
+                await userRepository.updateUserProfile(userId, {
+                    name: resolvedName,
+                    profilePhoto,
+                    phone: validatedPhone
+                });
+            }
+        } catch (dbErr) {
+            if (dbErr && (dbErr.code === 'ER_NET_PACKET_TOO_LARGE' || dbErr.errno === 1153 || (typeof dbErr.message === 'string' && (dbErr.message.includes('max_allowed_packet') || dbErr.message.includes('packet bigger'))))) {
+                return {
+                    status: 400,
+                    error: 'The selected profile photo is too large to save. Please choose a smaller image and try again.'
+                };
+            }
+            throw dbErr;
         }
 
         auditService.logSecurityEvent({
@@ -196,12 +229,22 @@ async function updateUserAccount(userId, reqBody, session) {
             result: 'SUCCESS'
         });
     } else {
-        if (resolvedName !== undefined || profilePhoto !== undefined || validatedPhone !== undefined) {
-            await userRepository.updateUserProfile(userId, {
-                name: resolvedName,
-                profilePhoto,
-                phone: validatedPhone
-            });
+        try {
+            if (resolvedName !== undefined || profilePhoto !== undefined || validatedPhone !== undefined) {
+                await userRepository.updateUserProfile(userId, {
+                    name: resolvedName,
+                    profilePhoto,
+                    phone: validatedPhone
+                });
+            }
+        } catch (dbErr) {
+            if (dbErr && (dbErr.code === 'ER_NET_PACKET_TOO_LARGE' || dbErr.errno === 1153 || (typeof dbErr.message === 'string' && (dbErr.message.includes('max_allowed_packet') || dbErr.message.includes('packet bigger'))))) {
+                return {
+                    status: 400,
+                    error: 'The selected profile photo is too large to save. Please choose a smaller image and try again.'
+                };
+            }
+            throw dbErr;
         }
     }
 

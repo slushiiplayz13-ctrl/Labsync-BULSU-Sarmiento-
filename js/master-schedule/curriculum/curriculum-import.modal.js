@@ -80,7 +80,12 @@
       isFileUploadedToCurriculum = false;
       global.isFileUploadedToCurriculum = false;
       fetchExistingCurriculum();
+      const wasAlreadyOpen = importCurriculumModal.style.display === 'flex' && !importCurriculumModal.classList.contains('closing');
+      importCurriculumModal.classList.remove('closing');
+      importCurriculumModal.removeAttribute('data-closing');
       importCurriculumModal.style.display = 'flex';
+      importCurriculumModal.style.pointerEvents = 'auto';
+      if (!wasAlreadyOpen && global.setModalOpenState) global.setModalOpenState(true);
       void importCurriculumModal.offsetWidth;
       importCurriculumModal.style.opacity = '1';
       const dialog = importCurriculumModal.querySelector('.modal-content');
@@ -91,11 +96,19 @@
     }
 
     function closeModal() {
+      if (importCurriculumModal.style.display === 'none' && !importCurriculumModal.classList.contains('closing')) return;
+      importCurriculumModal.classList.add('closing');
+      importCurriculumModal.setAttribute('data-closing', 'true');
       importCurriculumModal.style.opacity = '0';
+      importCurriculumModal.style.pointerEvents = 'none';
       const dialog = importCurriculumModal.querySelector('.modal-content');
       if (dialog) dialog.style.transform = 'translateY(20px)';
+      if (global.setModalOpenState) global.setModalOpenState(false);
       setTimeout(() => {
         importCurriculumModal.style.display = 'none';
+        importCurriculumModal.classList.remove('closing');
+        importCurriculumModal.removeAttribute('data-closing');
+        if (global.setModalOpenState) global.setModalOpenState(null);
       }, 300);
     }
 
@@ -104,7 +117,10 @@
     if (cancelImportCurriculumBtn) cancelImportCurriculumBtn.addEventListener('click', closeModal);
 
     importCurriculumModal.addEventListener('click', (e) => {
-      if (e.target === importCurriculumModal) closeModal();
+      e.stopPropagation();
+    });
+    importCurriculumModal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     if (curriculumFileInput) {

@@ -237,6 +237,8 @@ img[src*="bsu"] {
 .profile-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-width: 220px;
 }
 
 .profile-name {
@@ -245,12 +247,18 @@ img[src*="bsu"] {
   color: var(--text-dark);
   line-height: 1.3;
   font-family: var(--font-display);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .profile-role {
   font-size: 13px;
   color: var(--primary-teal);
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chevron-btn {

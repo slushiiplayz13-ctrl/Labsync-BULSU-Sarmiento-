@@ -301,16 +301,25 @@
     `;
 
     document.body.appendChild(modal);
+    if (global.setModalOpenState) global.setModalOpenState(true);
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: modal });
     }
 
+    const closeHelpFn = () => {
+      if (global.setModalOpenState) global.setModalOpenState(false);
+      modal.remove();
+    };
+
     const closeHelpModalBtn = document.getElementById('close-help-modal');
     const closeHelpBtn = document.getElementById('close-help-btn');
-    if (closeHelpModalBtn) closeHelpModalBtn.addEventListener('click', () => modal.remove());
-    if (closeHelpBtn) closeHelpBtn.addEventListener('click', () => modal.remove());
+    if (closeHelpModalBtn) closeHelpModalBtn.addEventListener('click', closeHelpFn);
+    if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelpFn);
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.remove();
+      e.stopPropagation();
+    });
+    modal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
   }
 

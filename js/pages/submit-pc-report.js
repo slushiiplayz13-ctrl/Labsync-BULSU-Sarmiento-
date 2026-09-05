@@ -327,6 +327,7 @@ async function handleSubmit() {
     }
     if (successModalEl) {
       successModalEl.style.display = 'flex';
+      if (typeof window.setModalOpenState === 'function') window.setModalOpenState(true);
     }
   } catch (error) {
     console.error('Error submitting report:', error);
@@ -353,6 +354,7 @@ function closeSuccessModal() {
   if (successModalEl) {
     successModalEl.style.display = 'none';
   }
+  if (typeof window.setModalOpenState === 'function') window.setModalOpenState(false);
   // Reset input fields
   const nameEl = document.getElementById('student-name');
   const sectionEl = document.getElementById('student-section');
@@ -389,6 +391,18 @@ window.closeSuccessModal = closeSuccessModal;
 window.handleSubmit = handleSubmit;
 window.toggleCheckbox = toggleCheckbox;
 window.toggleStatus = toggleStatus;
+
+function initSubmitPcReportPage() {
+  const successModalEl = document.getElementById('success-modal');
+  if (successModalEl) {
+    successModalEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    successModalEl.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
+  }
+}
 
 // Auto-initialize on script load or DOMContentLoaded
 if (document.readyState === 'loading') {

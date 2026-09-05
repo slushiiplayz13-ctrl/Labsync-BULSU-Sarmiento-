@@ -103,13 +103,16 @@
      * @param {string} name
      * @returns {{ valid: boolean, error?: string }}
      */
-    validateFacultyName(name) {
+    validateFacultyName(name, existingMembers = null) {
       if (!name || typeof name !== 'string' || !name.trim()) {
         return { valid: false, error: 'Full name is required.' };
       }
-      const trimmed = name.trim();
+      const trimmed = name.trim().replace(/\s+/g, ' ');
       if (trimmed.length < 2) {
         return { valid: false, error: 'Name must be at least 2 characters long.' };
+      }
+      if (trimmed.length > 60) {
+        return { valid: false, error: 'Full name must not exceed 60 characters.' };
       }
       if (/\d/.test(trimmed)) {
         return { valid: false, error: 'Numbers are not allowed in faculty names.' };
@@ -118,6 +121,22 @@
       if (!nameRegex.test(trimmed)) {
         return { valid: false, error: 'Special symbols (@, #, $, etc.) are not allowed.' };
       }
+
+      const listToCheck = existingMembers || (typeof global !== 'undefined' && Array.isArray(global.allFacultyMembers) ? global.allFacultyMembers : null);
+      if (Array.isArray(listToCheck) && listToCheck.length > 0) {
+        const norm = trimmed.toLowerCase();
+        const exists = listToCheck.some(f => {
+          const fName = (f.Name || f.name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+          return fName === norm;
+        });
+        if (exists) {
+          return {
+            valid: false,
+            error: `A faculty member with the name "${trimmed}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`
+          };
+        }
+      }
+
       return { valid: true };
     },
 

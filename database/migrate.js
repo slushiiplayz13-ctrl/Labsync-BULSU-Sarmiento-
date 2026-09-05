@@ -7,7 +7,9 @@ const db = require('./connection');
 const IGNORABLE_ERROR_CODES = [
     'ER_DUP_FIELDNAME',          // Duplicate column name
     'ER_CANT_DROP_FIELD_OR_KEY', // Can't drop field/key (doesn't exist)
+    'ER_DUP_KEYNAME',            // Duplicate key/index name
     1060,                        // Duplicate column name
+    1061,                        // Duplicate key name
     1091                         // Can't drop field/key
 ];
 

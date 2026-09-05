@@ -27,6 +27,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="css/tutorial.css" />
+  <link rel="stylesheet" href="css/components/modals.css" />
 
   <style>
     /* ─── CSS VARIABLES ─────────────────────────────────────────────── */
@@ -958,7 +959,8 @@
       bottom: 0;
       background: rgba(15, 23, 42, 0.5);
       backdrop-filter: blur(8px);
-      z-index: 1000;
+      z-index: 2500 !important;
+      pointer-events: auto !important;
       display: none;
       align-items: center;
       justify-content: center;
@@ -1659,6 +1661,7 @@
   </div>
 
   <!-- JavaScript -->
+  <script src="js/utils/core-utils.js"></script>
   <script src="js/services/report.service.js?v=1.0.5"></script>
   <script src="js/components/toast.js?v=1.0.5"></script>
   <script src="js/tutorial.js?v=1.0.5"></script>

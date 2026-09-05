@@ -7,7 +7,12 @@ async function findByEmail(email, executor = db) {
 }
 
 async function findByName(name, executor = db) {
-    return executor.query('SELECT * FROM users WHERE LOWER(TRIM(Name)) = LOWER(TRIM(?))', [name]);
+    if (!name) return [[]];
+    const cleanName = String(name).trim().replace(/\s+/g, ' ');
+    return executor.query(
+        "SELECT * FROM users WHERE LOWER(REGEXP_REPLACE(TRIM(Name), '[[:space:]]+', ' ')) = LOWER(?)",
+        [cleanName]
+    );
 }
 
 async function insertFaculty({ name, email, role, password, qrString }, executor = db) {

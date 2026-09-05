@@ -31,20 +31,23 @@
         recoverEmailInput.value = emailInput.value.trim();
       }
       recoverModal.classList.add('active');
+      if (global.setModalOpenState) global.setModalOpenState(true);
       recoverEmailInput.focus();
     });
 
     function closeModal() {
       recoverModal.classList.remove('active');
       recoverEmailInput.value = '';
+      if (global.setModalOpenState) global.setModalOpenState(false);
     }
 
     closeRecoverModalBtn.addEventListener('click', closeModal);
 
     recoverModal.addEventListener('click', (e) => {
-      if (e.target === recoverModal) {
-        closeModal();
-      }
+      e.stopPropagation();
+    });
+    recoverModal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     sendRecoverBtn.addEventListener('click', async () => {
@@ -101,16 +104,72 @@
     aboutLink.addEventListener('click', (e) => {
       e.preventDefault();
       aboutModal.classList.add('active');
+      if (global.setModalOpenState) global.setModalOpenState(true);
     });
 
     function closeModal() {
       aboutModal.classList.remove('active');
+      if (global.setModalOpenState) global.setModalOpenState(false);
     }
 
     closeAboutModalBtn.addEventListener('click', closeModal);
 
     aboutModal.addEventListener('click', (e) => {
-      if (e.target === aboutModal) {
+      e.stopPropagation();
+    });
+    aboutModal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  // Contact Modal Controller
+  function initContactModal() {
+    const contactLink = document.getElementById('contactLink');
+    const contactModal = document.getElementById('contactModal');
+    const closeContactModalBtn = document.getElementById('closeContactModalBtn');
+    const closeContactActionBtn = document.getElementById('closeContactActionBtn');
+
+    if (!contactLink || !contactModal) return;
+
+    function openModal(e) {
+      if (e) e.preventDefault();
+      contactModal.classList.add('active');
+      if (global.setModalOpenState) global.setModalOpenState(true);
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons({ root: contactModal });
+      }
+      if (closeContactActionBtn) {
+        closeContactActionBtn.focus();
+      } else if (closeContactModalBtn) {
+        closeContactModalBtn.focus();
+      }
+    }
+
+    function closeModal() {
+      contactModal.classList.remove('active');
+      if (global.setModalOpenState) global.setModalOpenState(false);
+      contactLink.focus();
+    }
+
+    contactLink.addEventListener('click', openModal);
+
+    if (closeContactModalBtn) {
+      closeContactModalBtn.addEventListener('click', closeModal);
+    }
+
+    if (closeContactActionBtn) {
+      closeContactActionBtn.addEventListener('click', closeModal);
+    }
+
+    contactModal.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    contactModal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && contactModal.classList.contains('active')) {
         closeModal();
       }
     });
@@ -122,8 +181,9 @@
     const emailClear = document.getElementById('emailClear');
     if (!emailInput || !emailClear) return;
 
-    const hasText = emailInput.value.trim().length > 0;
+    const hasText = emailInput.value.length > 0;
     emailClear.hidden = !hasText;
+    emailClear.style.display = hasText ? '' : 'none';
   }
 
   function initEmailClear() {
@@ -133,15 +193,39 @@
 
     emailClear.addEventListener('click', () => {
       emailInput.value = '';
-      emailInput.focus();
       syncEmailClearVisibility();
+      emailInput.focus();
     });
 
-    ['input', 'change', 'focus'].forEach(evt => {
+    ['input', 'change', 'focus', 'blur', 'keyup'].forEach(evt => {
       emailInput.addEventListener(evt, syncEmailClearVisibility);
     });
 
     syncEmailClearVisibility();
+
+    // Re-check on window load, pageshow, and delayed ticks for autofill / password managers
+    window.addEventListener('pageshow', syncEmailClearVisibility);
+    window.addEventListener('load', syncEmailClearVisibility);
+    setTimeout(syncEmailClearVisibility, 100);
+    setTimeout(syncEmailClearVisibility, 300);
+  }
+
+  function syncPasswordToggleVisibility() {
+    const passwordInput = document.getElementById('password');
+    const passwordToggle = document.getElementById('passwordToggle');
+    if (!passwordInput || !passwordToggle) return;
+
+    const hasText = passwordInput.value.length > 0;
+    passwordToggle.hidden = !hasText;
+    passwordToggle.style.display = hasText ? '' : 'none';
+
+    if (!hasText && passwordInput.type === 'text') {
+      passwordInput.type = 'password';
+      passwordToggle.setAttribute('aria-pressed', 'false');
+      passwordToggle.setAttribute('aria-label', 'Show password');
+      passwordToggle.innerHTML = '<i data-lucide="eye-off" style="width: 18px; height: 18px;"></i>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
   }
 
   // Password Visibility Toggle
@@ -159,6 +243,18 @@
         '<i data-lucide="' + (isHidden ? 'eye' : 'eye-off') + '" style="width: 18px; height: 18px;"></i>';
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
     });
+
+    ['input', 'change', 'focus', 'blur', 'keyup'].forEach(evt => {
+      passwordInput.addEventListener(evt, syncPasswordToggleVisibility);
+    });
+
+    syncPasswordToggleVisibility();
+
+    // Re-check on window load, pageshow, and delayed ticks for autofill / password managers
+    window.addEventListener('pageshow', syncPasswordToggleVisibility);
+    window.addEventListener('load', syncPasswordToggleVisibility);
+    setTimeout(syncPasswordToggleVisibility, 100);
+    setTimeout(syncPasswordToggleVisibility, 300);
   }
 
   // Login Error Helpers
@@ -212,6 +308,8 @@
 
       if (response.ok) {
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('labsync_last_activity', Date.now().toString());
+        localStorage.removeItem('labsync_session_expired');
         try { sessionStorage.setItem('labsync_user', JSON.stringify(data.user)); } catch (e) { }
         hideLoginError();
 
@@ -300,13 +398,30 @@
     }
   }
 
+  // Ensure login form fields start empty by default on fresh load and back/forward navigation
+  function resetLoginForm() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm && typeof loginForm.reset === 'function') {
+      loginForm.reset();
+    }
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    if (emailInput) emailInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+    syncEmailClearVisibility();
+  }
+
   // Pageshow event handler for back/forward navigation
   function initPageShowReset() {
-    window.addEventListener('pageshow', () => {
+    window.addEventListener('pageshow', (event) => {
       const loginBtn = document.getElementById('loginBtn');
       if (loginBtn) {
         loginBtn.disabled = false;
         loginBtn.textContent = "Sign In";
+      }
+      // If page was restored from back/forward cache (bfcache), ensure stale form credentials are reset
+      if (event && event.persisted) {
+        resetLoginForm();
       }
     });
   }
@@ -351,14 +466,46 @@
     }
   }
 
+  function checkSessionExpiryNotice() {
+    let isExpired = false;
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('reason') === 'inactivity' || urlParams.get('expired') === 'true') {
+        isExpired = true;
+      }
+      const expiredTimestamp = localStorage.getItem('labsync_session_expired');
+      if (expiredTimestamp) {
+        const timeDiff = Date.now() - parseInt(expiredTimestamp, 10);
+        if (timeDiff < 5 * 60 * 1000) {
+          isExpired = true;
+        }
+        localStorage.removeItem('labsync_session_expired');
+      }
+    } catch (e) {}
+
+    if (isExpired) {
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      const expiryMessage = "Your session has expired due to inactivity. Please log in again.";
+      showLoginError(expiryMessage);
+      if (typeof window.showToast === 'function') {
+        window.showToast(expiryMessage, "warning", "Session Expired");
+      }
+    }
+  }
+
   // Component Initialization
   function initPage() {
+    resetLoginForm();
     initRecoverModal();
     initAboutModal();
+    initContactModal();
     initEmailClear();
     initPasswordToggle();
     initPageShowReset();
     initLoginFormListeners();
+    checkSessionExpiryNotice();
   }
 
   // Execute on DOM Ready or immediately

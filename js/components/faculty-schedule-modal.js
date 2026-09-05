@@ -33,7 +33,7 @@
 
       const modal = document.createElement('div');
       modal.id = 'schedule-view-modal';
-      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;transition:opacity 0.25s ease;';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:2500 !important;opacity:0;transition:opacity 0.25s ease;overscroll-behavior:contain;';
 
       modal.innerHTML = `
         <div class="sched-modal-dialog">
@@ -47,7 +47,7 @@
             </button>
           </div>
           
-          <div id="sched-modal-body" style="padding:24px 28px;overflow-y:auto;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:220px;">
+          <div id="sched-modal-body" class="sched-modal-body" style="padding:24px 28px;overflow-y:auto;overscroll-behavior:contain;overscroll-behavior-y:contain;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:220px;">
             <div class="sched-spinner" style="border: 3px solid var(--border-light, #E5E7EB); border-top: 3px solid var(--primary-teal, #00b4d8); border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin-bottom:12px;"></div>
             <span style="font-family:var(--font-body);font-size:13.5px;color:var(--text-muted, #6B7280);">Loading schedule data from all rooms...</span>
           </div>
@@ -55,19 +55,45 @@
       `;
 
       document.body.appendChild(modal);
+      if (global.setModalOpenState) global.setModalOpenState(true);
       setTimeout(() => {
         modal.style.opacity = '1';
       }, 10);
 
+      let isClosing = false;
       const closeModal = () => {
+        if (isClosing) return;
+        isClosing = true;
+
+        // 1. Mark the modal as closing
+        modal.classList.add('closing');
+        modal.setAttribute('data-closing', 'true');
+        modal.style.pointerEvents = 'none';
+
+        // 2. Perform the existing close animation
         modal.style.opacity = '0';
-        setTimeout(() => modal.remove(), 250);
+
+        // 3. Remove the modal from the DOM after animation completes
+        setTimeout(() => {
+          modal.remove();
+          // 4 & 5. Only after removal, synchronize global modal state and ensure body.modal-open is removed
+          if (global.setModalOpenState) {
+            global.setModalOpenState(false);
+            global.setModalOpenState(null);
+          }
+        }, 250);
       };
 
       const closeBtn = document.getElementById('close-sched-modal');
       if (closeBtn) closeBtn.addEventListener('click', closeModal);
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
+        if (e.target === modal) {
+          closeModal();
+        }
+        e.stopPropagation();
+      });
+      modal.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
       });
 
       try {

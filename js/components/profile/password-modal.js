@@ -12,7 +12,7 @@
 
     const modal = document.createElement('div');
     modal.id = 'change-password-modal';
-    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2200;padding:20px;';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2600 !important;padding:20px;';
 
     modal.innerHTML = `
       <div style="background:var(--bg-white, #ffffff);border:1.5px solid var(--border-light, #374151);border-radius:20px;width:100%;max-width:440px;padding:28px;box-shadow:0 25px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;gap:20px;font-family:var(--font-body);color:var(--text-dark);">
@@ -75,6 +75,7 @@
     `;
 
     document.body.appendChild(modal);
+    if (global.setModalOpenState) global.setModalOpenState(true);
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: modal });
     }
@@ -107,11 +108,17 @@
     setupPasswordToggle('cp-new-password', 'toggle-cp-new-password');
     setupPasswordToggle('cp-confirm-password', 'toggle-cp-confirm-password');
 
-    const closeModal = () => modal.remove();
+    const closeModal = () => {
+      if (global.setModalOpenState) global.setModalOpenState(false);
+      modal.remove();
+    };
     document.getElementById('close-password-modal-btn').addEventListener('click', closeModal);
     document.getElementById('cancel-cp-btn').addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
+      e.stopPropagation();
+    });
+    modal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     const form = document.getElementById('change-password-form');

@@ -426,6 +426,8 @@ img[src*="bsu"] {
 .profile-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-width: 220px;
 }
 
 .profile-name {
@@ -434,12 +436,18 @@ img[src*="bsu"] {
   color: var(--text-dark);
   line-height: 1.3;
   font-family: var(--font-display);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .profile-role {
   font-size: 13px;
   color: var(--primary-teal);
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chevron-btn {
@@ -556,7 +564,43 @@ img[src*="bsu"] {
   font-weight: 500;
 }
 
-/* ─── My Schedule Scroll UI Removal ────────────────────────────── */
+
+/* ─── My Schedule Full-Height Container (Matches Dashboard 24px Bottom) ─── */
+body[data-page="my-schedule"] .dashboard-card,
+body[data-page="it-head-my-schedule"] .dashboard-card {
+  flex: 1 !important;
+  min-height: fit-content !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body[data-page="my-schedule"] #schedule-container,
+body[data-page="it-head-my-schedule"] #schedule-container {
+  flex: 1 !important;
+  min-height: auto !important;
+  max-height: none !important;
+  overflow-y: visible !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body[data-page="my-schedule"] .schedule-columns,
+body[data-page="it-head-my-schedule"] .schedule-columns {
+  flex: 1 !important;
+  min-height: auto !important;
+  max-height: none !important;
+  overflow-y: visible !important;
+  align-items: stretch !important;
+}
+
+body[data-page="my-schedule"] .day-column,
+body[data-page="it-head-my-schedule"] .day-column {
+  height: 100% !important;
+}
+
 body[data-page="my-schedule"] .page-content,
 body[data-page="it-head-my-schedule"] .page-content,
 body[data-page="my-schedule"] .dashboard-card,

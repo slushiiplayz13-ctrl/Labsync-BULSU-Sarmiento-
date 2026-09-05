@@ -25,6 +25,7 @@ async function login(req, res, next) {
         req.session.userEmail = user.Email;
         req.session.userName = user.Name;
         req.session.userRole = user.Role;
+        req.session.lastActivity = Date.now();
 
         await auditService.logSecurityEvent({
             req,
@@ -70,10 +71,26 @@ async function logout(req, res, next) {
 
 async function checkAuth(req, res) {
     if (req.session && req.session.userId) {
+        const now = Date.now();
+        const lastActivity = req.session.lastActivity || now;
+        const { INACTIVITY_TIMEOUT_MS } = require('../config/app.config');
+        if (now - lastActivity > INACTIVITY_TIMEOUT_MS) {
+            req.session.destroy(() => {});
+            res.clearCookie('connect.sid');
+            return res.json({ authenticated: false, expired: true });
+        }
         return res.json({ authenticated: true, userId: req.session.userId });
     } else {
         return res.json({ authenticated: false });
     }
+}
+
+async function touchSession(req, res) {
+    if (req.session && req.session.userId) {
+        req.session.lastActivity = Date.now();
+        return res.json({ ok: true, lastActivity: req.session.lastActivity });
+    }
+    return res.status(401).json({ error: 'Authentication required' });
 }
 
 async function recoverPassword(req, res, next) {
@@ -119,6 +136,7 @@ module.exports = {
     login,
     logout,
     checkAuth,
+    touchSession,
     recoverPassword,
     validateResetToken,
     resetPassword

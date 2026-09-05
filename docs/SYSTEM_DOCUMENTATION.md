@@ -396,7 +396,7 @@ Database Name: **`labsync`** | Engine: **InnoDB** | Charset: **`utf8mb4`**
 5. **`maintenance_issues`**: Physical hardware/software fault entity with stored generated unique column `Active_Issue_Key = IF(Status != 'Resolved', CONCAT(PC_ID, ':', Issue_Type), NULL)`.
 6. **`maintenance`**: Individual student ticket submissions linked via `Maintenance_Issue_ID` to `maintenance_issues`.
 7. **`schedules`**: Timetable class blocks mapped to faculty, room, day, time range, academic year, semester, and color theme.
-8. **`occupancy_log`**: Audit log recording room entry events (*QR Code*, *Key Taken*, *Key Returned*, *KEY_TRANSFER*).
+8. **`occupancy_log`**: Audit log recording room entry events (*QR Code*, *Key Taken*, *Key Returned*, *KEY_TRANSFER*). **Data Retention Policy:** Room Status activity logs are retained for one year. Logs older than one year are automatically cleaned up to control database growth and maintain system performance.
 9. **`audit_logs`**: Immutable security audit trail tracking high-value administrative and auth events.
 10. **`iot_devices`**: Registry of authorized ESP32 hardware docks and device credentials.
 11. **`system_settings`** & **`curriculum`**: Key-value signatories and master curriculum subject catalog.
@@ -408,6 +408,7 @@ Database Name: **`labsync`** | Engine: **InnoDB** | Charset: **`utf8mb4`**
 - `012_create_key_management_tables.sql`: Physical keys and found reports tables.
 - `013_create_maintenance_issues.sql`: Deduplication entity and backfill linking.
 - `014_add_user_updated_at.sql`: User profile update timestamp.
+- `015_add_occupancy_log_access_time_index.sql`: Adds index on `occupancy_log(Access_Time)` for fast 1-year retention pruning and timeline ordering.
 
 ---
 

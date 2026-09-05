@@ -25,6 +25,7 @@
   <script src="js/auth-check.js"></script>
   <script src="js/utils/core-utils.js"></script>
   <script src="js/utils/dom-utils.js"></script>
+  <script src="js/utils/academic-term.js"></script>
   <script src="js/services/schedule.service.js"></script>
   <script src="js/scheduling/time-utils.js"></script>
   <script src="js/scheduling/colors.js"></script>
@@ -35,12 +36,13 @@
   <style>
     .schedule-columns {
       display: grid;
-      grid-template-columns: repeat(6, minmax(130px, 1fr));
+      grid-template-columns: repeat(var(--schedule-cols, 6), minmax(130px, 1fr));
       gap: 14px;
       overflow-x: auto;
+      overflow-y: visible;
       min-width: 800px;
-      flex: 1;
       align-items: stretch;
+      flex: 1;
     }
 
     .day-column {
@@ -55,6 +57,8 @@
       border-radius: 16px;
       padding: 12px;
       transition: all 0.2s ease;
+      container-type: inline-size;
+      container-name: daycol;
     }
 
     .day-column.highlight-day {
@@ -64,23 +68,128 @@
     }
 
     .day-header {
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-mid);
-      text-align: center;
-      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-display, 'Poppins', sans-serif);
+      font-size: clamp(11.5px, 0.9vw, 13px);
+      font-weight: 800;
+      color: var(--text-dark);
+      padding: 8px 10px;
       background: var(--bg-white);
-      border-radius: 10px;
-      margin-bottom: 4px;
-      box-shadow: var(--shadow-sm);
+      border-radius: 12px;
+      margin-bottom: 2px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--border-light);
+      letter-spacing: 0.2px;
+      min-width: 0;
+      min-height: 38px;
+      gap: 4px;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+
+    .day-header.has-today {
+      padding: 6px 8px;
+      gap: 3px 5px;
+      min-height: 38px;
+    }
+
+    .day-header .today-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(7.5px, 0.65vw, 9px);
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      padding: 2px 5px;
+      border-radius: 6px;
+      background: var(--primary-teal);
+      color: #FFFFFF;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      line-height: 1.15;
+      white-space: nowrap;
+      margin-left: auto;
     }
 
     .day-column.highlight-day .day-header {
       background: var(--primary-teal);
       color: #fff;
       border-color: var(--primary-teal);
+    }
+
+    .day-column.highlight-day .day-header .today-tag {
+      background: #FFFFFF;
+      color: var(--primary-teal);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    @container daycol (max-width: 155px) {
+      .day-header.has-today {
+        padding: 5px 6px;
+        gap: 2px 4px;
+      }
+      .day-header.has-today .day-name {
+        font-size: 11px;
+      }
+      .day-header.has-today .today-tag {
+        font-size: 7.5px;
+        padding: 1.5px 4px;
+        letter-spacing: 0.2px;
+      }
+    }
+
+    @container daycol (max-width: 135px) {
+      .day-header.has-today {
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 44px;
+        padding: 4px 6px;
+        row-gap: 2px;
+      }
+      .day-header.has-today .day-name {
+        font-size: 11px;
+        line-height: 1.2;
+      }
+      .day-header.has-today .today-tag {
+        font-size: 7.5px;
+        padding: 1.5px 4px;
+        letter-spacing: 0.2px;
+      }
+    }
+
+    @media (max-width: 1050px) and (min-width: 768px) {
+      .day-header.has-today {
+        flex-wrap: wrap;
+        row-gap: 2px;
+        min-height: 44px;
+      }
+      .day-header.has-today .day-name {
+        font-size: 11px;
+      }
+      .day-header.has-today .today-tag {
+        font-size: 7.5px;
+        padding: 1.5px 4px;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .day-header.has-today {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        min-height: 40px;
+        flex-wrap: nowrap;
+      }
+      .day-header.has-today .today-tag {
+        font-size: 9px;
+        padding: 2.5px 7px;
+        margin-left: auto;
+      }
     }
 
     .sg-cell.filled {
@@ -267,7 +376,7 @@
 
       <!-- Main Content Card -->
       <div class="dashboard-card"
-        style="padding: 0; overflow: visible !important; border-radius: 12px; position: relative; display: flex; flex-direction: column; flex: 1;">
+        style="padding: 0; overflow: visible !important; border-radius: 12px; position: relative; display: flex; flex-direction: column; flex: 1; min-height: fit-content; height: auto;">
         <!-- Header -->
         <div class="schedule-header"
           style="background: var(--primary-teal); color: white; padding: 12px 24px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; font-size: 15px; border-radius: 12px 12px 0 0; flex-shrink: 0;">
@@ -287,7 +396,7 @@
 
             <div style="display: flex; align-items: center; gap: 6px;">
               <span
-                style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">AY:</span>
+                style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Academic Year:</span>
               <div class="custom-select-wrapper header-select" id="academic-year-wrapper" style="width: 125px;">
                 <div class="custom-select-trigger"
                   style="padding: 5px 10px; font-size: 12.5px; border-radius: 6px; height: auto;">
@@ -300,7 +409,7 @@
 
             <div style="display: flex; align-items: center; gap: 6px;">
               <span
-                style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Sem:</span>
+                style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Semester:</span>
               <div class="custom-select-wrapper header-select" id="semester-wrapper" style="width: 135px;">
                 <div class="custom-select-trigger"
                   style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
@@ -308,7 +417,7 @@
                   <i data-lucide="chevron-down"></i>
                 </div>
                 <div class="custom-select-dropdown" style="color: var(--text-dark);">
-                  <div class="custom-select-option selected" data-value="1st Semester">1st Semester</div>
+                  <div class="custom-select-option" data-value="1st Semester">1st Semester</div>
                   <div class="custom-select-option" data-value="2nd Semester">2nd Semester</div>
                   <div class="custom-select-option" data-value="Summer">Summer</div>
                 </div>
@@ -317,7 +426,7 @@
           </div>
         </div>
 
-        <div id="schedule-container" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; flex: 1;">
+        <div id="schedule-container" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; flex: 1; height: auto;">
 
           <div class="ui-empty-state">
             <div class="ui-empty-icon">

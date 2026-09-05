@@ -15,14 +15,26 @@
     return timeStr || '';
   }
 
+  function escapeHtml(str) {
+    if (typeof global.escapeHtml === 'function') return global.escapeHtml(str);
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const DAY_SHORT_NAMES = {
-    'Monday': 'MON',
-    'Tuesday': 'TUE',
-    'Wednesday': 'WED',
-    'Thursday': 'THU',
-    'Friday': 'FRI',
-    'Saturday': 'SAT'
+    'Monday': 'Mon',
+    'Tuesday': 'Tue',
+    'Wednesday': 'Wed',
+    'Thursday': 'Thu',
+    'Friday': 'Fri',
+    'Saturday': 'Sat',
+    'Sunday': 'Sun'
   };
 
   /**
@@ -35,6 +47,34 @@
     const totalClasses = (schedules || []).length;
     const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
+    const subjectEntries = Array.from((subjectMap && subjectMap.entries) ? subjectMap.entries() : []);
+    const hasSubjects = subjectEntries.length > 0;
+
+    let optionsHtml = '';
+    if (hasSubjects) {
+      optionsHtml = subjectEntries.map(([subjName, palette]) => {
+        const subjCode = subjName.includes(' - ') ? subjName.split(' - ')[0].trim() : subjName;
+        const subjDesc = subjName.includes(' - ') ? subjName.split(' - ').slice(1).join(' - ').trim() : '';
+        const dotBg = (palette && palette.dot) ? palette.dot : 'var(--primary-teal, #1ebbd7)';
+        return `
+          <div class="custom-select-option" data-value="${escapeHtml(subjName)}" data-code="${escapeHtml(subjCode)}" role="option" aria-selected="false" title="${escapeHtml(subjName)}">
+            <div class="dot" style="background: ${dotBg}; box-shadow: 0 0 0 3px ${dotBg}33;"></div>
+            <span class="subject-option-text">${escapeHtml(subjCode)}</span>
+            ${subjDesc ? `<span class="subject-option-desc">${escapeHtml(subjDesc)}</span>` : ''}
+          </div>
+        `;
+      }).join('');
+    } else {
+      optionsHtml = `
+        <div class="custom-select-option disabled" data-value="" role="option" aria-disabled="true" style="opacity: 0.6; cursor: default; font-style: italic; pointer-events: none; justify-content: center;">
+          <span class="subject-option-text">No subjects available</span>
+        </div>
+      `;
+    }
+
+    const hasSunday = (schedules || []).some(s => (s.Day_of_Week || '').trim().toLowerCase() === 'sunday');
+    const daysToRender = hasSunday ? [...DAYS, 'Sunday'] : DAYS;
+
     let html = `
       <!-- Top Filter & Legend Toolbar -->
       <div class="schedule-filter-bar">
@@ -43,32 +83,39 @@
         </div>
         <div class="schedule-legend">
           <span class="sl-title">SUBJECTS:</span>
-          <div class="sl-item active" data-filter="all"><div class="dot all-dot"></div> All</div>
-          ${Array.from(subjectMap.entries()).map(([subjName, palette]) => {
-            const subjCode = subjName.includes(' - ') ? subjName.split(' - ')[0].trim() : subjName;
-            return `
-            <div class="sl-item" data-filter="${escapeHtml(subjName)}" title="${escapeHtml(subjName)}">
-              <div class="dot" style="background: ${palette.dot}; box-shadow: 0 0 0 3px ${palette.dot}33;"></div> ${escapeHtml(subjCode)}
+          <button type="button" class="sl-item active" id="subject-filter-all" data-filter="all" aria-pressed="true">
+            <div class="dot all-dot"></div> All
+          </button>
+          <div class="sl-divider" aria-hidden="true"></div>
+          <div class="custom-select-wrapper subject-select-wrapper" id="subject-filter-dropdown-wrapper" data-value="all">
+            <button type="button" class="custom-select-trigger subject-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filter schedule by subject" title="Filter by subject">
+              <span class="subject-trigger-text">Subject</span>
+              <i data-lucide="chevron-down" class="subject-chevron"></i>
+            </button>
+            <div class="custom-select-dropdown subject-select-dropdown" role="listbox" aria-label="Available subjects">
+              ${optionsHtml}
             </div>
-          `;
-          }).join('')}
+          </div>
         </div>
       </div>
 
       <!-- Schedule Day Columns -->
-      <div class="schedule-columns">
+      <div class="schedule-columns" style="--schedule-cols: ${daysToRender.length};">
     `;
 
-    DAYS.forEach(day => {
+    daysToRender.forEach(day => {
       const isToday = day === todayName;
       const dayScheds = (schedules || []).filter(s => s.Day_of_Week === day);
       dayScheds.sort((a, b) => (a.Start_Time || '').localeCompare(b.Start_Time || ''));
 
       const isEmpty = dayScheds.length === 0;
       html += `
-        <div class="day-column ${isToday ? 'highlight-day' : ''} ${isEmpty ? 'empty-day' : ''}">
-          <div class="day-header">
-            <span>${DAY_SHORT_NAMES[day]}</span>
+        <div class="day-column ${isToday ? 'highlight-day' : ''} ${isEmpty ? 'empty-day' : ''}" data-day="${escapeHtml(day)}">
+          <div class="day-header ${isToday ? 'has-today' : ''}" title="${escapeHtml(day)}">
+            <span class="day-name">
+              <span class="day-name-full">${escapeHtml(day)}</span>
+              <span class="day-name-short">${escapeHtml(DAY_SHORT_NAMES[day] || day)}</span>
+            </span>
             ${isToday ? '<span class="today-tag">TODAY</span>' : ''}
           </div>
           <div class="day-classes">

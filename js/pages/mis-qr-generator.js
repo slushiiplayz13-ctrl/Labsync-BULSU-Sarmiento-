@@ -305,7 +305,16 @@
       previewDiv.textContent = selectedUnits.join(', ') || `${selectedPcIds.size} unit(s)`;
     }
 
-    if (modal) modal.style.display = 'flex';
+    if (modal) {
+      modal.style.display = 'flex';
+      if (global.setModalOpenState) global.setModalOpenState(true);
+      modal.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      modal.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+      });
+    }
     if (global.lucide && modal) global.lucide.createIcons({ root: modal });
   }
 
@@ -314,7 +323,10 @@
    */
   function closeBulkDeleteModal() {
     const modal = document.getElementById('bulkDeleteModalOverlay');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+      modal.style.display = 'none';
+      if (global.setModalOpenState) global.setModalOpenState(false);
+    }
   }
 
   /**

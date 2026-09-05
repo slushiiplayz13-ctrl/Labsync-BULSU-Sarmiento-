@@ -209,8 +209,7 @@
     document.addEventListener('click', (e) => {
       const modal = document.getElementById('completedTicketsModal');
       if (modal && e.target === modal) {
-        const closeModalFn = (global.reportModal && global.reportModal.closeCompletedModal) || global.closeCompletedModal;
-        if (closeModalFn) closeModalFn();
+        e.stopPropagation();
       }
     });
 

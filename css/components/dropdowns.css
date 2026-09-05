@@ -126,15 +126,34 @@
 }
 
 .custom-select-option:hover {
-  background: var(--primary-teal-light);
-  color: var(--primary-teal);
+  background: #F1F5F9;
+  color: var(--text-dark);
 }
 
 .custom-select-option.selected {
   background: var(--primary-teal);
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(30, 187, 215, 0.2);
+  box-shadow: 0 2px 8px rgba(30, 187, 215, 0.25);
+}
+
+.custom-select-option.selected:hover {
+  background: var(--primary-teal-hover, #17a2bc);
+  color: #fff;
+}
+
+.custom-select-option.selected::after {
+  content: '';
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  min-width: 15px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-left: 8px;
+  flex-shrink: 0;
 }
 
 /* ─── Profile Dropdown Menu & Menu Item Component Styles ─── */
@@ -354,20 +373,50 @@ html.high-contrast #subject-select-dropdown {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
 }
 
-html.high-contrast .custom-select-option {
+html.high-contrast .custom-select-option,
+html.dark-mode .custom-select-option,
+body.dark-mode .custom-select-option {
   color: var(--text-dark) !important;
   background: transparent !important;
 }
 
-html.high-contrast .custom-select-option:hover {
-  background: var(--primary-teal-light) !important;
-  color: var(--primary-teal) !important;
+html.high-contrast .custom-select-option:hover,
+html.dark-mode .custom-select-option:hover,
+body.dark-mode .custom-select-option:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-dark) !important;
 }
 
-html.high-contrast .custom-select-option.selected {
-  background: var(--primary-teal-light) !important;
-  color: var(--primary-teal) !important;
-  font-weight: 700 !important;
+html.high-contrast .custom-select-option.selected,
+html.dark-mode .custom-select-option.selected,
+body.dark-mode .custom-select-option.selected {
+  background: var(--primary-teal) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(0, 163, 196, 0.35) !important;
+}
+
+html.high-contrast .custom-select-option.selected:hover,
+html.dark-mode .custom-select-option.selected:hover,
+body.dark-mode .custom-select-option.selected:hover {
+  background: var(--primary-teal-hover, #008EA6) !important;
+  color: #ffffff !important;
+}
+
+html.high-contrast .custom-select-option.selected::after,
+html.dark-mode .custom-select-option.selected::after,
+body.dark-mode .custom-select-option.selected::after {
+  content: '';
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  min-width: 15px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-left: 8px;
+  flex-shrink: 0;
 }
 
 html.high-contrast .custom-select-wrapper.header-select .custom-select-trigger {

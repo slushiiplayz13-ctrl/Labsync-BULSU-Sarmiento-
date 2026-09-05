@@ -115,6 +115,8 @@
 
     const escapeFn = global.escapeHtml || window.escapeHtml || ((s) => s || '');
 
+    card.title = `${subject} (Sec: ${section || 'N/A'}) • ${professor || 'No Prof'} • ${formattedStart} - ${formattedEnd}`;
+
     card.innerHTML = `
       <div class="grid-card-details">
         <div class="grid-card-title" title="${escapeFn(subject)}">${escapeFn(subject)}</div>
@@ -123,9 +125,9 @@
       </div>
       <div class="grid-card-time">
         <span class="grid-card-time-text">${formattedStart} - ${formattedEnd}</span>
-        <div class="card-info-icon" role="button" title="Click to view details & edit color">
-          <i data-lucide="info"></i>
-        </div>
+      </div>
+      <div class="card-info-icon" role="button" title="Click to view details & edit color" tabindex="0" aria-label="View schedule details">
+        <i data-lucide="info"></i>
       </div>
       <div class="grid-card-resize-handle"></div>
     `;

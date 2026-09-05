@@ -37,7 +37,13 @@
     }
 
     card.remove();
-    if (global.scheduleState) global.scheduleState.isDirty = true;
+    if (global.scheduleState) {
+      if (typeof global.scheduleState.updateSaveButtonState === 'function') {
+        global.scheduleState.updateSaveButtonState();
+      } else {
+        global.scheduleState.isDirty = true;
+      }
+    }
     global.isDirty = true;
 
     const emptyMsg = document.getElementById('no-blocks-msg');
@@ -69,8 +75,12 @@
 
       const selectedProf = document.getElementById('professor-wrapper')?.dataset.value;
       if (!Array.isArray(schedules) || schedules.length === 0) {
-        if (global.scheduleState) global.scheduleState.isDirty = false;
-        global.isDirty = false;
+        if (global.scheduleState && typeof global.scheduleState.setBaseline === 'function') {
+          global.scheduleState.setBaseline();
+        } else {
+          if (global.scheduleState) global.scheduleState.isDirty = false;
+          global.isDirty = false;
+        }
 
         const ghostRenderer = global.ghostScheduleRenderer;
         if (selectedProf && ghostRenderer && typeof ghostRenderer.loadProfessorGhostSchedule === 'function') {
@@ -96,8 +106,12 @@
         }
       });
 
-      if (global.scheduleState) global.scheduleState.isDirty = false;
-      global.isDirty = false;
+      if (global.scheduleState && typeof global.scheduleState.setBaseline === 'function') {
+        global.scheduleState.setBaseline();
+      } else {
+        if (global.scheduleState) global.scheduleState.isDirty = false;
+        global.isDirty = false;
+      }
 
       const ghostRenderer = global.ghostScheduleRenderer;
       if (selectedProf && ghostRenderer && typeof ghostRenderer.loadProfessorGhostSchedule === 'function') {
@@ -171,8 +185,12 @@
       if (!res.ok) throw new Error('Save API response not OK');
     }
 
-    if (global.scheduleState) global.scheduleState.isDirty = false;
-    global.isDirty = false;
+    if (global.scheduleState && typeof global.scheduleState.setBaseline === 'function') {
+      global.scheduleState.setBaseline();
+    } else {
+      if (global.scheduleState) global.scheduleState.isDirty = false;
+      global.isDirty = false;
+    }
     return true;
   }
 

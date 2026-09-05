@@ -123,12 +123,39 @@
     }
 
     #blocks-container {
-      min-height: 150px;
-      border: 2px dashed #E2E8F0;
+      min-height: 140px;
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      border: 2px dashed var(--border-light, #E2E8F0);
       border-radius: 12px;
       padding: 12px;
-      background-color: #FAFAFA;
+      background-color: var(--bg-card, #FAFAFA);
       transition: all 0.2s ease;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-light) transparent;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #blocks-container::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    #blocks-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #blocks-container::-webkit-scrollbar-thumb {
+      background: var(--border-light, #CBD5E1);
+      border-radius: 4px;
+    }
+
+    #blocks-container::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
     }
 
     #blocks-container.drag-over {
@@ -281,15 +308,29 @@
       animation: spin 1s linear infinite;
     }
 
-    /* Independent Scroll Panes with Compact Height */
+    /* Master Schedule Editor Layout: 2-Column Split View */
     .editor-layout-container {
       display: flex;
       gap: 20px;
-      align-items: flex-start;
+      align-items: stretch;
+      flex: 1;
+      min-height: 0;
       height: calc(100vh - 135px);
-      min-height: 520px;
     }
 
+    @media (min-width: 1025px) {
+      body[data-page="schedule-editor"] .page-content {
+        overflow-y: hidden !important;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      body[data-page="schedule-editor"] .page-content {
+        overflow-y: auto !important;
+      }
+    }
+
+    /* Left Panel: Create Schedule Block - Fixed, does not move when scrolling timetable */
     #create-block-panel {
       width: 300px;
       padding: 18px 20px;
@@ -301,22 +342,41 @@
       border-radius: 14px;
       height: 100%;
       max-height: 100%;
-      overflow-y: auto;
+      position: sticky;
+      top: 14px;
+      overflow: hidden;
       box-sizing: border-box;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border-light) transparent;
       box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
     }
 
-    #create-block-panel::-webkit-scrollbar {
-      width: 6px;
+    #create-block-panel h3 {
+      flex-shrink: 0;
     }
 
-    #create-block-panel::-webkit-scrollbar-thumb {
-      background: var(--border-light);
-      border-radius: 6px;
+    .editor-form-grid {
+      flex-shrink: 0;
     }
 
+    #create-block-btn {
+      flex-shrink: 0;
+    }
+
+    .available-blocks-section {
+      margin-top: 20px;
+      border-top: 1px solid var(--border-light);
+      padding-top: 16px;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .available-blocks-section h4 {
+      flex-shrink: 0;
+    }
+
+    /* Right Panel: Weekly Schedule Grid - Scrolls independently */
     .editor-schedule-card {
       flex: 1;
       min-width: 0;
@@ -330,29 +390,34 @@
       background: var(--bg-white);
       border: 1px solid var(--border-light);
       box-sizing: border-box;
-      overflow: hidden !important;
+      overflow: hidden;
       box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
     }
 
     .schedule-header {
       flex-shrink: 0;
       padding: 10px 20px !important;
+      border-radius: 14px 14px 0 0;
+      z-index: 20;
     }
 
-    /* Weekly Calendar Grid */
+    /* Weekly Calendar Grid: Scrolls independently so Create Block panel doesn't move */
     .calendar-grid-container {
       width: 100%;
       flex: 1;
+      min-height: 0;
       border: none;
       border-radius: 0;
       background: var(--bg-white);
       box-shadow: none;
       overflow-y: auto;
       overflow-x: auto;
+      overscroll-behavior: contain;
       box-sizing: border-box;
       border-collapse: collapse;
       scrollbar-width: thin;
       scrollbar-color: var(--border-light) transparent;
+      position: relative;
     }
 
     .calendar-grid-container::-webkit-scrollbar {
@@ -365,13 +430,14 @@
       border-radius: 6px;
     }
 
+    /* Sticky calendar header: stays firmly at top of grid without allowing 07:00 AM to overlap */
     .calendar-grid-header {
       display: flex;
       border-bottom: 2px solid var(--border-light);
-      background: var(--bg-card);
+      background: var(--bg-card, #F8FAFC) !important;
       position: sticky;
       top: 0;
-      z-index: 50;
+      z-index: 100 !important;
     }
 
     .grid-header-cell {
@@ -385,6 +451,7 @@
       border-left: 1px solid var(--border-light);
       box-sizing: border-box;
       min-width: 150px;
+      background: var(--bg-card, #F8FAFC) !important;
     }
 
     .grid-header-cell:first-child {
@@ -396,6 +463,11 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      position: sticky;
+      left: 0;
+      top: 0;
+      z-index: 110 !important;
+      background: var(--bg-card, #F8FAFC) !important;
     }
 
     .calendar-grid-body {
@@ -411,9 +483,11 @@
       flex: 0 0 65px;
       min-width: 65px;
       height: 100%;
-      background: var(--bg-card);
+      background: var(--bg-card, #F8FAFC) !important;
       border-right: 1px solid var(--border-light);
-      position: relative;
+      position: sticky !important;
+      left: 0 !important;
+      z-index: 40 !important;
       box-sizing: border-box;
     }
 
@@ -519,12 +593,14 @@
     .grid-card-time {
       font-family: var(--font-body);
       white-space: nowrap;
-      overflow: hidden;
+      overflow: visible;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 6px;
       width: 100%;
+      padding-right: 24px;
+      box-sizing: border-box;
     }
 
     .grid-card-time-text {
@@ -532,6 +608,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       flex: 1;
+      min-width: 0;
     }
 
     .card-info-icon {
@@ -539,25 +616,32 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 22px;
-      height: 22px;
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      min-height: 18px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.95) !important;
       color: #0F172A !important;
       border: 1px solid rgba(15, 23, 42, 0.15) !important;
       box-shadow: 0 2px 5px rgba(15, 23, 42, 0.15);
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background-color 0.2s ease;
       opacity: 0.95;
       flex-shrink: 0;
       box-sizing: border-box;
       padding: 0;
       margin: 0;
+      z-index: 12;
+      transform-origin: center center;
     }
 
     .card-info-icon i,
     .card-info-icon svg {
-      width: 13px !important;
-      height: 13px !important;
+      width: 11px !important;
+      height: 11px !important;
       pointer-events: none;
       stroke: #0F172A !important;
       color: #0F172A !important;
@@ -565,17 +649,8 @@
 
     .card-info-icon:hover {
       opacity: 1 !important;
-      color: #ffffff !important;
-      background: var(--primary-teal) !important;
-      border-color: var(--primary-teal) !important;
       transform: scale(1.15);
-      box-shadow: 0 4px 12px rgba(30, 187, 215, 0.4);
-    }
-
-    .card-info-icon:hover i,
-    .card-info-icon:hover svg {
-      stroke: #ffffff !important;
-      color: #ffffff !important;
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.25);
     }
 
     /* Dark mode and High-Contrast explicit dark icon contrast overrides */
@@ -585,7 +660,18 @@
     html.high-contrast .card-info-icon {
       background: #FFFFFF !important;
       color: #0F172A !important;
-      border-color: rgba(255, 255, 255, 0.3) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    }
+
+    html.dark-mode .card-info-icon:hover,
+    body.dark-mode .card-info-icon:hover,
+    [data-theme="dark"] .card-info-icon:hover,
+    html.high-contrast .card-info-icon:hover {
+      background: #FFFFFF !important;
+      color: #0F172A !important;
+      transform: scale(1.15);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.4), 0 3px 8px rgba(0, 0, 0, 0.5) !important;
     }
 
     html.dark-mode .card-info-icon i,
@@ -703,13 +789,26 @@
 
     /* Grid Card Sizing Adaptations based on row span */
     .grid-card.span-1 {
-      padding: 2px 6px;
+      padding: 3px 6px;
       gap: 1px;
+      justify-content: space-between;
+    }
+
+    .grid-card.span-1 .grid-card-details {
+      min-height: 0;
+      overflow: hidden;
     }
 
     .grid-card.span-1 .grid-card-title {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+      margin: 0;
     }
 
     .grid-card.span-1 .grid-card-section,
@@ -719,25 +818,141 @@
 
     .grid-card.span-1 .grid-card-time {
       font-size: 8.5px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      padding-right: 24px;
+      overflow: visible;
+      box-sizing: border-box;
     }
 
+    .grid-card.span-1 .card-info-icon {
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      min-height: 18px;
+    }
+
+    .grid-card.span-1 .card-info-icon i,
+    .grid-card.span-1 .card-info-icon svg {
+      width: 11px !important;
+      height: 11px !important;
+    }
+
+    /* 1-Hour Schedule Card Optimization (span-2 = 2 slots = 72px) */
     .grid-card.span-2 {
-      padding: 6px 10px;
+      padding: 5px 8px;
       gap: 2px;
+      justify-content: space-between;
+    }
+
+    .grid-card.span-2 .grid-card-details {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: baseline;
+      column-gap: 5px;
+      row-gap: 1.5px;
+      min-height: 0;
+      overflow: hidden;
+      width: 100%;
     }
 
     .grid-card.span-2 .grid-card-title {
-      font-size: 12.5px;
+      grid-column: 1 / -1;
+      font-size: 11.5px;
       font-weight: 700;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+      margin: 0;
     }
 
-    .grid-card.span-2 .grid-card-section,
+    .grid-card.span-2 .grid-card-section {
+      grid-column: 1;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 0;
+    }
+
+    .grid-card.span-2 .grid-card-section:not(:last-child)::after {
+      content: ' •';
+      opacity: 0.6;
+      margin-left: 2px;
+    }
+
     .grid-card.span-2 .grid-card-prof {
-      font-size: 11px;
+      grid-column: 2;
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 0;
     }
 
     .grid-card.span-2 .grid-card-time {
-      font-size: 10px;
+      font-size: 9.5px;
+      font-weight: 600;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      padding-right: 24px;
+      overflow: visible;
+      box-sizing: border-box;
+    }
+
+    .grid-card.span-2 .grid-card-time-text {
+      font-size: 9.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .grid-card.span-2 .card-info-icon {
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      min-height: 18px;
+    }
+
+    .grid-card.span-2 .card-info-icon i,
+    .grid-card.span-2 .card-info-icon svg {
+      width: 11px !important;
+      height: 11px !important;
+    }
+
+    .grid-card.span-2 .grid-card-delete-btn {
+      top: 3px;
+      right: 3px;
+      width: 22px;
+      height: 22px;
+    }
+
+    .grid-card.span-2 .grid-card-color-btn {
+      top: 3px;
+      right: 27px;
+      width: 22px;
+      height: 22px;
     }
 
     .grid-card.span-3-plus {
@@ -760,6 +975,25 @@
       font-size: 11px;
       font-weight: 700;
       margin-top: 2px;
+      padding-right: 24px;
+      overflow: visible;
+      box-sizing: border-box;
+    }
+
+    .grid-card.span-3-plus .card-info-icon {
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      min-height: 18px;
+    }
+
+    .grid-card.span-3-plus .card-info-icon i,
+    .grid-card.span-3-plus .card-info-icon svg {
+      width: 11px !important;
+      height: 11px !important;
     }
 
     /* Color Picker Button & Popover */
@@ -938,6 +1172,21 @@
       color: #78350F;
     }
 
+    .ghost-prof {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      color: #991B1B;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+
+    .grid-card-ghost.current-room-ghost .ghost-prof {
+      color: #92400E;
+    }
+
     .ghost-sub {
       font-family: var(--font-body);
       font-size: 11px;
@@ -950,6 +1199,409 @@
 
     .grid-card-ghost.current-room-ghost .ghost-sub {
       color: #92400E;
+    }
+
+    /* ─── Ghost Card Duration Span Adaptations ─── */
+    /* 30-Minute Schedule (span-1 = 1 slot = 36px) */
+    .grid-card-ghost.span-1 {
+      padding: 3px 6px;
+      gap: 1px;
+      justify-content: space-between;
+    }
+
+    .grid-card-ghost.span-1 .ghost-badge {
+      font-size: 8px;
+      padding: 1px 4px;
+      margin-bottom: 0;
+      gap: 2px;
+    }
+
+    .grid-card-ghost.span-1 .ghost-badge svg,
+    .grid-card-ghost.span-1 .ghost-badge i {
+      width: 7px !important;
+      height: 7px !important;
+    }
+
+    .grid-card-ghost.span-1 .ghost-title {
+      font-size: 10px;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+      margin: 0;
+    }
+
+    .grid-card-ghost.span-1 .ghost-prof {
+      display: none;
+    }
+
+    .grid-card-ghost.span-1 .ghost-sub {
+      font-size: 8.5px;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 0;
+    }
+
+    /* 1-Hour Schedule Optimization (span-2 = 2 slots = 72px) */
+    .grid-card-ghost.span-2 {
+      padding: 4px 7px;
+      justify-content: space-between;
+      gap: 1px;
+    }
+
+    .grid-card-ghost.span-2 .ghost-badge {
+      font-size: 8.5px;
+      padding: 1px 5px;
+      margin-bottom: 1px;
+      gap: 3px;
+      line-height: 1.2;
+    }
+
+    .grid-card-ghost.span-2 .ghost-badge svg,
+    .grid-card-ghost.span-2 .ghost-badge i {
+      width: 8px !important;
+      height: 8px !important;
+    }
+
+    .grid-card-ghost.span-2 .ghost-title {
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+      margin: 0;
+    }
+
+    .grid-card-ghost.span-2 .ghost-prof {
+      font-size: 9.5px;
+      font-weight: 600;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 0;
+    }
+
+    .grid-card-ghost.span-2 .ghost-sub {
+      font-size: 9px;
+      font-weight: 600;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 0;
+    }
+
+    /* 1.5+ Hour Schedule (span-3-plus = 3+ slots = 108px+) */
+    .grid-card-ghost.span-3-plus {
+      padding: 8px 10px;
+      gap: 3px;
+      justify-content: space-between;
+    }
+
+    .grid-card-ghost.span-3-plus .ghost-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      margin-bottom: 2px;
+    }
+
+    .grid-card-ghost.span-3-plus .ghost-badge svg,
+    .grid-card-ghost.span-3-plus .ghost-badge i {
+      width: 10px !important;
+      height: 10px !important;
+    }
+
+    .grid-card-ghost.span-3-plus .ghost-title {
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .grid-card-ghost.span-3-plus .ghost-prof {
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .grid-card-ghost.span-3-plus .ghost-sub {
+      font-size: 10.5px;
+      font-weight: 600;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ─── Dark Mode & High-Contrast Readability Overrides ─── */
+    html.high-contrast .grid-card-ghost,
+    html.dark-mode .grid-card-ghost,
+    body.dark-mode .grid-card-ghost,
+    [data-theme="dark"] .grid-card-ghost {
+      border-color: rgba(248, 113, 113, 0.75) !important;
+      background: repeating-linear-gradient(135deg,
+          rgba(239, 68, 68, 0.12),
+          rgba(239, 68, 68, 0.12) 10px,
+          rgba(239, 68, 68, 0.22) 10px,
+          rgba(239, 68, 68, 0.22) 20px) !important;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5), 0 0 14px rgba(239, 68, 68, 0.18) !important;
+    }
+
+    html.high-contrast .grid-card-ghost .ghost-badge,
+    html.dark-mode .grid-card-ghost .ghost-badge,
+    body.dark-mode .grid-card-ghost .ghost-badge,
+    [data-theme="dark"] .grid-card-ghost .ghost-badge {
+      background: rgba(153, 27, 27, 0.75) !important;
+      color: #FEE2E2 !important;
+      border: 1px solid rgba(248, 113, 113, 0.45) !important;
+    }
+
+    html.high-contrast .grid-card-ghost .ghost-badge svg,
+    html.high-contrast .grid-card-ghost .ghost-badge i,
+    html.dark-mode .grid-card-ghost .ghost-badge svg,
+    html.dark-mode .grid-card-ghost .ghost-badge i,
+    body.dark-mode .grid-card-ghost .ghost-badge svg,
+    body.dark-mode .grid-card-ghost .ghost-badge i,
+    [data-theme="dark"] .grid-card-ghost .ghost-badge svg,
+    [data-theme="dark"] .grid-card-ghost .ghost-badge i {
+      stroke: #FEE2E2 !important;
+      color: #FEE2E2 !important;
+    }
+
+    html.high-contrast .grid-card-ghost .ghost-title,
+    html.dark-mode .grid-card-ghost .ghost-title,
+    body.dark-mode .grid-card-ghost .ghost-title,
+    [data-theme="dark"] .grid-card-ghost .ghost-title {
+      color: #FFFFFF !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+    }
+
+    html.high-contrast .grid-card-ghost .ghost-prof,
+    html.dark-mode .grid-card-ghost .ghost-prof,
+    body.dark-mode .grid-card-ghost .ghost-prof,
+    [data-theme="dark"] .grid-card-ghost .ghost-prof {
+      color: #FECDD3 !important;
+    }
+
+    html.high-contrast .grid-card-ghost .ghost-sub,
+    html.dark-mode .grid-card-ghost .ghost-sub,
+    body.dark-mode .grid-card-ghost .ghost-sub,
+    [data-theme="dark"] .grid-card-ghost .ghost-sub {
+      color: #FCA5A5 !important;
+    }
+
+    /* Current room clash ghost (amber variant) dark mode */
+    html.high-contrast .grid-card-ghost.current-room-ghost,
+    html.dark-mode .grid-card-ghost.current-room-ghost,
+    body.dark-mode .grid-card-ghost.current-room-ghost,
+    [data-theme="dark"] .grid-card-ghost.current-room-ghost {
+      border-color: rgba(251, 191, 36, 0.75) !important;
+      background: repeating-linear-gradient(135deg,
+          rgba(245, 158, 11, 0.12),
+          rgba(245, 158, 11, 0.12) 10px,
+          rgba(245, 158, 11, 0.22) 10px,
+          rgba(245, 158, 11, 0.22) 20px) !important;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5), 0 0 14px rgba(245, 158, 11, 0.18) !important;
+    }
+
+    html.high-contrast .grid-card-ghost.current-room-ghost .ghost-badge,
+    html.dark-mode .grid-card-ghost.current-room-ghost .ghost-badge,
+    body.dark-mode .grid-card-ghost.current-room-ghost .ghost-badge,
+    [data-theme="dark"] .grid-card-ghost.current-room-ghost .ghost-badge {
+      background: rgba(146, 64, 14, 0.75) !important;
+      color: #FEF3C7 !important;
+      border: 1px solid rgba(251, 191, 36, 0.45) !important;
+    }
+
+    html.high-contrast .grid-card-ghost.current-room-ghost .ghost-badge svg,
+    html.high-contrast .grid-card-ghost.current-room-ghost .ghost-badge i,
+    html.dark-mode .grid-card-ghost.current-room-ghost .ghost-badge svg,
+    html.dark-mode .grid-card-ghost.current-room-ghost .ghost-badge i,
+    body.dark-mode .grid-card-ghost.current-room-ghost .ghost-badge svg,
+    body.dark-mode .grid-card-ghost.current-room-ghost .ghost-badge i,
+    [data-theme="dark"] .grid-card-ghost.current-room-ghost .ghost-badge svg,
+    [data-theme="dark"] .grid-card-ghost.current-room-ghost .ghost-badge i {
+      stroke: #FEF3C7 !important;
+      color: #FEF3C7 !important;
+    }
+
+    html.high-contrast .grid-card-ghost.current-room-ghost .ghost-title,
+    html.dark-mode .grid-card-ghost.current-room-ghost .ghost-title,
+    body.dark-mode .grid-card-ghost.current-room-ghost .ghost-title,
+    [data-theme="dark"] .grid-card-ghost.current-room-ghost .ghost-title {
+      color: #FFFFFF !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+    }
+
+    html.high-contrast .grid-card-ghost.current-room-ghost .ghost-prof,
+    html.dark-mode .grid-card-ghost.current-room-ghost .ghost-prof,
+    body.dark-mode .grid-card-ghost.current-room-ghost .ghost-prof,
+    [data-theme="dark"] .grid-card-ghost.current-room-ghost .ghost-prof {
+      color: #FDE68A !important;
+    }
+
+    html.high-contrast .grid-card-ghost.current-room-ghost .ghost-prof svg,
+    html.high-contrast .grid-card-ghost.current-room-ghost .ghost-prof i,
+    html.dark-mode .grid-card-ghost.current-room-ghost .ghost-prof svg,
+    html.dark-mode .grid-card-ghost.current-room-ghost .ghost-prof i,
+    body.dark-mode .grid-card-ghost.current-room-ghost .ghost-prof svg,
+    body.dark-mode .grid-card-ghost.current-room-ghost .ghost-prof i,
+    [data-theme="dark"] .grid-card-ghost.current-room-ghost .ghost-prof svg,
+    [data-theme="dark"] .grid-card-ghost.current-room-ghost .ghost-prof i {
+      stroke: #FDE68A !important;
+      color: #FDE68A !important;
+    }
+
+    html.high-contrast .grid-card-ghost.current-room-ghost .ghost-sub,
+    html.dark-mode .grid-card-ghost.current-room-ghost .ghost-sub,
+    body.dark-mode .grid-card-ghost.current-room-ghost .ghost-sub,
+    [data-theme="dark"] .grid-card-ghost.current-room-ghost .ghost-sub {
+      color: #FCD34D !important;
+    }
+
+    /* Schedule Editor General Dark-Mode High-Contrast Overrides */
+    html.high-contrast #blocks-container,
+    html.dark-mode #blocks-container,
+    body.dark-mode #blocks-container,
+    [data-theme="dark"] #blocks-container {
+      background-color: var(--bg-card, #1F2937) !important;
+      border-color: var(--border-light, #374151) !important;
+    }
+
+    html.high-contrast .grid-time-label,
+    html.dark-mode .grid-time-label,
+    body.dark-mode .grid-time-label,
+    [data-theme="dark"] .grid-time-label {
+      color: var(--text-dark, #F8FAFC) !important;
+      border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    html.high-contrast .calendar-grid-header,
+    html.dark-mode .calendar-grid-header,
+    body.dark-mode .calendar-grid-header,
+    [data-theme="dark"] .calendar-grid-header,
+    html.high-contrast .grid-header-cell,
+    html.dark-mode .grid-header-cell,
+    body.dark-mode .grid-header-cell,
+    [data-theme="dark"] .grid-header-cell {
+      background: #1E293B !important;
+      color: var(--text-dark, #F8FAFC) !important;
+    }
+
+    html.high-contrast .grid-header-cell:first-child,
+    html.dark-mode .grid-header-cell:first-child,
+    body.dark-mode .grid-header-cell:first-child,
+    [data-theme="dark"] .grid-header-cell:first-child {
+      background: #1E293B !important;
+      color: var(--text-mid, #CBD5E1) !important;
+    }
+
+    html.high-contrast .grid-time-column,
+    html.dark-mode .grid-time-column,
+    body.dark-mode .grid-time-column,
+    [data-theme="dark"] .grid-time-column {
+      background: #1E293B !important;
+    }
+
+    html.high-contrast .color-picker-popover,
+    html.dark-mode .color-picker-popover,
+    body.dark-mode .color-picker-popover,
+    [data-theme="dark"] .color-picker-popover {
+      background: var(--bg-card, #1F2937) !important;
+      border-color: var(--border-light, #374151) !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    html.high-contrast .confirm-modal-container,
+    html.dark-mode .confirm-modal-container,
+    body.dark-mode .confirm-modal-container,
+    [data-theme="dark"] .confirm-modal-container {
+      background: var(--bg-card, #1F2937) !important;
+      border-color: var(--border-light, #374151) !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    html.high-contrast .confirm-modal-header h3,
+    html.dark-mode .confirm-modal-header h3,
+    body.dark-mode .confirm-modal-header h3,
+    [data-theme="dark"] .confirm-modal-header h3 {
+      color: var(--text-dark, #F8FAFC) !important;
+    }
+
+    html.high-contrast .confirm-modal-body p,
+    html.dark-mode .confirm-modal-body p,
+    body.dark-mode .confirm-modal-body p,
+    [data-theme="dark"] .confirm-modal-body p {
+      color: var(--text-mid, #CBD5E1) !important;
+    }
+
+    html.high-contrast .confirm-btn-cancel,
+    html.dark-mode .confirm-btn-cancel,
+    body.dark-mode .confirm-btn-cancel,
+    [data-theme="dark"] .confirm-btn-cancel {
+      background: transparent !important;
+      color: var(--text-mid, #CBD5E1) !important;
+      border-color: var(--border-light, #374151) !important;
+    }
+
+    html.high-contrast .confirm-btn-cancel:hover,
+    html.dark-mode .confirm-btn-cancel:hover,
+    body.dark-mode .confirm-btn-cancel:hover,
+    [data-theme="dark"] .confirm-btn-cancel:hover {
+      background: var(--border-light, #374151) !important;
+      color: var(--text-dark, #F8FAFC) !important;
+    }
+
+    html.high-contrast .grid-card-delete-btn,
+    html.dark-mode .grid-card-delete-btn,
+    body.dark-mode .grid-card-delete-btn,
+    [data-theme="dark"] .grid-card-delete-btn,
+    html.high-contrast .grid-card-color-btn,
+    html.dark-mode .grid-card-color-btn,
+    body.dark-mode .grid-card-color-btn,
+    [data-theme="dark"] .grid-card-color-btn {
+      color: var(--text-mid, #CBD5E1) !important;
+    }
+
+    html.high-contrast .grid-card-color-btn:hover,
+    html.dark-mode .grid-card-color-btn:hover,
+    body.dark-mode .grid-card-color-btn:hover,
+    [data-theme="dark"] .grid-card-color-btn:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+      color: #FFFFFF !important;
+    }
+
+    /* Save Schedule Button Disabled State */
+    #save-schedule-btn:disabled,
+    #save-schedule-btn[disabled] {
+      opacity: 0.5 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      box-shadow: none !important;
+    }
+
+    html.dark-mode #save-schedule-btn:disabled,
+    body.dark-mode #save-schedule-btn:disabled,
+    [data-theme="dark"] #save-schedule-btn:disabled,
+    html.high-contrast #save-schedule-btn:disabled {
+      opacity: 0.45 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      box-shadow: none !important;
     }
   </style>
 
@@ -1199,7 +1851,7 @@
               <i data-lucide="printer" style="width: 17px; height: 17px;"></i>
               Print Schedule
             </button>
-            <button id="save-schedule-btn" class="btn-primary"
+            <button id="save-schedule-btn" class="btn-primary" disabled
               style="display: flex; align-items: center; gap: 7px; background: var(--primary-teal); color: #fff; border: none; padding: 9px 20px; border-radius: 20px; font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3); transition: all 0.2s;">
               <i data-lucide="save" style="width: 17px; height: 17px;"></i>
               Save Schedule
@@ -1288,7 +1940,8 @@
             <div class="schedule-selectors" style="display: flex; align-items: center; gap: 16px;">
               <div style="display: flex; align-items: center; gap: 6px;">
                 <span
-                  style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">AY:</span>
+                  style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Academic
+                  Year:</span>
                 <div class="custom-select-wrapper header-select" id="academic-year-wrapper" style="width: 125px;">
                   <div class="custom-select-trigger"
                     style="padding: 5px 10px; font-size: 12.5px; border-radius: 6px; height: auto;">
@@ -1301,7 +1954,7 @@
 
               <div style="display: flex; align-items: center; gap: 6px;">
                 <span
-                  style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Sem:</span>
+                  style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Semester:</span>
                 <div class="custom-select-wrapper header-select" id="semester-wrapper" style="width: 135px;">
                   <div class="custom-select-trigger"
                     style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">

@@ -20,6 +20,7 @@ const {
 } = require('./config/app.config');
 
 const { initializeDatabase } = require('./services/dbInit');
+const { initActivityLogRetention, stopRetentionSchedule } = require('./services/activityRetentionService');
 const errorHandler = require('./middleware/errorHandler');
 const securityHeaders = require('./middleware/securityHeaders');
 const apiRoutes = require('./routes');
@@ -35,8 +36,10 @@ app.disable('x-powered-by');
 // Apply centralized HTTP security headers (Helmet, CSP, Permissions-Policy)
 app.use(securityHeaders);
 
-// Initialize database migrations asynchronously
-initializeDatabase().catch(err => {
+// Initialize database migrations asynchronously and start activity log retention
+initializeDatabase().then(() => {
+    initActivityLogRetention();
+}).catch(err => {
     console.error('[Startup Error] Fatal database initialization failure:', err.message);
     if (IS_PRODUCTION) {
         process.exit(1);
@@ -110,6 +113,9 @@ async function gracefulShutdown(signal) {
     if (isShuttingDown) return;
     isShuttingDown = true;
     console.log(`[Server] Received ${signal}. Starting graceful shutdown...`);
+
+    // Stop background timers
+    stopRetentionSchedule();
 
     // Stop accepting new connections
     server.close(async () => {

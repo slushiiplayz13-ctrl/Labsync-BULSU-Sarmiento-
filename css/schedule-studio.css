@@ -823,6 +823,14 @@
   border-radius: 8px;
 }
 
+.canvas-day-title .canvas-day-full {
+  display: inline;
+}
+
+.canvas-day-title .canvas-day-short {
+  display: none;
+}
+
 .canvas-count-pill {
   font-size: 9.5px;
   font-weight: 700;

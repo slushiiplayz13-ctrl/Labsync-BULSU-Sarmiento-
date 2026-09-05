@@ -6,13 +6,112 @@
 (function (global) {
   'use strict';
 
+  // Baseline state tracking for change detection
+  let originalAccountSettings = {
+    name: '',
+    email: '',
+    phone: '',
+    photo: null
+  };
+
+  /**
+   * Helper function to extract current photo src or null.
+   */
+  function getCurrentPhotoValue() {
+    const photoImg = document.getElementById('profile-photo-img');
+    if (photoImg && photoImg.style.display !== 'none' && photoImg.src) {
+      const src = photoImg.src.trim();
+      if (src && src !== 'about:blank' && !src.endsWith('/#')) {
+        return src;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Checks if any editable Account Settings field is different from baseline.
+   */
+  function checkHasChanges() {
+    const nameInput = document.getElementById('settings-name');
+    const emailInput = document.getElementById('settings-email');
+    const phoneInput = document.getElementById('settings-phone');
+
+    const currentName = nameInput ? nameInput.value.trim() : '';
+    const currentEmail = emailInput ? emailInput.value.trim() : '';
+    const currentPhone = phoneInput ? phoneInput.value.trim() : '';
+    const currentPhoto = getCurrentPhotoValue();
+
+    const isNameChanged = currentName !== (originalAccountSettings.name || '');
+    const isEmailChanged = currentEmail !== (originalAccountSettings.email || '');
+    const isPhoneChanged = currentPhone !== (originalAccountSettings.phone || '');
+    const isPhotoChanged = currentPhoto !== (originalAccountSettings.photo || null);
+
+    return isNameChanged || isEmailChanged || isPhoneChanged || isPhotoChanged;
+  }
+
+  /**
+   * Updates Save Changes button enabled/disabled state, styling, and ARIA attributes.
+   */
+  function updateSaveButtonState() {
+    const saveBtn = document.getElementById('save-settings-btn');
+    if (!saveBtn) return;
+
+    // Do not alter MIS staff department overview layout where save button is hidden
+    const misView = document.getElementById('mis-department-profile-view');
+    if (misView && misView.style.display !== 'none') {
+      return;
+    }
+
+    const hasChanges = checkHasChanges();
+    const nameErr = document.getElementById('settings-name-error');
+    const hasNameErr = nameErr && nameErr.style.display !== 'none';
+    const emailErr = document.getElementById('settings-email-error');
+    const hasEmailErr = emailErr && emailErr.style.display !== 'none';
+    const phoneErr = document.getElementById('settings-phone-error');
+    const hasPhoneErr = phoneErr && phoneErr.style.display !== 'none';
+
+    if (hasChanges && !hasNameErr && !hasEmailErr && !hasPhoneErr) {
+      saveBtn.disabled = false;
+      saveBtn.removeAttribute('aria-disabled');
+      saveBtn.style.opacity = '1';
+      saveBtn.style.cursor = 'pointer';
+      saveBtn.style.pointerEvents = 'auto';
+      saveBtn.style.boxShadow = '0 4px 14px var(--primary-teal-glow)';
+    } else {
+      saveBtn.disabled = true;
+      saveBtn.setAttribute('aria-disabled', 'true');
+      saveBtn.style.opacity = '0.55';
+      saveBtn.style.cursor = 'not-allowed';
+      saveBtn.style.pointerEvents = 'none';
+      saveBtn.style.boxShadow = 'none';
+    }
+  }
+
+  /**
+   * Captures the current form values as the original saved baseline.
+   */
+  function setBaselineSettings() {
+    const nameInput = document.getElementById('settings-name');
+    const emailInput = document.getElementById('settings-email');
+    const phoneInput = document.getElementById('settings-phone');
+
+    originalAccountSettings = {
+      name: nameInput ? nameInput.value.trim() : '',
+      email: emailInput ? emailInput.value.trim() : '',
+      phone: phoneInput ? phoneInput.value.trim() : '',
+      photo: getCurrentPhotoValue()
+    };
+
+    updateSaveButtonState();
+  }
+
   /**
    * Helper function to show secure email change authentication modal.
    */
   function showEmailChangeConfirmation(oldEmail, newEmail, onConfirm) {
     const overlay = document.createElement('div');
     overlay.id = 'email-confirm-modal';
-    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:2100;padding:20px;';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:2600 !important;padding:20px;';
 
     overlay.innerHTML = `
       <div class="email-confirm-content" style="background:var(--bg-white, #fff);border:1px solid var(--border-light, #e2e8f0);border-radius:24px;width:100%;max-width:460px;padding:32px;box-shadow:0 25px 60px rgba(0,0,0,0.25);display:flex;flex-direction:column;align-items:center;gap:20px;font-family:var(--font-body);animation:fadeIn 0.25s ease-out;color:var(--text-dark);">
@@ -54,6 +153,7 @@
     `;
 
     document.body.appendChild(overlay);
+    if (global.setModalOpenState) global.setModalOpenState(true);
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: overlay });
     }
@@ -63,6 +163,13 @@
     const toggleBtn = document.getElementById('toggle-confirm-pass-btn');
 
     if (passInput) passInput.focus();
+
+    overlay.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    overlay.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
 
     if (toggleBtn && passInput) {
       toggleBtn.addEventListener('click', () => {
@@ -76,6 +183,7 @@
     }
 
     document.getElementById('cancel-email-confirm').addEventListener('click', () => {
+      if (global.setModalOpenState) global.setModalOpenState(false);
       overlay.remove();
     });
 
@@ -86,6 +194,7 @@
         if (passErr) passErr.style.display = 'block';
         return;
       }
+      if (global.setModalOpenState) global.setModalOpenState(false);
       overlay.remove();
       onConfirm(passwordVal);
     });
@@ -104,6 +213,7 @@
     if (btnEl) {
       btnEl.classList.add('active');
     }
+    updateSaveButtonState();
   }
 
   /**
@@ -205,7 +315,10 @@
         const emailInput = document.getElementById('settings-email');
         const phoneInput = document.getElementById('settings-phone');
 
-        if (nameInput) nameInput.value = user.name || '';
+        if (nameInput) {
+          nameInput.value = user.name || '';
+          nameInput.dataset.currentUserId = user.id || user.User_ID || '';
+        }
         if (emailInput) {
           emailInput.value = user.email || '';
           emailInput.dataset.initialEmail = user.email || '';
@@ -225,17 +338,28 @@
           lastUpdatedEl.textContent = `Last updated: ${formatTimeFn(lastUpdated)}`;
         }
 
+        const photoImg = document.getElementById('profile-photo-img');
+        const avatarInitials = document.getElementById('avatar-initials');
+        const removePhotoBtn = document.getElementById('remove-photo-btn');
+
         if (user.profilePhoto) {
-          const photoImg = document.getElementById('profile-photo-img');
-          const avatarInitials = document.getElementById('avatar-initials');
-          const removePhotoBtn = document.getElementById('remove-photo-btn');
           if (photoImg && avatarInitials && removePhotoBtn) {
             photoImg.src = user.profilePhoto;
             photoImg.style.display = 'block';
             avatarInitials.style.display = 'none';
             removePhotoBtn.style.display = 'block';
           }
+        } else {
+          if (photoImg && avatarInitials && removePhotoBtn) {
+            photoImg.src = '';
+            photoImg.style.display = 'none';
+            avatarInitials.style.display = 'block';
+            removePhotoBtn.style.display = 'none';
+          }
         }
+
+        // Establish original saved baseline values for change detection
+        setBaselineSettings();
 
         // Fetch personal QR code for laboratory entry scanner
         const qrResponse = await fetch('/api/user/qrcode', { credentials: 'include' });
@@ -279,7 +403,7 @@
 
     const modal = document.createElement('div');
     modal.id = 'account-settings-modal';
-    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px;';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2500 !important;padding:20px;';
 
     modal.innerHTML = `
       <div class="settings-modal-content-box" style="background:var(--bg-white, #fff);border:1.5px solid var(--border-light, #374151);border-radius:20px;width:100%;max-width:900px;height:85vh;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;">
@@ -342,7 +466,8 @@
                     <div style="flex:1; min-width:260px; display:flex; flex-direction:column; gap:20px;">
                       <div>
                         <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Full Name *</label>
-                        <input type="text" id="settings-name" required style="width:100%;box-sizing:border-box;padding:12px 16px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;transition:all 0.2s;background:var(--bg-card, #F8FAFC);color:var(--text-dark);" placeholder="Your full name">
+                        <input type="text" id="settings-name" maxlength="60" required style="width:100%;box-sizing:border-box;padding:12px 16px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;transition:all 0.2s;background:var(--bg-card, #F8FAFC);color:var(--text-dark);" placeholder="Your full name">
+                        <div id="settings-name-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Full name must not exceed 60 characters.</div>
                       </div>
                       <div style="display:grid; grid-template-columns:1fr; gap:20px;">
                         <div>
@@ -562,7 +687,7 @@
               <span id="settings-last-updated" style="font-size:12.5px;color:var(--text-muted);">Last updated: Loading...</span>
               <div style="display:flex;gap:12px;">
                 <button type="button" id="cancel-settings-btn" style="padding:11px 22px;border:1.5px solid var(--border-light);background:var(--bg-white, #fff);color:var(--text-dark);border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all 0.2s;">Cancel</button>
-                <button type="submit" id="save-settings-btn" style="padding:11px 26px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 4px 14px var(--primary-teal-glow);transition:all 0.2s;">Save Changes</button>
+                <button type="submit" id="save-settings-btn" disabled aria-disabled="true" style="padding:11px 26px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:13.5px;font-weight:600;cursor:not-allowed;opacity:0.55;pointer-events:none;box-shadow:none;transition:all 0.2s;">Save Changes</button>
               </div>
             </div>
           </form>
@@ -571,6 +696,7 @@
     `;
 
     document.body.appendChild(modal);
+    if (global.setModalOpenState) global.setModalOpenState(true);
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: modal });
     }
@@ -578,18 +704,27 @@
     loadAccountSettingsData();
 
     // Close handlers
-    const closeModal = () => modal.remove();
+    const closeModal = () => {
+      if (global.setModalOpenState) global.setModalOpenState(false);
+      modal.remove();
+    };
     document.getElementById('close-settings-modal').addEventListener('click', closeModal);
     document.getElementById('cancel-settings-btn').addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
+      e.stopPropagation();
+    });
+    modal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     // Tab buttons
     modal.querySelectorAll('.settings-tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const tab = btn.getAttribute('data-tab');
-        if (tab) switchSettingsTab(tab, btn);
+        if (tab) {
+          switchSettingsTab(tab, btn);
+          updateSaveButtonState();
+        }
       });
     });
 
@@ -625,17 +760,55 @@
         const file = e.target.files[0];
         if (file) {
           if (file.size > 2 * 1024 * 1024) {
-            alert('File size exceeds 2MB limit.');
+            const sizeErrMsg = 'The selected file exceeds the 2MB limit. Please choose a smaller photo.';
+            if (global.showToast) {
+              global.showToast(sizeErrMsg, 'error');
+            } else {
+              alert(sizeErrMsg);
+            }
+            photoInput.value = '';
             return;
           }
           const reader = new FileReader();
           reader.onload = (re) => {
-            if (photoImg && avatarInitials && removePhotoBtn) {
-              photoImg.src = re.target.result;
-              photoImg.style.display = 'block';
-              avatarInitials.style.display = 'none';
-              removePhotoBtn.style.display = 'block';
-            }
+            const img = new Image();
+            img.onload = () => {
+              const maxDim = 512;
+              let { width, height } = img;
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                } else {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
+                }
+              }
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+              if (photoImg && avatarInitials && removePhotoBtn) {
+                photoImg.src = optimizedDataUrl;
+                photoImg.style.display = 'block';
+                avatarInitials.style.display = 'none';
+                removePhotoBtn.style.display = 'block';
+                updateSaveButtonState();
+              }
+            };
+            img.onerror = () => {
+              if (photoImg && avatarInitials && removePhotoBtn) {
+                photoImg.src = re.target.result;
+                photoImg.style.display = 'block';
+                avatarInitials.style.display = 'none';
+                removePhotoBtn.style.display = 'block';
+                updateSaveButtonState();
+              }
+            };
+            img.src = re.target.result;
           };
           reader.readAsDataURL(file);
         }
@@ -650,8 +823,86 @@
           avatarInitials.style.display = 'block';
           removePhotoBtn.style.display = 'none';
           if (photoInput) photoInput.value = '';
+          updateSaveButtonState();
         }
       });
+    }
+
+    // Real-time Full Name Sanitization (Max 60 characters, duplicate name prevention, paste protection)
+    const nameInput = document.getElementById('settings-name');
+    const nameErr = document.getElementById('settings-name-error');
+
+    const checkDuplicateNameClient = (nameToCheck) => {
+      if (!nameToCheck) return false;
+      const norm = nameToCheck.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (typeof global !== 'undefined' && Array.isArray(global.allFacultyMembers)) {
+        const curId = nameInput ? nameInput.dataset.currentUserId : '';
+        return global.allFacultyMembers.some(f => {
+          const fId = String(f.User_ID || f.id || '');
+          if (curId && fId === String(curId)) return false;
+          return (f.Name || f.name || '').trim().toLowerCase().replace(/\s+/g, ' ') === norm;
+        });
+      }
+      return false;
+    };
+
+    if (nameInput) {
+      nameInput.addEventListener('input', () => {
+        if (nameInput.value.length > 60) {
+          nameInput.value = nameInput.value.slice(0, 60);
+        }
+        const valTrim = nameInput.value.trim().replace(/\s+/g, ' ');
+        if (nameErr && valTrim.length > 0 && valTrim.length <= 60) {
+          if (checkDuplicateNameClient(valTrim)) {
+            nameErr.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>A user with the name "${valTrim}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`;
+            nameErr.style.display = 'block';
+            nameInput.style.borderColor = '#EF4444';
+            if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+          } else {
+            nameErr.style.display = 'none';
+            nameInput.style.borderColor = 'var(--border-light)';
+          }
+        }
+        updateSaveButtonState();
+      });
+
+      nameInput.addEventListener('paste', (e) => {
+        setTimeout(() => {
+          if (nameInput.value.length > 60) {
+            nameInput.value = nameInput.value.slice(0, 60);
+          }
+          const valTrim = nameInput.value.trim().replace(/\s+/g, ' ');
+          if (nameErr && valTrim.length > 0 && valTrim.length <= 60) {
+            if (checkDuplicateNameClient(valTrim)) {
+              nameErr.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>A user with the name "${valTrim}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`;
+              nameErr.style.display = 'block';
+              nameInput.style.borderColor = '#EF4444';
+              if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+            } else {
+              nameErr.style.display = 'none';
+              nameInput.style.borderColor = 'var(--border-light)';
+            }
+          }
+          updateSaveButtonState();
+        }, 0);
+      });
+      ['change', 'keyup'].forEach(evt => nameInput.addEventListener(evt, updateSaveButtonState));
+    }
+
+    // Email Address input validation and change detection
+    const emailInput = document.getElementById('settings-email');
+    const emailErr = document.getElementById('settings-email-error');
+    if (emailInput) {
+      emailInput.addEventListener('input', () => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (emailErr && emailRegex.test(emailInput.value.trim())) {
+          emailErr.style.display = 'none';
+          emailInput.style.borderColor = 'var(--border-light)';
+        }
+        updateSaveButtonState();
+      });
+      emailInput.addEventListener('paste', () => setTimeout(updateSaveButtonState, 0));
+      ['change', 'keyup'].forEach(evt => emailInput.addEventListener(evt, updateSaveButtonState));
     }
 
     // Real-time Contact Number Sanitization (Digits only, max 11 digits, paste protection)
@@ -667,6 +918,7 @@
           phoneErr.style.display = 'none';
           phoneInput.style.borderColor = 'var(--border-light)';
         }
+        updateSaveButtonState();
       });
 
       phoneInput.addEventListener('paste', (e) => {
@@ -678,7 +930,9 @@
           phoneErr.style.display = 'none';
           phoneInput.style.borderColor = 'var(--border-light)';
         }
+        updateSaveButtonState();
       });
+      ['change', 'keyup'].forEach(evt => phoneInput.addEventListener(evt, updateSaveButtonState));
     }
 
     // Form submit
@@ -686,6 +940,11 @@
     if (form) {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        const saveBtn = document.getElementById('save-settings-btn');
+        if (saveBtn && saveBtn.disabled) {
+          return;
+        }
 
         // Shared MIS Department account cannot update profile credentials
         const misView = document.getElementById('mis-department-profile-view');
@@ -695,6 +954,56 @@
         }
 
         const nameVal = document.getElementById('settings-name')?.value.trim();
+        const nameInputEl = document.getElementById('settings-name');
+        const nameErrEl = document.getElementById('settings-name-error');
+
+        if (!nameVal || nameVal.length === 0) {
+          if (nameErrEl) {
+            nameErrEl.innerHTML = '<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Full name cannot be empty.';
+            nameErrEl.style.display = 'block';
+          }
+          if (nameInputEl) {
+            nameInputEl.style.borderColor = '#EF4444';
+            nameInputEl.focus();
+          }
+          if (global.showToast) {
+            global.showToast('Full name cannot be empty.', 'error');
+          }
+          return;
+        }
+
+        if (nameVal.length > 60) {
+          if (nameErrEl) {
+            nameErrEl.innerHTML = '<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Full name must not exceed 60 characters.';
+            nameErrEl.style.display = 'block';
+          }
+          if (nameInputEl) {
+            nameInputEl.style.borderColor = '#EF4444';
+            nameInputEl.focus();
+          }
+          if (global.showToast) {
+            global.showToast('Full name must not exceed 60 characters.', 'error');
+          }
+          return;
+        }
+
+        if (checkDuplicateNameClient(nameVal)) {
+          const duplicateMsg = `A user with the name "${nameVal}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`;
+          if (nameErrEl) {
+            nameErrEl.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>${duplicateMsg}`;
+            nameErrEl.style.display = 'block';
+            if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+          }
+          if (nameInputEl) {
+            nameInputEl.style.borderColor = '#EF4444';
+            nameInputEl.focus();
+          }
+          if (global.showToast) {
+            global.showToast(duplicateMsg, 'error');
+          }
+          return;
+        }
+
         const emailVal = document.getElementById('settings-email')?.value.trim();
         const initialEmail = document.getElementById('settings-email')?.dataset.initialEmail || '';
         const phoneVal = document.getElementById('settings-phone')?.value.trim();
@@ -724,6 +1033,11 @@
           const saveBtn = document.getElementById('save-settings-btn');
           if (saveBtn) {
             saveBtn.disabled = true;
+            saveBtn.setAttribute('aria-disabled', 'true');
+            saveBtn.style.opacity = '0.55';
+            saveBtn.style.cursor = 'not-allowed';
+            saveBtn.style.pointerEvents = 'none';
+            saveBtn.style.boxShadow = 'none';
             saveBtn.textContent = 'Saving...';
           }
 
@@ -752,7 +1066,11 @@
               });
               const resData = await res.json();
               if (!res.ok) {
-                throw new Error(resData.error || 'Failed to update profile');
+                let errorMsg = resData.error || 'Failed to update profile';
+                if (typeof errorMsg === 'string' && (errorMsg.includes('max_allowed_packet') || errorMsg.includes('packet bigger'))) {
+                  errorMsg = 'The selected profile photo is too large to save. Please choose a smaller image and try again.';
+                }
+                throw new Error(errorMsg);
               }
               updatedUser = resData;
             }
@@ -768,18 +1086,47 @@
               lastUpdatedEl.textContent = `Last updated: ${formatTimeFn(updatedTimestamp)}`;
             }
 
+            // Establish newly saved values as current baseline
+            setBaselineSettings();
+            if (emailInput) {
+              emailInput.dataset.initialEmail = emailVal;
+            }
+
             if (global.showToast) {
               global.showToast('Profile updated successfully!', 'success');
             } else {
               alert('Profile updated successfully!');
             }
             closeModal();
+
+            if (typeof global.loadFacultyMembers === 'function') {
+              global.loadFacultyMembers();
+            }
           } catch (err) {
-            alert(err.message || 'An error occurred while saving.');
+            let errorMsg = err.message || 'An error occurred while saving.';
+            if (typeof errorMsg === 'string' && (errorMsg.includes('max_allowed_packet') || errorMsg.includes('packet bigger'))) {
+              errorMsg = 'The selected profile photo is too large to save. Please choose a smaller image and try again.';
+            }
+            if (typeof errorMsg === 'string' && errorMsg.toLowerCase().includes('already exists')) {
+              if (nameErrEl) {
+                nameErrEl.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>${errorMsg}`;
+                nameErrEl.style.display = 'block';
+                if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+              }
+              if (nameInputEl) {
+                nameInputEl.style.borderColor = '#EF4444';
+                nameInputEl.focus();
+              }
+            }
+            if (global.showToast) {
+              global.showToast(errorMsg, 'error');
+            } else {
+              alert(errorMsg);
+            }
           } finally {
             if (saveBtn) {
-              saveBtn.disabled = false;
               saveBtn.textContent = 'Save Changes';
+              updateSaveButtonState();
             }
           }
         }
@@ -799,11 +1146,15 @@
     openAccountSettings,
     loadAccountSettingsData,
     switchSettingsTab,
-    showEmailChangeConfirmation
+    showEmailChangeConfirmation,
+    updateSaveButtonState,
+    checkHasChanges,
+    setBaselineSettings
   };
 
   global.accountModal = accountModal;
   global.openAccountSettings = openAccountSettings;
   global.switchSettingsTab = switchSettingsTab;
+  global.updateSaveButtonState = updateSaveButtonState;
 
 })(typeof window !== 'undefined' ? window : this);

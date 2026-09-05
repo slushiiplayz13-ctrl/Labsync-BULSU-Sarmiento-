@@ -60,7 +60,7 @@
 
     const modal = document.createElement('div');
     modal.id = 'accessibility-settings-modal';
-    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px;';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2500 !important;padding:20px;';
 
     // Retrieve saved settings
     const isContrast = localStorage.getItem('labsync-high-contrast') === 'true';
@@ -111,6 +111,7 @@
     `;
 
     document.body.appendChild(modal);
+    if (global.setModalOpenState) global.setModalOpenState(true);
 
     // Add Switch Slider CSS logic dynamically if not yet injected
     let styleSheet = document.getElementById('accessibility-switch-styles');
@@ -181,12 +182,20 @@
     }
 
     // Bind close events
+    const closeModal = () => {
+      if (global.setModalOpenState) global.setModalOpenState(false);
+      modal.remove();
+    };
+
     const closeBtn = document.getElementById('close-accessibility-modal');
     const doneBtn = document.getElementById('close-accessibility-settings-btn');
-    if (closeBtn) closeBtn.addEventListener('click', () => modal.remove());
-    if (doneBtn) doneBtn.addEventListener('click', () => modal.remove());
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (doneBtn) doneBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.remove();
+      e.stopPropagation();
+    });
+    modal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
   }
 

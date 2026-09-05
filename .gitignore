@@ -7,8 +7,9 @@ node_modules/
 .env.development
 .env.local
 
-# Temporary/scratch scripts
+# Temporary/scratch scripts & test caches
 scratch/
+tests/temp-*
 
 # IDEs and editors
 .vscode/

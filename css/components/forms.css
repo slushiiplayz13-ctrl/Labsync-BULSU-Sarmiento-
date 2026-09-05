@@ -306,13 +306,16 @@ select.editor-select option {
   border: 1px solid var(--border-light);
   border-radius: 8px;
   padding: 8px 16px;
-  width: 320px;
+  width: 400px;
+  max-width: 100%;
   gap: 8px;
+  box-sizing: border-box;
 }
 
 .fm-search input {
   border: none;
   outline: none;
+  background: transparent;
   width: 100%;
   font-family: inherit;
   font-size: 14px;
@@ -495,8 +498,7 @@ html.high-contrast .remarks-quote-box {
 html.high-contrast .input-group input,
 html.high-contrast .input-field,
 html.high-contrast .remarks-textarea,
-html.high-contrast .editor-select,
-html.high-contrast .fm-search input {
+html.high-contrast .editor-select {
   background: var(--bg-card) !important;
   color: var(--text-dark) !important;
   border-color: var(--border-light) !important;
@@ -505,10 +507,18 @@ html.high-contrast .fm-search input {
 html.high-contrast .input-group input:focus,
 html.high-contrast .input-field:focus,
 html.high-contrast .remarks-textarea:focus,
-html.high-contrast .editor-select:focus,
-html.high-contrast .fm-search input:focus {
+html.high-contrast .editor-select:focus {
   background: var(--bg-white) !important;
   border-color: var(--primary-teal) !important;
+}
+
+html.high-contrast .fm-search input,
+html.high-contrast .fm-search input:focus {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: var(--text-dark) !important;
 }
 
 html.high-contrast input::placeholder,

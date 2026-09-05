@@ -144,7 +144,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 2500 !important;
+      pointer-events: auto !important;
       animation: fadeIn 0.2s ease;
     }
 
@@ -482,6 +483,9 @@
           <i data-lucide="search" class="modal-search-icon"></i>
           <input type="text" id="modalTicketSearch" placeholder="Search ticket #, room, PC, student, or issue..."
             autocomplete="off">
+          <button type="button" id="modalTicketSearchClear" class="modal-search-clear-btn input-icon-btn" aria-label="Clear search" title="Clear search" style="display: none;" hidden tabindex="-1">
+            <i data-lucide="x" style="width: 15px; height: 15px;"></i>
+          </button>
         </div>
         <div class="modal-time-filters">
           <button type="button" class="modal-filter-chip active" data-time-filter="all">All Time</button>

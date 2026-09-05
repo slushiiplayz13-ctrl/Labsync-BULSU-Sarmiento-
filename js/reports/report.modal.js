@@ -73,6 +73,64 @@
   }
 
   /**
+   * Syncs clear button visibility and accessibility attributes for modal search.
+   */
+  function syncModalSearchClearVisibility() {
+    const modalSearch = document.getElementById('modalTicketSearch');
+    const clearBtn = document.getElementById('modalTicketSearchClear');
+    if (!modalSearch || !clearBtn) return;
+
+    const hasText = modalSearch.value.length > 0;
+    clearBtn.hidden = !hasText;
+    clearBtn.style.display = hasText ? 'flex' : 'none';
+    clearBtn.tabIndex = hasText ? 0 : -1;
+    clearBtn.setAttribute('aria-hidden', String(!hasText));
+  }
+
+  /**
+   * Initializes the search clear button behavior in Completed Tickets modal.
+   */
+  function initModalSearchClear() {
+    const modalSearch = document.getElementById('modalTicketSearch');
+    if (!modalSearch) return;
+
+    let clearBtn = document.getElementById('modalTicketSearchClear');
+    if (!clearBtn && modalSearch.parentElement) {
+      clearBtn = document.createElement('button');
+      clearBtn.type = 'button';
+      clearBtn.id = 'modalTicketSearchClear';
+      clearBtn.className = 'modal-search-clear-btn input-icon-btn';
+      clearBtn.setAttribute('aria-label', 'Clear search');
+      clearBtn.title = 'Clear search';
+      clearBtn.hidden = true;
+      clearBtn.tabIndex = -1;
+      clearBtn.style.display = 'none';
+      clearBtn.setAttribute('aria-hidden', 'true');
+      clearBtn.innerHTML = '<i data-lucide="x" style="width: 15px; height: 15px;"></i>';
+      modalSearch.parentElement.appendChild(clearBtn);
+      if (global.lucide && typeof global.lucide.createIcons === 'function') {
+        global.lucide.createIcons({ root: clearBtn });
+      }
+    }
+
+    if (!clearBtn) return;
+
+    clearBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      modalSearch.value = '';
+      syncModalSearchClearVisibility();
+      filterCompletedTickets();
+      modalSearch.focus();
+    });
+
+    ['input', 'change', 'focus', 'blur', 'keyup', 'paste'].forEach(evt => {
+      modalSearch.addEventListener(evt, syncModalSearchClearVisibility);
+    });
+
+    syncModalSearchClearVisibility();
+  }
+
+  /**
    * Opens completed tickets modal and pre-fills search from page search if present.
    */
   function openCompletedModal() {
@@ -82,9 +140,12 @@
     if (!_modalInitialized) {
       _modalInitialized = true;
 
+      initModalSearchClear();
+
       const modalSearch = document.getElementById('modalTicketSearch');
       if (modalSearch) {
         modalSearch.addEventListener('input', () => {
+          syncModalSearchClearVisibility();
           filterCompletedTickets();
         });
       }
@@ -106,8 +167,10 @@
       modalSearch.value = pageSearch.value.trim();
     }
 
+    syncModalSearchClearVisibility();
     filterCompletedTickets();
     modal.style.display = 'flex';
+    if (global.setModalOpenState) global.setModalOpenState(true);
     if (global.lucide) global.lucide.createIcons();
   }
 
@@ -117,6 +180,8 @@
   function closeCompletedModal() {
     const modal = document.getElementById('completedTicketsModal');
     if (modal) modal.style.display = 'none';
+    if (global.setModalOpenState) global.setModalOpenState(false);
+    syncModalSearchClearVisibility();
   }
 
   /**
@@ -125,6 +190,7 @@
   function closeTicketModal() {
     const existingModal = document.getElementById('ticket-details-modal');
     if (existingModal) {
+      if (global.setModalOpenState) global.setModalOpenState(false);
       existingModal.remove();
     }
   }
@@ -274,7 +340,9 @@
     } else {
       const studentReportsHtml = linkedReports.map((rep) => {
         const repDate = rep.Date_Reported ? new Date(rep.Date_Reported) : new Date();
-        const repTimeStr = repDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+        const repTimeStr = (global.formatTicketDate && typeof global.formatTicketDate === 'function')
+          ? global.formatTicketDate(rep.Date_Reported)
+          : (repDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + repDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }));
         const repParsed = parseFn(rep.Issue_Description) || { section: 'N/A', remarks: rep.Issue_Description || 'None' };
         const repRemarks = (repParsed.remarks || '').trim();
         const isRepEmpty = !repRemarks || repRemarks.toLowerCase() === 'none' || repRemarks.toLowerCase() === 'n/a';
@@ -397,6 +465,7 @@
     `;
 
     document.body.appendChild(modal);
+    if (global.setModalOpenState) global.setModalOpenState(true);
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: modal });
     }
@@ -430,11 +499,15 @@
 
       // Close Ticket Details Modal
       const closeDetailsBtn = e.target.closest('[data-action="close-modal"]');
-      const isDetailsBackdrop = e.target.id === 'ticket-details-modal';
-      if (closeDetailsBtn || isDetailsBackdrop) {
+      if (closeDetailsBtn) {
         e.preventDefault();
         e.stopPropagation();
         closeTicketModal();
+        return;
+      }
+
+      if (e.target.id === 'ticket-details-modal') {
+        e.stopPropagation();
         return;
       }
 
@@ -469,7 +542,7 @@
 
       const modal = document.getElementById('completedTicketsModal');
       if (modal && e.target === modal) {
-        closeCompletedModal();
+        e.stopPropagation();
       }
     });
 
@@ -495,6 +568,8 @@
     openCompletedModal,
     closeCompletedModal,
     filterCompletedTickets,
+    syncModalSearchClearVisibility,
+    initModalSearchClear,
     viewTicketModal,
     closeTicketModal,
     initCompletedModalDelegation
@@ -504,6 +579,7 @@
   global.openCompletedModal = openCompletedModal;
   global.closeCompletedModal = closeCompletedModal;
   global.filterCompletedTickets = filterCompletedTickets;
+  global.syncModalSearchClearVisibility = syncModalSearchClearVisibility;
   global.viewTicketModal = viewTicketModal;
   global.closeTicketModal = closeTicketModal;
 

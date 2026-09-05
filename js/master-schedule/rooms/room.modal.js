@@ -50,7 +50,12 @@
     const submitRoomBtn = document.getElementById('submitRoomBtn');
 
     function openModal() {
+      const wasAlreadyOpen = addRoomModal.style.display === 'flex' && !addRoomModal.classList.contains('closing');
+      addRoomModal.classList.remove('closing');
+      addRoomModal.removeAttribute('data-closing');
       addRoomModal.style.display = 'flex';
+      addRoomModal.style.pointerEvents = 'auto';
+      if (!wasAlreadyOpen && global.setModalOpenState) global.setModalOpenState(true);
       void addRoomModal.offsetWidth;
       addRoomModal.style.opacity = '1';
       if (modalContent) modalContent.style.transform = 'translateY(0)';
@@ -59,13 +64,21 @@
     }
 
     function closeModal() {
+      if (addRoomModal.style.display === 'none' && !addRoomModal.classList.contains('closing')) return;
+      addRoomModal.classList.add('closing');
+      addRoomModal.setAttribute('data-closing', 'true');
       addRoomModal.style.opacity = '0';
+      addRoomModal.style.pointerEvents = 'none';
       if (modalContent) modalContent.style.transform = 'translateY(20px)';
+      if (global.setModalOpenState) global.setModalOpenState(false);
       setTimeout(() => {
         addRoomModal.style.display = 'none';
+        addRoomModal.classList.remove('closing');
+        addRoomModal.removeAttribute('data-closing');
         const input = document.getElementById('roomNumberInput');
         if (input) input.value = '';
         if (global.setCustomSelectValue) global.setCustomSelectValue('building-select-wrapper', 'Bldg. B');
+        if (global.setModalOpenState) global.setModalOpenState(null);
       }, 300);
     }
 
@@ -73,7 +86,10 @@
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
 
     addRoomModal.addEventListener('click', (e) => {
-      if (e.target === addRoomModal) closeModal();
+      e.stopPropagation();
+    });
+    addRoomModal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     if (submitRoomBtn) {
@@ -144,15 +160,34 @@
     const deleteRoomBtn = document.getElementById('deleteRoomBtn');
 
     function openEditModal(room) {
+      if (!room) return;
+      let rId = room.Room_ID;
+      const rNum = room.Room_Number;
+      if (!rId) {
+        try {
+          const cachedStr = sessionStorage.getItem('labsync_cached_labs');
+          if (cachedStr) {
+            const cached = JSON.parse(cachedStr);
+            const found = cached.find(r => String(r.Room_Number) === String(rNum));
+            if (found && found.Room_ID) rId = found.Room_ID;
+          }
+        } catch (e) {}
+      }
+
       const idInput = document.getElementById('editRoomIdInput');
       const numInput = document.getElementById('editRoomNumberInput');
-      if (idInput) idInput.value = room.Room_ID;
-      if (numInput) numInput.value = room.Room_Number;
+      if (idInput) idInput.value = rId || '';
+      if (numInput) numInput.value = rNum || '';
       if (global.setCustomSelectValue) {
         global.setCustomSelectValue('edit-building-select-wrapper', room.Building || 'Bldg. B');
       }
 
+      const wasAlreadyOpen = editRoomModal.style.display === 'flex' && !editRoomModal.classList.contains('closing');
+      editRoomModal.classList.remove('closing');
+      editRoomModal.removeAttribute('data-closing');
       editRoomModal.style.display = 'flex';
+      editRoomModal.style.pointerEvents = 'auto';
+      if (!wasAlreadyOpen && global.setModalOpenState) global.setModalOpenState(true);
       void editRoomModal.offsetWidth;
       editRoomModal.style.opacity = '1';
       if (editModalContent) editModalContent.style.transform = 'translateY(0)';
@@ -163,14 +198,22 @@
     }
 
     function closeEditModal() {
+      if (editRoomModal.style.display === 'none' && !editRoomModal.classList.contains('closing')) return;
+      editRoomModal.classList.add('closing');
+      editRoomModal.setAttribute('data-closing', 'true');
       editRoomModal.style.opacity = '0';
+      editRoomModal.style.pointerEvents = 'none';
       if (editModalContent) editModalContent.style.transform = 'translateY(20px)';
+      if (global.setModalOpenState) global.setModalOpenState(false);
       setTimeout(() => {
         editRoomModal.style.display = 'none';
+        editRoomModal.classList.remove('closing');
+        editRoomModal.removeAttribute('data-closing');
         const idInput = document.getElementById('editRoomIdInput');
         const numInput = document.getElementById('editRoomNumberInput');
         if (idInput) idInput.value = '';
         if (numInput) numInput.value = '';
+        if (global.setModalOpenState) global.setModalOpenState(null);
       }, 300);
     }
 
@@ -179,7 +222,10 @@
 
     if (closeEditModalBtn) closeEditModalBtn.addEventListener('click', closeEditModal);
     editRoomModal.addEventListener('click', (e) => {
-      if (e.target === editRoomModal) closeEditModal();
+      e.stopPropagation();
+    });
+    editRoomModal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     if (deleteRoomBtn) {
@@ -199,7 +245,7 @@
 
     if (submitEditRoomBtn) {
       submitEditRoomBtn.addEventListener('click', async () => {
-        const roomId = document.getElementById('editRoomIdInput')?.value;
+        let roomId = document.getElementById('editRoomIdInput')?.value;
         const roomNumInput = document.getElementById('editRoomNumberInput');
         const roomNum = roomNumInput ? roomNumInput.value.trim() : '';
         const bldgWrapper = document.getElementById('edit-building-select-wrapper');
@@ -220,12 +266,25 @@
           return;
         }
 
+        if (!roomId) {
+          try {
+            const cachedStr = sessionStorage.getItem('labsync_cached_labs');
+            if (cachedStr) {
+              const cached = JSON.parse(cachedStr);
+              const found = cached.find(r => String(r.Room_Number) === String(roomNum));
+              if (found && found.Room_ID) roomId = found.Room_ID;
+            }
+          } catch (e) {}
+        }
+
+        submitEditRoomBtn.disabled = true;
+
         try {
           const roomController = global.roomController;
           if (roomController && typeof roomController.updateRoom === 'function') {
             await roomController.updateRoom(roomId, roomNum, bldg);
           } else {
-            const res = await fetch(`/api/laboratories/${roomId}`, {
+            const res = await fetch(`/api/laboratories/${encodeURIComponent(roomId)}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               credentials: 'include',
@@ -235,6 +294,28 @@
             if (!res.ok) throw new Error(data.error || 'Failed to update room');
           }
 
+          // Immediately reflect updated building in existing overview room cards (zero-lag UI state update)
+          if (roomController && typeof roomController.updateRoomCardInUI === 'function') {
+            roomController.updateRoomCardInUI(roomId, roomNum, bldg);
+          }
+
+          // Update cached laboratories in sessionStorage
+          try {
+            const cachedStr = sessionStorage.getItem('labsync_cached_labs');
+            if (cachedStr) {
+              const cached = JSON.parse(cachedStr);
+              if (Array.isArray(cached)) {
+                const item = cached.find(r => (roomId && String(r.Room_ID) === String(roomId)) || String(r.Room_Number) === String(roomNum));
+                if (item) {
+                  item.Building = bldg;
+                  item.Room_Number = roomNum;
+                }
+                sessionStorage.setItem('labsync_cached_labs', JSON.stringify(cached));
+              }
+            }
+          } catch (e) {}
+
+          // Synchronize room data with backend
           if (roomController && typeof roomController.loadRooms === 'function') {
             roomController.loadRooms();
           } else if (typeof global.loadRooms === 'function') {
@@ -242,12 +323,18 @@
           }
 
           closeEditModal();
+
+          if (global.showToast) {
+            global.showToast(`Room ${roomNum} updated successfully.`, 'success');
+          }
         } catch (err) {
           alert(err.message || 'An unexpected error occurred.');
           if (roomNumInput) {
             roomNumInput.style.borderColor = '#ef4444';
             setTimeout(() => roomNumInput.style.borderColor = 'var(--primary-teal)', 1000);
           }
+        } finally {
+          submitEditRoomBtn.disabled = false;
         }
       });
     }

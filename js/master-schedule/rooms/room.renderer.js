@@ -20,8 +20,11 @@
     const escapeFn = getEscapeFn();
     const card = document.createElement('div');
     card.className = 'room-select-card';
+    card.dataset.roomId = room.Room_ID || '';
+    card.dataset.roomNumber = room.Room_Number || '';
+    card.dataset.building = room.Building || 'Bldg. B';
     card.onclick = () => {
-      window.location.href = `room-schedule-editor.html?room=${encodeURIComponent(room.Room_Number)}&bldg=${encodeURIComponent(room.Building || 'Building B')}`;
+      window.location.href = `room-schedule-editor.html?room=${encodeURIComponent(room.Room_Number)}&bldg=${encodeURIComponent(room.Building || 'Bldg. B')}`;
     };
 
     card.innerHTML = `

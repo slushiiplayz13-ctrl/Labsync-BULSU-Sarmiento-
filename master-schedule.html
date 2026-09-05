@@ -307,8 +307,8 @@
               if (rooms && rooms.length && grid) {
                 var html = '';
                 rooms.forEach(function (r) {
-                  html += '<div class="room-select-card" onclick="window.location.href=\'room-schedule-editor.html?room=' + encodeURIComponent(r.Room_Number) + '&bldg=' + encodeURIComponent(r.Building || 'Bldg. B') + '\'">' +
-                    '<button class="room-edit-btn" type="button" title="Edit Room" onclick="event.stopPropagation(); if (window.openEditModal) window.openEditModal({Room_Number:\'' + r.Room_Number + '\',Building:\'' + (r.Building || 'Bldg. B') + '\'})">' +
+                  html += '<div class="room-select-card" data-room-id="' + (r.Room_ID || '') + '" data-room-number="' + r.Room_Number + '" data-building="' + (r.Building || 'Bldg. B') + '" onclick="window.location.href=\'room-schedule-editor.html?room=' + encodeURIComponent(r.Room_Number) + '&bldg=' + encodeURIComponent(r.Building || 'Bldg. B') + '\'">' +
+                    '<button class="room-edit-btn" type="button" title="Edit Room" onclick="event.stopPropagation(); if (window.openEditModal) window.openEditModal({Room_ID:\'' + (r.Room_ID || '') + '\',Room_Number:\'' + r.Room_Number + '\',Building:\'' + (r.Building || 'Bldg. B') + '\'})">' +
                     '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit-2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>' +
                     '</button>' +
                     '<div class="rsc-icon">' +
@@ -665,6 +665,7 @@
 
   <script src="js/utils/core-utils.js"></script>
   <script src="js/utils/dom-utils.js"></script>
+  <script src="js/utils/academic-term.js"></script>
   <script src="js/core/accessibility.js"></script>
   <script src="js/core/clock.js"></script>
   <script src="js/core/tutorial-launcher.js"></script>

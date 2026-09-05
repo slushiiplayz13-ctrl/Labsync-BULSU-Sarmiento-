@@ -141,7 +141,7 @@ function renderLabCards(labs, targetContainer) {
     let keyHolderColorClass = 'muted-text';
 
     if (!isOnline) {
-      keyHolderText = 'Offline';
+      keyHolderText = 'N/A';
       keyHolderColorClass = 'muted-text';
     } else {
       const isAbsent = room.Key_Status === 'Absent' ||
@@ -193,24 +193,14 @@ function renderLabCards(labs, targetContainer) {
           </button>
         </div>
       `;
-    } else if (isOnline) {
-      pcStatusHtml = `
-        <div class="ld-row pc-status-row">
-          <span class="ld-label">
-            <i data-lucide="check-circle-2" class="ld-icon" style="color:#10B981;"></i>
-            <span>PC Status</span>
-          </span>
-          <strong class="ld-value" style="color: #10B981;">All Operational</strong>
-        </div>
-      `;
     } else {
       pcStatusHtml = `
         <div class="ld-row pc-status-row">
           <span class="ld-label">
-            <i data-lucide="radio" class="ld-icon" style="color:#94A3B8;"></i>
-            <span>PC Status</span>
+            <i data-lucide="monitor" class="ld-icon"></i>
+            <span>PC Issues</span>
           </span>
-          <strong class="ld-value muted-text" style="color: #94A3B8;">Offline</strong>
+          <strong class="ld-value muted-text">None</strong>
         </div>
       `;
     }
@@ -329,6 +319,22 @@ async function updateLaboratory(roomId, roomNumber, building) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Failed to update room');
+
+  try {
+    const cachedStr = sessionStorage.getItem('labsync_cached_labs');
+    if (cachedStr) {
+      const cached = JSON.parse(cachedStr);
+      if (Array.isArray(cached)) {
+        const item = cached.find(r => (roomId && String(r.Room_ID) === String(roomId)) || String(r.Room_Number) === String(roomNumber));
+        if (item) {
+          item.Building = building;
+          item.Room_Number = roomNumber;
+        }
+        sessionStorage.setItem('labsync_cached_labs', JSON.stringify(cached));
+      }
+    }
+  } catch (e) {}
+
   return data;
 }
 

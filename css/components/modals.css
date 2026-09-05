@@ -3,7 +3,31 @@
    ================================================================ */
 
 /* ─── Global Modal Backdrop & Overlay ───────────────────────────── */
-.modal-backdrop {
+.modal-backdrop,
+.modal-overlay,
+.help-modal-overlay,
+.confirm-modal-overlay,
+.key-modal-overlay,
+.pc-modal-overlay,
+.studio-modal-overlay,
+.success-overlay,
+#success-modal,
+#unsavedChangesModal,
+#unsaved-changes-modal,
+#card-detail-modal,
+#account-settings-modal,
+#help-modal,
+#schedule-view-modal,
+#add-faculty-modal,
+#role-edit-modal,
+#delete-confirm-modal,
+#addRoomModal,
+#editRoomModal,
+#downloadModal,
+#signatureSettingsModal,
+#importCurriculumModal,
+#ticket-details-modal,
+#accessibility-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -25,9 +49,87 @@
 }
 
 .modal-backdrop.active,
-.modal-backdrop[style*="display: flex"] {
+.modal-backdrop[style*="display: flex"],
+.modal-backdrop[style*="display: block"],
+.help-modal-overlay,
+.confirm-modal-overlay.active,
+.confirm-modal-overlay[style*="display: flex"],
+.confirm-modal-overlay[style*="display: block"],
+.key-modal-overlay[style*="display: flex"],
+.pc-modal-overlay[style*="display: flex"],
+.studio-modal-overlay.active,
+.success-overlay[style*="display: flex"],
+.success-overlay[style*="display: block"],
+#account-settings-modal,
+#help-modal,
+#schedule-view-modal,
+#add-faculty-modal,
+#role-edit-modal,
+#delete-confirm-modal,
+#unsavedChangesModal.active,
+#unsaved-changes-modal.active,
+#card-detail-modal.active,
+#addRoomModal[style*="display: flex"],
+#addRoomModal[style*="display: block"],
+#editRoomModal[style*="display: flex"],
+#editRoomModal[style*="display: block"],
+#downloadModal[style*="display: flex"],
+#downloadModal[style*="display: block"],
+#signatureSettingsModal[style*="display: flex"],
+#signatureSettingsModal[style*="display: block"],
+#importCurriculumModal[style*="display: flex"],
+#importCurriculumModal[style*="display: block"],
+#ticket-details-modal,
+#accessibility-modal {
   opacity: 1;
-  pointer-events: auto;
+  pointer-events: auto !important;
+}
+
+/* ─── Nested Sub-Modals & Confirmation Layers ───────────────────── */
+#change-password-modal,
+#email-confirm-modal,
+#transfer-confirm-modal,
+#success-greeting-modal,
+#unsavedChangesModal,
+#unsaved-changes-modal,
+#delete-confirm-modal,
+.confirm-modal-overlay[id*="unsaved"],
+.confirm-modal-overlay[id*="delete"] {
+  z-index: 2600 !important;
+  pointer-events: auto !important;
+}
+
+/* ─── Global Background Interaction Guard ───────────────────────── */
+body.modal-open {
+  overflow: hidden !important;
+}
+
+body.modal-open .main-wrapper,
+body.modal-open .sidebar,
+body.modal-open .header,
+body.modal-open .login-container,
+body.modal-open .dashboard-container,
+body.modal-open .app-content,
+body.modal-open main,
+body.modal-open nav {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+body.modal-open [class*="modal"],
+body.modal-open [id*="modal"],
+body.modal-open .modal-backdrop,
+body.modal-open .modal-overlay,
+body.modal-open .help-modal-overlay,
+body.modal-open .confirm-modal-overlay,
+body.modal-open .key-modal-overlay,
+body.modal-open .pc-modal-overlay,
+body.modal-open .studio-modal-overlay,
+body.modal-open .success-overlay,
+body.modal-open .toast-container,
+body.modal-open #toast-container {
+  pointer-events: auto !important;
+  user-select: auto !important;
 }
 
 /* ─── Tablet & Mobile Viewports (Max Width: 1024px) ─────────────── */
@@ -520,6 +622,15 @@
     box-shadow: 0 4px 14px var(--primary-teal-glow) !important;
   }
 
+  #save-settings-btn:disabled,
+  #save-settings-btn[disabled] {
+    opacity: 0.55 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    box-shadow: none !important;
+  }
+
+
   html.high-contrast #cancel-settings-btn {
     background: #334155 !important;
     border-color: #475569 !important;
@@ -761,3 +872,28 @@
     max-height: 100vh !important;
   }
 }
+
+/* ─── Account Settings Save Button Global Disabled State ─── */
+#save-settings-btn:disabled,
+#save-settings-btn[disabled] {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
+}
+
+/* ─── Delete Faculty Modal Buttons Disabled State ─── */
+#confirm-delete-btn:disabled,
+#confirm-delete-btn[disabled] {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
+}
+
+#cancel-delete-btn:disabled,
+#cancel-delete-btn[disabled] {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}

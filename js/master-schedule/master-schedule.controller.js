@@ -60,8 +60,11 @@
       currModal.initCurriculumImportModal();
     }
 
-    const currentYear = new Date().getFullYear();
-    const defaultAY = `${currentYear}-${currentYear + 1}`;
+    const termInfo = (global.AcademicTerm && typeof global.AcademicTerm.getSelectedTerm === 'function')
+      ? global.AcademicTerm.getSelectedTerm('master_schedule')
+      : { academicYear: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`, semester: '1st Semester' };
+    const defaultAY = termInfo.academicYear;
+    const defaultSem = termInfo.semester;
 
     if (global.populateCustomYearSelectors) {
       global.populateCustomYearSelectors('academic-year-wrapper', defaultAY);
@@ -75,7 +78,7 @@
     }
 
     if (global.setCustomSelectValue) {
-      global.setCustomSelectValue('semester-wrapper', '1st Semester');
+      global.setCustomSelectValue('semester-wrapper', defaultSem);
       global.setCustomSelectValue('building-select-wrapper', 'Bldg. B');
       global.setCustomSelectValue('edit-building-select-wrapper', 'Bldg. B');
     }

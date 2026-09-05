@@ -12,6 +12,7 @@ const PORT = parseInt(process.env.PORT, 10) || 3000;
 const APP_URL = (process.env.APP_URL || `http://localhost:${PORT}`).replace(/\/+$/, '');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'labsync-secret-key-change-in-production';
 const SESSION_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
+const INACTIVITY_TIMEOUT_MS = parseInt(process.env.INACTIVITY_TIMEOUT_MS, 10) || (10 * 60 * 1000); // 10 minutes
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const COOKIE_SECURE = process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : IS_PRODUCTION;
 
@@ -115,6 +116,7 @@ module.exports = {
     APP_URL,
     SESSION_SECRET,
     SESSION_MAX_AGE,
+    INACTIVITY_TIMEOUT_MS,
     IS_PRODUCTION,
     COOKIE_SECURE,
     getAllowedOrigins,

@@ -177,11 +177,16 @@
   }
 
 
-
-
-
-
-
+  body[data-page="my-schedule"] .dashboard-card,
+  body[data-page="it-head-my-schedule"] .dashboard-card,
+  body[data-page="my-schedule"] #schedule-container,
+  body[data-page="it-head-my-schedule"] #schedule-container,
+  body[data-page="my-schedule"] .schedule-columns,
+  body[data-page="it-head-my-schedule"] .schedule-columns {
+    overflow-y: visible !important;
+    height: auto !important;
+    flex: 1 !important;
+  }
 
 }
 
@@ -193,11 +198,10 @@
     display: none !important;
   }
 
-
-
   .greeting-row {
     text-align: left !important;
   }
+
 
 
 
@@ -314,8 +318,6 @@
   .greeting-sub {
     font-size: 11.5px !important;
   }
-
-
 
 
 }

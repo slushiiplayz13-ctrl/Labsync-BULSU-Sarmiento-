@@ -70,8 +70,16 @@
       }
       const tutorialBtn = profileMenu.querySelector('#profile-menu-tutorial-btn');
       if (tutorialBtn) {
-        tutorialBtn.addEventListener('click', () => {
-          if (typeof global.startSystemTutorial === 'function') global.startSystemTutorial(true);
+        tutorialBtn.addEventListener('click', (e) => {
+          if (e) e.stopPropagation();
+          profileMenu.style.display = 'none';
+          const profileBtn = document.getElementById('profile-btn');
+          if (profileBtn) profileBtn.setAttribute('aria-expanded', 'false');
+          if (typeof global.startSystemTutorial === 'function') {
+            global.startSystemTutorial(true);
+          } else if (typeof global.startFacultyTutorial === 'function') {
+            global.startFacultyTutorial(true);
+          }
         });
       }
       const logoutBtn = profileMenu.querySelector('#profile-menu-logout-btn');

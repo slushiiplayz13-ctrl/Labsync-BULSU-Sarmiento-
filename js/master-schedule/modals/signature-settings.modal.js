@@ -32,7 +32,12 @@
         console.error('[SignatureSettingsModal] Failed to fetch signature settings:', err);
       }
 
+      const wasAlreadyOpen = signatureSettingsModal.style.display === 'flex' && !signatureSettingsModal.classList.contains('closing');
+      signatureSettingsModal.classList.remove('closing');
+      signatureSettingsModal.removeAttribute('data-closing');
       signatureSettingsModal.style.display = 'flex';
+      signatureSettingsModal.style.pointerEvents = 'auto';
+      if (!wasAlreadyOpen && global.setModalOpenState) global.setModalOpenState(true);
       void signatureSettingsModal.offsetWidth;
       signatureSettingsModal.style.opacity = '1';
       const dialog = signatureSettingsModal.querySelector('.modal-content');
@@ -43,11 +48,19 @@
     }
 
     function closeSignatureModal() {
+      if (signatureSettingsModal.style.display === 'none' && !signatureSettingsModal.classList.contains('closing')) return;
+      signatureSettingsModal.classList.add('closing');
+      signatureSettingsModal.setAttribute('data-closing', 'true');
       signatureSettingsModal.style.opacity = '0';
+      signatureSettingsModal.style.pointerEvents = 'none';
       const dialog = signatureSettingsModal.querySelector('.modal-content');
       if (dialog) dialog.style.transform = 'translateY(20px)';
+      if (global.setModalOpenState) global.setModalOpenState(false);
       setTimeout(() => {
         signatureSettingsModal.style.display = 'none';
+        signatureSettingsModal.classList.remove('closing');
+        signatureSettingsModal.removeAttribute('data-closing');
+        if (global.setModalOpenState) global.setModalOpenState(null);
       }, 300);
     }
 
@@ -55,7 +68,10 @@
     if (closeSignatureModalBtn) closeSignatureModalBtn.addEventListener('click', closeSignatureModal);
 
     signatureSettingsModal.addEventListener('click', (e) => {
-      if (e.target === signatureSettingsModal) closeSignatureModal();
+      e.stopPropagation();
+    });
+    signatureSettingsModal.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
     });
 
     if (saveSignatureBtn) {
