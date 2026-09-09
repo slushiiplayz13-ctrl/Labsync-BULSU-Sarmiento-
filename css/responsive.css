@@ -223,6 +223,26 @@
     padding: 16px !important;
   }
 
+  /* Ensure card section titles and headers align flush to the left edge on mobile */
+  .section-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .section-header > .sh-left,
+  .card-section-title {
+    width: 100% !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    align-self: flex-start !important;
+  }
+
+  .section-header > .sh-right {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
 
 
   /* Form structural components */

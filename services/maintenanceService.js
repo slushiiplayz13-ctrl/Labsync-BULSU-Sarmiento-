@@ -4,6 +4,7 @@ const maintenanceRepository = require('../repositories/maintenance.repository');
 const scheduleRepository = require('../repositories/schedule.repository');
 const labRepository = require('../repositories/laboratory.repository');
 const userRepository = require('../repositories/user.repository');
+const pool = require('../database/connection');
 
 /**
  * Extracts primary issue component category for grouping maintenance issues.
@@ -74,10 +75,17 @@ async function submitReport(reqBody = {}) {
     const roomId = rooms[0].Room_ID;
 
     const [pcs] = await labRepository.findPCByRoomAndNumber(roomId, pcNumber);
+    let pcId;
     if (pcs.length === 0) {
-        return { status: 404, error: `PC Unit ${pcNumber} not found in Room ${roomNumber}.` };
+        // Auto-provision PC in this laboratory room if not yet present
+        const cleanPc = String(pcNumber).trim().replace(/^(pc\s*unit|pc\s*#|pc|unit)\s*[-:]?\s*/i, '');
+        const pcNumToInsert = cleanPc || String(pcNumber).trim();
+        const qrString = `LABSYNC-PC-${roomId}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+        const [inserted] = await labRepository.insertPC(roomId, pcNumToInsert, qrString);
+        pcId = inserted.insertId;
+    } else {
+        pcId = pcs[0].PC_ID;
     }
-    const pcId = pcs[0].PC_ID;
 
     const issueComponents = Object.keys(components || {}).filter(key => components[key] === 'issue');
     const desc = `[Program & Section: ${cleanStudentSection}] [Issues: ${issueComponents.join(', ') || 'None'}] Remarks: ${cleanRemarks || 'None'}`;
@@ -269,10 +277,68 @@ async function getNotifications(sessionUserId, sessionUserRole) {
     }
 }
 
+async function getPCInfo(queryParams = {}) {
+    const searchRoom = String(queryParams.room || queryParams.roomNumber || queryParams.room_number || '').trim();
+    const searchPc = String(queryParams.pc || queryParams.pcNumber || queryParams.pc_number || '').trim();
+    const qr = String(queryParams.qr || queryParams.qrString || '').trim();
+
+    if (qr) {
+        const [pcs] = await pool.query(
+            'SELECT p.PC_ID, p.PC_Number, p.Condition_Status, r.Room_ID, r.Room_Number FROM lab_units p JOIN laboratories r ON p.Room_ID = r.Room_ID WHERE p.PC_QR_String = ?',
+            [qr]
+        );
+        if (pcs.length > 0) {
+            return {
+                status: 200,
+                data: {
+                    roomId: pcs[0].Room_ID,
+                    roomNumber: pcs[0].Room_Number,
+                    pcId: pcs[0].PC_ID,
+                    pcNumber: pcs[0].PC_Number,
+                    conditionStatus: pcs[0].Condition_Status
+                }
+            };
+        }
+    }
+
+    if (searchRoom) {
+        const [rooms] = await scheduleRepository.findRoomIdByNumber(searchRoom);
+        if (rooms.length > 0) {
+            const roomData = rooms[0];
+            if (searchPc) {
+                const [pcs] = await labRepository.findPCByRoomAndNumber(roomData.Room_ID, searchPc);
+                if (pcs.length > 0) {
+                    return {
+                        status: 200,
+                        data: {
+                            roomId: roomData.Room_ID,
+                            roomNumber: roomData.Room_Number,
+                            pcId: pcs[0].PC_ID,
+                            pcNumber: pcs[0].PC_Number,
+                            conditionStatus: pcs[0].Condition_Status
+                        }
+                    };
+                }
+            }
+            return {
+                status: 200,
+                data: {
+                    roomId: roomData.Room_ID,
+                    roomNumber: roomData.Room_Number,
+                    pcNumber: searchPc || null
+                }
+            };
+        }
+    }
+
+    return { status: 404, error: 'Workstation not found' };
+}
+
 module.exports = {
     submitReport,
     getAllReports,
     updateReportStatus,
     deleteReport,
-    getNotifications
+    getNotifications,
+    getPCInfo
 };

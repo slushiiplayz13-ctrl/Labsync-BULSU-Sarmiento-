@@ -64,13 +64,13 @@
       box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
       .maint-controls-row {
         display: flex !important;
         flex-direction: column !important;
         align-items: stretch !important;
-        gap: 14px !important;
-        margin-bottom: 6px !important;
+        gap: 12px !important;
+        margin-bottom: 8px !important;
       }
 
       .filter-pills-row {
@@ -79,14 +79,14 @@
         flex-wrap: nowrap !important;
         width: 100% !important;
         gap: 6px !important;
-        margin-bottom: 4px !important;
+        margin-bottom: 2px !important;
       }
 
       .filter-pill {
         flex: 1 1 0% !important;
         min-width: 0 !important;
-        padding: 7px 4px !important;
-        font-size: 11.5px !important;
+        padding: 8px 6px !important;
+        font-size: 12px !important;
         justify-content: center !important;
         text-align: center !important;
         white-space: nowrap !important;
@@ -94,13 +94,13 @@
 
       .filter-pill i,
       .filter-pill svg {
-        width: 12px !important;
-        height: 12px !important;
+        width: 13px !important;
+        height: 13px !important;
       }
 
       .maint-search-wrap {
         width: 100% !important;
-        margin-top: 4px !important;
+        margin-top: 0 !important;
       }
 
       .maint-search-wrap .search-box {
@@ -108,115 +108,327 @@
       }
 
       /* Mobile Card View for Maintenance Table */
-      .maint-table-wrapper {
+      .maint-table-wrapper,
+      html.dark-mode .maint-table-wrapper,
+      body.dark-mode .maint-table-wrapper,
+      [data-theme="dark"] .maint-table-wrapper,
+      html.high-contrast .maint-table-wrapper {
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        max-height: calc(100vh - 280px) !important;
-        padding-right: 2px !important;
+        max-height: calc(100vh - 270px) !important;
+        padding: 0 2px !important;
         -webkit-overflow-scrolling: touch !important;
       }
 
-      .maint-table,
-      .maint-table tbody {
+      .maint-table colgroup,
+      .maint-table col,
+      .maint-table thead {
+        display: none !important;
+        width: 0 !important;
+      }
+
+      .maint-table {
+        table-layout: auto !important;
         display: flex !important;
         flex-direction: column !important;
-        gap: 12px !important;
         width: 100% !important;
       }
 
-      .maint-table thead {
-        display: none !important;
-      }
-
-      .maint-table tr {
+      .maint-table tbody {
         display: flex !important;
         flex-direction: column !important;
-        gap: 10px !important;
+        gap: 14px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .maint-table tr.maintenance-row {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px 10px !important;
         background: #FFFFFF !important;
-        border: 1px solid var(--border-light) !important;
+        border: 1px solid var(--border-light, #E2E8F0) !important;
         border-radius: 16px !important;
-        padding: 14px 16px !important;
-        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+        padding: 16px !important;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
         box-sizing: border-box !important;
         width: 100% !important;
       }
 
-      .maint-table tr td {
+      html.dark-mode .maint-table tr.maintenance-row,
+      body.dark-mode .maint-table tr.maintenance-row,
+      [data-theme="dark"] .maint-table tr.maintenance-row,
+      html.high-contrast .maint-table tr.maintenance-row {
+        background: #161F30 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+      }
+
+      .maint-table tr.maintenance-row td {
         display: block !important;
         padding: 0 !important;
         border: none !important;
         white-space: normal !important;
         min-width: 0 !important;
         max-width: none !important;
-      }
-
-      .maint-table tr td.col-ticket {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-      }
-
-      .maint-table tr td.col-status {
-        display: flex !important;
-        justify-content: flex-end !important;
-        margin-top: -36px !important;
-      }
-
-      .maint-table tr td.col-date,
-      .maint-table tr td.col-room,
-      .maint-table tr td.col-pc {
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 6px !important;
-        margin-right: 12px !important;
-        font-size: 12.5px !important;
-      }
-
-      .maint-table tr td.col-issues {
-        margin-top: 2px !important;
-      }
-
-      .maint-table tr td.col-actions {
-        margin-top: 4px;
-        padding-top: 10px !important;
-        border-top: 1px dashed var(--border-light) !important;
-      }
-
-      .maint-table tr td.col-actions .btn-resolve-ticket,
-      .maint-table tr td.col-actions .completed-chip {
-        width: 100% !important;
-        justify-content: center !important;
-        padding: 10px 14px !important;
-        font-size: 13px !important;
-        border-radius: 12px !important;
         box-sizing: border-box !important;
       }
 
-      .mobile-card-meta {
+      /* Row 1: Date on Left, Ticket ID on Right */
+      .maint-table tr.maintenance-row td.col-date {
+        grid-column: 1 / 2 !important;
+        grid-row: 1 !important;
+        width: 100% !important;
         display: flex !important;
-        align-items: center;
-        gap: 5px 8px;
-        flex-wrap: wrap;
-        font-size: 11.5px;
-        font-weight: 600;
-        color: var(--text-dark);
-        margin-bottom: 8px;
-        background: #F8FAFC;
-        padding: 6px 10px;
-        border-radius: 8px;
-        border: 1px solid var(--border-light);
-        box-sizing: border-box;
-        width: 100%;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        margin: 0 !important;
       }
 
-      .mobile-card-meta>span {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        white-space: nowrap;
+      .maint-table tr.maintenance-row td.col-ticket {
+        grid-column: 2 / 3 !important;
+        grid-row: 1 !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        margin: 0 !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-ticket .ticket-chip {
+        font-size: 12.5px !important;
+        padding: 4px 11px !important;
+        white-space: nowrap !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-date .col-date-wrap {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        white-space: nowrap !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-date .col-date-icon {
+        width: 15px !important;
+        height: 15px !important;
+        color: var(--primary-teal, #1EBBD7) !important;
+        flex-shrink: 0 !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-date .col-date-text {
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: baseline !important;
+        gap: 6px !important;
+        white-space: nowrap !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-date .date-main {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        color: var(--text-dark, #0F172A) !important;
+        white-space: nowrap !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-date .date-main::after {
+        content: "•";
+        margin-left: 6px;
+        color: var(--text-muted, #94A3B8);
+        font-weight: 400;
+      }
+
+      html.high-contrast .maint-table tr.maintenance-row td.col-date .date-main,
+      body.high-contrast .maint-table tr.maintenance-row td.col-date .date-main,
+      html.dark-mode .maint-table tr.maintenance-row td.col-date .date-main,
+      body.dark-mode .maint-table tr.maintenance-row td.col-date .date-main,
+      html.dark .maint-table tr.maintenance-row td.col-date .date-main,
+      body.dark .maint-table tr.maintenance-row td.col-date .date-main,
+      html.dark-theme .maint-table tr.maintenance-row td.col-date .date-main,
+      body.dark-theme .maint-table tr.maintenance-row td.col-date .date-main,
+      [data-theme="dark"] .maint-table tr.maintenance-row td.col-date .date-main {
+        color: #F1F5F9 !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-date .time-sub {
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        color: var(--text-muted, #94A3B8) !important;
+        white-space: nowrap !important;
+      }
+
+      /* Row 2: Room and PC Units - side by side symmetrical pill boxes */
+      .maint-table tr.maintenance-row td.col-room {
+        grid-column: 1 / 2 !important;
+        grid-row: 2 !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        margin: 0 !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-pc {
+        grid-column: 2 / 3 !important;
+        grid-row: 2 !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        margin: 0 !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-room .cell-icon-wrap,
+      .maint-table tr.maintenance-row td.col-pc .cell-icon-wrap {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 7px !important;
+        width: 100% !important;
+        background: #F8FAFC !important;
+        border: 1px solid var(--border-light, #E2E8F0) !important;
+        border-radius: 10px !important;
+        padding: 8px 10px !important;
+        box-sizing: border-box !important;
+        font-size: 12.5px !important;
+        font-weight: 600 !important;
+        color: var(--text-dark, #0F172A) !important;
+      }
+
+      html.high-contrast .maint-table tr.maintenance-row td.col-room .cell-icon-wrap,
+      body.high-contrast .maint-table tr.maintenance-row td.col-room .cell-icon-wrap,
+      html.dark-mode .maint-table tr.maintenance-row td.col-room .cell-icon-wrap,
+      body.dark-mode .maint-table tr.maintenance-row td.col-room .cell-icon-wrap,
+      html.dark .maint-table tr.maintenance-row td.col-room .cell-icon-wrap,
+      body.dark .maint-table tr.maintenance-row td.col-room .cell-icon-wrap,
+      html.dark-theme .maint-table tr.maintenance-row td.col-room .cell-icon-wrap,
+      body.dark-theme .maint-table tr.maintenance-row td.col-room .cell-icon-wrap,
+      [data-theme="dark"] .maint-table tr.maintenance-row td.col-room .cell-icon-wrap,
+      html.high-contrast .maint-table tr.maintenance-row td.col-pc .cell-icon-wrap,
+      body.high-contrast .maint-table tr.maintenance-row td.col-pc .cell-icon-wrap,
+      html.dark-mode .maint-table tr.maintenance-row td.col-pc .cell-icon-wrap,
+      body.dark-mode .maint-table tr.maintenance-row td.col-pc .cell-icon-wrap,
+      html.dark .maint-table tr.maintenance-row td.col-pc .cell-icon-wrap,
+      body.dark .maint-table tr.maintenance-row td.col-pc .cell-icon-wrap,
+      html.dark-theme .maint-table tr.maintenance-row td.col-pc .cell-icon-wrap,
+      body.dark-theme .maint-table tr.maintenance-row td.col-pc .cell-icon-wrap,
+      [data-theme="dark"] .maint-table tr.maintenance-row td.col-pc .cell-icon-wrap {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+        color: #F8FAFC !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-room .cell-icon,
+      .maint-table tr.maintenance-row td.col-pc .cell-icon {
+        width: 15px !important;
+        height: 15px !important;
+        flex-shrink: 0 !important;
+      }
+
+      /* Row 3: Reporter Chip */
+      .maint-table tr.maintenance-row td.col-reporter {
+        grid-column: 1 / -1 !important;
+        grid-row: 3 !important;
+        width: 100% !important;
+        overflow: visible !important;
+        display: flex !important;
+        align-items: center !important;
+        margin: 0 !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-reporter .reporter-chip {
+        max-width: 100% !important;
+        width: fit-content !important;
+        box-sizing: border-box !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-reporter .reporter-chip .reporter-chip-name {
+        max-width: none !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      /* Row 4: Issues & Remarks */
+      .maint-table tr.maintenance-row td.col-issues {
+        grid-column: 1 / -1 !important;
+        grid-row: 4 !important;
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        margin: 0 !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-issues .ticket-badge-group {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        margin: 0 !important;
+        width: 100% !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-issues .remarks-quote-box {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+      }
+
+      /* Row 5: Actions Button / Completed Chip */
+      .maint-table tr.maintenance-row td.col-actions {
+        grid-column: 1 / -1 !important;
+        grid-row: 5 !important;
+        width: 100% !important;
+        margin-top: 4px !important;
+        padding-top: 12px !important;
+        border-top: 1px dashed var(--border-light, #E2E8F0) !important;
+        display: block !important;
+        box-sizing: border-box !important;
+      }
+
+      html.high-contrast .maint-table tr.maintenance-row td.col-actions,
+      body.high-contrast .maint-table tr.maintenance-row td.col-actions,
+      html.dark-mode .maint-table tr.maintenance-row td.col-actions,
+      body.dark-mode .maint-table tr.maintenance-row td.col-actions,
+      html.dark .maint-table tr.maintenance-row td.col-actions,
+      body.dark-table tr.maintenance-row td.col-actions,
+      html.dark-theme .maint-table tr.maintenance-row td.col-actions,
+      body.dark-theme .maint-table tr.maintenance-row td.col-actions,
+      [data-theme="dark"] .maint-table tr.maintenance-row td.col-actions {
+        border-top-color: rgba(255, 255, 255, 0.1) !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-actions .btn-resolve-ticket,
+      .maint-table tr.maintenance-row td.col-actions .completed-chip {
+        width: 100% !important;
+        min-height: 42px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        padding: 10px 16px !important;
+        border-radius: 12px !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        box-sizing: border-box !important;
+        white-space: nowrap !important;
+        text-align: center !important;
+      }
+
+      /* Empty / status message rows */
+      .maint-table tr:not(.maintenance-row) {
+        display: block !important;
+        width: 100% !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+      }
+
+      .maint-table tr:not(.maintenance-row) td {
+        display: block !important;
+        width: 100% !important;
+        text-align: center !important;
+        padding: 36px 16px !important;
       }
     }
 
@@ -271,13 +483,15 @@
       border-collapse: collapse;
     }
 
-    .maint-table th.col-ticket, .maint-table td.col-ticket { width: 11% !important; }
-    .maint-table th.col-date, .maint-table td.col-date { width: 12% !important; }
-    .maint-table th.col-room, .maint-table td.col-room { width: 10% !important; }
-    .maint-table th.col-pc, .maint-table td.col-pc { width: 8% !important; }
-    .maint-table th.col-reporter, .maint-table td.col-reporter { width: 17% !important; overflow: hidden; }
-    .maint-table th.col-issues, .maint-table td.col-issues { width: 28% !important; }
-    .maint-table th.col-actions, .maint-table td.col-actions { width: 14% !important; text-align: center !important; }
+    @media (min-width: 769px) {
+      .maint-table th.col-ticket, .maint-table td.col-ticket { width: 11% !important; }
+      .maint-table th.col-date, .maint-table td.col-date { width: 12% !important; }
+      .maint-table th.col-room, .maint-table td.col-room { width: 10% !important; }
+      .maint-table th.col-pc, .maint-table td.col-pc { width: 8% !important; }
+      .maint-table th.col-reporter, .maint-table td.col-reporter { width: 17% !important; overflow: hidden; }
+      .maint-table th.col-issues, .maint-table td.col-issues { width: 28% !important; }
+      .maint-table th.col-actions, .maint-table td.col-actions { width: 14% !important; text-align: center !important; }
+    }
 
     .maint-table-wrapper::-webkit-scrollbar {
       width: 6px;
@@ -755,23 +969,25 @@
     }
 
     /* High Contrast / Dark Mode Overrides */
-    html.high-contrast .maint-table-wrapper,
-    html.dark-mode .maint-table-wrapper,
-    body.dark-mode .maint-table-wrapper,
-    [data-theme="dark"] .maint-table-wrapper {
-      background: #0F172A !important;
-      border-color: rgba(255, 255, 255, 0.1) !important;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
-    }
+    @media (min-width: 769px) {
+      html.high-contrast .maint-table-wrapper,
+      html.dark-mode .maint-table-wrapper,
+      body.dark-mode .maint-table-wrapper,
+      [data-theme="dark"] .maint-table-wrapper {
+        background: #0F172A !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+      }
 
-    html.high-contrast .maint-table th,
-    html.dark-mode .maint-table th,
-    body.dark-mode .maint-table th,
-    [data-theme="dark"] .maint-table th {
-      background: #161F30 !important;
-      color: #94A3B8 !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-      box-shadow: none !important;
+      html.high-contrast .maint-table th,
+      html.dark-mode .maint-table th,
+      body.dark-mode .maint-table th,
+      [data-theme="dark"] .maint-table th {
+        background: #161F30 !important;
+        color: #94A3B8 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: none !important;
+      }
     }
 
     html.high-contrast .maint-table td {
@@ -828,6 +1044,333 @@
       color: #34D399 !important;
       border-color: rgba(16, 185, 129, 0.3) !important;
     }
+    /* ─── Ticket Details Modal Component Styles ────────────────────────── */
+    .ticket-modal-card {
+      max-width: 520px;
+      width: 92%;
+      border-radius: 20px;
+      padding: 24px;
+      background: var(--bg-card, #FFFFFF);
+      border: 1.5px solid var(--border-light, #E2E8F0);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+      box-sizing: border-box;
+      animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      margin: auto;
+    }
+
+    html.dark-mode .ticket-modal-card,
+    body.dark-mode .ticket-modal-card,
+    html.high-contrast .ticket-modal-card,
+    body.high-contrast .ticket-modal-card,
+    html.dark .ticket-modal-card,
+    body.dark .ticket-modal-card,
+    html.dark-theme .ticket-modal-card,
+    body.dark-theme .ticket-modal-card,
+    [data-theme="dark"] .ticket-modal-card {
+      background: #161F30 !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .ticket-modal-header {
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border-light, #E2E8F0);
+      padding-bottom: 14px;
+    }
+
+    html.dark-mode .ticket-modal-header,
+    body.dark-mode .ticket-modal-header,
+    html.high-contrast .ticket-modal-header,
+    body.high-contrast .ticket-modal-header,
+    html.dark .ticket-modal-header,
+    body.dark .ticket-modal-header,
+    html.dark-theme .ticket-modal-header,
+    body.dark-theme .ticket-modal-header,
+    [data-theme="dark"] .ticket-modal-header {
+      border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .ticket-modal-date {
+      font-size: 12.5px;
+      color: var(--text-muted, #64748B);
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    html.dark-mode .ticket-modal-date,
+    body.dark-mode .ticket-modal-date,
+    html.high-contrast .ticket-modal-date,
+    body.high-contrast .ticket-modal-date,
+    html.dark .ticket-modal-date,
+    body.dark .ticket-modal-date,
+    html.dark-theme .ticket-modal-date,
+    body.dark-theme .ticket-modal-date,
+    [data-theme="dark"] .ticket-modal-date {
+      color: #94A3B8 !important;
+    }
+
+    .ticket-modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .ticket-modal-meta-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      background: #F8FAFC;
+      border: 1.5px solid var(--border-light, #E2E8F0);
+      padding: 14px 16px;
+      border-radius: 14px;
+      box-sizing: border-box;
+    }
+
+    html.dark-mode .ticket-modal-meta-card,
+    body.dark-mode .ticket-modal-meta-card,
+    html.high-contrast .ticket-modal-meta-card,
+    body.high-contrast .ticket-modal-meta-card,
+    html.dark .ticket-modal-meta-card,
+    body.dark .ticket-modal-meta-card,
+    html.dark-theme .ticket-modal-meta-card,
+    body.dark-theme .ticket-modal-meta-card,
+    [data-theme="dark"] .ticket-modal-meta-card {
+      background: rgba(15, 23, 42, 0.6) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .ticket-modal-meta-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .ticket-modal-meta-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted, #64748B);
+    }
+
+    html.dark-mode .ticket-modal-meta-label,
+    body.dark-mode .ticket-modal-meta-label,
+    html.high-contrast .ticket-modal-meta-label,
+    body.high-contrast .ticket-modal-meta-label,
+    [data-theme="dark"] .ticket-modal-meta-label {
+      color: #94A3B8 !important;
+    }
+
+    .ticket-modal-meta-val {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-dark, #0F172A);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    html.dark-mode .ticket-modal-meta-val,
+    body.dark-mode .ticket-modal-meta-val,
+    html.high-contrast .ticket-modal-meta-val,
+    body.high-contrast .ticket-modal-meta-val,
+    [data-theme="dark"] .ticket-modal-meta-val {
+      color: #F8FAFC !important;
+    }
+
+    .ticket-modal-section-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted, #64748B);
+      margin-bottom: 6px;
+    }
+
+    html.dark-mode .ticket-modal-section-title,
+    body.dark-mode .ticket-modal-section-title,
+    html.high-contrast .ticket-modal-section-title,
+    body.high-contrast .ticket-modal-section-title,
+    [data-theme="dark"] .ticket-modal-section-title {
+      color: #94A3B8 !important;
+    }
+
+    .ticket-modal-remarks-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: var(--bg-body, #F8FAFC);
+      border: 1.5px solid var(--border-light, #E2E8F0);
+      padding: 14px 16px;
+      border-radius: 14px;
+      box-sizing: border-box;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    html.dark-mode .ticket-modal-remarks-box,
+    body.dark-mode .ticket-modal-remarks-box,
+    html.high-contrast .ticket-modal-remarks-box,
+    body.high-contrast .ticket-modal-remarks-box,
+    html.dark .ticket-modal-remarks-box,
+    body.dark .ticket-modal-remarks-box,
+    html.dark-theme .ticket-modal-remarks-box,
+    body.dark-theme .ticket-modal-remarks-box,
+    [data-theme="dark"] .ticket-modal-remarks-box {
+      background: rgba(15, 23, 42, 0.6) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .ticket-modal-remarks-icon {
+      width: 17px;
+      height: 17px;
+      color: var(--primary-teal, #0891B2);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .ticket-modal-remarks-text {
+      font-size: 13.5px;
+      color: var(--text-dark, #0F172A);
+      line-height: 1.5;
+      font-weight: 500;
+      word-break: break-word;
+      flex: 1;
+    }
+
+    html.dark-mode .ticket-modal-remarks-text,
+    body.dark-mode .ticket-modal-remarks-text,
+    html.high-contrast .ticket-modal-remarks-text,
+    body.high-contrast .ticket-modal-remarks-text,
+    [data-theme="dark"] .ticket-modal-remarks-text {
+      color: #F1F5F9 !important;
+    }
+
+    .ticket-modal-report-item {
+      background: var(--bg-body, #F8FAFC);
+      border: 1px solid var(--border-light, #E2E8F0);
+      padding: 12px 14px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    html.dark-mode .ticket-modal-report-item,
+    body.dark-mode .ticket-modal-report-item,
+    html.high-contrast .ticket-modal-report-item,
+    body.high-contrast .ticket-modal-report-item,
+    [data-theme="dark"] .ticket-modal-report-item {
+      background: rgba(15, 23, 42, 0.6) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .ticket-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      border-top: 1px solid var(--border-light, #E2E8F0);
+      padding-top: 16px;
+      box-sizing: border-box;
+    }
+
+    html.dark-mode .ticket-modal-footer,
+    body.dark-mode .ticket-modal-footer,
+    html.high-contrast .ticket-modal-footer,
+    body.high-contrast .ticket-modal-footer,
+    [data-theme="dark"] .ticket-modal-footer {
+      border-top-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .btn-ticket-modal-close {
+      padding: 10px 22px;
+      border: 1.5px solid var(--border-light, #CBD5E1);
+      background: var(--bg-card, #FFFFFF);
+      color: var(--text-dark, #0F172A);
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--font-body);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .btn-ticket-modal-close:hover {
+      background: #F1F5F9;
+      border-color: #94A3B8;
+    }
+
+    html.dark-mode .btn-ticket-modal-close,
+    body.dark-mode .btn-ticket-modal-close,
+    html.high-contrast .btn-ticket-modal-close,
+    body.high-contrast .btn-ticket-modal-close,
+    html.dark .btn-ticket-modal-close,
+    body.dark .btn-ticket-modal-close,
+    html.dark-theme .btn-ticket-modal-close,
+    body.dark-theme .btn-ticket-modal-close,
+    [data-theme="dark"] .btn-ticket-modal-close {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.18) !important;
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .btn-ticket-modal-close:hover,
+    body.dark-mode .btn-ticket-modal-close:hover,
+    html.high-contrast .btn-ticket-modal-close:hover,
+    body.high-contrast .btn-ticket-modal-close:hover,
+    [data-theme="dark"] .btn-ticket-modal-close:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+      border-color: rgba(255, 255, 255, 0.28) !important;
+    }
+
+    @media (max-width: 480px) {
+      .ticket-modal-card {
+        padding: 18px 14px !important;
+        width: 95% !important;
+        border-radius: 16px !important;
+      }
+
+      .ticket-modal-meta-card {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+        padding: 12px 14px !important;
+      }
+
+      .ticket-modal-footer {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 10px !important;
+        width: 100% !important;
+      }
+
+      .ticket-modal-footer .btn-ticket-modal-close {
+        flex: 1 1 35% !important;
+        padding: 10px 12px !important;
+        text-align: center !important;
+      }
+
+      .ticket-modal-footer .btn-resolve-ticket,
+      .ticket-modal-footer .completed-chip {
+        flex: 2 1 65% !important;
+        padding: 10px 12px !important;
+        justify-content: center !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        border-radius: 12px !important;
+        font-size: 12.5px !important;
+      }
+    }
   </style>
 </head>
 
@@ -849,9 +1392,13 @@
         onclick="window.location.href='mis-maintenance.html'">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          class="lucide lucide-wrench">
-          <path
-            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+          class="lucide lucide-clipboard-list">
+          <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+          <path d="M12 11h4" />
+          <path d="M12 16h4" />
+          <path d="M8 11h.01" />
+          <path d="M8 16h.01" />
         </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="PC & QR Management" title="PC & QR Management"

@@ -64,7 +64,20 @@ async function findPCsByRoomId(roomId, executor = db) {
 }
 
 async function findPCByRoomAndNumber(roomId, pcNumber, executor = db) {
-    return executor.query('SELECT PC_ID FROM lab_units WHERE Room_ID = ? AND PC_Number = ?', [roomId, pcNumber]);
+    const raw = String(pcNumber || '').trim();
+    const clean = raw.replace(/^(pc\s*unit|pc\s*#|pc|unit)\s*[-:]?\s*/i, '').trim();
+    const cleanInt = parseInt(clean, 10);
+    const hasInt = !isNaN(cleanInt);
+
+    return executor.query(
+        `SELECT PC_ID, PC_Number, Condition_Status FROM lab_units 
+         WHERE Room_ID = ? AND (
+             PC_Number = ? 
+             OR PC_Number = ? 
+             OR (? = TRUE AND PC_Number REGEXP '^[0-9]+$' AND CAST(PC_Number AS UNSIGNED) = ?)
+         )`,
+        [roomId, raw, clean, hasInt, hasInt ? cleanInt : -1]
+    );
 }
 
 async function findPCNumbersByRoomId(roomId, executor = db) {

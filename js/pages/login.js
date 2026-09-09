@@ -6,7 +6,7 @@
  * email clear synchronization, password visibility toggle, error handling, and role-based redirects.
  */
 
-(function () {
+(function (global) {
   'use strict';
 
   // Initialize Lucide icons on page load
@@ -44,10 +44,15 @@
     closeRecoverModalBtn.addEventListener('click', closeModal);
 
     recoverModal.addEventListener('click', (e) => {
-      e.stopPropagation();
+      if (e.target === recoverModal) {
+        closeModal();
+      }
     });
-    recoverModal.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && recoverModal.classList.contains('active')) {
+        closeModal();
+      }
     });
 
     sendRecoverBtn.addEventListener('click', async () => {
@@ -97,28 +102,39 @@
   function initAboutModal() {
     const aboutLink = document.getElementById('aboutLink');
     const aboutModal = document.getElementById('aboutModal');
-    const closeAboutModalBtn = document.getElementById('closeAboutModalBtn');
+    const closeAboutActionBtn = document.getElementById('closeAboutActionBtn');
 
-    if (!aboutLink || !aboutModal || !closeAboutModalBtn) return;
+    if (!aboutLink || !aboutModal) return;
 
     aboutLink.addEventListener('click', (e) => {
       e.preventDefault();
       aboutModal.classList.add('active');
       if (global.setModalOpenState) global.setModalOpenState(true);
+      if (closeAboutActionBtn) {
+        closeAboutActionBtn.focus();
+      }
     });
 
     function closeModal() {
       aboutModal.classList.remove('active');
       if (global.setModalOpenState) global.setModalOpenState(false);
+      aboutLink.focus();
     }
 
-    closeAboutModalBtn.addEventListener('click', closeModal);
+    if (closeAboutActionBtn) {
+      closeAboutActionBtn.addEventListener('click', closeModal);
+    }
 
     aboutModal.addEventListener('click', (e) => {
-      e.stopPropagation();
+      if (e.target === aboutModal) {
+        closeModal();
+      }
     });
-    aboutModal.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && aboutModal.classList.contains('active')) {
+        closeModal();
+      }
     });
   }
 
@@ -126,7 +142,6 @@
   function initContactModal() {
     const contactLink = document.getElementById('contactLink');
     const contactModal = document.getElementById('contactModal');
-    const closeContactModalBtn = document.getElementById('closeContactModalBtn');
     const closeContactActionBtn = document.getElementById('closeContactActionBtn');
 
     if (!contactLink || !contactModal) return;
@@ -140,8 +155,6 @@
       }
       if (closeContactActionBtn) {
         closeContactActionBtn.focus();
-      } else if (closeContactModalBtn) {
-        closeContactModalBtn.focus();
       }
     }
 
@@ -153,19 +166,14 @@
 
     contactLink.addEventListener('click', openModal);
 
-    if (closeContactModalBtn) {
-      closeContactModalBtn.addEventListener('click', closeModal);
-    }
-
     if (closeContactActionBtn) {
       closeContactActionBtn.addEventListener('click', closeModal);
     }
 
     contactModal.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
-    contactModal.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
+      if (e.target === contactModal) {
+        closeModal();
+      }
     });
 
     document.addEventListener('keydown', (e) => {
@@ -515,4 +523,4 @@
     initPage();
   }
 
-})();
+})(typeof window !== 'undefined' ? window : this);

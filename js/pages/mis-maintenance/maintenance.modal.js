@@ -23,6 +23,9 @@
   function closeTicketModal() {
     const existingModal = document.getElementById('ticket-details-modal');
     if (existingModal) {
+      if (typeof existingModal._cleanup === 'function') {
+        existingModal._cleanup();
+      }
       if (global.setModalOpenState) global.setModalOpenState(false);
       existingModal.remove();
     }
@@ -85,30 +88,43 @@
         : { section: 'N/A', remarks: singleReport.Issue_Description || 'None' };
 
       bodyContentHtml = `
-        <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:rgba(30,187,215,0.06); padding:14px 16px; border-radius:12px; border:1px solid rgba(30,187,215,0.15);">
-            <div>
-              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:2px;">Location & Unit</div>
-              <div style="font-size:14px; font-weight:800; color:var(--text-dark);">Room ${escapeText(String(report.Room_Number || 'N/A'))} • PC #${escapeText(String(report.PC_Number || 'N/A'))}</div>
+        <div class="ticket-modal-body">
+          <div class="ticket-modal-meta-card">
+            <div class="ticket-modal-meta-cell">
+              <div class="ticket-modal-meta-label">
+                <i data-lucide="map-pin" style="width:13px;height:13px;color:var(--primary-teal);flex-shrink:0;"></i>
+                <span>Location & Unit</span>
+              </div>
+              <div class="ticket-modal-meta-val">
+                <span>Room ${escapeText(String(report.Room_Number || 'N/A'))}</span>
+                <span style="opacity:0.4; margin:0 4px;">•</span>
+                <span style="white-space:nowrap;">PC #${escapeText(String(report.PC_Number || 'N/A'))}</span>
+              </div>
             </div>
-            <div>
-              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:2px;">Reporter</div>
-              <div style="font-size:13.5px; font-weight:700; color:var(--text-dark);">${escapeText(singleReport.Student_Name || report.Student_Name || 'Student')} <span style="font-size:11px; color:#0E7490; background:#E0F2FE; padding:2px 6px; border-radius:99px; font-weight:600; margin-left:4px;">${escapeText(singleParsed.section || 'N/A')}</span></div>
+            <div class="ticket-modal-meta-cell">
+              <div class="ticket-modal-meta-label">
+                <i data-lucide="user" style="width:13px;height:13px;color:var(--primary-teal);flex-shrink:0;"></i>
+                <span>Reporter</span>
+              </div>
+              <div class="ticket-modal-meta-val">
+                <span>${escapeText(singleReport.Student_Name || report.Student_Name || 'Student')}</span>
+                ${singleParsed.section && singleParsed.section !== 'N/A' ? `<span class="section-chip" style="font-size:11px;padding:2px 7px;">${escapeText(singleParsed.section)}</span>` : ''}
+              </div>
             </div>
           </div>
 
           <div>
-            <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase;">Flagged Component Issues</div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <div class="ticket-modal-section-title">Flagged Component Issues</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
               ${issueBadges}
             </div>
           </div>
 
           <div>
-            <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase;">Student Remarks</div>
-            <div style="display:flex; align-items:center; gap:10px; background:var(--bg-body); border:1px solid var(--border-light); padding:14px 16px; border-radius:12px; max-height:200px; overflow-y:auto;">
-              <i data-lucide="message-square" style="width:18px; height:18px; min-width:18px; min-height:18px; color:var(--primary-teal, #0891B2); flex-shrink:0;"></i>
-              <div style="font-size:13.5px; color:var(--text-dark); line-height:1.5; font-weight:500; word-break:break-word; flex:1;">
+            <div class="ticket-modal-section-title">Student Remarks</div>
+            <div class="ticket-modal-remarks-box">
+              <i data-lucide="message-square" class="ticket-modal-remarks-icon"></i>
+              <div class="ticket-modal-remarks-text">
                 ${escapeText(singleParsed.remarks || 'No remarks provided.')}
               </div>
             </div>
@@ -125,7 +141,7 @@
         const isRepEmpty = !repRemarks || repRemarks.toLowerCase() === 'none' || repRemarks.toLowerCase() === 'n/a';
 
         return `
-          <div style="background:var(--bg-body); border:1px solid var(--border-light); padding:12px 14px; border-radius:10px; display:flex; flex-direction:column; gap:6px;">
+          <div class="ticket-modal-report-item">
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
               <div style="display:flex; align-items:center; gap:6px;">
                 <span style="font-weight:750; color:var(--text-dark); font-size:13.5px;">${escapeText(rep.Student_Name || 'Student')}</span>
@@ -133,9 +149,9 @@
               </div>
               <span style="font-size:11.5px; color:var(--text-muted); font-weight:500;">${repTimeStr}</span>
             </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <i data-lucide="message-square" style="width:16px; height:16px; min-width:16px; min-height:16px; color:var(--primary-teal, #0891B2); flex-shrink:0;"></i>
-              <span style="font-size:13px; color:${isRepEmpty ? 'var(--text-muted)' : 'var(--text-dark)'}; ${isRepEmpty ? 'font-style:italic;' : ''} line-height:1.4; font-weight:500; word-break:break-word; flex:1;">
+            <div style="display:flex; align-items:flex-start; gap:8px; margin-top:4px;">
+              <i data-lucide="message-square" style="width:15px; height:15px; color:var(--primary-teal, #0891B2); flex-shrink:0; margin-top:2px;"></i>
+              <span style="font-size:13px; color:${isRepEmpty ? 'var(--text-muted)' : 'var(--text-dark)'}; ${isRepEmpty ? 'font-style:italic;' : ''} line-height:1.45; font-weight:500; word-break:break-word; flex:1;">
                 ${isRepEmpty ? 'No remarks provided.' : escapeText(repRemarks)}
               </span>
             </div>
@@ -144,27 +160,39 @@
       }).join('');
 
       bodyContentHtml = `
-        <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:rgba(30,187,215,0.06); padding:14px 16px; border-radius:12px; border:1px solid rgba(30,187,215,0.15);">
-            <div>
-              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:2px;">Location & Unit</div>
-              <div style="font-size:14px; font-weight:800; color:var(--text-dark);">Room ${escapeText(String(report.Room_Number || 'N/A'))} • PC #${escapeText(String(report.PC_Number || 'N/A'))}</div>
+        <div class="ticket-modal-body">
+          <div class="ticket-modal-meta-card">
+            <div class="ticket-modal-meta-cell">
+              <div class="ticket-modal-meta-label">
+                <i data-lucide="map-pin" style="width:13px;height:13px;color:var(--primary-teal);flex-shrink:0;"></i>
+                <span>Location & Unit</span>
+              </div>
+              <div class="ticket-modal-meta-val">
+                <span>Room ${escapeText(String(report.Room_Number || 'N/A'))}</span>
+                <span style="opacity:0.4; margin:0 4px;">•</span>
+                <span style="white-space:nowrap;">PC #${escapeText(String(report.PC_Number || 'N/A'))}</span>
+              </div>
             </div>
-            <div>
-              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:2px;">Issue Category</div>
-              <div style="font-size:13.5px; font-weight:700; color:var(--text-dark);">${escapeText(displayIssues)}</div>
+            <div class="ticket-modal-meta-cell">
+              <div class="ticket-modal-meta-label">
+                <i data-lucide="layers" style="width:13px;height:13px;color:var(--primary-teal);flex-shrink:0;"></i>
+                <span>Issue Category</span>
+              </div>
+              <div class="ticket-modal-meta-val">
+                <span>${escapeText(displayIssues)}</span>
+              </div>
             </div>
           </div>
 
           <div>
-            <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase;">Flagged Component Issues</div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <div class="ticket-modal-section-title">Flagged Component Issues</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
               ${issueBadges}
             </div>
           </div>
 
           <div>
-            <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; display:flex; justify-content:space-between; align-items:center;">
+            <div class="ticket-modal-section-title" style="display:flex; justify-content:space-between; align-items:center;">
               <span>Student Reports (${linkedReports.length})</span>
               <span style="font-size:11px; background:rgba(30,187,215,0.12); color:var(--primary-teal); padding:2px 8px; border-radius:99px; font-weight:600;">Linked Submissions</span>
             </div>
@@ -184,40 +212,35 @@
     let resolveBtnHtml = '';
     if (report.Status !== 'Resolved') {
       resolveBtnHtml = `
-        <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket-modal" data-report-id="${report.Report_ID}" style="padding:10px 20px;font-size:13px;">
-          <i data-lucide="check" style="width:16px;height:16px;"></i> Mark Resolved & Restored
+        <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket-modal" data-report-id="${report.Report_ID}" style="padding:10px 20px;font-size:13.5px;font-weight:700;border-radius:12px;">
+          <i data-lucide="check" style="width:16px;height:16px;"></i> Mark Resolved
         </button>
       `;
     } else {
-      resolveBtnHtml = `<span class="completed-chip" style="font-size:13px;padding:8px 16px;"><i data-lucide="check-check" style="width:16px;height:16px;"></i> Work Order Completed</span>`;
+      resolveBtnHtml = `<span class="completed-chip" style="font-size:13px;padding:9px 16px;border-radius:12px;font-weight:700;"><i data-lucide="check-check" style="width:16px;height:16px;"></i> Work Order Completed</span>`;
     }
 
     modal.innerHTML = `
-      <div class="modal-card" style="max-width: 560px; width: 92%; border-radius: 20px; padding: 28px; background: var(--bg-card); border: 1px solid var(--border-light); box-shadow: 0 20px 50px rgba(0,0,0,0.25);">
-        <!-- Header -->
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; border-bottom:1px solid var(--border-light); padding-bottom:16px;">
-          <div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span class="ticket-chip" style="font-size:14px; padding:6px 14px;">LS-TKT-${report.Report_ID}</span>
-              <span class="status-badge-pulse ${report.Status === 'Resolved' ? 'resolved' : 'pending'}">
-                <span class="pulse-dot"></span> ${report.Status}
-              </span>
-            </div>
-            <div style="font-size:13px; color:var(--text-mid); margin-top:6px; font-weight:500;">
-              First reported on ${formattedDate}
-            </div>
+      <div class="modal-card ticket-modal-card">
+        <!-- Header: No X Button, clean Ticket ID + Status Badge + Date -->
+        <div class="ticket-modal-header">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span class="ticket-chip" style="font-size:13.5px; padding:5px 14px; font-weight:700;">LS-TKT-${report.Report_ID}</span>
+            <span class="status-badge-pulse ${report.Status === 'Resolved' ? 'resolved' : 'pending'}">
+              <span class="pulse-dot"></span> ${report.Status}
+            </span>
           </div>
-          <button type="button" data-action="close-modal" style="background:none; border:none; color:var(--text-mid); cursor:pointer; padding:4px;">
-            <i data-lucide="x" style="width:20px;height:20px;"></i>
-          </button>
+          <div class="ticket-modal-date">
+            First reported on ${formattedDate}
+          </div>
         </div>
 
         <!-- Body Info -->
         ${bodyContentHtml}
 
         <!-- Footer Actions -->
-        <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px; border-top:1px solid var(--border-light); padding-top:18px;">
-          <button type="button" data-action="close-modal" style="padding:9px 18px; border:1px solid var(--border-light); background:var(--bg-card); color:var(--text-dark); border-radius:99px; font-size:13px; font-weight:600; cursor:pointer;">Close</button>
+        <div class="ticket-modal-footer">
+          <button type="button" class="btn-ticket-modal-close" data-action="close-modal">Close</button>
           ${resolveBtnHtml}
         </div>
       </div>
@@ -225,12 +248,54 @@
 
     document.body.appendChild(modal);
     if (global.setModalOpenState) global.setModalOpenState(true);
+
+    // Keyboard listener for Escape dismissal
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeTicketModal();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+
+    modal._cleanup = () => {
+      document.removeEventListener('keydown', onKeyDown);
+    };
+
+    // Direct modal click delegation: handles Close, Backdrop, and Resolve reliably
     modal.addEventListener('click', (e) => {
-      e.stopPropagation();
+      // 1. Close button clicked
+      const closeBtn = e.target.closest('[data-action="close-modal"], .btn-ticket-modal-close');
+      if (closeBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeTicketModal();
+        return;
+      }
+
+      // 2. Backdrop (outside card) clicked
+      if (e.target === modal) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeTicketModal();
+        return;
+      }
+
+      // 3. Resolve button inside modal clicked
+      const resolveBtn = e.target.closest('[data-action="resolve-ticket-modal"]');
+      if (resolveBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const repId = resolveBtn.getAttribute('data-report-id');
+        closeTicketModal();
+        if (repId && global.maintenanceActions && typeof global.maintenanceActions.updateReportStatus === 'function') {
+          global.maintenanceActions.updateReportStatus(repId, 'Resolved');
+        } else if (repId && typeof global.updateReportStatus === 'function') {
+          global.updateReportStatus(repId, 'Resolved');
+        }
+        return;
+      }
     });
-    modal.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
-    });
+
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: modal });
     }

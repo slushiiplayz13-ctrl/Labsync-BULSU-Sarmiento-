@@ -81,10 +81,23 @@ async function getNotifications(req, res, next) {
     }
 }
 
+async function getPCInfo(req, res, next) {
+    try {
+        const result = await maintenanceService.getPCInfo(req.query);
+        if (result.error) {
+            return res.status(result.status).json({ error: result.error });
+        }
+        return res.status(result.status).json(result.data);
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     submitReport,
     getAllReports,
     updateReportStatus,
     deleteReport,
-    getNotifications
+    getNotifications,
+    getPCInfo
 };

@@ -366,7 +366,7 @@
       }
 
       // Intercept clicks on overlay backdrop
-      if (e.target.id === 'addPcModalOverlay' || e.target.id === 'bulkDeleteModalOverlay') {
+      if (e.target.id === 'addPcModalOverlay') {
         e.stopPropagation();
         return;
       }

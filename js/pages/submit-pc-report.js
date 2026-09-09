@@ -15,8 +15,97 @@ const componentStates = {
 
 let isConfirmed = false;
 let isSubmitting = false;
+let currentRoomNumber = '';
+let currentPcNumber = '';
 
-// Toggle equipment status pills
+const checkSvgHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+/**
+ * Normalizes query string parameter values for Room and PC
+ */
+function parseWorkstationParams() {
+  const urlParams = new URLSearchParams(window.location.search);
+
+  const rawRoom = (
+    urlParams.get('room') ||
+    urlParams.get('roomNumber') ||
+    urlParams.get('room_number') ||
+    urlParams.get('roomId') ||
+    ''
+  ).trim();
+
+  const rawPc = (
+    urlParams.get('pc') ||
+    urlParams.get('pcNumber') ||
+    urlParams.get('pc_number') ||
+    urlParams.get('pcId') ||
+    ''
+  ).trim();
+
+  const rawQr = (
+    urlParams.get('qr') ||
+    urlParams.get('qrString') ||
+    (rawPc.startsWith('LABSYNC-') ? rawPc : '')
+  ).trim();
+
+  // Strip prefixes: "Room 204", "RM 204", "Room-204" -> "204"
+  let cleanRoom = rawRoom.replace(/^(room|rm|laboratory|lab)\s*[-:]?\s*/i, '').trim();
+  // Strip prefixes: "PC 2", "PC-2", "PC Unit 2", "Unit 2" -> "2"
+  let cleanPc = rawPc.replace(/^(pc\s*unit|pc\s*#|pc|unit)\s*[-:]?\s*/i, '').trim();
+
+  currentRoomNumber = cleanRoom || rawRoom;
+  currentPcNumber = cleanPc || rawPc;
+
+  const roomDisplayEl = document.getElementById('room-display');
+  const pcDisplayEl = document.getElementById('pc-display');
+  const currentDateEl = document.getElementById('current-date');
+
+  if (roomDisplayEl) {
+    if (currentRoomNumber) {
+      roomDisplayEl.textContent = currentRoomNumber.toLowerCase().startsWith('room')
+        ? currentRoomNumber
+        : `Room ${currentRoomNumber}`;
+    } else {
+      roomDisplayEl.textContent = 'Room Not Specified';
+    }
+  }
+
+  if (pcDisplayEl) {
+    if (currentPcNumber && !currentPcNumber.startsWith('LABSYNC-')) {
+      pcDisplayEl.textContent = currentPcNumber.toLowerCase().startsWith('pc')
+        ? currentPcNumber
+        : `PC Unit ${currentPcNumber}`;
+    } else if (rawQr) {
+      pcDisplayEl.textContent = 'Resolving PC...';
+    } else {
+      pcDisplayEl.textContent = 'PC Not Specified';
+    }
+  }
+
+  if (currentDateEl) {
+    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    currentDateEl.textContent = new Date().toLocaleDateString('en-US', dateOptions);
+  }
+
+  // If a QR token was provided, query the server to resolve the exact room and PC numbers
+  if (rawQr) {
+    fetch(`/api/reports/pc-info?qr=${encodeURIComponent(rawQr)}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(info => {
+        if (info && info.roomNumber && info.pcNumber) {
+          currentRoomNumber = String(info.roomNumber).trim();
+          currentPcNumber = String(info.pcNumber).trim();
+          if (roomDisplayEl) roomDisplayEl.textContent = `Room ${currentRoomNumber}`;
+          if (pcDisplayEl) pcDisplayEl.textContent = `PC Unit ${currentPcNumber}`;
+        }
+      })
+      .catch(() => {});
+  }
+}
+
+/**
+ * Toggle equipment status pills (working / issue)
+ */
 function toggleStatus(btnTarget, statusValue) {
   const button = btnTarget ? (btnTarget.closest ? (btnTarget.closest('.status-btn') || btnTarget) : btnTarget) : null;
   if (!button) return;
@@ -26,18 +115,18 @@ function toggleStatus(btnTarget, statusValue) {
   const componentName = card.dataset.component;
   const controls = card.querySelector('.eq-controls');
 
-  // Update state
+  // Update component status state
   if (componentName) {
     componentStates[componentName] = statusValue;
   }
 
-  // Update active class on buttons
+  // Update active class on pills
   if (controls) {
     controls.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
   }
   button.classList.add('active');
 
-  // Update card border and status highlight
+  // Update card border & highlight
   card.classList.remove('status-working', 'status-issue');
   if (statusValue === 'working') {
     card.classList.add('status-working');
@@ -46,173 +135,64 @@ function toggleStatus(btnTarget, statusValue) {
   }
 }
 
-// Global delegated click listener for status buttons, confirmation checkbox, and modal buttons
-document.addEventListener('click', function (e) {
-  const closeTarget = e.target.closest ? e.target.closest('.success-btn') : null;
-  if (closeTarget) {
-    e.preventDefault();
-    closeSuccessModal();
-    return;
-  }
-
-  const submitTarget = e.target.closest ? e.target.closest('#submit-button, .submit-btn') : null;
-  if (submitTarget) {
-    e.preventDefault();
-    handleSubmit();
-    return;
-  }
-
-  const btn = e.target.closest ? e.target.closest('.status-btn') : null;
-  if (btn) {
-    if (e.preventDefault) e.preventDefault();
-    if (window.getSelection) {
-      try {
-        window.getSelection().removeAllRanges();
-      } catch (err) {}
-    }
-    if (btn.classList.contains('working-btn')) {
-      toggleStatus(btn, 'working');
-    } else if (btn.classList.contains('issue-btn')) {
-      toggleStatus(btn, 'issue');
-    }
-    return;
-  }
-
-  const confirmRow = e.target.closest ? e.target.closest('.confirm-row') : null;
-  if (confirmRow) {
-    if (e.preventDefault) e.preventDefault();
-    if (window.getSelection) {
-      try {
-        window.getSelection().removeAllRanges();
-      } catch (err) {}
-    }
-    toggleCheckbox();
-  }
-});
-
-const checkSvgHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><polyline points="20 6 9 17 4 12"/></svg>`;
-
-// Toggle custom checkbox
-function toggleCheckbox() {
+/**
+ * Toggle custom confirmation checkbox
+ */
+function toggleCheckbox(forceState) {
   if (window.getSelection) {
     try {
       window.getSelection().removeAllRanges();
     } catch (err) {}
   }
+
   const checkbox = document.getElementById('custom-checkbox');
   const confirmRow = document.querySelector('.confirm-row');
   const submitBtn = document.getElementById('submit-button');
 
-  isConfirmed = !isConfirmed;
-
-  if (isConfirmed) {
-    if (confirmRow) confirmRow.classList.add('checked');
-    if (checkbox) checkbox.innerHTML = checkSvgHTML;
-    if (submitBtn && !isSubmitting) {
-      submitBtn.classList.remove('btn-disabled');
-      submitBtn.disabled = false;
-    }
+  if (typeof forceState === 'boolean') {
+    isConfirmed = forceState;
   } else {
-    if (confirmRow) confirmRow.classList.remove('checked');
-    if (checkbox) checkbox.innerHTML = '';
-    if (submitBtn) {
+    isConfirmed = !isConfirmed;
+  }
+
+  if (confirmRow) {
+    confirmRow.classList.toggle('checked', isConfirmed);
+    confirmRow.setAttribute('aria-checked', String(isConfirmed));
+  }
+
+  if (checkbox) {
+    checkbox.innerHTML = isConfirmed ? checkSvgHTML : '';
+  }
+
+  if (submitBtn) {
+    if (isConfirmed && !isSubmitting) {
+      submitBtn.classList.remove('btn-disabled');
+      submitBtn.removeAttribute('disabled');
+      submitBtn.disabled = false;
+    } else {
       submitBtn.classList.add('btn-disabled');
+      submitBtn.setAttribute('disabled', 'true');
       submitBtn.disabled = true;
     }
   }
 }
 
-// Parse URL params
-const urlParams = new URLSearchParams(window.location.search);
-const roomParam = urlParams.get('room') || 'N/A';
-const pcParam = urlParams.get('pc') || 'N/A';
-
-function initSubmitPcReportPage() {
-  const roomDisplayEl = document.getElementById('room-display');
-  const pcDisplayEl = document.getElementById('pc-display');
-  const currentDateEl = document.getElementById('current-date');
-
-  if (roomDisplayEl) {
-    roomDisplayEl.textContent = roomParam !== 'N/A' ? `Room ${roomParam}` : 'Select Room';
-  }
-  if (pcDisplayEl) {
-    pcDisplayEl.textContent = pcParam !== 'N/A' ? `PC Unit ${pcParam}` : 'Select PC';
-  }
-
-  // Show date dynamically
-  if (currentDateEl) {
-    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    const currentDateFormatted = new Date().toLocaleDateString('en-US', dateOptions);
-    currentDateEl.textContent = currentDateFormatted;
-  }
-
-  // Live character counter for Issue Details / Remarks
-  const remarksTextarea = document.getElementById('remarks');
-  const remarksCounter = document.getElementById('remarks-char-counter');
-
-  function updateCharCount() {
-    if (!remarksTextarea) return;
-    const currentLength = remarksTextarea.value.length;
-    if (remarksCounter) {
-      remarksCounter.textContent = `${currentLength} / 200 characters`;
-      if (currentLength >= 200) {
-        remarksCounter.classList.add('counter-at-limit');
-        remarksCounter.classList.remove('counter-near-limit');
-      } else if (currentLength >= 170) {
-        remarksCounter.classList.add('counter-near-limit');
-        remarksCounter.classList.remove('counter-at-limit');
-      } else {
-        remarksCounter.classList.remove('counter-at-limit', 'counter-near-limit');
-      }
-    }
-  }
-
-  if (remarksTextarea) {
-    remarksTextarea.addEventListener('input', updateCharCount);
-    remarksTextarea.addEventListener('keyup', updateCharCount);
-    remarksTextarea.addEventListener('paste', () => {
-      setTimeout(updateCharCount, 0);
-    });
-    updateCharCount();
-  }
-
-  // Auto-uppercase Program & Section input in real-time
-  const sectionInputEl = document.getElementById('student-section');
-  if (sectionInputEl) {
-    const handleUppercase = function () {
-      const start = this.selectionStart;
-      const end = this.selectionEnd;
-      this.value = this.value.toUpperCase();
-      if (start !== null && end !== null) {
-        this.setSelectionRange(start, end);
-      }
-    };
-    sectionInputEl.addEventListener('input', handleUppercase);
-    sectionInputEl.addEventListener('keyup', handleUppercase);
-    sectionInputEl.addEventListener('paste', () => {
-      setTimeout(() => {
-        sectionInputEl.value = sectionInputEl.value.toUpperCase();
-      }, 0);
-    });
-  }
-
-  if (window.lucide && typeof window.lucide.createIcons === 'function') {
-    window.lucide.createIcons();
-  }
-}
-
-// In-App System Toast Notification helper
+/**
+ * In-App System Toast Notification helper
+ */
 function showSystemToast(message, type = 'warning', title = null) {
   if (typeof window.showToast === 'function') {
     window.showToast(message, type, title);
     return;
   }
+
   let container = document.getElementById('labsync-toast-container');
   if (!container) {
     container = document.createElement('div');
     container.id = 'labsync-toast-container';
     document.body.appendChild(container);
   }
+
   const card = document.createElement('div');
   card.className = 'labsync-toast-card';
   const isError = type === 'error';
@@ -234,16 +214,20 @@ function showSystemToast(message, type = 'warning', title = null) {
       <div style="font-size: 13.5px; color: var(--text-mid, #475569); line-height: 1.4; word-break: break-word;">${message}</div>
     </div>
   `;
+
   container.appendChild(card);
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons({ root: card });
   }
+
   const closeBtn = card.querySelector('.labsync-toast-close');
   if (closeBtn) closeBtn.addEventListener('click', () => card.remove());
   setTimeout(() => card.remove(), 4200);
 }
 
-// Form Submission
+/**
+ * Handle form submission
+ */
 async function handleSubmit() {
   if (isSubmitting) return;
 
@@ -255,13 +239,24 @@ async function handleSubmit() {
   const remarksInput = remarksEl?.value.trim();
   const submitBtn = document.getElementById('submit-button');
 
+  if (!currentRoomNumber || currentRoomNumber === 'N/A') {
+    showSystemToast('Room number was not detected. Please scan the QR code sticker affixed to your workstation computer.', 'warning', 'Workstation Required');
+    return;
+  }
+
+  if (!currentPcNumber || currentPcNumber === 'N/A') {
+    showSystemToast('PC unit number was not detected. Please scan the QR code sticker affixed to your workstation computer.', 'warning', 'Workstation Required');
+    return;
+  }
+
   if (!studentNameInput) {
     showSystemToast('Please enter your Full Name.', 'warning', 'Required Field');
     nameEl?.focus();
     return;
   }
+
   if (!studentSectionInput) {
-    showSystemToast('Please enter your Program & Section.', 'warning', 'Required Field');
+    showSystemToast('Please enter your Program & Section (e.g., BSIT 3A).', 'warning', 'Required Field');
     sectionEl?.focus();
     return;
   }
@@ -297,8 +292,8 @@ async function handleSubmit() {
 
   try {
     const reportPayload = {
-      roomNumber: roomParam,
-      pcNumber: pcParam,
+      roomNumber: currentRoomNumber,
+      pcNumber: currentPcNumber,
       studentName: studentNameInput,
       studentSection: studentSectionInput,
       components: componentStates,
@@ -326,7 +321,9 @@ async function handleSubmit() {
       ticketIdEl.textContent = (result && (result.ticketId || result.Ticket_ID)) || `LS-TKT-${Math.floor(10000 + Math.random() * 90000)}`;
     }
     if (successModalEl) {
+      successModalEl.classList.add('active');
       successModalEl.style.display = 'flex';
+      successModalEl.style.pointerEvents = 'auto';
       if (typeof window.setModalOpenState === 'function') window.setModalOpenState(true);
     }
   } catch (error) {
@@ -349,12 +346,18 @@ async function handleSubmit() {
   }
 }
 
+/**
+ * Close success modal & reset form
+ */
 function closeSuccessModal() {
   const successModalEl = document.getElementById('success-modal');
   if (successModalEl) {
+    successModalEl.classList.remove('active');
     successModalEl.style.display = 'none';
+    successModalEl.style.pointerEvents = 'none';
   }
   if (typeof window.setModalOpenState === 'function') window.setModalOpenState(false);
+
   // Reset input fields
   const nameEl = document.getElementById('student-name');
   const sectionEl = document.getElementById('student-section');
@@ -363,6 +366,7 @@ function closeSuccessModal() {
   if (nameEl) nameEl.value = '';
   if (sectionEl) sectionEl.value = '';
   if (remarksEl) remarksEl.value = '';
+
   const remarksCounterEl = document.getElementById('remarks-char-counter');
   if (remarksCounterEl) {
     remarksCounterEl.textContent = '0 / 200 characters';
@@ -373,6 +377,7 @@ function closeSuccessModal() {
   Object.keys(componentStates).forEach(key => {
     componentStates[key] = 'working';
   });
+
   document.querySelectorAll('.equipment-card').forEach(card => {
     card.classList.remove('status-issue');
     card.classList.add('status-working');
@@ -382,25 +387,155 @@ function closeSuccessModal() {
     if (issueBtn) issueBtn.classList.remove('active');
   });
 
-  // Reset checkbox
-  if (isConfirmed) toggleCheckbox();
+  // Reset checkbox & submit button
+  if (isConfirmed) toggleCheckbox(false);
 }
 
-// Export functions globally
-window.closeSuccessModal = closeSuccessModal;
-window.handleSubmit = handleSubmit;
-window.toggleCheckbox = toggleCheckbox;
-window.toggleStatus = toggleStatus;
+/**
+ * Global delegated click listener for status pills, checkbox, submit, and modal
+ */
+document.addEventListener('click', function (e) {
+  // Modal close button
+  const closeTarget = e.target.closest ? e.target.closest('.success-btn') : null;
+  if (closeTarget) {
+    e.preventDefault();
+    closeSuccessModal();
+    return;
+  }
 
+  // Submit button
+  const submitTarget = e.target.closest ? e.target.closest('#submit-button') : null;
+  if (submitTarget) {
+    e.preventDefault();
+    handleSubmit();
+    return;
+  }
+
+  // Status pills (Working / Issue)
+  const btn = e.target.closest ? e.target.closest('.status-btn') : null;
+  if (btn) {
+    if (e.preventDefault) e.preventDefault();
+    if (window.getSelection) {
+      try {
+        window.getSelection().removeAllRanges();
+      } catch (err) {}
+    }
+    if (btn.classList.contains('working-btn')) {
+      toggleStatus(btn, 'working');
+    } else if (btn.classList.contains('issue-btn')) {
+      toggleStatus(btn, 'issue');
+    }
+    return;
+  }
+
+  // Confirmation Row
+  const confirmRow = e.target.closest ? e.target.closest('.confirm-row') : null;
+  if (confirmRow) {
+    if (e.preventDefault) e.preventDefault();
+    if (window.getSelection) {
+      try {
+        window.getSelection().removeAllRanges();
+      } catch (err) {}
+    }
+    toggleCheckbox();
+  }
+});
+
+/**
+ * Keyboard navigation support for confirmation checkbox
+ */
+document.addEventListener('keydown', function (e) {
+  const activeEl = document.activeElement;
+  if (activeEl && activeEl.classList && activeEl.classList.contains('confirm-row')) {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      toggleCheckbox();
+    }
+  }
+});
+
+/**
+ * Main page initialization (CALLED ONCE)
+ */
 function initSubmitPcReportPage() {
+  // 1. Parse URL query params and populate room / PC / date
+  parseWorkstationParams();
+
+  // 2. Character counter for Issue Details / Remarks
+  const remarksTextarea = document.getElementById('remarks');
+  const remarksCounter = document.getElementById('remarks-char-counter');
+
+  function updateCharCount() {
+    if (!remarksTextarea) return;
+    const currentLength = remarksTextarea.value.length;
+    if (remarksCounter) {
+      remarksCounter.textContent = `${currentLength} / 200 characters`;
+      if (currentLength >= 200) {
+        remarksCounter.classList.add('counter-at-limit');
+        remarksCounter.classList.remove('counter-near-limit');
+      } else if (currentLength >= 170) {
+        remarksCounter.classList.add('counter-near-limit');
+        remarksCounter.classList.remove('counter-at-limit');
+      } else {
+        remarksCounter.classList.remove('counter-at-limit', 'counter-near-limit');
+      }
+    }
+  }
+
+  if (remarksTextarea) {
+    remarksTextarea.addEventListener('input', updateCharCount);
+    remarksTextarea.addEventListener('keyup', updateCharCount);
+    remarksTextarea.addEventListener('paste', () => {
+      setTimeout(updateCharCount, 0);
+    });
+    updateCharCount();
+  }
+
+  // 3. Auto-uppercase Program & Section input
+  const sectionInputEl = document.getElementById('student-section');
+  if (sectionInputEl) {
+    const handleUppercase = function () {
+      const start = this.selectionStart;
+      const end = this.selectionEnd;
+      this.value = this.value.toUpperCase();
+      if (start !== null && end !== null) {
+        this.setSelectionRange(start, end);
+      }
+    };
+    sectionInputEl.addEventListener('input', handleUppercase);
+    sectionInputEl.addEventListener('keyup', handleUppercase);
+    sectionInputEl.addEventListener('paste', () => {
+      setTimeout(() => {
+        sectionInputEl.value = sectionInputEl.value.toUpperCase();
+      }, 0);
+    });
+  }
+
+  // 4. Modal card backdrop dismiss listener
   const successModalEl = document.getElementById('success-modal');
   if (successModalEl) {
+    successModalEl.style.display = 'none';
+    successModalEl.style.pointerEvents = 'none';
+    successModalEl.classList.remove('active');
+
+    // Clicking outside the success-card closes the modal
     successModalEl.addEventListener('click', (e) => {
-      e.stopPropagation();
+      if (e.target === successModalEl) {
+        closeSuccessModal();
+      }
     });
-    successModalEl.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
-    });
+
+    const successCard = successModalEl.querySelector('.success-card');
+    if (successCard) {
+      successCard.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+  }
+
+  // 5. Ensure Lucide icons render
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
   }
 }
 
@@ -416,3 +551,4 @@ window.toggleStatus = toggleStatus;
 window.toggleCheckbox = toggleCheckbox;
 window.handleSubmit = handleSubmit;
 window.closeSuccessModal = closeSuccessModal;
+window.initSubmitPcReportPage = initSubmitPcReportPage;

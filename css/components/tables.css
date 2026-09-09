@@ -169,13 +169,15 @@ html.high-contrast .ticket-id-tag {
   table-layout: fixed;
 }
 
-.maint-table th.col-ticket, .maint-table td.col-ticket { width: 11%; }
-.maint-table th.col-date, .maint-table td.col-date { width: 12%; }
-.maint-table th.col-room, .maint-table td.col-room { width: 10%; }
-.maint-table th.col-pc, .maint-table td.col-pc { width: 8%; }
-.maint-table th.col-reporter, .maint-table td.col-reporter { width: 17%; overflow: hidden; }
-.maint-table th.col-issues, .maint-table td.col-issues { width: 28%; }
-.maint-table th.col-actions, .maint-table td.col-actions { width: 14%; text-align: center; }
+@media (min-width: 769px) {
+  .maint-table th.col-ticket, .maint-table td.col-ticket { width: 11%; }
+  .maint-table th.col-date, .maint-table td.col-date { width: 12%; }
+  .maint-table th.col-room, .maint-table td.col-room { width: 10%; }
+  .maint-table th.col-pc, .maint-table td.col-pc { width: 8%; }
+  .maint-table th.col-reporter, .maint-table td.col-reporter { width: 17%; overflow: hidden; }
+  .maint-table th.col-issues, .maint-table td.col-issues { width: 28%; }
+  .maint-table th.col-actions, .maint-table td.col-actions { width: 14%; text-align: center; }
+}
 
 /* ─── Physical Keys Management Table ─── */
 .keys-table {
@@ -724,44 +726,63 @@ html.high-contrast .table-container tbody tr:hover {
 
 /* ─── Mobile Maintenance Cards Layout & Full-Width Actions (Max Width: 768px) ── */
 @media (max-width: 768px) {
-  .maint-table-wrapper {
+  .maint-table-wrapper,
+  html.dark-mode .maint-table-wrapper,
+  body.dark-mode .maint-table-wrapper,
+  [data-theme="dark"] .maint-table-wrapper,
+  html.high-contrast .maint-table-wrapper {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
   }
 
+  .maint-table colgroup,
+  .maint-table col,
+  .maint-table thead {
+    display: none !important;
+    width: 0 !important;
+  }
+
   .maint-table {
+    table-layout: auto !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
     width: 100% !important;
-  }
-
-  .maint-table thead {
-    display: none !important;
   }
 
   .maint-table tbody {
     display: flex !important;
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 14px !important;
     width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .maint-table tr,
+  .maint-table tr.maintenance-row,
   .maint-mobile-card,
   .ticket-card-mobile {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 12px !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px 10px !important;
     padding: 16px !important;
     border-radius: 16px !important;
     background: #FFFFFF !important;
     border: 1px solid var(--border-light, #E2E8F0) !important;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
     box-sizing: border-box !important;
     width: 100% !important;
+  }
+
+  html.dark-mode .maint-table tr,
+  body.dark-mode .maint-table tr,
+  [data-theme="dark"] .maint-table tr,
+  html.high-contrast .maint-table tr {
+    background: #161F30 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
   }
 
   .maint-table td {
@@ -773,39 +794,224 @@ html.high-contrast .table-container tbody tr:hover {
     box-sizing: border-box !important;
   }
 
-  .maint-table td.col-ticket {
+  /* Row 1: Date on Left, Ticket ID on Right */
+  .maint-table td.col-date {
+    grid-column: 1 / 2 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: space-between !important;
+    justify-content: flex-start !important;
+    margin: 0 !important;
+  }
+
+  .maint-table td.col-ticket {
+    grid-column: 2 / 3 !important;
+    grid-row: 1 !important;
     width: 100% !important;
-  }
-
-  .maint-table td.col-status {
     display: flex !important;
+    align-items: center !important;
     justify-content: flex-end !important;
-    margin-top: -38px !important;
-    pointer-events: none;
+    margin: 0 !important;
   }
 
-  .maint-table td.col-status .status-badge-pulse {
-    pointer-events: auto;
+  .maint-table td.col-ticket .ticket-chip {
+    font-size: 12.5px !important;
+    padding: 4px 11px !important;
+    white-space: nowrap !important;
   }
 
-  .maint-table td.col-date,
-  .maint-table td.col-room,
-  .maint-table td.col-pc {
+  .maint-table td.col-date .col-date-wrap {
     display: inline-flex !important;
     align-items: center !important;
     gap: 6px !important;
-    margin-right: 12px !important;
-    font-size: 12.5px !important;
+    white-space: nowrap !important;
   }
 
+  .maint-table td.col-date .col-date-icon {
+    width: 15px !important;
+    height: 15px !important;
+    color: var(--primary-teal, #1EBBD7) !important;
+    flex-shrink: 0 !important;
+  }
+
+  .maint-table td.col-date .col-date-text {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: baseline !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+  }
+
+  .maint-table td.col-date .date-main {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: var(--text-dark, #0F172A) !important;
+    white-space: nowrap !important;
+  }
+
+  .maint-table td.col-date .date-main::after {
+    content: "•";
+    margin-left: 6px;
+    color: var(--text-muted, #94A3B8);
+    font-weight: 400;
+  }
+
+  html.high-contrast .maint-table td.col-date .date-main,
+  body.high-contrast .maint-table td.col-date .date-main,
+  html.dark-mode .maint-table td.col-date .date-main,
+  body.dark-mode .maint-table td.col-date .date-main,
+  html.dark .maint-table td.col-date .date-main,
+  body.dark .maint-table td.col-date .date-main,
+  html.dark-theme .maint-table td.col-date .date-main,
+  body.dark-theme .maint-table td.col-date .date-main,
+  [data-theme="dark"] .maint-table td.col-date .date-main {
+    color: #F1F5F9 !important;
+  }
+
+  .maint-table td.col-date .time-sub {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: var(--text-muted, #94A3B8) !important;
+    white-space: nowrap !important;
+  }
+
+  /* Row 2: Room and PC Units - side by side symmetrical pill boxes */
+  .maint-table td.col-room {
+    grid-column: 1 / 2 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+  }
+
+  .maint-table td.col-pc {
+    grid-column: 2 / 3 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+  }
+
+  .maint-table td.col-room .cell-icon-wrap,
+  .maint-table td.col-pc .cell-icon-wrap {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    width: 100% !important;
+    background: #F8FAFC !important;
+    border: 1px solid var(--border-light, #E2E8F0) !important;
+    border-radius: 10px !important;
+    padding: 8px 10px !important;
+    box-sizing: border-box !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: var(--text-dark, #0F172A) !important;
+  }
+
+  html.high-contrast .maint-table td.col-room .cell-icon-wrap,
+  body.high-contrast .maint-table td.col-room .cell-icon-wrap,
+  html.dark-mode .maint-table td.col-room .cell-icon-wrap,
+  body.dark-mode .maint-table td.col-room .cell-icon-wrap,
+  html.dark .maint-table td.col-room .cell-icon-wrap,
+  body.dark .maint-table td.col-room .cell-icon-wrap,
+  html.dark-theme .maint-table td.col-room .cell-icon-wrap,
+  body.dark-theme .maint-table td.col-room .cell-icon-wrap,
+  [data-theme="dark"] .maint-table td.col-room .cell-icon-wrap,
+  html.high-contrast .maint-table td.col-pc .cell-icon-wrap,
+  body.high-contrast .maint-table td.col-pc .cell-icon-wrap,
+  html.dark-mode .maint-table td.col-pc .cell-icon-wrap,
+  body.dark-mode .maint-table td.col-pc .cell-icon-wrap,
+  html.dark .maint-table td.col-pc .cell-icon-wrap,
+  body.dark .maint-table td.col-pc .cell-icon-wrap,
+  html.dark-theme .maint-table td.col-pc .cell-icon-wrap,
+  body.dark-theme .maint-table td.col-pc .cell-icon-wrap,
+  [data-theme="dark"] .maint-table td.col-pc .cell-icon-wrap {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+    color: #F8FAFC !important;
+  }
+
+  .maint-table td.col-room .cell-icon,
+  .maint-table td.col-pc .cell-icon {
+    width: 15px !important;
+    height: 15px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Row 3: Reporter Chip */
+  .maint-table td.col-reporter {
+    grid-column: 1 / -1 !important;
+    grid-row: 3 !important;
+    width: 100% !important;
+    overflow: visible !important;
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+  }
+
+  .maint-table td.col-reporter .reporter-chip {
+    max-width: 100% !important;
+    width: fit-content !important;
+    box-sizing: border-box !important;
+  }
+
+  .maint-table td.col-reporter .reporter-chip .reporter-chip-name {
+    max-width: none !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Row 4: Issues & Remarks */
+  .maint-table td.col-issues {
+    grid-column: 1 / -1 !important;
+    grid-row: 4 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+
+  .maint-table td.col-issues .ticket-badge-group {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .maint-table td.col-issues .remarks-quote-box {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+  }
+
+  /* Row 5: Actions Button / Completed Chip */
   .maint-table td.col-actions {
+    grid-column: 1 / -1 !important;
+    grid-row: 5 !important;
     margin-top: 4px !important;
-    padding-top: 10px !important;
+    padding-top: 12px !important;
     border-top: 1px dashed var(--border-light, #E2E8F0) !important;
     width: 100% !important;
+    display: block !important;
+    box-sizing: border-box !important;
+  }
+
+  html.high-contrast .maint-table td.col-actions,
+  body.high-contrast .maint-table td.col-actions,
+  html.dark-mode .maint-table td.col-actions,
+  body.dark-mode .maint-table td.col-actions,
+  html.dark .maint-table td.col-actions,
+  body.dark .maint-table td.col-actions,
+  html.dark-theme .maint-table td.col-actions,
+  body.dark-theme .maint-table td.col-actions,
+  [data-theme="dark"] .maint-table td.col-actions {
+    border-top-color: rgba(255, 255, 255, 0.1) !important;
   }
 
   .maint-table .btn-resolve-ticket,
@@ -817,9 +1023,34 @@ html.high-contrast .table-container tbody tr:hover {
   .ticket-card-mobile .btn-resolve-ticket,
   .ticket-card-mobile .completed-chip {
     width: 100% !important;
+    min-height: 42px !important;
     display: flex !important;
+    align-items: center !important;
     justify-content: center !important;
+    gap: 8px !important;
+    padding: 10px 16px !important;
+    border-radius: 12px !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
     box-sizing: border-box !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+  }
+
+  .maint-table tr:not(.maintenance-row) {
+    display: block !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .maint-table tr:not(.maintenance-row) td {
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+    padding: 36px 16px !important;
   }
 }
 

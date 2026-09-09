@@ -3,8 +3,13 @@
 const db = require('../database/connection');
 
 async function findRoomIdByNumber(roomNumber, executor = db) {
-    const clean = String(roomNumber || '').trim().replace(/^RM\s*/i, '');
-    return executor.query('SELECT Room_ID, Room_Number, Key_Status FROM laboratories WHERE Room_Number = ? OR Room_Number = ?', [roomNumber, clean]);
+    const raw = String(roomNumber || '').trim();
+    const clean = raw.replace(/^(room|rm|laboratory|lab)\s*[-:]?\s*/i, '').trim();
+    const withRoom = `Room ${clean}`;
+    return executor.query(
+        'SELECT Room_ID, Room_Number, Key_Status FROM laboratories WHERE Room_Number = ? OR Room_Number = ? OR Room_Number = ?',
+        [raw, clean, withRoom]
+    );
 }
 
 async function deleteRoomSchedule(roomId, ay, sem, executor = db) {

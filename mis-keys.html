@@ -40,27 +40,15 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      padding: 12px;
-      background: #FFFFFF;
-      border: 1px solid var(--border-light);
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+      padding: 0;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
       box-sizing: border-box;
-      transition: all 0.25s ease;
     }
 
     .keychain-pair-header {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 10px;
-      background: #F1F5F9;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #475569;
-      letter-spacing: 0.3px;
+      display: none !important;
     }
 
     .keychain-pair-slots {
@@ -534,16 +522,7 @@
       }
 
       .keychain-pair-header {
-        font-size: 6.5pt !important;
-        font-weight: 700 !important;
-        color: #64748b !important;
-        background: transparent !important;
-        padding: 0 !important;
-        margin-bottom: 2pt !important;
-        text-transform: uppercase !important;
-        font-family: sans-serif !important;
-        display: flex !important;
-        gap: 4pt !important;
+        display: none !important;
       }
 
       .keychain-pair-slots {
@@ -873,16 +852,16 @@
     body.dark-mode .keychain-print-pair,
     [data-theme="dark"] .keychain-print-pair,
     html.high-contrast .keychain-print-pair {
-      background: #1E293B !important;
-      border-color: #334155 !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
     }
 
     html.dark-mode .keychain-pair-header,
     body.dark-mode .keychain-pair-header,
     [data-theme="dark"] .keychain-pair-header,
     html.high-contrast .keychain-pair-header {
-      background: #0F172A !important;
-      color: #94A3B8 !important;
+      display: none !important;
     }
 
     html.dark-mode #btnBatchPrintSelected:disabled,
@@ -1487,9 +1466,17 @@
       flex-wrap: wrap;
     }
 
+    .keys-batch-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .search-box-header {
       min-width: 200px;
       max-width: 320px;
+      height: auto;
+      flex: none;
     }
 
     @media (max-width: 1024px) {
@@ -1497,6 +1484,7 @@
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
+        margin-bottom: 16px;
       }
 
       .keys-filter-group {
@@ -1506,16 +1494,27 @@
 
       .keys-toolbar-right {
         width: 100%;
+        display: flex;
+        align-items: center;
         justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .keys-batch-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .search-box-header {
-        flex: 1 1 200px;
-        max-width: none;
+        flex: 1 1 220px;
+        max-width: 360px;
+        height: auto;
       }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
       .keys-filter-group {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -1525,23 +1524,68 @@
 
       .keys-filter-group .key-filter-btn {
         text-align: center;
-        padding: 8px 4px !important;
+        padding: 8px 6px !important;
         font-size: 12px !important;
+        justify-content: center !important;
       }
 
       .keys-toolbar-right {
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
-      }
-
-      .keys-toolbar-right .btn-batch-print {
         width: 100%;
-        justify-content: center;
       }
 
       .search-box-header {
-        width: 100%;
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: none !important;
+        height: auto !important;
+        order: 1;
+        margin: 0 !important;
+      }
+
+      .search-box-header .search-input {
+        width: 100% !important;
+        height: 40px !important;
+        box-sizing: border-box !important;
+      }
+
+      .keys-batch-actions {
+        display: flex !important;
+        width: 100% !important;
+        gap: 8px !important;
+        order: 2;
+        margin: 0 !important;
+      }
+
+      .keys-batch-actions .btn-batch-print {
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        width: 50% !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 9px 10px !important;
+        font-size: 12.5px !important;
+        white-space: nowrap !important;
+        border-radius: 10px !important;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .keys-filter-group .key-filter-btn {
+        padding: 7px 2px !important;
+        font-size: 11px !important;
+        gap: 4px !important;
+      }
+
+      .keys-filter-group .key-filter-btn .filter-tab-icon {
+        display: none !important;
+      }
+
+      .keys-batch-actions .btn-batch-print {
+        font-size: 11.5px !important;
+        padding: 8px 6px !important;
       }
     }
 
@@ -2036,9 +2080,13 @@
         onclick="window.location.href='mis-maintenance.html'">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          class="lucide lucide-wrench">
-          <path
-            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+          class="lucide lucide-clipboard-list">
+          <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+          <path d="M12 11h4" />
+          <path d="M12 16h4" />
+          <path d="M8 11h.01" />
+          <path d="M8 16h.01" />
         </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="PC & QR Management" title="PC & QR Management"
@@ -2212,17 +2260,19 @@
           <!-- Right Actions (Batch Printing & Search) -->
           <div class="keys-toolbar-right">
             <!-- Batch Print Buttons -->
-            <button type="button" id="btnBatchPrintSelected" class="btn-batch-print" disabled
-              title="Select one or more keys from the table to print tags">
-              <i data-lucide="check-square" style="width: 15px; height: 15px;"></i>
-              <span id="btnBatchPrintSelectedText">Print Selected</span>
-              <span id="btnBatchPrintSelectedBadge" class="btn-count-pill" style="display: none;">0</span>
-            </button>
-            <button type="button" id="btnBatchPrintAll" class="btn-batch-print"
-              title="Print key tags for all matching keys">
-              <i data-lucide="printer" style="width: 15px; height: 15px;"></i>
-              <span id="btnBatchPrintAllText">Print All</span>
-            </button>
+            <div class="keys-batch-actions">
+              <button type="button" id="btnBatchPrintSelected" class="btn-batch-print" disabled
+                title="Select one or more keys from the table to print tags">
+                <i data-lucide="check-square" style="width: 15px; height: 15px;"></i>
+                <span id="btnBatchPrintSelectedText">Print Selected</span>
+                <span id="btnBatchPrintSelectedBadge" class="btn-count-pill" style="display: none;">0</span>
+              </button>
+              <button type="button" id="btnBatchPrintAll" class="btn-batch-print"
+                title="Print key tags for all matching keys">
+                <i data-lucide="printer" style="width: 15px; height: 15px;"></i>
+                <span id="btnBatchPrintAllText">Print All</span>
+              </button>
+            </div>
 
             <!-- Search Box -->
             <div class="search-box search-box-header">

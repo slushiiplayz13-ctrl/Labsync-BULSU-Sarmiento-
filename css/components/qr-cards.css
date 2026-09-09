@@ -4,7 +4,8 @@
 
 /* ─── PC QR Code Generator Cards & Subcomponents Component Styles ─── */
 .pc-grid-container {
-  border: 2px solid var(--primary-teal);
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
   border-radius: 16px;
   padding: 20px;
   display: grid !important;
@@ -35,23 +36,25 @@
 .pc-qr-card {
   border: 1px solid var(--border-light);
   border-radius: 14px;
-  padding: 26px 14px 20px 14px;
-  min-height: 125px;
+  padding: 20px 14px;
+  min-height: 110px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
   position: relative;
   background: var(--bg-white);
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
   box-sizing: border-box;
+  overflow: hidden;
+  outline: none;
 }
 
-.pc-qr-card:hover {
+.pc-qr-card:hover,
+.pc-qr-card:focus-within {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md, 0 4px 16px rgba(15, 23, 42, 0.08));
   border-color: #bae6fd;
 }
 
@@ -60,53 +63,116 @@
 }
 
 .pc-qr-title {
-  color: var(--primary-teal);
+  color: var(--text-dark);
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.3px;
+  font-family: var(--font-display);
+  margin: 0;
+  transition: transform 0.15s ease-in-out;
+  user-select: none;
+}
+
+/* On hover / focus, smoothly elevate title slightly so the secondary action button reveals cleanly below without layout shift */
+.pc-qr-card:not(.in-selection-mode):hover .pc-qr-title,
+.pc-qr-card:not(.in-selection-mode):focus-within .pc-qr-title {
+  transform: translateY(-11px);
 }
 
 .pc-qr-btn {
-  background: var(--primary-teal);
-  color: #fff;
-  border: none;
-  padding: 9px 14px;
-  border-radius: 10px;
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  right: 14px;
+  width: calc(100% - 28px);
+  background: var(--bg-white);
+  color: var(--text-dark);
+  border: 1.5px solid var(--border-light);
+  padding: 8px 12px;
+  border-radius: 9px;
   font-size: 12px;
   font-weight: 600;
+  font-family: var(--font-body, inherit);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   cursor: pointer;
-  width: 100%;
-  box-shadow: 0 3px 8px rgba(30, 187, 215, 0.25);
-  transition: background 0.2s;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
   box-sizing: border-box;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out, border-color 0.18s, color 0.18s, background-color 0.18s, box-shadow 0.18s;
+}
+
+/* Secondary Print QR action reveals smoothly on card hover or keyboard focus-within */
+.pc-qr-card:hover .pc-qr-btn,
+.pc-qr-card:focus-within .pc-qr-btn {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 .pc-qr-btn:hover {
-  background: #18a3bb;
+  border-color: var(--primary-teal);
+  color: var(--primary-teal-hover);
+  background: var(--primary-teal-light);
+  box-shadow: 0 2px 6px rgba(30, 187, 215, 0.15);
+}
+
+.pc-qr-btn:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 .generate-all-btn {
-  background: #10B981;
-  color: #fff;
+  background: var(--primary-teal, #1EBBD7);
+  color: #ffffff;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
+  padding: 10px 18px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: var(--font-body, inherit);
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-  transition: background 0.2s;
+  box-shadow: 0 4px 12px rgba(30, 187, 215, 0.25);
+  transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .generate-all-btn:hover {
-  background: #059669;
+  background: var(--primary-teal-hover, #17a2bc);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(30, 187, 215, 0.32);
+}
+
+.generate-all-btn:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+}
+
+/* ─── Informational Room Inventory Badge ────────────────────────── */
+.room-unit-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--primary-teal-light, #E8F9FC);
+  color: var(--accent-blue, #0EA5C9);
+  font-size: 12.5px;
+  font-weight: 700;
+  border: 1px solid rgba(30, 187, 215, 0.25);
+  font-family: var(--font-body);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  user-select: none;
 }
 
 /* ─── PC Grid & QR Cards Responsive Styles (Max Width: 767px) ────── */
@@ -116,7 +182,7 @@
     display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px !important;
-    border-width: 1.5px !important;
+    border-width: 1px !important;
   }
 
   .pc-qr-card {
@@ -128,11 +194,11 @@
 
   .pc-qr-title {
     font-size: 17px !important;
-    font-weight: 800 !important;
+    font-weight: 700 !important;
   }
 
   .pc-qr-btn {
-    font-size: 11.5px !important;
+    font-size: 12px !important;
     padding: 8px 10px !important;
     border-radius: 9px !important;
   }
@@ -140,11 +206,11 @@
   .delete-pc-btn,
   .card-action-delete,
   .pc-card .btn-delete {
-    width: 28px;
-    height: 28px;
-    top: 10px;
-    right: 10px;
-    border-radius: 7px;
+    width: 32px;
+    height: 32px;
+    top: 8px;
+    right: 8px;
+    border-radius: 8px;
   }
 
   .delete-pc-btn i,
@@ -153,22 +219,22 @@
   .card-action-delete svg,
   .pc-card .btn-delete i,
   .pc-card .btn-delete svg {
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
   }
 
   .pc-grid-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
+    gap: 12px;
   }
 
   .generate-all-btn {
-    font-size: 12px !important;
-    padding: 8px 14px !important;
+    font-size: 13px !important;
+    padding: 9px 14px !important;
     width: 100% !important;
     justify-content: center !important;
-    border-radius: 10px !important;
+    border-radius: 9px !important;
   }
 }
 
@@ -447,7 +513,11 @@
 html.high-contrast .pc-grid-container,
 html.dark-mode .pc-grid-container,
 [data-theme="dark"] .pc-grid-container {
-  border-color: rgba(0, 163, 196, 0.4) !important;
+  border-color: var(--border-light, #374151) !important;
+  background: var(--bg-card, #1F2937) !important;
+}
+
+html.high-contrast .pc-grid-container {
   background: transparent !important;
 }
 
@@ -469,7 +539,73 @@ html.dark-mode .pc-qr-card:hover,
 html.high-contrast .pc-qr-title,
 html.dark-mode .pc-qr-title,
 [data-theme="dark"] .pc-qr-title {
-  color: var(--primary-teal, #00A3C4) !important;
+  color: var(--text-dark, #F8FAFC) !important;
+}
+
+/* Individual PC Action Button in Dark & High Contrast Mode */
+html.dark-mode .pc-qr-btn,
+[data-theme="dark"] .pc-qr-btn {
+  background: var(--bg-white, #111827) !important;
+  color: var(--text-dark, #F8FAFC) !important;
+  border: 1.5px solid var(--border-light, #374151) !important;
+  box-shadow: none !important;
+}
+
+html.dark-mode .pc-qr-btn:hover,
+html.dark-mode .pc-qr-btn:focus,
+[data-theme="dark"] .pc-qr-btn:hover,
+[data-theme="dark"] .pc-qr-btn:focus {
+  background: rgba(0, 163, 196, 0.16) !important;
+  color: #38BDF8 !important;
+  border-color: var(--primary-teal, #00A3C4) !important;
+}
+
+html.high-contrast .pc-qr-btn {
+  background: transparent !important;
+  color: var(--text-dark, #F8FAFC) !important;
+  border: 1.5px solid var(--border-light, #374151) !important;
+}
+
+html.high-contrast .pc-qr-btn:hover,
+html.high-contrast .pc-qr-btn:focus {
+  background: var(--primary-teal, #00A3C4) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary-teal, #00A3C4) !important;
+}
+
+/* Batch Generate All Button in Dark & High Contrast Mode */
+html.dark-mode .generate-all-btn,
+[data-theme="dark"] .generate-all-btn {
+  background: var(--primary-teal, #00A3C4) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(0, 163, 196, 0.3) !important;
+}
+
+html.dark-mode .generate-all-btn:hover,
+html.dark-mode .generate-all-btn:focus,
+[data-theme="dark"] .generate-all-btn:hover,
+[data-theme="dark"] .generate-all-btn:focus {
+  background: var(--primary-teal-hover, #008EA6) !important;
+}
+
+html.high-contrast .generate-all-btn {
+  background: var(--primary-teal, #00A3C4) !important;
+  color: #FFFFFF !important;
+  border: 1px solid #FFFFFF !important;
+}
+
+/* Room Unit Count Badge in Dark & High Contrast Mode */
+html.dark-mode .room-unit-badge,
+[data-theme="dark"] .room-unit-badge {
+  background: rgba(0, 163, 196, 0.15) !important;
+  color: #38BDF8 !important;
+  border-color: rgba(56, 189, 248, 0.3) !important;
+}
+
+html.high-contrast .room-unit-badge {
+  background: transparent !important;
+  color: var(--text-dark, #F8FAFC) !important;
+  border: 1.5px solid var(--border-light, #374151) !important;
 }
 
 /* Header Buttons in Dark Mode */

@@ -31,10 +31,12 @@
     const roomView = document.getElementById('roomSelectionView');
     const pcView = document.getElementById('pcGridView');
     const titleEl = document.getElementById('selectedRoomTitle');
+    const badgeEl = document.getElementById('roomUnitCountBadge');
 
     if (roomView) roomView.style.display = 'none';
     if (pcView) pcView.style.display = 'block';
     if (titleEl) titleEl.textContent = `Room ${roomNumber}`;
+    if (badgeEl) badgeEl.textContent = '...';
 
     loadPCs(roomId);
   }
@@ -46,9 +48,11 @@
     exitSelectionMode();
     const roomView = document.getElementById('roomSelectionView');
     const pcView = document.getElementById('pcGridView');
+    const badgeEl = document.getElementById('roomUnitCountBadge');
 
     if (roomView) roomView.style.display = 'block';
     if (pcView) pcView.style.display = 'none';
+    if (badgeEl) badgeEl.textContent = '0 Units';
     currentRoomId = null;
     currentRoomNumber = null;
     currentPCs = [];
@@ -192,19 +196,23 @@
     refreshPCGridView();
   }
 
-  /**
-   * Updates the toggle selection button styling and text.
-   */
   function updateModeButtonUI() {
     const btn = document.getElementById('btnToggleSelectionMode');
     const textSpan = document.getElementById('btnToggleSelectionModeText');
+    const addPcBtn = document.getElementById('btnHeaderAddPc');
+    const generateAllBtn = document.querySelector('.generate-all-btn');
+
     if (btn) {
       if (isSelectionMode) {
         btn.classList.add('active');
         if (textSpan) textSpan.textContent = 'Cancel Selection';
+        if (addPcBtn) addPcBtn.style.display = 'none';
+        if (generateAllBtn) generateAllBtn.style.display = 'none';
       } else {
         btn.classList.remove('active');
         if (textSpan) textSpan.textContent = 'Select PCs';
+        if (addPcBtn) addPcBtn.style.display = '';
+        if (generateAllBtn) generateAllBtn.style.display = '';
       }
     }
   }
@@ -308,12 +316,6 @@
     if (modal) {
       modal.style.display = 'flex';
       if (global.setModalOpenState) global.setModalOpenState(true);
-      modal.addEventListener('click', (e) => {
-        e.stopPropagation();
-      });
-      modal.addEventListener('mousedown', (e) => {
-        e.stopPropagation();
-      });
     }
     if (global.lucide && modal) global.lucide.createIcons({ root: modal });
   }
@@ -344,7 +346,7 @@
       const pcIdsArray = Array.from(selectedPcIds);
       if (actions && typeof actions.deletePCsBulk === 'function') {
         await actions.deletePCsBulk(currentRoomId, pcIdsArray, () => {
-          selectedPcIds.clear();
+          exitSelectionMode();
           loadPCs(currentRoomId);
         });
       }
@@ -538,6 +540,32 @@
           return;
         }
       });
+
+      // Direct listeners for Bulk Delete modal buttons and backdrop
+      const bulkDelOverlay = document.getElementById('bulkDeleteModalOverlay');
+      if (bulkDelOverlay) {
+        bulkDelOverlay.addEventListener('click', (e) => {
+          if (e.target === bulkDelOverlay) {
+            closeBulkDeleteModal();
+          }
+        });
+      }
+
+      const cancelBulkBtn = document.getElementById('btnCancelBulkDelete');
+      if (cancelBulkBtn) {
+        cancelBulkBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          closeBulkDeleteModal();
+        });
+      }
+
+      const confirmBulkBtn = document.getElementById('btnConfirmBulkDelete');
+      if (confirmBulkBtn) {
+        confirmBulkBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          confirmBulkDelete();
+        });
+      }
     }
 
     const sidebar = document.querySelector('.sidebar');
@@ -588,5 +616,11 @@
   global.openBulkDeleteModal = openBulkDeleteModal;
   global.closeBulkDeleteModal = closeBulkDeleteModal;
   global.confirmBulkDelete = confirmBulkDelete;
+
+  if (typeof window !== 'undefined') {
+    window.openBulkDeleteModal = openBulkDeleteModal;
+    window.closeBulkDeleteModal = closeBulkDeleteModal;
+    window.confirmBulkDelete = confirmBulkDelete;
+  }
 
 })(typeof window !== 'undefined' ? window : this);

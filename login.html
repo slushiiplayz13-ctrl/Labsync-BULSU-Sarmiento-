@@ -157,9 +157,6 @@
   <!-- About Modal -->
   <div id="aboutModal" class="modal-overlay">
     <div class="modal-card about-modal-card">
-      <button type="button" class="modal-close-btn" id="closeAboutModalBtn"
-        aria-label="Close about modal">&times;</button>
-
       <div class="about-header">
         <img src="assets/labsync-logo.png" alt="LabSync Logo" class="about-logo">
         <p class="about-tagline">Laboratory Management & Monitoring System</p>
@@ -236,14 +233,15 @@
       <div class="about-footer">
         © 2026 LabSync • BulSU Sarmiento Campus
       </div>
+      <div style="display: flex; justify-content: center; margin-top: 20px; width: 100%;">
+        <button type="button" class="submit-btn" id="closeAboutActionBtn" style="max-width: 140px; padding: 12px 20px; font-size: 14px;">Close</button>
+      </div>
     </div>
   </div>
 
   <!-- Contact Modal -->
   <div id="contactModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle">
     <div class="modal-card">
-      <button type="button" class="modal-close-btn" id="closeContactModalBtn"
-        aria-label="Close contact modal">&times;</button>
       <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--primary-teal-light); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: var(--primary-teal);">
         <i data-lucide="mail" style="width: 24px; height: 24px;"></i>
       </div>

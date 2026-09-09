@@ -104,15 +104,36 @@
     const selCount = selectedPcIds.size || 0;
     const selIdsStr = Array.from(selectedPcIds).sort().join(',');
 
+    // Update live room unit count badge if present in header
+    const unitBadge = document.getElementById('roomUnitCountBadge');
+    if (unitBadge) {
+      const count = pcList.length;
+      unitBadge.textContent = `${count} ${count === 1 ? 'Unit' : 'Units'}`;
+    }
+
     const signature = `${options.roomId || ''}::${isSelectionMode ? 'SEL' : 'NORM'}::${selCount}::${selIdsStr}::` + computePCGridSignature(pcList);
     if (grid._lastRenderSignature === signature) {
       return; // Unchanged data & selection, skip DOM write and icon re-creation
     }
     grid._lastRenderSignature = signature;
 
-    // Attach delegated click listener once per grid element (CSP-compliant)
+    // Attach delegated listeners once per grid element (CSP-compliant)
     if (!grid._delegationAttached) {
       grid._delegationAttached = true;
+      grid.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && grid._callbacks && grid._callbacks.isSelectionMode) {
+          const pcCard = e.target.closest('.pc-qr-card');
+          if (pcCard) {
+            e.preventDefault();
+            const pcId = pcCard.getAttribute('data-pc-id');
+            if (pcId) {
+              const cb = grid._callbacks.onToggleSelectPC;
+              if (typeof cb === 'function') cb(pcId);
+              else if (typeof global.toggleSelectPC === 'function') global.toggleSelectPC(pcId);
+            }
+          }
+        }
+      });
       grid.addEventListener('click', (e) => {
         const activeOpts = grid._callbacks || {};
 
@@ -180,6 +201,7 @@
       const card = document.createElement('div');
       card.className = 'pc-qr-card' + (isSelectionMode ? ' in-selection-mode' : '') + (isSelected ? ' is-selected' : '');
       card.setAttribute('data-pc-id', pc.PC_ID);
+      card.setAttribute('tabindex', '0');
       card.style.position = 'relative';
 
       if (isSelectionMode) {
@@ -198,6 +220,7 @@
         deleteBtn.setAttribute('data-pc-id', pc.PC_ID);
         deleteBtn.setAttribute('data-pc-number', pc.PC_Number);
         deleteBtn.setAttribute('title', `Delete PC ${pc.PC_Number}`);
+        deleteBtn.setAttribute('aria-label', `Delete PC ${pc.PC_Number}`);
         deleteBtn.innerHTML = '<i data-lucide="trash-2"></i>';
         card.appendChild(deleteBtn);
       }
@@ -209,13 +232,14 @@
       card.appendChild(title);
 
       if (!isSelectionMode) {
-        // Generate QR button (CSP-compliant without inline onclick)
+        // Print QR button (CSP-compliant without inline onclick)
         const qrBtn = document.createElement('button');
         qrBtn.className = 'pc-qr-btn';
         qrBtn.setAttribute('type', 'button');
         qrBtn.setAttribute('data-action', 'generate-qr');
         qrBtn.setAttribute('data-pc-id', pc.PC_ID);
-        qrBtn.innerHTML = '<i data-lucide="qr-code" style="width: 14px; height: 14px;"></i> Generate QR';
+        qrBtn.setAttribute('title', `Print QR for PC ${pc.PC_Number}`);
+        qrBtn.innerHTML = '<i data-lucide="qr-code" style="width: 14px; height: 14px;"></i> Print QR';
         card.appendChild(qrBtn);
       } else {
         // In selection mode: visual status label
@@ -264,6 +288,10 @@
     if (grid) {
       grid._lastRenderSignature = null;
       grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #EF4444; font-weight: 600;">${message || 'Failed to load PCs'}</div>`;
+    }
+    const unitBadge = document.getElementById('roomUnitCountBadge');
+    if (unitBadge) {
+      unitBadge.textContent = '0 Units';
     }
   }
 

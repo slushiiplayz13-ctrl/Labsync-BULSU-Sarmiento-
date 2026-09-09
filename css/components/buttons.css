@@ -122,32 +122,64 @@
 .card-action-delete,
 .pc-card .btn-delete {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(239, 68, 68, 0.08);
-  color: #EF4444 !important;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-muted, #94A3B8) !important;
+  border: 1px solid transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9);
+  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out, background-color 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
   z-index: 5;
   outline: none;
   box-sizing: border-box;
 }
 
+/* Delete button reveals on card hover or focus-within */
+.pc-qr-card:hover .delete-pc-btn,
+.pc-qr-card:focus-within .delete-pc-btn,
+.pc-qr-card:hover .card-action-delete,
+.pc-qr-card:focus-within .card-action-delete,
+.pc-qr-card:hover .pc-card .btn-delete,
+.pc-qr-card:focus-within .pc-card .btn-delete {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
 .delete-pc-btn:hover,
+.delete-pc-btn:focus,
+.delete-pc-btn:focus-visible,
 .card-action-delete:hover,
-.pc-card .btn-delete:hover {
-  background: #FEE2E2;
+.card-action-delete:focus,
+.card-action-delete:focus-visible,
+.pc-card .btn-delete:hover,
+.pc-card .btn-delete:focus,
+.pc-card .btn-delete:focus-visible {
+  background: #FEE2E2 !important;
   color: #DC2626 !important;
-  border-color: #FCA5A5;
-  transform: translateY(-1px);
+  border-color: #FCA5A5 !important;
+  transform: scale(1.05) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.22);
+}
+
+.delete-pc-btn:focus-visible,
+.card-action-delete:focus-visible,
+.pc-card .btn-delete:focus-visible {
+  outline: 2px solid #EF4444;
+  outline-offset: 2px;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .delete-pc-btn i,
@@ -157,9 +189,9 @@
 .card-action-delete svg,
 .pc-card .btn-delete i,
 .pc-card .btn-delete svg {
-  width: 16px;
-  height: 16px;
-  stroke: #EF4444 !important;
+  width: 15px;
+  height: 15px;
+  stroke: var(--text-muted, #94A3B8) !important;
   stroke-width: 1.75px;
   transition: all 0.2s ease;
 }
@@ -167,10 +199,20 @@
 .delete-pc-btn:hover i,
 .delete-pc-btn:hover svg,
 .delete-pc-btn:hover .lucide,
+.delete-pc-btn:focus i,
+.delete-pc-btn:focus svg,
+.delete-pc-btn:focus .lucide,
+.delete-pc-btn:focus-visible i,
+.delete-pc-btn:focus-visible svg,
+.delete-pc-btn:focus-visible .lucide,
 .card-action-delete:hover i,
 .card-action-delete:hover svg,
+.card-action-delete:focus i,
+.card-action-delete:focus svg,
 .pc-card .btn-delete:hover i,
-.pc-card .btn-delete:hover svg {
+.pc-card .btn-delete:hover svg,
+.pc-card .btn-delete:focus i,
+.pc-card .btn-delete:focus svg {
   stroke: #DC2626 !important;
 }
 
@@ -178,18 +220,27 @@
 html.dark-mode .delete-pc-btn,
 body.dark-mode .delete-pc-btn,
 [data-theme="dark"] .delete-pc-btn,
-html.high-contrast .delete-pc-btn,
 html.dark-mode .card-action-delete,
 body.dark-mode .card-action-delete,
 [data-theme="dark"] .card-action-delete,
-html.high-contrast .card-action-delete,
 html.dark-mode .pc-card .btn-delete,
 body.dark-mode .pc-card .btn-delete,
-[data-theme="dark"] .pc-card .btn-delete,
-html.high-contrast .pc-card .btn-delete {
-  background: rgba(239, 68, 68, 0.12) !important;
-  color: #F87171 !important;
-  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+[data-theme="dark"] .pc-card .btn-delete {
+  background: transparent !important;
+  color: var(--text-muted, #94A3B8) !important;
+  border: 1px solid transparent !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.dark-mode .pc-qr-card:hover .delete-pc-btn,
+html.dark-mode .pc-qr-card:focus-within .delete-pc-btn,
+body.dark-mode .pc-qr-card:hover .delete-pc-btn,
+body.dark-mode .pc-qr-card:focus-within .delete-pc-btn,
+[data-theme="dark"] .pc-qr-card:hover .delete-pc-btn,
+[data-theme="dark"] .pc-qr-card:focus-within .delete-pc-btn {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 html.dark-mode .delete-pc-btn i,
@@ -197,25 +248,32 @@ html.dark-mode .delete-pc-btn svg,
 body.dark-mode .delete-pc-btn i,
 body.dark-mode .delete-pc-btn svg,
 [data-theme="dark"] .delete-pc-btn i,
-[data-theme="dark"] .delete-pc-btn svg,
-html.high-contrast .delete-pc-btn i,
-html.high-contrast .delete-pc-btn svg {
-  stroke: #F87171 !important;
+[data-theme="dark"] .delete-pc-btn svg {
+  stroke: var(--text-muted, #94A3B8) !important;
 }
 
 html.dark-mode .delete-pc-btn:hover,
+html.dark-mode .delete-pc-btn:focus,
+html.dark-mode .delete-pc-btn:focus-visible,
 body.dark-mode .delete-pc-btn:hover,
+body.dark-mode .delete-pc-btn:focus,
+body.dark-mode .delete-pc-btn:focus-visible,
 [data-theme="dark"] .delete-pc-btn:hover,
-html.high-contrast .delete-pc-btn:hover,
+[data-theme="dark"] .delete-pc-btn:focus,
+[data-theme="dark"] .delete-pc-btn:focus-visible,
 html.dark-mode .card-action-delete:hover,
+html.dark-mode .card-action-delete:focus,
 body.dark-mode .card-action-delete:hover,
+body.dark-mode .card-action-delete:focus,
 [data-theme="dark"] .card-action-delete:hover,
-html.high-contrast .card-action-delete:hover,
+[data-theme="dark"] .card-action-delete:focus,
 html.dark-mode .pc-card .btn-delete:hover,
+html.dark-mode .pc-card .btn-delete:focus,
 body.dark-mode .pc-card .btn-delete:hover,
+body.dark-mode .pc-card .btn-delete:focus,
 [data-theme="dark"] .pc-card .btn-delete:hover,
-html.high-contrast .pc-card .btn-delete:hover {
-  background: rgba(239, 68, 68, 0.25) !important;
+[data-theme="dark"] .pc-card .btn-delete:focus {
+  background: rgba(239, 68, 68, 0.22) !important;
   color: #FCA5A5 !important;
   border-color: rgba(239, 68, 68, 0.45) !important;
   box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3) !important;
@@ -223,11 +281,57 @@ html.high-contrast .pc-card .btn-delete:hover {
 
 html.dark-mode .delete-pc-btn:hover i,
 html.dark-mode .delete-pc-btn:hover svg,
+html.dark-mode .delete-pc-btn:focus i,
+html.dark-mode .delete-pc-btn:focus svg,
 body.dark-mode .delete-pc-btn:hover i,
 body.dark-mode .delete-pc-btn:hover svg,
+body.dark-mode .delete-pc-btn:focus i,
+body.dark-mode .delete-pc-btn:focus svg,
 [data-theme="dark"] .delete-pc-btn:hover i,
-[data-theme="dark"] .delete-pc-btn:hover svg {
+[data-theme="dark"] .delete-pc-btn:hover svg,
+[data-theme="dark"] .delete-pc-btn:focus i,
+[data-theme="dark"] .delete-pc-btn:focus svg {
   stroke: #FCA5A5 !important;
+}
+
+/* High Contrast Overrides for PC Delete Button */
+html.high-contrast .delete-pc-btn,
+html.high-contrast .card-action-delete,
+html.high-contrast .pc-card .btn-delete {
+  background: transparent !important;
+  color: var(--text-dark, #F8FAFC) !important;
+  border: 1px solid var(--border-light, #374151) !important;
+}
+
+html.high-contrast .delete-pc-btn i,
+html.high-contrast .delete-pc-btn svg,
+html.high-contrast .card-action-delete i,
+html.high-contrast .card-action-delete svg,
+html.high-contrast .pc-card .btn-delete i,
+html.high-contrast .pc-card .btn-delete svg {
+  stroke: var(--text-dark, #F8FAFC) !important;
+}
+
+html.high-contrast .delete-pc-btn:hover,
+html.high-contrast .delete-pc-btn:focus,
+html.high-contrast .card-action-delete:hover,
+html.high-contrast .card-action-delete:focus,
+html.high-contrast .pc-card .btn-delete:hover,
+html.high-contrast .pc-card .btn-delete:focus {
+  background: #EF4444 !important;
+  color: #FFFFFF !important;
+  border-color: #EF4444 !important;
+}
+
+html.high-contrast .delete-pc-btn:hover i,
+html.high-contrast .delete-pc-btn:hover svg,
+html.high-contrast .delete-pc-btn:focus i,
+html.high-contrast .delete-pc-btn:focus svg,
+html.high-contrast .card-action-delete:hover i,
+html.high-contrast .card-action-delete:hover svg,
+html.high-contrast .pc-card .btn-delete:hover i,
+html.high-contrast .pc-card .btn-delete:hover svg {
+  stroke: #FFFFFF !important;
 }
 
 /* ─── Faculty Management Action Button Component Styles ─── */

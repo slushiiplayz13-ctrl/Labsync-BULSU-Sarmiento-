@@ -4,7 +4,7 @@
  * selection checkboxes, and batch 2-sided printable Key Transfer QR tag preview/printing.
  */
 
-(function () {
+(function (global) {
   'use strict';
 
   let currentKeys = [];
@@ -146,7 +146,7 @@
     if (!tableBody) return;
 
     const searchInput = document.getElementById('keySearchInput');
-    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const query = (searchInput && searchInput.value ? String(searchInput.value) : '').toLowerCase().trim();
 
     currentFilteredKeys = currentKeys.filter(k => {
       const isPresent = (k.Room_Key_Status || 'Present') === 'Present';
@@ -310,17 +310,10 @@
    * Builds the side-by-side pair HTML for a single key (Side 1 Front + Side 2 Back).
    */
   function buildKeyPairHtml(tagData) {
-    const rawRoom = String(tagData.roomNumber || '').trim();
-    const roomStr = rawRoom.toLowerCase().startsWith('room') ? rawRoom : `Room ${rawRoom}`;
     const buildingStr = tagData.building || 'BLDG. B';
 
     return `
       <div class="keychain-print-pair" data-key-id="${tagData.keyId}">
-        <div class="keychain-pair-header">
-          <span>${roomStr}</span>
-          <span>&bull;</span>
-          <span>${buildingStr}</span>
-        </div>
         <div class="keychain-pair-slots">
           <!-- FRONT SIDE (1.14in x 1.84in) -->
           <div class="keychain-slot">
@@ -499,8 +492,17 @@
 
     const closePrintModal = () => {
       if (modalPrint) modalPrint.style.display = 'none';
-      if (global.setModalOpenState) global.setModalOpenState(false);
-      if (previewContainer) previewContainer.classList.remove('zoomed-140');
+      if (typeof global !== 'undefined' && typeof global.setModalOpenState === 'function') {
+        global.setModalOpenState(false);
+      } else if (typeof window !== 'undefined' && typeof window.setModalOpenState === 'function') {
+        window.setModalOpenState(false);
+      }
+      if (previewContainer) {
+        previewContainer.classList.remove('zoomed-140');
+        previewContainer.innerHTML = `
+          <div style="text-align: center; color: var(--text-muted); padding: 20px;">Generating printable key insert...</div>
+        `;
+      }
       if (btnZoom100) {
         btnZoom100.classList.add('active');
         btnZoom100.style.background = 'var(--bg-white)';
@@ -511,6 +513,9 @@
         btnZoom140.style.background = 'transparent';
         btnZoom140.style.color = 'var(--text-light)';
       }
+      if (btnExecPrint) {
+        btnExecPrint.disabled = false;
+      }
       activePrintKeyIds = [];
     };
 
@@ -518,12 +523,22 @@
     if (btnCancelPrint) btnCancelPrint.addEventListener('click', closePrintModal);
     if (modalPrint) {
       modalPrint.addEventListener('click', (e) => {
-        e.stopPropagation();
+        if (e.target === modalPrint) {
+          closePrintModal();
+        } else {
+          e.stopPropagation();
+        }
       });
       modalPrint.addEventListener('mousedown', (e) => {
         e.stopPropagation();
       });
     }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalPrint && modalPrint.style.display === 'flex') {
+        closePrintModal();
+      }
+    });
 
     if (btnExecPrint) {
       btnExecPrint.addEventListener('click', () => {
@@ -544,10 +559,19 @@
     const modalTitle = document.getElementById('printModalTitle');
     const modalSubtitle = document.getElementById('printModalSubtitle');
     const btnExecText = document.getElementById('btnExecutePrintText');
+    const btnExecPrint = document.getElementById('btnExecutePrintKeyTag');
 
     if (modalPrint) {
       modalPrint.style.display = 'flex';
-      if (global.setModalOpenState) global.setModalOpenState(true);
+      if (typeof global !== 'undefined' && typeof global.setModalOpenState === 'function') {
+        global.setModalOpenState(true);
+      } else if (typeof window !== 'undefined' && typeof window.setModalOpenState === 'function') {
+        window.setModalOpenState(true);
+      }
+    }
+
+    if (btnExecPrint) {
+      btnExecPrint.disabled = true;
     }
 
     const count = keyIds.length;
@@ -571,13 +595,17 @@
           <div style="font-size: 13.5px; font-weight: 600;">Generating ${count} printable key tag${count > 1 ? 's' : ''}...</div>
         </div>
       `;
-      if (window.lucide) window.lucide.createIcons();
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
     }
 
     try {
+      let lastErrorMessage = '';
       const tagResults = await Promise.all(
         keyIds.map(id => window.keysService.fetchKeyTag(id).catch(err => {
           console.error(`[MISKeys] Error generating tag for key ${id}:`, err);
+          lastErrorMessage = err.message || 'Failed to generate key tag';
           return null;
         }))
       );
@@ -586,20 +614,29 @@
 
       if (validTags.length === 0) {
         if (previewContainer) {
-          previewContainer.innerHTML = '<div style="color: #EF4444; font-weight: 600; padding: 24px; text-align: center;">Failed to generate printable key tags.</div>';
+          previewContainer.innerHTML = `<div style="color: #EF4444; font-weight: 600; padding: 24px; text-align: center;"><i data-lucide="alert-circle" style="width: 24px; height: 24px; display: block; margin: 0 auto 8px auto;"></i>Failed to generate printable key tags${lastErrorMessage ? `: ${lastErrorMessage}` : '.'}</div>`;
+          if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
         }
+        if (btnExecPrint) btnExecPrint.disabled = true;
         return;
       }
 
       if (previewContainer) {
         previewContainer.innerHTML = validTags.map(buildKeyPairHtml).join('');
       }
-      if (window.lucide) window.lucide.createIcons();
+      if (btnExecPrint) {
+        btnExecPrint.disabled = false;
+      }
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
     } catch (err) {
       console.error('[MISKeys] Error building batch key tag preview:', err);
       if (previewContainer) {
-        previewContainer.innerHTML = `<div style="color: #EF4444; font-weight: 600; padding: 20px;">Failed to generate tag preview: ${err.message}</div>`;
+        previewContainer.innerHTML = `<div style="color: #EF4444; font-weight: 600; padding: 20px; text-align: center;"><i data-lucide="alert-circle" style="width: 24px; height: 24px; display: block; margin: 0 auto 8px auto;"></i>Failed to generate tag preview: ${err.message}</div>`;
+        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
       }
+      if (btnExecPrint) btnExecPrint.disabled = true;
     }
   }
 
@@ -622,10 +659,17 @@
       </div>
     `;
 
+    const cleanup = () => {
+      window.removeEventListener('afterprint', cleanup);
+      if (printArea) printArea.innerHTML = '';
+    };
+
+    window.addEventListener('afterprint', cleanup);
+
     setTimeout(() => {
       window.print();
-      printArea.innerHTML = '';
-    }, 120);
+      setTimeout(cleanup, 1500);
+    }, 150);
   }
 
-})();
+})(typeof window !== 'undefined' ? window : this);

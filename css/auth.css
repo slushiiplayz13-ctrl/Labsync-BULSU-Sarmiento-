@@ -415,6 +415,13 @@ main {
     overflow-y: auto !important;
   }
 
+  .bg-blob-1,
+  .bg-blob-2 {
+    max-width: 90vw !important;
+    max-height: 90vw !important;
+    pointer-events: none !important;
+  }
+
   .desktop-br {
     display: none !important;
   }
@@ -481,6 +488,20 @@ main {
 }
 
 @media (max-width: 480px) {
+  .bg-blob-1 {
+    width: 260px !important;
+    height: 260px !important;
+    filter: blur(50px) !important;
+    left: 40% !important;
+  }
+
+  .bg-blob-2 {
+    width: 220px !important;
+    height: 220px !important;
+    filter: blur(50px) !important;
+    left: 30% !important;
+  }
+
   header {
     padding: 14px 16px !important;
   }

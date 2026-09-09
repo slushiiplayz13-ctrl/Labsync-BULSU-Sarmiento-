@@ -160,7 +160,7 @@
       const elRooms = document.getElementById('ithead-stat-rooms');
       if (elRooms) elRooms.textContent = totalRoomsCount;
       const elPcsMeta = document.getElementById('ithead-stat-pcs-meta');
-      if (elPcsMeta) elPcsMeta.textContent = `${stats.totalPcs || 0} total PCs registered`;
+      if (elPcsMeta) elPcsMeta.textContent = `${stats.totalPcs || 0} PCs registered`;
 
       // Stat Card 2: Available Labs (Hardware-Aware)
       const elAvail = document.getElementById('ithead-stat-available');
@@ -168,11 +168,11 @@
       const elAvailMeta = document.getElementById('ithead-stat-avail-meta');
       if (elAvailMeta) {
         if (offlineCount === totalRoomsCount && totalRoomsCount > 0) {
-          elAvailMeta.textContent = `All ${totalRoomsCount} lab hardware devices offline`;
+          elAvailMeta.textContent = 'All devices offline';
         } else if (offlineCount > 0) {
-          elAvailMeta.textContent = `${onlineAndAvailableCount} of ${totalRoomsCount} available (${offlineCount} offline)`;
+          elAvailMeta.textContent = `${onlineCount} of ${totalRoomsCount} online`;
         } else {
-          elAvailMeta.textContent = `${onlineAndAvailableCount} of ${totalRoomsCount} online & ready`;
+          elAvailMeta.textContent = 'All devices online';
         }
       }
 
@@ -180,7 +180,10 @@
       const elPending = document.getElementById('ithead-stat-pending');
       if (elPending) elPending.textContent = stats.pendingReports ?? '0';
       const elPendingMeta = document.getElementById('ithead-stat-pending-meta');
-      if (elPendingMeta) elPendingMeta.textContent = `${stats.pendingReports || 0} active ticket(s)`;
+      if (elPendingMeta) {
+        const pCount = stats.pendingReports || 0;
+        elPendingMeta.textContent = pCount === 0 ? 'No active tickets' : (pCount === 1 ? '1 active ticket' : `${pCount} active tickets`);
+      }
 
       // Stat Card 4: Classes Today (Personal Schedule Count)
       const myClassesCount = Array.isArray(stats.myClassesToday) ? stats.myClassesToday.length : 0;
@@ -188,9 +191,9 @@
       if (elClasses) elClasses.textContent = myClassesCount;
       const elClassesMeta = document.getElementById('ithead-stat-classes-meta');
       if (elClassesMeta) {
-        elClassesMeta.textContent = myClassesCount > 0
-          ? `${myClassesCount} session(s) scheduled today`
-          : 'No classes today';
+        elClassesMeta.textContent = myClassesCount === 0
+          ? 'No classes scheduled'
+          : (myClassesCount === 1 ? '1 class scheduled' : `${myClassesCount} classes scheduled`);
       }
 
       // 4. Render Today's Schedule for IT Head

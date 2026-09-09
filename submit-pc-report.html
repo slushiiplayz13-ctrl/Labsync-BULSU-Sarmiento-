@@ -26,7 +26,6 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="css/tutorial.css" />
   <link rel="stylesheet" href="css/components/modals.css" />
 
   <style>
@@ -951,7 +950,8 @@
     }
 
     /* ─── SUCCESS OVERLAY ────────────────────────────────────────────── */
-    .success-overlay {
+    .success-overlay,
+    #success-modal {
       position: fixed;
       top: 0;
       left: 0;
@@ -960,11 +960,24 @@
       background: rgba(15, 23, 42, 0.5);
       backdrop-filter: blur(8px);
       z-index: 2500 !important;
-      pointer-events: auto !important;
-      display: none;
+      pointer-events: none !important;
+      display: none !important;
+      opacity: 0 !important;
       align-items: center;
       justify-content: center;
       padding: 20px;
+    }
+
+    .success-overlay.active,
+    .success-overlay[style*="display: flex"],
+    .success-overlay[style*="display: block"],
+    #success-modal.active,
+    #success-modal[style*="display: flex"],
+    #success-modal[style*="display: block"] {
+      display: flex !important;
+      pointer-events: auto !important;
+      opacity: 1 !important;
+      visibility: visible !important;
     }
 
     .success-card {
@@ -1447,6 +1460,12 @@
         grid-template-columns: 1fr;
       }
     }
+    @media (max-width: 768px) {
+      .input-wrapper input.input-field,
+      .remarks-textarea {
+        font-size: 16px !important;
+      }
+    }
   </style>
   <link rel="stylesheet" href="style.css?v=1.0.3" />
 </head>
@@ -1622,15 +1641,13 @@
           </section>
 
           <!-- Confirmation Checkbox -->
-          <section class="confirm-row">
-            <div class="checkbox-custom" id="custom-checkbox">
-              <i data-lucide="check"></i>
-            </div>
+          <section class="confirm-row" role="checkbox" aria-checked="false" tabindex="0">
+            <div class="checkbox-custom" id="custom-checkbox"></div>
             <span class="confirm-text">I confirm that I am using this PC and the report is accurate.</span>
           </section>
 
           <!-- Submit -->
-          <button class="submit-btn btn-disabled" id="submit-button" onclick="handleSubmit()">
+          <button class="submit-btn btn-disabled" id="submit-button" disabled onclick="handleSubmit()">
             Submit Report
           </button>
         </div>
@@ -1642,7 +1659,7 @@
   </div>
 
   <!-- Success Modal Overlay -->
-  <div class="success-overlay" id="success-modal">
+  <div class="success-overlay" id="success-modal" style="display: none; pointer-events: none;">
     <div class="success-card">
       <div class="success-icon-wrapper">
         <i data-lucide="check-circle-2"></i>
@@ -1664,7 +1681,6 @@
   <script src="js/utils/core-utils.js"></script>
   <script src="js/services/report.service.js?v=1.0.5"></script>
   <script src="js/components/toast.js?v=1.0.5"></script>
-  <script src="js/tutorial.js?v=1.0.5"></script>
   <script src="js/pages/submit-pc-report.js?v=1.0.5"></script>
 </body>
 

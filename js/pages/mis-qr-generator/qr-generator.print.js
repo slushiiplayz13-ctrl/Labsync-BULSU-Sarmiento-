@@ -7,7 +7,7 @@
   'use strict';
 
   /**
-   * Helper to build 2.5in x 1in horizontal PC QR sticker HTML.
+   * Helper to build horizontal PC QR sticker HTML that consumes available space at larger font size.
    * @param {Object} data - QR code data object
    * @returns {string}
    */
@@ -15,13 +15,26 @@
     const rawRoom = String(data.roomNumber || '').trim();
     const roomStr = rawRoom.toLowerCase().startsWith('room') ? rawRoom : `Room ${rawRoom}`;
     const pcStr = `PC ${data.pcNumber}`;
+    const fullTitle = `${roomStr} - ${pcStr}`;
+
+    // Balanced font scaling: standard units (<= 15 chars like Room 204 - PC 1) use full 18px CSS font
+    let inlineStyle = '';
+    if (fullTitle.length > 22) {
+      inlineStyle = 'style="font-size: 13.5px !important;"';
+    } else if (fullTitle.length > 18) {
+      inlineStyle = 'style="font-size: 15px !important;"';
+    } else if (fullTitle.length > 15) {
+      // 16-18 chars (e.g. Room 304 - PC 10) scales to 16.5px for balanced spacing
+      inlineStyle = 'style="font-size: 16.5px !important;"';
+    }
+
     return `
       <div class="qr-sticker">
         <div class="qr-sticker-left">
           <img src="${data.qrCode}" alt="QR Code" />
         </div>
         <div class="qr-sticker-right">
-          <h2>${roomStr} - ${pcStr}</h2>
+          <h2 ${inlineStyle}>${roomStr} - <span class="qr-pc-badge" style="white-space: nowrap;">${pcStr}</span></h2>
           <p>Scan to report an issue</p>
         </div>
       </div>

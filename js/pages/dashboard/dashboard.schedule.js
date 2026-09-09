@@ -182,9 +182,9 @@
         const classesTodayMeta = document.querySelector('.stat-card:nth-child(4) .stat-meta') || document.getElementById('ithead-stat-classes-meta');
         if (classesTodayVal) classesTodayVal.textContent = todaySchedules.length;
         if (classesTodayMeta) {
-          classesTodayMeta.textContent = todaySchedules.length > 0
-            ? `${todaySchedules.length} session(s) scheduled today`
-            : 'No classes today';
+          classesTodayMeta.textContent = todaySchedules.length === 0
+            ? 'No classes scheduled'
+            : (todaySchedules.length === 1 ? '1 class scheduled' : `${todaySchedules.length} classes scheduled`);
         }
 
         const currentSignature = todaySchedules.map(s => `${s.Schedule_ID || s.Subject_Name}-${s.Start_Time}-${s.End_Time}-${s.Room_Number}-${s.Section}`).join('|') + `_${Math.floor(nowMinutes / 5)}`;
@@ -281,9 +281,9 @@
       const classesTodayMeta = document.querySelector('.stat-card:nth-child(4) .stat-meta') || document.getElementById('ithead-stat-classes-meta');
       if (classesTodayVal) classesTodayVal.textContent = todaySchedules.length;
       if (classesTodayMeta) {
-        classesTodayMeta.textContent = todaySchedules.length > 0
-          ? `${todaySchedules.length} session(s) scheduled today`
-          : 'No classes today';
+        classesTodayMeta.textContent = todaySchedules.length === 0
+          ? 'No classes scheduled'
+          : (todaySchedules.length === 1 ? '1 class scheduled' : `${todaySchedules.length} classes scheduled`);
       }
 
       // Signature diffing with 5-minute bucket to avoid destroying DOM if unchanged

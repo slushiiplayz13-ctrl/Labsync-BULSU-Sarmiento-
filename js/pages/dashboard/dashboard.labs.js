@@ -38,8 +38,8 @@
         if (totalLabsVal) totalLabsVal.textContent = cachedLabs.length;
         if (totalLabsMeta) {
           totalLabsMeta.textContent = myLabs.length > 0
-            ? `${myLabs.length} assigned to you (${cachedLabs.length} total)`
-            : `${cachedLabs.length} registered campus lab(s)`;
+            ? `${myLabs.length} assigned (${cachedLabs.length} total)`
+            : `${cachedLabs.length} registered labs`;
         }
 
         // Pre-hydrate Stats Card 2: Campus Available Labs
@@ -47,7 +47,7 @@
         const availLabsMeta = document.querySelector('.stat-card:nth-child(2) .stat-meta') || document.getElementById('ithead-stat-avail-meta');
         const availableTotalCount = cachedLabs.filter(r => r.deviceOnline !== false && String(r.Current_Status || '').toLowerCase() === 'available').length;
         if (availLabsVal) availLabsVal.textContent = availableTotalCount;
-        if (availLabsMeta) availLabsMeta.textContent = `${availableTotalCount} available now campus-wide`;
+        if (availLabsMeta) availLabsMeta.textContent = `${availableTotalCount} available now`;
 
         // Pre-render Lab Cards instantly
         if (labsGrid) {
@@ -65,7 +65,9 @@
         const pendingReportsVal = document.querySelector('.stat-card:nth-child(3) .stat-value') || document.getElementById('ithead-stat-pending');
         const pendingReportsMeta = document.querySelector('.stat-card:nth-child(3) .stat-meta') || document.getElementById('ithead-stat-pending-meta');
         if (pendingReportsVal) pendingReportsVal.textContent = pendingCount;
-        if (pendingReportsMeta) pendingReportsMeta.textContent = `${pendingCount} active ticket(s)`;
+        if (pendingReportsMeta) {
+          pendingReportsMeta.textContent = pendingCount === 0 ? 'No active tickets' : (pendingCount === 1 ? '1 active ticket' : `${pendingCount} active tickets`);
+        }
       }
     } catch (e) {
       // Ignore cache read errors
@@ -133,8 +135,8 @@
       if (totalLabsVal) totalLabsVal.textContent = allLabs.length;
       if (totalLabsMeta) {
         totalLabsMeta.textContent = myLabs.length > 0
-          ? `${myLabs.length} assigned to you (${allLabs.length} total)`
-          : `${allLabs.length} registered campus lab(s)`;
+          ? `${myLabs.length} assigned (${allLabs.length} total)`
+          : `${allLabs.length} registered labs`;
       }
 
       // Update Stats Card 2: Campus Available Labs
@@ -142,7 +144,7 @@
       const availLabsMeta = document.querySelector('.stat-card:nth-child(2) .stat-meta') || document.getElementById('ithead-stat-avail-meta');
       const availableTotalCount = allLabs.filter(r => r.deviceOnline !== false && String(r.Current_Status || '').toLowerCase() === 'available').length;
       if (availLabsVal) availLabsVal.textContent = availableTotalCount;
-      if (availLabsMeta) availLabsMeta.textContent = `${availableTotalCount} available now campus-wide`;
+      if (availLabsMeta) availLabsMeta.textContent = `${availableTotalCount} available now`;
 
       // Render Laboratory Cards into grid (flicker-free signature diffing)
       if (labsGrid) {
@@ -204,7 +206,9 @@
         const pendingReportsVal = document.querySelector('.stat-card:nth-child(3) .stat-value') || document.getElementById('ithead-stat-pending');
         const pendingReportsMeta = document.querySelector('.stat-card:nth-child(3) .stat-meta') || document.getElementById('ithead-stat-pending-meta');
         if (pendingReportsVal) pendingReportsVal.textContent = pendingCount;
-        if (pendingReportsMeta) pendingReportsMeta.textContent = `${pendingCount} active ticket(s)`;
+        if (pendingReportsMeta) {
+          pendingReportsMeta.textContent = pendingCount === 0 ? 'No active tickets' : (pendingCount === 1 ? '1 active ticket' : `${pendingCount} active tickets`);
+        }
       }
     } catch (err) {
       console.error('[DashboardLabs] Error loading PC reports stats:', err);
