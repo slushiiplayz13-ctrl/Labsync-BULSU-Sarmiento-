@@ -1960,14 +1960,28 @@ html.high-contrast #blocks-container {
   border-color: var(--border-light) !important;
 }
 
-/* ─── Master Schedule Signature Settings & Room Delete Overrides ─── */
-html.high-contrast #openSignatureSettingsBtn {
-  background: var(--bg-card) !important;
+/* ─── Master Schedule Signature Settings & Import Subjects Overrides ─── */
+html.high-contrast #openSignatureSettingsBtn,
+html.dark-mode #openSignatureSettingsBtn,
+body.dark-mode #openSignatureSettingsBtn,
+[data-theme="dark"] #openSignatureSettingsBtn,
+html.high-contrast #openImportCurriculumBtn,
+html.dark-mode #openImportCurriculumBtn,
+body.dark-mode #openImportCurriculumBtn,
+[data-theme="dark"] #openImportCurriculumBtn {
+  background: var(--bg-white) !important;
   color: var(--text-mid) !important;
   border-color: var(--border-light) !important;
 }
 
-html.high-contrast #openSignatureSettingsBtn:hover {
+html.high-contrast #openSignatureSettingsBtn:hover,
+html.dark-mode #openSignatureSettingsBtn:hover,
+body.dark-mode #openSignatureSettingsBtn:hover,
+[data-theme="dark"] #openSignatureSettingsBtn:hover,
+html.high-contrast #openImportCurriculumBtn:hover,
+html.dark-mode #openImportCurriculumBtn:hover,
+body.dark-mode #openImportCurriculumBtn:hover,
+[data-theme="dark"] #openImportCurriculumBtn:hover {
   background: var(--primary-teal-light) !important;
   color: var(--primary-teal) !important;
   border-color: var(--primary-teal) !important;

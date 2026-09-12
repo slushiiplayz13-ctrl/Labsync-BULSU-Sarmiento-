@@ -37,7 +37,8 @@
             <i data-lucide="calendar-days" style="width:24px;height:24px;"></i>
           </div>
           <p style="font-weight:600; color:var(--text-dark, #1e293b); margin-top:8px; margin-bottom:4px;">No classes scheduled for today.</p>
-          <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin-bottom:0;">Your teaching sessions will appear here when assigned.</p>
+          <p style="font-size:12.5px; color:var(--text-muted, #94a3b8); margin-bottom:12px;">Your teaching sessions will appear here when scheduled.</p>
+          <a href="it-head-my-schedule.html" class="ui-empty-btn"><i data-lucide="calendar" style="width:14px;height:14px;"></i> View Full Schedule</a>
         </div>
       `;
       if (global.lucide && typeof global.lucide.createIcons === 'function') {

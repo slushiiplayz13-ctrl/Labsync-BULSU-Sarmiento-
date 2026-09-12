@@ -272,19 +272,19 @@
               <i data-lucide="headphones"></i>
               Need More Help?
             </h3>
-            <p class="help-support-desc">If you encounter any issues or have questions, please contact:</p>
+            <p class="help-support-desc">Direct contact channels are currently not available. LabSync is an academic capstone project prototype developed for BulSU Sarmiento Campus.</p>
             <div class="help-support-list">
               <div class="help-support-item">
                 <i data-lucide="mail"></i>
-                <strong>Email:</strong> <span class="highlight">mis.sarmiento@bulsu.edu.ph</span>
+                <strong>Email:</strong> <span style="color:var(--text-muted); font-weight:500;">Not Available</span>
               </div>
               <div class="help-support-item">
                 <i data-lucide="phone"></i>
-                <strong>Phone:</strong> <span class="highlight">+63 (044) 931-8600</span>
+                <strong>Phone:</strong> <span style="color:var(--text-muted); font-weight:500;">Not Available</span>
               </div>
               <div class="help-support-item">
                 <i data-lucide="map-pin"></i>
-                <strong>Office:</strong> <span>IT & MIS Office, BulSU Sarmiento Campus</span>
+                <strong>Office:</strong> <span style="color:var(--text-muted); font-weight:500;">Not Available (Academic Capstone Project)</span>
               </div>
             </div>
           </div>

@@ -19,7 +19,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
   <!-- External Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1.1.3" />
+  <link rel="stylesheet" href="style.css?v=1.1.4" />
   <link rel="stylesheet" href="css/tutorial.css" />
   <script src="js/auth-check.js"></script>
   <script src="js/utils/core-utils.js"></script>
@@ -104,6 +104,36 @@
       min-height: 0;
       overflow: hidden !important;
       width: 100%;
+    }
+
+    #dynamicReportsList:has(> .ui-empty-state) {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 !important;
+      height: 100% !important;
+      min-height: 0 !important;
+    }
+
+    #dynamicReportsList > .ui-empty-state,
+    #dynamicReportsList .ui-empty-state {
+      width: 100% !important;
+      flex: 1 !important;
+      height: 100% !important;
+      min-height: 260px;
+      margin: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      box-sizing: border-box !important;
+    }
+
+    #dynamicReportsList > .ui-empty-state p,
+    #dynamicReportsList .ui-empty-state p {
+      text-align: center !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
     }
 
     .toggle-completed-btn {
@@ -417,7 +447,7 @@
       </div>
 
       <!-- Main Content Card -->
-      <div class="dashboard-card" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+      <div class="dashboard-card" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; min-height: 0;">
         <div class="reports-controls"
           style="display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
           <div class="search-box" style="max-width: 440px; width: 100%; position: relative;">
