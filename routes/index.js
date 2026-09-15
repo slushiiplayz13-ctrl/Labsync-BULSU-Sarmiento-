@@ -34,6 +34,7 @@ const settingsRoutes = require('./settings.routes');
 const curriculumRoutes = require('./curriculum.routes');
 const iotRoutes = require('./iot.routes');
 const keysRoutes = require('./keys.routes');
+const ojtRoutes = require('./ojt.routes');
 
 // ─── 1. MOUNT MODULAR DOMAIN ROUTERS ──────────────────────────────────────────
 router.use('/auth', authRoutes);
@@ -47,6 +48,7 @@ router.use('/settings', settingsRoutes);
 router.use('/curriculum', curriculumRoutes);
 router.use('/occupancy', iotRoutes);
 router.use('/keys', keysRoutes);
+router.use('/ojt', ojtRoutes);
 
 
 // ─── 2. PRESERVED LEGACY / TOP-LEVEL ROUTE BRIDGES ───────────────────────────

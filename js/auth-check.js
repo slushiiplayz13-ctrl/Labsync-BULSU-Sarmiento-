@@ -19,6 +19,11 @@
     }
 })();
 
+const OJT_ALLOWED_PAGES = new Set([
+    'mis-staff-dashboard.html',
+    'mis-maintenance.html'
+]);
+
 /**
  * Checks whether a given user role is permitted on the specified page.
  * @param {string} role
@@ -44,6 +49,8 @@ function isPageAuthorized(role, page) {
         return isItHeadPage || isFacultyPage;
     } else if (cleanRole === 'MIS Staff') {
         return isMisPage;
+    } else if (cleanRole === 'OJT') {
+        return OJT_ALLOWED_PAGES.has(page);
     } else {
         return isFacultyPage;
     }
@@ -179,12 +186,16 @@ function revealPage() {
                         const greetingTextEl = document.getElementById('greetingText');
                         if (greetingTextEl) {
                             const greet = h < 12 ? 'Good Morning' : (h < 18 ? 'Good Afternoon' : 'Good Evening');
-                            const firstName = (user.name && user.name.trim()) ? (user.name.startsWith('MIS ') || user.role === 'MIS Staff' ? 'MIS Staff' : user.name.split(/\s+/)[0]) : 'User';
+                            const firstName = (user.name && user.name.trim()) ? user.name.split(/\s+/)[0] : 'User';
                             const expectedGreeting = `${greet}, ${firstName}!`;
                             if (greetingTextEl.textContent !== expectedGreeting) {
                                 greetingTextEl.textContent = expectedGreeting;
                             }
                         }
+                    }
+
+                    if (user.role === 'OJT') {
+                        applyRoleNavigation(user.role);
                     }
                 }
             }
@@ -213,6 +224,28 @@ function revealPage() {
     }
 })();
 
+/**
+ * Hides administrative and restricted navigation buttons for OJT users.
+ * @param {string} role
+ */
+function applyRoleNavigation(role) {
+    if (role === 'OJT') {
+        document.querySelectorAll(
+            '.sidebar-btn[onclick*="mis-keys.html"], ' +
+            '.sidebar-btn[onclick*="mis-qr-generator.html"], ' +
+            '.sidebar-btn[onclick*="mis-ojt.html"], ' +
+            '.sidebar-btn[data-tooltip*="Key Management"], ' +
+            '.sidebar-btn[title*="Key Management"], ' +
+            '.sidebar-btn[data-tooltip*="PC & QR"], ' +
+            '.sidebar-btn[title*="PC & QR"], ' +
+            '.sidebar-btn[data-tooltip*="OJT"], ' +
+            '.sidebar-btn[title*="OJT"]'
+        ).forEach(btn => {
+            btn.style.display = 'none';
+        });
+    }
+}
+
 // 4. Asynchronous Authentication & Role Authorization Check
 (async function checkAuth() {
     const path = window.location.pathname;
@@ -225,11 +258,17 @@ function revealPage() {
         });
 
         if (!response.ok) {
+            let reason = '';
             let isExpired = false;
             try {
                 const data = await response.json();
-                if (data && (data.code === 'SESSION_EXPIRED' || (data.error && data.error.includes('expired')))) {
+                if (data && data.code === 'ACCOUNT_DEACTIVATED') {
+                    reason = 'deactivated';
+                } else if (data && (data.code === 'OJT_EXPIRED' || (data.error && data.error.includes('internship period has concluded')))) {
+                    reason = 'ojt_expired';
+                } else if (data && (data.code === 'SESSION_EXPIRED' || (data.error && data.error.includes('expired')))) {
                     isExpired = true;
+                    reason = 'inactivity';
                 }
             } catch (e) {}
 
@@ -241,7 +280,7 @@ function revealPage() {
                     localStorage.setItem('labsync_session_expired', Date.now().toString());
                 }
             } catch (e) { }
-            window.location.replace(isExpired ? '/login.html?reason=inactivity' : '/login.html');
+            window.location.replace(reason ? `/login.html?reason=${encodeURIComponent(reason)}` : '/login.html');
             return;
         }
 
@@ -253,13 +292,15 @@ function revealPage() {
         if (!isPageAuthorized(role, page)) {
             if (role.toLowerCase().includes('head')) {
                 window.location.replace('/it-head-dashboard.html');
-            } else if (role === 'MIS Staff') {
+            } else if (role === 'MIS Staff' || role === 'OJT') {
                 window.location.replace('/mis-staff-dashboard.html');
             } else {
                 window.location.replace('/index.html');
             }
             return;
         }
+
+        applyRoleNavigation(role);
 
         // Successfully authorized - reveal protected page and initialize activity timestamp
         try {

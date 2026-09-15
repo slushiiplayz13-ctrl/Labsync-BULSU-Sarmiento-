@@ -15,7 +15,12 @@
     const h = now.getHours();
     const greet = h < 12 ? 'Good Morning' : h < 18 ? 'Good Afternoon' : 'Good Evening';
     const greetingEl = document.getElementById('greetingText');
-    if (greetingEl) greetingEl.textContent = greet + ', MIS Staff!';
+    if (greetingEl) {
+      const profileNameEl = document.querySelector('.profile-name');
+      const fullName = (profileNameEl && profileNameEl.textContent.trim()) ? profileNameEl.textContent.trim() : '';
+      const firstName = (fullName && fullName !== 'Loading...') ? fullName.split(/\s+/)[0] : 'User';
+      greetingEl.textContent = `${greet}, ${firstName}!`;
+    }
     const subEl = document.getElementById('greetingSub');
     if (subEl) {
       subEl.textContent = 'Manage system-wide hardware reports, administrative tasks, and the technical integrity of all IT laboratory spaces.';

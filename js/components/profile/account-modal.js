@@ -14,6 +14,40 @@
     photo: null
   };
 
+  let currentLoadedRole = '';
+
+  /**
+   * Product Rule: Personal Profile QR Code is available ONLY to IT Department Head and Faculty.
+   * It is NOT available to MIS Staff or OJT.
+   */
+  function isPersonalQrAllowed(role) {
+    if (!role) return false;
+    const clean = String(role).trim().toLowerCase();
+    if (clean === 'mis staff' || clean === 'mis' || clean === 'ojt' || clean.startsWith('ojt')) {
+      return false;
+    }
+    return clean.includes('head') || clean.includes('faculty');
+  }
+
+  /**
+   * Synchronously reads cached user role from session/local storage or DOM to avoid visual flicker.
+   */
+  function getCachedUserRole() {
+    try {
+      const cached = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const u = parsed.user || parsed;
+        if (u.role || u.Role) return u.role || u.Role;
+      }
+    } catch (e) {}
+    const roleEl = document.querySelector('.profile-role');
+    if (roleEl && roleEl.textContent) {
+      return roleEl.textContent.trim();
+    }
+    return '';
+  }
+
   /**
    * Helper function to extract current photo src or null.
    */
@@ -55,12 +89,6 @@
   function updateSaveButtonState() {
     const saveBtn = document.getElementById('save-settings-btn');
     if (!saveBtn) return;
-
-    // Do not alter MIS staff department overview layout where save button is hidden
-    const misView = document.getElementById('mis-department-profile-view');
-    if (misView && misView.style.display !== 'none') {
-      return;
-    }
 
     const hasChanges = checkHasChanges();
     const nameErr = document.getElementById('settings-name-error');
@@ -204,6 +232,12 @@
    * Switches tabs inside Account Settings modal.
    */
   function switchSettingsTab(tabName, btnEl) {
+    if (tabName === 'qrcode') {
+      const activeRole = currentLoadedRole || getCachedUserRole();
+      if (!isPersonalQrAllowed(activeRole)) {
+        return;
+      }
+    }
     document.querySelectorAll('.settings-tab-panel').forEach(p => p.style.display = 'none');
     const targetPanel = document.getElementById(`panel-${tabName}`);
     if (targetPanel) {
@@ -232,13 +266,12 @@
 
       if (!user) return;
 
-      const role = user.role || user.Role;
-      const isMisStaff = (role === 'MIS Staff');
+      const role = user.role || user.Role || '';
+      currentLoadedRole = role;
+      const allowQr = isPersonalQrAllowed(role);
 
       const regularProfileView = document.getElementById('regular-user-profile-view');
-      const misProfileView = document.getElementById('mis-department-profile-view');
       const regularSecurityView = document.getElementById('regular-security-view');
-      const misSecurityView = document.getElementById('mis-security-view');
       const saveBtn = document.getElementById('save-settings-btn');
       const cancelBtn = document.getElementById('cancel-settings-btn');
       const tabLabelProfile = document.getElementById('tab-label-profile');
@@ -249,119 +282,85 @@
       const qrPanel = document.getElementById('panel-qrcode');
       const lastUpdatedEl = document.getElementById('settings-last-updated');
 
-      if (isMisStaff) {
-        // Toggle view containers
-        if (regularProfileView) regularProfileView.style.display = 'none';
-        if (misProfileView) misProfileView.style.display = 'block';
-        if (regularSecurityView) regularSecurityView.style.display = 'none';
-        if (misSecurityView) misSecurityView.style.display = 'block';
+      // Universal personal account view for all roles (Faculty, IT Head, MIS Staff, OJT)
+      if (regularProfileView) regularProfileView.style.display = 'block';
+      if (regularSecurityView) regularSecurityView.style.display = 'block';
 
-        // Populate institutional department fields
-        const misNameEl = document.getElementById('mis-overview-name');
-        const misEmailEl = document.getElementById('mis-overview-email');
-        const misPhoneEl = document.getElementById('mis-overview-phone');
-        if (misNameEl) misNameEl.textContent = user.name || 'Management Information System';
-        if (misEmailEl) misEmailEl.textContent = user.email || 'mis.sarmiento@bulsu.edu.ph';
-        if (misPhoneEl) misPhoneEl.textContent = user.phone || '09123456789';
+      if (tabLabelProfile) tabLabelProfile.textContent = 'Profile Details';
+      if (tabIconProfile) tabIconProfile.setAttribute('data-lucide', 'user');
+      if (modalTitle) modalTitle.textContent = 'Account Settings';
+      if (modalSubtitle) modalSubtitle.textContent = 'Manage your profile information and security settings';
 
-        // Sidebar and header labels
-        if (tabLabelProfile) tabLabelProfile.textContent = 'Department Overview';
-        if (tabIconProfile) tabIconProfile.setAttribute('data-lucide', 'building-2');
-        if (modalTitle) modalTitle.textContent = 'Department Overview';
-        if (modalSubtitle) modalSubtitle.textContent = 'Shared institutional workstation account details and security';
-
-        // Hide QR Code tab & panel (duty personnel do not borrow keys via scanner)
+      // Role-aware QR Tab: Only IT Department Head and Faculty have Personal QR Codes
+      if (allowQr) {
+        if (qrTabBtn) qrTabBtn.style.display = 'flex';
+      } else {
         if (qrTabBtn) qrTabBtn.style.display = 'none';
         if (qrPanel) qrPanel.style.display = 'none';
+      }
+      if (saveBtn) saveBtn.style.display = 'block';
+      if (cancelBtn) {
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.style.background = 'var(--bg-white, #fff)';
+        cancelBtn.style.color = 'var(--text-dark)';
+        cancelBtn.style.border = '1.5px solid var(--border-light)';
+        cancelBtn.style.boxShadow = 'none';
+        cancelBtn.style.padding = '11px 22px';
+      }
 
-        // Footer toolbar: Single primary "Close" button
-        if (saveBtn) saveBtn.style.display = 'none';
-        if (cancelBtn) {
-          cancelBtn.textContent = 'Close';
-          cancelBtn.style.background = 'var(--primary-teal)';
-          cancelBtn.style.color = '#ffffff';
-          cancelBtn.style.border = 'none';
-          cancelBtn.style.boxShadow = '0 4px 14px var(--primary-teal-glow)';
-          cancelBtn.style.padding = '11px 32px';
-        }
+      const nameInput = document.getElementById('settings-name');
+      const emailInput = document.getElementById('settings-email');
+      const phoneInput = document.getElementById('settings-phone');
 
-        if (lastUpdatedEl) {
-          lastUpdatedEl.textContent = 'BulSU Sarmiento Campus • MIS Duty Station';
+      if (nameInput) {
+        nameInput.value = user.name || '';
+        nameInput.dataset.currentUserId = user.id || user.User_ID || '';
+      }
+      if (emailInput) {
+        emailInput.value = user.email || '';
+        emailInput.dataset.initialEmail = user.email || '';
+      }
+      if (phoneInput) phoneInput.value = user.phone || '';
+
+      const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
+      const initialsEl = document.getElementById('avatar-initials');
+      if (initialsEl) initialsEl.textContent = initials;
+
+      if (lastUpdatedEl) {
+        const lastUpdated = user.updatedAt || user.updated_at || user.last_updated || localStorage.getItem('labsync_last_updated');
+        const timeUtils = global.timeUtils || global.scheduleTimeUtils;
+        const formatTimeFn = (timeUtils && typeof timeUtils.formatLastUpdatedTime === 'function')
+          ? timeUtils.formatLastUpdatedTime
+          : (global.formatLastUpdatedTime || ((t) => t || 'Never'));
+        lastUpdatedEl.textContent = `Last updated: ${formatTimeFn(lastUpdated)}`;
+      }
+
+      const photoImg = document.getElementById('profile-photo-img');
+      const avatarInitials = document.getElementById('avatar-initials');
+      const removePhotoBtn = document.getElementById('remove-photo-btn');
+
+      if (user.profilePhoto) {
+        if (photoImg && avatarInitials && removePhotoBtn) {
+          photoImg.src = user.profilePhoto;
+          photoImg.style.display = 'block';
+          avatarInitials.style.display = 'none';
+          removePhotoBtn.style.display = 'block';
         }
       } else {
-        // Regular user view (Faculty / IT Head)
-        if (regularProfileView) regularProfileView.style.display = 'block';
-        if (misProfileView) misProfileView.style.display = 'none';
-        if (regularSecurityView) regularSecurityView.style.display = 'block';
-        if (misSecurityView) misSecurityView.style.display = 'none';
-
-        if (tabLabelProfile) tabLabelProfile.textContent = 'Profile Details';
-        if (tabIconProfile) tabIconProfile.setAttribute('data-lucide', 'user');
-        if (modalTitle) modalTitle.textContent = 'Account Settings';
-        if (modalSubtitle) modalSubtitle.textContent = 'Manage your profile information and security settings';
-
-        if (qrTabBtn) qrTabBtn.style.display = 'flex';
-        if (saveBtn) saveBtn.style.display = 'block';
-        if (cancelBtn) {
-          cancelBtn.textContent = 'Cancel';
-          cancelBtn.style.background = 'var(--bg-white, #fff)';
-          cancelBtn.style.color = 'var(--text-dark)';
-          cancelBtn.style.border = '1.5px solid var(--border-light)';
-          cancelBtn.style.boxShadow = 'none';
-          cancelBtn.style.padding = '11px 22px';
+        if (photoImg && avatarInitials && removePhotoBtn) {
+          photoImg.src = '';
+          photoImg.style.display = 'none';
+          avatarInitials.style.display = 'block';
+          removePhotoBtn.style.display = 'none';
         }
+      }
 
-        const nameInput = document.getElementById('settings-name');
-        const emailInput = document.getElementById('settings-email');
-        const phoneInput = document.getElementById('settings-phone');
+      // Establish original saved baseline values for change detection
+      setBaselineSettings();
 
-        if (nameInput) {
-          nameInput.value = user.name || '';
-          nameInput.dataset.currentUserId = user.id || user.User_ID || '';
-        }
-        if (emailInput) {
-          emailInput.value = user.email || '';
-          emailInput.dataset.initialEmail = user.email || '';
-        }
-        if (phoneInput) phoneInput.value = user.phone || '';
-
-        const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
-        const initialsEl = document.getElementById('avatar-initials');
-        if (initialsEl) initialsEl.textContent = initials;
-
-        if (lastUpdatedEl) {
-          const lastUpdated = user.updatedAt || user.updated_at || user.last_updated || localStorage.getItem('labsync_last_updated');
-          const timeUtils = global.timeUtils || global.scheduleTimeUtils;
-          const formatTimeFn = (timeUtils && typeof timeUtils.formatLastUpdatedTime === 'function')
-            ? timeUtils.formatLastUpdatedTime
-            : (global.formatLastUpdatedTime || ((t) => t || 'Never'));
-          lastUpdatedEl.textContent = `Last updated: ${formatTimeFn(lastUpdated)}`;
-        }
-
-        const photoImg = document.getElementById('profile-photo-img');
-        const avatarInitials = document.getElementById('avatar-initials');
-        const removePhotoBtn = document.getElementById('remove-photo-btn');
-
-        if (user.profilePhoto) {
-          if (photoImg && avatarInitials && removePhotoBtn) {
-            photoImg.src = user.profilePhoto;
-            photoImg.style.display = 'block';
-            avatarInitials.style.display = 'none';
-            removePhotoBtn.style.display = 'block';
-          }
-        } else {
-          if (photoImg && avatarInitials && removePhotoBtn) {
-            photoImg.src = '';
-            photoImg.style.display = 'none';
-            avatarInitials.style.display = 'block';
-            removePhotoBtn.style.display = 'none';
-          }
-        }
-
-        // Establish original saved baseline values for change detection
-        setBaselineSettings();
-
-        // Fetch personal QR code for laboratory entry scanner
+      // Fetch personal QR code ONLY for authorized academic/personnel roles (Faculty & IT Head)
+      // MIS Staff and OJT do NOT have personal QR codes and do NOT call /api/user/qrcode
+      if (allowQr) {
         const qrResponse = await fetch('/api/user/qrcode', { credentials: 'include' });
         if (qrResponse.ok) {
           const qrData = await qrResponse.json();
@@ -401,6 +400,9 @@
     const existing = document.getElementById('account-settings-modal');
     if (existing) existing.remove();
 
+    const cachedRole = getCachedUserRole();
+    const showQrInitial = isPersonalQrAllowed(cachedRole);
+
     const modal = document.createElement('div');
     modal.id = 'account-settings-modal';
     modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2500 !important;padding:20px;';
@@ -429,7 +431,7 @@
               <i data-lucide="lock" style="width:18px;height:18px;"></i>
               <span>Security & Login</span>
             </button>
-            <button type="button" class="settings-tab-btn" id="tab-btn-qrcode" data-tab="qrcode">
+            <button type="button" class="settings-tab-btn" id="tab-btn-qrcode" data-tab="qrcode" style="${showQrInitial ? 'display: flex;' : 'display: none;'}">
               <i data-lucide="qr-code" style="width:18px;height:18px;"></i>
               <span>My QR Code</span>
             </button>
@@ -492,105 +494,6 @@
                   </div>
                 </div>
 
-                <!-- View 1B: Institutional MIS Department Overview Card (Shared Account) -->
-                <div id="mis-department-profile-view" style="display:none;">
-                  <div style="margin-bottom:24px;">
-                    <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">Department Overview</h3>
-                    <p style="font-size:13.5px;color:var(--text-mid);margin:0;">Institutional profile and shared workstation terminal configurations</p>
-                  </div>
-
-                  <!-- Institutional Identity Card -->
-                  <div style="background:var(--bg-card);border:1.5px solid var(--border-light);border-radius:16px;padding:24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
-                    <div style="display:flex;align-items:center;gap:20px;">
-                      <div style="width:68px;height:68px;border-radius:18px;background:linear-gradient(135deg, #0EA5E9 0%, #14B8A6 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-display);font-size:24px;font-weight:800;letter-spacing:1px;box-shadow:0 8px 24px rgba(14,165,233,0.28);border:2px solid rgba(255,255,255,0.2);flex-shrink:0;">
-                        MIS
-                      </div>
-                      <div>
-                        <h4 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">Management Information System</h4>
-                        <p style="font-size:13px;color:var(--text-mid);margin:0 0 8px 0;">Bulacan State University • Sarmiento Campus</p>
-                        <span class="mis-dept-chip">
-                          <span style="width:7px;height:7px;border-radius:50%;background:#10B981;display:inline-block;"></span> Shared Duty Station Terminal
-                        </span>
-                      </div>
-                    </div>
-                    <div style="padding:10px 18px;border-radius:12px;background:var(--primary-teal-light);border:1.5px solid var(--primary-teal-glow);display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
-                      <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:var(--primary-teal);letter-spacing:0.5px;">Account Role</span>
-                      <span style="font-size:13.5px;font-weight:700;color:var(--text-dark);">MIS Staff Duty</span>
-                    </div>
-                  </div>
-
-                  <!-- Centralized Policy Notice -->
-                  <div style="background:rgba(14,165,233,0.08);border:1.5px solid rgba(14,165,233,0.25);border-radius:14px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start;margin-bottom:24px;">
-                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(14,165,233,0.18);display:flex;align-items:center;justify-content:center;color:#0284C7;flex-shrink:0;margin-top:2px;">
-                      <i data-lucide="shield-alert" style="width:20px;height:20px;"></i>
-                    </div>
-                    <div>
-                      <div style="font-weight:700;font-size:13.5px;color:var(--text-dark);margin-bottom:3px;">Centralized Institutional Account</div>
-                      <p style="font-size:12.8px;line-height:1.5;color:var(--text-mid);margin:0;">
-                        This account is designated for shared departmental duties and lab monitoring. Profile information and access credentials are institutional and managed centrally by the IT Department Head to maintain uninterrupted duty station operations across shifts.
-                      </p>
-                    </div>
-                  </div>
-
-                  <!-- 4-Card Info Grid -->
-                  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:16px;margin-bottom:24px;">
-                    <div style="background:var(--bg-card);border:1.5px solid var(--border-light);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:6px;">
-                      <div style="display:flex;align-items:center;justify-content:space-between;">
-                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">Department</span>
-                        <i data-lucide="building-2" style="width:16px;height:16px;color:var(--primary-teal);"></i>
-                      </div>
-                      <div id="mis-overview-name" style="font-size:14.5px;font-weight:700;color:var(--text-dark);">Management Information System</div>
-                      <span style="font-size:12px;color:var(--text-mid);">Academic Resources & ICT</span>
-                    </div>
-
-                    <div style="background:var(--bg-card);border:1.5px solid var(--border-light);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:6px;">
-                      <div style="display:flex;align-items:center;justify-content:space-between;">
-                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">Official Central Email</span>
-                        <i data-lucide="mail" style="width:16px;height:16px;color:var(--primary-teal);"></i>
-                      </div>
-                      <div id="mis-overview-email" style="font-size:14px;font-weight:600;color:var(--text-dark);word-break:break-all;">mis.sarmiento@bulsu.edu.ph</div>
-                      <span style="font-size:12px;color:var(--text-mid);">Shared departmental inbox</span>
-                    </div>
-
-                    <div style="background:var(--bg-card);border:1.5px solid var(--border-light);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:6px;">
-                      <div style="display:flex;align-items:center;justify-content:space-between;">
-                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">Duty Desk Hotline</span>
-                        <i data-lucide="phone" style="width:16px;height:16px;color:var(--primary-teal);"></i>
-                      </div>
-                      <div id="mis-overview-phone" style="font-size:14px;font-weight:600;color:var(--text-dark);">09123456789</div>
-                      <span style="font-size:12px;color:var(--text-mid);">Internal MIS duty dispatch</span>
-                    </div>
-
-                    <div style="background:var(--bg-card);border:1.5px solid var(--border-light);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:6px;">
-                      <div style="display:flex;align-items:center;justify-content:space-between;">
-                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">Governance</span>
-                        <i data-lucide="shield-check" style="width:16px;height:16px;color:var(--primary-teal);"></i>
-                      </div>
-                      <div style="font-size:14px;font-weight:700;color:var(--text-dark);">IT Department Head</div>
-                      <span style="font-size:12px;color:var(--text-mid);">Central System Administrator</span>
-                    </div>
-                  </div>
-
-                  <!-- Operational Privileges Card -->
-                  <div style="background:var(--bg-card);border:1.5px solid var(--border-light);border-radius:14px;padding:20px 22px;">
-                    <div style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:12px;">Active Operational Privileges</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                      <div class="mis-privilege-chip">
-                        <i data-lucide="key" style="width:15px;height:15px;color:var(--primary-teal);"></i> Key Cabinet System Monitoring
-                      </div>
-                      <div class="mis-privilege-chip">
-                        <i data-lucide="monitor" style="width:15px;height:15px;color:var(--primary-teal);"></i> Lab PC & Diagnostics Monitoring
-                      </div>
-                      <div class="mis-privilege-chip">
-                        <i data-lucide="calendar" style="width:15px;height:15px;color:var(--primary-teal);"></i> Faculty Room Schedule Oversight
-                      </div>
-                      <div class="mis-privilege-chip">
-                        <i data-lucide="file-text" style="width:15px;height:15px;color:var(--primary-teal);"></i> Security & Audit Trail Logs
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
               </div>
 
               <!-- PANEL 2: SECURITY & LOGIN -->
@@ -620,42 +523,6 @@
                     <div>
                       <div style="font-weight:700;font-size:13px;color:var(--text-dark);margin-bottom:2px;">Security Tip</div>
                       <p style="font-size:12.5px;color:var(--text-mid);margin:0;line-height:1.4;">Use a strong password with at least 8 characters, including numbers and symbols to keep your account protected.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- View 2B: Locked Institutional Password Notice (MIS Staff) -->
-                <div id="mis-security-view" style="display:none;">
-                  <div style="margin-bottom:24px;">
-                    <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">Institutional Security</h3>
-                    <p style="font-size:13.5px;color:var(--text-mid);margin:0;">Centralized credential governance and workstation access policies</p>
-                  </div>
-
-                  <div style="background:var(--bg-card);border:1.5px solid var(--border-light);border-radius:16px;padding:24px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;">
-                    <div style="display:flex;gap:16px;align-items:flex-start;max-width:540px;">
-                      <div style="width:44px;height:44px;border-radius:12px;background:rgba(245,158,11,0.15);border:1.5px solid rgba(245,158,11,0.3);display:flex;align-items:center;justify-content:center;color:#D97706;flex-shrink:0;margin-top:2px;">
-                        <i data-lucide="shield-alert" style="width:22px;height:22px;"></i>
-                      </div>
-                      <div>
-                        <div style="font-weight:700;font-size:15px;color:var(--text-dark);margin-bottom:4px;">Credentials Managed Centrally</div>
-                        <div style="font-size:13px;line-height:1.5;color:var(--text-mid);">
-                          To prevent unexpected terminal lockouts across active duty workstations, password changes for the shared MIS account are restricted to the <strong>IT Department Head</strong>.
-                        </div>
-                      </div>
-                    </div>
-                    <span class="mis-badge-locked">
-                      <i data-lucide="lock" style="width:15px;height:15px;"></i>
-                      Managed by IT Head
-                    </span>
-                  </div>
-
-                  <div style="background:rgba(14,165,233,0.08);border:1.5px solid rgba(14,165,233,0.25);border-radius:14px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start;margin-top:18px;">
-                    <i data-lucide="info" style="width:20px;height:20px;color:#0284C7;flex-shrink:0;margin-top:2px;"></i>
-                    <div>
-                      <div style="font-weight:700;font-size:13.5px;color:var(--text-dark);margin-bottom:3px;">Need a Credential Reset or Rotation?</div>
-                      <p style="font-size:12.8px;color:var(--text-mid);margin:0;line-height:1.5;">
-                        If password rotation is scheduled or a security issue is identified, please coordinate directly with the Campus IT Department Head. Updated credentials will be securely distributed to all authorized duty staff.
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -722,6 +589,10 @@
       btn.addEventListener('click', () => {
         const tab = btn.getAttribute('data-tab');
         if (tab) {
+          if (tab === 'qrcode') {
+            const activeRole = currentLoadedRole || getCachedUserRole();
+            if (!isPersonalQrAllowed(activeRole)) return;
+          }
           switchSettingsTab(tab, btn);
           updateSaveButtonState();
         }
@@ -946,13 +817,6 @@
           return;
         }
 
-        // Shared MIS Department account cannot update profile credentials
-        const misView = document.getElementById('mis-department-profile-view');
-        if (misView && misView.style.display !== 'none') {
-          closeModal();
-          return;
-        }
-
         const nameVal = document.getElementById('settings-name')?.value.trim();
         const nameInputEl = document.getElementById('settings-name');
         const nameErrEl = document.getElementById('settings-name-error');
@@ -1149,12 +1013,14 @@
     showEmailChangeConfirmation,
     updateSaveButtonState,
     checkHasChanges,
-    setBaselineSettings
+    setBaselineSettings,
+    isPersonalQrAllowed
   };
 
   global.accountModal = accountModal;
   global.openAccountSettings = openAccountSettings;
   global.switchSettingsTab = switchSettingsTab;
   global.updateSaveButtonState = updateSaveButtonState;
+  global.isPersonalQrAllowed = isPersonalQrAllowed;
 
 })(typeof window !== 'undefined' ? window : this);

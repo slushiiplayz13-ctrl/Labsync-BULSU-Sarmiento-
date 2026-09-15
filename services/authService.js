@@ -44,6 +44,38 @@ function isValidEmailFormat(email) {
     return validTLDs.has(fullTld) || validTLDs.has(mainTld);
 }
 
+/**
+ * Evaluates whether an OJT account's internship period has concluded.
+ * Returns true only if ojtEndDate is set and the current local calendar date has strictly passed it.
+ * An OJT whose OJT_End_Date is TODAY is strictly permitted to log in.
+ *
+ * @param {Date|string|null} ojtEndDate
+ * @returns {boolean}
+ */
+function isOjtExpired(ojtEndDate) {
+    if (!ojtEndDate) return false;
+
+    let endYMD;
+    if (ojtEndDate instanceof Date) {
+        const y = ojtEndDate.getFullYear();
+        const m = String(ojtEndDate.getMonth() + 1).padStart(2, '0');
+        const d = String(ojtEndDate.getDate()).padStart(2, '0');
+        endYMD = `${y}-${m}-${d}`;
+    } else if (typeof ojtEndDate === 'string') {
+        endYMD = ojtEndDate.substring(0, 10);
+    } else {
+        return false;
+    }
+
+    const now = new Date();
+    const curY = now.getFullYear();
+    const curM = String(now.getMonth() + 1).padStart(2, '0');
+    const curD = String(now.getDate()).padStart(2, '0');
+    const curYMD = `${curY}-${curM}-${curD}`;
+
+    return curYMD > endYMD;
+}
+
 async function loginUser(email, password) {
     if (!email || !isValidEmailFormat(email)) {
         return { status: 400, error: 'Please enter a valid email address format (e.g., user@domain.com).' };
@@ -86,6 +118,24 @@ async function loginUser(email, password) {
         user.Password = hashedPassword;
     }
 
+    // Lifecycle status enforcement
+    if (user.Status === 'DEACTIVATED') {
+        return {
+            status: 401,
+            error: 'Your account has been deactivated. Please contact the administrator.',
+            code: 'ACCOUNT_DEACTIVATED'
+        };
+    }
+
+    // OJT temporal period enforcement
+    if (user.Role === 'OJT' && isOjtExpired(user.OJT_End_Date)) {
+        return {
+            status: 401,
+            error: 'Your OJT internship period has concluded. Please contact the MIS Staff.',
+            code: 'OJT_EXPIRED'
+        };
+    }
+
     return {
         status: 200,
         data: {
@@ -94,7 +144,8 @@ async function loginUser(email, password) {
                 id: user.User_ID,
                 name: user.Name,
                 email: user.Email,
-                role: user.Role
+                role: user.Role,
+                status: user.Status
             }
         },
         rawUser: user
@@ -178,6 +229,7 @@ module.exports = {
     BCRYPT_SALT_ROUNDS,
     isBcryptHash,
     isValidEmailFormat,
+    isOjtExpired,
     loginUser,
     recoverPassword,
     validateResetToken,

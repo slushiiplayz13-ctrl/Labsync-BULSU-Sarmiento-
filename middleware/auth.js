@@ -8,6 +8,8 @@
 const IT_HEAD_ROLES = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head'];
 const ADMIN_ROLES = [...IT_HEAD_ROLES, 'MIS Staff'];
 const MIS_STAFF_ROLES = ['MIS Staff'];
+const OJT_ROLES = ['OJT'];
+const TICKET_UPDATE_ROLES = [...ADMIN_ROLES, 'OJT'];
 const KEY_TRANSFER_ROLES = ['Faculty', ...IT_HEAD_ROLES];
 
 const { INACTIVITY_TIMEOUT_MS } = require('../config/app.config');
@@ -50,6 +52,7 @@ function requireAuth(req, res, next) {
 }
 
 const db = require('../database/connection');
+const { isOjtExpired } = require('../services/authService');
 
 function requireRole(allowedRoles) {
     const rolesArray = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
@@ -64,15 +67,34 @@ function requireRole(allowedRoles) {
         }
 
         try {
-            // Authoritative database role verification for protected operations
-            const [rows] = await db.query('SELECT Role FROM users WHERE User_ID = ?', [req.session.userId]);
+            // Authoritative database role and lifecycle verification for protected operations
+            const [rows] = await db.query('SELECT Role, Status, OJT_End_Date FROM users WHERE User_ID = ?', [req.session.userId]);
             if (!rows || rows.length === 0) {
                 req.session.destroy(() => {});
                 res.clearCookie('connect.sid');
                 return res.status(401).json({ error: 'User account not found' });
             }
 
-            const currentRole = rows[0].Role;
+            const user = rows[0];
+            if (user.Status === 'DEACTIVATED') {
+                req.session.destroy(() => {});
+                res.clearCookie('connect.sid');
+                return res.status(401).json({
+                    error: 'Your account has been deactivated. Please contact the administrator.',
+                    code: 'ACCOUNT_DEACTIVATED'
+                });
+            }
+
+            if (user.Role === 'OJT' && isOjtExpired(user.OJT_End_Date)) {
+                req.session.destroy(() => {});
+                res.clearCookie('connect.sid');
+                return res.status(401).json({
+                    error: 'Your OJT internship period has concluded. Please contact the MIS Staff.',
+                    code: 'OJT_EXPIRED'
+                });
+            }
+
+            const currentRole = user.Role;
             const roleChanged = req.session.userRole !== currentRole;
             if (roleChanged) {
                 req.session.userRole = currentRole;
@@ -106,5 +128,7 @@ module.exports = {
     ADMIN_ROLES,
     IT_HEAD_ROLES,
     MIS_STAFF_ROLES,
+    OJT_ROLES,
+    TICKET_UPDATE_ROLES,
     KEY_TRANSFER_ROLES
 };

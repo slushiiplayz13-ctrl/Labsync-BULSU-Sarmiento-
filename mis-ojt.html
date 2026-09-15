@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync – OJT Intern Management</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=1.1.2" />
+  <script src="js/auth-check.js"></script>
+  <style>
+    /* ─── OJT Management Page Scoped Styles (Institutional MIS Polish) ─── */
+    .ojt-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .ojt-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .ojt-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+    }
+
+    /* Interactive Summary Cards */
+    .mis-stats .stat-card {
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.18s ease;
+      outline: none;
+    }
+
+    .mis-stats .stat-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .mis-stats .stat-card:focus-visible {
+      outline: 2px solid var(--primary-teal);
+      outline-offset: 2px;
+    }
+
+    .mis-stats .stat-card.theme-red {
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .mis-stats .stat-card.theme-red:hover {
+      border-color: #EF4444;
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.14);
+    }
+
+    .mis-stats .stat-card.theme-red .stat-icon {
+      background: rgba(239, 68, 68, 0.1);
+      color: #EF4444;
+    }
+
+    .mis-stats .stat-card.theme-red .stat-watermark {
+      color: rgba(239, 68, 68, 0.05);
+    }
+
+    /* Main Card Container */
+    .ojt-main-card {
+      background: var(--bg-card, #FFFFFF);
+      border: 1px solid var(--border-light, #E2E8F0);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      flex: 1;
+      min-height: 0;
+      box-sizing: border-box;
+    }
+
+    /* ─── Toolbar & Filters ─── */
+    .ojt-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .ojt-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .ojt-filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6.5px 12.5px;
+      border-radius: 8px;
+      background: var(--bg-body, #F8FAFC);
+      border: 1px solid var(--border-light, #CBD5E1);
+      color: var(--text-mid, #64748B);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+      line-height: 1.2;
+      outline: none;
+    }
+
+    .ojt-filter-pill:hover {
+      border-color: var(--primary-teal);
+      color: var(--primary-teal);
+      background: rgba(30, 187, 215, 0.06);
+    }
+
+    .ojt-filter-pill:focus-visible {
+      outline: 2px solid var(--primary-teal);
+      outline-offset: 1.5px;
+    }
+
+    .ojt-filter-pill.active {
+      background: var(--primary-teal);
+      color: #FFFFFF;
+      border-color: var(--primary-teal);
+      box-shadow: 0 2px 8px rgba(30, 187, 215, 0.3);
+    }
+
+    .ojt-filter-pill .pill-count {
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.08);
+      min-width: 14px;
+      text-align: center;
+    }
+
+    .ojt-filter-pill.active .pill-count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #FFFFFF;
+    }
+
+    /* Dynamic Expiring Soon Filter Chip */
+    .ojt-filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5.5px 10px;
+      border-radius: 8px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #B45309;
+      font-size: 12.5px;
+      font-weight: 600;
+      line-height: 1.2;
+      animation: fadeInChip 0.18s ease-out;
+    }
+
+    .ojt-filter-chip .chip-count {
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(245, 158, 11, 0.2);
+      color: #92400E;
+    }
+
+    .ojt-filter-chip .chip-clear-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: #B45309;
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 4px;
+      margin-left: 2px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .ojt-filter-chip .chip-clear-btn:hover {
+      background: rgba(245, 158, 11, 0.25);
+      color: #78350F;
+    }
+
+    @keyframes fadeInChip {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .ojt-toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ojt-search-wrap {
+      position: relative;
+      min-width: 280px;
+    }
+
+    @media (max-width: 768px) {
+      .ojt-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .ojt-toolbar-left {
+        overflow-x: auto;
+        padding-bottom: 6px;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+      .ojt-toolbar-right {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .ojt-search-wrap {
+        min-width: 100%;
+      }
+      .btn-add-ojt {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    .ojt-search-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8.5px 34px 8.5px 36px;
+      border: 1.5px solid var(--border-light, #CBD5E1);
+      border-radius: 10px;
+      font-size: 13.5px;
+      outline: none;
+      font-family: var(--font-body);
+      background: var(--bg-card, #FFFFFF);
+      color: var(--text-dark, #0F172A);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .ojt-search-input:focus {
+      border-color: var(--primary-teal);
+      box-shadow: 0 0 0 3px rgba(30, 187, 215, 0.12);
+    }
+
+    .ojt-search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: #94A3B8;
+      pointer-events: none;
+    }
+
+    .ojt-search-clear-btn {
+      position: absolute;
+      right: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #94A3B8;
+      cursor: pointer;
+      padding: 4px;
+      display: none;
+      border-radius: 4px;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s;
+    }
+
+    .ojt-search-clear-btn:hover {
+      color: var(--text-dark);
+    }
+
+    .btn-add-ojt {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 8.5px 16px;
+      border-radius: 10px;
+      border: none;
+      background: var(--primary-teal, #1EBBD7);
+      color: #FFFFFF;
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(30, 187, 215, 0.3);
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      outline: none;
+    }
+
+    .btn-add-ojt:hover {
+      background: #17a2ba;
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(30, 187, 215, 0.4);
+    }
+
+    .btn-add-ojt:focus-visible {
+      outline: 2px solid var(--primary-teal);
+      outline-offset: 2px;
+    }
+
+    /* ─── OJT Data Table ─── */
+    .ojt-table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .ojt-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .ojt-table th {
+      padding: 11px 16px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-mid, #64748B);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--bg-body, #F8FAFC);
+      border-bottom: 1px solid var(--border-light, #E2E8F0);
+      white-space: nowrap;
+    }
+
+    .ojt-table td {
+      padding: 12px 16px;
+      vertical-align: middle;
+      font-size: 13.5px;
+      color: var(--text-dark, #0F172A);
+      border-bottom: 1px solid var(--border-light, #F1F5F9);
+    }
+
+    .ojt-table tbody tr {
+      transition: background 0.15s ease;
+    }
+
+    .ojt-table tbody tr:hover {
+      background: rgba(30, 187, 215, 0.03);
+    }
+
+    /* Intern Cell layout */
+    .ojt-intern-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ojt-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-teal, #1EBBD7) 0%, #0EA5E9 100%);
+      color: #FFFFFF;
+      font-family: var(--font-display);
+      font-size: 13.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(30, 187, 215, 0.2);
+    }
+
+    .ojt-name {
+      font-weight: 600;
+      color: var(--text-dark, #0F172A);
+      font-family: var(--font-display);
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .ojt-sub {
+      font-size: 11.5px;
+      color: var(--text-muted, #94A3B8);
+    }
+
+    /* Date column */
+    .ojt-period-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .ojt-period-dates {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      white-space: nowrap;
+    }
+
+    .ojt-period-badge {
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      width: fit-content;
+    }
+
+    .ojt-period-badge.active {
+      background: rgba(30, 187, 215, 0.08);
+      color: var(--primary-teal);
+    }
+
+    .ojt-period-badge.expiring {
+      background: rgba(245, 158, 11, 0.12);
+      color: #D97706;
+    }
+
+    .ojt-period-badge.expired {
+      background: rgba(239, 68, 68, 0.1);
+      color: #DC2626;
+    }
+
+    .ojt-period-badge.deactivated {
+      background: rgba(148, 163, 184, 0.14);
+      color: #64748B;
+    }
+
+    /* Action buttons in cell */
+    .ojt-actions-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .btn-tbl-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border-light, #CBD5E1);
+      background: var(--bg-card, #FFFFFF);
+      color: var(--text-dark, #1E293B);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      line-height: 1;
+      outline: none;
+    }
+
+    .btn-tbl-action:hover {
+      border-color: var(--primary-teal);
+      color: var(--primary-teal);
+      background: rgba(30, 187, 215, 0.06);
+    }
+
+    .btn-tbl-action:focus-visible {
+      outline: 2px solid var(--primary-teal);
+      outline-offset: 1px;
+    }
+
+    .btn-tbl-action * {
+      pointer-events: none;
+    }
+
+    .btn-tbl-action.danger {
+      color: #DC2626;
+      border-color: rgba(239, 68, 68, 0.28);
+      background: rgba(239, 68, 68, 0.03);
+    }
+
+    .btn-tbl-action.danger:hover {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: #EF4444;
+      color: #B91C1C;
+    }
+
+    .btn-tbl-action.success {
+      color: #059669;
+      border-color: rgba(16, 185, 129, 0.28);
+      background: rgba(16, 185, 129, 0.03);
+    }
+
+    .btn-tbl-action.success:hover {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: #10B981;
+      color: #047857;
+    }
+
+    /* ─── Mobile Table Card Transformation (<= 768px) ─── */
+    @media (max-width: 768px) {
+      .ojt-table thead {
+        display: none;
+      }
+      .ojt-table,
+      .ojt-table tbody {
+        display: block;
+        width: 100%;
+      }
+      .ojt-table-wrap {
+        border: none;
+        background: transparent;
+      }
+      .ojt-table tbody {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .ojt-table tbody tr {
+        display: flex;
+        flex-direction: column;
+        gap: 11px;
+        padding: 15px;
+        border-radius: 14px;
+        background: var(--bg-card, #FFFFFF);
+        border: 1px solid var(--border-light, #E2E8F0);
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+      }
+      .ojt-table td {
+        display: block;
+        padding: 0;
+        border: none;
+        width: 100%;
+      }
+      .ojt-card-top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .ojt-card-detail-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--text-dark);
+      }
+      .ojt-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-light, #F1F5F9);
+        margin-top: 2px;
+        width: 100%;
+      }
+      .btn-tbl-action {
+        min-height: 40px;
+        justify-content: center;
+        font-size: 13px;
+        padding: 8px 12px;
+      }
+      .ojt-actions-wrap .btn-tbl-action.danger,
+      .ojt-actions-wrap .btn-tbl-action.success {
+        grid-column: span 2;
+      }
+    }
+
+    /* ─── Dedicated Modals & Dialogs ─── */
+    .ojt-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2600;
+      padding: 16px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    .ojt-modal-overlay.active {
+      display: flex;
+    }
+
+    .ojt-modal-card {
+      background: var(--bg-card, #FFFFFF);
+      border: 1.5px solid var(--border-light, #CBD5E1);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 490px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      font-family: var(--font-body);
+      color: var(--text-dark, #0F172A);
+      box-sizing: border-box;
+      max-height: calc(100vh - 36px);
+      overflow-y: auto;
+    }
+
+    .ojt-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--border-light, #E2E8F0);
+      padding-bottom: 12px;
+    }
+
+    .ojt-modal-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0 0 2px 0;
+    }
+
+    .ojt-modal-sub {
+      font-size: 13px;
+      color: var(--text-mid);
+      margin: 0;
+    }
+
+    .ojt-modal-close-btn {
+      background: var(--bg-body, #F1F5F9);
+      border: 1px solid var(--border-light, #E2E8F0);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      color: var(--text-dark);
+      transition: all 0.15s ease;
+      outline: none;
+    }
+
+    .ojt-modal-close-btn:hover {
+      background: #E2E8F0;
+    }
+
+    .ojt-modal-close-btn:focus-visible {
+      outline: 2px solid var(--primary-teal);
+    }
+
+    .ojt-form {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      margin: 0;
+    }
+
+    .ojt-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .ojt-form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .ojt-form-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 9.5px 13px;
+      border: 1.5px solid var(--border-light, #CBD5E1);
+      border-radius: 9px;
+      font-size: 13.5px;
+      outline: none;
+      background: var(--bg-card, #FFFFFF);
+      color: var(--text-dark);
+      font-family: var(--font-body);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .ojt-form-input:focus {
+      border-color: var(--primary-teal);
+      box-shadow: 0 0 0 3px rgba(30, 187, 215, 0.12);
+    }
+
+    .ojt-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .ojt-form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ojt-readonly-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 9px;
+      background: rgba(30, 187, 215, 0.08);
+      border: 1px solid rgba(30, 187, 215, 0.22);
+      color: var(--primary-teal);
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+
+    .ojt-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-light, #E2E8F0);
+    }
+
+    /* Credential Modal Specific */
+    .ojt-credential-card {
+      background: rgba(14, 165, 233, 0.06);
+      border: 1.5px solid rgba(14, 165, 233, 0.22);
+      border-radius: 12px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ojt-pw-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card, #FFFFFF);
+      border: 1.5px solid var(--border-light, #CBD5E1);
+      border-radius: 9px;
+      padding: 10px 14px;
+      gap: 10px;
+    }
+
+    .ojt-pw-code {
+      font-family: monospace;
+      font-size: 17px;
+      font-weight: 700;
+      color: #0284C7;
+      letter-spacing: 1px;
+      user-select: all;
+      word-break: break-all;
+    }
+
+    .btn-copy-cred {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 13px;
+      background: var(--primary-teal);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 7px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+      outline: none;
+    }
+
+    .btn-copy-cred:hover {
+      box-shadow: 0 4px 10px var(--primary-teal-glow);
+    }
+
+    .btn-copy-cred:focus-visible {
+      outline: 2px solid var(--primary-teal);
+      outline-offset: 1.5px;
+    }
+
+    /* Dark Mode Overrides */
+    html.dark-mode .ojt-main-card,
+    body.dark-mode .ojt-main-card,
+    [data-theme="dark"] .ojt-main-card {
+      background: #111827 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    html.dark-mode .ojt-filter-pill,
+    body.dark-mode .ojt-filter-pill,
+    [data-theme="dark"] .ojt-filter-pill {
+      background: #1F2937 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      color: #94A3B8 !important;
+    }
+
+    html.dark-mode .ojt-filter-chip,
+    body.dark-mode .ojt-filter-chip,
+    [data-theme="dark"] .ojt-filter-chip {
+      background: rgba(245, 158, 11, 0.15) !important;
+      border-color: rgba(245, 158, 11, 0.4) !important;
+      color: #FBBF24 !important;
+    }
+    html.dark-mode .ojt-filter-chip .chip-count,
+    body.dark-mode .ojt-filter-chip .chip-count,
+    [data-theme="dark"] .ojt-filter-chip .chip-count {
+      background: rgba(245, 158, 11, 0.25) !important;
+      color: #FDE68A !important;
+    }
+    html.dark-mode .ojt-filter-chip .chip-clear-btn,
+    body.dark-mode .ojt-filter-chip .chip-clear-btn,
+    [data-theme="dark"] .ojt-filter-chip .chip-clear-btn {
+      color: #FBBF24 !important;
+    }
+
+    html.dark-mode .ojt-table-wrap,
+    body.dark-mode .ojt-table-wrap,
+    [data-theme="dark"] .ojt-table-wrap {
+      background: transparent !important;
+      border: none !important;
+    }
+
+    html.dark-mode .ojt-table th,
+    body.dark-mode .ojt-table th,
+    [data-theme="dark"] .ojt-table th {
+      background: #161F30 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      color: #94A3B8 !important;
+    }
+
+    html.dark-mode .ojt-table td,
+    body.dark-mode .ojt-table td,
+    [data-theme="dark"] .ojt-table td {
+      border-color: rgba(255, 255, 255, 0.06) !important;
+      color: #E2E8F0 !important;
+    }
+
+    html.dark-mode .ojt-modal-card,
+    body.dark-mode .ojt-modal-card,
+    [data-theme="dark"] .ojt-modal-card {
+      background: #111827 !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .ojt-form-input,
+    body.dark-mode .ojt-form-input,
+    [data-theme="dark"] .ojt-form-input {
+      background: #1F2937 !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .ojt-pw-box,
+    body.dark-mode .ojt-pw-box,
+    [data-theme="dark"] .ojt-pw-box {
+      background: #1F2937 !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+  </style>
+</head>
+
+<body data-page="mis-ojt">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
+        onclick="window.location.href='mis-staff-dashboard.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-home">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+      </button>
+      <button class="sidebar-btn" data-tooltip="Maintenance Tracker" title="Maintenance Tracker"
+        onclick="window.location.href='mis-maintenance.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-clipboard-list">
+          <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+          <path d="M12 11h4" />
+          <path d="M12 16h4" />
+          <path d="M8 11h.01" />
+          <path d="M8 16h.01" />
+        </svg>
+      </button>
+      <button class="sidebar-btn" data-tooltip="PC & QR Management" title="PC & QR Management"
+        onclick="window.location.href='mis-qr-generator.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-qr-code">
+          <rect width="5" height="5" x="3" y="3" rx="1" />
+          <rect width="5" height="5" x="16" y="3" rx="1" />
+          <rect width="5" height="5" x="3" y="16" rx="1" />
+          <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+          <path d="M21 21v.01" />
+          <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+          <path d="M3 12h.01" />
+          <path d="M12 3h.01" />
+          <path d="M12 16v.01" />
+          <path d="M16 12h1" />
+          <path d="M21 12v.01" />
+          <path d="M12 21v-1" />
+        </svg>
+      </button>
+      <button class="sidebar-btn" data-tooltip="Key Management" title="Key Management"
+        onclick="window.location.href='mis-keys.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-key-round">
+          <path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z" />
+          <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
+        </svg>
+      </button>
+      <button class="sidebar-btn active" data-tooltip="OJT Interns" title="OJT Interns"
+        onclick="window.location.href='mis-ojt.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-user-cog">
+          <circle cx="18" cy="15" r="3" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M10 15H6a4 4 0 0 0-4 4v2" />
+          <path d="m21.7 16.4-.9-.3" />
+          <path d="m15.2 13.9-.9-.3" />
+          <path d="m16.6 18.7.3-.9" />
+          <path d="m19.1 12.2.3-.9" />
+          <path d="m19.6 18.7-.4-1" />
+          <path d="m16.8 12.3-.4-1" />
+          <path d="m14.3 16.6 1-.4" />
+          <path d="m20.7 13.8 1-.4" />
+        </svg>
+      </button>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-bottom">
+      <button class="sidebar-btn" data-tooltip="Help & Support" title="Help & Support" onclick="openHelpModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-circle-help">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <path d="M12 17h.01" />
+        </svg>
+      </button>
+      <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-log-out">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" x2="9" y1="12" y2="12" />
+        </svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-logos" style="display: flex; align-items: center; gap: 14px; pointer-events: none;">
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo"
+          style="height: 40px; width: auto; object-fit: contain; pointer-events: none;" draggable="false"
+          oncontextmenu="return false;">
+        <div class="logo-divider" style="width: 1px; height: 32px; background: var(--border-light);"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo"
+          style="height: 45px; width: auto; object-fit: contain; pointer-events: none;" draggable="false"
+          oncontextmenu="return false;">
+      </div>
+
+      <!-- Right Profile -->
+      <div class="header-right">
+        <button class="notif-btn" title="Notifications">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="lucide lucide-bell">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+          </svg>
+          <span class="notif-dot"></span>
+        </button>
+
+        <div class="profile-dropdown">
+          <div class="avatar"></div>
+          <div class="profile-info">
+            <span class="profile-name"></span>
+            <span class="profile-role"></span>
+          </div>
+          <button class="chevron-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="lucide lucide-chevron-down">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+        </div>
+        <script>
+          (function () {
+            try {
+              var u = JSON.parse(sessionStorage.getItem("labsync_user") || "null");
+              var hr = document.currentScript.parentElement;
+              if (u && hr) {
+                var n = hr.querySelector(".profile-name");
+                var r = hr.querySelector(".profile-role");
+                var a = hr.querySelector(".avatar");
+                if (n && u.name) n.textContent = u.name;
+                if (r && u.role) r.textContent = u.role;
+                if (a) {
+                  if (u.profilePhoto) a.innerHTML = "<img src=\"" + u.profilePhoto + "\" alt=\"Profile\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%;\">";
+                  else if (u.name) a.textContent = u.name.split(" ").map(function (x) { return x[0]; }).join("").slice(0, 2).toUpperCase();
+                }
+              }
+              var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
+              var d = hr ? hr.querySelector(".notif-dot") : null;
+              if (d) d.style.display = hasUnread ? "block" : "none";
+            } catch (e) { }
+          })();
+        </script>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content" style="overflow-y: auto;">
+
+      <!-- Greeting + Clock Row -->
+      <div class="greeting-row">
+        <div class="greeting-left">
+          <h1 class="greeting-title" id="greetingText">OJT Intern Management</h1>
+          <p class="greeting-sub" id="greetingSub">Manage student intern accounts, internship periods, and access.</p>
+        </div>
+        <div class="clock-block">
+          <div class="clock-time" id="clockTime"></div>
+          <div class="clock-date" id="clockDate"></div>
+          <script>
+            (function () {
+              try {
+                var d = new Date(), DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds(), ampm = h >= 12 ? 'PM' : 'AM', fh = h % 12 || 12;
+                var p = function (n) { return String(n).padStart(2, '0'); };
+                var t = document.getElementById('clockTime'), dt = document.getElementById('clockDate');
+                if (t) t.textContent = p(fh) + ':' + p(m) + ':' + p(s) + ' ' + ampm;
+                if (dt) dt.textContent = DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+              } catch (e) { }
+            })();
+          </script>
+        </div>
+      </div>
+
+      <!-- Summary Cards Row -->
+      <div class="ojt-stats-grid mis-stats" id="ojtStatsGrid">
+        <!-- Card 1: Active OJTs -->
+        <div class="stat-card theme-blue" id="statCardActive" role="button" tabindex="0" title="Filter by Active Interns" aria-label="Active Interns summary card. Click to filter.">
+          <div class="stat-header">
+            <div class="stat-info">
+              <div class="stat-value">
+                <span id="statActiveCount">0</span>
+                <span class="stat-pill-badge" id="statActiveLabel">Authorized</span>
+              </div>
+              <div class="stat-title">Active Interns</div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="user-check"></i>
+            </div>
+          </div>
+          <div class="stat-watermark">
+            <i data-lucide="user-check"></i>
+          </div>
+        </div>
+
+        <!-- Card 2: Expiring Soon -->
+        <div class="stat-card theme-orange" id="statCardExpiring" role="button" tabindex="0" title="Filter by Interns Expiring Soon" aria-label="Expiring Soon summary card. Click to filter.">
+          <div class="stat-header">
+            <div class="stat-info">
+              <div class="stat-value">
+                <span id="statExpiringCount">0</span>
+                <span class="stat-pill-badge" id="statExpiringLabel">Within 7 Days</span>
+              </div>
+              <div class="stat-title">Expiring Soon</div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="clock"></i>
+            </div>
+          </div>
+          <div class="stat-watermark">
+            <i data-lucide="clock"></i>
+          </div>
+        </div>
+
+        <!-- Card 3: Inactive Interns -->
+        <div class="stat-card theme-red" id="statCardInactive" role="button" tabindex="0" title="Filter by Inactive Interns" aria-label="Inactive Interns summary card. Click to filter.">
+          <div class="stat-header">
+            <div class="stat-info">
+              <div class="stat-value">
+                <span id="statInactiveCount">0</span>
+                <span class="stat-pill-badge" id="statInactiveLabel">Inactive</span>
+              </div>
+              <div class="stat-title">Inactive Interns</div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="user-x"></i>
+            </div>
+          </div>
+          <div class="stat-watermark">
+            <i data-lucide="user-x"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Card -->
+      <div class="ojt-main-card">
+
+        <!-- Toolbar -->
+        <div class="ojt-toolbar">
+          <!-- Filter Pills -->
+          <div class="ojt-toolbar-left" role="tablist" aria-label="OJT Account Status Filters">
+            <button type="button" class="ojt-filter-pill active" data-filter="ALL" id="filterBtnAll">
+              <i data-lucide="users" style="width: 14px; height: 14px;"></i>
+              <span>All Interns</span>
+            </button>
+            <button type="button" class="ojt-filter-pill" data-filter="ACTIVE" id="filterBtnActive">
+              <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i>
+              <span>Active</span>
+            </button>
+            <button type="button" class="ojt-filter-pill" data-filter="INACTIVE" id="filterBtnInactive">
+              <i data-lucide="user-x" style="width: 14px; height: 14px;"></i>
+              <span>Inactive</span>
+            </button>
+
+            <!-- Dynamic Expiring Soon Filter Chip -->
+            <span id="ojtExpiringFilterChip" class="ojt-filter-chip" style="display: none;" role="status" aria-label="Expiring Soon Filter Applied">
+              <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+              <span>Expiring Soon</span>
+              <button type="button" id="btnClearExpiringFilter" class="chip-clear-btn" title="Remove Expiring Soon filter" aria-label="Clear expiring filter">
+                <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+              </button>
+            </span>
+          </div>
+
+          <!-- Right: Search & Primary Action -->
+          <div class="ojt-toolbar-right">
+            <div class="ojt-search-wrap">
+              <i data-lucide="search" class="ojt-search-icon"></i>
+              <input type="text" id="ojtSearchInput" class="ojt-search-input"
+                placeholder="Search intern by name or email..." aria-label="Search intern by name, email, or phone" />
+              <button type="button" id="ojtSearchClearBtn" class="ojt-search-clear-btn" aria-label="Clear search query" style="display: none;">
+                <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+              </button>
+            </div>
+            <button type="button" class="btn-add-ojt" id="btnAddOjt" aria-label="Add new OJT intern">
+              <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
+              <span>+ Add OJT Intern</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="ojt-table-wrap">
+          <table class="ojt-table">
+            <thead>
+              <tr>
+                <th style="width: 28%;">INTERN</th>
+                <th style="width: 26%;">EMAIL</th>
+                <th style="width: 20%;">OJT PERIOD</th>
+                <th style="width: 12%;">STATUS</th>
+                <th style="width: 14%; text-align: right;">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="ojtTableBody">
+              <tr>
+                <td colspan="5" style="padding: 48px 20px; text-align: center; color: var(--text-muted);">
+                  <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <i data-lucide="loader" style="width: 24px; height: 24px; animation: spin 1s linear infinite; color: var(--primary-teal);"></i>
+                    <span>Loading OJT intern accounts...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 1: ADD OJT INTERN                                        -->
+  <!-- ============================================================== -->
+  <div id="addOjtModalOverlay" class="ojt-modal-overlay">
+    <div class="ojt-modal-card" role="dialog" aria-labelledby="addOjtModalTitle" aria-modal="true">
+      <div class="ojt-modal-header">
+        <div>
+          <h2 class="ojt-modal-title" id="addOjtModalTitle">Add OJT Intern</h2>
+          <p class="ojt-modal-sub">Create an individual account for student intern duty</p>
+        </div>
+        <button type="button" class="ojt-modal-close-btn" id="btnCloseAddModal" aria-label="Close modal">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <form id="formAddOjt" class="ojt-form" novalidate>
+        <!-- Read-Only Account Type Display -->
+        <div class="ojt-readonly-badge">
+          <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+          <span>Account Type: <strong>OJT Intern (Operational Access Only)</strong></span>
+        </div>
+
+        <div class="ojt-form-group">
+          <label for="addOjtName">Full Name *</label>
+          <input type="text" id="addOjtName" class="ojt-form-input" placeholder="e.g. Maria Clara Santos" required />
+          <span class="form-error" id="addOjtNameErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
+        </div>
+
+        <div class="ojt-form-group">
+          <label for="addOjtEmail">Institutional / BulSU Email *</label>
+          <input type="email" id="addOjtEmail" class="ojt-form-input" placeholder="e.g. maria.santos@bulsu.edu.ph" required />
+          <span class="form-error" id="addOjtEmailErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
+        </div>
+
+        <div class="ojt-form-group">
+          <label for="addOjtPhone">Contact Phone Number (Optional)</label>
+          <input type="tel" id="addOjtPhone" class="ojt-form-input" placeholder="e.g. 09123456789" />
+          <span class="form-error" id="addOjtPhoneErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
+        </div>
+
+        <div class="ojt-form-row">
+          <div class="ojt-form-group">
+            <label for="addOjtStartDate">OJT Start Date *</label>
+            <input type="date" id="addOjtStartDate" class="ojt-form-input" required />
+          </div>
+          <div class="ojt-form-group">
+            <label for="addOjtEndDate">OJT End Date *</label>
+            <input type="date" id="addOjtEndDate" class="ojt-form-input" required />
+          </div>
+        </div>
+        <span class="form-error" id="addOjtDateErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
+
+        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); border-radius: 10px; padding: 10px 14px; display: flex; gap: 10px; align-items: flex-start;">
+          <i data-lucide="key" style="width: 16px; height: 16px; color: #F59E0B; flex-shrink: 0; margin-top: 2px;"></i>
+          <p style="margin: 0; font-size: 12px; color: var(--text-dark); line-height: 1.4;">
+            A secure temporary password will be generated automatically and displayed once upon creation.
+          </p>
+        </div>
+
+        <div class="ojt-modal-footer">
+          <button type="button" class="btn-tbl-action" id="btnCancelAddModal">Cancel</button>
+          <button type="submit" class="btn-add-ojt" id="btnSubmitAddOjt">
+            <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
+            <span>Create Account</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 2: EDIT OJT INTERN                                       -->
+  <!-- ============================================================== -->
+  <div id="editOjtModalOverlay" class="ojt-modal-overlay">
+    <div class="ojt-modal-card" role="dialog" aria-labelledby="editOjtModalTitle" aria-modal="true">
+      <div class="ojt-modal-header">
+        <div>
+          <h2 class="ojt-modal-title" id="editOjtModalTitle">Edit OJT Intern</h2>
+          <p class="ojt-modal-sub">Update intern profile and internship duration</p>
+        </div>
+        <button type="button" class="ojt-modal-close-btn" id="btnCloseEditModal" aria-label="Close modal">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <form id="formEditOjt" class="ojt-form" novalidate>
+        <input type="hidden" id="editOjtUserId" />
+
+        <div class="ojt-readonly-badge">
+          <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+          <span>Account Role: <strong>OJT Intern</strong></span>
+        </div>
+
+        <div class="ojt-form-group">
+          <label for="editOjtName">Full Name *</label>
+          <input type="text" id="editOjtName" class="ojt-form-input" required />
+          <span class="form-error" id="editOjtNameErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
+        </div>
+
+        <div class="ojt-form-group">
+          <label for="editOjtEmail">Institutional Email *</label>
+          <input type="email" id="editOjtEmail" class="ojt-form-input" required />
+          <span class="form-error" id="editOjtEmailErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
+        </div>
+
+        <div class="ojt-form-group">
+          <label for="editOjtPhone">Contact Phone Number</label>
+          <input type="tel" id="editOjtPhone" class="ojt-form-input" />
+          <span class="form-error" id="editOjtPhoneErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
+        </div>
+
+        <div class="ojt-form-row">
+          <div class="ojt-form-group">
+            <label for="editOjtStartDate">OJT Start Date *</label>
+            <input type="date" id="editOjtStartDate" class="ojt-form-input" required />
+          </div>
+          <div class="ojt-form-group">
+            <label for="editOjtEndDate">OJT End Date *</label>
+            <input type="date" id="editOjtEndDate" class="ojt-form-input" required />
+          </div>
+        </div>
+        <span class="form-error" id="editOjtDateErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
+
+        <div class="ojt-modal-footer">
+          <button type="button" class="btn-tbl-action" id="btnCancelEditModal">Cancel</button>
+          <button type="submit" class="btn-add-ojt" id="btnSubmitEditOjt">
+            <i data-lucide="check" style="width: 15px; height: 15px;"></i>
+            <span>Save Changes</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 3: CREDENTIAL DISPLAY (ONE-TIME VIEW)                    -->
+  <!-- ============================================================== -->
+  <div id="credentialModalOverlay" class="ojt-modal-overlay">
+    <div class="ojt-modal-card" role="dialog" aria-labelledby="credModalTitle" aria-modal="true">
+      <div class="ojt-modal-header">
+        <div>
+          <h2 class="ojt-modal-title" id="credModalTitle">OJT Account Credentials</h2>
+          <p class="ojt-modal-sub">Securely provide these login details to the intern</p>
+        </div>
+        <button type="button" class="ojt-modal-close-btn" id="btnCloseCredModal" aria-label="Close modal">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <!-- Warning Callout -->
+      <div style="background: rgba(239, 68, 68, 0.08); border: 1.5px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 14px; display: flex; gap: 12px; align-items: flex-start;">
+        <i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: #EF4444; flex-shrink: 0; margin-top: 2px;"></i>
+        <div>
+          <div style="font-weight: 700; font-size: 13.5px; color: #EF4444; margin-bottom: 2px;">One-Time Credential View</div>
+          <p style="margin: 0; font-size: 12.5px; color: var(--text-dark); line-height: 1.45;">
+            This temporary password is displayed <strong>only once</strong> and is never stored in browser memory. Please copy or securely provide it to the intern before closing this window.
+          </p>
+        </div>
+      </div>
+
+      <!-- Credential Details Box -->
+      <div class="ojt-credential-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-mid); text-transform: uppercase;">Intern Name</span>
+          <span id="credOjtName" style="font-size: 14px; font-weight: 700; color: var(--text-dark);"></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-mid); text-transform: uppercase;">Login Email</span>
+          <span id="credOjtEmail" style="font-size: 14px; font-weight: 600; color: var(--text-dark);"></span>
+        </div>
+
+        <div style="margin-top: 6px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-mid); text-transform: uppercase; display: block; margin-bottom: 6px;">Temporary Password</label>
+          <div class="ojt-pw-box">
+            <span id="credOjtPassword" class="ojt-pw-code">••••••••</span>
+            <button type="button" id="btnCopyPassword" class="btn-copy-cred">
+              <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+              <span id="btnCopyPasswordText">Copy Password</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ojt-modal-footer">
+        <button type="button" class="btn-add-ojt" id="btnDoneCredModal" style="width: 100%; justify-content: center;">
+          <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+          <span>I Have Recorded The Credentials</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 4: RESET PASSWORD CONFIRMATION                           -->
+  <!-- ============================================================== -->
+  <div id="resetPasswordModalOverlay" class="ojt-modal-overlay">
+    <div class="ojt-modal-card" role="dialog" aria-labelledby="resetPwTitle" aria-modal="true">
+      <div class="ojt-modal-header">
+        <div>
+          <h2 class="ojt-modal-title" id="resetPwTitle">Reset OJT Password</h2>
+          <p class="ojt-modal-sub">Generate a new temporary password</p>
+        </div>
+        <button type="button" class="ojt-modal-close-btn" id="btnCloseResetModal" aria-label="Close modal">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <p style="margin: 0; font-size: 13.5px; color: var(--text-dark); line-height: 1.5;">
+        Are you sure you want to reset the password for <strong id="resetTargetName">this intern</strong>?
+      </p>
+
+      <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
+        <i data-lucide="info" style="width: 16px; height: 16px; color: #F59E0B; flex-shrink: 0; margin-top: 2px;"></i>
+        <p style="margin: 0; font-size: 12.5px; color: var(--text-dark); line-height: 1.45;">
+          Their existing password will be revoked immediately and replaced by a new temporary password displayed on the next screen.
+        </p>
+      </div>
+
+      <div class="ojt-modal-footer">
+        <button type="button" class="btn-tbl-action" id="btnCancelResetModal">Cancel</button>
+        <button type="button" class="btn-add-ojt" id="btnConfirmResetPassword">
+          <i data-lucide="key-round" style="width: 15px; height: 15px;"></i>
+          <span>Generate New Password</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 5: DEACTIVATE CONFIRMATION                               -->
+  <!-- ============================================================== -->
+  <div id="deactivateModalOverlay" class="ojt-modal-overlay">
+    <div class="ojt-modal-card" role="dialog" aria-labelledby="deactTitle" aria-modal="true">
+      <div class="ojt-modal-header">
+        <div>
+          <h2 class="ojt-modal-title" id="deactTitle" style="color: #EF4444;">Deactivate OJT Account</h2>
+          <p class="ojt-modal-sub">Suspend operational access for this intern</p>
+        </div>
+        <button type="button" class="ojt-modal-close-btn" id="btnCloseDeactModal" aria-label="Close modal">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <p style="margin: 0; font-size: 13.5px; color: var(--text-dark); line-height: 1.5;">
+        Are you sure you want to deactivate <strong id="deactTargetName">this intern</strong>?
+      </p>
+
+      <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
+        <i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: #EF4444; flex-shrink: 0; margin-top: 2px;"></i>
+        <div style="font-size: 12.5px; color: var(--text-dark); line-height: 1.45;">
+          <ul style="margin: 0; padding-left: 16px;">
+            <li>The OJT will no longer be able to log in to the system.</li>
+            <li>Any currently active session will be revoked immediately.</li>
+            <li>Their historical maintenance audit logs and ticket resolutions will remain intact.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ojt-modal-footer">
+        <button type="button" class="btn-tbl-action" id="btnCancelDeactModal">Cancel</button>
+        <button type="button" class="btn-tbl-action danger" id="btnConfirmDeactivate" style="padding: 9px 18px;">
+          <i data-lucide="user-x" style="width: 15px; height: 15px;"></i>
+          <span>Deactivate Account</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 6: ACTIVATE CONFIRMATION                                 -->
+  <!-- ============================================================== -->
+  <div id="activateModalOverlay" class="ojt-modal-overlay">
+    <div class="ojt-modal-card" role="dialog" aria-labelledby="actTitle" aria-modal="true">
+      <div class="ojt-modal-header">
+        <div>
+          <h2 class="ojt-modal-title" id="actTitle" style="color: var(--primary-teal);">Activate OJT Account</h2>
+          <p class="ojt-modal-sub">Restore operational access for this intern</p>
+        </div>
+        <button type="button" class="ojt-modal-close-btn" id="btnCloseActModal" aria-label="Close modal">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <p style="margin: 0; font-size: 13.5px; color: var(--text-dark); line-height: 1.5;">
+        Re-enable operational login access for <strong id="actTargetName">this intern</strong>?
+      </p>
+
+      <div style="background: rgba(30, 187, 215, 0.08); border: 1px solid rgba(30, 187, 215, 0.25); border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
+        <i data-lucide="info" style="width: 16px; height: 16px; color: var(--primary-teal); flex-shrink: 0; margin-top: 2px;"></i>
+        <p style="margin: 0; font-size: 12.5px; color: var(--text-dark); line-height: 1.45;">
+          Activation marks the account as <strong>ACTIVE</strong>. Note: If the intern's OJT End Date has already passed, they will still be unable to log in until their internship end date is extended.
+        </p>
+      </div>
+
+      <div class="ojt-modal-footer">
+        <button type="button" class="btn-tbl-action" id="btnCancelActModal">Cancel</button>
+        <button type="button" class="btn-add-ojt" id="btnConfirmActivate">
+          <i data-lucide="user-check" style="width: 15px; height: 15px;"></i>
+          <span>Activate Account</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared Infrastructure Scripts -->
+  <script src="js/core/accessibility.js"></script>
+  <script src="js/core/clock.js"></script>
+  <script src="js/core/tutorial-launcher.js"></script>
+  <script src="js/services/user.service.js"></script>
+  <script src="js/services/notification.service.js"></script>
+  <script src="js/components/toast.js"></script>
+  <script src="js/components/profile/profile-dropdown.js"></script>
+  <script src="js/components/profile/account-modal.js"></script>
+  <script src="js/components/profile/password-modal.js"></script>
+  <script src="js/components/profile/help-modal.js"></script>
+  <script src="js/components/profile-menu.js"></script>
+  <script src="js/components/notifications.js"></script>
+  <script src="js/components/sidebar-nav.js"></script>
+  <script src="js/core/app.js"></script>
+
+  <!-- Dedicated OJT Page Controller -->
+  <script src="js/pages/mis-ojt.js"></script>
+</body>
+
+</html>

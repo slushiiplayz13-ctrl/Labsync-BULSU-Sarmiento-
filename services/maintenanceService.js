@@ -256,7 +256,7 @@ async function getNotifications(sessionUserId, sessionUserRole) {
         }
     }
 
-    if (role === 'MIS Staff') {
+    if (role === 'MIS Staff' || role === 'OJT') {
         const [notifications] = await maintenanceRepository.findReportNotifications();
         return { status: 200, data: notifications };
     } else if (role === 'IT Dept. Head' || role === 'Department Head') {

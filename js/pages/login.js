@@ -324,6 +324,7 @@
         const role = (data.user && data.user.role) || '';
         const isItHead = role.toLowerCase().includes('head');
         const isMis = role === 'MIS Staff';
+        const isOjt = role === 'OJT';
 
         // Pre-populate minimal destination dashboard session cache using canonical services
         try {
@@ -344,8 +345,8 @@
             if (promises.length > 0) {
               await Promise.allSettled(promises);
             }
-          } else if (isMis) {
-            // MIS Staff dashboard prefetch
+          } else if (isMis || isOjt) {
+            // MIS Staff & OJT dashboard prefetch
             const promises = [];
             if (window.laboratoryService && typeof window.laboratoryService.fetchLaboratories === 'function') {
               promises.push(window.laboratoryService.fetchLaboratories());
@@ -384,7 +385,7 @@
 
         if (isItHead) {
           window.location.href = 'it-head-dashboard.html';
-        } else if (isMis) {
+        } else if (isMis || isOjt) {
           window.location.href = 'mis-staff-dashboard.html';
         } else {
           window.location.href = 'index.html';
@@ -475,30 +476,47 @@
   }
 
   function checkSessionExpiryNotice() {
-    let isExpired = false;
+    let noticeMessage = null;
+    let noticeTitle = "Session Notice";
+    let noticeType = "warning";
+
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('reason') === 'inactivity' || urlParams.get('expired') === 'true') {
-        isExpired = true;
-      }
-      const expiredTimestamp = localStorage.getItem('labsync_session_expired');
-      if (expiredTimestamp) {
-        const timeDiff = Date.now() - parseInt(expiredTimestamp, 10);
-        if (timeDiff < 5 * 60 * 1000) {
-          isExpired = true;
+      const reason = urlParams.get('reason');
+
+      if (reason === 'deactivated') {
+        noticeMessage = "Your account has been deactivated. Please contact the administrator.";
+        noticeTitle = "Account Deactivated";
+        noticeType = "error";
+      } else if (reason === 'ojt_expired') {
+        noticeMessage = "Your OJT internship period has concluded. Please contact the MIS Staff.";
+        noticeTitle = "Internship Concluded";
+        noticeType = "error";
+      } else if (reason === 'inactivity' || urlParams.get('expired') === 'true') {
+        noticeMessage = "Your session has expired due to inactivity. Please log in again.";
+        noticeTitle = "Session Expired";
+        noticeType = "warning";
+      } else {
+        const expiredTimestamp = localStorage.getItem('labsync_session_expired');
+        if (expiredTimestamp) {
+          const timeDiff = Date.now() - parseInt(expiredTimestamp, 10);
+          if (timeDiff < 5 * 60 * 1000) {
+            noticeMessage = "Your session has expired due to inactivity. Please log in again.";
+            noticeTitle = "Session Expired";
+            noticeType = "warning";
+          }
+          localStorage.removeItem('labsync_session_expired');
         }
-        localStorage.removeItem('labsync_session_expired');
       }
     } catch (e) {}
 
-    if (isExpired) {
+    if (noticeMessage) {
       if (window.history && window.history.replaceState) {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
-      const expiryMessage = "Your session has expired due to inactivity. Please log in again.";
-      showLoginError(expiryMessage);
+      showLoginError(noticeMessage);
       if (typeof window.showToast === 'function') {
-        window.showToast(expiryMessage, "warning", "Session Expired");
+        window.showToast(noticeMessage, noticeType, noticeTitle);
       }
     }
   }

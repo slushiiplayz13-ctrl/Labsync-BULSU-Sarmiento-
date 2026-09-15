@@ -78,7 +78,7 @@
 
       // Update dynamic greeting if on dashboard
       const pageType = document.body ? document.body.dataset.page : '';
-      if (pageType === 'dashboard' || pageType === 'it-head-dashboard') {
+      if (pageType === 'dashboard' || pageType === 'it-head-dashboard' || pageType === 'mis-dashboard') {
         if (typeof global.updateClock === 'function') {
           global.updateClock();
         }

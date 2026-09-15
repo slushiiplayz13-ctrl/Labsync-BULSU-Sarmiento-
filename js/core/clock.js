@@ -70,11 +70,7 @@
 
       if (profileNameEl) {
         const fullName = profileNameEl.textContent.trim();
-        if (fullName === 'MIS Staff' || fullName.startsWith('MIS ')) {
-          firstName = 'MIS Staff';
-        } else {
-          firstName = fullName.split(/\s+/)[0] || 'User';
-        }
+        firstName = fullName.split(/\s+/)[0] || 'User';
       }
 
       const greetingTextEl = document.getElementById('greetingText');

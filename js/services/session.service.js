@@ -165,7 +165,11 @@
           try {
             const clone = response.clone();
             const data = await clone.json();
-            if (data && data.code === 'SESSION_EXPIRED') {
+            if (data && data.code === 'ACCOUNT_DEACTIVATED') {
+              expireSession('deactivated');
+            } else if (data && data.code === 'OJT_EXPIRED') {
+              expireSession('ojt_expired');
+            } else if (data && (data.code === 'SESSION_EXPIRED' || (data.error && data.error.includes('expired')))) {
               expireSession('inactivity');
             }
           } catch (e) { }
