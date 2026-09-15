@@ -94,28 +94,46 @@
       } else if (notif.type === 'occupancy') {
         iconName = 'key-round';
         iconClass = 'notif-icon-occupancy';
-        const hasUser = notif.description && notif.description !== 'Room Key';
+        let profName = (notif.description && notif.description !== 'Room Key') ? notif.description : '';
+        if (!profName && notif.room_number) {
+          try {
+            const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+            if (Array.isArray(cachedLabs)) {
+              const matched = cachedLabs.find(r => String(r.Room_Number).trim().toLowerCase() === String(notif.room_number).trim().toLowerCase());
+              if (matched) {
+                profName = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
+              }
+            }
+          } catch (e) {}
+        }
+
+        const hasUser = !!profName;
         const profText = hasUser
-          ? (notif.description.startsWith('Prof.') ? notif.description : `Prof. ${notif.description}`)
+          ? (profName.startsWith('Prof.') ? profName : `Prof. ${profName}`)
           : '';
+        const roomLabel = notif.room_number ? `Room ${notif.room_number}` : 'Room';
 
         if (notif.status === 'Key Taken') {
           if (notif.session_type === 'In Session') {
             title = 'Key Taken (In Session)';
-            text = `Key taken by ${profText || 'Faculty'} (In Session) for Room ${notif.room_number}.`;
-          } else if (notif.session_type === 'Borrowed' || hasUser) {
+            text = profText
+              ? `Key taken for ${roomLabel} by ${profText} (In Session).`
+              : `Key taken for ${roomLabel} (In Session).`;
+          } else if (profText) {
             title = 'Key Borrowed';
-            text = `Key borrowed by ${profText || 'Faculty'} for Room ${notif.room_number}.`;
+            text = `Key borrowed for ${roomLabel} by ${profText}.`;
           } else {
             title = 'Laboratory Key Taken';
-            text = `Key taken for Room ${notif.room_number}.`;
+            text = `Key taken for ${roomLabel}.`;
           }
         } else if (notif.status === 'Key Returned') {
           title = 'Laboratory Key Returned';
-          text = `Key returned for RM ${notif.room_number}.`;
+          text = profText
+            ? `Key returned for ${roomLabel} by ${profText}.`
+            : `Key returned for ${roomLabel}.`;
         } else {
           title = 'QR Identity Verified';
-          text = `${notif.description} verified QR code identity (Ready to take key).`;
+          text = `${profText || notif.description || 'User'} verified QR code identity (Ready to take key).`;
         }
       }
       return { iconName, iconClass, title, text };

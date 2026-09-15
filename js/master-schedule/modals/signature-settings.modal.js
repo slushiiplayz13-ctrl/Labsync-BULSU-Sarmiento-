@@ -32,6 +32,7 @@
         console.error('[SignatureSettingsModal] Failed to fetch signature settings:', err);
       }
 
+      signatureSettingsModal.scrollTop = 0;
       const wasAlreadyOpen = signatureSettingsModal.style.display === 'flex' && !signatureSettingsModal.classList.contains('closing');
       signatureSettingsModal.classList.remove('closing');
       signatureSettingsModal.removeAttribute('data-closing');
@@ -41,31 +42,60 @@
       void signatureSettingsModal.offsetWidth;
       signatureSettingsModal.style.opacity = '1';
       const dialog = signatureSettingsModal.querySelector('.modal-content');
-      if (dialog) dialog.style.transform = 'translateY(0)';
+      if (dialog) {
+        dialog.style.opacity = '1';
+        dialog.style.transform = 'translateY(0)';
+      }
       if (global.lucide && typeof global.lucide.createIcons === 'function') {
         global.lucide.createIcons({ root: signatureSettingsModal });
       }
     }
 
-    function closeSignatureModal() {
-      if (signatureSettingsModal.style.display === 'none' && !signatureSettingsModal.classList.contains('closing')) return;
+    function closeSignatureModal(onClosed) {
+      if (signatureSettingsModal.style.display === 'none' && !signatureSettingsModal.classList.contains('closing')) {
+        if (typeof onClosed === 'function') onClosed();
+        return;
+      }
       signatureSettingsModal.classList.add('closing');
       signatureSettingsModal.setAttribute('data-closing', 'true');
       signatureSettingsModal.style.opacity = '0';
       signatureSettingsModal.style.pointerEvents = 'none';
       const dialog = signatureSettingsModal.querySelector('.modal-content');
-      if (dialog) dialog.style.transform = 'translateY(20px)';
-      if (global.setModalOpenState) global.setModalOpenState(false);
+      if (dialog) {
+        dialog.style.opacity = '0';
+        dialog.style.transform = 'translateY(15px)';
+      }
+      // Preserve document.body.classList.contains('modal-open') during the transition to eliminate layout jump/header cutoff
       setTimeout(() => {
         signatureSettingsModal.style.display = 'none';
         signatureSettingsModal.classList.remove('closing');
         signatureSettingsModal.removeAttribute('data-closing');
-        if (global.setModalOpenState) global.setModalOpenState(null);
-      }, 300);
+        signatureSettingsModal.scrollTop = 0;
+        if (dialog) {
+          dialog.style.transform = '';
+          dialog.style.opacity = '';
+        }
+        if (global.setModalOpenState) {
+          global.setModalOpenState(false);
+          global.setModalOpenState(null);
+        }
+        if (saveSignatureBtn) {
+          saveSignatureBtn.disabled = false;
+          saveSignatureBtn.style.pointerEvents = 'auto';
+          saveSignatureBtn.style.opacity = '1';
+          saveSignatureBtn.innerHTML = '<i data-lucide="check" style="width: 18px; height: 18px;"></i>Save Settings';
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons({ root: saveSignatureBtn });
+          }
+        }
+        if (typeof onClosed === 'function') {
+          onClosed();
+        }
+      }, 250);
     }
 
     if (openSignatureSettingsBtn) openSignatureSettingsBtn.addEventListener('click', openSignatureModal);
-    if (closeSignatureModalBtn) closeSignatureModalBtn.addEventListener('click', closeSignatureModal);
+    if (closeSignatureModalBtn) closeSignatureModalBtn.addEventListener('click', () => closeSignatureModal());
 
     signatureSettingsModal.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -88,7 +118,8 @@
           return;
         }
 
-        saveSignatureBtn.disabled = true;
+        saveSignatureBtn.style.pointerEvents = 'none';
+        saveSignatureBtn.style.opacity = '0.8';
         saveSignatureBtn.textContent = 'Saving...';
 
         try {
@@ -107,13 +138,15 @@
               throw new Error(data.error || 'Failed to save settings');
             }
           }
-          if (global.showToast) {
-            global.showToast('Signature settings saved successfully!', 'success');
-          }
-          closeSignatureModal();
+          closeSignatureModal(() => {
+            if (global.showToast) {
+              global.showToast('Signature settings saved successfully!', 'success');
+            }
+          });
         } catch (err) {
           alert(err.message || 'An error occurred while saving.');
-        } finally {
+          saveSignatureBtn.style.pointerEvents = 'auto';
+          saveSignatureBtn.style.opacity = '1';
           saveSignatureBtn.disabled = false;
           saveSignatureBtn.innerHTML = '<i data-lucide="check" style="width: 18px; height: 18px;"></i>Save Settings';
           if (global.lucide && typeof global.lucide.createIcons === 'function') {

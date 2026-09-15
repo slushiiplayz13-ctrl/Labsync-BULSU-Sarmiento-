@@ -47,8 +47,19 @@
   --badge-completed-border: #A7F3D0;
 }
 
+/* Responsive Root Tokens (<= 1024px) */
+@media (max-width: 1024px) {
+  :root {
+    --header-height: 70px;
+  }
+}
+
 /* Accessibility: High Contrast Dark Mode */
-html.high-contrast {
+html.high-contrast,
+html.dark-mode,
+[data-theme="dark"] {
+  color-scheme: dark !important;
+  background-color: #111827 !important;
   --primary-teal: #00A3C4;
   --primary-teal-light: #1A2E35;
   --primary-teal-hover: #008EA6;
@@ -71,9 +82,15 @@ html.high-contrast {
 
 /* High Contrast Global UI Overrides */
 html.high-contrast,
-html.high-contrast body {
-  background: var(--bg-page) !important;
+html.high-contrast body,
+html.dark-mode,
+html.dark-mode body,
+[data-theme="dark"],
+[data-theme="dark"] body {
+  background: #111827 !important;
+  background-color: #111827 !important;
   color: var(--text-dark) !important;
+  color-scheme: dark !important;
 }
 
 html.high-contrast .sidebar,

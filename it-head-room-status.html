@@ -229,7 +229,7 @@
       <div class="greeting-row">
         <div class="greeting-left">
           <h1 class="greeting-title" id="greetingText">Room Status & Activity</h1>
-          <p class="greeting-sub" id="greetingSub">Monitor all laboratory rooms and recent activities across campus.</p>
+          <p class="greeting-sub" id="greetingSub">Monitor all IT laboratory rooms and recent activities.</p>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime"></div>
@@ -251,10 +251,36 @@
 
       <!-- Main Content Card -->
       <div class="dashboard-card">
+
+        <!-- Mobile/Tablet Workspace Tabs (<= 1024px) -->
+        <div class="roomstatus-mobile-tabs" id="roomStatusMobileTabs" role="tablist" aria-label="Room Status views">
+          <button
+            type="button"
+            class="roomstatus-tab-btn active"
+            data-tab="rooms"
+            role="tab"
+            aria-selected="true"
+            aria-controls="roomStatusCard">
+            <i data-lucide="monitor-dot"></i>
+            <span>Room Status</span>
+          </button>
+
+          <button
+            type="button"
+            class="roomstatus-tab-btn"
+            data-tab="activity"
+            role="tab"
+            aria-selected="false"
+            aria-controls="activityLogCard">
+            <i data-lucide="clock-4"></i>
+            <span>Activity Log</span>
+          </button>
+        </div>
+
         <div class="dashboard-main-grid">
 
           <!-- Left: Room Status -->
-          <div class="content-card">
+          <div class="content-card" id="roomStatusCard" role="tabpanel" aria-label="Room Status">
             <div class="section-header">
               <div class="sh-left">
                 <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
@@ -262,7 +288,6 @@
                 </div>
                 <div>
                   <h3>Room Status</h3>
-                  <p>Complete overview of all campus labs</p>
                 </div>
               </div>
               <div class="sh-legend">
@@ -301,7 +326,7 @@
 
           <!-- Right: Activity Log
                Room Status activity logs are retained for one year. Logs older than one year are automatically cleaned up to control database growth and maintain system performance. -->
-          <div class="content-card activity-log-card">
+          <div class="content-card activity-log-card" id="activityLogCard" role="tabpanel" aria-label="Activity Log">
             <div class="section-header">
               <div class="sh-left">
                 <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
@@ -309,7 +334,6 @@
                 </div>
                 <div>
                   <h3>Activity Log</h3>
-                  <p>Recent department room activities & events</p>
                 </div>
               </div>
             </div>
@@ -339,6 +363,57 @@
           </div>
 
         </div>
+
+        <!-- Mobile Tab Switching Controller -->
+        <script>
+          (function () {
+            function initRoomStatusMobileTabs() {
+              var tabsContainer = document.getElementById('roomStatusMobileTabs');
+              var grid = document.querySelector('.dashboard-main-grid');
+              if (!tabsContainer || !grid) return;
+
+              var tabButtons = tabsContainer.querySelectorAll('.roomstatus-tab-btn');
+              tabButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                  var targetTab = btn.getAttribute('data-tab');
+                  var isActivity = targetTab === 'activity';
+
+                  grid.classList.toggle('show-activity-tab', isActivity);
+
+                  tabButtons.forEach(function (b) {
+                    var isActive = b === btn;
+                    b.classList.toggle('active', isActive);
+                    b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                  });
+                });
+              });
+
+              // Keyboard arrow navigation between tabs (WAI-ARIA pattern)
+              tabsContainer.addEventListener('keydown', function (e) {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                  e.preventDefault();
+                  var btns = Array.prototype.slice.call(tabButtons);
+                  var idx = btns.indexOf(document.activeElement);
+                  if (idx !== -1) {
+                    var nextIdx = e.key === 'ArrowRight' ? (idx + 1) % btns.length : (idx - 1 + btns.length) % btns.length;
+                    btns[nextIdx].focus();
+                    btns[nextIdx].click();
+                  }
+                }
+              });
+
+              if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons({ root: tabsContainer });
+              }
+            }
+
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', initRoomStatusMobileTabs);
+            } else {
+              initRoomStatusMobileTabs();
+            }
+          })();
+        </script>
       </div>
     </main>
   </div>

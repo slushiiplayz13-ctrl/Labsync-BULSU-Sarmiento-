@@ -127,6 +127,89 @@
     if (filterModule && typeof filterModule.initLegendFilter === 'function') {
       filterModule.initLegendFilter(container);
     }
+
+    initScheduleDayTabs(container, schedules);
+  }
+
+  /**
+   * Initializes mobile Day Tabs selector interactions and keyboard accessibility.
+   * @param {HTMLElement} container
+   * @param {Array} schedules
+   */
+  function initScheduleDayTabs(container, schedules) {
+    if (!container) return;
+    const tabsBar = container.querySelector('.schedule-day-tabs');
+    const colsContainer = container.querySelector('.schedule-columns');
+    if (!tabsBar || !colsContainer) return;
+
+    const tabBtns = Array.from(tabsBar.querySelectorAll('.schedule-day-tab-btn'));
+    const dayCols = Array.from(colsContainer.querySelectorAll('.day-column'));
+    if (tabBtns.length === 0 || dayCols.length === 0) return;
+
+    const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    const scheduledDays = new Set((schedules || []).map(s => s.Day_of_Week));
+
+    // Determine initial active day:
+    // 1. Today if it has scheduled classes
+    // 2. Otherwise, first day that has scheduled classes
+    // 3. Otherwise, today if present
+    // 4. Otherwise, first available day tab
+    let initialDay = null;
+    const todayTab = tabBtns.find(b => b.dataset.day === todayName);
+    const firstDayWithClasses = tabBtns.find(b => scheduledDays.has(b.dataset.day));
+
+    if (todayTab && scheduledDays.has(todayName)) {
+      initialDay = todayName;
+    } else if (firstDayWithClasses) {
+      initialDay = firstDayWithClasses.dataset.day;
+    } else if (todayTab) {
+      initialDay = todayName;
+    } else {
+      initialDay = tabBtns[0].dataset.day;
+    }
+
+    function switchActiveDay(targetDay) {
+      if (!targetDay) return;
+      tabBtns.forEach(btn => {
+        const isMatch = btn.dataset.day === targetDay;
+        btn.classList.toggle('active', isMatch);
+        btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+        btn.setAttribute('tabindex', isMatch ? '0' : '-1');
+      });
+
+      colsContainer.dataset.activeDay = targetDay;
+
+      dayCols.forEach(col => {
+        const isMatch = col.dataset.day === targetDay;
+        col.classList.toggle('is-active-day', isMatch);
+      });
+    }
+
+    switchActiveDay(initialDay);
+
+    tabBtns.forEach((btn, idx) => {
+      btn.addEventListener('click', () => {
+        switchActiveDay(btn.dataset.day);
+      });
+
+      btn.addEventListener('keydown', (e) => {
+        let targetIdx = -1;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          targetIdx = (idx + 1) % tabBtns.length;
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          targetIdx = (idx - 1 + tabBtns.length) % tabBtns.length;
+        } else if (e.key === 'Home') {
+          targetIdx = 0;
+        } else if (e.key === 'End') {
+          targetIdx = tabBtns.length - 1;
+        }
+        if (targetIdx >= 0) {
+          e.preventDefault();
+          tabBtns[targetIdx].focus();
+          switchActiveDay(tabBtns[targetIdx].dataset.day);
+        }
+      });
+    });
   }
 
   /**

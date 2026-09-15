@@ -1,5 +1,19 @@
+/* ─── Desktop Isolation: Mobile Workspace Tabs Hidden on Desktop (> 1024px) ─── */
+.ithead-mobile-tabs {
+  display: none !important;
+}
 
+.roomstatus-mobile-tabs {
+  display: none !important;
+}
 
+.schedule-day-tabs {
+  display: none !important;
+}
+
+.empty-day-state {
+  display: none !important;
+}
 
 /* ─── Desktop Window Resizing & Laptop Viewports (1025px to 1320px) ─── */
 @media (min-width: 1025px) and (max-width: 1320px) {
@@ -129,12 +143,15 @@
   .dashboard-main-grid .labs-grid {
     display: grid !important;
     height: auto !important;
-    min-height: auto !important;
-    max-height: none !important;
+    min-height: 280px !important;
+    max-height: 540px !important;
     flex: none !important;
-    overflow: visible !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
     grid-template-columns: repeat(auto-fill, minmax(275px, 1fr)) !important;
     gap: 14px !important;
+    padding-right: 4px !important;
   }
 
   .timeline-list,
@@ -144,6 +161,418 @@
     max-height: 520px !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* ─── Workspace Mobile/Tablet Tabs (<= 1024px) ─── */
+  /* Unified Container: Top Tab Header */
+  .ithead-mobile-tabs,
+  .roomstatus-mobile-tabs {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    background: var(--bg-white, #FFFFFF);
+    border: 1px solid var(--border-light, #E2E8F0);
+    border-bottom: 1px solid var(--border-light, #E2E8F0) !important;
+    border-top-left-radius: 18px !important;
+    border-top-right-radius: 18px !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    padding: 8px 10px;
+    margin-bottom: 0 !important;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: none !important;
+  }
+
+  /* Eliminate the 14px flexbox gap from .dashboard-overview so tabs and card fuse seamlessly */
+  body[data-page="it-head-dashboard"] .ithead-mobile-tabs {
+    margin-bottom: -14px !important;
+  }
+
+  .ithead-tab-btn,
+  .roomstatus-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-muted, #64748B);
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    min-height: 42px;
+    box-sizing: border-box;
+    text-decoration: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .ithead-tab-btn:active,
+  .roomstatus-tab-btn:active {
+    transform: scale(0.98);
+  }
+
+  .ithead-tab-btn i,
+  .ithead-tab-btn svg,
+  .roomstatus-tab-btn i,
+  .roomstatus-tab-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .ithead-tab-btn:hover:not(.active),
+  .roomstatus-tab-btn:hover:not(.active) {
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--text-dark, #0F172A);
+  }
+
+  .ithead-tab-btn.active,
+  .roomstatus-tab-btn.active {
+    background: var(--primary-teal-light, #E8F9FC);
+    color: var(--primary-teal, #1EBBD7);
+    font-weight: 700;
+    border-color: rgba(30, 187, 215, 0.25);
+    box-shadow: 0 1px 4px rgba(30, 187, 215, 0.12);
+  }
+
+  .ithead-tab-btn.active i,
+  .ithead-tab-btn.active svg,
+  .roomstatus-tab-btn.active i,
+  .roomstatus-tab-btn.active svg {
+    transform: scale(1.05);
+  }
+
+  .ithead-tab-btn:focus-visible,
+  .roomstatus-tab-btn:focus-visible {
+    outline: 2px solid var(--primary-teal, #1EBBD7);
+    outline-offset: 2px;
+  }
+
+  /* Dark mode and high contrast support for unified tab header */
+  html.dark-mode .ithead-mobile-tabs,
+  body.dark-mode .ithead-mobile-tabs,
+  html.high-contrast .ithead-mobile-tabs,
+  html.dark-mode .roomstatus-mobile-tabs,
+  body.dark-mode .roomstatus-mobile-tabs,
+  html.high-contrast .roomstatus-mobile-tabs {
+    background: #111827 !important;
+    border-color: rgba(51, 65, 85, 0.7) !important;
+    border-bottom-color: rgba(51, 65, 85, 0.7) !important;
+  }
+
+  html.dark-mode .ithead-tab-btn,
+  body.dark-mode .ithead-tab-btn,
+  html.high-contrast .ithead-tab-btn,
+  html.dark-mode .roomstatus-tab-btn,
+  body.dark-mode .roomstatus-tab-btn,
+  html.high-contrast .roomstatus-tab-btn {
+    color: #94A3B8;
+  }
+
+  html.dark-mode .ithead-tab-btn:hover:not(.active),
+  body.dark-mode .ithead-tab-btn:hover:not(.active),
+  html.high-contrast .ithead-tab-btn:hover:not(.active),
+  html.dark-mode .roomstatus-tab-btn:hover:not(.active),
+  body.dark-mode .roomstatus-tab-btn:hover:not(.active),
+  html.high-contrast .roomstatus-tab-btn:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.05);
+    color: #F8FAFC;
+  }
+
+  html.dark-mode .ithead-tab-btn.active,
+  body.dark-mode .ithead-tab-btn.active,
+  html.high-contrast .ithead-tab-btn.active,
+  html.dark-mode .roomstatus-tab-btn.active,
+  body.dark-mode .roomstatus-tab-btn.active,
+  html.high-contrast .roomstatus-tab-btn.active {
+    background: #1e293b !important;
+    color: #38bdf8 !important;
+    border-color: rgba(56, 189, 248, 0.35) !important;
+    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.15) !important;
+  }
+
+  /* Unified Container: Fused content cards directly underneath tab header */
+  body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadLabsCard,
+  body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  body[data-page="room-status"] .dashboard-main-grid #roomStatusCard,
+  body[data-page="room-status"] .dashboard-main-grid #activityLogCard,
+  body[data-page="it-head-room-status"] .dashboard-main-grid #roomStatusCard,
+  body[data-page="it-head-room-status"] .dashboard-main-grid #activityLogCard {
+    border-top: none !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-left-radius: 18px !important;
+    border-bottom-right-radius: 18px !important;
+    margin-top: 0 !important;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+  }
+
+  html.dark-mode body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadLabsCard,
+  body.dark-mode body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadLabsCard,
+  html.high-contrast body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadLabsCard,
+  html.dark-mode body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  body.dark-mode body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  html.high-contrast body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  html.dark-mode body[data-page="room-status"] .dashboard-main-grid #roomStatusCard,
+  body.dark-mode body[data-page="room-status"] .dashboard-main-grid #roomStatusCard,
+  html.high-contrast body[data-page="room-status"] .dashboard-main-grid #roomStatusCard,
+  html.dark-mode body[data-page="room-status"] .dashboard-main-grid #activityLogCard,
+  body.dark-mode body[data-page="room-status"] .dashboard-main-grid #activityLogCard,
+  html.high-contrast body[data-page="room-status"] .dashboard-main-grid #activityLogCard,
+  html.dark-mode body[data-page="it-head-room-status"] .dashboard-main-grid #roomStatusCard,
+  body.dark-mode body[data-page="it-head-room-status"] .dashboard-main-grid #roomStatusCard,
+  html.high-contrast body[data-page="it-head-room-status"] .dashboard-main-grid #roomStatusCard,
+  html.dark-mode body[data-page="it-head-room-status"] .dashboard-main-grid #activityLogCard,
+  body.dark-mode body[data-page="it-head-room-status"] .dashboard-main-grid #activityLogCard,
+  html.high-contrast body[data-page="it-head-room-status"] .dashboard-main-grid #activityLogCard {
+    background: #111827 !important;
+    border-color: rgba(51, 65, 85, 0.7) !important;
+  }
+
+  /* Hide redundant inner container title & icon on mobile/tablet */
+  body[data-page="it-head-dashboard"] #itheadLabsCard .sh-left,
+  body[data-page="room-status"] #roomStatusCard .sh-left,
+  body[data-page="it-head-room-status"] #roomStatusCard .sh-left {
+    display: none !important;
+  }
+
+  body[data-page="it-head-dashboard"] #itheadScheduleCard .section-header,
+  body[data-page="room-status"] #activityLogCard .section-header,
+  body[data-page="it-head-room-status"] #activityLogCard .section-header {
+    display: none !important;
+  }
+
+  /* Clean borderless telemetry row for Available / Borrowed / In Session */
+  body[data-page="it-head-dashboard"] #itheadLabsCard .section-header,
+  body[data-page="room-status"] #roomStatusCard .section-header,
+  body[data-page="it-head-room-status"] #roomStatusCard .section-header {
+    margin-bottom: 6px !important;
+    padding: 0 !important;
+  }
+
+  body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend,
+  body[data-page="room-status"] #roomStatusCard .sh-legend,
+  body[data-page="it-head-room-status"] #roomStatusCard .sh-legend {
+    margin-left: 0 !important;
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    align-items: center !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 6px 0 10px 0 !important;
+    gap: 4px;
+  }
+
+  body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .legend-item,
+  body[data-page="room-status"] #roomStatusCard .sh-legend .legend-item,
+  body[data-page="it-head-room-status"] #roomStatusCard .sh-legend .legend-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-mid, #64748B);
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  html.dark-mode body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .legend-item,
+  body.dark-mode body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .legend-item,
+  html.high-contrast body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .legend-item,
+  html.dark-mode body[data-page="room-status"] #roomStatusCard .sh-legend .legend-item,
+  body.dark-mode body[data-page="room-status"] #roomStatusCard .sh-legend .legend-item,
+  html.high-contrast body[data-page="room-status"] #roomStatusCard .sh-legend .legend-item,
+  html.dark-mode body[data-page="it-head-room-status"] #roomStatusCard .sh-legend .legend-item,
+  body.dark-mode body[data-page="it-head-room-status"] #roomStatusCard .sh-legend .legend-item,
+  html.high-contrast body[data-page="it-head-room-status"] #roomStatusCard .sh-legend .legend-item {
+    color: #94A3B8 !important;
+  }
+
+  /* Status dot live telemetry glows */
+  body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .dot.green,
+  body[data-page="room-status"] #roomStatusCard .sh-legend .dot.green,
+  body[data-page="it-head-room-status"] #roomStatusCard .sh-legend .dot.green {
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+  }
+
+  body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .dot.orange,
+  body[data-page="room-status"] #roomStatusCard .sh-legend .dot.orange,
+  body[data-page="it-head-room-status"] #roomStatusCard .sh-legend .dot.orange {
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+  }
+
+  body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .dot.red,
+  body[data-page="room-status"] #roomStatusCard .sh-legend .dot.red,
+  body[data-page="it-head-room-status"] #roomStatusCard .sh-legend .dot.red {
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+  }
+
+  /* Department Head Mobile Tab Card Visibility Toggling */
+  body[data-page="it-head-dashboard"] .dashboard-main-grid:not(.show-schedule-tab) #itheadScheduleCard {
+    display: none !important;
+  }
+
+  body[data-page="it-head-dashboard"] .dashboard-main-grid.show-schedule-tab #itheadLabsCard {
+    display: none !important;
+  }
+
+  /* Room Status Mobile Tab Card Visibility Toggling (Faculty & Dept Head) */
+  body[data-page="room-status"] .dashboard-main-grid:not(.show-activity-tab) #activityLogCard,
+  body[data-page="it-head-room-status"] .dashboard-main-grid:not(.show-activity-tab) #activityLogCard {
+    display: none !important;
+  }
+
+  body[data-page="room-status"] .dashboard-main-grid.show-activity-tab #roomStatusCard,
+  body[data-page="it-head-room-status"] .dashboard-main-grid.show-activity-tab #roomStatusCard {
+    display: none !important;
+  }
+
+  /* Smooth tab switch transition */
+  body[data-page="it-head-dashboard"] .dashboard-main-grid.show-schedule-tab #itheadScheduleCard,
+  body[data-page="it-head-dashboard"] .dashboard-main-grid:not(.show-schedule-tab) #itheadLabsCard,
+  body[data-page="room-status"] .dashboard-main-grid.show-activity-tab #activityLogCard,
+  body[data-page="room-status"] .dashboard-main-grid:not(.show-activity-tab) #roomStatusCard,
+  body[data-page="it-head-room-status"] .dashboard-main-grid.show-activity-tab #activityLogCard,
+  body[data-page="it-head-room-status"] .dashboard-main-grid:not(.show-activity-tab) #roomStatusCard {
+    animation: itheadTabFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes itheadTabFadeIn {
+    from {
+      opacity: 0.7;
+      transform: translateY(4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ─── PC Reports Mobile/Tablet Card Expansion & Centered Empty State ─── */
+  body[data-page="pc-reports"] .page-content {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    min-height: calc(100dvh - 148px) !important;
+    min-height: calc(100vh - 148px) !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  body[data-page="pc-reports"] .dashboard-card {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 400px !important;
+    height: auto !important;
+    padding: 16px 14px 18px 14px !important;
+    box-sizing: border-box !important;
+  }
+
+  body[data-page="pc-reports"] .reports-controls {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  body[data-page="pc-reports"] .reports-controls .search-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  body[data-page="pc-reports"] .reports-controls .search-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  body[data-page="pc-reports"] #completedToggleContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  body[data-page="pc-reports"] .reports-controls .toggle-completed-btn {
+    width: 100% !important;
+    max-width: 100% !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+
+  body[data-page="pc-reports"] #dynamicReportsList {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  body[data-page="pc-reports"] #dynamicReportsList:has(> .ui-empty-state) {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  body[data-page="pc-reports"] #dynamicReportsList>.ui-empty-state,
+  body[data-page="pc-reports"] #dynamicReportsList .ui-empty-state {
+    flex: 1 !important;
+    height: 100% !important;
+    min-height: 350px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    margin: 0 !important;
+    padding: clamp(28px, 7vh, 52px) 18px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  body[data-page="pc-reports"] #dynamicReportsList .ui-empty-state .ui-empty-icon {
+    margin: 0 auto 14px auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  body[data-page="pc-reports"] #dynamicReportsList .ui-empty-state p {
+    text-align: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    max-width: 290px !important;
+    width: 100% !important;
+    line-height: 1.55 !important;
+    font-size: 13.5px !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
   }
 
 
@@ -188,6 +617,367 @@
     flex: 1 !important;
   }
 
+  /* ─── Mobile Schedule Day Tabs & Streamlined Controls (<= 1024px) ─── */
+  body[data-page="my-schedule"] .schedule-header,
+  body[data-page="it-head-my-schedule"] .schedule-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+    border-radius: 14px 14px 0 0 !important;
+  }
+
+  body[data-page="my-schedule"] .schedule-header>div:first-child,
+  body[data-page="it-head-my-schedule"] .schedule-header>div:first-child {
+    font-size: 14px !important;
+  }
+
+  body[data-page="my-schedule"] .schedule-selectors,
+  body[data-page="it-head-my-schedule"] .schedule-selectors {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  body[data-page="my-schedule"] .schedule-selectors .btn-schedule-studio,
+  body[data-page="it-head-my-schedule"] .schedule-selectors .btn-schedule-studio {
+    padding: 4px 10px !important;
+    font-size: 11.5px !important;
+    height: 32px !important;
+  }
+
+  body[data-page="my-schedule"] .schedule-selectors .header-select,
+  body[data-page="it-head-my-schedule"] .schedule-selectors .header-select {
+    width: auto !important;
+    min-width: 105px !important;
+  }
+
+  body[data-page="my-schedule"] #schedule-container,
+  body[data-page="it-head-my-schedule"] #schedule-container {
+    padding: 14px !important;
+    gap: 12px !important;
+  }
+
+  /* Compact Filter Bar */
+  body[data-page="my-schedule"] .schedule-filter-bar,
+  body[data-page="it-head-my-schedule"] .schedule-filter-bar {
+    padding: 8px 12px !important;
+    margin-bottom: 4px !important;
+    gap: 8px !important;
+    border-radius: 12px !important;
+  }
+
+  body[data-page="my-schedule"] .sf-badge,
+  body[data-page="it-head-my-schedule"] .sf-badge {
+    font-size: 11.5px !important;
+    padding: 3px 8px !important;
+  }
+
+  body[data-page="my-schedule"] .schedule-legend,
+  body[data-page="it-head-my-schedule"] .schedule-legend {
+    gap: 6px !important;
+  }
+
+  /* Day Tabs Pill Selector on Mobile */
+  .schedule-day-tabs {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    justify-content: space-between !important;
+    gap: 4px !important;
+    padding: 4px !important;
+    background: rgba(15, 23, 42, 0.45) !important;
+    border: 1px solid var(--border-light, rgba(226, 232, 240, 0.2)) !important;
+    border-radius: 14px !important;
+    margin-bottom: 8px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    user-select: none;
+  }
+
+  .schedule-day-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .schedule-day-tab-btn {
+    flex: 1 1 0;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 6px 3px !important;
+    border-radius: 10px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: var(--text-muted, #94a3b8) !important;
+    cursor: pointer;
+    font-family: var(--font-display, inherit);
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-sizing: border-box !important;
+  }
+
+  .schedule-day-tab-btn .day-tab-label {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    line-height: 1.1 !important;
+  }
+
+  .schedule-day-tab-btn .day-tab-indicator {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--primary-teal, #1ebbd7);
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+  }
+
+  .schedule-day-tab-btn .day-tab-today-badge {
+    font-size: 8px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.3px;
+    line-height: 1;
+    padding: 1.5px 3.5px;
+    border-radius: 3px;
+    background: rgba(30, 187, 215, 0.18);
+    color: var(--primary-teal, #1ebbd7);
+  }
+
+  .schedule-day-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-dark, #ffffff) !important;
+  }
+
+  .schedule-day-tab-btn.active {
+    background: var(--primary-teal, #1ebbd7) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 3px 10px rgba(30, 187, 215, 0.35) !important;
+  }
+
+  .schedule-day-tab-btn.active .day-tab-label {
+    color: #ffffff !important;
+  }
+
+  .schedule-day-tab-btn.active .day-tab-indicator {
+    background: #ffffff !important;
+  }
+
+  .schedule-day-tab-btn.active .day-tab-today-badge {
+    background: rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+  }
+
+  /* Single Day Column Display on Mobile */
+  body[data-page="my-schedule"] .schedule-columns .day-column,
+  body[data-page="it-head-my-schedule"] .schedule-columns .day-column {
+    display: none !important;
+  }
+
+  body[data-page="my-schedule"] .schedule-columns .day-column.is-active-day,
+  body[data-page="it-head-my-schedule"] .schedule-columns .day-column.is-active-day {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-height: 240px !important;
+    padding: 12px !important;
+    animation: scheduleDayFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes scheduleDayFadeIn {
+    from {
+      opacity: 0.65;
+      transform: translateY(4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Day Column Empty State Display on Mobile */
+  body[data-page="my-schedule"] .day-column.empty-day,
+  body[data-page="it-head-my-schedule"] .day-column.empty-day {
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    padding: 12px !important;
+    background: var(--bg-card, #ffffff) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 18px !important;
+    gap: 12px !important;
+    min-height: auto !important;
+  }
+
+  body[data-page="my-schedule"] .day-column.empty-day .day-header,
+  body[data-page="it-head-my-schedule"] .day-column.empty-day .day-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 38px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    font-size: clamp(11.5px, 0.9vw, 13px) !important;
+    font-weight: 800 !important;
+    color: var(--text-dark) !important;
+    background: var(--bg-white, #ffffff) !important;
+    border: 1px solid var(--border-light) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+    margin-bottom: 2px !important;
+  }
+
+  html.dark-mode body[data-page="my-schedule"] .day-column.empty-day,
+  html.dark-mode body[data-page="it-head-my-schedule"] .day-column.empty-day,
+  html.high-contrast body[data-page="my-schedule"] .day-column.empty-day,
+  html.high-contrast body[data-page="it-head-my-schedule"] .day-column.empty-day {
+    background: #111827 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  html.dark-mode body[data-page="my-schedule"] .day-column.empty-day .day-header,
+  html.dark-mode body[data-page="it-head-my-schedule"] .day-column.empty-day .day-header,
+  html.high-contrast body[data-page="my-schedule"] .day-column.empty-day .day-header,
+  html.high-contrast body[data-page="it-head-my-schedule"] .day-column.empty-day .day-header {
+    background: #1f2937 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+  }
+
+  body[data-page="my-schedule"] .day-column.empty-day .day-classes,
+  body[data-page="it-head-my-schedule"] .day-column.empty-day .day-classes {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    flex: none !important;
+  }
+
+  /* Suppress the old squished ::after string and desktop empty box when single-day tab is active */
+  body[data-page="my-schedule"] .day-column.empty-day::after,
+  body[data-page="it-head-my-schedule"] .day-column.empty-day::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  body[data-page="my-schedule"] .day-column.empty-day div.empty-day-box,
+  body[data-page="it-head-my-schedule"] .day-column.empty-day div.empty-day-box,
+  body[data-page="my-schedule"] .day-column.empty-day .empty-day-box,
+  body[data-page="it-head-my-schedule"] .day-column.empty-day .empty-day-box {
+    display: none !important;
+  }
+
+  body[data-page="my-schedule"] .day-column.empty-day div.empty-day-state,
+  body[data-page="it-head-my-schedule"] .day-column.empty-day div.empty-day-state {
+    display: flex !important;
+  }
+
+  body[data-page="my-schedule"] .day-column.empty-day div.empty-day-state-icon,
+  body[data-page="it-head-my-schedule"] .day-column.empty-day div.empty-day-state-icon {
+    display: inline-flex !important;
+  }
+
+  /* Blue Card Container Layout and Color for Empty Day State on Mobile (matches Monday card) */
+  .empty-day-state {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    text-align: left !important;
+    padding: 14px !important;
+    gap: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 14px !important;
+    background: linear-gradient(135deg, #1D4ED8 0%, #1E3A8A 100%) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12) !important;
+    color: #ffffff !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    position: relative !important;
+    overflow: hidden !important;
+    min-height: auto !important;
+    height: auto !important;
+    flex: none !important;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .empty-day-state-icon {
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 4px 8px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    gap: 6px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    box-sizing: border-box !important;
+    box-shadow: none !important;
+  }
+
+  .empty-day-state-icon i,
+  .empty-day-state-icon svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .empty-day-title {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    font-family: var(--font-display, 'Poppins', sans-serif) !important;
+    line-height: 1.3 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    text-align: left !important;
+  }
+
+  .empty-day-subtitle {
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    line-height: 1.4 !important;
+    font-family: var(--font-body, 'Inter', sans-serif) !important;
+    text-align: left !important;
+  }
+
+  /* Light mode adjustments for Day Tabs */
+  html:not(.dark-mode):not(.high-contrast) .schedule-day-tabs {
+    background: #F1F5F9 !important;
+    border-color: #E2E8F0 !important;
+  }
+
+  html:not(.dark-mode):not(.high-contrast) .schedule-day-tab-btn {
+    color: #64748B !important;
+  }
+
+  html:not(.dark-mode):not(.high-contrast) .schedule-day-tab-btn:hover {
+    background: #E2E8F0 !important;
+    color: #1E293B !important;
+  }
+
+  html:not(.dark-mode):not(.high-contrast) .empty-day-state {
+    background: linear-gradient(135deg, #1D4ED8 0%, #1E3A8A 100%) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    color: #ffffff !important;
+  }
+
 }
 
 /* ─── Mobile Viewports (Max Width: 767px) ───────────────────────────────── */
@@ -229,16 +1019,22 @@
     align-items: flex-start !important;
   }
 
-  .section-header > .sh-left,
+  .section-header>.sh-left {
+    width: 100% !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    align-self: flex-start !important;
+  }
+
   .card-section-title {
     width: 100% !important;
     text-align: left !important;
     justify-content: flex-start !important;
-    align-items: flex-start !important;
     align-self: flex-start !important;
   }
 
-  .section-header > .sh-right {
+  .section-header>.sh-right {
     margin-left: 0 !important;
     width: 100% !important;
   }
@@ -281,6 +1077,17 @@
   .content-card {
     padding: 14px 12px !important;
     border-radius: 14px !important;
+  }
+
+  body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadLabsCard,
+  body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  body[data-page="room-status"] .dashboard-main-grid #roomStatusCard,
+  body[data-page="room-status"] .dashboard-main-grid #activityLogCard,
+  body[data-page="it-head-room-status"] .dashboard-main-grid #roomStatusCard,
+  body[data-page="it-head-room-status"] .dashboard-main-grid #activityLogCard {
+    border-top: none !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
   }
 
 
@@ -341,3 +1148,22 @@
 
 
 }
+
+/* ─── Extra Small Mobile Viewports (Max Width: 380px) ─────────────── */
+@media (max-width: 380px) {
+
+  .ithead-tab-btn,
+  .roomstatus-tab-btn {
+    font-size: 12px !important;
+    gap: 5px !important;
+    padding: 10px 4px !important;
+  }
+
+  .ithead-tab-btn i,
+  .ithead-tab-btn svg,
+  .roomstatus-tab-btn i,
+  .roomstatus-tab-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+}

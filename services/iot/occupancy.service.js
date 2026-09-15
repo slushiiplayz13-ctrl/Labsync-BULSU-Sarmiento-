@@ -1,5 +1,6 @@
 'use strict';
 
+const db = require('../../database/connection');
 const iotRepository = require('../../repositories/iot.repository');
 const scheduleRepository = require('../../repositories/schedule.repository');
 const labRepository = require('../../repositories/laboratory.repository');
@@ -106,21 +107,61 @@ async function logOccupancy(reqBody = {}, device = null) {
 
         let claimUserId = null;
         let claimUserName = null;
+        let logUserId = null;
 
         if (keyEvent === 'Key Taken') {
             const claim = claimService.getValidClaim(roomNumber, now);
             if (claim) {
                 claimUserId = claim.userId;
                 claimUserName = claim.userName;
+            } else {
+                // Fallback: check if an instructor has scheduled class in this room right now
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const todayDay = days[now.getDay()];
+                const nowTime = now.toTimeString().split(' ')[0];
+                const [sched] = await db.query(
+                    `SELECT s.User_ID, u.Name FROM schedules s JOIN users u ON s.User_ID = u.User_ID 
+                     WHERE s.Room_ID = ? AND s.Day_of_Week = ? AND ? BETWEEN s.Start_Time AND s.End_Time LIMIT 1`,
+                    [room.Room_ID, todayDay, nowTime]
+                );
+                if (sched && sched.length > 0) {
+                    claimUserId = sched[0].User_ID;
+                    claimUserName = sched[0].Name;
+                } else {
+                    const [assigned] = await db.query(
+                        `SELECT s.User_ID, u.Name FROM schedules s JOIN users u ON s.User_ID = u.User_ID 
+                         WHERE s.Room_ID = ? ORDER BY s.Schedule_ID ASC LIMIT 1`,
+                        [room.Room_ID]
+                    );
+                    if (assigned && assigned.length > 0) {
+                        claimUserId = assigned[0].User_ID;
+                        claimUserName = assigned[0].Name;
+                    }
+                }
             }
+            logUserId = claimUserId;
         } else if (keyEvent === 'Key Returned') {
+            let returnUserId = room.Current_User_ID || null;
+            if (!returnUserId) {
+                const [lastTaken] = await db.query(
+                    `SELECT User_ID FROM occupancy_log 
+                     WHERE Room_ID = ? AND Auth_Method = 'Key Taken' AND User_ID IS NOT NULL 
+                     ORDER BY Access_Time DESC LIMIT 1`,
+                    [room.Room_ID]
+                );
+                if (lastTaken && lastTaken.length > 0) {
+                    returnUserId = lastTaken[0].User_ID;
+                }
+            }
             claimService.clearClaim(roomNumber);
+            claimUserId = null;
+            logUserId = returnUserId;
         }
 
         await iotRepository.withTransaction(async (connection) => {
             await labRepository.updateKeyStatus(room.Room_ID, status, claimUserId, connection);
             if (!isDuplicateState) {
-                await iotRepository.insertOccupancyLog(claimUserId, room.Room_ID, keyEvent, connection);
+                await iotRepository.insertOccupancyLog(logUserId, room.Room_ID, keyEvent, connection);
             }
         });
 

@@ -102,14 +102,18 @@
       importCurriculumModal.style.opacity = '0';
       importCurriculumModal.style.pointerEvents = 'none';
       const dialog = importCurriculumModal.querySelector('.modal-content');
-      if (dialog) dialog.style.transform = 'translateY(20px)';
-      if (global.setModalOpenState) global.setModalOpenState(false);
+      if (dialog) dialog.style.transform = 'translateY(15px)';
       setTimeout(() => {
         importCurriculumModal.style.display = 'none';
         importCurriculumModal.classList.remove('closing');
         importCurriculumModal.removeAttribute('data-closing');
-        if (global.setModalOpenState) global.setModalOpenState(null);
-      }, 300);
+        importCurriculumModal.scrollTop = 0;
+        if (dialog) dialog.style.transform = '';
+        if (global.setModalOpenState) {
+          global.setModalOpenState(false);
+          global.setModalOpenState(null);
+        }
+      }, 250);
     }
 
     if (openImportCurriculumBtn) openImportCurriculumBtn.addEventListener('click', openModal);

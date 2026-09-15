@@ -287,7 +287,7 @@ img[src*="bsu"] {
 /* ─── Tablet & Mobile Header Customization (Max Width: 1024px) ───── */
 @media (max-width: 1024px) {
   .header {
-    height: 70px;
+    height: 70px !important;
     padding-left: 16px;
     padding-right: 16px;
   }

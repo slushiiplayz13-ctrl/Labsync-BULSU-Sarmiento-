@@ -329,23 +329,27 @@ html.high-contrast .lab-card-back {
 
 /* ─── Laboratory Subcard Details, Timers & Legend Badges Component Styles ─── */
 .sh-legend {
-  display: flex;
+  display: inline-flex;
+  align-items: center;
   gap: 14px;
+  margin-left: auto;
 }
 
 .legend-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-mid);
+  white-space: nowrap;
 }
 
 .legend-item .dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .dot.green {

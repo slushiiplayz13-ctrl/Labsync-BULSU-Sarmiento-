@@ -69,7 +69,6 @@
    */
   function isModalElementVisible(el) {
     if (!el || !document.contains(el)) return false;
-    if (el.classList.contains('closing') || el.getAttribute('data-closing') === 'true') return false;
     if (el.style && (el.style.display === 'none' || el.style.visibility === 'hidden')) return false;
 
     if (typeof window !== 'undefined' && typeof window.getComputedStyle === 'function') {

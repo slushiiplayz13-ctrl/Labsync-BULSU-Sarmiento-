@@ -391,15 +391,40 @@
             </script>
           </div>
 
+          <!-- Mobile/Tablet Workspace Tabs (<= 1024px) -->
+          <div class="ithead-mobile-tabs" id="itheadMobileTabs" role="tablist" aria-label="Dashboard views">
+            <button
+              type="button"
+              class="ithead-tab-btn active"
+              data-tab="labs"
+              role="tab"
+              aria-selected="true"
+              aria-controls="itheadLabsCard">
+              <i data-lucide="monitor"></i>
+              <span>My Laboratories</span>
+            </button>
+
+            <button
+              type="button"
+              class="ithead-tab-btn"
+              data-tab="schedule"
+              role="tab"
+              aria-selected="false"
+              aria-controls="itheadScheduleCard">
+              <i data-lucide="calendar-days"></i>
+              <span>My Schedule</span>
+            </button>
+          </div>
+
           <!-- Main Grid -->
           <div class="dashboard-main-grid">
 
             <!-- Left: My Laboratories -->
-            <div class="content-card">
+            <div class="content-card" id="itheadLabsCard" role="tabpanel" aria-label="My Laboratories">
               <div class="section-header">
                 <div class="sh-left">
                   <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
-                    <i data-lucide="book-open" style="width:22px;height:22px;"></i>
+                    <i data-lucide="monitor" style="width:22px;height:22px;"></i>
                   </div>
                   <div>
                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -409,7 +434,6 @@
                         <i data-lucide="chevrons-up-down" style="width: 11px; height: 11px;"></i> Scrollable
                       </span>
                     </div>
-                    <p>Real-time room status</p>
                   </div>
                 </div>
                 <div class="sh-legend">
@@ -454,15 +478,14 @@
             </div>
 
             <!-- Right: My Schedule (Faculty View for Dept Head) -->
-            <div class="content-card">
+            <div class="content-card" id="itheadScheduleCard" role="tabpanel" aria-label="My Schedule">
               <div class="section-header">
                 <div class="sh-left">
-                  <div class="sh-icon" style="background:#E0F2FE;color:#0284C7;">
+                  <div class="sh-icon" style="background: #E8F9FC; color: #1EBBD7;">
                     <i data-lucide="calendar-days" style="width:22px;height:22px;"></i>
                   </div>
                   <div>
                     <h3>My Schedule</h3>
-                    <p>Today's classes</p>
                   </div>
                 </div>
               </div>
@@ -500,6 +523,57 @@
 
             </div>
           </div>
+
+          <!-- Mobile Tab Switching Controller -->
+          <script>
+            (function () {
+              function initITHeadMobileTabs() {
+                var tabsContainer = document.getElementById('itheadMobileTabs');
+                var grid = document.querySelector('.dashboard-main-grid');
+                if (!tabsContainer || !grid) return;
+
+                var tabButtons = tabsContainer.querySelectorAll('.ithead-tab-btn');
+                tabButtons.forEach(function (btn) {
+                  btn.addEventListener('click', function () {
+                    var targetTab = btn.getAttribute('data-tab');
+                    var isSchedule = targetTab === 'schedule';
+
+                    grid.classList.toggle('show-schedule-tab', isSchedule);
+
+                    tabButtons.forEach(function (b) {
+                      var isActive = b === btn;
+                      b.classList.toggle('active', isActive);
+                      b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                    });
+                  });
+                });
+
+                // Keyboard arrow navigation between tabs (WAI-ARIA pattern)
+                tabsContainer.addEventListener('keydown', function (e) {
+                  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    var btns = Array.prototype.slice.call(tabButtons);
+                    var idx = btns.indexOf(document.activeElement);
+                    if (idx !== -1) {
+                      var nextIdx = e.key === 'ArrowRight' ? (idx + 1) % btns.length : (idx - 1 + btns.length) % btns.length;
+                      btns[nextIdx].focus();
+                      btns[nextIdx].click();
+                    }
+                  }
+                });
+
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                  window.lucide.createIcons({ root: tabsContainer });
+                }
+              }
+
+              if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initITHeadMobileTabs);
+              } else {
+                initITHeadMobileTabs();
+              }
+            })();
+          </script>
 
         </div>
       </div>

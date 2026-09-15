@@ -99,6 +99,28 @@
         </div>
       </div>
 
+      <!-- Mobile-Only Day Tabs Pill Selector (<= 1024px) -->
+      <div class="schedule-day-tabs" role="tablist" aria-label="Schedule Day Selector">
+        ${daysToRender.map(day => {
+      const isToday = day === todayName;
+      const dayScheds = (schedules || []).filter(s => s.Day_of_Week === day);
+      const classCount = dayScheds.length;
+      const shortName = DAY_SHORT_NAMES[day] || day;
+      return `
+            <button type="button"
+                    class="schedule-day-tab-btn ${isToday ? 'is-today' : ''} ${classCount > 0 ? 'has-classes' : ''}"
+                    role="tab"
+                    data-day="${escapeHtml(day)}"
+                    aria-selected="false"
+                    title="${escapeHtml(day)}: ${classCount} class${classCount === 1 ? '' : 'es'}"
+                    aria-label="${escapeHtml(day)}${isToday ? ' (Today)' : ''}, ${classCount} class${classCount === 1 ? '' : 'es'}">
+              <span class="day-tab-label">${escapeHtml(shortName)}</span>
+              ${isToday ? `<span class="day-tab-today-badge">TODAY</span>` : ''}
+            </button>
+          `;
+    }).join('')}
+      </div>
+
       <!-- Schedule Day Columns -->
       <div class="schedule-columns" style="--schedule-cols: ${daysToRender.length};">
     `;
@@ -126,6 +148,14 @@
           <div class="empty-day-box">
             <i data-lucide="coffee"></i>
             <span>No classes</span>
+          </div>
+          <div class="empty-day-state">
+            <div class="empty-day-state-icon">
+              <i data-lucide="coffee"></i>
+              <span>Free Day</span>
+            </div>
+            <p class="empty-day-title">No classes scheduled for ${escapeHtml(day)}</p>
+            <p class="empty-day-subtitle">Enjoy your free day or prepare for upcoming classes.</p>
           </div>
         `;
       } else {

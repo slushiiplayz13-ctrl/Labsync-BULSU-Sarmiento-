@@ -36,14 +36,18 @@
       downloadModal.setAttribute('data-closing', 'true');
       downloadModal.style.opacity = '0';
       downloadModal.style.pointerEvents = 'none';
-      if (downloadModalContent) downloadModalContent.style.transform = 'translateY(20px)';
-      if (global.setModalOpenState) global.setModalOpenState(false);
+      if (downloadModalContent) downloadModalContent.style.transform = 'translateY(15px)';
       setTimeout(() => {
         downloadModal.style.display = 'none';
         downloadModal.classList.remove('closing');
         downloadModal.removeAttribute('data-closing');
-        if (global.setModalOpenState) global.setModalOpenState(null);
-      }, 300);
+        downloadModal.scrollTop = 0;
+        if (downloadModalContent) downloadModalContent.style.transform = '';
+        if (global.setModalOpenState) {
+          global.setModalOpenState(false);
+          global.setModalOpenState(null);
+        }
+      }, 250);
     }
 
     if (downloadAllSchedulesBtn) {

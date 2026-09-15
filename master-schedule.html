@@ -27,6 +27,8 @@
       const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
       if (savedContrast) {
         document.documentElement.classList.add('high-contrast');
+        document.documentElement.style.colorScheme = 'dark';
+        document.documentElement.style.backgroundColor = '#111827';
       }
     })();
   </script>
@@ -228,7 +230,7 @@
     </header>
 
     <!-- PAGE CONTENT -->
-    <main class="page-content" style="overflow-y: auto;">
+    <main class="page-content">
 
       <!-- Greeting + Clock Row -->
       <div class="greeting-row">
@@ -521,16 +523,16 @@
 
   <!-- Signature Settings Modal -->
   <div id="signatureSettingsModal"
-    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 2500; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.25s ease; padding: 20px; box-sizing: border-box; overflow-y: auto;">
     <div class="modal-content"
-      style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+      style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 420px; margin: auto; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(15px); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; box-sizing: border-box;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <div>
-          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display);">
+          <h2 style="font-size: 20px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display); margin: 0 0 4px 0;">
             Signature Settings</h2>
-          <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Update names for printed schedules</p>
+          <p style="font-size: 13px; color: var(--text-light); margin: 0;">Update names for printed schedules</p>
         </div>
-        <button id="closeSignatureModalBtn"
+        <button type="button" id="closeSignatureModalBtn"
           style="background: var(--bg-body); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-light); transition: all 0.2s;"
           onmouseover="this.style.background='#e2e8f0'; this.style.color='var(--text-dark)';"
           onmouseout="this.style.background='var(--bg-body)'; this.style.color='var(--text-light)';">
@@ -558,7 +560,7 @@
           onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
       </div>
 
-      <button id="saveSignatureBtn"
+      <button type="button" id="saveSignatureBtn"
         style="width: 100%; padding: 14px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
         onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(30, 187, 215, 0.45)';"
         onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(30, 187, 215, 0.35)';">
@@ -570,9 +572,9 @@
 
   <!-- Import Curriculum Modal -->
   <div id="importCurriculumModal"
-    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 2500; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.25s ease; padding: 20px; box-sizing: border-box; overflow-y: auto;">
     <div class="modal-content import-modal-content"
-      style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 720px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
+      style="background: var(--bg-white); padding: 32px; border-radius: 20px; width: 100%; max-width: 720px; max-height: 85vh; margin: auto; display: flex; flex-direction: column; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); transform: translateY(15px); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease; box-sizing: border-box;">
 
       <!-- Modal Header -->
       <div class="import-modal-header"

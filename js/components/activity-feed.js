@@ -38,23 +38,41 @@
     if (n.type === 'occupancy') {
       let titleText = '';
       const status = n.status || 'Access';
-      const hasUser = n.description && n.description !== 'Room Key';
+      let profName = (n.description && n.description !== 'Room Key') ? n.description : '';
+      if (!profName && n.room_number) {
+        try {
+          const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+          if (Array.isArray(cachedLabs)) {
+            const matched = cachedLabs.find(r => String(r.Room_Number).trim().toLowerCase() === String(n.room_number).trim().toLowerCase());
+            if (matched) {
+              profName = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
+            }
+          }
+        } catch (e) {}
+      }
+
+      const hasUser = !!profName;
       const profText = hasUser
-        ? (n.description.startsWith('Prof.') ? n.description : `Prof. ${n.description}`)
+        ? (profName.startsWith('Prof.') ? profName : `Prof. ${profName}`)
         : '';
+      const roomLabel = n.room_number ? `RM ${n.room_number}` : 'Room';
 
       if (status === 'Key Taken') {
         if (n.session_type === 'In Session') {
-          titleText = `Key taken by ${profText || 'Faculty'} (In Session)`;
-        } else if (n.session_type === 'Borrowed' || hasUser) {
-          titleText = `Key borrowed by ${profText || 'Faculty'}`;
+          titleText = profText
+            ? `Key taken for ${roomLabel} by ${profText} (In Session)`
+            : `Key taken for ${roomLabel} (In Session)`;
+        } else if (profText) {
+          titleText = `Key taken for ${roomLabel} by ${profText}`;
         } else {
-          titleText = `Key taken for Room ${n.room_number || 'N/A'}`;
+          titleText = `Key taken for ${roomLabel}`;
         }
       } else if (status === 'Key Returned') {
-        titleText = `Key returned for RM ${n.room_number || 'N/A'}`;
+        titleText = profText
+          ? `Key returned for ${roomLabel} by ${profText}`
+          : `Key returned for ${roomLabel}`;
       } else {
-        titleText = `Access verified for ${n.description || 'User'} in Room ${n.room_number || 'N/A'}`;
+        titleText = `Access verified for ${profText || n.description || 'User'} in ${roomLabel}`;
       }
 
       const badgeLabel = (status === 'Key Taken' && n.session_type) ? n.session_type : status;

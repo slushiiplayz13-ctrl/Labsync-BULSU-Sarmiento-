@@ -46,6 +46,20 @@
   transition: opacity 0.2s ease;
 }
 
+html.high-contrast #signatureSettingsModal,
+html.dark-mode #signatureSettingsModal,
+[data-theme="dark"] #signatureSettingsModal {
+  background: rgba(15, 23, 42, 0.75) !important;
+}
+
+html.high-contrast #signatureSettingsModal .modal-content,
+html.dark-mode #signatureSettingsModal .modal-content,
+[data-theme="dark"] #signatureSettingsModal .modal-content {
+  background: #111827 !important;
+  border: 1px solid var(--border-light, #374151) !important;
+  color: var(--text-dark, #F8FAFC) !important;
+}
+
 /* ─── Success Modal Overlay Guard (Default Hidden) ──────────────── */
 #success-modal,
 .success-overlay {
@@ -116,6 +130,51 @@
   pointer-events: auto !important;
 }
 
+/* ─── Modal Content Centering & Layout Safety (Prevents Top-Edge Clipping) ─── */
+#signatureSettingsModal .modal-content,
+#downloadModal .modal-content,
+#importCurriculumModal .modal-content {
+  margin: auto !important;
+  box-sizing: border-box !important;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ─── Closing State Overrides (Ensure Smooth Fade & Pointer-Events Guard) ─── */
+#signatureSettingsModal.closing,
+#signatureSettingsModal[data-closing="true"],
+#downloadModal.closing,
+#downloadModal[data-closing="true"],
+#importCurriculumModal.closing,
+#importCurriculumModal[data-closing="true"],
+#addRoomModal.closing,
+#addRoomModal[data-closing="true"],
+#editRoomModal.closing,
+#editRoomModal[data-closing="true"],
+.modal-backdrop.closing,
+.modal-backdrop[data-closing="true"] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+#signatureSettingsModal.closing .modal-content,
+#signatureSettingsModal[data-closing="true"] .modal-content,
+#downloadModal.closing .modal-content,
+#downloadModal[data-closing="true"] .modal-content,
+#importCurriculumModal.closing .modal-content,
+#importCurriculumModal[data-closing="true"] .modal-content,
+#addRoomModal.closing .modal-content,
+#addRoomModal[data-closing="true"] .modal-content,
+#editRoomModal.closing .modal-content,
+#editRoomModal[data-closing="true"] .modal-content,
+.modal-backdrop.closing .modal-content,
+.modal-backdrop[data-closing="true"] .modal-content {
+  opacity: 0 !important;
+  transform: translateY(15px) !important;
+  pointer-events: none !important;
+}
+
 /* ─── Nested Sub-Modals & Confirmation Layers ───────────────────── */
 #change-password-modal,
 #email-confirm-modal,
@@ -165,6 +224,7 @@ body.modal-open #toast-container {
 
 /* ─── Tablet & Mobile Viewports (Max Width: 1024px) ─────────────── */
 @media (max-width: 1024px) {
+
   /* Modals & Dialogs */
   .modal-container {
     width: 95% !important;
@@ -174,6 +234,7 @@ body.modal-open #toast-container {
 
 /* ─── Mobile Viewports (Max Width: 767px) ────────────────────────── */
 @media (max-width: 767px) {
+
   /* ── Account Settings Mobile Layout (Full Mobile Sheet Panel) ── */
   #account-settings-modal {
     padding: 0 !important;
@@ -212,7 +273,7 @@ body.modal-open #toast-container {
   }
 
   /* ── Header: Clear Hierarchy & Consistent Action ── */
-  #account-settings-modal .settings-modal-content-box > div:first-child {
+  #account-settings-modal .settings-modal-content-box>div:first-child {
     padding: 16px 20px !important;
     background: var(--bg-white, #FFFFFF) !important;
     border-bottom: 1px solid var(--border-light) !important;
@@ -223,7 +284,7 @@ body.modal-open #toast-container {
     box-sizing: border-box !important;
   }
 
-  #account-settings-modal .settings-modal-content-box > div:first-child h2 {
+  #account-settings-modal .settings-modal-content-box>div:first-child h2 {
     font-size: 19px !important;
     font-weight: 700 !important;
     font-family: var(--font-display) !important;
@@ -232,7 +293,7 @@ body.modal-open #toast-container {
     line-height: 1.25 !important;
   }
 
-  #account-settings-modal .settings-modal-content-box > div:first-child p {
+  #account-settings-modal .settings-modal-content-box>div:first-child p {
     font-size: 12.5px !important;
     color: var(--text-muted) !important;
     margin: 0 !important;
@@ -397,7 +458,7 @@ body.modal-open #toast-container {
     margin: 0 !important;
   }
 
-  .settings-tab-panel > div:first-of-type {
+  .settings-tab-panel>div:first-of-type {
     margin-bottom: 18px !important;
   }
 
@@ -486,7 +547,7 @@ body.modal-open #toast-container {
     box-shadow: 0 6px 18px rgba(30, 187, 215, 0.25) !important;
   }
 
-  #profile-photo-preview + input + button {
+  #profile-photo-preview+input+button {
     padding: 9px 20px !important;
     font-size: 13px !important;
     font-weight: 600 !important;
@@ -591,7 +652,7 @@ body.modal-open #toast-container {
   }
 
   /* ── Modal Footer: Action Bar ── */
-  #account-settings-form > div:last-child {
+  #account-settings-form>div:last-child {
     padding: 14px 16px !important;
     flex-direction: column !important;
     gap: 10px !important;
@@ -602,7 +663,7 @@ body.modal-open #toast-container {
     box-sizing: border-box !important;
   }
 
-  html.high-contrast #account-settings-form > div:last-child {
+  html.high-contrast #account-settings-form>div:last-child {
     background: #1e293b !important;
     border-color: #374151 !important;
   }
@@ -615,8 +676,8 @@ body.modal-open #toast-container {
     line-height: 1.3 !important;
   }
 
-  #account-settings-form > div:last-child > div[style*="display:flex"],
-  #account-settings-form > div:last-child > div[style*="display: flex"] {
+  #account-settings-form>div:last-child>div[style*="display:flex"],
+  #account-settings-form>div:last-child>div[style*="display: flex"] {
     display: flex !important;
     width: 100% !important;
     gap: 10px !important;
@@ -673,7 +734,7 @@ body.modal-open #toast-container {
     padding: 12px !important;
   }
 
-  #change-password-modal > div {
+  #change-password-modal>div {
     max-width: 100% !important;
     width: 100% !important;
     padding: 20px 14px !important;
@@ -681,8 +742,8 @@ body.modal-open #toast-container {
     box-sizing: border-box !important;
   }
 
-  #change-password-form > div[style*="justify-content:flex-end"],
-  #change-password-form > div[style*="justify-content: flex-end"] {
+  #change-password-form>div[style*="justify-content:flex-end"],
+  #change-password-form>div[style*="justify-content: flex-end"] {
     display: flex !important;
     width: 100% !important;
     gap: 8px !important;
@@ -737,11 +798,11 @@ body.modal-open #toast-container {
 
 /* ─── Ultra-Narrow Mobile Viewports (Max Width: 340px) ───────────── */
 @media (max-width: 340px) {
-  #account-settings-modal .settings-modal-content-box > div:first-child {
+  #account-settings-modal .settings-modal-content-box>div:first-child {
     padding: 12px 14px !important;
   }
 
-  #account-settings-modal .settings-modal-content-box > div:first-child h2 {
+  #account-settings-modal .settings-modal-content-box>div:first-child h2 {
     font-size: 16.5px !important;
   }
 
@@ -789,7 +850,7 @@ body.modal-open #toast-container {
     padding: 10px !important;
   }
 
-  #account-settings-form > div:last-child {
+  #account-settings-form>div:last-child {
     padding: 10px 12px !important;
     gap: 8px !important;
   }
@@ -896,6 +957,7 @@ body.modal-open #toast-container {
 
 /* ─── Compact Mobile Landscape Viewports (Max Height: 500px) ─────── */
 @media (max-height: 500px) and (orientation: landscape) and (max-width: 1024px) {
+
   .modal-container,
   .modal-content,
   .settings-modal-content-box,
@@ -1247,4 +1309,4 @@ body.high-contrast .btn-ticket-modal-close:hover,
     border-radius: 12px !important;
     font-size: 12.5px !important;
   }
-}
+}

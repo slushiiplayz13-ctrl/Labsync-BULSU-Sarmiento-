@@ -148,27 +148,46 @@
 
     container.innerHTML = occupancyOnly.map(log => {
       let activityText = '';
-      const hasUser = log.description && log.description !== 'Room Key';
+      let profName = (log.description && log.description !== 'Room Key') ? log.description : '';
+      if (!profName && log.room_number) {
+        try {
+          const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+          if (Array.isArray(cachedLabs)) {
+            const matched = cachedLabs.find(r => String(r.Room_Number).trim().toLowerCase() === String(log.room_number).trim().toLowerCase());
+            if (matched) {
+              profName = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
+            }
+          }
+        } catch (e) {}
+      }
+
+      const hasUser = !!profName;
       const profText = hasUser
-        ? (log.description.startsWith('Prof.') ? log.description : `Prof. ${log.description}`)
+        ? (profName.startsWith('Prof.') ? profName : `Prof. ${profName}`)
         : '';
+      const roomLabel = log.room_number ? `RM ${log.room_number}` : 'Room';
 
       if (log.status === 'Key Taken') {
         if (log.session_type === 'In Session') {
-          activityText = `Key taken by ${profText || 'Faculty'} (In Session)`;
-        } else if (log.session_type === 'Borrowed' || hasUser) {
-          activityText = `Key borrowed by ${profText || 'Faculty'}`;
+          activityText = profText
+            ? `Key taken for ${roomLabel} by ${profText} (In Session)`
+            : `Key taken for ${roomLabel} (In Session)`;
+        } else if (profText) {
+          activityText = `Key taken for ${roomLabel} by ${profText}`;
         } else {
-          activityText = `Key taken for RM ${log.room_number || ''}`;
+          activityText = `Key taken for ${roomLabel}`;
         }
       } else if (log.status === 'Key Returned') {
-        activityText = `Key returned for RM ${log.room_number || ''}`;
+        activityText = profText
+          ? `Key returned for ${roomLabel} by ${profText}`
+          : `Key returned for ${roomLabel}`;
       } else {
-        activityText = `QR Code verified for ${log.description || 'User'} (Awaiting key retrieval).`;
+        activityText = `QR Code verified for ${profText || log.description || 'User'} (Awaiting key retrieval).`;
       }
 
-      const titleText = log.description && log.description !== 'Room Key' ? log.description : 'Room Key';
-      const detailText = log.detail || 'System';
+      const titleText = profText || (log.room_number ? `RM ${log.room_number} Key` : 'Room Key');
+      const detailText = log.detail || (hasUser ? 'Faculty' : 'System');
+      const metaRoom = log.room_number ? ` • ${roomLabel}` : '';
       const relTime = getRelativeTime(log.time);
 
       return `
@@ -183,7 +202,7 @@
                 <i data-lucide="clock"></i>
                 <span>${relTime}</span>
                 <span style="color:var(--border-light, #cbd5e1);">•</span>
-                <span>${detailText}</span>
+                <span>${detailText}${metaRoom}</span>
               </p>
             </div>
             <div class="timeline-body">
