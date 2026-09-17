@@ -151,6 +151,24 @@
   async function loadOjtAccounts() {
     if (!tbodyEl) return;
 
+    if (typeof tbodyEl.closest === 'function') {
+      tbodyEl.closest('.ojt-table')?.classList.add('is-empty');
+      tbodyEl.closest('.ojt-table-wrap')?.classList.add('is-empty');
+    }
+    tbodyEl.innerHTML = `
+      <tr class="empty-table-row">
+        <td colspan="5" class="empty-table-cell" style="padding: 48px 20px; text-align: center; color: var(--text-muted);">
+          <div class="ojt-empty-state" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin: auto;">
+            <i data-lucide="loader" style="width: 24px; height: 24px; animation: spin 1s linear infinite; color: var(--primary-teal);"></i>
+            <span>Loading OJT intern accounts...</span>
+          </div>
+        </td>
+      </tr>
+    `;
+    if (global.lucide && typeof global.lucide.createIcons === 'function') {
+      global.lucide.createIcons({ root: tbodyEl });
+    }
+
     try {
       const response = await fetch('/api/ojt', {
         credentials: 'include'
@@ -250,12 +268,18 @@
       return;
     }
 
+    if (typeof tbodyEl.closest === 'function') {
+      tbodyEl.closest('.ojt-table')?.classList.remove('is-empty');
+      tbodyEl.closest('.ojt-table-wrap')?.classList.remove('is-empty');
+    }
+
     let html = '';
     filtered.forEach(u => {
       const derived = getOjtDerivedStatus(u);
       const name = u.Name || u.name || 'Unnamed Intern';
       const email = u.Email || u.email || '—';
       const phone = u.Phone || u.phone || '';
+      const photo = u.Profile_Photo || u.profilePhoto || '';
       const rawStart = u.OJT_Start_Date || u.startDate;
       const rawEnd = u.OJT_End_Date || u.endDate;
       const startDisplay = formatOjtDate(rawStart);
@@ -263,6 +287,10 @@
       const userId = u.User_ID || u.userId || u.id;
       const initials = getInitials(name);
       const daysRemaining = getDaysRemaining(rawEnd);
+
+      const avatarContent = photo
+        ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(name)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" onerror="this.onerror=null;this.parentElement.textContent='${escapeHtml(initials)}';">`
+        : escapeHtml(initials);
 
       // Status badge markup
       let statusBadge = '';
@@ -275,7 +303,7 @@
       } else if (derived === 'EXPIRED') {
         statusBadge = '<span class="badge orange" style="background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.45); color: #B45309;" title="Derived state: Internship end date elapsed"><i data-lucide="calendar-x" style="width:11px;height:11px;margin-right:3px;"></i>Expired</span>';
       } else {
-        statusBadge = '<span class="badge gray" title="Account access suspended"><i data-lucide="slash" style="width:11px;height:11px;margin-right:3px;"></i>Deactivated</span>';
+        statusBadge = '<span class="badge gray" title="Account access suspended">Deactivated</span>';
       }
 
       // Period indicator pill
@@ -293,7 +321,7 @@
       } else if (derived === 'EXPIRED') {
         periodMeta = '<span class="ojt-period-badge expired"><i data-lucide="alert-circle" style="width:12px;height:12px;"></i> Internship Concluded</span>';
       } else {
-        periodMeta = '<span class="ojt-period-badge deactivated"><i data-lucide="slash" style="width:12px;height:12px;"></i> Inactive Record</span>';
+        periodMeta = '<span class="ojt-period-badge deactivated">Inactive Record</span>';
       }
 
       // Status Action button (Activate vs Deactivate)
@@ -319,7 +347,7 @@
           <!-- Intern Column -->
           <td>
             <div class="ojt-intern-cell">
-              <div class="ojt-avatar">${escapeHtml(initials)}</div>
+              <div class="ojt-avatar">${avatarContent}</div>
               <div>
                 <div class="ojt-name">${escapeHtml(name)}</div>
                 <div class="ojt-sub">${phone ? escapeHtml(phone) : 'OJT Intern'}</div>
@@ -389,18 +417,18 @@
 
     if (isSearching || isFiltered) {
       message = 'No OJT accounts match your current filter or search criteria.';
-      actionBtn = `
-        <button type="button" class="btn-tbl-action" onclick="window.ojtManager.clearFilters()" style="margin-top: 6px;">
-          <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
-          <span>Reset Filters</span>
-        </button>
-      `;
+      actionBtn = '';
+    }
+
+    if (typeof tbodyEl.closest === 'function') {
+      tbodyEl.closest('.ojt-table')?.classList.add('is-empty');
+      tbodyEl.closest('.ojt-table-wrap')?.classList.add('is-empty');
     }
 
     tbodyEl.innerHTML = `
-      <tr>
-        <td colspan="5" style="padding: 64px 20px; text-align: center;">
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 360px; margin: 0 auto; color: var(--text-mid);">
+      <tr class="empty-table-row">
+        <td colspan="5" class="empty-table-cell" style="padding: 64px 20px; text-align: center;">
+          <div class="ojt-empty-state" style="display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 360px; margin: auto; color: var(--text-mid); text-align: center;">
             <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(30, 187, 215, 0.1); color: var(--primary-teal); display: flex; align-items: center; justify-content: center;">
               <i data-lucide="users" style="width: 24px; height: 24px;"></i>
             </div>
@@ -422,10 +450,16 @@
    */
   function renderErrorState(errorMsg) {
     if (!tbodyEl) return;
+
+    if (typeof tbodyEl.closest === 'function') {
+      tbodyEl.closest('.ojt-table')?.classList.add('is-empty');
+      tbodyEl.closest('.ojt-table-wrap')?.classList.add('is-empty');
+    }
+
     tbodyEl.innerHTML = `
-      <tr>
-        <td colspan="5" style="padding: 64px 20px; text-align: center;">
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 360px; margin: 0 auto; color: var(--text-mid);">
+      <tr class="empty-table-row">
+        <td colspan="5" class="empty-table-cell" style="padding: 64px 20px; text-align: center;">
+          <div class="ojt-empty-state" style="display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 360px; margin: auto; color: var(--text-mid); text-align: center;">
             <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(239, 68, 68, 0.1); color: #EF4444; display: flex; align-items: center; justify-content: center;">
               <i data-lucide="alert-triangle" style="width: 24px; height: 24px;"></i>
             </div>
@@ -469,6 +503,9 @@
     if (!modal) return;
     modal.classList.remove('active');
     if (global.setModalOpenState) global.setModalOpenState(false);
+    if (window.LabSyncDatePicker && typeof window.LabSyncDatePicker.close === 'function') {
+      window.LabSyncDatePicker.close();
+    }
   }
 
   // ---------------------------------------------------------------------------

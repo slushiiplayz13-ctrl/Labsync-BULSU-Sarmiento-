@@ -23,13 +23,23 @@
         const response = await fetch('/api/user/current', { credentials: 'include' });
         if (response.ok) user = await response.json();
       }
-      if (user) userRole = user.role || 'Faculty';
+      if (user) userRole = user.role || user.Role || 'Faculty';
     } catch (error) {
       console.error('[HelpModal] Error fetching user role:', error);
     }
 
-    const isMis = userRole === 'MIS Staff' || page.startsWith('mis-');
-    const isItHead = (userRole && userRole.toLowerCase().includes('head')) || page.startsWith('it-head-') || page === 'master-schedule.html' || page === 'faculty-management.html' || page === 'room-schedule-editor.html';
+    if (userRole === 'Faculty') {
+      try {
+        const cached = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || 'null');
+        const u = cached && (cached.user || cached);
+        if (u && (u.role || u.Role)) userRole = u.role || u.Role;
+      } catch (e) {}
+    }
+
+    const normRole = (userRole || '').trim().toLowerCase();
+    const isOjt = normRole === 'ojt' || normRole.includes('ojt');
+    const isItHead = !isOjt && (normRole.includes('head') || page.startsWith('it-head-') || page === 'master-schedule.html' || page === 'faculty-management.html' || page === 'room-schedule-editor.html');
+    const isMis = !isOjt && (userRole === 'MIS Staff' || normRole.includes('mis') || page.startsWith('mis-'));
 
     const existing = document.getElementById('help-modal');
     if (existing) existing.remove();
@@ -41,7 +51,66 @@
     let quickStartHTML = '';
     let featuresHTML = '';
 
-    if (isMis) {
+    if (isOjt) {
+      quickStartHTML = `
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-teal">
+              <i data-lucide="layout-dashboard"></i>
+            </div>
+            <div class="help-qs-title">Dashboard</div>
+          </div>
+          <p class="help-qs-text">Monitor overall computer lab status, view active work orders, and review recent maintenance activities across assigned labs.</p>
+        </div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-red">
+              <i data-lucide="wrench"></i>
+            </div>
+            <div class="help-qs-title">Maintenance Tracker</div>
+          </div>
+          <p class="help-qs-text">Review assigned PC issue tickets, update diagnostic progress (In Progress, Resolved), and log hardware or software repairs.</p>
+        </div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
+            <div class="help-qs-icon theme-blue">
+              <i data-lucide="clipboard-list"></i>
+            </div>
+            <div class="help-qs-title">Issue Monitoring</div>
+          </div>
+          <p class="help-qs-text">Track reported computer issues, verify hardware faults, and inspect activity logs for laboratory workstations.</p>
+        </div>`;
+
+      featuresHTML = `
+        <div class="help-feature-card theme-blue">
+          <div class="help-feat-title">
+            <i data-lucide="wrench"></i>
+            Ticket Diagnostic Tracking
+          </div>
+          <p class="help-feat-desc">Record diagnostic findings and update ticket progress in real time as you inspect laboratory workstations.</p>
+        </div>
+        <div class="help-feature-card theme-green">
+          <div class="help-feat-title">
+            <i data-lucide="check-circle-2"></i>
+            1-Click Ticket Resolution
+          </div>
+          <p class="help-feat-desc">Resolving a ticket updates the work order and restores the PC unit to Functional condition in the laboratory.</p>
+        </div>
+        <div class="help-feature-card theme-indigo">
+          <div class="help-feat-title">
+            <i data-lucide="bell"></i>
+            Live Issue Notifications
+          </div>
+          <p class="help-feat-desc">Receive immediate alerts when faculty or students submit new laboratory computer issue reports.</p>
+        </div>
+        <div class="help-feature-card theme-amber">
+          <div class="help-feat-title">
+            <i data-lucide="file-text"></i>
+            Technical & Safety Guidance
+          </div>
+          <p class="help-feat-desc">Access standard operating procedures and laboratory safety guidelines for all hardware servicing tasks.</p>
+        </div>`;
+    } else if (isMis) {
       quickStartHTML = `
         <div class="help-qs-card">
           <div class="help-qs-header">
@@ -63,6 +132,15 @@
         </div>
         <div class="help-qs-card">
           <div class="help-qs-header">
+            <div class="help-qs-icon theme-blue">
+              <i data-lucide="qr-code"></i>
+            </div>
+            <div class="help-qs-title">PC & QR Management</div>
+          </div>
+          <p class="help-qs-text">Add or delete workstation units, inspect room-by-room lab health, and generate printable QR code stickers.</p>
+        </div>
+        <div class="help-qs-card">
+          <div class="help-qs-header">
             <div class="help-qs-icon theme-purple">
               <i data-lucide="key-round"></i>
             </div>
@@ -72,12 +150,12 @@
         </div>
         <div class="help-qs-card">
           <div class="help-qs-header">
-            <div class="help-qs-icon theme-blue">
-              <i data-lucide="qr-code"></i>
+            <div class="help-qs-icon theme-green">
+              <i data-lucide="user-cog"></i>
             </div>
-            <div class="help-qs-title">PC & QR Management</div>
+            <div class="help-qs-title">OJT Intern Management</div>
           </div>
-          <p class="help-qs-text">Add or delete workstation units, inspect room-by-room lab health, and generate printable QR code stickers.</p>
+          <p class="help-qs-text">Register student interns, track active and expiring internship periods, generate temporary login credentials, and handle password resets.</p>
         </div>`;
 
       featuresHTML = `
@@ -101,6 +179,13 @@
             1-Click Ticket Repair
           </div>
           <p class="help-feat-desc">Resolving a ticket updates the work order and restores the PC unit to Functional condition in the database.</p>
+        </div>
+        <div class="help-feature-card theme-green">
+          <div class="help-feat-title">
+            <i data-lucide="user-cog"></i>
+            OJT Lifecycle & Credentials
+          </div>
+          <p class="help-feat-desc">Automatic expiration tracking with 7-day warning alerts, secure temporary password generation, 1-click password resets, and account deactivation.</p>
         </div>
         <div class="help-feature-card theme-amber">
           <div class="help-feat-title">

@@ -708,7 +708,7 @@ body[data-page="it-head-my-schedule"] #schedule-container::-webkit-scrollbar,
   body[data-page="it-head-dashboard"] .dashboard-card,
   body[data-page="mis-dashboard"] .dashboard-card {
     overflow: hidden !important;
-    padding: 10px 12px !important;
+    padding: 14px 12px 10px 12px !important;
     flex: 1 !important;
     min-height: 0 !important;
   }

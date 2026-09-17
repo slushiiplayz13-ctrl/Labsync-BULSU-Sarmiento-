@@ -8,9 +8,13 @@ const IGNORABLE_ERROR_CODES = [
     'ER_DUP_FIELDNAME',          // Duplicate column name
     'ER_CANT_DROP_FIELD_OR_KEY', // Can't drop field/key (doesn't exist)
     'ER_DUP_KEYNAME',            // Duplicate key/index name
+    'ER_FK_DUP_NAME',            // Duplicate foreign key constraint name
+    'ER_FK_FAIL_ADD_SYSTEM',     // Duplicate foreign key constraint (errno 121)
     1060,                        // Duplicate column name
     1061,                        // Duplicate key name
-    1091                         // Can't drop field/key
+    1091,                        // Can't drop field/key
+    121,                         // Duplicate foreign key constraint
+    1826                         // Duplicate foreign key constraint name
 ];
 
 async function runSingleStatement(statement, filename) {
@@ -20,7 +24,10 @@ async function runSingleStatement(statement, filename) {
     try {
         await db.query(cleanSql);
     } catch (err) {
-        if (IGNORABLE_ERROR_CODES.includes(err.code) || IGNORABLE_ERROR_CODES.includes(err.errno)) {
+        const isDuplicateFk = err.code === 'ER_CANT_CREATE_TABLE' && 
+            (err.message.includes('121') || err.message.includes('Duplicate'));
+
+        if (IGNORABLE_ERROR_CODES.includes(err.code) || IGNORABLE_ERROR_CODES.includes(err.errno) || isDuplicateFk) {
             console.log(`[migrate] ${filename} — Safely skipped existing schema element: ${err.message}`);
         } else {
             console.error(`[migrate] Fatal error executing statement from ${filename}:`, err.message);

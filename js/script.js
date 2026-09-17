@@ -12,7 +12,6 @@
  * - js/components/notifications.js  (Dropdown, Toasts, Polling, Routing)
  * - js/components/custom-select.js  (Custom dropdown UI component)
  * - js/components/sidebar-nav.js    (Admin floating menu & tooltips)
- * - js/components/activity-feed.js  (Audit stream & event transformer)
  * - js/pages/room-status.js         (Room status grid & occupancy logs)
  */
 

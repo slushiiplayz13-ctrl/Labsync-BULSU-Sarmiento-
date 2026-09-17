@@ -155,8 +155,9 @@
   </div>
 
   <!-- About Modal -->
-  <div id="aboutModal" class="modal-overlay">
+  <div id="aboutModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="aboutModalTitle">
     <div class="modal-card about-modal-card">
+      <button type="button" class="modal-close-btn" id="closeAboutModalBtn" aria-label="Close about modal">&times;</button>
       <div class="about-header">
         <img src="assets/labsync-logo.png" alt="LabSync Logo" class="about-logo">
         <p class="about-tagline">Laboratory Management & Monitoring System</p>
@@ -164,7 +165,7 @@
 
       <div class="about-body">
         <section class="about-section">
-          <h3>About the System</h3>
+          <h3 id="aboutModalTitle">About the System</h3>
           <p>
             LabSync is a unified, smart scheduling and monitoring system built specifically for the Computer
             Laboratories of <strong>Bulacan State University - Sarmiento Campus</strong>. By integrating real-time
@@ -232,9 +233,6 @@
 
       <div class="about-footer">
         © 2026 LabSync • BulSU Sarmiento Campus
-      </div>
-      <div style="display: flex; justify-content: center; margin-top: 20px; width: 100%;">
-        <button type="button" class="submit-btn" id="closeAboutActionBtn" style="max-width: 140px; padding: 12px 20px; font-size: 14px;">Close</button>
       </div>
     </div>
   </div>

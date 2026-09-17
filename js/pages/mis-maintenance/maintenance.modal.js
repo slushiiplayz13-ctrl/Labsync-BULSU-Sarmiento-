@@ -80,6 +80,57 @@
 
     let bodyContentHtml = '';
 
+    let resolutionHeaderRowHtml = '';
+    if (report.Status === 'Resolved') {
+      let resDateFormatted = '';
+      if (report.Resolved_At) {
+        const resDateObj = new Date(report.Resolved_At);
+        if (!isNaN(resDateObj.getTime())) {
+          resDateFormatted = resDateObj.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          }) + ' • ' + resDateObj.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+        }
+      }
+
+      if (report.Resolved_By_Name) {
+        resolutionHeaderRowHtml = `
+          <div class="ticket-modal-resolution-row">
+            <span class="tm-res-label">Resolved by</span>
+            <span class="tm-res-who">
+              <i data-lucide="user" class="tm-res-icon"></i>
+              <span class="tm-res-name">${escapeText(report.Resolved_By_Name)}</span>
+              <span class="tm-res-role">${escapeText(report.Resolved_By_Role || 'MIS Staff')}</span>
+            </span>
+            <span class="tm-res-dot">•</span>
+            <span class="tm-res-when">
+              <i data-lucide="clock" class="tm-res-time-icon"></i>
+              ${resDateFormatted || 'Timestamp not recorded'}
+            </span>
+          </div>
+        `;
+      } else {
+        resolutionHeaderRowHtml = `
+          <div class="ticket-modal-resolution-row">
+            <span class="tm-res-who">
+              <i data-lucide="check-check" class="tm-res-icon" style="color:#059669;"></i>
+              <span class="tm-res-name">Work Order Completed</span>
+            </span>
+            <span class="tm-res-dot">•</span>
+            <span class="tm-res-when">
+              <i data-lucide="clock" class="tm-res-time-icon"></i>
+              ${resDateFormatted || 'Timestamp not recorded'}
+            </span>
+          </div>
+        `;
+      }
+    }
+
     if (linkedReports.length === 1) {
       // ─── SINGLE STUDENT REPORT LAYOUT ─────────────────────────────────────
       const singleReport = linkedReports[0];
@@ -222,17 +273,18 @@
 
     modal.innerHTML = `
       <div class="modal-card ticket-modal-card">
-        <!-- Header: No X Button, clean Ticket ID + Status Badge + Date -->
+        <!-- Header: Ticket ID + Status Badge + Date + Integrated Resolution Row -->
         <div class="ticket-modal-header">
-          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
             <span class="ticket-chip" style="font-size:13.5px; padding:5px 14px; font-weight:700;">LS-TKT-${report.Report_ID}</span>
             <span class="status-badge-pulse ${report.Status === 'Resolved' ? 'resolved' : 'pending'}">
-              <span class="pulse-dot"></span> ${report.Status}
+              <span class="pulse-dot"></span> ${report.Status.toUpperCase()}
             </span>
           </div>
           <div class="ticket-modal-date">
-            First reported on ${formattedDate}
+            Reported on ${formattedDate}
           </div>
+          ${resolutionHeaderRowHtml}
         </div>
 
         <!-- Body Info -->

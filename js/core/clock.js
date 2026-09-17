@@ -61,7 +61,7 @@
 
     // Update greeting based on current hour ONLY if dashboard is active
     const pageType = document.body ? document.body.dataset.page : '';
-    if (pageType === 'dashboard' || pageType === 'it-head-dashboard') {
+    if (pageType === 'dashboard' || pageType === 'it-head-dashboard' || pageType === 'mis-dashboard') {
       const greet = getGreeting(now.getHours());
 
       // Get the name from the profile section dynamically
@@ -70,7 +70,9 @@
 
       if (profileNameEl) {
         const fullName = profileNameEl.textContent.trim();
-        firstName = fullName.split(/\s+/)[0] || 'User';
+        if (fullName && fullName !== 'Loading...') {
+          firstName = fullName.split(/\s+/)[0] || 'User';
+        }
       }
 
       const greetingTextEl = document.getElementById('greetingText');
@@ -79,7 +81,7 @@
       }
 
       const greetingSubEl = document.getElementById('greetingSub');
-      if (greetingSubEl) {
+      if (greetingSubEl && (pageType === 'dashboard' || pageType === 'it-head-dashboard')) {
         greetingSubEl.textContent = 'Here\'s an overview of your IT laboratories today.';
       }
     }

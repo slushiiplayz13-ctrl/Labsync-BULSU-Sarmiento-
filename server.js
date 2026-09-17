@@ -86,11 +86,26 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('[Process] Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
+let handlingUncaughtException = false;
+
 process.on('uncaughtException', (err) => {
-    console.error('[Process] Uncaught Exception:', err);
+    if (handlingUncaughtException) {
+        process.exit(1);
+    }
+
+    handlingUncaughtException = true;
+
+    try {
+        console.error('[Process] Uncaught Exception:', err);
+    } catch (_) {
+        // Ignore logging failures, such as a closed stdout/stderr pipe.
+    }
+
     if (IS_PRODUCTION) {
         process.exit(1);
     }
+
+    handlingUncaughtException = false;
 });
 
 // Start HTTP server
@@ -101,9 +116,10 @@ const server = app.listen(PORT, () => {
 server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
         console.error(`[Server Error] Port ${PORT} is already in use. Please close the other process and restart.`);
-    } else {
-        console.error('[Server Error]', err);
+        process.exit(1);
     }
+
+    console.error('[Server Error]', err);
 });
 
 // Graceful shutdown handling for Railway / container lifecycle (SIGTERM, SIGINT)

@@ -152,58 +152,129 @@
             position: 'right'
         },
         {
+            selector: '.sidebar-nav .sidebar-btn[data-tooltip="OJT Interns"], .sidebar-nav .sidebar-btn[title="OJT Interns"], .sidebar .sidebar-btn[data-tooltip*="OJT"], .sidebar .sidebar-btn[title*="OJT"], .sidebar-btn[onclick*="mis-ojt.html"]',
+            title: '👥 OJT Intern Management',
+            badge: 'Menu 5: OJT Interns',
+            description: 'Register and manage student intern accounts, monitor active, expiring, and concluded internship periods, generate temporary credentials, and handle password resets.',
+            position: 'right'
+        },
+        {
             selector: '.sidebar-bottom .sidebar-btn[data-tooltip="Help & Support"], .sidebar-bottom .sidebar-btn:first-child, .sidebar .sidebar-btn[title="Help & Support"], .header-right .profile-dropdown, .header-right',
             title: '❓ Help & Support',
-            badge: 'Menu 5: Help & Support',
+            badge: 'Menu 6: Help & Support',
             description: 'Access technical documentation, maintenance standard operating procedures, and system manuals.',
             position: 'right'
         },
         {
             selector: '.header-right .profile-widget, .header-right .profile-info, .header-right .avatar, .header-right .profile-dropdown, .header-right',
             title: '🪪 Digital QR ID & Profile',
-            badge: 'Menu 6: Profile & Settings',
+            badge: 'Menu 7: Profile & Settings',
             description: 'Manage your MIS staff account credentials, update your password, and customize display preferences.',
             position: 'bottom-left'
         }
     ];
 
+    // ─── 4. OJT MIS STAFF MENU-ORDERED TUTORIAL ────────────────────────
+    const ojtTutorialSteps = [
+        {
+            selector: '.sidebar-btn[data-tooltip="Dashboard"], .sidebar-btn[title="Dashboard"], .sidebar-nav .sidebar-btn[onclick*="mis-staff-dashboard.html"]',
+            title: '📊 OJT Staff Dashboard',
+            badge: 'Menu 1: Dashboard',
+            description: 'Overview of laboratory computer health, workstation hardware status, pending maintenance tickets, and recent activity logs across all assigned computer labs.',
+            position: 'right'
+        },
+        {
+            selector: '.sidebar-btn[data-tooltip="Maintenance Tracker"], .sidebar-btn[title="Maintenance Tracker"], .sidebar-nav .sidebar-btn[onclick*="mis-maintenance.html"]',
+            title: '🛠️ Maintenance Tracker',
+            badge: 'Menu 2: Maintenance Tracker',
+            description: 'Your primary technical workspace. Review assigned PC issue tickets, update diagnostic progress (In Progress, Resolved), and record hardware or software repairs.',
+            position: 'right'
+        },
+        {
+            selector: '.sidebar-bottom .sidebar-btn[data-tooltip="Help & Support"], .sidebar-bottom .sidebar-btn[title="Help & Support"], .sidebar-bottom .sidebar-btn[onclick*="openHelpModal"]',
+            title: '❓ Help & Support',
+            badge: 'Menu 3: Help & Support',
+            description: 'Access laboratory maintenance standard operating procedures, technical documentation, and safety guidelines whenever you need guidance.',
+            position: 'right'
+        },
+        {
+            selector: '.header-right .profile-dropdown, .profile-dropdown',
+            title: '👤 Profile & Account Settings',
+            badge: 'Menu 4: Profile & Settings',
+            description: 'Manage your personal account information, update your password, and customize available display preferences.',
+            position: 'bottom-left'
+        }
+    ];
+
+    /**
+     * Safely normalizes role string to lowercase trimmed.
+     * @param {*} rawRole
+     * @returns {string}
+     */
+    function normalizeRole(rawRole) {
+        if (!rawRole || typeof rawRole !== 'string') return '';
+        return rawRole.trim().toLowerCase();
+    }
+
+    /**
+     * Evaluates normalized role token.
+     * Strictly checks OJT before checking MIS or staff.
+     * @param {string} norm
+     * @returns {'ojt' | 'head' | 'mis' | 'faculty' | null}
+     */
+    function classifyRole(norm) {
+        if (!norm) return null;
+        if (norm === 'ojt' || norm.includes('ojt')) return 'ojt';
+        if (norm.includes('head')) return 'head';
+        if (norm.includes('mis') || norm.includes('staff')) return 'mis';
+        if (norm.includes('faculty') || norm.includes('prof') || norm.includes('instructor')) return 'faculty';
+        return null;
+    }
+
     /**
      * Determines active user role to select the appropriate menu tutorial sequence.
-     * @returns {'head' | 'mis' | 'faculty'}
+     * Strictly prioritizes OJT before MIS or Staff checks.
+     * @returns {'ojt' | 'head' | 'mis' | 'faculty'}
      */
     function getUserRole() {
-        if (window.currentUser && (window.currentUser.Role || window.currentUser.role)) {
-            const r = String(window.currentUser.Role || window.currentUser.role).toLowerCase();
-            if (r.includes('head')) return 'head';
-            if (r.includes('mis') || r.includes('staff')) return 'mis';
-            return 'faculty';
+        // Tier 1: window.currentUser
+        if (window.currentUser) {
+            const r = normalizeRole(window.currentUser.Role || window.currentUser.role);
+            const classified = classifyRole(r);
+            if (classified) return classified;
         }
+
+        // Tier 2: session/local storage user objects
         try {
-            const cachedUser = JSON.parse(sessionStorage.getItem('labsync_user') || 'null');
-            if (cachedUser && (cachedUser.Role || cachedUser.role)) {
-                const r = String(cachedUser.Role || cachedUser.role).toLowerCase();
-                if (r.includes('head')) return 'head';
-                if (r.includes('mis') || r.includes('staff')) return 'mis';
-                return 'faculty';
+            const cachedUser = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || 'null');
+            if (cachedUser) {
+                const u = (cachedUser.user || cachedUser);
+                const r = normalizeRole(u && (u.Role || u.role));
+                const classified = classifyRole(r);
+                if (classified) return classified;
             }
         } catch (e) {}
 
+        // Tier 3: profile-role DOM element
+        const roleEl = document.querySelector('.profile-role');
+        if (roleEl) {
+            const r = normalizeRole(roleEl.textContent);
+            const classified = classifyRole(r);
+            if (classified) return classified;
+        }
+
+        // Tier 4: URL/path fallback only when necessary
         const path = window.location.pathname.toLowerCase();
         if (path.includes('it-head') || path.includes('master-schedule') || path.includes('faculty-management')) return 'head';
         if (path.includes('mis')) return 'mis';
 
-        const roleEl = document.querySelector('.profile-role');
-        if (roleEl) {
-            const text = roleEl.textContent.toLowerCase();
-            if (text.includes('head')) return 'head';
-            if (text.includes('mis') || text.includes('staff')) return 'mis';
-        }
         return 'faculty';
     }
 
     function getTutorialStepsForRole() {
         const role = getUserRole();
         if (role === 'head') return itHeadTutorialSteps;
+        if (role === 'ojt') return ojtTutorialSteps;
         if (role === 'mis') return misStaffTutorialSteps;
         return facultyTutorialSteps;
     }
@@ -216,6 +287,7 @@
 
             if (!user || !user.id) return;
             currentUserId = user.id;
+            if (!window.currentUser) window.currentUser = user;
 
             const userKey = 'labsync_tut_done_' + user.id;
             const sessionKey = 'labsync_tut_session_' + user.id;

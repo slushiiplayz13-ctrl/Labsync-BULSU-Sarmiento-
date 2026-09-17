@@ -185,11 +185,97 @@
   grid-column: 1 / -1;
 }
 
-.table-empty-row td {
+.table-empty-row td,
+td.empty-table-cell {
   padding: 48px 24px !important;
-  text-align: center;
+  text-align: center !important;
   font-size: 14px;
   font-weight: 500;
   color: var(--text-muted);
   border-bottom: none !important;
 }
+
+/* ─── Universal Table Empty State Layout & Centering ─── */
+.table-container.is-empty,
+.table-container:has(.empty-table-row),
+.table-container:has(.table-empty-row),
+.ojt-table-wrap.is-empty,
+.ojt-table-wrap:has(.empty-table-row) {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex: 1 1 auto !important;
+  min-height: 380px !important;
+  height: 100% !important;
+  overflow-x: hidden !important;
+}
+
+table.is-empty,
+table:has(.empty-table-row),
+table:has(.table-empty-row) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+table.is-empty thead,
+table:has(.empty-table-row) thead,
+table:has(.table-empty-row) thead {
+  display: none !important;
+}
+
+table.is-empty tbody,
+table:has(.empty-table-row) tbody,
+table:has(.table-empty-row) tbody {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 280px !important;
+}
+
+table.is-empty tr.empty-table-row,
+table.is-empty tr.table-empty-row,
+table:has(.empty-table-row) tr.empty-table-row,
+table:has(.table-empty-row) tr.table-empty-row {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+table.is-empty td.empty-table-cell,
+table:has(.empty-table-row) td.empty-table-cell,
+table:has(.table-empty-row) td.empty-table-cell {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 40px 24px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  border-bottom: none !important;
+  background: transparent !important;
+}
+
+table tbody tr.empty-table-row:hover,
+table tbody tr.table-empty-row:hover {
+  background: transparent !important;
+}
+

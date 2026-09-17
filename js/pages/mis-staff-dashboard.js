@@ -11,6 +11,10 @@
    * Updates dynamic greeting text and subtext for MIS Staff based on local time.
    */
   function updateMISGreeting() {
+    if (typeof global.updateClock === 'function') {
+      global.updateClock();
+      return;
+    }
     const now = new Date();
     const h = now.getHours();
     const greet = h < 12 ? 'Good Morning' : h < 18 ? 'Good Afternoon' : 'Good Evening';
@@ -18,7 +22,7 @@
     if (greetingEl) {
       const profileNameEl = document.querySelector('.profile-name');
       const fullName = (profileNameEl && profileNameEl.textContent.trim()) ? profileNameEl.textContent.trim() : '';
-      const firstName = (fullName && fullName !== 'Loading...') ? fullName.split(/\s+/)[0] : 'User';
+      const firstName = (fullName && fullName !== 'Loading...') ? (fullName.split(/\s+/)[0] || 'User') : 'User';
       greetingEl.textContent = `${greet}, ${firstName}!`;
     }
     const subEl = document.getElementById('greetingSub');

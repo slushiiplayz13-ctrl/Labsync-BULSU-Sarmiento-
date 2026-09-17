@@ -108,7 +108,7 @@
   function computeMaintenanceSignature(reports) {
     if (!Array.isArray(reports) || reports.length === 0) return 'empty';
     return reports.map(r =>
-      `${r.Report_ID}_${r.Status}_${r.Room_Number}_${r.PC_Number}_${r.Priority_Level || ''}_${r.Date_Reported || ''}_${r.Issue_Description || ''}`
+      `${r.Report_ID}_${r.Status}_${r.Room_Number}_${r.PC_Number}_${r.Priority_Level || ''}_${r.Date_Reported || ''}_${r.Issue_Description || ''}_${r.Resolved_By_Name || ''}_${r.Resolved_By_Role || ''}`
     ).join('|');
   }
 
@@ -156,7 +156,41 @@
           </button>
         `;
       } else {
-        actionsHtml = `<span class="completed-chip"><i data-lucide="check-check" style="width:16px;height:16px;"></i> Completed</span>`;
+        let resTimeFormatted = '';
+        if (report.Resolved_At) {
+          const resDateObj = new Date(report.Resolved_At);
+          if (!isNaN(resDateObj.getTime())) {
+            resTimeFormatted = resDateObj.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric'
+            }) + ' • ' + resDateObj.toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+          }
+        }
+
+        const resolverTitle = report.Resolved_By_Name
+          ? `Resolved by ${escapeText(report.Resolved_By_Name)} (${escapeText(report.Resolved_By_Role || 'MIS Staff')})`
+          : 'Work Order Completed';
+
+        actionsHtml = `
+          <div class="table-resolved-wrap">
+            <button type="button"
+                    class="completed-chip interactive"
+                    data-action="view-ticket-details"
+                    data-report-id="${report.Report_ID}"
+                    data-resolver-name="${escapeText(report.Resolved_By_Name || '')}"
+                    data-resolver-role="${escapeText(report.Resolved_By_Role || 'MIS Staff')}"
+                    data-resolved-at="${resTimeFormatted || ''}"
+                    aria-label="${resolverTitle}"
+                    title="${resolverTitle}">
+              <i data-lucide="check-check" style="width:14px;height:14px;"></i> Completed
+            </button>
+          </div>
+        `;
       }
 
       const sectionChip = parsed.section && parsed.section !== 'N/A'
@@ -286,6 +320,198 @@
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: tbody });
     }
+
+    initResolverPopoverDelegation();
+  }  let _popoverDelegationReady = false;
+  let _activeChip = null;
+  let _popoverHideTimeout = null;
+  let _singletonTooltip = null;
+
+  function getSingletonTooltip() {
+    if (typeof document === 'undefined') return null;
+    let tooltip = document.getElementById('table-resolver-tooltip');
+    if (!tooltip && document.body) {
+      tooltip = document.createElement('div');
+      tooltip.id = 'table-resolver-tooltip';
+      tooltip.className = 'table-resolver-popover';
+      tooltip.setAttribute('role', 'tooltip');
+      tooltip.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(tooltip);
+
+      tooltip.addEventListener('mouseenter', () => {
+        clearTimeout(_popoverHideTimeout);
+      });
+      tooltip.addEventListener('mouseleave', () => {
+        scheduleDismissPopover();
+      });
+      tooltip.addEventListener('click', (e) => {
+        const actionEl = e.target.closest('[data-action="view-ticket-details"]');
+        if (actionEl) {
+          const repId = actionEl.getAttribute('data-report-id');
+          if (repId && typeof global.viewTicketModal === 'function') {
+            global.viewTicketModal(repId);
+          }
+          dismissResolverPopover();
+        }
+      });
+    }
+    _singletonTooltip = tooltip;
+    return tooltip;
+  }
+
+  function positionResolverPopover(chip) {
+    if (!chip || (typeof window !== 'undefined' && window.innerWidth <= 768)) return;
+    if (typeof clearTimeout === 'function') clearTimeout(_popoverHideTimeout);
+    _activeChip = chip;
+
+    const tooltip = getSingletonTooltip();
+    if (!tooltip) return;
+
+    const resolverName = chip.getAttribute('data-resolver-name') || '';
+    const resolverRole = chip.getAttribute('data-resolver-role') || 'MIS Staff';
+    const resolvedAt = chip.getAttribute('data-resolved-at') || '';
+
+    tooltip.innerHTML = `
+      <div class="popover-arrow"></div>
+      <div class="popover-header">
+        <span class="popover-tag">${resolverName ? 'RESOLVED BY' : 'WORK ORDER COMPLETED'}</span>
+        <span class="popover-time">${resolvedAt}</span>
+      </div>
+      ${resolverName ? `
+      <div class="popover-user-row">
+        <div class="popover-avatar">
+          <i data-lucide="user" style="width:13px;height:13px;"></i>
+        </div>
+        <div class="popover-user-info">
+          <span class="popover-name">${escapeText(resolverName)}</span>
+          <span class="popover-role">${escapeText(resolverRole)}</span>
+        </div>
+      </div>
+      ` : ''}
+    `;
+
+    if (global.lucide && typeof global.lucide.createIcons === 'function') {
+      global.lucide.createIcons({ root: tooltip });
+    }
+
+    if (typeof chip.getBoundingClientRect !== 'function') return;
+    const chipRect = chip.getBoundingClientRect();
+
+    tooltip.style.visibility = 'hidden';
+    tooltip.style.display = 'block';
+
+    const tooltipWidth = tooltip.offsetWidth || 280;
+    const tooltipHeight = tooltip.offsetHeight || 72;
+
+    // Check space above chip (accounting for sticky table header / nav bar)
+    const spaceAbove = chipRect.top - 70;
+    const flipDown = spaceAbove < (tooltipHeight + 14);
+
+    tooltip.classList.toggle('popover-flip-down', flipDown);
+
+    // 6px air gap: with 10px rotated square (sticks out 5px), arrow tip points cleanly 1px above/below chip
+    const airGap = 6;
+    const top = flipDown
+      ? (chipRect.bottom + airGap)
+      : (chipRect.top - tooltipHeight - airGap);
+
+    // Center popover horizontally over the chip
+    const chipCenter = chipRect.left + (chipRect.width / 2);
+    let left = chipCenter - (tooltipWidth / 2);
+
+    // Keep popover comfortably within viewport bounds
+    const winWidth = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1200;
+    const maxLeft = winWidth - tooltipWidth - 16;
+    const minLeft = 16;
+    if (left > maxLeft) left = maxLeft;
+    if (left < minLeft) left = minLeft;
+
+    // Direct arrow precisely at chip center
+    const arrowLeft = chipCenter - left;
+    const clampedArrowLeft = Math.max(22, Math.min(tooltipWidth - 22, arrowLeft));
+    tooltip.style.setProperty('--arrow-left', `${Math.round(clampedArrowLeft)}px`);
+
+    tooltip.style.top = `${Math.round(top)}px`;
+    tooltip.style.left = `${Math.round(left)}px`;
+    tooltip.style.visibility = 'visible';
+    tooltip.setAttribute('aria-hidden', 'false');
+    tooltip.classList.add('popover-active');
+  }
+
+  function scheduleDismissPopover() {
+    if (typeof clearTimeout === 'function') clearTimeout(_popoverHideTimeout);
+    if (typeof setTimeout === 'function') {
+      _popoverHideTimeout = setTimeout(() => {
+        dismissResolverPopover();
+      }, 120);
+    } else {
+      dismissResolverPopover();
+    }
+  }
+
+  function dismissResolverPopover() {
+    if (typeof clearTimeout === 'function') clearTimeout(_popoverHideTimeout);
+    if (_singletonTooltip) {
+      _singletonTooltip.classList.remove('popover-active');
+      _singletonTooltip.setAttribute('aria-hidden', 'true');
+      _singletonTooltip.style.visibility = 'hidden';
+    }
+    _activeChip = null;
+  }
+
+  function initResolverPopoverDelegation() {
+    if (_popoverDelegationReady || typeof document === 'undefined') return;
+    _popoverDelegationReady = true;
+
+    document.addEventListener('mouseover', (e) => {
+      const chip = e.target && e.target.closest && e.target.closest('.completed-chip.interactive');
+      if (chip) {
+        positionResolverPopover(chip);
+      }
+    }, true);
+
+    document.addEventListener('mouseout', (e) => {
+      const chip = e.target && e.target.closest && e.target.closest('.completed-chip.interactive');
+      if (chip) {
+        const related = e.relatedTarget;
+        if (related && (chip.contains(related) || (_singletonTooltip && _singletonTooltip.contains(related)))) {
+          return;
+        }
+        scheduleDismissPopover();
+      }
+    }, true);
+
+    document.addEventListener('focusin', (e) => {
+      const chip = e.target && e.target.closest && e.target.closest('.completed-chip.interactive');
+      if (chip) {
+        positionResolverPopover(chip);
+      }
+    }, true);
+
+    document.addEventListener('focusout', (e) => {
+      const chip = e.target && e.target.closest && e.target.closest('.completed-chip.interactive');
+      if (chip) {
+        scheduleDismissPopover();
+      }
+    }, true);
+
+    document.addEventListener('click', (e) => {
+      const chip = e.target && e.target.closest && e.target.closest('.completed-chip.interactive');
+      if (chip) {
+        dismissResolverPopover();
+      }
+    }, true);
+
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('scroll', () => dismissResolverPopover(), { passive: true });
+    }
+
+    const tableWrapper = (typeof document !== 'undefined' && typeof document.querySelector === 'function')
+      ? document.querySelector('.maint-table-wrapper')
+      : null;
+    if (tableWrapper && typeof tableWrapper.addEventListener === 'function') {
+      tableWrapper.addEventListener('scroll', () => dismissResolverPopover(), { passive: true });
+    }
   }
 
   /**
@@ -296,7 +522,6 @@
   function renderTableError(message, targetElement) {
     const tbody = targetElement || document.getElementById('dynamicMaintenanceRows');
     if (!tbody) return;
-
     tbody.innerHTML = `
       <tr>
         <td colspan="7" style="padding: 40px; text-align: center; color: #EF4444; font-weight: 600;">
@@ -313,7 +538,10 @@
     parseIssueDesc,
     formatIssueBadges,
     renderTableRows,
-    renderTableError
+    renderTableError,
+    positionResolverPopover,
+    dismissResolverPopover,
+    getSingletonTooltip
   };
 
   global.maintenanceRenderer = maintenanceRenderer;

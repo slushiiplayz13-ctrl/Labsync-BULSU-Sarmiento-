@@ -10,20 +10,20 @@ const jsPath = path.join(__dirname, '..', 'js', 'pages', 'login.js');
 const htmlContent = fs.readFileSync(htmlPath, 'utf8');
 const jsContent = fs.readFileSync(jsPath, 'utf8');
 
-// 1. Verify that 'x' buttons are removed from HTML
+// 1. Verify modal button configurations in HTML
 assert.strictEqual(htmlContent.includes('id="closeContactModalBtn"'), false, 'closeContactModalBtn should be removed from login.html');
-assert.strictEqual(htmlContent.includes('id="closeAboutModalBtn"'), false, 'closeAboutModalBtn should be removed from login.html');
-console.log('✓ Verified: Top-right x buttons removed from login.html');
+assert.strictEqual(htmlContent.includes('id="closeAboutModalBtn"'), true, 'closeAboutModalBtn must exist in login.html');
+console.log('✓ Verified: Top-right x button present on About modal');
 
-// 2. Verify bottom Close buttons exist in HTML
+// 2. Verify Close buttons in HTML
 assert.strictEqual(htmlContent.includes('id="closeContactActionBtn"'), true, 'closeContactActionBtn must exist in login.html');
-assert.strictEqual(htmlContent.includes('id="closeAboutActionBtn"'), true, 'closeAboutActionBtn must exist in login.html');
-console.log('✓ Verified: Bottom Close buttons present in login.html');
+assert.strictEqual(htmlContent.includes('id="closeAboutActionBtn"'), false, 'closeAboutActionBtn should be removed from login.html');
+console.log('✓ Verified: Bottom Close button removed from About modal');
 
-// 3. Verify that js/pages/login.js no longer references closeContactModalBtn or closeAboutModalBtn
+// 3. Verify that js/pages/login.js handles closeAboutModalBtn and no longer closeContactModalBtn
 assert.strictEqual(jsContent.includes('closeContactModalBtn'), false, 'login.js should not reference closeContactModalBtn');
-assert.strictEqual(jsContent.includes('closeAboutModalBtn'), false, 'login.js should not reference closeAboutModalBtn');
-console.log('✓ Verified: No stale x button references in login.js');
+assert.strictEqual(jsContent.includes('closeAboutModalBtn'), true, 'login.js should reference closeAboutModalBtn');
+console.log('✓ Verified: closeAboutModalBtn wired in login.js');
 
 // 4. Verify behavioral simulation
 class MockClassList {
@@ -67,7 +67,7 @@ const mockDocListeners = {};
 const mockElements = {
   aboutLink: new MockElement('aboutLink', 'a'),
   aboutModal: new MockElement('aboutModal', 'div'),
-  closeAboutActionBtn: new MockElement('closeAboutActionBtn', 'button'),
+  closeAboutModalBtn: new MockElement('closeAboutModalBtn', 'button'),
   contactLink: new MockElement('contactLink', 'a'),
   contactModal: new MockElement('contactModal', 'div'),
   closeContactActionBtn: new MockElement('closeContactActionBtn', 'button'),
@@ -137,13 +137,13 @@ mockDocListeners['keydown'].forEach(cb => cb(escapeEvent));
 assert.strictEqual(mockElements.contactModal.classList.contains('active'), false, 'contactModal should close on Escape key');
 console.log('✓ Verified: Contact modal closes on Escape key');
 
-// Test About Modal: Open and Close via Action Button
+// Test About Modal: Open and Close via x Button
 mockElements.aboutLink.click();
 assert.strictEqual(mockElements.aboutModal.classList.contains('active'), true, 'aboutModal should be active after aboutLink click');
 
-mockElements.closeAboutActionBtn.click();
-assert.strictEqual(mockElements.aboutModal.classList.contains('active'), false, 'aboutModal should close when closeAboutActionBtn clicked');
-console.log('✓ Verified: About modal opens and closes via bottom Close button');
+mockElements.closeAboutModalBtn.click();
+assert.strictEqual(mockElements.aboutModal.classList.contains('active'), false, 'aboutModal should close when closeAboutModalBtn clicked');
+console.log('✓ Verified: About modal opens and closes via top-right x button');
 
 // Test About Modal: Close via Backdrop Click
 mockElements.aboutLink.click();

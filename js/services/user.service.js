@@ -53,6 +53,13 @@
         avatarEl.textContent = initials;
       }
     }
+
+    const pageType = document.body ? document.body.dataset.page : '';
+    if (pageType === 'dashboard' || pageType === 'it-head-dashboard' || pageType === 'mis-dashboard') {
+      if (typeof global.updateClock === 'function') {
+        global.updateClock();
+      }
+    }
   }
 
   /**
@@ -72,7 +79,10 @@
       if (!response.ok) return;
 
       const user = await response.json();
-      try { sessionStorage.setItem('labsync_user', JSON.stringify(user)); } catch (e) { }
+      try {
+        sessionStorage.setItem('labsync_user', JSON.stringify(user));
+        localStorage.setItem('user', JSON.stringify(user));
+      } catch (e) { }
 
       applyUserToUI(user);
 
@@ -117,15 +127,28 @@
       const cachedStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
       let cached = cachedStr ? JSON.parse(cachedStr) : {};
       const userObj = cached.user || cached;
-      if (payload.name) userObj.name = payload.name;
-      if (payload.phone !== undefined) userObj.phone = payload.phone;
-      if (payload.profilePhoto !== undefined) userObj.profilePhoto = payload.profilePhoto;
+      if (payload.name) {
+        userObj.name = payload.name;
+        cached.name = payload.name;
+      }
+      if (payload.phone !== undefined) {
+        userObj.phone = payload.phone;
+        cached.phone = payload.phone;
+      }
+      if (payload.profilePhoto !== undefined) {
+        userObj.profilePhoto = payload.profilePhoto;
+        cached.profilePhoto = payload.profilePhoto;
+      }
       const updatedTimestamp = (data && data.updatedAt) ? data.updatedAt : new Date().toISOString();
       userObj.updatedAt = updatedTimestamp;
+      cached.updatedAt = updatedTimestamp;
       localStorage.setItem('labsync_last_updated', updatedTimestamp);
       sessionStorage.setItem('labsync_user', JSON.stringify(cached));
       localStorage.setItem('user', JSON.stringify(cached));
       applyUserToUI(userObj);
+      if (typeof global.updateClock === 'function') {
+        global.updateClock();
+      }
     } catch (e) { }
 
     return data;
@@ -187,6 +210,7 @@
   global.loadCurrentUser = loadCurrentUser;
   global.userService = {
     loadCurrentUser,
+    getCurrentUser: loadCurrentUser,
     handleLogout,
     updateProfile,
     updatePassword,

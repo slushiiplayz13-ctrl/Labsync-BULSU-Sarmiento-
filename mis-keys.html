@@ -1943,6 +1943,194 @@
       color: #CBD5E1 !important;
     }
 
+    /* ─── Empty & Status State Container Centering ─── */
+    .keys-table-card.is-empty,
+    .keys-table-card:has(.empty-table-row) {
+      display: flex !important;
+      flex-direction: column !important;
+      min-height: 440px !important;
+      overflow-x: hidden !important;
+    }
+
+    .keys-table.is-empty,
+    .keys-table:has(.empty-table-row) {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 1 auto !important;
+      height: 100% !important;
+      min-height: 100% !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+    }
+
+    .keys-table.is-empty thead,
+    .keys-table:has(.empty-table-row) thead {
+      display: none !important;
+    }
+
+    .keys-table.is-empty tbody,
+    .keys-table:has(.empty-table-row) tbody {
+      flex: 1 1 auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 320px !important;
+    }
+
+    .keys-table.is-empty tr.empty-table-row,
+    .keys-table:has(.empty-table-row) tr.empty-table-row {
+      flex: 1 1 auto !important;
+      display: flex !important;
+      width: 100% !important;
+      height: 100% !important;
+      justify-content: center !important;
+      align-items: center !important;
+      background: transparent !important;
+    }
+
+    .keys-table td.empty-table-cell,
+    .empty-table-row td.empty-table-cell {
+      flex: 1 1 auto !important;
+      display: flex !important;
+      width: 100% !important;
+      height: 100% !important;
+      justify-content: center !important;
+      align-items: center !important;
+      padding: 40px 24px !important;
+      text-align: center !important;
+      vertical-align: middle !important;
+      border-bottom: none !important;
+      background: transparent !important;
+    }
+
+    .keys-table tbody tr.empty-table-row:hover {
+      background: transparent !important;
+    }
+
+    .keys-empty-state {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      margin: auto !important;
+      max-width: 440px;
+      width: 100%;
+      animation: fadeInKeysEmpty 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes fadeInKeysEmpty {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .keys-empty-icon-wrap {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30, 187, 215, 0.08);
+      border: 1px solid rgba(30, 187, 215, 0.2);
+      color: var(--primary-teal, #1EBBD7);
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(30, 187, 215, 0.1);
+      transition: all 0.25s ease;
+    }
+
+    .keys-empty-icon-wrap .keys-empty-icon {
+      width: 26px;
+      height: 26px;
+      stroke-width: 2.2px;
+    }
+
+    .keys-empty-icon-wrap.loading-spinner-wrap {
+      background: rgba(30, 187, 215, 0.1);
+      border-color: rgba(30, 187, 215, 0.25);
+    }
+
+    .keys-empty-icon-wrap.error-icon-wrap {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.25);
+      color: #EF4444;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.12);
+    }
+
+    .keys-empty-title {
+      margin: 0 0 6px 0;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--font-display, 'Poppins', sans-serif);
+      color: var(--text-dark, #0F172A);
+      letter-spacing: -0.01em;
+    }
+
+    .keys-empty-desc {
+      margin: 0 0 16px 0;
+      font-size: 13.5px;
+      font-weight: 500;
+      line-height: 1.5;
+      color: var(--text-muted, #64748B);
+      max-width: 380px;
+    }
+
+    .keys-empty-reset-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+      color: var(--primary-teal, #1EBBD7);
+      background: rgba(30, 187, 215, 0.08);
+      border: 1px solid rgba(30, 187, 215, 0.25);
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      margin-top: 4px;
+    }
+
+    .keys-empty-reset-btn:hover {
+      background: var(--primary-teal, #1EBBD7);
+      color: #FFFFFF !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(30, 187, 215, 0.3);
+    }
+
+    .keys-empty-reset-btn:active {
+      transform: translateY(0);
+    }
+
+    .keys-empty-reset-btn i {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2.2px;
+    }
+
+    .spin {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Dark mode enhancements for empty states */
     html.dark-mode .empty-table-cell,
     body.dark-mode .empty-table-cell,
     html.high-contrast .empty-table-cell,
@@ -1951,6 +2139,48 @@
     body.dark-theme .empty-table-cell,
     [data-theme="dark"] .empty-table-cell {
       color: #CBD5E1 !important;
+    }
+
+    html.dark-mode .keys-empty-title,
+    body.dark-mode .keys-empty-title,
+    html.high-contrast .keys-empty-title,
+    body.high-contrast .keys-empty-title,
+    html.dark-theme .keys-empty-title,
+    body.dark-theme .keys-empty-title,
+    [data-theme="dark"] .keys-empty-title {
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .keys-empty-desc,
+    body.dark-mode .keys-empty-desc,
+    html.high-contrast .keys-empty-desc,
+    body.high-contrast .keys-empty-desc,
+    html.dark-theme .keys-empty-desc,
+    body.dark-theme .keys-empty-desc,
+    [data-theme="dark"] .keys-empty-desc {
+      color: #94A3B8 !important;
+    }
+
+    html.dark-mode .keys-empty-icon-wrap,
+    body.dark-mode .keys-empty-icon-wrap,
+    [data-theme="dark"] .keys-empty-icon-wrap {
+      background: rgba(30, 187, 215, 0.12) !important;
+      border-color: rgba(30, 187, 215, 0.3) !important;
+    }
+
+    html.dark-mode .keys-empty-reset-btn,
+    body.dark-mode .keys-empty-reset-btn,
+    [data-theme="dark"] .keys-empty-reset-btn {
+      background: rgba(30, 187, 215, 0.12) !important;
+      border-color: rgba(30, 187, 215, 0.35) !important;
+      color: #38BDF8 !important;
+    }
+
+    html.dark-mode .keys-empty-reset-btn:hover,
+    body.dark-mode .keys-empty-reset-btn:hover,
+    [data-theme="dark"] .keys-empty-reset-btn:hover {
+      background: #1EBBD7 !important;
+      color: #FFFFFF !important;
     }
 
     html.dark-mode .custody-holder-name,
@@ -2303,8 +2533,8 @@
         </div>
 
         <!-- Keys Table Container -->
-        <div class="table-container keys-table-card" style="overflow-x: auto; overflow-y: auto; flex: 1 1 auto; min-height: 0; width: 100%;">
-          <table class="keys-table">
+        <div class="table-container keys-table-card is-empty" style="overflow-x: auto; overflow-y: auto; flex: 1 1 auto; min-height: 0; width: 100%;">
+          <table class="keys-table is-empty">
             <thead>
               <tr>
                 <th class="table-header-cell col-checkbox text-center">
@@ -2319,9 +2549,15 @@
               </tr>
             </thead>
             <tbody id="keysTableBody">
-              <tr>
-                <td colspan="7" class="table-cell text-center" style="padding: 40px; color: var(--text-muted);">
-                  Loading physical keys...
+              <tr class="empty-table-row">
+                <td colspan="7" class="empty-table-cell">
+                  <div class="keys-empty-state">
+                    <div class="keys-empty-icon-wrap loading-spinner-wrap">
+                      <i data-lucide="loader-2" class="keys-empty-icon spin"></i>
+                    </div>
+                    <h4 class="keys-empty-title">Loading Laboratory Keys...</h4>
+                    <p class="keys-empty-desc" style="margin-bottom: 0;">Fetching physical key inventory and status records.</p>
+                  </div>
                 </td>
               </tr>
             </tbody>

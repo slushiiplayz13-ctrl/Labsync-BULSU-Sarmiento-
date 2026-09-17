@@ -16,18 +16,38 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  scrollbar-width: thin;
-  scrollbar-color: #CBD5E1 transparent;
 }
 
-html.high-contrast * {
-  scrollbar-color: #374151 transparent;
+/* Fallback for non-WebKit browsers (e.g. Firefox) without disabling ::-webkit-scrollbar in Chromium */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
+  }
+
+  html.high-contrast * {
+    scrollbar-color: #374151 transparent;
+  }
 }
 
 /* Custom WebKit Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
+}
+
+::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button,
+::-webkit-scrollbar-button:start,
+::-webkit-scrollbar-button:end,
+::-webkit-scrollbar-button:vertical:decrement,
+::-webkit-scrollbar-button:vertical:increment,
+::-webkit-scrollbar-button:horizontal:decrement,
+::-webkit-scrollbar-button:horizontal:increment {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 
 ::-webkit-scrollbar-track {
@@ -619,8 +639,8 @@ body.modal-open .login-footer {
   user-select: none !important;
 }
 
-body.modal-open .modal-overlay,
-body.modal-open .modal-card {
+body.modal-open .modal-overlay.active,
+body.modal-open .modal-overlay.active .modal-card {
   pointer-events: auto !important;
   user-select: auto !important;
 }
@@ -671,6 +691,14 @@ body.modal-open .modal-card {
   cursor: pointer;
   line-height: 1;
   transition: color 0.2s;
+  z-index: 10;
+  outline: none;
+}
+
+.modal-close-btn:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .modal-close-btn:hover {
@@ -910,35 +938,52 @@ html.high-contrast .status-message {
   max-height: 85vh;
   overflow-y: auto;
   padding: 40px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
 }
 
-/* Custom Sleek Scrollbar for About Modal & Auth Popups */
+/* Fallback for non-WebKit browsers (Firefox) without triggering native OS buttons in Chromium */
+@supports not selector(::-webkit-scrollbar) {
+  .about-modal-card {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+  }
+}
+
+/* Custom Sleek Scrollbar for About Modal */
 .about-modal-card::-webkit-scrollbar {
-  width: 6px;
+  width: 7px;
 }
 
 .about-modal-card::-webkit-scrollbar-track {
   background: transparent;
-  margin: 18px 0;
+  margin: 26px 0;
 }
 
 .about-modal-card::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.45);
+  background-color: rgba(148, 163, 184, 0.45);
   border-radius: 99px;
-  transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .about-modal-card::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-teal, #1EBBD7);
+  background-color: var(--primary-teal, #00A3C4);
+}
+
+.about-modal-card::-webkit-scrollbar-thumb:active {
+  background-color: #0284C7;
 }
 
 .about-modal-card::-webkit-scrollbar-button,
+.about-modal-card::-webkit-scrollbar-button:start,
+.about-modal-card::-webkit-scrollbar-button:end,
+.about-modal-card::-webkit-scrollbar-button:vertical:decrement,
+.about-modal-card::-webkit-scrollbar-button:vertical:increment,
 ::-webkit-scrollbar-button {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+  background: transparent !important;
 }
 
 /* Universal sleek scrollbar for auth interfaces */
@@ -1103,15 +1148,33 @@ html.high-contrast .about-logo {
 html.high-contrast .about-modal-card {
   background: #111827;
   border: 1px solid #374151;
-  scrollbar-color: #475569 transparent;
 }
 
-html.high-contrast .about-modal-card::-webkit-scrollbar-thumb,
+@supports not selector(::-webkit-scrollbar) {
+  html.high-contrast .about-modal-card {
+    scrollbar-color: #64748B transparent;
+  }
+}
+
+html.high-contrast .about-modal-card::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.4);
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+}
+
+html.high-contrast .about-modal-card::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-teal, #00A3C4);
+  box-shadow: 0 0 6px rgba(0, 163, 196, 0.5);
+}
+
+html.high-contrast .about-modal-card::-webkit-scrollbar-thumb:active {
+  background-color: #38BDF8;
+}
+
 html.high-contrast ::-webkit-scrollbar-thumb {
   background: #475569;
 }
 
-html.high-contrast .about-modal-card::-webkit-scrollbar-thumb:hover,
 html.high-contrast ::-webkit-scrollbar-thumb:hover {
   background: var(--primary-teal, #00A3C4);
 }
@@ -1135,15 +1198,123 @@ html.high-contrast .about-footer {
   color: var(--text-mid, #CBD5E1);
 }
 
-/* Responsive grid for Devs */
+/* Responsive grid & layout for About Modal */
 @media (max-width: 768px) {
+  .about-modal-card {
+    padding: 32px 24px;
+    max-width: 92%;
+  }
+
   .devs-grid {
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .dev-card {
+    flex: 0 1 calc(33.333% - 14px);
+    min-width: 150px;
+    max-width: 210px;
   }
 }
 
 @media (max-width: 480px) {
+  .about-modal-card {
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
+    max-height: 88vh;
+    padding: 24px 16px 20px 16px;
+    border-radius: 24px;
+  }
+
+  .about-modal-card::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .about-modal-card::-webkit-scrollbar-track {
+    margin: 18px 0;
+  }
+
+  .about-header {
+    margin-bottom: 18px;
+  }
+
+  .about-logo {
+    height: 52px;
+    margin-bottom: 6px;
+  }
+
+  .about-tagline {
+    font-size: 11.5px;
+    letter-spacing: 0.5px;
+  }
+
+  .about-body {
+    gap: 20px;
+  }
+
+  .about-section h3 {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+
+  .about-section p {
+    font-size: 13px;
+    line-height: 1.55;
+    text-align: left;
+  }
+
   .devs-grid {
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .devs-grid .dev-card {
+    flex: initial;
+    min-width: 0;
+    max-width: 100%;
+    padding: 16px 8px;
+    border-radius: 14px;
+  }
+
+  .devs-grid .dev-card:last-child {
+    grid-column: 1 / -1;
+    max-width: 180px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .dev-avatar-wrapper {
+    width: 68px;
+    height: 68px;
+    margin-bottom: 8px;
+  }
+
+  .dev-name {
+    font-size: 11.5px;
+    margin-bottom: 8px;
+  }
+
+  .dev-roles-list {
+    gap: 4px;
+  }
+
+  .dev-role-badge {
+    font-size: 8px;
+    padding: 3px 6px;
+  }
+
+  .about-footer {
+    margin-top: 20px;
+    font-size: 10.5px;
+  }
+
+  .modal-close-btn {
+    top: 16px;
+    right: 16px;
+    font-size: 24px;
   }
 }

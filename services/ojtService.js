@@ -202,6 +202,8 @@ function enrichOjtRecord(user) {
         Email: user.Email,
         Role: user.Role,
         Status: user.Status,
+        Profile_Photo: user.Profile_Photo || user.profilePhoto || null,
+        profilePhoto: user.Profile_Photo || user.profilePhoto || null,
         OJT_Start_Date: user.OJT_Start_Date,
         OJT_End_Date: user.OJT_End_Date,
         Phone: user.Phone,

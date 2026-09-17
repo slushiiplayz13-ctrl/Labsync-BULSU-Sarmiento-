@@ -190,7 +190,7 @@ async function getAllReports() {
     return { status: 200, data: reports };
 }
 
-async function updateReportStatus(reportId, status) {
+async function updateReportStatus(reportId, status, actor = {}) {
     const parsedId = Number(reportId);
     if (!Number.isInteger(parsedId) || parsedId <= 0) {
         return { status: 400, error: 'Invalid report ID. Must be a positive integer.' };
@@ -201,26 +201,54 @@ async function updateReportStatus(reportId, status) {
         return { status: 400, error: `Invalid status: '${status}'. Allowed values: ${ALLOWED_STATUSES.join(', ')}.` };
     }
 
-    await maintenanceRepository.withTransaction(async (connection) => {
-        await maintenanceRepository.updateMaintenanceIssueStatus(parsedId, status, connection);
-        await maintenanceRepository.updateLinkedStudentReportsStatus(parsedId, status, connection);
+    const txResult = await maintenanceRepository.withTransaction(async (connection) => {
+        // 1. Identify and lock the maintenance issue
+        let [issues] = await maintenanceRepository.findIssueForUpdate(parsedId, connection);
+        let actualIssueId = parsedId;
 
-        const [issues] = await maintenanceRepository.findPCIdAndStatusByIssueId(parsedId, connection);
-        if (issues.length > 0) {
-            const pcId = issues[0].PC_ID;
-            const [activeCount] = await maintenanceRepository.countActiveIssuesByPCId(pcId, connection);
-
-            if (activeCount[0].count === 0) {
-                // All active issues resolved -> restore workstation to Functional condition
-                await labRepository.updateConditionStatus(pcId, 'Functional', connection);
-            } else {
-                // PC still has other active issues -> remains Under Maintenance
-                await labRepository.updateConditionStatus(pcId, 'Under Maintenance', connection);
+        if (issues.length === 0) {
+            // Check if parsedId is a student Report_ID mapping to Maintenance_Issue_ID
+            const [studentReports] = await maintenanceRepository.findIssueIdByStudentReportId(parsedId, connection);
+            if (studentReports.length > 0 && studentReports[0].Maintenance_Issue_ID) {
+                actualIssueId = studentReports[0].Maintenance_Issue_ID;
+                [issues] = await maintenanceRepository.findIssueForUpdate(actualIssueId, connection);
             }
         }
+
+        if (issues.length === 0) {
+            return { status: 404, error: 'Maintenance ticket not found.' };
+        }
+
+        // 2. Read previous status and determine resolver ID
+        const previousStatus = issues[0].Status;
+        const resolverUserId = (status === 'Resolved') ? (actor && actor.userId ? actor.userId : null) : null;
+
+        // 3. Update issue status and resolver
+        await maintenanceRepository.updateMaintenanceIssueStatus(actualIssueId, status, resolverUserId, connection);
+        await maintenanceRepository.updateLinkedStudentReportsStatus(actualIssueId, status, connection);
+
+        // 4. Update PC condition if applicable
+        const pcId = issues[0].PC_ID;
+        const [activeCount] = await maintenanceRepository.countActiveIssuesByPCId(pcId, connection);
+
+        if (activeCount[0].count === 0) {
+            // All active issues resolved -> restore workstation to Functional condition
+            await labRepository.updateConditionStatus(pcId, 'Functional', connection);
+        } else {
+            // PC still has other active issues -> remains Under Maintenance
+            await labRepository.updateConditionStatus(pcId, 'Under Maintenance', connection);
+        }
+
+        return {
+            status: 200,
+            message: `Report status updated to ${status} successfully.`,
+            issueId: actualIssueId,
+            previousStatus,
+            newStatus: status
+        };
     });
 
-    return { status: 200, message: `Report status updated to ${status} successfully.` };
+    return txResult;
 }
 
 async function deleteReport(reportId) {

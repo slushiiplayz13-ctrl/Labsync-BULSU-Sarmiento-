@@ -287,6 +287,59 @@
       return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:800; padding:4px 11px; border-radius:8px; background:#FEF2F2; color:#DC2626; border:1.5px solid #FCA5A5;"><i data-lucide="alert-triangle" style="width:14px;height:14px;color:#EF4444;"></i> ${escapeFn(comp)}</span>`;
     }).join('');
 
+    const isResolved = (report.Status || '').toLowerCase() === 'resolved';
+
+    let resolutionHeaderRowHtml = '';
+    if (isResolved) {
+      let resDateFormatted = '';
+      if (report.Resolved_At) {
+        const resDateObj = new Date(report.Resolved_At);
+        if (!isNaN(resDateObj.getTime())) {
+          resDateFormatted = resDateObj.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          }) + ' • ' + resDateObj.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+        }
+      }
+
+      if (report.Resolved_By_Name) {
+        resolutionHeaderRowHtml = `
+          <div class="ticket-modal-resolution-row">
+            <span class="tm-res-label">Resolved by</span>
+            <span class="tm-res-who">
+              <i data-lucide="user" class="tm-res-icon"></i>
+              <span class="tm-res-name">${escapeFn(report.Resolved_By_Name)}</span>
+              <span class="tm-res-role">${escapeFn(report.Resolved_By_Role || 'MIS Staff')}</span>
+            </span>
+            <span class="tm-res-dot">•</span>
+            <span class="tm-res-when">
+              <i data-lucide="clock" class="tm-res-time-icon"></i>
+              ${resDateFormatted || 'Timestamp not recorded'}
+            </span>
+          </div>
+        `;
+      } else {
+        resolutionHeaderRowHtml = `
+          <div class="ticket-modal-resolution-row">
+            <span class="tm-res-who">
+              <i data-lucide="check-check" class="tm-res-icon" style="color:#059669;"></i>
+              <span class="tm-res-name">Work Order Completed</span>
+            </span>
+            <span class="tm-res-dot">•</span>
+            <span class="tm-res-when">
+              <i data-lucide="clock" class="tm-res-time-icon"></i>
+              ${resDateFormatted || 'Timestamp not recorded'}
+            </span>
+          </div>
+        `;
+      }
+    }
+
     let bodyContentHtml = '';
 
     if (linkedReports.length === 1) {
@@ -410,8 +463,6 @@
     modal.setAttribute('aria-labelledby', 'fullReportModalTitle');
     modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,0.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:2500;padding:20px;box-sizing:border-box;overflow-y:auto;';
 
-    const isResolved = (report.Status || '').toLowerCase() === 'resolved';
-
     let headerSubtitle = '';
     if (linkedReports.length > 1) {
       headerSubtitle = `${linkedReports.length} Linked Submissions · Latest update: ${formattedDate}`;
@@ -434,23 +485,24 @@
     modal.innerHTML = `
       <div class="modal-container" style="max-width: 540px; width: 92%; border-radius: 20px; padding: 24px 28px; background: var(--bg-card); border: 1px solid var(--border-light); box-shadow: 0 20px 50px rgba(0,0,0,0.25);">
         <!-- Header -->
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; border-bottom:1px solid var(--border-light); padding-bottom:14px;">
-          <div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <h3 id="fullReportModalTitle" class="full-report-ticket-title" style="font-family:var(--font-display); font-weight:800; font-size:18px; color:var(--primary-teal, #1EBBD7); margin:0; letter-spacing:0.2px;">
-                #LS-TKT-${report.Report_ID}
-              </h3>
-              <span class="status-badge ${isResolved ? 'resolved' : 'pending'}">
-                ${isResolved ? 'RESOLVED' : 'PENDING'}
-              </span>
+        <div class="ticket-modal-header" style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h3 id="fullReportModalTitle" style="font-size:18px; font-weight:800; color:var(--text-dark); margin:0;">Ticket #${escapeFn(String(report.Report_ID || reportId))}</h3>
+                <span class="badge ${isResolved ? 'badge-resolved' : 'badge-pending'}" style="font-size:11px; font-weight:700; padding:3px 8px; border-radius:99px; text-transform:uppercase; letter-spacing:0.5px; background:${isResolved ? '#DCFCE7' : '#FEF3C7'}; color:${isResolved ? '#15803D' : '#D97706'};">
+                  ${isResolved ? 'RESOLVED' : 'PENDING'}
+                </span>
+              </div>
+              <div style="font-size:12.5px; color:var(--text-muted); margin-top:4px; font-weight:500;">
+                ${headerSubtitle}
+              </div>
             </div>
-            <div style="font-size:12.5px; color:var(--text-muted); margin-top:4px; font-weight:500;">
-              ${headerSubtitle}
-            </div>
+            <button type="button" data-action="close-modal" class="modal-close-btn" aria-label="Close modal" style="background:#F1F5F9; border:none; color:var(--text-mid); cursor:pointer; width:32px; height:32px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;">
+              <i data-lucide="x" style="width:16px;height:16px;"></i>
+            </button>
           </div>
-          <button type="button" data-action="close-modal" class="modal-close-btn" aria-label="Close modal" style="background:#F1F5F9; border:none; color:var(--text-mid); cursor:pointer; width:32px; height:32px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;">
-            <i data-lucide="x" style="width:16px;height:16px;"></i>
-          </button>
+          ${resolutionHeaderRowHtml}
         </div>
 
         <!-- Body Info -->

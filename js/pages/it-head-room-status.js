@@ -187,22 +187,20 @@
 
       const titleText = profText || (log.room_number ? `RM ${log.room_number} Key` : 'Room Key');
       const detailText = log.detail || (hasUser ? 'Faculty' : 'System');
-      const metaRoom = log.room_number ? ` • ${roomLabel}` : '';
       const relTime = getRelativeTime(log.time);
+      const roomBadgeHtml = log.room_number ? `<span class="timeline-meta-dot">•</span><span>${roomLabel}</span>` : '';
 
       return `
         <div class="timeline-item">
-          <div class="timeline-badge">
-            <i data-lucide="key-round"></i>
-          </div>
           <div class="timeline-panel">
             <div class="timeline-heading">
               <h4 class="timeline-title">${titleText}</h4>
               <p class="timeline-heading-meta">
                 <i data-lucide="clock"></i>
                 <span>${relTime}</span>
-                <span style="color:var(--border-light, #cbd5e1);">•</span>
-                <span>${detailText}${metaRoom}</span>
+                <span class="timeline-meta-dot">•</span>
+                <span>${detailText}</span>
+                ${roomBadgeHtml}
               </p>
             </div>
             <div class="timeline-body">

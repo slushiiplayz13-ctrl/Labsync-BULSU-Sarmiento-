@@ -102,7 +102,7 @@
   function initAboutModal() {
     const aboutLink = document.getElementById('aboutLink');
     const aboutModal = document.getElementById('aboutModal');
-    const closeAboutActionBtn = document.getElementById('closeAboutActionBtn');
+    const closeAboutBtn = document.getElementById('closeAboutModalBtn') || document.getElementById('closeAboutActionBtn');
 
     if (!aboutLink || !aboutModal) return;
 
@@ -110,8 +110,12 @@
       e.preventDefault();
       aboutModal.classList.add('active');
       if (global.setModalOpenState) global.setModalOpenState(true);
-      if (closeAboutActionBtn) {
-        closeAboutActionBtn.focus();
+      const card = typeof aboutModal.querySelector === 'function' ? aboutModal.querySelector('.about-modal-card') : null;
+      if (card) {
+        card.scrollTop = 0;
+      }
+      if (closeAboutBtn) {
+        closeAboutBtn.focus({ preventScroll: true });
       }
     });
 
@@ -121,8 +125,8 @@
       aboutLink.focus();
     }
 
-    if (closeAboutActionBtn) {
-      closeAboutActionBtn.addEventListener('click', closeModal);
+    if (closeAboutBtn) {
+      closeAboutBtn.addEventListener('click', closeModal);
     }
 
     aboutModal.addEventListener('click', (e) => {
@@ -475,10 +479,9 @@
     }
   }
 
+  // Session Expiry Notice Handler
   function checkSessionExpiryNotice() {
-    let noticeMessage = null;
-    let noticeTitle = "Session Notice";
-    let noticeType = "warning";
+    let noticeMessage = "";
 
     try {
       const urlParams = new URLSearchParams(window.location.search);
@@ -486,24 +489,16 @@
 
       if (reason === 'deactivated') {
         noticeMessage = "Your account has been deactivated. Please contact the administrator.";
-        noticeTitle = "Account Deactivated";
-        noticeType = "error";
       } else if (reason === 'ojt_expired') {
         noticeMessage = "Your OJT internship period has concluded. Please contact the MIS Staff.";
-        noticeTitle = "Internship Concluded";
-        noticeType = "error";
       } else if (reason === 'inactivity' || urlParams.get('expired') === 'true') {
         noticeMessage = "Your session has expired due to inactivity. Please log in again.";
-        noticeTitle = "Session Expired";
-        noticeType = "warning";
       } else {
         const expiredTimestamp = localStorage.getItem('labsync_session_expired');
         if (expiredTimestamp) {
           const timeDiff = Date.now() - parseInt(expiredTimestamp, 10);
           if (timeDiff < 5 * 60 * 1000) {
             noticeMessage = "Your session has expired due to inactivity. Please log in again.";
-            noticeTitle = "Session Expired";
-            noticeType = "warning";
           }
           localStorage.removeItem('labsync_session_expired');
         }
@@ -515,9 +510,6 @@
         window.history.replaceState({}, document.title, window.location.pathname);
       }
       showLoginError(noticeMessage);
-      if (typeof window.showToast === 'function') {
-        window.showToast(noticeMessage, noticeType, noticeTitle);
-      }
     }
   }
 

@@ -9,9 +9,19 @@ async function getCurrentUser(req, res, next) {
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
-        if (req.session && result.user && result.user.role && req.session.userRole !== result.user.role) {
-            req.session.userRole = result.user.role;
-            req.session.save(() => {});
+        if (req.session && result.user) {
+            let sessionDirty = false;
+            if (result.user.role && req.session.userRole !== result.user.role) {
+                req.session.userRole = result.user.role;
+                sessionDirty = true;
+            }
+            if (result.user.name && req.session.userName !== result.user.name) {
+                req.session.userName = result.user.name;
+                sessionDirty = true;
+            }
+            if (sessionDirty) {
+                req.session.save(() => {});
+            }
         }
         return res.status(result.status).json(result.user);
     } catch (err) {

@@ -286,7 +286,10 @@ function applyRoleNavigation(role) {
 
         const rawData = await response.json();
         const user = (rawData && (rawData.user || rawData)) || {};
-        try { sessionStorage.setItem('labsync_user', JSON.stringify(user)); } catch (e) { }
+        try {
+            sessionStorage.setItem('labsync_user', JSON.stringify(user));
+            localStorage.setItem('user', JSON.stringify(user));
+        } catch (e) { }
         const role = user.role || '';
 
         if (!isPageAuthorized(role, page)) {

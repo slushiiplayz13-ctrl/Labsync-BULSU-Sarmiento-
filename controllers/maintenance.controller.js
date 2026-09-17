@@ -28,7 +28,13 @@ async function updateReportStatus(req, res, next) {
     try {
         const { reportId } = req.params;
         const { status } = req.body;
-        const result = await maintenanceService.updateReportStatus(reportId, status);
+
+        // Authoritatively derive actor from server session only (never trust client)
+        const actor = {
+            userId: req.session ? req.session.userId : null
+        };
+
+        const result = await maintenanceService.updateReportStatus(reportId, status, actor);
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
@@ -37,8 +43,11 @@ async function updateReportStatus(req, res, next) {
             req,
             action: 'TICKET_STATUS_UPDATE',
             resourceType: 'MAINTENANCE',
-            resourceId: reportId,
-            details: { newStatus: status },
+            resourceId: result.issueId || reportId,
+            details: {
+                previousStatus: result.previousStatus,
+                newStatus: status
+            },
             result: 'SUCCESS'
         });
 

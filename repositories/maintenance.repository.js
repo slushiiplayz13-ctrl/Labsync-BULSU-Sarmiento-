@@ -34,13 +34,23 @@ async function insertStudentReport({ issueId, pcId, studentName, desc, status, p
     );
 }
 
+async function findIssueForUpdate(issueId, executor = db) {
+    return executor.query('SELECT Issue_ID, PC_ID, Status FROM maintenance_issues WHERE Issue_ID = ? FOR UPDATE', [issueId]);
+}
+
+async function findIssueIdByStudentReportId(reportId, executor = db) {
+    return executor.query('SELECT Maintenance_Issue_ID FROM maintenance WHERE Report_ID = ?', [reportId]);
+}
+
 async function findAllMaintenanceIssues(executor = db) {
     const [issues] = await executor.query(`
         SELECT i.Issue_ID, i.PC_ID, i.Issue_Type, i.Status, i.Priority_Level, i.Created_At, i.Resolved_At,
+               i.Resolved_By_User_ID, res_u.Name AS Resolved_By_Name, res_u.Role AS Resolved_By_Role,
                p.PC_Number, r.Room_Number, r.Building
         FROM maintenance_issues i
         JOIN lab_units p ON i.PC_ID = p.PC_ID
         JOIN laboratories r ON p.Room_ID = r.Room_ID
+        LEFT JOIN users res_u ON i.Resolved_By_User_ID = res_u.User_ID
         ORDER BY i.Created_At DESC
     `);
 
@@ -79,6 +89,9 @@ async function findAllMaintenanceIssues(executor = db) {
             Date_Reported: latestReport ? latestReport.Date_Reported : issue.Created_At,
             Created_At: issue.Created_At,
             Resolved_At: issue.Resolved_At,
+            Resolved_By_User_ID: issue.Resolved_By_User_ID,
+            Resolved_By_Name: issue.Resolved_By_Name,
+            Resolved_By_Role: issue.Resolved_By_Role,
             Student_Name: latestReport ? latestReport.Student_Name : 'Student',
             Issue_Description: latestReport ? latestReport.Issue_Description : `[Issues: ${issue.Issue_Type}]`,
             Report_Count: linkedReports.length,
@@ -89,14 +102,17 @@ async function findAllMaintenanceIssues(executor = db) {
     return [result];
 }
 
-async function updateMaintenanceIssueStatus(issueId, status, executor = db) {
+async function updateMaintenanceIssueStatus(issueId, status, resolverUserId = null, executor = db) {
     if (status === 'Resolved') {
         return executor.query(
-            "UPDATE maintenance_issues SET Status = 'Resolved', Resolved_At = NOW() WHERE Issue_ID = ?",
-            [issueId]
+            "UPDATE maintenance_issues SET Status = 'Resolved', Resolved_At = NOW(), Resolved_By_User_ID = ? WHERE Issue_ID = ?",
+            [resolverUserId, issueId]
         );
     }
-    return executor.query('UPDATE maintenance_issues SET Status = ? WHERE Issue_ID = ?', [status, issueId]);
+    return executor.query(
+        'UPDATE maintenance_issues SET Status = ?, Resolved_At = NULL, Resolved_By_User_ID = NULL WHERE Issue_ID = ?',
+        [status, issueId]
+    );
 }
 
 async function updateLinkedStudentReportsStatus(issueId, status, executor = db) {
@@ -131,8 +147,8 @@ async function findAllReports(executor = db) {
     return findAllMaintenanceIssues(executor);
 }
 
-async function updateReportStatus(reportId, status, executor = db) {
-    return updateMaintenanceIssueStatus(reportId, status, executor);
+async function updateReportStatus(reportId, status, resolverUserId = null, executor = db) {
+    return updateMaintenanceIssueStatus(reportId, status, resolverUserId, executor);
 }
 
 async function resolveAllPendingReportsByPCId(pcId, executor = db) {
@@ -385,6 +401,8 @@ module.exports = {
     updateLinkedStudentReportsStatus,
     countActiveIssuesByPCId,
     findPCIdAndStatusByIssueId,
+    findIssueForUpdate,
+    findIssueIdByStudentReportId,
     deleteMaintenanceIssue,
     insertReport,
     findAllReports,

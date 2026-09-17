@@ -1070,7 +1070,7 @@
   }
 
   .dashboard-card {
-    padding: 12px !important;
+    padding: 16px 12px 14px 12px !important;
     border-radius: 16px !important;
   }
 

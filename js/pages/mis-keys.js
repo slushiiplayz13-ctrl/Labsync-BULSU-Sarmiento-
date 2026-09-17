@@ -13,6 +13,18 @@
   const selectedKeyIds = new Set();
   let activePrintKeyIds = [];
 
+  function escapeHtml(str) {
+    if (typeof global.escapeHtml === 'function') {
+      return global.escapeHtml(str);
+    }
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     initKeysPage();
   });
@@ -28,15 +40,26 @@
   async function refreshKeys() {
     const tableBody = document.getElementById('keysTableBody');
     if (tableBody) {
+      if (typeof tableBody.closest === 'function') {
+        tableBody.closest('.keys-table')?.classList.add('is-empty');
+        tableBody.closest('.keys-table-card')?.classList.add('is-empty');
+      }
       tableBody.innerHTML = `
-        <tr>
+        <tr class="empty-table-row">
           <td colspan="7" class="empty-table-cell">
-            <i data-lucide="loader" class="spin" style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
-            Loading laboratory keys...
+            <div class="keys-empty-state">
+              <div class="keys-empty-icon-wrap loading-spinner-wrap">
+                <i data-lucide="loader-2" class="keys-empty-icon spin"></i>
+              </div>
+              <h4 class="keys-empty-title">Loading Laboratory Keys...</h4>
+              <p class="keys-empty-desc" style="margin-bottom: 0;">Fetching physical key inventory and status records.</p>
+            </div>
           </td>
         </tr>
       `;
-      if (window.lucide) window.lucide.createIcons();
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ root: tableBody });
+      }
     }
 
     try {
@@ -48,15 +71,30 @@
     } catch (err) {
       console.error('[MISKeys] Error fetching keys:', err);
       if (tableBody) {
+        if (typeof tableBody.closest === 'function') {
+          tableBody.closest('.keys-table')?.classList.add('is-empty');
+          tableBody.closest('.keys-table-card')?.classList.add('is-empty');
+        }
         tableBody.innerHTML = `
-          <tr>
-            <td colspan="7" class="table-cell text-center" style="padding: 40px; color: #EF4444;">
-              <i data-lucide="alert-circle" style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 8px;"></i>
-              Failed to load key inventory: ${err.message}
+          <tr class="empty-table-row">
+            <td colspan="7" class="empty-table-cell error-state">
+              <div class="keys-empty-state">
+                <div class="keys-empty-icon-wrap error-icon-wrap">
+                  <i data-lucide="alert-triangle" class="keys-empty-icon"></i>
+                </div>
+                <h4 class="keys-empty-title">Failed to Load Keys</h4>
+                <p class="keys-empty-desc">${escapeHtml(err.message || 'An error occurred while fetching keys.')}</p>
+                <button type="button" class="keys-empty-reset-btn" data-action="refresh-keys">
+                  <i data-lucide="refresh-cw"></i>
+                  <span>Retry Connection</span>
+                </button>
+              </div>
             </td>
           </tr>
         `;
-        if (window.lucide) window.lucide.createIcons();
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons({ root: tableBody });
+        }
       }
     }
   }
@@ -175,14 +213,52 @@
     updateBatchToolbar();
 
     if (currentFilteredKeys.length === 0) {
+      if (typeof tableBody.closest === 'function') {
+        tableBody.closest('.keys-table')?.classList.add('is-empty');
+        tableBody.closest('.keys-table-card')?.classList.add('is-empty');
+      }
+      const isFiltered = Boolean(query || currentFilter !== 'ALL');
+      const emptyTitle = isFiltered ? 'No matching laboratory keys' : 'No laboratory keys found';
+      const emptyDesc = isFiltered
+        ? 'No laboratory keys matching the criteria.'
+        : 'There are currently no physical laboratory keys registered in the inventory.';
+      const actionHtml = isFiltered
+        ? `
+          <button type="button" class="keys-empty-reset-btn" data-action="reset-filter">
+            <i data-lucide="rotate-ccw"></i>
+            <span>Reset Filter & Search</span>
+          </button>
+        `
+        : `
+          <button type="button" class="keys-empty-reset-btn" data-action="refresh-keys">
+            <i data-lucide="refresh-cw"></i>
+            <span>Refresh Inventory</span>
+          </button>
+        `;
+
       tableBody.innerHTML = `
-        <tr>
+        <tr class="empty-table-row">
           <td colspan="7" class="empty-table-cell">
-            No laboratory keys matching the criteria.
+            <div class="keys-empty-state">
+              <div class="keys-empty-icon-wrap">
+                <i data-lucide="${isFiltered ? 'search' : 'key'}" class="keys-empty-icon"></i>
+              </div>
+              <h4 class="keys-empty-title">${emptyTitle}</h4>
+              <p class="keys-empty-desc">${emptyDesc}</p>
+              ${actionHtml}
+            </div>
           </td>
         </tr>
       `;
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ root: tableBody });
+      }
       return;
+    }
+
+    if (typeof tableBody.closest === 'function') {
+      tableBody.closest('.keys-table')?.classList.remove('is-empty');
+      tableBody.closest('.keys-table-card')?.classList.remove('is-empty');
     }
 
     tableBody.innerHTML = currentFilteredKeys.map(k => {
@@ -423,8 +499,35 @@
         updateBatchToolbar();
       });
 
-      // Print Tag single button click
+      // Action button delegation & empty state button actions
       tableBody.addEventListener('click', async (e) => {
+        const resetBtn = e.target.closest('[data-action="reset-filter"]');
+        if (resetBtn) {
+          const searchInput = document.getElementById('keySearchInput');
+          if (searchInput) {
+            searchInput.value = '';
+          }
+          const filterBtns = document.querySelectorAll('.key-filter-btn');
+          filterBtns.forEach(b => {
+            if (b.dataset.filter === 'ALL') {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+          currentFilter = 'ALL';
+          selectedKeyIds.clear();
+          renderKeysTable();
+          if (searchInput) searchInput.focus();
+          return;
+        }
+
+        const refreshBtn = e.target.closest('[data-action="refresh-keys"]');
+        if (refreshBtn) {
+          await refreshKeys();
+          return;
+        }
+
         const btn = e.target.closest('.key-action-btn');
         if (!btn) return;
 

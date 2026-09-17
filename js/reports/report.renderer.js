@@ -125,10 +125,57 @@
       `;
     }
 
-    // Header date: resolved tickets display the date with the year in the header
-    const dateBadgeHtml = isResolved
-      ? `<span class="modal-ticket-date">${formattedDate}</span>`
-      : '';
+    // Resolution identity mini-block for resolved cards
+    let resolutionStripHtml = '';
+    if (isResolved) {
+      let resDateFormatted = formattedDate;
+      if (report.Resolved_At) {
+        const resDateObj = new Date(report.Resolved_At);
+        if (!isNaN(resDateObj.getTime())) {
+          resDateFormatted = resDateObj.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          }) + ' • ' + resDateObj.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+        }
+      }
+
+      if (report.Resolved_By_Name) {
+        const resolverTitle = `Resolved by ${escapeFn(report.Resolved_By_Name)} (${escapeFn(report.Resolved_By_Role || 'MIS Staff')})`;
+        resolutionStripHtml = `
+          <div class="rc-card-resolution" title="${resolverTitle}">
+            <span class="rc-card-res-who">
+              <i data-lucide="user" class="rc-card-res-icon"></i>
+              <span class="rc-card-res-name">${escapeFn(report.Resolved_By_Name)}</span>
+              <span class="rc-card-res-role">${escapeFn(report.Resolved_By_Role || 'MIS Staff')}</span>
+            </span>
+            <span class="rc-card-res-dot">•</span>
+            <span class="rc-card-res-when">
+              <i data-lucide="clock" class="rc-card-res-time-icon"></i>
+              ${resDateFormatted}
+            </span>
+          </div>
+        `;
+      } else {
+        resolutionStripHtml = `
+          <div class="rc-card-resolution">
+            <span class="rc-card-res-who">
+              <i data-lucide="check-check" class="rc-card-res-icon" style="color:#059669;"></i>
+              <span class="rc-card-res-name">Work Order Completed</span>
+            </span>
+            <span class="rc-card-res-dot">•</span>
+            <span class="rc-card-res-when">
+              <i data-lucide="clock" class="rc-card-res-time-icon"></i>
+              ${resDateFormatted}
+            </span>
+          </div>
+        `;
+      }
+    }
 
     const containerClasses = isModal
       ? 'report-card modal-ticket-card'
@@ -145,10 +192,11 @@
             <span class="rc-asset-title">Room ${roomNum} – PC ${pcNum}</span>
           </div>
           <div class="rc-header-right">
-            ${dateBadgeHtml}
             <span class="status-badge ${badgeClass}">${actualBadgeLabel}</span>
           </div>
         </div>
+
+        ${resolutionStripHtml}
 
         <!-- Tier 2: Middle Row (Reported Issue on Left, View Full Report on Right) -->
         <div class="report-card-middle-row">

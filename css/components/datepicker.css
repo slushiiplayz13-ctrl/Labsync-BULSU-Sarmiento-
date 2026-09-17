@@ -1,0 +1,456 @@
+/* ================================================================
+   LabSync – Modular Component: Custom Datepicker Popover
+   css/components/datepicker.css
+   ================================================================ */
+
+/* ─── Input Container & Icon ─── */
+.labsync-date-input-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.labsync-date-input-container .ojt-form-input,
+.labsync-date-input-container input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 40px !important;
+  cursor: pointer;
+  background-color: var(--bg-card, #FFFFFF);
+  color: var(--text-dark, #0F172A);
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.2s ease;
+}
+
+.labsync-date-input-container .labsync-date-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted, #94A3B8);
+  pointer-events: none;
+  transition: color 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.labsync-date-input-container:hover .labsync-date-icon,
+.labsync-date-input-container:focus-within .labsync-date-icon {
+  color: var(--primary-teal, #1EBBD7);
+  transform: translateY(-50%) scale(1.12);
+}
+
+/* ─── Datepicker Floating Popover Card ─── */
+.labsync-datepicker-popover {
+  position: fixed;
+  z-index: 100050;
+  width: 324px;
+  padding: 16px 18px;
+  background: var(--bg-white, #FFFFFF);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.18), 
+              0 4px 14px -2px rgba(15, 23, 42, 0.06), 
+              0 0 0 1px rgba(0, 0, 0, 0.04);
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  color: var(--text-dark, #0F172A);
+  user-select: none;
+  box-sizing: border-box;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px) scale(0.97);
+  transform-origin: top center;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              visibility 0.2s;
+}
+
+.labsync-datepicker-popover.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+/* ─── Header: Month / Year Title & Navigation ─── */
+.ldp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ldp-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border-light, #E2E8F0);
+  background: var(--bg-white, #FFFFFF);
+  color: var(--text-mid, #475569);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ldp-nav-btn:hover {
+  background: var(--primary-teal-light, #E8F9FC);
+  border-color: var(--primary-teal, #1EBBD7);
+  color: var(--primary-teal, #1EBBD7);
+  transform: scale(1.08);
+}
+
+.ldp-nav-btn:active {
+  transform: scale(0.95);
+}
+
+.ldp-title-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  font-family: var(--font-display, 'Poppins', sans-serif);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-dark, #0F172A);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 10px;
+  outline: none;
+  transition: all 0.18s ease;
+}
+
+.ldp-title-btn:hover {
+  background: rgba(30, 187, 215, 0.09);
+  color: var(--primary-teal, #1EBBD7);
+}
+
+.ldp-title-chevron {
+  width: 15px;
+  height: 15px;
+  display: inline-block;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ldp-title-btn.expanded .ldp-title-chevron {
+  transform: rotate(180deg);
+}
+
+/* ─── Weekday Column Names ─── */
+.ldp-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.ldp-weekday {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted, #94A3B8);
+  letter-spacing: 0.6px;
+  padding: 4px 0;
+}
+
+/* ─── Day Grid & Day Pills ─── */
+.ldp-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.ldp-day {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-dark, #1E293B);
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  position: relative;
+  outline: none;
+  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ldp-day:hover:not(:disabled):not(.disabled) {
+  background: #F1F5F9;
+  color: var(--text-dark, #0F172A);
+  transform: scale(1.08);
+  z-index: 1;
+}
+
+.ldp-day.other-month {
+  color: #CBD5E1;
+  opacity: 0.55;
+  font-weight: 400;
+}
+
+.ldp-day.today:not(.selected) {
+  color: var(--primary-teal, #1EBBD7);
+  font-weight: 700;
+}
+
+.ldp-day.today::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary-teal, #1EBBD7);
+}
+
+.ldp-day.selected {
+  background: linear-gradient(135deg, #1EBBD7 0%, #0EA5C9 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(30, 187, 215, 0.42);
+  transform: scale(1.06);
+  z-index: 2;
+}
+
+.ldp-day.selected::after {
+  background: #FFFFFF;
+}
+
+.ldp-day:disabled,
+.ldp-day.disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+  pointer-events: none;
+  text-decoration: line-through;
+}
+
+/* ─── Fast Month & Year Selector View ─── */
+.ldp-months-view {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.ldp-month-btn {
+  padding: 11px 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light, #E2E8F0);
+  background: var(--bg-white, #FFFFFF);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-mid, #475569);
+  cursor: pointer;
+  transition: all 0.16s ease;
+  text-align: center;
+  outline: none;
+}
+
+.ldp-month-btn:hover {
+  background: var(--primary-teal-light, #E8F9FC);
+  border-color: var(--primary-teal, #1EBBD7);
+  color: var(--primary-teal, #1EBBD7);
+  transform: translateY(-1px);
+}
+
+.ldp-month-btn.active {
+  background: linear-gradient(135deg, #1EBBD7 0%, #0EA5C9 100%);
+  border-color: transparent;
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(30, 187, 215, 0.35);
+}
+
+/* ─── Footer Action Bar ─── */
+.ldp-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light, #F1F5F9);
+}
+
+.ldp-btn-clear {
+  background: transparent;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted, #94A3B8);
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.ldp-btn-clear:hover {
+  color: #EF4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.ldp-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ldp-preview-badge {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-mid, #64748B);
+}
+
+.ldp-btn-today {
+  background: var(--primary-teal-light, #E8F9FC);
+  border: 1px solid rgba(30, 187, 215, 0.25);
+  color: var(--primary-teal, #1EBBD7);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 5px 14px;
+  border-radius: 10px;
+  transition: all 0.16s ease;
+  outline: none;
+}
+
+.ldp-btn-today:hover {
+  background: var(--primary-teal, #1EBBD7);
+  color: #FFFFFF;
+  border-color: var(--primary-teal, #1EBBD7);
+  box-shadow: 0 3px 10px rgba(30, 187, 215, 0.35);
+  transform: translateY(-1px);
+}
+
+.ldp-btn-today:active {
+  transform: translateY(0);
+}
+
+/* ─── Accessibility & Dark Mode Support ─── */
+html.dark-mode .labsync-datepicker-popover,
+body.dark-mode .labsync-datepicker-popover,
+[data-theme="dark"] .labsync-datepicker-popover {
+  background: #1E293B;
+  border-color: #334155;
+  color: #F8FAFC;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65), 
+              0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+html.dark-mode .labsync-date-input-container .ojt-form-input,
+body.dark-mode .labsync-date-input-container .ojt-form-input,
+[data-theme="dark"] .labsync-date-input-container .ojt-form-input {
+  background: #1E293B;
+  color: #F8FAFC;
+  border-color: #334155;
+}
+
+html.dark-mode .ldp-nav-btn,
+body.dark-mode .ldp-nav-btn,
+[data-theme="dark"] .ldp-nav-btn {
+  background: #0F172A;
+  border-color: #334155;
+  color: #94A3B8;
+}
+
+html.dark-mode .ldp-nav-btn:hover,
+body.dark-mode .ldp-nav-btn:hover,
+[data-theme="dark"] .ldp-nav-btn:hover {
+  background: rgba(30, 187, 215, 0.18);
+  border-color: #1EBBD7;
+  color: #1EBBD7;
+}
+
+html.dark-mode .ldp-title-btn,
+body.dark-mode .ldp-title-btn,
+[data-theme="dark"] .ldp-title-btn {
+  color: #F8FAFC;
+}
+
+html.dark-mode .ldp-title-btn:hover,
+body.dark-mode .ldp-title-btn:hover,
+[data-theme="dark"] .ldp-title-btn:hover {
+  background: #334155;
+  color: #1EBBD7;
+}
+
+html.dark-mode .ldp-weekday,
+body.dark-mode .ldp-weekday,
+[data-theme="dark"] .ldp-weekday {
+  color: #64748B;
+}
+
+html.dark-mode .ldp-day,
+body.dark-mode .ldp-day,
+[data-theme="dark"] .ldp-day {
+  color: #E2E8F0;
+}
+
+html.dark-mode .ldp-day:hover:not(:disabled):not(.disabled),
+body.dark-mode .ldp-day:hover:not(:disabled):not(.disabled),
+[data-theme="dark"] .ldp-day:hover:not(:disabled):not(.disabled) {
+  background: #334155;
+  color: #FFFFFF;
+}
+
+html.dark-mode .ldp-day.other-month,
+body.dark-mode .ldp-day.other-month,
+[data-theme="dark"] .ldp-day.other-month {
+  color: #475569;
+  opacity: 0.45;
+}
+
+html.dark-mode .ldp-footer,
+body.dark-mode .ldp-footer,
+[data-theme="dark"] .ldp-footer {
+  border-color: #334155;
+}
+
+html.dark-mode .ldp-btn-clear,
+body.dark-mode .ldp-btn-clear,
+[data-theme="dark"] .ldp-btn-clear {
+  color: #94A3B8;
+}
+
+html.dark-mode .ldp-month-btn,
+body.dark-mode .ldp-month-btn,
+[data-theme="dark"] .ldp-month-btn {
+  background: #0F172A;
+  border-color: #334155;
+  color: #CBD5E1;
+}
+
+html.dark-mode .ldp-month-btn:hover,
+body.dark-mode .ldp-month-btn:hover,
+[data-theme="dark"] .ldp-month-btn:hover {
+  background: #334155;
+  color: #1EBBD7;
+  border-color: #1EBBD7;
+}
+
+html.dark-mode .ldp-btn-today,
+body.dark-mode .ldp-btn-today,
+[data-theme="dark"] .ldp-btn-today {
+  background: rgba(30, 187, 215, 0.16);
+  border-color: rgba(30, 187, 215, 0.35);
+  color: #38BDF8;
+}
+
+html.dark-mode .ldp-preview-badge,
+body.dark-mode .ldp-preview-badge,
+[data-theme="dark"] .ldp-preview-badge {
+  color: #94A3B8;
+}
