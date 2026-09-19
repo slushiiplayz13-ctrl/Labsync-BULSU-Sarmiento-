@@ -334,7 +334,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="style.css?v=1.0.3" />
+    <link rel="stylesheet" href="style.css?v=1.0.8" />
     <style>
         html,
         body {
@@ -361,8 +361,23 @@
 
         html.high-contrast .document-page img,
         html.dark-mode .document-page img,
-        .document-page img {
+        body.dark-mode .document-page img,
+        [data-theme="dark"] .document-page img,
+        .document-page img,
+        .footer-brand img,
+        .labsync-print-brand-logo {
             filter: none !important;
+            content: normal !important;
+        }
+
+        html.high-contrast .document-page img[src*="labsync-logo"],
+        html.dark-mode .document-page img[src*="labsync-logo"],
+        body.dark-mode .document-page img[src*="labsync-logo"],
+        [data-theme="dark"] .document-page img[src*="labsync-logo"],
+        .document-page img[src*="labsync-logo"],
+        .footer-brand img,
+        .labsync-print-brand-logo {
+            content: normal !important;
         }
 
         html.high-contrast .print-table th,

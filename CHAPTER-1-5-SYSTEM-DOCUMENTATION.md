@@ -481,10 +481,11 @@ stateDiagram-v2
 
 ### Main Maintenance Tracker Interface (`mis-maintenance.html`) `[CODE-CONFIRMED]`
 - **Table Column Structure:**
-  `TICKET ID` │ `DATE & TIME` │ `LAB ROOM` │ `PC UNIT` │ `REPORTED BY` │ `ISSUE DETAILS & REMARKS` │ `ACTIONS`
-- **Interactive Reporter Chip (`.reporter-chip`):**
-  - **Single Reporter:** Displays a pill badge with person icon (`👤 Michael Vince`).
-  - **Multiple Reporters:** Displays an interactive pill with count badge (`👤 james james [+1] ›`). Clicking the chip opens the **Ticket Details Modal** detailing every individual student timestamp and remarks.
+  `TICKET ID` │ `DATE & TIME` │ `LAB ROOM` │ `PC UNIT` │ `ISSUE DETAILS & REMARKS` │ `ACTIONS`
+- **Actions Cluster (`.table-actions-cluster`):**
+  - **Mark Resolved / Completed:** Action button or interactive resolver status pill.
+  - **View Full Details (`[ 👁️ View Details ]`):** Direct action button opening the **Ticket Details Modal** detailing every individual student reporter name, section, timestamp, and full remarks.
+- **Remarks Box (`.remarks-fixed-box`):** Uniform fixed-height container with single-line ellipsis and hover tooltip.
 - **Two-State Lifecycle:** Tickets operate strictly between **Pending** and **Resolved** (no redundant *In Progress* state).
 - **Workstation Condition Synchronization (`lab_units`):**
   - When a ticket is marked `Resolved`, the system queries `countActiveIssuesByPC(PC_ID)`.

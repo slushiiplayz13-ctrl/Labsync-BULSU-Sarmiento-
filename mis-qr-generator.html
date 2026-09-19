@@ -12,12 +12,120 @@
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
     rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=1.0.3" />
+  <link rel="stylesheet" href="style.css?v=1.0.8" />
   <script src="js/auth-check.js"></script>
   <script src="js/utils/core-utils.js"></script>
   <script src="js/utils/dom-utils.js"></script>
-  <script src="js/pages/mis-qr-generator/qr-generator.renderer.js"></script>
+  <script src="js/pages/mis-qr-generator/qr-generator.renderer.js?v=1.0.2"></script>
   <style>
+    @media (min-width: 769px) {
+      body[data-page="mis-qr-generator"] {
+        overflow: hidden !important;
+      }
+
+      body[data-page="mis-qr-generator"] .main-wrapper {
+        height: 100vh !important;
+        overflow: hidden !important;
+      }
+
+      body[data-page="mis-qr-generator"] .page-content {
+        overflow: hidden !important;
+        padding: 24px !important;
+        height: calc(100vh - var(--header-height)) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-sizing: border-box !important;
+        gap: 16px !important;
+      }
+
+      body[data-page="mis-qr-generator"] .greeting-row {
+        margin-bottom: 0 !important;
+        flex-shrink: 0 !important;
+      }
+
+      #roomSelectionView {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+      }
+
+      #pcGridView {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: none;
+        flex-direction: column;
+        box-sizing: border-box;
+      }
+
+      #pcGridView[style*="display: block"],
+      #pcGridView[style*="display: flex"] {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+      }
+
+      .pc-grid-header {
+        flex-shrink: 0 !important;
+        margin-bottom: 12px !important;
+      }
+
+      .pc-grid-container {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+        align-content: start !important;
+        grid-auto-rows: minmax(110px, max-content) !important;
+      }
+
+      .pc-grid-container.is-empty,
+      .pc-grid-container:has(> .pc-grid-empty-state) {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        padding: 32px 20px !important;
+        box-sizing: border-box !important;
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: var(--radius-card, 16px) !important;
+        box-shadow: var(--shadow-sm) !important;
+        overflow: hidden !important;
+      }
+
+      .pc-grid-empty-state {
+        grid-column: 1 / -1;
+        width: 100%;
+        max-width: 480px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        margin: auto !important;
+        padding: 0 16px;
+        box-sizing: border-box;
+        animation: pcEmptyFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .pc-grid-container.is-empty,
+      .pc-grid-container:has(> .pc-grid-empty-state) {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 280px !important;
+        padding: 36px 20px !important;
+        box-sizing: border-box !important;
+      }
+    }
+
     .qr-print-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -643,7 +751,7 @@
     </header>
 
     <!-- PAGE CONTENT -->
-    <main class="page-content" style="overflow-y: auto;">
+    <main class="page-content">
 
       <!-- Greeting + Clock Row -->
       <div class="greeting-row">
@@ -705,7 +813,7 @@
       </div>
 
       <!-- VIEW 2: PC GRID -->
-      <div id="pcGridView" style="display: none; padding-top: 16px; position: relative;">
+      <div id="pcGridView" style="display: none; position: relative;">
 
         <!-- Controls Header -->
         <div class="pc-grid-header"
@@ -792,7 +900,7 @@
   <script src="js/components/sidebar-nav.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
-  <script src="js/pages/mis-qr-generator/qr-generator.print.js"></script>
+  <script src="js/pages/mis-qr-generator/qr-generator.print.js?v=1.0.2"></script>
   <script src="js/pages/mis-qr-generator/qr-generator.actions.js"></script>
   <script src="js/pages/mis-qr-generator/qr-generator.modal.js"></script>
   <script src="js/pages/mis-qr-generator.js"></script>

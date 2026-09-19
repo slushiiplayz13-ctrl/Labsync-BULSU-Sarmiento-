@@ -165,13 +165,14 @@ function createMaintenanceModalSandbox() {
   assert(html.includes('MIS Staff'), 'Modal must display resolver role MIS Staff');
   assert(html.includes('RESOLVED'), 'Modal must display RESOLVED status pill');
 
-  // Check integration: resolution row must be inside ticket-modal-header before ticket-modal-body
+  // Check positioning: resolution card sits at bottom of ticket content (after ticket-modal-body, before ticket-modal-footer)
   const headerIdx = html.indexOf('class="ticket-modal-header"');
   const resRowIdx = html.indexOf('class="ticket-modal-resolution-row"');
   const bodyIdx = html.indexOf('class="ticket-modal-body"');
-  assert(headerIdx !== -1 && resRowIdx !== -1 && bodyIdx !== -1, 'Header, resolution row, and body must all exist');
-  assert(headerIdx < resRowIdx && resRowIdx < bodyIdx, 'Resolution row must be integrated inside header before body');
-  console.log('  ✔ PASS: Known resolver integrated seamlessly into modal header directly below status');
+  const footerIdx = html.indexOf('class="ticket-modal-footer"');
+  assert(headerIdx !== -1 && resRowIdx !== -1 && bodyIdx !== -1 && footerIdx !== -1, 'Header, resolution card, body, and footer must all exist');
+  assert(bodyIdx < resRowIdx && resRowIdx < footerIdx, 'Resolution card must be positioned at bottom of ticket content before footer actions');
+  console.log('  ✔ PASS: Known resolver presented cleanly as Resolution Summary Card at bottom of modal content');
 }
 
 // Test 2B: Historical resolved ticket (NULL resolver)
@@ -309,12 +310,12 @@ function createReportModalSandbox() {
   assert(html.includes('Andrei Meow'), 'PC Report modal must display resolver name');
   assert(html.includes('OJT Staff'), 'PC Report modal must display resolver role');
 
-  // Hierarchy check: resolution row sits inside header before Laboratory 2x2 grid
+  // Hierarchy check: resolution card sits at bottom of ticket content after Laboratory info
   const resRowIndex = html.indexOf('class="ticket-modal-resolution-row"');
   const labIndex = html.indexOf('Laboratory');
-  assert(resRowIndex !== -1 && labIndex !== -1, 'Resolution row and Laboratory must be present');
-  assert(resRowIndex < labIndex, 'Resolution row must appear BEFORE Laboratory 2x2 grid in PC Report modal');
-  console.log('  ✔ PASS: Integrated Resolution Row placed cleanly inside modal header before body grid');
+  assert(resRowIndex !== -1 && labIndex !== -1, 'Resolution card and Laboratory must be present');
+  assert(labIndex < resRowIndex, 'Resolution card must appear at bottom of ticket content after Laboratory info');
+  console.log('  ✔ PASS: Resolution Summary Card placed cleanly at bottom of modal content');
 }
 
 // Test 3B: Historical report in PC Report Details Modal

@@ -45,6 +45,50 @@
    * Generates single QR code printable sticker and triggers print.
    * @param {number|string} pcId
    */
+  let isPrinting = false;
+
+  function clearCardFocus() {
+    if (typeof document === 'undefined') return;
+    try {
+      if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+      }
+      document.querySelectorAll('.pc-qr-card, .pc-qr-btn, .delete-pc-btn, .card-action-delete, .btn-delete').forEach(el => {
+        if (typeof el.blur === 'function') el.blur();
+      });
+    } catch (e) {}
+  }
+
+  function scheduleClearCardFocus() {
+    clearCardFocus();
+    if (typeof window !== 'undefined') {
+      [20, 60, 150, 300, 500].forEach(delay => {
+        setTimeout(clearCardFocus, delay);
+      });
+      if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(clearCardFocus);
+      }
+    }
+  }
+
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('afterprint', () => {
+      isPrinting = false;
+      scheduleClearCardFocus();
+    });
+
+    window.addEventListener('focus', () => {
+      if (isPrinting) {
+        isPrinting = false;
+        scheduleClearCardFocus();
+      }
+    });
+  }
+
+  /**
+   * Generates single QR code printable sticker and triggers print.
+   * @param {number|string} pcId
+   */
   async function generateQR(pcId) {
     try {
       const response = await fetch(`/api/pcs/${encodeURIComponent(pcId)}/qrcode`, { credentials: 'include' });
@@ -62,7 +106,11 @@
       }
 
       setTimeout(() => {
+        clearCardFocus();
+        isPrinting = true;
         window.print();
+        isPrinting = false;
+        scheduleClearCardFocus();
         if (printArea) printArea.innerHTML = '';
       }, 100);
     } catch (error) {
@@ -109,7 +157,11 @@
       }
 
       setTimeout(() => {
+        clearCardFocus();
+        isPrinting = true;
         window.print();
+        isPrinting = false;
+        scheduleClearCardFocus();
         if (printArea) printArea.innerHTML = '';
       }, 100);
     } catch (error) {
@@ -164,7 +216,11 @@
       }
 
       setTimeout(() => {
+        clearCardFocus();
+        isPrinting = true;
         window.print();
+        isPrinting = false;
+        scheduleClearCardFocus();
         if (printArea) printArea.innerHTML = '';
       }, 100);
     } catch (error) {
@@ -176,7 +232,9 @@
   const qrGeneratorPrint = {
     generateQR,
     generateAllQR,
-    generateSelectedQR
+    generateSelectedQR,
+    clearCardFocus,
+    scheduleClearCardFocus
   };
 
   global.qrGeneratorPrint = qrGeneratorPrint;

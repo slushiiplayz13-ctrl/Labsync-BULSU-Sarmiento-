@@ -298,8 +298,9 @@ LabSync enforces strict access control across **3 authenticated roles** and **1 
 - Visual stat indicators: Open Tickets, Resolved Tickets, Connectivity, and Active Labs.
 
 #### `mis-maintenance.html` — Maintenance Ticket Tracker
-- **Columns**: `Ticket ID` │ `Date & Time` │ `Lab Room` │ `PC Unit` │ `Reported By` │ `Issue Details & Remarks` │ `Actions`.
-- **Reporter Chip (`.reporter-chip`)**: Displays single reporter or multi-reporter pill with `[+N]` count badge (`👤 John [+2] ›`). Clicking opens the Ticket Details Modal with individual student timestamps and remarks.
+- **Columns**: `Ticket ID` │ `Date & Time` │ `Lab Room` │ `PC Unit` │ `Issue Details & Remarks` │ `Actions`.
+- **View Full Details**: Actions cluster includes `[ 👁️ View Details ]` to open the Ticket Details Modal with individual student reporter timestamps, sections, and remarks.
+- **Remarks Box**: Uniform single-line remarks pill (`.remarks-fixed-box`) with tooltip and click-to-open full report modal.
 - **Two-State Lifecycle**: `Pending` → `Resolved`.
 - **Automatic Health Restoration**: Restores `lab_units.Condition_Status` to `Functional` once all active component issues on that workstation are resolved.
 

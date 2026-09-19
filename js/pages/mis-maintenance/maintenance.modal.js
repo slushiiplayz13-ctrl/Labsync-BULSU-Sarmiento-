@@ -101,31 +101,46 @@
       if (report.Resolved_By_Name) {
         resolutionHeaderRowHtml = `
           <div class="ticket-modal-resolution-row">
-            <span class="tm-res-label">Resolved by</span>
-            <span class="tm-res-who">
-              <i data-lucide="user" class="tm-res-icon"></i>
-              <span class="tm-res-name">${escapeText(report.Resolved_By_Name)}</span>
-              <span class="tm-res-role">${escapeText(report.Resolved_By_Role || 'MIS Staff')}</span>
-            </span>
-            <span class="tm-res-dot">•</span>
-            <span class="tm-res-when">
-              <i data-lucide="clock" class="tm-res-time-icon"></i>
-              ${resDateFormatted || 'Timestamp not recorded'}
-            </span>
+            <div class="tm-res-icon-wrap">
+              <i data-lucide="check-circle-2"></i>
+            </div>
+            <div class="tm-res-details">
+              <div class="tm-res-primary">
+                <span class="tm-res-label">Resolved by</span>
+                <span class="tm-res-who">
+                  <i data-lucide="user" class="tm-res-icon"></i>
+                  <span class="tm-res-name">${escapeText(report.Resolved_By_Name)}</span>
+                  <span class="tm-res-role">${escapeText(report.Resolved_By_Role || 'MIS Staff')}</span>
+                </span>
+              </div>
+              <div class="tm-res-secondary">
+                <span class="tm-res-when">
+                  <i data-lucide="clock" class="tm-res-time-icon"></i>
+                  Completed on ${resDateFormatted || 'Timestamp not recorded'}
+                </span>
+              </div>
+            </div>
           </div>
         `;
       } else {
         resolutionHeaderRowHtml = `
           <div class="ticket-modal-resolution-row">
-            <span class="tm-res-who">
-              <i data-lucide="check-check" class="tm-res-icon" style="color:#059669;"></i>
-              <span class="tm-res-name">Work Order Completed</span>
-            </span>
-            <span class="tm-res-dot">•</span>
-            <span class="tm-res-when">
-              <i data-lucide="clock" class="tm-res-time-icon"></i>
-              ${resDateFormatted || 'Timestamp not recorded'}
-            </span>
+            <div class="tm-res-icon-wrap">
+              <i data-lucide="check-circle-2"></i>
+            </div>
+            <div class="tm-res-details">
+              <div class="tm-res-primary">
+                <span class="tm-res-who">
+                  <span class="tm-res-name">Work Order Completed</span>
+                </span>
+              </div>
+              <div class="tm-res-secondary">
+                <span class="tm-res-when">
+                  <i data-lucide="clock" class="tm-res-time-icon"></i>
+                  ${resDateFormatted || 'Timestamp not recorded'}
+                </span>
+              </div>
+            </div>
           </div>
         `;
       }
@@ -263,17 +278,15 @@
     let resolveBtnHtml = '';
     if (report.Status !== 'Resolved') {
       resolveBtnHtml = `
-        <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket-modal" data-report-id="${report.Report_ID}" style="padding:10px 20px;font-size:13.5px;font-weight:700;border-radius:12px;">
-          <i data-lucide="check" style="width:16px;height:16px;"></i> Mark Resolved
+        <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket-modal" data-report-id="${report.Report_ID}">
+          <i data-lucide="check" style="width:15px;height:15px;"></i> Mark Resolved
         </button>
       `;
-    } else {
-      resolveBtnHtml = `<span class="completed-chip" style="font-size:13px;padding:9px 16px;border-radius:12px;font-weight:700;"><i data-lucide="check-check" style="width:16px;height:16px;"></i> Work Order Completed</span>`;
     }
 
     modal.innerHTML = `
       <div class="modal-card ticket-modal-card">
-        <!-- Header: Ticket ID + Status Badge + Date + Integrated Resolution Row -->
+        <!-- Header: Ticket ID + Status Badge + Date -->
         <div class="ticket-modal-header">
           <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
             <span class="ticket-chip" style="font-size:13.5px; padding:5px 14px; font-weight:700;">LS-TKT-${report.Report_ID}</span>
@@ -284,11 +297,13 @@
           <div class="ticket-modal-date">
             Reported on ${formattedDate}
           </div>
-          ${resolutionHeaderRowHtml}
         </div>
 
         <!-- Body Info -->
         ${bodyContentHtml}
+
+        <!-- Resolution Summary Card (when resolved) -->
+        ${resolutionHeaderRowHtml}
 
         <!-- Footer Actions -->
         <div class="ticket-modal-footer">

@@ -321,7 +321,7 @@ html.high-contrast .badge-ticket-id {
   white-space: nowrap;
 }
 
-.completed-chip,
+.completed-chip:not(.interactive),
 .completed-label,
 .btn-completed {
   display: inline-flex !important;
@@ -341,8 +341,8 @@ html.high-contrast .badge-ticket-id {
   line-height: 1.2 !important;
 }
 
-.completed-chip svg,
-.completed-chip i {
+.completed-chip:not(.interactive) svg,
+.completed-chip:not(.interactive) i {
   width: 16px !important;
   height: 16px !important;
   stroke-width: 2.5 !important;
@@ -464,6 +464,15 @@ html.high-contrast .status-badge-pulse.resolved {
   background: rgba(16, 185, 129, 0.2) !important;
   color: #6ee7b7 !important;
   border: 1px solid rgba(110, 231, 183, 0.35) !important;
+}
+
+html.dark-mode .status-badge-pulse.offline,
+body.dark-mode .status-badge-pulse.offline,
+[data-theme="dark"] .status-badge-pulse.offline,
+html.high-contrast .status-badge-pulse.offline {
+  background: rgba(148, 163, 184, 0.12) !important;
+  color: #94A3B8 !important;
+  border: 1px solid rgba(148, 163, 184, 0.25) !important;
 }
 
 /* ─── Status & Priority Badges High-Contrast Theme Overrides ─── */

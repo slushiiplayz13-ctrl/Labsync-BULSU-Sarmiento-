@@ -17,7 +17,7 @@
   <script src="js/utils/core-utils.js"></script>
   <script src="js/utils/dom-utils.js"></script>
   <script src="js/reports/report.parser.js"></script>
-  <script src="js/pages/mis-maintenance/maintenance.renderer.js?v=1.0.6"></script>
+  <script src="js/pages/mis-maintenance/maintenance.renderer.js?v=1.0.8"></script>
   <style>
     /* Filter Pills */
     .filter-pills-row {
@@ -324,13 +324,13 @@
         flex-shrink: 0 !important;
       }
 
-      /* Row 3: Reporter Chip */
+      /* Row 3: Reporter Chip (Hidden - viewable in Ticket Details modal) */
       .maint-table tr.maintenance-row td.col-reporter {
         grid-column: 1 / -1 !important;
         grid-row: 3 !important;
         width: 100% !important;
         overflow: visible !important;
-        display: flex !important;
+        display: none !important;
         align-items: center !important;
         margin: 0 !important;
       }
@@ -348,10 +348,10 @@
         text-overflow: ellipsis !important;
       }
 
-      /* Row 4: Issues & Remarks */
+      /* Row 3: Issues & Remarks */
       .maint-table tr.maintenance-row td.col-issues {
         grid-column: 1 / -1 !important;
-        grid-row: 4 !important;
+        grid-row: 3 !important;
         width: 100% !important;
         display: flex !important;
         flex-direction: column !important;
@@ -373,10 +373,10 @@
         margin: 0 !important;
       }
 
-      /* Row 5: Actions Button / Completed Chip */
+      /* Row 4: Actions Button / Completed Chip */
       .maint-table tr.maintenance-row td.col-actions {
         grid-column: 1 / -1 !important;
-        grid-row: 5 !important;
+        grid-row: 4 !important;
         width: 100% !important;
         margin-top: 4px !important;
         padding-top: 12px !important;
@@ -397,9 +397,19 @@
         border-top-color: rgba(255, 255, 255, 0.1) !important;
       }
 
+      .maint-table tr.maintenance-row td.col-actions .table-actions-cluster {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: 100% !important;
+      }
+
+      .maint-table tr.maintenance-row td.col-actions .btn-view-ticket-info,
       .maint-table tr.maintenance-row td.col-actions .btn-resolve-ticket,
       .maint-table tr.maintenance-row td.col-actions .completed-chip {
         width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
         min-height: 42px !important;
         display: flex !important;
         align-items: center !important;
@@ -468,7 +478,7 @@
       border-radius: 16px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
       overflow-y: auto !important;
-      overflow-x: hidden !important;
+      overflow-x: auto !important;
       flex: 1 1 auto !important;
       min-height: 250px;
       max-height: none !important;
@@ -484,13 +494,17 @@
     }
 
     @media (min-width: 769px) {
-      .maint-table th.col-ticket, .maint-table td.col-ticket { width: 11% !important; }
-      .maint-table th.col-date, .maint-table td.col-date { width: 12% !important; }
-      .maint-table th.col-room, .maint-table td.col-room { width: 10% !important; }
-      .maint-table th.col-pc, .maint-table td.col-pc { width: 8% !important; }
-      .maint-table th.col-reporter, .maint-table td.col-reporter { width: 17% !important; overflow: hidden; }
-      .maint-table th.col-issues, .maint-table td.col-issues { width: 28% !important; }
-      .maint-table th.col-actions, .maint-table td.col-actions { width: 14% !important; text-align: center !important; }
+      .maint-table {
+        min-width: 900px;
+      }
+      .maint-table th.col-ticket, .maint-table td.col-ticket { width: 13% !important; min-width: 105px; }
+      .maint-table th.col-date, .maint-table td.col-date { width: 14% !important; min-width: 125px; }
+      .maint-table th.col-room, .maint-table td.col-room { width: 13% !important; min-width: 105px; }
+      .maint-table th.col-pc, .maint-table td.col-pc { width: 12% !important; min-width: 95px; }
+      .maint-table th.col-issues, .maint-table td.col-issues { width: 28% !important; min-width: 220px; }
+      .maint-table th.col-actions, .maint-table td.col-actions { width: 20% !important; min-width: 250px !important; text-align: center !important; padding-right: 36px !important; }
+      .maint-table th:first-child, .maint-table tr:not(.maintenance-empty-row) td:first-child { padding-left: 20px !important; }
+      .maint-table th:last-child, .maint-table tr:not(.maintenance-empty-row) td:last-child { padding-right: 36px !important; }
     }
 
     .maint-table-wrapper::-webkit-scrollbar {
@@ -519,7 +533,7 @@
     }
 
     .maint-table th {
-      padding: 12px 10px;
+      padding: 14px 14px;
       font-size: 11.5px;
       font-weight: 700;
       color: #475569;
@@ -535,10 +549,22 @@
     }
 
     .maint-table td {
-      padding: 14px 10px;
+      padding: 15px 14px;
       vertical-align: middle;
       border-bottom: 1px solid #F1F5F9;
       font-size: 13.5px;
+    }
+
+    @media (min-width: 769px) {
+      .maint-table th:first-child,
+      .maint-table td:first-child {
+        padding-left: 22px !important;
+      }
+
+      .maint-table th:last-child,
+      .maint-table td:last-child {
+        padding-right: 22px !important;
+      }
     }
 
     .maint-table tr:last-child td {
@@ -738,8 +764,48 @@
 
     .remarks-quote-box.static.empty-remarks {
       background: #F8FAFC;
-      border: 1px dashed #CBD5E1;
-      opacity: 0.85;
+      border: 1px solid #E2E8F0;
+    }
+
+    /* Fixed uniform single-line remarks container */
+    .remarks-fixed-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 28px;
+      width: 295px;
+      max-width: 100%;
+      box-sizing: border-box;
+      padding: 0 10px;
+      border-radius: 7px;
+      background: #F8FAFC;
+      border: 1px solid var(--border-light, #E2E8F0);
+      margin-top: 5px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .remarks-fixed-box:hover {
+      background: #F0F9FF;
+      border-color: #BAE6FD;
+    }
+
+    .remarks-fixed-text {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #334155;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+      line-height: 26px;
+    }
+
+    .remarks-fixed-text.empty-text {
+      color: #94A3B8;
+      font-style: italic;
     }
 
     .remarks-quote-box.interactive {
@@ -852,9 +918,40 @@
     body.dark-mode .remarks-expand-badge,
     [data-theme="dark"] .remarks-expand-badge,
     html.high-contrast .remarks-expand-badge {
-      background: rgba(2, 132, 199, 0.25) !important;
+      background: rgba(15, 23, 42, 0.8) !important;
+      border-color: rgba(56, 189, 248, 0.3) !important;
       color: #38BDF8 !important;
-      border-color: rgba(56, 189, 248, 0.4) !important;
+    }
+
+    /* Dark Mode for Remarks Fixed Box */
+    html.dark-mode .remarks-fixed-box,
+    body.dark-mode .remarks-fixed-box,
+    html.high-contrast .remarks-fixed-box,
+    [data-theme="dark"] .remarks-fixed-box {
+      background: rgba(15, 23, 42, 0.45) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    html.dark-mode .remarks-fixed-box:hover,
+    body.dark-mode .remarks-fixed-box:hover,
+    html.high-contrast .remarks-fixed-box:hover,
+    [data-theme="dark"] .remarks-fixed-box:hover {
+      background: rgba(15, 23, 42, 0.75) !important;
+      border-color: rgba(56, 189, 248, 0.35) !important;
+    }
+
+    html.dark-mode .remarks-fixed-text,
+    body.dark-mode .remarks-fixed-text,
+    html.high-contrast .remarks-fixed-text,
+    [data-theme="dark"] .remarks-fixed-text {
+      color: #CBD5E1 !important;
+    }
+
+    html.dark-mode .remarks-fixed-text.empty-text,
+    body.dark-mode .remarks-fixed-text.empty-text,
+    html.high-contrast .remarks-fixed-text.empty-text,
+    [data-theme="dark"] .remarks-fixed-text.empty-text {
+      color: #64748B !important;
     }
 
     /* Status Badges with Pulse Dot */
@@ -897,19 +994,212 @@
       box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
     }
 
-    /* Action Buttons */
+    /* Action Buttons & Cluster */
+    .table-actions-cluster {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      vertical-align: middle;
+    }
+
+    @media (min-width: 769px) {
+      .table-actions-cluster {
+        margin-right: 14px !important;
+      }
+
+      .table-actions-cluster .btn-view-ticket-info,
+      .table-actions-cluster .completed-chip {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 5px !important;
+        padding: 0 10px !important;
+        font-size: 12.5px !important;
+        font-weight: 700 !important;
+        font-family: var(--font-body, inherit) !important;
+        line-height: 1 !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        max-height: 32px !important;
+        box-sizing: border-box !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+        user-select: none !important;
+      }
+
+      .table-actions-cluster .completed-chip {
+        width: 104px !important;
+        min-width: 104px !important;
+        max-width: 104px !important;
+      }
+
+      .table-actions-cluster .btn-view-ticket-info {
+        width: 118px !important;
+        min-width: 118px !important;
+        max-width: 118px !important;
+        border-radius: 9px !important;
+        border: 1.5px solid var(--border-light, #CBD5E1) !important;
+        background: var(--bg-card, #FFFFFF) !important;
+        color: var(--text-dark, #1E293B) !important;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        outline: none;
+      }
+
+      .table-actions-cluster .completed-chip {
+        border-radius: 99px !important;
+        border: 1.5px solid var(--badge-completed-border, #A7F3D0) !important;
+        background: var(--badge-completed-bg, #ECFDF5) !important;
+        color: var(--badge-completed-text, #047857) !important;
+        box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08) !important;
+        cursor: pointer;
+      }
+
+      .table-actions-cluster .btn-view-ticket-info i,
+      .table-actions-cluster .btn-view-ticket-info svg,
+      .table-actions-cluster .completed-chip i,
+      .table-actions-cluster .completed-chip svg {
+        width: 14px !important;
+        height: 14px !important;
+        stroke-width: 2.2 !important;
+        flex-shrink: 0 !important;
+        display: inline-block !important;
+        pointer-events: none;
+      }
+
+      .table-actions-cluster .btn-resolve-ticket {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 5px !important;
+        padding: 0 12px !important;
+        border-radius: 99px !important;
+        font-size: 12.5px !important;
+        font-weight: 700 !important;
+        font-family: var(--font-body, inherit) !important;
+        line-height: 1 !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        max-height: 32px !important;
+        box-sizing: border-box !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+      }
+
+      .table-actions-cluster .btn-resolve-ticket i,
+      .table-actions-cluster .btn-resolve-ticket svg {
+        width: 14px !important;
+        height: 14px !important;
+        stroke-width: 2.2 !important;
+        flex-shrink: 0 !important;
+        display: inline-block !important;
+      }
+    }
+
+    .btn-view-ticket-info {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0 10px;
+      border-radius: 9px;
+      font-size: 12.5px;
+      font-weight: 700;
+      height: 32px;
+      min-height: 32px;
+      max-height: 32px;
+      width: 118px;
+      min-width: 118px;
+      max-width: 118px;
+      border: 1.5px solid var(--border-light, #CBD5E1);
+      background: var(--bg-card, #FFFFFF);
+      color: var(--text-dark, #1E293B);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+      font-family: var(--font-body);
+      line-height: 1;
+      outline: none;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    .btn-view-ticket-info i,
+    .btn-view-ticket-info svg {
+      width: 14px !important;
+      height: 14px !important;
+      color: var(--primary-teal, #1EBBD7);
+      transition: color 0.18s ease;
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+
+    .btn-view-ticket-info:hover {
+      background: rgba(30, 187, 215, 0.08);
+      border-color: var(--primary-teal, #1EBBD7);
+      color: var(--primary-teal, #1EBBD7);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(30, 187, 215, 0.2);
+    }
+
+    .btn-view-ticket-info:focus-visible {
+      outline: 2px solid var(--primary-teal);
+      outline-offset: 1px;
+    }
+
+    /* Dark Mode styling for .btn-view-ticket-info */
+    html.dark-mode .btn-view-ticket-info,
+    body.dark-mode .btn-view-ticket-info,
+    html.high-contrast .btn-view-ticket-info,
+    [data-theme="dark"] .btn-view-ticket-info {
+      background: rgba(15, 23, 42, 0.6) !important;
+      border-color: rgba(255, 255, 255, 0.16) !important;
+      color: #F1F5F9 !important;
+      box-shadow: none !important;
+    }
+
+    html.dark-mode .btn-view-ticket-info i,
+    body.dark-mode .btn-view-ticket-info i,
+    html.high-contrast .btn-view-ticket-info i,
+    [data-theme="dark"] .btn-view-ticket-info i,
+    html.dark-mode .btn-view-ticket-info svg,
+    body.dark-mode .btn-view-ticket-info svg,
+    html.high-contrast .btn-view-ticket-info svg,
+    [data-theme="dark"] .btn-view-ticket-info svg {
+      color: #38BDF8 !important;
+    }
+
+    html.dark-mode .btn-view-ticket-info:hover,
+    body.dark-mode .btn-view-ticket-info:hover,
+    html.high-contrast .btn-view-ticket-info:hover,
+    [data-theme="dark"] .btn-view-ticket-info:hover {
+      background: rgba(6, 182, 212, 0.18) !important;
+      border-color: #38BDF8 !important;
+      color: #38BDF8 !important;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25) !important;
+    }
+
     .btn-resolve-ticket {
       border: none;
       background: linear-gradient(135deg, #10B981, #059669);
       color: #FFFFFF;
-      padding: 8px 14px;
+      padding: 0 13px;
       border-radius: 99px;
       font-size: 12.5px;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 5px;
+      height: 32px;
+      min-height: 32px;
+      max-height: 32px;
+      box-sizing: border-box;
+      line-height: 1;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       font-family: var(--font-body);
@@ -926,25 +1216,38 @@
       transform: translateY(0);
     }
 
-    .completed-chip {
+    .table-actions-cluster .completed-chip,
+    .maint-table .completed-chip {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      gap: 5px;
       font-size: 12.5px;
       font-weight: 700;
       color: var(--badge-completed-text, #047857) !important;
       background: var(--badge-completed-bg, #ECFDF5);
-      padding: 7px 14px;
-      border-radius: 10px;
+      padding: 0 10px;
+      border-radius: 99px;
       border: 1.5px solid var(--badge-completed-border, #A7F3D0);
       white-space: nowrap;
+      height: 32px;
+      min-height: 32px;
+      max-height: 32px;
+      width: 104px;
+      min-width: 104px;
+      max-width: 104px;
+      box-sizing: border-box;
+      font-family: var(--font-body);
+      line-height: 1;
     }
 
-    .completed-chip svg,
-    .completed-chip i {
-      width: 16px !important;
-      height: 16px !important;
-      stroke-width: 2.5 !important;
+    .table-actions-cluster .completed-chip svg,
+    .table-actions-cluster .completed-chip i,
+    .maint-table .completed-chip svg,
+    .maint-table .completed-chip i {
+      width: 14px !important;
+      height: 14px !important;
+      stroke-width: 2.2 !important;
       flex-shrink: 0 !important;
       display: inline-block !important;
     }
@@ -1279,6 +1582,7 @@
       border-top: 1px solid var(--border-light, #E2E8F0);
       padding-top: 16px;
       box-sizing: border-box;
+      width: 100%;
     }
 
     html.dark-mode .ticket-modal-footer,
@@ -1290,27 +1594,63 @@
     }
 
     .btn-ticket-modal-close {
-      padding: 10px 22px;
+      padding: 9px 20px;
       border: 1.5px solid var(--border-light, #CBD5E1);
       background: var(--bg-card, #FFFFFF);
       color: var(--text-dark, #0F172A);
-      border-radius: 12px;
+      border-radius: 10px;
       font-size: 13.5px;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       font-family: var(--font-body);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       box-sizing: border-box;
+      line-height: 1.3;
     }
 
     .btn-ticket-modal-close:hover {
       background: #F1F5F9;
       border-color: #94A3B8;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
     }
 
+    .btn-ticket-modal-close:active {
+      transform: translateY(0);
+    }
+
+    .ticket-modal-footer .btn-resolve-ticket {
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+      background: linear-gradient(135deg, #10B981, #059669);
+      color: #FFFFFF !important;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+
+    .ticket-modal-footer .btn-resolve-ticket:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .ticket-modal-footer .btn-resolve-ticket:active {
+      transform: translateY(0);
+    }
+
+    /* Theme overrides for modal close button */
     html.dark-mode .btn-ticket-modal-close,
     body.dark-mode .btn-ticket-modal-close,
     html.high-contrast .btn-ticket-modal-close,
@@ -1336,9 +1676,9 @@
 
     @media (max-width: 480px) {
       .ticket-modal-card {
-        padding: 18px 14px !important;
+        padding: 20px 16px !important;
         width: 95% !important;
-        border-radius: 16px !important;
+        border-radius: 18px !important;
       }
 
       .ticket-modal-meta-card {
@@ -1355,20 +1695,21 @@
       }
 
       .ticket-modal-footer .btn-ticket-modal-close {
-        flex: 1 1 35% !important;
-        padding: 10px 12px !important;
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        padding: 11px 16px !important;
         text-align: center !important;
+        justify-content: center !important;
+        font-size: 13.5px !important;
       }
 
-      .ticket-modal-footer .btn-resolve-ticket,
-      .ticket-modal-footer .completed-chip {
-        flex: 2 1 65% !important;
-        padding: 10px 12px !important;
+      .ticket-modal-footer .btn-resolve-ticket {
+        flex: 1.5 1 auto !important;
+        width: 100% !important;
+        padding: 11px 16px !important;
         justify-content: center !important;
         text-align: center !important;
-        white-space: nowrap !important;
-        border-radius: 12px !important;
-        font-size: 12.5px !important;
+        font-size: 13.5px !important;
       }
     }
   </style>
@@ -1602,32 +1943,32 @@
         </div>
 
         <!-- Table Container -->
-        <div class="maint-table-wrapper" style="overflow-x: hidden; flex: 1; min-height: 250px; width: 100%;">
-          <table class="maint-table" style="width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed;">
+        <div class="maint-table-wrapper is-empty" style="overflow-x: auto; flex: 1; min-height: 250px; width: 100%;">
+          <table class="maint-table is-empty" style="width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed;">
             <colgroup>
-              <col style="width: 11%;">
-              <col style="width: 12%;">
-              <col style="width: 10%;">
-              <col style="width: 8%;">
-              <col style="width: 17%;">
-              <col style="width: 28%;">
+              <col style="width: 13%;">
               <col style="width: 14%;">
+              <col style="width: 13%;">
+              <col style="width: 12%;">
+              <col style="width: 28%;">
+              <col style="width: 20%;">
             </colgroup>
             <thead>
               <tr>
-                <th class="col-ticket" style="width: 11%;">Ticket ID</th>
-                <th class="col-date" style="width: 12%;">Date & Time</th>
-                <th class="col-room" style="width: 10%;">Lab Room</th>
-                <th class="col-pc" style="width: 8%;">PC Unit</th>
-                <th class="col-reporter" style="width: 17%;">Reported By</th>
-                <th class="col-issues" style="width: 28%;">Issue Details & Remarks</th>
-                <th class="col-actions" style="width: 14%; text-align: center;">Actions</th>
+                <th class="col-ticket" style="width: 13%;">Ticket ID</th>
+                <th class="col-date" style="width: 14%;">Date & Time</th>
+                <th class="col-room" style="width: 13%;">Lab Room</th>
+                <th class="col-pc" style="width: 12%;">PC Unit</th>
+                <th class="col-issues" style="width: 28%;">Issue Details</th>
+                <th class="col-actions" style="width: 20%; text-align: center; padding-right: 36px;">Actions</th>
               </tr>
             </thead>
             <tbody id="dynamicMaintenanceRows">
-              <tr>
-                <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px;">
-                  Loading maintenance tickets...
+              <tr class="maintenance-empty-row">
+                <td colspan="6" class="maintenance-empty-cell">
+                  <div class="maintenance-empty-state" role="status" aria-live="polite">
+                    <p class="maintenance-empty-text">Loading maintenance tickets...</p>
+                  </div>
                 </td>
               </tr>
               <script>
@@ -1666,7 +2007,7 @@
   <script src="js/components/sidebar-nav.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
-  <script src="js/pages/mis-maintenance/maintenance.modal.js?v=1.0.6"></script>
+  <script src="js/pages/mis-maintenance/maintenance.modal.js?v=1.0.8"></script>
   <script src="js/pages/mis-maintenance/maintenance.actions.js?v=1.0.6"></script>
   <script src="js/pages/mis-maintenance.js?v=1.0.8"></script>
   <script src="js/tutorial.js"></script>

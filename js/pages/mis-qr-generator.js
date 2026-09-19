@@ -34,10 +34,11 @@
     const badgeEl = document.getElementById('roomUnitCountBadge');
 
     if (roomView) roomView.style.display = 'none';
-    if (pcView) pcView.style.display = 'block';
+    if (pcView) pcView.style.display = 'flex';
     if (titleEl) titleEl.textContent = `Room ${roomNumber}`;
     if (badgeEl) badgeEl.textContent = '...';
 
+    updateHeaderActionsForPCCount(0);
     loadPCs(roomId);
   }
 
@@ -66,6 +67,7 @@
     if (renderer && typeof renderer.renderPCGrid === 'function') {
       renderer.renderPCGrid(currentPCs, null, {
         roomId: currentRoomId,
+        roomNumber: currentRoomNumber,
         isSelectionMode,
         selectedPcIds,
         onAddPC: (rId) => handleAddPC(rId),
@@ -75,6 +77,7 @@
       });
     }
     updateBulkActionBarUI();
+    updateHeaderActionsForPCCount(Array.isArray(currentPCs) ? currentPCs.length : 0);
   }
 
   /**
@@ -174,6 +177,13 @@
    * Toggles selection mode on/off.
    */
   function toggleSelectionMode() {
+    if (!isSelectionMode && (!Array.isArray(currentPCs) || currentPCs.length === 0)) {
+      const toastFn = global.showToast || (typeof window !== 'undefined' ? window.showToast : null);
+      if (typeof toastFn === 'function') {
+        toastFn('No PCs available to select in this room.', 'info');
+      }
+      return;
+    }
     if (isSelectionMode) {
       exitSelectionMode();
     } else {
@@ -214,6 +224,29 @@
         if (addPcBtn) addPcBtn.style.display = '';
         if (generateAllBtn) generateAllBtn.style.display = '';
       }
+    }
+  }
+
+  /**
+   * Updates state of header action buttons according to available PC count.
+   * @param {number} count
+   */
+  function updateHeaderActionsForPCCount(count) {
+    const btnToggle = document.getElementById('btnToggleSelectionMode');
+    const generateAllBtn = document.querySelector('.generate-all-btn');
+    const hasPCs = count > 0;
+
+    if (btnToggle && !isSelectionMode) {
+      btnToggle.disabled = !hasPCs;
+      btnToggle.style.opacity = hasPCs ? '1' : '0.5';
+      btnToggle.style.cursor = hasPCs ? 'pointer' : 'not-allowed';
+      btnToggle.title = hasPCs ? 'Select multiple PCs for bulk actions' : 'No PCs available in this room';
+    }
+    if (generateAllBtn) {
+      generateAllBtn.disabled = !hasPCs;
+      generateAllBtn.style.opacity = hasPCs ? '1' : '0.5';
+      generateAllBtn.style.cursor = hasPCs ? 'pointer' : 'not-allowed';
+      generateAllBtn.title = hasPCs ? 'Print QR stickers for all PCs in this room' : 'No PCs available to print in this room';
     }
   }
 

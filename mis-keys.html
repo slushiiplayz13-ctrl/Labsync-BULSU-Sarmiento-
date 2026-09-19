@@ -1089,6 +1089,18 @@
       box-shadow: 0 0 6px rgba(126, 34, 206, 0.4);
     }
 
+    .status-badge-pulse.offline {
+      background: #F1F5F9 !important;
+      color: #64748B !important;
+      border: 1px solid #CBD5E1 !important;
+    }
+
+    .status-badge-pulse.offline .pulse-dot {
+      background: #94A3B8 !important;
+      box-shadow: none !important;
+      animation: none !important;
+    }
+
     /* Dark Mode & High Contrast Overrides */
     html.dark-mode .status-badge-pulse.resolved,
     body.dark-mode .status-badge-pulse.resolved,
@@ -1139,6 +1151,24 @@
     html.high-contrast .status-badge-pulse.found .pulse-dot {
       background: #C084FC !important;
       box-shadow: 0 0 6px rgba(192, 132, 252, 0.5);
+    }
+
+    html.dark-mode .status-badge-pulse.offline,
+    body.dark-mode .status-badge-pulse.offline,
+    [data-theme="dark"] .status-badge-pulse.offline,
+    html.high-contrast .status-badge-pulse.offline {
+      background: rgba(148, 163, 184, 0.12) !important;
+      color: #94A3B8 !important;
+      border: 1px solid rgba(148, 163, 184, 0.25) !important;
+    }
+
+    html.dark-mode .status-badge-pulse.offline .pulse-dot,
+    body.dark-mode .status-badge-pulse.offline .pulse-dot,
+    [data-theme="dark"] .status-badge-pulse.offline .pulse-dot,
+    html.high-contrast .status-badge-pulse.offline .pulse-dot {
+      background: #94A3B8 !important;
+      box-shadow: none !important;
+      animation: none !important;
     }
 
     /* Stat Card Watermark Graphic */
@@ -2486,22 +2516,19 @@
         <!-- Inventory Header Controls -->
         <div class="keys-toolbar-row">
 
-          <!-- Filter Tabs with Integrated Stat Counts -->
+          <!-- Filter Tabs -->
           <div class="keys-filter-group">
             <button type="button" class="key-filter-btn active" data-filter="ALL" aria-label="Filter all keys">
               <i data-lucide="layers" class="filter-tab-icon"></i>
               <span>All Keys</span>
-              <span class="tab-count-pill pill-all" id="statTotalKeys">0</span>
             </button>
             <button type="button" class="key-filter-btn" data-filter="PRESENT" aria-label="Filter keys in key box">
               <i data-lucide="inbox" class="filter-tab-icon"></i>
               <span>In Key Box</span>
-              <span class="tab-count-pill pill-docked" id="statInDockKeys">0</span>
             </button>
             <button type="button" class="key-filter-btn" data-filter="ABSENT" aria-label="Filter keys with faculty">
               <i data-lucide="user-check" class="filter-tab-icon"></i>
               <span>With Faculty</span>
-              <span class="tab-count-pill pill-inuse" id="statInUseKeys">0</span>
             </button>
           </div>
 
@@ -2647,7 +2674,7 @@
   <script src="js/components/sidebar-nav.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
-  <script src="js/pages/mis-keys.js"></script>
+  <script src="js/pages/mis-keys.js?v=1.0.6"></script>
   <script src="js/tutorial.js"></script>
 </body>
 

@@ -329,14 +329,14 @@
       if (derived === 'DEACTIVATED') {
         statusActionBtn = `
           <button type="button" class="btn-tbl-action success" data-action="activate" data-user-id="${userId}" onclick="window.ojtManager.openActivateModal(${userId})" title="Reactivate Account" aria-label="Activate account for ${escapeHtml(name)}">
-            <i data-lucide="user-check" style="width: 13px; height: 13px;"></i>
+            <i data-lucide="user-check" style="width: 13.5px; height: 13.5px;"></i>
             <span>Activate</span>
           </button>
         `;
       } else {
         statusActionBtn = `
           <button type="button" class="btn-tbl-action danger" data-action="deactivate" data-user-id="${userId}" onclick="window.ojtManager.openDeactivateModal(${userId})" title="Deactivate Account" aria-label="Deactivate account for ${escapeHtml(name)}">
-            <i data-lucide="user-x" style="width: 13px; height: 13px;"></i>
+            <i data-lucide="user-x" style="width: 13.5px; height: 13.5px;"></i>
             <span>Deactivate</span>
           </button>
         `;
@@ -380,11 +380,11 @@
           <td>
             <div class="ojt-actions-wrap">
               <button type="button" class="btn-tbl-action" data-action="edit" data-user-id="${userId}" onclick="window.ojtManager.openEditModal(${userId})" title="Edit Details & Dates" aria-label="Edit details for ${escapeHtml(name)}">
-                <i data-lucide="pencil" style="width: 13px; height: 13px;"></i>
+                <i data-lucide="pencil" style="width: 13.5px; height: 13.5px;"></i>
                 <span>Edit</span>
               </button>
               <button type="button" class="btn-tbl-action" data-action="reset-pw" data-user-id="${userId}" onclick="window.ojtManager.openResetPasswordModal(${userId})" title="Reset Login Password" aria-label="Reset password for ${escapeHtml(name)}">
-                <i data-lucide="key-round" style="width: 13px; height: 13px;"></i>
+                <i data-lucide="key-round" style="width: 13.5px; height: 13.5px;"></i>
                 <span>Reset PW</span>
               </button>
               ${statusActionBtn}
@@ -613,6 +613,54 @@
   // ---------------------------------------------------------------------------
   // Modal 2: Edit OJT Intern
   // ---------------------------------------------------------------------------
+  let _editBaseline = null;
+
+  function checkEditHasChanges() {
+    if (!_editBaseline) return false;
+    const curName = (document.getElementById('editOjtName')?.value || '').trim();
+    const curEmail = (document.getElementById('editOjtEmail')?.value || '').trim();
+    const curPhone = (document.getElementById('editOjtPhone')?.value || '').trim();
+    const curStart = (document.getElementById('editOjtStartDate')?.value || '').trim();
+    const curEnd = (document.getElementById('editOjtEndDate')?.value || '').trim();
+
+    return (
+      curName !== _editBaseline.name ||
+      curEmail !== _editBaseline.email ||
+      curPhone !== _editBaseline.phone ||
+      curStart !== _editBaseline.startDate ||
+      curEnd !== _editBaseline.endDate
+    );
+  }
+
+  function updateEditSaveButtonState() {
+    const btnSubmit = document.getElementById('btnSubmitEditOjt');
+    if (!btnSubmit) return;
+
+    const hasChanges = checkEditHasChanges();
+    const curName = (document.getElementById('editOjtName')?.value || '').trim();
+    const curEmail = (document.getElementById('editOjtEmail')?.value || '').trim();
+    const curStart = (document.getElementById('editOjtStartDate')?.value || '').trim();
+    const curEnd = (document.getElementById('editOjtEndDate')?.value || '').trim();
+
+    const isValid = curName.length >= 2 && !/\d/.test(curName) && curEmail.includes('@') && curStart && curEnd && curStart <= curEnd;
+
+    if (hasChanges && isValid) {
+      btnSubmit.disabled = false;
+      btnSubmit.removeAttribute('aria-disabled');
+      btnSubmit.style.opacity = '1';
+      btnSubmit.style.cursor = 'pointer';
+      btnSubmit.style.pointerEvents = 'auto';
+      btnSubmit.style.boxShadow = '0 3px 10px rgba(30, 187, 215, 0.3)';
+    } else {
+      btnSubmit.disabled = true;
+      btnSubmit.setAttribute('aria-disabled', 'true');
+      btnSubmit.style.opacity = '0.55';
+      btnSubmit.style.cursor = 'not-allowed';
+      btnSubmit.style.pointerEvents = 'none';
+      btnSubmit.style.boxShadow = 'none';
+    }
+  }
+
   function openEditModal(userId) {
     const user = _allOjts.find(u => String(u.User_ID ?? u.userId ?? u.id) === String(userId));
     if (!user) return;
@@ -620,15 +668,31 @@
     _selectedUser = user;
     hideFormErrors('edit');
 
+    const nameVal = user.Name || user.name || '';
+    const emailVal = user.Email || user.email || '';
+    const phoneVal = user.Phone || user.phone || '';
+    const startVal = String(user.OJT_Start_Date || user.startDate || '').split('T')[0];
+    const endVal = String(user.OJT_End_Date || user.endDate || '').split('T')[0];
+
     document.getElementById('editOjtUserId').value = userId;
-    document.getElementById('editOjtName').value = user.Name || user.name || '';
-    document.getElementById('editOjtEmail').value = user.Email || user.email || '';
-    document.getElementById('editOjtPhone').value = user.Phone || user.phone || '';
+    document.getElementById('editOjtName').value = nameVal;
+    document.getElementById('editOjtEmail').value = emailVal;
+    document.getElementById('editOjtPhone').value = phoneVal;
 
     const startInput = document.getElementById('editOjtStartDate');
     const endInput = document.getElementById('editOjtEndDate');
-    if (startInput) startInput.value = String(user.OJT_Start_Date || user.startDate || '').split('T')[0];
-    if (endInput) endInput.value = String(user.OJT_End_Date || user.endDate || '').split('T')[0];
+    if (startInput) startInput.value = startVal;
+    if (endInput) endInput.value = endVal;
+
+    _editBaseline = {
+      name: nameVal.trim(),
+      email: emailVal.trim(),
+      phone: phoneVal.trim(),
+      startDate: startVal.trim(),
+      endDate: endVal.trim()
+    };
+
+    updateEditSaveButtonState();
 
     openModal('editOjtModalOverlay');
   }
@@ -638,6 +702,7 @@
     hideFormErrors('edit');
 
     if (!_selectedUser) return;
+    if (!checkEditHasChanges()) return;
     const userId = _selectedUser.User_ID || _selectedUser.userId || _selectedUser.id;
 
     const name = document.getElementById('editOjtName')?.value.trim();
@@ -692,6 +757,7 @@
       }
 
       closeModal('editOjtModalOverlay');
+      _editBaseline = null;
       if (typeof global.showToast === 'function') {
         global.showToast('OJT account details updated successfully', 'success', 'Saved');
       }
@@ -705,9 +771,8 @@
       }
     } finally {
       if (btnSubmit) {
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = '<i data-lucide="check" style="width:15px;height:15px;"></i> <span>Save Changes</span>';
-        if (global.lucide) global.lucide.createIcons({ root: btnSubmit });
+        btnSubmit.innerHTML = '<span>Save Changes</span>';
+        updateEditSaveButtonState();
       }
     }
   }
@@ -1161,6 +1226,29 @@
     // Modal forms
     document.getElementById('formAddOjt')?.addEventListener('submit', handleAddSubmit);
     document.getElementById('formEditOjt')?.addEventListener('submit', handleEditSubmit);
+
+    // Edit OJT live change detection for dynamically highlighting/enabling Save Changes button
+    const formEditOjt = document.getElementById('formEditOjt');
+    if (formEditOjt) {
+      formEditOjt.addEventListener('input', updateEditSaveButtonState);
+      formEditOjt.addEventListener('change', updateEditSaveButtonState);
+    }
+    const editInputIds = ['editOjtName', 'editOjtEmail', 'editOjtPhone', 'editOjtStartDate', 'editOjtEndDate'];
+    editInputIds.forEach(id => {
+      const inputEl = document.getElementById(id);
+      if (inputEl) {
+        const handler = () => {
+          const errEl = document.getElementById(`${id}Err`) || (id === 'editOjtStartDate' || id === 'editOjtEndDate' ? document.getElementById('editOjtDateErr') : null);
+          if (errEl) {
+            errEl.textContent = '';
+            errEl.style.display = 'none';
+          }
+          updateEditSaveButtonState();
+        };
+        inputEl.addEventListener('input', handler);
+        inputEl.addEventListener('change', handler);
+      }
+    });
 
     // Modal close buttons
     document.getElementById('btnCloseAddModal')?.addEventListener('click', () => closeModal('addOjtModalOverlay'));

@@ -11,6 +11,7 @@ const { APP_URL } = require('../config/app.config');
 const db = require('../database/connection');
 const keysRepository = require('../repositories/keys.repository');
 const auditService = require('./auditService');
+const iotService = require('./iotService');
 const { KEY_TRANSFER_ROLES } = require('../middleware/auth');
 
 /**
@@ -19,16 +20,21 @@ const { KEY_TRANSFER_ROLES } = require('../middleware/auth');
 async function getAllKeys() {
     const [keys] = await keysRepository.findAllKeysWithRoomDetails();
 
-    const total = keys.length;
-    const active = keys.filter(k => k.Status === 'ACTIVE').length;
-    const missing = keys.filter(k => k.Status === 'MISSING').length;
-    const inDock = keys.filter(k => (k.Room_Key_Status || 'Present') === 'Present').length;
-    const inUse = keys.filter(k => k.Room_Key_Status === 'Absent').length;
+    const enrichedKeys = keys.map(k => ({
+        ...k,
+        deviceOnline: iotService.isDeviceOnline(k.Room_Number, k.Last_Seen)
+    }));
+
+    const total = enrichedKeys.length;
+    const active = enrichedKeys.filter(k => k.Status === 'ACTIVE').length;
+    const missing = enrichedKeys.filter(k => k.Status === 'MISSING').length;
+    const inDock = enrichedKeys.filter(k => (k.Room_Key_Status || 'Present') === 'Present').length;
+    const inUse = enrichedKeys.filter(k => k.Room_Key_Status === 'Absent').length;
 
     return {
         status: 200,
         data: {
-            keys,
+            keys: enrichedKeys,
             summary: {
                 total,
                 active,

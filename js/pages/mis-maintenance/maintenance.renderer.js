@@ -121,19 +121,36 @@
     const tbody = targetElement || document.getElementById('dynamicMaintenanceRows');
     if (!tbody) return;
 
+    const wrapper = tbody.closest ? tbody.closest('.maint-table-wrapper') : null;
+    const table = tbody.closest ? tbody.closest('.maint-table') : (tbody.parentElement && tbody.parentElement.tagName === 'TABLE' ? tbody.parentElement : null);
+
     if (!Array.isArray(reports) || reports.length === 0) {
+      if (wrapper && wrapper.classList) wrapper.classList.add('is-empty');
+      if (table && table.classList) table.classList.add('is-empty');
+
       const sig = 'empty';
       if (tbody._lastRenderSignature === sig) return;
       tbody._lastRenderSignature = sig;
       tbody.innerHTML = `
-        <tr>
-          <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 13.5px;">
-            No maintenance tickets match the selected filter.
+        <tr class="maintenance-empty-row">
+          <td colspan="6" class="maintenance-empty-cell">
+            <div class="maintenance-empty-state" role="status" aria-live="polite">
+              <div class="maintenance-empty-icon-wrap" aria-hidden="true">
+                <i data-lucide="clipboard-list"></i>
+              </div>
+              <p class="maintenance-empty-text">No maintenance tickets match the selected filter.</p>
+            </div>
           </td>
         </tr>
       `;
+      if (global.lucide && typeof global.lucide.createIcons === 'function') {
+        global.lucide.createIcons({ root: tbody });
+      }
       return;
     }
+
+    if (wrapper && wrapper.classList) wrapper.classList.remove('is-empty');
+    if (table && table.classList) table.classList.remove('is-empty');
 
     const signature = computeMaintenanceSignature(reports);
     if (tbody._lastRenderSignature === signature) {
@@ -148,12 +165,27 @@
 
       const parsed = parseIssueDesc(report.Issue_Description);
 
+      const viewInfoBtnHtml = `
+        <button type="button"
+                class="btn-view-ticket-info"
+                data-action="view-ticket-details"
+                data-report-id="${report.Report_ID}"
+                title="View full ticket details"
+                aria-label="View full ticket details for ticket LS-TKT-${report.Report_ID}">
+          <i data-lucide="eye" style="width:14px;height:14px;"></i>
+          <span>View Details</span>
+        </button>
+      `;
+
       let actionsHtml = '';
       if (report.Status !== 'Resolved') {
         actionsHtml = `
-          <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket" data-report-id="${report.Report_ID}">
-            <i data-lucide="check" style="width:14px;height:14px;"></i> Mark Resolved
-          </button>
+          <div class="table-actions-cluster">
+            ${viewInfoBtnHtml}
+            <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket" data-report-id="${report.Report_ID}">
+              <i data-lucide="check" style="width:14px;height:14px;"></i> Mark Resolved
+            </button>
+          </div>
         `;
       } else {
         let resTimeFormatted = '';
@@ -177,18 +209,21 @@
           : 'Work Order Completed';
 
         actionsHtml = `
-          <div class="table-resolved-wrap">
-            <button type="button"
-                    class="completed-chip interactive"
-                    data-action="view-ticket-details"
-                    data-report-id="${report.Report_ID}"
-                    data-resolver-name="${escapeText(report.Resolved_By_Name || '')}"
-                    data-resolver-role="${escapeText(report.Resolved_By_Role || 'MIS Staff')}"
-                    data-resolved-at="${resTimeFormatted || ''}"
-                    aria-label="${resolverTitle}"
-                    title="${resolverTitle}">
-              <i data-lucide="check-check" style="width:14px;height:14px;"></i> Completed
-            </button>
+          <div class="table-actions-cluster">
+            ${viewInfoBtnHtml}
+            <div class="table-resolved-wrap">
+              <button type="button"
+                      class="completed-chip interactive"
+                      data-action="view-ticket-details"
+                      data-report-id="${report.Report_ID}"
+                      data-resolver-name="${escapeText(report.Resolved_By_Name || '')}"
+                      data-resolver-role="${escapeText(report.Resolved_By_Role || 'MIS Staff')}"
+                      data-resolved-at="${resTimeFormatted || ''}"
+                      aria-label="${resolverTitle}"
+                      title="${resolverTitle}">
+                <i data-lucide="check-check" style="width:14px;height:14px;"></i><span>Completed</span>
+              </button>
+            </div>
           </div>
         `;
       }
@@ -198,37 +233,6 @@
         : '';
 
       const issueBadges = formatIssueBadges(parsed.issues, parsed.remarks, false);
-
-      const linkedReports = Array.isArray(report.reports) && report.reports.length > 0
-        ? report.reports
-        : [{
-            Student_Name: report.Student_Name || 'Student',
-            Issue_Description: report.Issue_Description
-          }];
-
-      const firstReport = linkedReports[0];
-      const firstStudentName = firstReport.Student_Name || report.Student_Name || 'Student';
-      const firstParsed = parseIssueDesc(firstReport.Issue_Description || report.Issue_Description);
-
-      let reporterHtml = '';
-      if (linkedReports.length <= 1) {
-        reporterHtml = `
-          <div class="reporter-chip single" title="${escapeText(firstStudentName)}">
-            <i data-lucide="user" style="width:15px; height:15px; color:var(--primary-teal); flex-shrink:0;"></i>
-            <span class="reporter-chip-name">${escapeText(firstStudentName)}</span>
-          </div>
-        `;
-      } else {
-        const othersCount = linkedReports.length - 1;
-        reporterHtml = `
-          <div class="reporter-chip multi" data-action="view-ticket-details" data-report-id="${report.Report_ID}" title="${escapeText(firstStudentName)} (+${othersCount} more) - Click to view all reports">
-            <i data-lucide="user" style="width:15px; height:15px; color:var(--primary-teal); flex-shrink:0;"></i>
-            <span class="reporter-chip-name">${escapeText(firstStudentName)}</span>
-            <span class="reporter-count-badge">+${othersCount}</span>
-            <i data-lucide="chevron-right" class="reporter-chip-arrow" style="width:13px; height:13px; color:var(--text-muted); opacity:0.6; flex-shrink:0;"></i>
-          </div>
-        `;
-      }
 
       const rawRemarks = (parsed.remarks || '').trim();
       const lowerRemarks = rawRemarks.toLowerCase();
@@ -243,34 +247,15 @@
       const isLong = !isNone && (rawRemarks.length > 30 || rawRemarks.includes('\n'));
 
       let remarksHtml = '';
-      if (isNone) {
-        remarksHtml = `
-          <div class="remarks-quote-box static empty-remarks">
-            <i data-lucide="message-square" class="remarks-icon" style="width:14px; height:14px; color:var(--primary-teal); flex-shrink:0;"></i>
-            <span class="remarks-text static-text" style="color:#94A3B8; font-style:italic;">None</span>
-          </div>
-        `;
-      } else if (!isLong) {
-        remarksHtml = `
-          <div class="remarks-quote-box static short-remarks">
-            <i data-lucide="message-square" class="remarks-icon" style="width:14px; height:14px; color:var(--primary-teal); flex-shrink:0;"></i>
-            <span class="remarks-text static-text">${escapeText(rawRemarks)}</span>
-          </div>
-        `;
-      } else {
-        remarksHtml = `
-          <div class="remarks-quote-box interactive expandable" data-action="view-ticket-details" data-report-id="${report.Report_ID}" title="Click to view full student remarks: &#10;&quot;${escapeText(rawRemarks)}&quot;">
-            <div class="remarks-main-content">
-              <i data-lucide="message-square" class="remarks-icon" style="width:14px; height:14px; color:var(--primary-teal); flex-shrink:0;"></i>
-              <span class="remarks-text clamped">${escapeText(rawRemarks)}</span>
-            </div>
-            <span class="remarks-expand-badge">
-              <span>View all</span>
-              <i data-lucide="chevron-right" style="width:12px; height:12px;"></i>
-            </span>
-          </div>
-        `;
-      }
+      const remarksText = isNone ? 'None' : rawRemarks;
+      const tooltipTitle = isNone ? 'No student remarks provided' : `Student Remarks: "${escapeText(rawRemarks)}" (Click to view full report)`;
+
+      remarksHtml = `
+        <div class="remarks-fixed-box ${isNone ? 'is-none' : ''}" data-action="view-ticket-details" data-report-id="${report.Report_ID}" title="${tooltipTitle}">
+          <i data-lucide="message-square" class="remarks-icon" style="width:13px; height:13px; color:var(--primary-teal); flex-shrink:0;"></i>
+          <span class="remarks-fixed-text ${isNone ? 'empty-text' : ''}">${escapeText(remarksText)}</span>
+        </div>
+      `;
 
       return `
         <tr class="maintenance-row" data-report-id="${report.Report_ID}">
@@ -299,9 +284,6 @@
               <i data-lucide="monitor" class="cell-icon pc"></i>
               PC #${report.PC_Number}
             </div>
-          </td>
-          <td class="col-reporter">
-            ${reporterHtml}
           </td>
           <td class="col-issues">
             <div class="ticket-badge-group">
@@ -522,10 +504,22 @@
   function renderTableError(message, targetElement) {
     const tbody = targetElement || document.getElementById('dynamicMaintenanceRows');
     if (!tbody) return;
+
+    const wrapper = tbody.closest ? tbody.closest('.maint-table-wrapper') : null;
+    const table = tbody.closest ? tbody.closest('.maint-table') : (tbody.parentElement && tbody.parentElement.tagName === 'TABLE' ? tbody.parentElement : null);
+    if (wrapper && wrapper.classList) wrapper.classList.add('is-empty');
+    if (table && table.classList) table.classList.add('is-empty');
+
+    tbody._lastRenderSignature = 'error';
     tbody.innerHTML = `
-      <tr>
-        <td colspan="7" style="padding: 40px; text-align: center; color: #EF4444; font-weight: 600;">
-          ${message || 'Failed to load maintenance tickets. Please refresh or try again later.'}
+      <tr class="maintenance-empty-row maintenance-error-row">
+        <td colspan="6" class="maintenance-empty-cell">
+          <div class="maintenance-empty-state" role="alert">
+            <div class="maintenance-empty-icon-wrap error" aria-hidden="true">
+              <i data-lucide="alert-circle"></i>
+            </div>
+            <p class="maintenance-empty-text error">${escapeText(message || 'Failed to load maintenance tickets. Please refresh or try again later.')}</p>
+          </div>
         </td>
       </tr>
     `;

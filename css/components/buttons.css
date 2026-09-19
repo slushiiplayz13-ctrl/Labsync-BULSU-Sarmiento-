@@ -143,26 +143,26 @@
   box-sizing: border-box;
 }
 
-/* Delete button reveals on card hover or focus-within */
+/* Delete button reveals on card hover or keyboard focus-visible */
 .pc-qr-card:hover .delete-pc-btn,
-.pc-qr-card:focus-within .delete-pc-btn,
+.pc-qr-card:focus-visible .delete-pc-btn,
+.pc-qr-card:has(:focus-visible) .delete-pc-btn,
 .pc-qr-card:hover .card-action-delete,
-.pc-qr-card:focus-within .card-action-delete,
+.pc-qr-card:focus-visible .card-action-delete,
+.pc-qr-card:has(:focus-visible) .card-action-delete,
 .pc-qr-card:hover .pc-card .btn-delete,
-.pc-qr-card:focus-within .pc-card .btn-delete {
+.pc-qr-card:focus-visible .pc-card .btn-delete,
+.pc-qr-card:has(:focus-visible) .pc-card .btn-delete {
   opacity: 1;
   pointer-events: auto;
   transform: scale(1);
 }
 
 .delete-pc-btn:hover,
-.delete-pc-btn:focus,
 .delete-pc-btn:focus-visible,
 .card-action-delete:hover,
-.card-action-delete:focus,
 .card-action-delete:focus-visible,
 .pc-card .btn-delete:hover,
-.pc-card .btn-delete:focus,
 .pc-card .btn-delete:focus-visible {
   background: #FEE2E2 !important;
   color: #DC2626 !important;
@@ -199,20 +199,17 @@
 .delete-pc-btn:hover i,
 .delete-pc-btn:hover svg,
 .delete-pc-btn:hover .lucide,
-.delete-pc-btn:focus i,
-.delete-pc-btn:focus svg,
-.delete-pc-btn:focus .lucide,
 .delete-pc-btn:focus-visible i,
 .delete-pc-btn:focus-visible svg,
 .delete-pc-btn:focus-visible .lucide,
 .card-action-delete:hover i,
 .card-action-delete:hover svg,
-.card-action-delete:focus i,
-.card-action-delete:focus svg,
+.card-action-delete:focus-visible i,
+.card-action-delete:focus-visible svg,
 .pc-card .btn-delete:hover i,
 .pc-card .btn-delete:hover svg,
-.pc-card .btn-delete:focus i,
-.pc-card .btn-delete:focus svg {
+.pc-card .btn-delete:focus-visible i,
+.pc-card .btn-delete:focus-visible svg {
   stroke: #DC2626 !important;
 }
 
@@ -233,12 +230,18 @@ body.dark-mode .pc-card .btn-delete,
   pointer-events: none;
 }
 
+html.high-contrast .pc-qr-card:hover .delete-pc-btn,
+html.high-contrast .pc-qr-card:focus-visible .delete-pc-btn,
+html.high-contrast .pc-qr-card:has(:focus-visible) .delete-pc-btn,
 html.dark-mode .pc-qr-card:hover .delete-pc-btn,
-html.dark-mode .pc-qr-card:focus-within .delete-pc-btn,
+html.dark-mode .pc-qr-card:focus-visible .delete-pc-btn,
+html.dark-mode .pc-qr-card:has(:focus-visible) .delete-pc-btn,
 body.dark-mode .pc-qr-card:hover .delete-pc-btn,
-body.dark-mode .pc-qr-card:focus-within .delete-pc-btn,
+body.dark-mode .pc-qr-card:focus-visible .delete-pc-btn,
+body.dark-mode .pc-qr-card:has(:focus-visible) .delete-pc-btn,
 [data-theme="dark"] .pc-qr-card:hover .delete-pc-btn,
-[data-theme="dark"] .pc-qr-card:focus-within .delete-pc-btn {
+[data-theme="dark"] .pc-qr-card:focus-visible .delete-pc-btn,
+[data-theme="dark"] .pc-qr-card:has(:focus-visible) .delete-pc-btn {
   opacity: 1;
   pointer-events: auto;
 }
@@ -253,26 +256,23 @@ body.dark-mode .delete-pc-btn svg,
 }
 
 html.dark-mode .delete-pc-btn:hover,
-html.dark-mode .delete-pc-btn:focus,
 html.dark-mode .delete-pc-btn:focus-visible,
 body.dark-mode .delete-pc-btn:hover,
-body.dark-mode .delete-pc-btn:focus,
 body.dark-mode .delete-pc-btn:focus-visible,
 [data-theme="dark"] .delete-pc-btn:hover,
-[data-theme="dark"] .delete-pc-btn:focus,
 [data-theme="dark"] .delete-pc-btn:focus-visible,
 html.dark-mode .card-action-delete:hover,
-html.dark-mode .card-action-delete:focus,
+html.dark-mode .card-action-delete:focus-visible,
 body.dark-mode .card-action-delete:hover,
-body.dark-mode .card-action-delete:focus,
+body.dark-mode .card-action-delete:focus-visible,
 [data-theme="dark"] .card-action-delete:hover,
-[data-theme="dark"] .card-action-delete:focus,
+[data-theme="dark"] .card-action-delete:focus-visible,
 html.dark-mode .pc-card .btn-delete:hover,
-html.dark-mode .pc-card .btn-delete:focus,
+html.dark-mode .pc-card .btn-delete:focus-visible,
 body.dark-mode .pc-card .btn-delete:hover,
-body.dark-mode .pc-card .btn-delete:focus,
+body.dark-mode .pc-card .btn-delete:focus-visible,
 [data-theme="dark"] .pc-card .btn-delete:hover,
-[data-theme="dark"] .pc-card .btn-delete:focus {
+[data-theme="dark"] .pc-card .btn-delete:focus-visible {
   background: rgba(239, 68, 68, 0.22) !important;
   color: #FCA5A5 !important;
   border-color: rgba(239, 68, 68, 0.45) !important;
@@ -281,16 +281,16 @@ body.dark-mode .pc-card .btn-delete:focus,
 
 html.dark-mode .delete-pc-btn:hover i,
 html.dark-mode .delete-pc-btn:hover svg,
-html.dark-mode .delete-pc-btn:focus i,
-html.dark-mode .delete-pc-btn:focus svg,
+html.dark-mode .delete-pc-btn:focus-visible i,
+html.dark-mode .delete-pc-btn:focus-visible svg,
 body.dark-mode .delete-pc-btn:hover i,
 body.dark-mode .delete-pc-btn:hover svg,
-body.dark-mode .delete-pc-btn:focus i,
-body.dark-mode .delete-pc-btn:focus svg,
+body.dark-mode .delete-pc-btn:focus-visible i,
+body.dark-mode .delete-pc-btn:focus-visible svg,
 [data-theme="dark"] .delete-pc-btn:hover i,
 [data-theme="dark"] .delete-pc-btn:hover svg,
-[data-theme="dark"] .delete-pc-btn:focus i,
-[data-theme="dark"] .delete-pc-btn:focus svg {
+[data-theme="dark"] .delete-pc-btn:focus-visible i,
+[data-theme="dark"] .delete-pc-btn:focus-visible svg {
   stroke: #FCA5A5 !important;
 }
 
@@ -301,6 +301,8 @@ html.high-contrast .pc-card .btn-delete {
   background: transparent !important;
   color: var(--text-dark, #F8FAFC) !important;
   border: 1px solid var(--border-light, #374151) !important;
+  opacity: 0;
+  pointer-events: none;
 }
 
 html.high-contrast .delete-pc-btn i,
@@ -313,11 +315,11 @@ html.high-contrast .pc-card .btn-delete svg {
 }
 
 html.high-contrast .delete-pc-btn:hover,
-html.high-contrast .delete-pc-btn:focus,
+html.high-contrast .delete-pc-btn:focus-visible,
 html.high-contrast .card-action-delete:hover,
-html.high-contrast .card-action-delete:focus,
+html.high-contrast .card-action-delete:focus-visible,
 html.high-contrast .pc-card .btn-delete:hover,
-html.high-contrast .pc-card .btn-delete:focus {
+html.high-contrast .pc-card .btn-delete:focus-visible {
   background: #EF4444 !important;
   color: #FFFFFF !important;
   border-color: #EF4444 !important;
@@ -325,8 +327,8 @@ html.high-contrast .pc-card .btn-delete:focus {
 
 html.high-contrast .delete-pc-btn:hover i,
 html.high-contrast .delete-pc-btn:hover svg,
-html.high-contrast .delete-pc-btn:focus i,
-html.high-contrast .delete-pc-btn:focus svg,
+html.high-contrast .delete-pc-btn:focus-visible i,
+html.high-contrast .delete-pc-btn:focus-visible svg,
 html.high-contrast .card-action-delete:hover i,
 html.high-contrast .card-action-delete:hover svg,
 html.high-contrast .pc-card .btn-delete:hover i,

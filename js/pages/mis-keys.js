@@ -29,17 +29,35 @@
     initKeysPage();
   });
 
+  let refreshIntervalId = null;
+
   async function initKeysPage() {
     setupEventListeners();
     await refreshKeys();
+    startAutoRefresh();
+  }
+
+  function startAutoRefresh() {
+    if (typeof setInterval !== 'function') return;
+    if (refreshIntervalId) clearInterval(refreshIntervalId);
+    refreshIntervalId = setInterval(async () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      const modal = document.getElementById('keyTagPrintModal') || document.getElementById('printKeyModalOverlay');
+      if (modal && !modal.classList.contains('hidden')) return;
+      await refreshKeys(true);
+    }, 10000);
+    if (refreshIntervalId && typeof refreshIntervalId.unref === 'function') {
+      refreshIntervalId.unref();
+    }
   }
 
   /**
    * Refreshes key list and summary metrics from API.
+   * @param {boolean} [silent=false] When true, does not replace the table with a loading placeholder.
    */
-  async function refreshKeys() {
+  async function refreshKeys(silent = false) {
     const tableBody = document.getElementById('keysTableBody');
-    if (tableBody) {
+    if (tableBody && !silent) {
       if (typeof tableBody.closest === 'function') {
         tableBody.closest('.keys-table')?.classList.add('is-empty');
         tableBody.closest('.keys-table-card')?.classList.add('is-empty');
@@ -69,12 +87,13 @@
       updateStatsSummary(summary);
       renderKeysTable();
     } catch (err) {
-      console.error('[MISKeys] Error fetching keys:', err);
-      if (tableBody) {
-        if (typeof tableBody.closest === 'function') {
-          tableBody.closest('.keys-table')?.classList.add('is-empty');
-          tableBody.closest('.keys-table-card')?.classList.add('is-empty');
-        }
+      if (!silent) {
+        console.error('[MISKeys] Error fetching keys:', err);
+        if (tableBody) {
+          if (typeof tableBody.closest === 'function') {
+            tableBody.closest('.keys-table')?.classList.add('is-empty');
+            tableBody.closest('.keys-table-card')?.classList.add('is-empty');
+          }
         tableBody.innerHTML = `
           <tr class="empty-table-row">
             <td colspan="7" class="empty-table-cell error-state">
@@ -92,8 +111,9 @@
             </td>
           </tr>
         `;
-        if (window.lucide && typeof window.lucide.createIcons === 'function') {
-          window.lucide.createIcons({ root: tableBody });
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons({ root: tableBody });
+          }
         }
       }
     }
@@ -188,6 +208,7 @@
 
     currentFilteredKeys = currentKeys.filter(k => {
       const isPresent = (k.Room_Key_Status || 'Present') === 'Present';
+      const isOnline = k.deviceOnline === true || k.deviceOnline === 1 || k.deviceOnline === 'true';
 
       // Filter tab check
       if (currentFilter === 'PRESENT' && !isPresent) return false;
@@ -200,7 +221,9 @@
         const roomStr = rawRoom.startsWith('room') ? rawRoom : `room ${rawRoom}`;
         const bldgStr = String(k.Building || '').toLowerCase();
         const holderStr = String(k.Current_Holder_Name || '').toLowerCase();
-        const statusStr = isPresent ? 'in key box docked available present' : 'in use with faculty absent';
+        const statusStr = isPresent
+          ? (isOnline ? 'in key box docked available present online' : 'offline disconnected in key box docked present')
+          : 'in use with faculty absent';
 
         const fullSearchable = `${codeStr} ${rawRoom} ${roomStr} ${bldgStr} ${holderStr} ${statusStr}`;
         const queryWords = query.split(/\s+/).filter(Boolean);
@@ -284,10 +307,16 @@
         hasRecentActivity = true;
       }
 
-      // System status read-only badge
-      const statusBadgeHtml = isPresent
-        ? '<span class="status-badge-pulse resolved" title="Key is docked in the IoT key box"><span class="pulse-dot"></span> In Key Box</span>'
-        : '<span class="status-badge-pulse pending" title="Key is held by faculty"><span class="pulse-dot"></span> In Use</span>';
+      // System status read-only badge based on real-time IoT connectivity
+      const isOnline = k.deviceOnline === true || k.deviceOnline === 1 || k.deviceOnline === 'true';
+      let statusBadgeHtml = '';
+      if (!isPresent) {
+        statusBadgeHtml = '<span class="status-badge-pulse pending" title="Key is held by faculty"><span class="pulse-dot"></span> In Use</span>';
+      } else if (isOnline) {
+        statusBadgeHtml = '<span class="status-badge-pulse resolved" title="Key is docked in the IoT key box"><span class="pulse-dot"></span> In Key Box</span>';
+      } else {
+        statusBadgeHtml = '<span class="status-badge-pulse offline" title="IoT Key Box is offline or disconnected"><span class="pulse-dot"></span> Offline</span>';
+      }
 
       // Status & Custody display
       let custodyHtml = '';

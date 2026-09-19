@@ -317,7 +317,7 @@
       outline: none;
     }
 
-    .btn-add-ojt:hover {
+    .btn-add-ojt:hover:not(:disabled) {
       background: #17a2ba;
       transform: translateY(-1px);
       box-shadow: 0 5px 14px rgba(30, 187, 215, 0.4);
@@ -326,6 +326,17 @@
     .btn-add-ojt:focus-visible {
       outline: 2px solid var(--primary-teal);
       outline-offset: 2px;
+    }
+
+    .btn-add-ojt:disabled,
+    .btn-add-ojt[disabled],
+    #btnSubmitEditOjt:disabled,
+    #btnSubmitEditOjt[disabled] {
+      opacity: 0.55 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      box-shadow: none !important;
+      transform: none !important;
     }
 
     /* ─── OJT Data Table ─── */
@@ -574,58 +585,309 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      padding: 5px 10px;
-      border-radius: 7px;
-      font-size: 12px;
-      font-weight: 600;
-      border: 1px solid var(--border-light, #CBD5E1);
-      background: var(--bg-card, #FFFFFF);
-      color: var(--text-dark, #1E293B);
+      gap: 6px;
+      height: 32px;
+      min-height: 32px;
+      padding: 0 12px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      font-family: var(--font-body, inherit);
+      border: 1.5px solid #CBD5E1;
+      background: #FFFFFF;
+      color: #0F172A;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       white-space: nowrap;
       line-height: 1;
       outline: none;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      user-select: none;
+      box-sizing: border-box;
+    }
+
+    .btn-tbl-action i,
+    .btn-tbl-action svg {
+      width: 14px !important;
+      height: 14px !important;
+      stroke-width: 2.2 !important;
+      flex-shrink: 0;
+      pointer-events: none;
+      display: inline-block;
+      vertical-align: middle;
+      transition: transform 0.15s ease, color 0.15s ease;
     }
 
     .btn-tbl-action:hover {
-      border-color: var(--primary-teal);
-      color: var(--primary-teal);
-      background: rgba(30, 187, 215, 0.06);
+      border-color: var(--primary-teal, #1EBBD7);
+      color: var(--primary-teal, #1EBBD7);
+      background: rgba(30, 187, 215, 0.08);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(30, 187, 215, 0.2);
+    }
+
+    .btn-tbl-action:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .btn-tbl-action:focus-visible {
-      outline: 2px solid var(--primary-teal);
-      outline-offset: 1px;
+      outline: 2px solid var(--primary-teal, #1EBBD7);
+      outline-offset: 1.5px;
     }
 
     .btn-tbl-action * {
       pointer-events: none;
     }
 
+    /* ─── Danger Action (Deactivate) ─── */
     .btn-tbl-action.danger {
-      color: #DC2626;
-      border-color: rgba(239, 68, 68, 0.28);
-      background: rgba(239, 68, 68, 0.03);
+      color: #991B1B !important;
+      border: 1.5px solid #F87171 !important;
+      background: #FEF2F2 !important;
+      box-shadow: 0 1px 2px rgba(220, 38, 38, 0.08);
+    }
+
+    .btn-tbl-action.danger i,
+    .btn-tbl-action.danger svg {
+      color: #DC2626 !important;
     }
 
     .btn-tbl-action.danger:hover {
-      background: rgba(239, 68, 68, 0.12);
-      border-color: #EF4444;
-      color: #B91C1C;
+      background: #DC2626 !important;
+      border-color: #B91C1C !important;
+      color: #FFFFFF !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
     }
 
+    .btn-tbl-action.danger:hover i,
+    .btn-tbl-action.danger:hover svg {
+      color: #FFFFFF !important;
+    }
+
+    .btn-tbl-action.danger:active {
+      background: #B91C1C !important;
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(220, 38, 38, 0.08);
+    }
+
+    .btn-tbl-action.danger:focus-visible {
+      outline: 2px solid #DC2626;
+      outline-offset: 1.5px;
+    }
+
+    /* ─── Success Action (Activate) ─── */
     .btn-tbl-action.success {
-      color: #059669;
-      border-color: rgba(16, 185, 129, 0.28);
-      background: rgba(16, 185, 129, 0.03);
+      color: #065F46 !important;
+      border: 1.5px solid #34D399 !important;
+      background: #ECFDF5 !important;
+      box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08);
+    }
+
+    .btn-tbl-action.success i,
+    .btn-tbl-action.success svg {
+      color: #059669 !important;
     }
 
     .btn-tbl-action.success:hover {
-      background: rgba(16, 185, 129, 0.12);
-      border-color: #10B981;
-      color: #047857;
+      background: #059669 !important;
+      border-color: #047857 !important;
+      color: #FFFFFF !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    }
+
+    .btn-tbl-action.success:hover i,
+    .btn-tbl-action.success:hover svg {
+      color: #FFFFFF !important;
+    }
+
+    .btn-tbl-action.success:active {
+      background: #047857 !important;
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08);
+    }
+
+    .btn-tbl-action.success:focus-visible {
+      outline: 2px solid #059669;
+      outline-offset: 1.5px;
+    }
+
+    /* ─── Dark Mode & High Contrast Table Action Contrast ─── */
+    html.dark-mode .btn-tbl-action.danger,
+    body.dark-mode .btn-tbl-action.danger,
+    html.high-contrast .btn-tbl-action.danger,
+    [data-theme="dark"] .btn-tbl-action.danger {
+      color: #FFFFFF !important;
+      border: 1.5px solid #EF4444 !important;
+      background: rgba(220, 38, 38, 0.25) !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    html.dark-mode .btn-tbl-action.danger i,
+    html.dark-mode .btn-tbl-action.danger svg,
+    body.dark-mode .btn-tbl-action.danger i,
+    body.dark-mode .btn-tbl-action.danger svg,
+    html.high-contrast .btn-tbl-action.danger i,
+    html.high-contrast .btn-tbl-action.danger svg,
+    [data-theme="dark"] .btn-tbl-action.danger i,
+    [data-theme="dark"] .btn-tbl-action.danger svg {
+      color: #FCA5A5 !important;
+    }
+
+    html.dark-mode .btn-tbl-action.danger:hover,
+    body.dark-mode .btn-tbl-action.danger:hover,
+    html.high-contrast .btn-tbl-action.danger:hover,
+    [data-theme="dark"] .btn-tbl-action.danger:hover {
+      color: #FFFFFF !important;
+      background: #DC2626 !important;
+      border-color: #EF4444 !important;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    html.dark-mode .btn-tbl-action.danger:hover i,
+    html.dark-mode .btn-tbl-action.danger:hover svg,
+    body.dark-mode .btn-tbl-action.danger:hover i,
+    body.dark-mode .btn-tbl-action.danger:hover svg,
+    html.high-contrast .btn-tbl-action.danger:hover i,
+    html.high-contrast .btn-tbl-action.danger:hover svg,
+    [data-theme="dark"] .btn-tbl-action.danger:hover i,
+    [data-theme="dark"] .btn-tbl-action.danger:hover svg {
+      color: #FFFFFF !important;
+    }
+
+    html.dark-mode .btn-tbl-action.danger:active,
+    body.dark-mode .btn-tbl-action.danger:active,
+    html.high-contrast .btn-tbl-action.danger:active,
+    [data-theme="dark"] .btn-tbl-action.danger:active {
+      background: #B91C1C !important;
+      transform: translateY(0) !important;
+    }
+
+    html.dark-mode .btn-tbl-action.danger:focus-visible,
+    body.dark-mode .btn-tbl-action.danger:focus-visible,
+    html.high-contrast .btn-tbl-action.danger:focus-visible,
+    [data-theme="dark"] .btn-tbl-action.danger:focus-visible {
+      outline: 2px solid #EF4444 !important;
+      outline-offset: 1.5px !important;
+    }
+
+    html.dark-mode .btn-tbl-action.success,
+    body.dark-mode .btn-tbl-action.success,
+    html.high-contrast .btn-tbl-action.success,
+    [data-theme="dark"] .btn-tbl-action.success {
+      color: #FFFFFF !important;
+      border: 1.5px solid #10B981 !important;
+      background: rgba(16, 185, 129, 0.25) !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    html.dark-mode .btn-tbl-action.success i,
+    html.dark-mode .btn-tbl-action.success svg,
+    body.dark-mode .btn-tbl-action.success i,
+    body.dark-mode .btn-tbl-action.success svg,
+    html.high-contrast .btn-tbl-action.success i,
+    html.high-contrast .btn-tbl-action.success svg,
+    [data-theme="dark"] .btn-tbl-action.success i,
+    [data-theme="dark"] .btn-tbl-action.success svg {
+      color: #6EE7B7 !important;
+    }
+
+    html.dark-mode .btn-tbl-action.success:hover,
+    body.dark-mode .btn-tbl-action.success:hover,
+    html.high-contrast .btn-tbl-action.success:hover,
+    [data-theme="dark"] .btn-tbl-action.success:hover {
+      color: #FFFFFF !important;
+      background: #059669 !important;
+      border-color: #10B981 !important;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.5) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    html.dark-mode .btn-tbl-action.success:hover i,
+    html.dark-mode .btn-tbl-action.success:hover svg,
+    body.dark-mode .btn-tbl-action.success:hover i,
+    body.dark-mode .btn-tbl-action.success:hover svg,
+    html.high-contrast .btn-tbl-action.success:hover i,
+    html.high-contrast .btn-tbl-action.success:hover svg,
+    [data-theme="dark"] .btn-tbl-action.success:hover i,
+    [data-theme="dark"] .btn-tbl-action.success:hover svg {
+      color: #FFFFFF !important;
+    }
+
+    html.dark-mode .btn-tbl-action.success:active,
+    body.dark-mode .btn-tbl-action.success:active,
+    html.high-contrast .btn-tbl-action.success:active,
+    [data-theme="dark"] .btn-tbl-action.success:active {
+      background: #047857 !important;
+      transform: translateY(0) !important;
+    }
+
+    html.dark-mode .btn-tbl-action:not(.danger):not(.success),
+    body.dark-mode .btn-tbl-action:not(.danger):not(.success),
+    html.high-contrast .btn-tbl-action:not(.danger):not(.success),
+    [data-theme="dark"] .btn-tbl-action:not(.danger):not(.success) {
+      color: #FFFFFF !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: 1.5px solid rgba(255, 255, 255, 0.22) !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    html.dark-mode .btn-tbl-action:not(.danger):not(.success) i,
+    html.dark-mode .btn-tbl-action:not(.danger):not(.success) svg,
+    body.dark-mode .btn-tbl-action:not(.danger):not(.success) i,
+    body.dark-mode .btn-tbl-action:not(.danger):not(.success) svg,
+    html.high-contrast .btn-tbl-action:not(.danger):not(.success) i,
+    html.high-contrast .btn-tbl-action:not(.danger):not(.success) svg,
+    [data-theme="dark"] .btn-tbl-action:not(.danger):not(.success) i,
+    [data-theme="dark"] .btn-tbl-action:not(.danger):not(.success) svg {
+      color: #94A3B8 !important;
+    }
+
+    html.dark-mode .btn-tbl-action:not(.danger):not(.success):hover,
+    body.dark-mode .btn-tbl-action:not(.danger):not(.success):hover,
+    html.high-contrast .btn-tbl-action:not(.danger):not(.success):hover,
+    [data-theme="dark"] .btn-tbl-action:not(.danger):not(.success):hover {
+      background: rgba(30, 187, 215, 0.2) !important;
+      border-color: #38BDF8 !important;
+      color: #38BDF8 !important;
+      transform: translateY(-1px) !important;
+      box-shadow: 0 0 12px rgba(0, 163, 196, 0.3) !important;
+    }
+
+    html.dark-mode .btn-tbl-action:not(.danger):not(.success):hover i,
+    html.dark-mode .btn-tbl-action:not(.danger):not(.success):hover svg,
+    body.dark-mode .btn-tbl-action:not(.danger):not(.success):hover i,
+    body.dark-mode .btn-tbl-action:not(.danger):not(.success):hover svg,
+    html.high-contrast .btn-tbl-action:not(.danger):not(.success):hover i,
+    html.high-contrast .btn-tbl-action:not(.danger):not(.success):hover svg,
+    [data-theme="dark"] .btn-tbl-action:not(.danger):not(.success):hover i,
+    [data-theme="dark"] .btn-tbl-action:not(.danger):not(.success):hover svg {
+      color: #38BDF8 !important;
+    }
+
+    /* Badges dark mode contrast */
+    html.dark-mode .ojt-period-badge.expiring,
+    html.high-contrast .ojt-period-badge.expiring,
+    [data-theme="dark"] .ojt-period-badge.expiring {
+      background: rgba(245, 158, 11, 0.2) !important;
+      color: #FBBF24 !important;
+    }
+
+    html.dark-mode .ojt-period-badge.expired,
+    html.high-contrast .ojt-period-badge.expired,
+    [data-theme="dark"] .ojt-period-badge.expired {
+      background: rgba(239, 68, 68, 0.18) !important;
+      color: #F87171 !important;
+    }
+
+    html.dark-mode .ojt-period-badge.deactivated,
+    html.high-contrast .ojt-period-badge.deactivated,
+    [data-theme="dark"] .ojt-period-badge.deactivated {
+      background: rgba(148, 163, 184, 0.2) !important;
+      color: #94A3B8 !important;
     }
 
     /* ─── Mobile Table Card Transformation (<= 768px) ─── */
@@ -850,6 +1112,14 @@
       gap: 10px;
       padding-top: 12px;
       border-top: 1px solid var(--border-light, #E2E8F0);
+    }
+
+    .ojt-modal-footer .btn-tbl-action {
+      height: auto;
+      min-height: 38px;
+      padding: 9px 18px;
+      font-size: 13px;
+      border-radius: 9px;
     }
 
     /* Credential Modal Specific */
@@ -1364,13 +1634,13 @@
         </div>
 
         <div class="ojt-form-group">
-          <label for="addOjtName">Full Name *</label>
+          <label for="addOjtName">Full Name</label>
           <input type="text" id="addOjtName" class="ojt-form-input" placeholder="e.g. Maria Clara Santos" required />
           <span class="form-error" id="addOjtNameErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
         </div>
 
         <div class="ojt-form-group">
-          <label for="addOjtEmail">Institutional / BulSU Email *</label>
+          <label for="addOjtEmail">Institutional / BulSU Email</label>
           <input type="email" id="addOjtEmail" class="ojt-form-input" placeholder="e.g. maria.santos@bulsu.edu.ph" required />
           <span class="form-error" id="addOjtEmailErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
         </div>
@@ -1383,14 +1653,14 @@
 
         <div class="ojt-form-row">
           <div class="ojt-form-group">
-            <label for="addOjtStartDate">OJT Start Date *</label>
+            <label for="addOjtStartDate">OJT Start Date</label>
             <div class="labsync-date-input-container">
               <input type="text" id="addOjtStartDate" class="ojt-form-input custom-datepicker-input" placeholder="Select start date" readonly required autocomplete="off" />
               <span class="labsync-date-icon"><i data-lucide="calendar" style="width: 16px; height: 16px;"></i></span>
             </div>
           </div>
           <div class="ojt-form-group">
-            <label for="addOjtEndDate">OJT End Date *</label>
+            <label for="addOjtEndDate">OJT End Date</label>
             <div class="labsync-date-input-container">
               <input type="text" id="addOjtEndDate" class="ojt-form-input custom-datepicker-input" placeholder="Select end date" readonly required autocomplete="off" />
               <span class="labsync-date-icon"><i data-lucide="calendar" style="width: 16px; height: 16px;"></i></span>
@@ -1441,13 +1711,13 @@
         </div>
 
         <div class="ojt-form-group">
-          <label for="editOjtName">Full Name *</label>
+          <label for="editOjtName">Full Name</label>
           <input type="text" id="editOjtName" class="ojt-form-input" required />
           <span class="form-error" id="editOjtNameErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
         </div>
 
         <div class="ojt-form-group">
-          <label for="editOjtEmail">Institutional Email *</label>
+          <label for="editOjtEmail">Institutional Email</label>
           <input type="email" id="editOjtEmail" class="ojt-form-input" required />
           <span class="form-error" id="editOjtEmailErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
         </div>
@@ -1460,14 +1730,14 @@
 
         <div class="ojt-form-row">
           <div class="ojt-form-group">
-            <label for="editOjtStartDate">OJT Start Date *</label>
+            <label for="editOjtStartDate">OJT Start Date</label>
             <div class="labsync-date-input-container">
               <input type="text" id="editOjtStartDate" class="ojt-form-input custom-datepicker-input" placeholder="Select start date" readonly required autocomplete="off" />
               <span class="labsync-date-icon"><i data-lucide="calendar" style="width: 16px; height: 16px;"></i></span>
             </div>
           </div>
           <div class="ojt-form-group">
-            <label for="editOjtEndDate">OJT End Date *</label>
+            <label for="editOjtEndDate">OJT End Date</label>
             <div class="labsync-date-input-container">
               <input type="text" id="editOjtEndDate" class="ojt-form-input custom-datepicker-input" placeholder="Select end date" readonly required autocomplete="off" />
               <span class="labsync-date-icon"><i data-lucide="calendar" style="width: 16px; height: 16px;"></i></span>
@@ -1478,8 +1748,7 @@
 
         <div class="ojt-modal-footer">
           <button type="button" class="btn-tbl-action" id="btnCancelEditModal">Cancel</button>
-          <button type="submit" class="btn-add-ojt" id="btnSubmitEditOjt">
-            <i data-lucide="check" style="width: 15px; height: 15px;"></i>
+          <button type="submit" class="btn-add-ojt" id="btnSubmitEditOjt" disabled aria-disabled="true">
             <span>Save Changes</span>
           </button>
         </div>
@@ -1676,7 +1945,7 @@
   <script src="js/core/app.js"></script>
 
   <!-- Dedicated OJT Page Controller -->
-  <script src="js/pages/mis-ojt.js?v=1.1.4"></script>
+  <script src="js/pages/mis-ojt.js?v=1.1.5"></script>
 </body>
 
 </html>

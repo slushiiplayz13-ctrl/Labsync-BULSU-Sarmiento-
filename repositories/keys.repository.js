@@ -10,7 +10,7 @@ const db = require('../database/connection');
 async function findAllKeysWithRoomDetails(executor = db) {
     return executor.query(`
         SELECT k.Key_ID, k.Room_ID, k.Key_Code, k.Status, k.Created_At, k.Updated_At,
-               r.Room_Number, r.Building, r.Key_Status AS Room_Key_Status, r.Current_User_ID,
+               r.Room_Number, r.Building, r.Key_Status AS Room_Key_Status, r.Current_User_ID, r.Last_Seen,
                u.Name AS Current_Holder_Name,
                (SELECT MAX(Access_Time) FROM occupancy_log ol WHERE ol.Room_ID = k.Room_ID) AS Last_Taken_At,
                (SELECT MAX(Access_Time) FROM occupancy_log ol WHERE ol.Room_ID = k.Room_ID) AS Last_Activity_At

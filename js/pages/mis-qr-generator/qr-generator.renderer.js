@@ -134,8 +134,32 @@
           }
         }
       });
+
+      // Clear card/button focus when pointer leaves a PC card or the grid to prevent sticky hover states
+      const handlePointerLeaveCard = (e) => {
+        const card = e.target.closest ? e.target.closest('.pc-qr-card') : null;
+        if (card && document.activeElement && card.contains(document.activeElement)) {
+          if (typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+          }
+        }
+      };
+      grid.addEventListener('pointerleave', handlePointerLeaveCard, true);
+      grid.addEventListener('mouseleave', handlePointerLeaveCard, true);
+
       grid.addEventListener('click', (e) => {
         const activeOpts = grid._callbacks || {};
+
+        // Add PC button (from empty state)
+        const addBtn = e.target.closest('.pc-empty-add-btn, [data-action="empty-add-pc"], [data-action="header-add-pc"]');
+        if (addBtn && !activeOpts.isSelectionMode) {
+          e.preventDefault();
+          e.stopPropagation();
+          const cb = activeOpts.onAddPC;
+          if (typeof cb === 'function') cb(activeOpts.roomId);
+          else if (typeof global.addPC === 'function') global.addPC(activeOpts.roomId);
+          return;
+        }
 
         // In selection mode, clicking on a PC card (or checkbox) toggles its selection
         if (activeOpts.isSelectionMode) {
@@ -158,6 +182,16 @@
         if (qrBtn) {
           e.preventDefault();
           e.stopPropagation();
+          if (typeof qrBtn.blur === 'function') qrBtn.blur();
+          const card = qrBtn.closest('.pc-qr-card');
+          if (card && typeof card.blur === 'function') card.blur();
+          if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+          }
+          if (global.qrGeneratorPrint && typeof global.qrGeneratorPrint.clearCardFocus === 'function') {
+            global.qrGeneratorPrint.clearCardFocus();
+          }
+
           const pcId = qrBtn.getAttribute('data-pc-id');
           if (pcId) {
             const cb = activeOpts.onGenerateQR;
@@ -186,13 +220,64 @@
 
     // Store latest callbacks and selection state for delegated listener to reference
     grid._callbacks = {
+      roomId: options.roomId,
       isSelectionMode,
+      onAddPC: options.onAddPC,
       onDeletePC: options.onDeletePC,
       onGenerateQR: options.onGenerateQR,
       onToggleSelectPC: options.onToggleSelectPC
     };
 
     grid.innerHTML = '';
+
+    // Handle Empty State when room has no PCs registered
+    if (pcList.length === 0) {
+      grid.classList.add('is-empty');
+      grid.style.display = 'flex';
+      grid.style.flexDirection = 'column';
+      grid.style.alignItems = 'center';
+      grid.style.justifyContent = 'center';
+      grid.style.flex = '1 1 auto';
+      grid.style.minHeight = '0';
+      grid.style.height = '100%';
+      grid.style.padding = '28px 20px';
+      grid.style.boxSizing = 'border-box';
+
+      const roomTitleEl = document.getElementById('selectedRoomTitle');
+      const roomNumber = options.roomNumber || (roomTitleEl ? roomTitleEl.textContent.replace(/^Room\s*/i, '').trim() : '');
+      const roomLabel = roomNumber ? `Room ${roomNumber}` : 'this laboratory room';
+
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'pc-grid-empty-state';
+      emptyDiv.setAttribute('role', 'status');
+      emptyDiv.setAttribute('aria-live', 'polite');
+      emptyDiv.style.cssText = 'width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin: auto; padding: 0 16px; box-sizing: border-box;';
+
+      emptyDiv.innerHTML = `
+        <div class="pc-empty-icon-wrap" aria-hidden="true">
+          <i data-lucide="monitor-off"></i>
+        </div>
+        <h3 class="pc-empty-title">No PCs Registered</h3>
+        <p class="pc-empty-desc">There are no computer workstations registered in ${roomLabel} yet.</p>
+      `;
+
+      grid.appendChild(emptyDiv);
+
+      if (global.lucide && typeof global.lucide.createIcons === 'function') {
+        global.lucide.createIcons({ root: grid });
+      }
+      return;
+    }
+
+    grid.classList.remove('is-empty');
+    grid.style.display = '';
+    grid.style.flexDirection = '';
+    grid.style.alignItems = '';
+    grid.style.justifyContent = '';
+    grid.style.flex = '';
+    grid.style.minHeight = '';
+    grid.style.height = '';
+    grid.style.padding = '';
 
     pcList.forEach(pc => {
       const pcIdStr = String(pc.PC_ID);
@@ -264,6 +349,15 @@
   function renderPCGridLoading(targetElement) {
     const grid = targetElement || document.getElementById('dynamicPCGrid');
     if (!grid) return;
+    grid.classList.remove('is-empty');
+    grid.style.display = '';
+    grid.style.flexDirection = '';
+    grid.style.alignItems = '';
+    grid.style.justifyContent = '';
+    grid.style.flex = '';
+    grid.style.minHeight = '';
+    grid.style.height = '';
+    grid.style.padding = '';
     if (grid._lastRenderSignature === '__LOADING__') return;
     grid._lastRenderSignature = '__LOADING__';
 
@@ -287,7 +381,27 @@
     const grid = targetElement || document.getElementById('dynamicPCGrid');
     if (grid) {
       grid._lastRenderSignature = null;
-      grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #EF4444; font-weight: 600;">${message || 'Failed to load PCs'}</div>`;
+      grid.classList.add('is-empty');
+      grid.style.display = 'flex';
+      grid.style.flexDirection = 'column';
+      grid.style.alignItems = 'center';
+      grid.style.justifyContent = 'center';
+      grid.style.flex = '1 1 auto';
+      grid.style.minHeight = '0';
+      grid.style.height = '100%';
+      grid.style.padding = '28px 20px';
+      grid.innerHTML = `
+        <div class="pc-grid-empty-state error" role="alert">
+          <div class="pc-empty-icon-wrap error" aria-hidden="true" style="background: rgba(239, 68, 68, 0.12); color: #EF4444; border-color: rgba(239, 68, 68, 0.25);">
+            <i data-lucide="alert-triangle"></i>
+          </div>
+          <h3 class="pc-empty-title" style="color: #EF4444;">Failed to Load PCs</h3>
+          <p class="pc-empty-desc">${message || 'Could not load computer workstations for this room. Please try again.'}</p>
+        </div>
+      `;
+      if (global.lucide && typeof global.lucide.createIcons === 'function') {
+        global.lucide.createIcons({ root: grid });
+      }
     }
     const unitBadge = document.getElementById('roomUnitCountBadge');
     if (unitBadge) {

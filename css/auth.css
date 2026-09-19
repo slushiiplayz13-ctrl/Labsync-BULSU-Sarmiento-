@@ -827,9 +827,9 @@ html.high-contrast .divider {
 }
 
 /* --- High Contrast / Dark Mode Logo Overrides --- */
-html.high-contrast img[src="assets/labsync-logo.png"],
-html.high-contrast img.labsync-logo,
-html.high-contrast img.card-logo {
+html.high-contrast img[src="assets/labsync-logo.png"]:not(.document-page img):not(.labsync-print-brand-logo):not(.footer-brand img),
+html.high-contrast img.labsync-logo:not(.document-page img):not(.labsync-print-brand-logo):not(.footer-brand img),
+html.high-contrast img.card-logo:not(.document-page img):not(.labsync-print-brand-logo):not(.footer-brand img) {
   content: url("../assets/labsync-logo - dark mode.png") !important;
 }
 

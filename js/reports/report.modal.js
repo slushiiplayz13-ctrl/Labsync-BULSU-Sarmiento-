@@ -310,31 +310,46 @@
       if (report.Resolved_By_Name) {
         resolutionHeaderRowHtml = `
           <div class="ticket-modal-resolution-row">
-            <span class="tm-res-label">Resolved by</span>
-            <span class="tm-res-who">
-              <i data-lucide="user" class="tm-res-icon"></i>
-              <span class="tm-res-name">${escapeFn(report.Resolved_By_Name)}</span>
-              <span class="tm-res-role">${escapeFn(report.Resolved_By_Role || 'MIS Staff')}</span>
-            </span>
-            <span class="tm-res-dot">•</span>
-            <span class="tm-res-when">
-              <i data-lucide="clock" class="tm-res-time-icon"></i>
-              ${resDateFormatted || 'Timestamp not recorded'}
-            </span>
+            <div class="tm-res-icon-wrap">
+              <i data-lucide="check-circle-2"></i>
+            </div>
+            <div class="tm-res-details">
+              <div class="tm-res-primary">
+                <span class="tm-res-label">Resolved by</span>
+                <span class="tm-res-who">
+                  <i data-lucide="user" class="tm-res-icon"></i>
+                  <span class="tm-res-name">${escapeFn(report.Resolved_By_Name)}</span>
+                  <span class="tm-res-role">${escapeFn(report.Resolved_By_Role || 'MIS Staff')}</span>
+                </span>
+              </div>
+              <div class="tm-res-secondary">
+                <span class="tm-res-when">
+                  <i data-lucide="clock" class="tm-res-time-icon"></i>
+                  Completed on ${resDateFormatted || 'Timestamp not recorded'}
+                </span>
+              </div>
+            </div>
           </div>
         `;
       } else {
         resolutionHeaderRowHtml = `
           <div class="ticket-modal-resolution-row">
-            <span class="tm-res-who">
-              <i data-lucide="check-check" class="tm-res-icon" style="color:#059669;"></i>
-              <span class="tm-res-name">Work Order Completed</span>
-            </span>
-            <span class="tm-res-dot">•</span>
-            <span class="tm-res-when">
-              <i data-lucide="clock" class="tm-res-time-icon"></i>
-              ${resDateFormatted || 'Timestamp not recorded'}
-            </span>
+            <div class="tm-res-icon-wrap">
+              <i data-lucide="check-circle-2"></i>
+            </div>
+            <div class="tm-res-details">
+              <div class="tm-res-primary">
+                <span class="tm-res-who">
+                  <span class="tm-res-name">Work Order Completed</span>
+                </span>
+              </div>
+              <div class="tm-res-secondary">
+                <span class="tm-res-when">
+                  <i data-lucide="clock" class="tm-res-time-icon"></i>
+                  ${resDateFormatted || 'Timestamp not recorded'}
+                </span>
+              </div>
+            </div>
           </div>
         `;
       }
@@ -502,11 +517,13 @@
               <i data-lucide="x" style="width:16px;height:16px;"></i>
             </button>
           </div>
-          ${resolutionHeaderRowHtml}
         </div>
 
         <!-- Body Info -->
         ${bodyContentHtml}
+
+        <!-- Resolution Summary Card (when resolved) -->
+        ${resolutionHeaderRowHtml}
 
         <!-- Footer Actions -->
         <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px; border-top:1px solid var(--border-light); padding-top:16px;">
