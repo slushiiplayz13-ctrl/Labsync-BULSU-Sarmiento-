@@ -16,6 +16,13 @@ async function main() {
 
   const keysService = require('../services/keysService');
   const iotService = require('../services/iotService');
+  const db = require('../database/connection');
+
+  // Reset any prior test state to ensure isolated offline baseline
+  await db.query('UPDATE laboratories SET Last_Seen = NULL');
+  if (iotService.deviceStateService && iotService.deviceStateService.clearDeviceLastSeen) {
+    iotService.deviceStateService.clearDeviceLastSeen();
+  }
 
   // 1. Test backend getAllKeys with current DB state (unplugged IoT)
   console.log('--- 1. Testing Backend getAllKeys with offline IoT key box ---');

@@ -19,8 +19,6 @@ const char* defaultScanRoom = "203";
 
 // Device Authentication Credential
 // Unique 256-bit bearer token provisioned for this physical ESP32 device.
-// Limitation Note: The credential is provisioned directly to firmware and is protected from web
-// exposure, but physical flash extraction on an unencrypted microcontroller remains a physical limitation.
 const char* deviceToken = "labsync-esp32-keybox-token-2026"; 
 
 // Key Slots Configuration
@@ -35,6 +33,13 @@ enum KeyType {
 
 KeyType lastSlotState203 = KEY_NONE;
 KeyType lastSlotState204 = KEY_NONE;
+
+// Authorization Window State (User must scan QR before key release)
+bool isAuthorized = false;
+unsigned long authExpiresAt = 0;
+const unsigned long AUTH_WINDOW_MS = 15000; // 15-second key retrieval countdown
+String authorizedUserName = "";
+int lastDisplayedCountdown = -1;
 
 // Periodic Heartbeat Timer
 unsigned long lastHeartbeatTime = 0;
@@ -75,7 +80,7 @@ void showReadyScreen() {
     lcd.setCursor(0, 0);
     lcd.print("LabSync System");
     lcd.setCursor(0, 1);
-    lcd.print("Ready to Scan!");
+    lcd.print("Scan QR to Begin");
   }
 }
 
@@ -83,6 +88,30 @@ void clearSerialBuffer() {
   while (Serial2.available() > 0) {
     Serial2.read();
   }
+}
+
+// Non-blocking read helper for GM65 scanner
+String readScannedCode() {
+  if (Serial2.available() > 0) {
+    String scannedCode = "";
+    unsigned long startTime = millis();
+    unsigned long lastCharTime = millis();
+    int totalBytesRead = 0;
+    
+    while ((millis() - startTime < 60) && (millis() - lastCharTime < 20)) {
+      while (Serial2.available() > 0) {
+        char c = Serial2.read();
+        totalBytesRead++;
+        if (c >= 32 && c <= 126) scannedCode += c;
+        lastCharTime = millis();
+        if (scannedCode.length() >= 128 || totalBytesRead >= 256) break;
+      }
+    }
+    
+    scannedCode.trim();
+    return scannedCode;
+  }
+  return "";
 }
 
 // Lightweight 5-second Heartbeat
@@ -130,10 +159,50 @@ KeyType detectKeyType(int pin) {
   return KEY_NONE;
 }
 
+// Send security alarm events (Unauthorized Removal or Wrong Slot) to server
+void sendSecurityAlertToServer(String room, String alertType) {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(serverUrl);
+    http.setTimeout(1000);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", String("Bearer ") + deviceToken);
+
+    StaticJsonDocument<256> reqDoc;
+    reqDoc["keyEvent"] = alertType;
+    reqDoc["roomNumber"] = room;
+
+    String jsonPayload;
+    serializeJson(reqDoc, jsonPayload);
+
+    http.POST(jsonPayload);
+    http.end();
+  }
+}
+
+// Send key presence status transitions to server
+void sendKeyStatusToServer(String room, bool present) {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(serverUrl);
+    http.setTimeout(1000);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", String("Bearer ") + deviceToken);
+
+    String statusStr = present ? "Key Returned" : "Key Taken";
+    String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + room + "\"}";
+    
+    http.POST(jsonPayload);
+    http.end();
+  }
+}
+
 // Alarm loop when a key is put in the wrong hole
 void handleWrongSlotAlarm(int pin, String expectedSlot, String insertedKey) {
   Serial.println("❌ WRONG KEY SLOT! Key " + insertedKey + " inserted into Slot " + expectedSlot);
   
+  sendSecurityAlertToServer(expectedSlot, "Wrong Key Slot");
+
   if (lcdDetected) {
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -151,8 +220,262 @@ void handleWrongSlotAlarm(int pin, String expectedSlot, String insertedKey) {
 
   buzzerOff();
   Serial.println("Wrong key removed. System ready.");
-  delay(300);
+  triggerBuzzer(60, 1);
+  if (lcdDetected) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Key Removed");
+    lcd.setCursor(0, 1);
+    lcd.print("Insert in " + insertedKey + "!");
+  }
+  delay(1200);
+  clearSerialBuffer();
   showReadyScreen();
+}
+
+// Forward declaration
+bool sendScanToServer(String scannedToken);
+
+// Alarm loop when a key is removed without scanning QR code first
+void handleUnauthorizedRemovalAlarm(int pin, KeyType &lastState, String slotRoom, KeyType expectedKey) {
+  Serial.println("🚨 UNAUTHORIZED KEY REMOVAL! Key " + slotRoom + " removed without scanning QR!");
+
+  sendSecurityAlertToServer(slotRoom, "Unauthorized Removal");
+
+  if (lcdDetected) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("! UNAUTHORIZED !");
+    lcd.setCursor(0, 1);
+    lcd.print("RETURN KEY " + slotRoom + "!");
+  }
+
+  bool resolved = false;
+
+  while (!resolved) {
+    // 1. Check if key is returned to slot
+    KeyType current = detectKeyType(pin);
+    if (current == expectedKey) {
+      // Key returned to correct slot!
+      buzzerOff();
+      resolved = true;
+      lastState = expectedKey;
+      triggerBuzzer(80, 2);
+      if (lcdDetected) {
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Key Returned");
+        lcd.setCursor(0, 1);
+        lcd.print("Alarm Cleared");
+      }
+      sendKeyStatusToServer(slotRoom, true);
+      delay(1200);
+      clearSerialBuffer();
+      showReadyScreen();
+      return;
+    } else if (current != KEY_NONE && current != expectedKey) {
+      // Key was placed in the wrong slot
+      buzzerOff();
+      String insertedKeyName = (current == KEY_203) ? "203" : "204";
+      handleWrongSlotAlarm(pin, slotRoom, insertedKeyName);
+      lastState = KEY_NONE;
+      return;
+    }
+
+    // 2. Check if user scans their QR code during the alarm to retroactively authorize
+    String scanCode = readScannedCode();
+    if (scanCode.length() > 0) {
+      buzzerOff();
+      if (sendScanToServer(scanCode)) {
+        // Valid QR badge! Authorize the key that was taken
+        resolved = true;
+        isAuthorized = false; // consume authorization
+        lastState = KEY_NONE;
+        triggerBuzzer(80, 2);
+        if (lcdDetected) {
+          lcd.clear();
+          lcd.setCursor(0, 0);
+          lcd.print(slotRoom + " Key Taken");
+          lcd.setCursor(0, 1);
+          lcd.print("Room Active");
+        }
+        sendKeyStatusToServer(slotRoom, false);
+        delay(1200);
+        clearSerialBuffer();
+        showReadyScreen();
+        return;
+      } else {
+        // Re-display warning if scan was invalid
+        if (lcdDetected) {
+          lcd.clear();
+          lcd.setCursor(0, 0);
+          lcd.print("! UNAUTHORIZED !");
+          lcd.setCursor(0, 1);
+          lcd.print("RETURN KEY " + slotRoom + "!");
+        }
+      }
+    }
+
+    // 3. Continuous alarm cadence (80ms ON, 50ms OFF)
+    buzzerOn();
+    delay(80);
+    buzzerOff();
+    delay(50);
+  }
+}
+
+// Scan verification handler (returns true if access granted)
+bool sendScanToServer(String scannedToken) {
+  if (lcdDetected) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Verifying QR...");
+    lcd.setCursor(0, 1);
+    lcd.print("Please wait...");
+  }
+
+  bool success = false;
+  String line1 = "Access Denied!";
+  String line2 = "Invalid QR Code";
+
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(serverUrl);
+    http.setTimeout(1500);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", String("Bearer ") + deviceToken);
+
+    StaticJsonDocument<256> reqDoc;
+    reqDoc["qrString"] = scannedToken;
+    reqDoc["roomNumber"] = defaultScanRoom;
+    reqDoc["authMethod"] = "QR Code";
+
+    String jsonPayload;
+    serializeJson(reqDoc, jsonPayload);
+    
+    int httpResponseCode = http.POST(jsonPayload);
+    String response = http.getString();
+
+    StaticJsonDocument<1024> resDoc;
+    DeserializationError error = deserializeJson(resDoc, response);
+
+    if (!error) {
+      if (resDoc.containsKey("lcdLine1")) line1 = resDoc["lcdLine1"].as<String>();
+      if (resDoc.containsKey("lcdLine2")) line2 = resDoc["lcdLine2"].as<String>();
+      else if (resDoc.containsKey("name")) line2 = resDoc["name"].as<String>();
+      else if (resDoc.containsKey("user") && resDoc["user"].containsKey("name")) line2 = resDoc["user"]["name"].as<String>();
+    }
+
+    if (httpResponseCode == 200) {
+      success = true;
+      triggerBuzzer(80, 2); 
+      isAuthorized = true;
+      authExpiresAt = millis() + AUTH_WINDOW_MS;
+      authorizedUserName = line2;
+      lastDisplayedCountdown = -1;
+
+      if (lcdDetected) {
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print(line1.substring(0, 16));
+        lcd.setCursor(0, 1);
+        lcd.print(line2.substring(0, 16));
+      }
+      delay(1200);
+    } else {
+      triggerBuzzer(300, 1); 
+      if (lcdDetected) {
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print(line1.substring(0, 16));
+        lcd.setCursor(0, 1);
+        lcd.print(line2.substring(0, 16));
+      }
+      delay(1500);
+      clearSerialBuffer();
+      showReadyScreen();
+    }
+    http.end();
+  } else {
+    triggerBuzzer(300, 1);
+    if (lcdDetected) {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Wi-Fi Error!");
+      lcd.setCursor(0, 1);
+      lcd.print("Not Connected");
+    }
+    delay(1500);
+    clearSerialBuffer();
+    showReadyScreen();
+  }
+
+  return success;
+}
+
+// Key slot transition monitor
+void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expectedKey) {
+  KeyType currentState = detectKeyType(pin);
+  
+  if (currentState != lastState) {
+    delay(100); // 100ms debounce
+    KeyType verifyState = detectKeyType(pin);
+    
+    if (currentState == verifyState) {
+      // 1. Wrong Key Inserted -> Sound Alarm
+      if (verifyState != KEY_NONE && verifyState != expectedKey) {
+        String insertedKeyName = (verifyState == KEY_203) ? "203" : "204";
+        handleWrongSlotAlarm(pin, slotRoom, insertedKeyName);
+        lastState = KEY_NONE;
+        return;
+      }
+
+      // 2. Correct Key Returned
+      if (verifyState == expectedKey) {
+        lastState = verifyState;
+        triggerBuzzer(80, 2);
+        if (lcdDetected) {
+          lcd.clear();
+          lcd.setCursor(0, 0);
+          lcd.print(slotRoom + " Key Return");
+          lcd.setCursor(0, 1);
+          lcd.print("Room Secured");
+        }
+        sendKeyStatusToServer(slotRoom, true);
+        delay(1200);
+        clearSerialBuffer();
+        showReadyScreen();
+        return;
+      } 
+
+      // 3. Key Taken
+      else if (verifyState == KEY_NONE) {
+        if (isAuthorized) {
+          // AUTHORIZED KEY RETRIEVAL!
+          isAuthorized = false; // consume authorization
+          lastState = verifyState;
+          triggerBuzzer(80, 2);
+          if (lcdDetected) {
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print(slotRoom + " Key Taken");
+            lcd.setCursor(0, 1);
+            lcd.print("Room Active");
+          }
+          sendKeyStatusToServer(slotRoom, false);
+          delay(1200);
+          clearSerialBuffer();
+          showReadyScreen();
+          return;
+        } else {
+          // UNAUTHORIZED KEY REMOVAL -> Sound Alarm!
+          handleUnauthorizedRemovalAlarm(pin, lastState, slotRoom, expectedKey);
+          lastState = KEY_NONE;
+          return;
+        }
+      }
+    }
+  }
 }
 
 void setup() {
@@ -219,179 +542,49 @@ void setup() {
   }
 }
 
-void sendScanToServer(String scannedToken) {
-  if (lcdDetected) {
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Verifying...");
-    lcd.setCursor(0, 1);
-    lcd.print("Please wait...");
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin(serverUrl);
-    http.setTimeout(1200);
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", String("Bearer ") + deviceToken);
-
-    StaticJsonDocument<256> reqDoc;
-    reqDoc["qrString"] = scannedToken;
-    reqDoc["roomNumber"] = defaultScanRoom;
-    reqDoc["authMethod"] = "QR Code";
-
-    String jsonPayload;
-    serializeJson(reqDoc, jsonPayload);
-    
-    int httpResponseCode = http.POST(jsonPayload);
-    String response = http.getString();
-
-    StaticJsonDocument<1024> resDoc;
-    DeserializationError error = deserializeJson(resDoc, response);
-
-    String line1 = "Access Granted!";
-    String line2 = "Authorized User";
-
-    if (!error) {
-      if (resDoc.containsKey("lcdLine1")) line1 = resDoc["lcdLine1"].as<String>();
-      if (resDoc.containsKey("lcdLine2")) line2 = resDoc["lcdLine2"].as<String>();
-      else if (resDoc.containsKey("name")) line2 = resDoc["name"].as<String>();
-      else if (resDoc.containsKey("user") && resDoc["user"].containsKey("name")) line2 = resDoc["user"]["name"].as<String>();
-    }
-
-    if (httpResponseCode == 200) {
-      triggerBuzzer(80, 2); 
-      if (lcdDetected) {
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print(line1.substring(0, 16));
-        lcd.setCursor(0, 1);
-        lcd.print(line2.substring(0, 16));
-      }
-    } else {
-      triggerBuzzer(300, 1); 
-      if (lcdDetected) {
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print(line1.substring(0, 16));
-        lcd.setCursor(0, 1);
-        lcd.print(line2.substring(0, 16));
-      }
-    }
-    http.end();
-  } else {
-    triggerBuzzer(300, 1);
-    if (lcdDetected) {
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("Wi-Fi Error!");
-    }
-  }
-
-  delay(1200);
-  clearSerialBuffer();
-  showReadyScreen();
-}
-
-void sendKeyStatusToServer(String room, bool present) {
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin(serverUrl);
-    http.setTimeout(1000);
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", String("Bearer ") + deviceToken);
-
-    String statusStr = present ? "Key Returned" : "Key Taken";
-    String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + room + "\"}";
-    
-    http.POST(jsonPayload);
-    http.end();
-  }
-}
-
-void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expectedKey) {
-  KeyType currentState = detectKeyType(pin);
-  
-  if (currentState != lastState) {
-    delay(100); // 100ms debounce
-    KeyType verifyState = detectKeyType(pin);
-    
-    if (currentState == verifyState) {
-      // 1. Wrong Key Inserted -> Sound Alarm
-      if (verifyState != KEY_NONE && verifyState != expectedKey) {
-        String insertedKeyName = (verifyState == KEY_203) ? "203" : "204";
-        handleWrongSlotAlarm(pin, slotRoom, insertedKeyName);
-        lastState = KEY_NONE;
-        return;
-      }
-
-      lastState = verifyState;
-
-      // 2. Correct Key Returned
-      if (verifyState == expectedKey) {
-        triggerBuzzer(80, 2);
-        if (lcdDetected) {
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print(slotRoom + " Key Return");
-          lcd.setCursor(0, 1);
-          lcd.print("Room Secured");
-        }
-        sendKeyStatusToServer(slotRoom, true);
-        delay(1000);
-        clearSerialBuffer();
-        showReadyScreen();
-      } 
-      // 3. Key Taken
-      else if (verifyState == KEY_NONE) {
-        triggerBuzzer(150, 1);
-        if (lcdDetected) {
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print(slotRoom + " Key Taken");
-          lcd.setCursor(0, 1);
-          lcd.print("Room Active");
-        }
-        sendKeyStatusToServer(slotRoom, false);
-        delay(1000);
-        clearSerialBuffer();
-        showReadyScreen();
-      }
-    }
-  }
-}
-
 void loop() {
-  // 1. GM65 Scanner
-  if (Serial2.available() > 0) {
-    String scannedCode = "";
-    unsigned long startTime = millis();
-    unsigned long lastCharTime = millis();
-    int totalBytesRead = 0;
-    
-    while ((millis() - startTime < 60) && (millis() - lastCharTime < 20)) {
-      while (Serial2.available() > 0) {
-        char c = Serial2.read();
-        totalBytesRead++;
-        if (c >= 32 && c <= 126) scannedCode += c;
-        lastCharTime = millis();
-        if (scannedCode.length() >= 128 || totalBytesRead >= 256) break;
+  // 1. GM65 Scanner Detection
+  String scannedCode = readScannedCode();
+  if (scannedCode.length() > 0) {
+    sendScanToServer(scannedCode);
+  }
+
+  // 2. Live Countdown Window Handling (when authorized)
+  if (isAuthorized) {
+    if (millis() < authExpiresAt) {
+      int secLeft = (int)((authExpiresAt - millis() + 999) / 1000);
+      if (secLeft != lastDisplayedCountdown) {
+        lastDisplayedCountdown = secLeft;
+        if (lcdDetected) {
+          lcd.setCursor(0, 0);
+          lcd.print("Access Granted! ");
+          lcd.setCursor(0, 1);
+          String cdText = "Take Key: " + String(secLeft) + "s   ";
+          lcd.print(cdText.substring(0, 16));
+        }
       }
-    }
-    
-    scannedCode.trim();
-    if (scannedCode.length() > 0) {
-      sendScanToServer(scannedCode);
     } else {
+      // Authorization window expired without key withdrawal
+      isAuthorized = false;
+      triggerBuzzer(200, 1);
+      if (lcdDetected) {
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Session Expired ");
+        lcd.setCursor(0, 1);
+        lcd.print("Scan QR Again   ");
+      }
+      delay(1200);
       clearSerialBuffer();
+      showReadyScreen();
     }
   }
 
-  // 2. Key Monitoring
+  // 3. Key Monitoring
   handleKeySlot(KEY_PIN_203, lastSlotState203, "203", KEY_203);
   handleKeySlot(KEY_PIN_204, lastSlotState204, "204", KEY_204);
 
-  // 3. Periodic 5-second Heartbeat
+  // 4. Periodic 5-second Heartbeat
   if (millis() - lastHeartbeatTime >= HEARTBEAT_INTERVAL) {
     lastHeartbeatTime = millis();
     sendHeartbeatToServer();

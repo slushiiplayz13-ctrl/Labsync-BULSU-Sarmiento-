@@ -85,7 +85,9 @@ async function logOccupancy(reqBody = {}, device = null) {
     const room = rooms[0];
 
     // Validate keyEvent enum if provided
-    const ALLOWED_KEY_EVENTS = ['Key Taken', 'Key Returned', 'Heartbeat', 'ping'];
+    const ALLOWED_KEY_EVENTS = ['Key Taken', 'Key Returned', 'Heartbeat', 'ping', 'Unauthorized Removal', 'Wrong Key Slot', 'Unauthorized Taken'];
+    const isSecurityAlertEvent = keyEvent && (keyEvent === 'Unauthorized Removal' || keyEvent === 'Wrong Key Slot' || keyEvent === 'Unauthorized Taken');
+
     if (keyEvent !== undefined && keyEvent !== null && !ALLOWED_KEY_EVENTS.includes(keyEvent)) {
         return iotResponseService.createErrorResponse(
             400,
@@ -100,7 +102,44 @@ async function logOccupancy(reqBody = {}, device = null) {
         return iotResponseService.createHeartbeatResponse(roomNumber, now, true);
     }
 
-    // 2. Physical Key Event (Key Taken / Key Returned)
+    // 2. Security Alerts (Unauthorized Key Removal or Wrong Slot Insertion)
+    if (isSecurityAlertEvent) {
+        const auditService = require('../auditService');
+        const actionType = (keyEvent.includes('Unauthorized'))
+            ? 'IOT_UNAUTHORIZED_KEY_REMOVAL'
+            : 'IOT_WRONG_KEY_SLOT';
+
+        try {
+            await auditService.logSecurityEvent({
+                action: actionType,
+                resourceType: 'LABORATORY',
+                resourceId: room.Room_ID,
+                details: { roomNumber, keyEvent, deviceId: device ? device.id : 'ESP32-KeyBox' },
+                result: 'WARNING'
+            });
+        } catch (e) {
+            console.error('[IoT Service] Security event log failed:', e.message);
+        }
+
+        const logAuthMethod = (keyEvent.includes('Unauthorized')) ? 'UNAUTHORIZED' : 'WRONG_SLOT';
+        try {
+            await iotRepository.insertOccupancyLog(null, room.Room_ID, logAuthMethod);
+        } catch (e) {
+            console.error('[IoT Service] Occupancy log insert failed:', e.message);
+        }
+
+        return {
+            status: 200,
+            data: {
+                message: `Security alert '${keyEvent}' logged for Room ${roomNumber}.`,
+                room: roomNumber,
+                lcdLine1: 'Security Alert!',
+                lcdLine2: keyEvent.substring(0, 16)
+            }
+        };
+    }
+
+    // 3. Physical Key Event (Key Taken / Key Returned)
     if (keyEvent === 'Key Taken' || keyEvent === 'Key Returned') {
         const status = (keyEvent === 'Key Returned') ? 'Present' : 'Absent';
         const isDuplicateState = (room.Key_Status === status);
@@ -168,7 +207,7 @@ async function logOccupancy(reqBody = {}, device = null) {
         return iotResponseService.createKeyStatusResponse(roomNumber, status, claimUserName);
     }
 
-    // 3. QR Identity Verification
+    // 4. QR Identity Verification
     if (!qrString) {
         return iotResponseService.createErrorResponse(
             400,
@@ -195,12 +234,19 @@ async function logOccupancy(reqBody = {}, device = null) {
         user.ID_QR_String = newQR;
     }
 
-    // Associate scanned identity with room claim
-    claimService.recordClaim(roomNumber, {
-        userId: user.User_ID,
-        userName: user.Name,
-        role: user.Role
-    }, now);
+    // Associate scanned identity with room claim across all hardware rooms on this keybox
+    const claimRooms = (device && Array.isArray(device.authorizedRooms) && device.authorizedRooms.length > 0)
+        ? device.authorizedRooms
+        : DEFAULT_HARDWARE_ROOMS;
+
+    const allTargetRooms = new Set([roomNumber, ...claimRooms]);
+    for (const r of allTargetRooms) {
+        claimService.recordClaim(r, {
+            userId: user.User_ID,
+            userName: user.Name,
+            role: user.Role
+        }, now);
+    }
 
     await iotRepository.insertOccupancyLog(user.User_ID, room.Room_ID, authMethod || 'QR Code');
 
