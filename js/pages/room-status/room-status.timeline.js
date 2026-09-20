@@ -116,7 +116,7 @@
       return {
         label: 'Key Returned',
         actionType: 'returned',
-        icon: 'check'
+        icon: 'check-circle-2'
       };
     }
 
@@ -126,13 +126,13 @@
         return {
           label: 'Key Borrowed',
           actionType: 'borrowed',
-          icon: 'key'
+          icon: 'key-round'
         };
       }
       return {
         label: 'Key Taken',
         actionType: 'taken',
-        icon: 'key'
+        icon: 'key-round'
       };
     }
 
@@ -159,7 +159,7 @@
       return {
         label: 'Unauthorized Key Access',
         actionType: 'security',
-        icon: 'shield-alert'
+        icon: 'alert-triangle'
       };
     }
     if (status === 'WRONG_SLOT' || status.toLowerCase().includes('wrong')) {
@@ -197,7 +197,7 @@
     return {
       label: status || 'Activity Logged',
       actionType: 'neutral',
-      icon: 'activity'
+      icon: 'clock'
     };
   }
 
@@ -278,7 +278,7 @@
       const actionInfo = getActionPresentation(log);
 
       const targetHtml = log.room_number
-        ? `<span class="audit-target-tag"><i data-lucide="door-closed"></i><span>RM ${escapeHtml(log.room_number)}</span></span>`
+        ? `<span class="audit-target-tag"><span>RM ${escapeHtml(log.room_number)}</span></span>`
         : '';
 
       const extraNoteHtml = (log.description && !hasUser && log.description !== 'Room Key' && log.description !== 'None' && log.description !== 'N/A' && log.description !== actorName)
@@ -286,28 +286,26 @@
         : '';
 
       html += `
-        <div class="timeline-item audit-item">
-          <div class="timeline-badge audit-timeline-node node-${escapeHtml(actionInfo.actionType)}" aria-hidden="true">
-            <i data-lucide="${escapeHtml(actionInfo.icon)}"></i>
+        <div class="timeline-item audit-item type-${escapeHtml(actionInfo.actionType)}">
+          <div class="timeline-dot audit-timeline-dot dot-${escapeHtml(actionInfo.actionType)}" aria-hidden="true"></div>
+          <div class="audit-row-header">
+            <time class="audit-time-badge" datetime="${escapeHtml(isoTime)}" title="${escapeHtml(relTime)}" aria-label="${escapeHtml(exactStamp)}">
+              <span>${escapeHtml(exactStamp)}</span>
+            </time>
           </div>
           <div class="timeline-panel audit-panel">
-            <div class="audit-row-header">
-              <time class="audit-time-badge" datetime="${escapeHtml(isoTime)}" title="${escapeHtml(relTime)}" aria-label="${escapeHtml(exactStamp)}">
-                <i data-lucide="clock" class="audit-clock-icon"></i>
-                <span>${escapeHtml(exactStamp)}</span>
-              </time>
-            </div>
             <div class="audit-action-row">
-              <span class="audit-action-badge action-${escapeHtml(actionInfo.actionType)}">
-                <i data-lucide="${escapeHtml(actionInfo.icon)}"></i>
-                <span>${escapeHtml(actionInfo.label)}</span>
-              </span>
-              ${targetHtml}
+              <i data-lucide="${escapeHtml(actionInfo.icon)}" class="audit-type-icon icon-${escapeHtml(actionInfo.actionType)}"></i>
+              <span class="audit-action-badge action-${escapeHtml(actionInfo.actionType)}">${escapeHtml(actionInfo.label)}</span>
             </div>
             <div class="audit-meta-line">
-              <h4 class="audit-actor-name" title="${escapeHtml(detailText)}">${escapeHtml(actorName)}</h4>
-              <span class="audit-dot">·</span>
-              <span class="audit-role-text">${escapeHtml(detailText)}</span>
+              ${targetHtml}
+              <span class="audit-actor-group">
+                ${hasUser ? '<span class="audit-by-prefix">by</span>' : ''}
+                <strong class="audit-actor-name" title="${escapeHtml(detailText)}">${escapeHtml(actorName)}</strong>
+                <span class="audit-dot">·</span>
+                <span class="audit-role-text">${escapeHtml(detailText)}</span>
+              </span>
             </div>
             ${extraNoteHtml}
           </div>

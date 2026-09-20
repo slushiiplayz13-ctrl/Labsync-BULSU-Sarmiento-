@@ -33,10 +33,15 @@ assert.ok(css.includes('.activity-log-card .audit-action-badge.action-borrowed')
 assert.ok(css.includes('.activity-log-card .audit-action-badge.action-qr'), 'Must have .action-qr');
 assert.ok(css.includes('.activity-log-card .audit-action-badge.action-transfer'), 'Must have .action-transfer');
 assert.ok(css.includes('.activity-log-card .audit-action-badge.action-security'), 'Must have .action-security');
+assert.ok(css.includes('.activity-log-card .audit-timeline-dot'), 'Must have .audit-timeline-dot');
+assert.ok(css.includes('.activity-log-card .audit-type-icon'), 'Must have .audit-type-icon');
+assert.ok(css.includes('.activity-log-card .audit-by-prefix'), 'Must have .audit-by-prefix');
+assert.ok(css.includes('.activity-log-card .audit-actor-group'), 'Must have .audit-actor-group');
 
 // Verify Dark Mode & High Contrast
 assert.ok(css.includes('html.dark-mode .activity-log-card .audit-actor-name'), 'Dark mode must style audit actor');
 assert.ok(css.includes('html.high-contrast .activity-log-card .audit-actor-name'), 'High contrast must style audit actor');
+assert.ok(css.includes('html.dark-mode .activity-log-card .audit-timeline-dot.dot-returned'), 'Dark mode must style returned dot');
 assert.ok(css.includes('@media (max-width: 480px)'), 'Mobile <= 480px breakpoint must exist');
 assert.ok(css.includes('@media (max-width: 380px)'), 'Mobile <= 380px breakpoint must exist');
 
@@ -102,6 +107,11 @@ assert.ok(htmlA.includes('Prof. Andrei Gabito'), 'Must render Prof. Andrei Gabit
 assert.ok(htmlA.includes('IT Dept. Head'), 'Must render IT Dept. Head');
 assert.ok(htmlA.includes('Key Returned'), 'Must render action Key Returned');
 assert.ok(htmlA.includes('action-returned'), 'Must have action-returned class');
+assert.ok(htmlA.includes('audit-timeline-dot'), 'Must render audit-timeline-dot');
+assert.ok(htmlA.includes('dot-returned'), 'Must have dot-returned class on dot');
+assert.ok(htmlA.includes('audit-type-icon'), 'Must render audit-type-icon');
+assert.ok(htmlA.includes('check-circle-2'), 'Must use check-circle-2 icon');
+assert.ok(htmlA.includes('audit-by-prefix'), 'Must render audit-by-prefix');
 assert.ok(htmlA.includes('RM 204'), 'Must render RM 204 target');
 const expectedExactTimeA = roomStatusTimeline.formatExactDateTime(mockLogsA[0].time);
 assert.ok(htmlA.includes(`<span>${expectedExactTimeA}</span>`), 'Must visibly display exact date and time');
@@ -129,10 +139,11 @@ const htmlB = containerB.innerHTML;
 assert.ok(htmlB.includes('Prof. Maria Santos'), 'Must render Prof. Maria Santos');
 assert.ok(htmlB.includes('Key Taken'), 'Must render Key Taken');
 assert.ok(htmlB.includes('action-taken'), 'Must have action-taken class');
+assert.ok(htmlB.includes('key-round'), 'Must render key-round icon matching other system components');
 assert.ok(htmlB.includes('RM 201'), 'Must render RM 201');
 assert.ok(!htmlB.includes('(In Session)'), 'Redundant (In Session) context tag must NOT be rendered');
 assert.ok(!htmlB.includes('audit-context-tag'), 'Context tags must not clutter actor meta line');
-console.log('  ✓ Test B: Key Taken (clean meta line without redundant context tags) verified');
+console.log('  ✓ Test B: Key Taken (clean meta line with key-round icon) verified');
 
 // Test C: Missing Actor (No professor name)
 const containerC = createContainer();

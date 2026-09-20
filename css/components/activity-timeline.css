@@ -619,7 +619,7 @@ body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
 /* Continuous vertical timeline connecting stem and circular badge nodes */
 .activity-log-card .timeline-list,
 #activityLogCard .timeline-list {
-  padding: 16px 12px 16px 4px !important;
+  padding: 16px 14px 16px 6px !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 0;
@@ -631,30 +631,36 @@ body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
   min-height: 0 !important;
   max-height: none !important;
   overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 
 .activity-log-card .timeline-item:last-child .timeline-panel {
-  padding-bottom: 8px !important;
+  padding-bottom: 13px !important;
 }
 
 /* Individual Activity Item Row */
 .activity-log-card .timeline-item {
-  display: flex;
+  display: flex !important;
+  flex-direction: column !important;
   position: relative;
   width: 100%;
-  margin-bottom: 0 !important;
+  margin-bottom: 16px !important;
   box-sizing: border-box;
+}
+
+.activity-log-card .timeline-item:last-child {
+  margin-bottom: 0 !important;
 }
 
 /* Continuous vertical timeline stem line connecting all nodes */
 .activity-log-card .timeline-item::before {
   content: '';
   position: absolute;
-  left: 25px;
-  top: 44px;
-  bottom: -2px;
+  left: 12px;
+  top: 8px;
+  bottom: -20px;
   width: 2px;
-  background: #E2E8F0;
+  background: var(--border-light, #E2E8F0);
   display: block !important;
   z-index: 1;
 }
@@ -663,58 +669,64 @@ body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
   display: none !important;
 }
 
-/* Circular Timeline Badge Nodes (LabSync Global Theme - Fixed 1:1 Aspect Ratio) */
+/* Redesigned Small Colored Bullet Dots on Timeline Rail */
+.activity-log-card .audit-timeline-dot {
+  position: absolute;
+  left: 8px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 2;
+  box-sizing: border-box;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.activity-log-card .timeline-item:hover .audit-timeline-dot {
+  transform: scale(1.3);
+}
+
+.activity-log-card .audit-timeline-dot.dot-returned,
+.activity-log-card .audit-timeline-dot.dot-resolved {
+  background: #22C55E;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.activity-log-card .audit-timeline-dot.dot-security,
+.activity-log-card .audit-timeline-dot.dot-warning,
+.activity-log-card .audit-timeline-dot.dot-pending {
+  background: #F59E0B;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.activity-log-card .audit-timeline-dot.dot-taken,
+.activity-log-card .audit-timeline-dot.dot-borrowed,
+.activity-log-card .audit-timeline-dot.dot-transfer,
+.activity-log-card .audit-timeline-dot.dot-qr,
+.activity-log-card .audit-timeline-dot.dot-progress,
+.activity-log-card .audit-timeline-dot.dot-neutral {
+  background: #06B6D4;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+}
+
+/* Backward compatibility for circular timeline badge nodes if present */
 .activity-log-card .timeline-badge {
   display: flex !important;
-  width: 40px !important;
-  height: 40px !important;
-  min-width: 40px !important;
-  min-height: 40px !important;
-  max-width: 40px !important;
-  max-height: 40px !important;
-  aspect-ratio: 1 / 1 !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
   border-radius: 50% !important;
   align-items: center !important;
   justify-content: center !important;
   position: absolute !important;
-  left: 6px !important;
-  top: 2px !important;
+  left: 0 !important;
+  top: 0 !important;
   z-index: 2 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  flex: 0 0 40px !important;
-  flex-shrink: 0 !important;
-  flex-grow: 0 !important;
-  box-sizing: border-box !important;
   background: var(--primary-teal-light, #E8F9FC) !important;
   color: var(--primary-teal, #1EBBD7) !important;
-  border: 1.5px solid rgba(30, 187, 215, 0.28) !important;
-  box-shadow: 0 2px 8px var(--primary-teal-glow, rgba(30, 187, 215, 0.16)) !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.activity-log-card .timeline-item:hover .timeline-badge {
-  transform: scale(1.08);
-  box-shadow: 0 4px 14px var(--primary-teal-glow, rgba(30, 187, 215, 0.28)) !important;
-}
-
-.activity-log-card .timeline-badge i,
-.activity-log-card .timeline-badge svg {
-  width: 19px !important;
-  height: 19px !important;
-  min-width: 19px !important;
-  min-height: 19px !important;
-  max-width: 19px !important;
-  max-height: 19px !important;
-  aspect-ratio: 1 / 1 !important;
-  stroke-width: 2.75px !important;
-  color: currentColor !important;
-  display: block !important;
-  margin: auto !important;
-  flex-shrink: 0 !important;
-}
-
-/* LabSync Global Themed Badges for Node Types */
 .activity-log-card .timeline-badge.node-returned,
 .activity-log-card .timeline-badge.node-resolved,
 .activity-log-card .timeline-badge.node-taken,
@@ -726,14 +738,12 @@ body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
   background: var(--primary-teal-light, #E8F9FC) !important;
   color: var(--primary-teal, #1EBBD7) !important;
   border: 1.5px solid rgba(30, 187, 215, 0.28) !important;
-  box-shadow: 0 2px 8px var(--primary-teal-glow, rgba(30, 187, 215, 0.16)) !important;
 }
 
 .activity-log-card .timeline-badge.node-security {
   background: #FEE2E2 !important;
   color: #EF4444 !important;
   border: 1.5px solid rgba(239, 68, 68, 0.28) !important;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15) !important;
 }
 
 .activity-log-card .timeline-badge.node-warning,
@@ -741,48 +751,31 @@ body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
   background: #FEF3C7 !important;
   color: #F59E0B !important;
   border: 1.5px solid rgba(245, 158, 11, 0.28) !important;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15) !important;
 }
 
-/* Timeline Panel (Clean, unboxed, spacious content area to the right of node) */
-.activity-log-card .timeline-panel {
-  display: flex !important;
-  flex-direction: column;
-  width: 100%;
-  margin-left: 74px;
-  padding: 0 4px 50px 0 !important;
-  background: transparent !important;
-  border: none !important;
-  border-bottom: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  box-sizing: border-box;
-}
-
-.activity-log-card .timeline-panel:hover {
-  background: transparent !important;
-}
-
-/* Tier 1 - Time Row */
+/* Tier 1 - Time Row (Directly Beside Dot) */
 .activity-log-card .audit-row-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
+  width: auto;
+  margin-left: 28px;
+  margin-right: 4px;
   margin-bottom: 7px;
+  box-sizing: border-box;
 }
 
 .activity-log-card .audit-time-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--text-light, #64748B);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark, #1E293B);
   background: transparent;
   border: none;
   padding: 0;
-  line-height: 1.35;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .activity-log-card .audit-clock-icon {
@@ -794,20 +787,69 @@ body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
   display: none !important;
 }
 
-/* Tier 2 - Action & Target Headline Row */
+/* Redesigned Rounded Event Card Box */
+.activity-log-card .timeline-panel {
+  display: flex !important;
+  flex-direction: column;
+  width: auto !important;
+  margin-left: 28px !important;
+  margin-right: 4px !important;
+  padding: 13px 16px !important;
+  background: var(--bg-white, #FFFFFF) !important;
+  border: 1px solid var(--border-light, #E2E8F0) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.activity-log-card .timeline-panel:hover {
+  border-color: rgba(6, 182, 212, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Tier 2 - Action Row inside Card */
 .activity-log-card .audit-action-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
   width: 100%;
   margin-bottom: 8px;
 }
 
-/* Headline Action Title / Badge */
+/* Action Type Semantic Icon */
+.activity-log-card .audit-type-icon {
+  width: 17px !important;
+  height: 17px !important;
+  stroke-width: 2.2px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.activity-log-card .audit-type-icon.icon-returned,
+.activity-log-card .audit-type-icon.icon-resolved {
+  color: #16A34A;
+}
+
+.activity-log-card .audit-type-icon.icon-security,
+.activity-log-card .audit-type-icon.icon-warning,
+.activity-log-card .audit-type-icon.icon-pending {
+  color: #EA580C;
+}
+
+.activity-log-card .audit-type-icon.icon-taken,
+.activity-log-card .audit-type-icon.icon-borrowed,
+.activity-log-card .audit-type-icon.icon-transfer,
+.activity-log-card .audit-type-icon.icon-qr,
+.activity-log-card .audit-type-icon.icon-progress,
+.activity-log-card .audit-type-icon.icon-neutral {
+  color: #0891B2;
+}
+
+/* Headline Action Title */
 .activity-log-card .audit-action-badge {
   font-family: var(--font-display, 'Poppins', sans-serif);
-  font-size: 17px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--text-dark, #0F172A);
   line-height: 1.3;
@@ -820,17 +862,8 @@ body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
   letter-spacing: -0.01em;
 }
 
-.activity-log-card .audit-action-badge i,
-.activity-log-card .audit-action-badge svg {
-  display: none !important;
-}
-
-/* Action Type Preservations */
 .activity-log-card .audit-action-badge.action-returned,
-.activity-log-card .audit-action-badge.action-resolved {
-  color: var(--text-dark, #0F172A);
-}
-
+.activity-log-card .audit-action-badge.action-resolved,
 .activity-log-card .audit-action-badge.action-taken,
 .activity-log-card .audit-action-badge.action-borrowed,
 .activity-log-card .audit-action-badge.action-qr,
@@ -849,65 +882,68 @@ body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
   color: #B45309;
 }
 
-/* Target Badge (Room Tag - Themed & Styled) */
-.activity-log-card .audit-target-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #0E7490;
-  background: var(--primary-teal-light, #E8F9FC);
-  border: 1px solid rgba(30, 187, 215, 0.32);
-  padding: 3px 10px;
-  border-radius: 6px;
-  white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(30, 187, 215, 0.08);
-  transition: all 0.2s ease;
-}
-
-.activity-log-card .audit-target-tag:hover {
-  background: #DDF6FA;
-  border-color: rgba(30, 187, 215, 0.45);
-}
-
-.activity-log-card .audit-target-tag i,
-.activity-log-card .audit-target-tag svg {
-  width: 13px !important;
-  height: 13px !important;
-  stroke-width: 2.3px;
-  color: #0891B2;
-  display: inline-block;
-  vertical-align: -1px;
-}
-
-/* Tier 3 - Actor & Metadata Line (Actor Name + Role) */
+/* Tier 3 - Target Badge & Actor Metadata Line */
 .activity-log-card .audit-meta-line {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--text-light, #64748B);
   line-height: 1.4;
 }
 
-.activity-log-card .audit-user-avatar {
-  display: none !important;
+/* Target Badge (Room Tag - Themed & Styled Cyan Pill) */
+.activity-log-card .audit-target-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0891B2;
+  background: #ECFEFF;
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  padding: 2.5px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(6, 182, 212, 0.05);
+  transition: all 0.15s ease;
 }
 
-.activity-log-card .audit-user-avatar i,
-.activity-log-card .audit-user-avatar svg {
+.activity-log-card .audit-target-tag:hover {
+  background: #CFFAFE;
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.activity-log-card .audit-target-tag i,
+.activity-log-card .audit-target-tag svg {
   width: 12px !important;
   height: 12px !important;
   stroke-width: 2.2px;
+  color: #0891B2;
+  display: inline-block;
+}
+
+/* Actor Group (by Prof. Andrei Gabito · IT Dept. Head) */
+.activity-log-card .audit-actor-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.activity-log-card .audit-by-prefix {
+  color: #94A3B8;
+  font-size: 13px;
+  font-weight: 400;
 }
 
 .activity-log-card .audit-actor-name {
   font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--text-dark, #1E293B);
+  color: var(--text-mid, #334155);
   margin: 0;
   display: inline;
 }
@@ -932,13 +968,17 @@ body.dark-mode .timeline-list::-webkit-scrollbar-thumb:hover,
 .activity-log-card .audit-extra-note {
   font-size: 12px;
   color: var(--text-mid, #475569);
-  margin-top: 6px;
+  margin-top: 8px;
   padding: 6px 10px;
   background: rgba(241, 245, 249, 0.7);
   border-left: 2.5px solid #0EA5E9;
   border-radius: 4px;
   line-height: 1.35;
   word-break: break-word;
+}
+
+.activity-log-card .audit-user-avatar {
+  display: none !important;
 }
 
 /* Backward compatibility for any remaining legacy classes */
@@ -980,20 +1020,85 @@ html.dark-mode .activity-log-card .timeline-item::before,
 html.high-contrast .activity-log-card .timeline-item::before,
 body.dark-mode .activity-log-card .timeline-item::before,
 [data-theme="dark"] .activity-log-card .timeline-item::before {
-  background: rgba(255, 255, 255, 0.09) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
   width: 2px !important;
 }
 
+/* Redesigned Bullet Dots in Dark Mode */
+html.dark-mode .activity-log-card .audit-timeline-dot.dot-returned,
+html.dark-mode .activity-log-card .audit-timeline-dot.dot-resolved,
+html.high-contrast .activity-log-card .audit-timeline-dot.dot-returned,
+html.high-contrast .activity-log-card .audit-timeline-dot.dot-resolved,
+body.dark-mode .activity-log-card .audit-timeline-dot.dot-returned,
+body.dark-mode .activity-log-card .audit-timeline-dot.dot-resolved,
+[data-theme="dark"] .activity-log-card .audit-timeline-dot.dot-returned,
+[data-theme="dark"] .activity-log-card .audit-timeline-dot.dot-resolved {
+  background: #22C55E !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25) !important;
+}
+
+html.dark-mode .activity-log-card .audit-timeline-dot.dot-security,
+html.dark-mode .activity-log-card .audit-timeline-dot.dot-warning,
+html.dark-mode .activity-log-card .audit-timeline-dot.dot-pending,
+html.high-contrast .activity-log-card .audit-timeline-dot.dot-security,
+html.high-contrast .activity-log-card .audit-timeline-dot.dot-warning,
+html.high-contrast .activity-log-card .audit-timeline-dot.dot-pending,
+body.dark-mode .activity-log-card .audit-timeline-dot.dot-security,
+body.dark-mode .activity-log-card .audit-timeline-dot.dot-warning,
+body.dark-mode .activity-log-card .audit-timeline-dot.dot-pending,
+[data-theme="dark"] .activity-log-card .audit-timeline-dot.dot-security,
+[data-theme="dark"] .activity-log-card .audit-timeline-dot.dot-warning,
+[data-theme="dark"] .activity-log-card .audit-timeline-dot.dot-pending {
+  background: #F59E0B !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25) !important;
+}
+
+html.dark-mode .activity-log-card .audit-timeline-dot.dot-taken,
+html.dark-mode .activity-log-card .audit-timeline-dot.dot-borrowed,
+html.dark-mode .activity-log-card .audit-timeline-dot.dot-transfer,
+html.dark-mode .activity-log-card .audit-timeline-dot.dot-qr,
+html.dark-mode .activity-log-card .audit-timeline-dot.dot-progress,
+html.dark-mode .activity-log-card .audit-timeline-dot.dot-neutral,
+html.high-contrast .activity-log-card .audit-timeline-dot.dot-taken,
+html.high-contrast .activity-log-card .audit-timeline-dot.dot-borrowed,
+html.high-contrast .activity-log-card .audit-timeline-dot.dot-transfer,
+html.high-contrast .activity-log-card .audit-timeline-dot.dot-qr,
+html.high-contrast .activity-log-card .audit-timeline-dot.dot-progress,
+html.high-contrast .activity-log-card .audit-timeline-dot.dot-neutral,
+body.dark-mode .activity-log-card .audit-timeline-dot.dot-taken,
+body.dark-mode .activity-log-card .audit-timeline-dot.dot-borrowed,
+body.dark-mode .activity-log-card .audit-timeline-dot.dot-transfer,
+body.dark-mode .activity-log-card .audit-timeline-dot.dot-qr,
+body.dark-mode .activity-log-card .audit-timeline-dot.dot-progress,
+body.dark-mode .activity-log-card .audit-timeline-dot.dot-neutral,
+[data-theme="dark"] .activity-log-card .audit-timeline-dot.dot-taken,
+[data-theme="dark"] .activity-log-card .audit-timeline-dot.dot-borrowed,
+[data-theme="dark"] .activity-log-card .audit-timeline-dot.dot-transfer,
+[data-theme="dark"] .activity-log-card .audit-timeline-dot.dot-qr,
+[data-theme="dark"] .activity-log-card .audit-timeline-dot.dot-progress,
+[data-theme="dark"] .activity-log-card .audit-timeline-dot.dot-neutral {
+  background: #38BDF8 !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25) !important;
+}
+
+/* Event Card Box in Dark Mode */
 html.dark-mode .activity-log-card .timeline-panel,
 html.high-contrast .activity-log-card .timeline-panel,
 body.dark-mode .activity-log-card .timeline-panel,
 [data-theme="dark"] .activity-log-card .timeline-panel {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  background: #1E293B !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
 }
 
-/* Timeline Node Badges: Solid, elevated dark surfaces with vibrant jewel accents */
+html.dark-mode .activity-log-card .timeline-panel:hover,
+html.high-contrast .activity-log-card .timeline-panel:hover,
+body.dark-mode .activity-log-card .timeline-panel:hover,
+[data-theme="dark"] .activity-log-card .timeline-panel:hover {
+  border-color: rgba(56, 189, 248, 0.4) !important;
+}
+
+/* Timeline Node Badges (Fallback) */
 html.dark-mode .activity-log-card .timeline-badge,
 html.high-contrast .activity-log-card .timeline-badge,
 body.dark-mode .activity-log-card .timeline-badge,
@@ -1001,39 +1106,6 @@ body.dark-mode .activity-log-card .timeline-badge,
   background: #1E293B !important;
   color: #38BDF8 !important;
   border: 1.5px solid rgba(56, 189, 248, 0.35) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 10px rgba(56, 189, 248, 0.12) !important;
-}
-
-html.dark-mode .activity-log-card .timeline-item:hover .timeline-badge,
-html.high-contrast .activity-log-card .timeline-item:hover .timeline-badge,
-body.dark-mode .activity-log-card .timeline-item:hover .timeline-badge,
-[data-theme="dark"] .activity-log-card .timeline-item:hover .timeline-badge {
-  border-color: rgba(56, 189, 248, 0.6) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 16px rgba(56, 189, 248, 0.25) !important;
-}
-
-html.dark-mode .activity-log-card .timeline-badge.node-security,
-html.high-contrast .activity-log-card .timeline-badge.node-security,
-body.dark-mode .activity-log-card .timeline-badge.node-security,
-[data-theme="dark"] .activity-log-card .timeline-badge.node-security {
-  background: #1E293B !important;
-  color: #F87171 !important;
-  border: 1.5px solid rgba(248, 113, 113, 0.4) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 10px rgba(239, 68, 68, 0.15) !important;
-}
-
-html.dark-mode .activity-log-card .timeline-badge.node-warning,
-html.dark-mode .activity-log-card .timeline-badge.node-pending,
-html.high-contrast .activity-log-card .timeline-badge.node-warning,
-html.high-contrast .activity-log-card .timeline-badge.node-pending,
-body.dark-mode .activity-log-card .timeline-badge.node-warning,
-body.dark-mode .activity-log-card .timeline-badge.node-pending,
-[data-theme="dark"] .activity-log-card .timeline-badge.node-warning,
-[data-theme="dark"] .activity-log-card .timeline-badge.node-pending {
-  background: #1E293B !important;
-  color: #FBBF24 !important;
-  border: 1.5px solid rgba(251, 191, 36, 0.4) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 10px rgba(245, 158, 11, 0.15) !important;
 }
 
 /* Tier 1: Timestamp */
@@ -1041,8 +1113,8 @@ html.dark-mode .activity-log-card .audit-time-badge,
 html.high-contrast .activity-log-card .audit-time-badge,
 body.dark-mode .activity-log-card .audit-time-badge,
 [data-theme="dark"] .activity-log-card .audit-time-badge {
-  color: #94A3B8 !important;
-  font-weight: 500 !important;
+  color: #CBD5E1 !important;
+  font-weight: 600 !important;
 }
 
 /* Tier 2: Action Title */
@@ -1070,6 +1142,60 @@ body.dark-mode .activity-log-card .audit-action-badge.action-pending,
 [data-theme="dark"] .activity-log-card .audit-action-badge.action-warning,
 [data-theme="dark"] .activity-log-card .audit-action-badge.action-pending {
   color: #FBBF24 !important;
+}
+
+/* Semantic Action Icons in Dark Mode */
+html.dark-mode .activity-log-card .audit-type-icon.icon-returned,
+html.dark-mode .activity-log-card .audit-type-icon.icon-resolved,
+html.high-contrast .activity-log-card .audit-type-icon.icon-returned,
+html.high-contrast .activity-log-card .audit-type-icon.icon-resolved,
+body.dark-mode .activity-log-card .audit-type-icon.icon-returned,
+body.dark-mode .activity-log-card .audit-type-icon.icon-resolved,
+[data-theme="dark"] .activity-log-card .audit-type-icon.icon-returned,
+[data-theme="dark"] .activity-log-card .audit-type-icon.icon-resolved {
+  color: #4ADE80 !important;
+}
+
+html.dark-mode .activity-log-card .audit-type-icon.icon-security,
+html.dark-mode .activity-log-card .audit-type-icon.icon-warning,
+html.dark-mode .activity-log-card .audit-type-icon.icon-pending,
+html.high-contrast .activity-log-card .audit-type-icon.icon-security,
+html.high-contrast .activity-log-card .audit-type-icon.icon-warning,
+html.high-contrast .activity-log-card .audit-type-icon.icon-pending,
+body.dark-mode .activity-log-card .audit-type-icon.icon-security,
+body.dark-mode .activity-log-card .audit-type-icon.icon-warning,
+body.dark-mode .activity-log-card .audit-type-icon.icon-pending,
+[data-theme="dark"] .activity-log-card .audit-type-icon.icon-security,
+[data-theme="dark"] .activity-log-card .audit-type-icon.icon-warning,
+[data-theme="dark"] .activity-log-card .audit-type-icon.icon-pending {
+  color: #FB923C !important;
+}
+
+html.dark-mode .activity-log-card .audit-type-icon.icon-taken,
+html.dark-mode .activity-log-card .audit-type-icon.icon-borrowed,
+html.dark-mode .activity-log-card .audit-type-icon.icon-transfer,
+html.dark-mode .activity-log-card .audit-type-icon.icon-qr,
+html.dark-mode .activity-log-card .audit-type-icon.icon-progress,
+html.dark-mode .activity-log-card .audit-type-icon.icon-neutral,
+html.high-contrast .activity-log-card .audit-type-icon.icon-taken,
+html.high-contrast .activity-log-card .audit-type-icon.icon-borrowed,
+html.high-contrast .activity-log-card .audit-type-icon.icon-transfer,
+html.high-contrast .activity-log-card .audit-type-icon.icon-qr,
+html.high-contrast .activity-log-card .audit-type-icon.icon-progress,
+html.high-contrast .activity-log-card .audit-type-icon.icon-neutral,
+body.dark-mode .activity-log-card .audit-type-icon.icon-taken,
+body.dark-mode .activity-log-card .audit-type-icon.icon-borrowed,
+body.dark-mode .activity-log-card .audit-type-icon.icon-transfer,
+body.dark-mode .activity-log-card .audit-type-icon.icon-qr,
+body.dark-mode .activity-log-card .audit-type-icon.icon-progress,
+body.dark-mode .activity-log-card .audit-type-icon.icon-neutral,
+[data-theme="dark"] .activity-log-card .audit-type-icon.icon-taken,
+[data-theme="dark"] .activity-log-card .audit-type-icon.icon-borrowed,
+[data-theme="dark"] .activity-log-card .audit-type-icon.icon-transfer,
+[data-theme="dark"] .activity-log-card .audit-type-icon.icon-qr,
+[data-theme="dark"] .activity-log-card .audit-type-icon.icon-progress,
+[data-theme="dark"] .activity-log-card .audit-type-icon.icon-neutral {
+  color: #38BDF8 !important;
 }
 
 /* Room Target Tag: Understated, sleek dark pill */
@@ -1109,8 +1235,15 @@ html.dark-mode .activity-log-card .audit-actor-name,
 html.high-contrast .activity-log-card .audit-actor-name,
 body.dark-mode .activity-log-card .audit-actor-name,
 [data-theme="dark"] .activity-log-card .audit-actor-name {
-  color: #CBD5E1 !important;
-  font-weight: 500 !important;
+  color: #E2E8F0 !important;
+  font-weight: 600 !important;
+}
+
+html.dark-mode .activity-log-card .audit-by-prefix,
+html.high-contrast .activity-log-card .audit-by-prefix,
+body.dark-mode .activity-log-card .audit-by-prefix,
+[data-theme="dark"] .activity-log-card .audit-by-prefix {
+  color: #64748B !important;
 }
 
 html.dark-mode .activity-log-card .audit-dot,
@@ -1155,71 +1288,93 @@ body.dark-mode .activity-log-card .audit-extra-note,
 /* ─── Responsive Adjustments ─── */
 @media (max-width: 768px) {
   .activity-log-card .timeline-panel {
-    margin-left: 64px;
-    padding-bottom: 38px !important;
+    margin-left: 28px;
+    width: calc(100% - 28px);
   }
 }
 
 @media (max-width: 480px) {
   .activity-log-card .timeline-list {
-    padding: 14px 6px 20px 3px !important;
+    padding: 12px 6px 16px 2px !important;
   }
 
   .activity-log-card .timeline-item::before {
-    left: 20px;
-    top: 38px;
+    left: 10px;
+    top: 8px;
   }
 
-  .activity-log-card .timeline-badge {
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    left: 5px;
+  .activity-log-card .audit-timeline-dot {
+    left: 6px;
+    top: 3px;
+    width: 9px;
+    height: 9px;
   }
 
-  .activity-log-card .timeline-badge i,
-  .activity-log-card .timeline-badge svg {
+  .activity-log-card .audit-row-header {
+    margin-left: 24px;
+    margin-bottom: 5px;
+  }
+
+  .activity-log-card .audit-time-badge {
+    font-size: 12px !important;
+  }
+
+  .activity-log-card .timeline-panel {
+    margin-left: 24px;
+    width: calc(100% - 24px);
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+  }
+
+  .activity-log-card .audit-action-row {
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .activity-log-card .audit-type-icon {
     width: 15px !important;
     height: 15px !important;
   }
 
-  .activity-log-card .timeline-panel {
-    margin-left: 52px;
-    padding-bottom: 34px !important;
-  }
-
   .activity-log-card .audit-action-badge {
-    font-size: 15px !important;
-  }
-
-  .activity-log-card .audit-actor-name {
-    font-size: 13px !important;
+    font-size: 13.5px !important;
   }
 
   .activity-log-card .audit-meta-line {
-    font-size: 12.5px !important;
+    font-size: 12px !important;
     gap: 6px !important;
   }
 
-  .activity-log-card .audit-time-badge {
-    font-size: 12px !important;
+  .activity-log-card .audit-target-tag {
+    font-size: 11px !important;
+    padding: 2px 6px !important;
   }
 
-  .activity-log-card .audit-target-tag {
+  .activity-log-card .audit-actor-name {
+    font-size: 12.5px !important;
+  }
+
+  .activity-log-card .audit-by-prefix,
+  .activity-log-card .audit-role-text {
     font-size: 12px !important;
-    padding: 2px 7px !important;
   }
 }
 
 @media (max-width: 380px) {
-  .activity-log-card .audit-row-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+  .activity-log-card .timeline-item::before {
+    left: 8px;
   }
 
-  .activity-log-card .audit-time-badge {
-    align-self: flex-start;
+  .activity-log-card .audit-timeline-dot {
+    left: 4px;
+    width: 8px;
+    height: 8px;
+  }
+
+  .activity-log-card .audit-row-header,
+  .activity-log-card .timeline-panel {
+    margin-left: 20px;
+    width: calc(100% - 20px);
   }
 }
 
