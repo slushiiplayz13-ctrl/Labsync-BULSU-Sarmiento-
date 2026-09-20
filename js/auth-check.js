@@ -170,8 +170,18 @@ function revealPage() {
 
                     const avatarEl = document.querySelector('.avatar');
                     if (avatarEl && !avatarEl.dataset.hydrated) {
-                        if (user.profilePhoto) {
-                            avatarEl.innerHTML = `<img src="${user.profilePhoto}" alt="Profile Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                        const isSafePhoto = typeof user.profilePhoto === 'string' &&
+                            (typeof window.isValidProfilePhotoUrl === 'function'
+                                ? window.isValidProfilePhotoUrl(user.profilePhoto)
+                                : /^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(user.profilePhoto.trim()));
+
+                        if (isSafePhoto) {
+                            avatarEl.innerHTML = '';
+                            const img = document.createElement('img');
+                            img.src = user.profilePhoto;
+                            img.alt = 'Profile Photo';
+                            img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+                            avatarEl.appendChild(img);
                             avatarEl.dataset.hydrated = 'true';
                         } else if (user.name) {
                             const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);

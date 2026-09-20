@@ -49,9 +49,24 @@ function runDayHeaderTests() {
 
   // ─── 2. Setup Sandbox & Load Components ───
   console.log('\n--- 2. Day Headers Rendering Verification ---');
+
+  // Deterministic Date mock to ensure consistent weekday (Wednesday) regardless of calendar execution day
+  class DeterministicDate extends Date {
+    constructor(...args) {
+      if (args.length === 0) {
+        super('2026-09-23T10:00:00'); // Wednesday
+      } else {
+        super(...args);
+      }
+    }
+    static now() {
+      return new Date('2026-09-23T10:00:00').getTime();
+    }
+  }
+
   const sandbox = {
     console,
-    Date,
+    Date: DeterministicDate,
     String,
     Boolean,
     Number,

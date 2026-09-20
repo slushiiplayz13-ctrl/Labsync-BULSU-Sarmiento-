@@ -5,6 +5,7 @@
  * LabSync Express Server Entry Point.
  */
 
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
@@ -36,16 +37,6 @@ app.disable('x-powered-by');
 // Apply centralized HTTP security headers (Helmet, CSP, Permissions-Policy)
 app.use(securityHeaders);
 
-// Initialize database migrations asynchronously and start activity log retention
-initializeDatabase().then(() => {
-    initActivityLogRetention();
-}).catch(err => {
-    console.error('[Startup Error] Fatal database initialization failure:', err.message);
-    if (IS_PRODUCTION) {
-        process.exit(1);
-    }
-});
-
 // Trust proxy for secure cookies behind reverse proxies (Railway, Render, Nginx, Ngrok)
 app.set('trust proxy', 1);
 
@@ -56,8 +47,12 @@ app.use(cors({
     },
     credentials: true
 }));
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+// Scoped body parser for user profile updates (supports base64 profile photos up to 10mb)
+app.put(['/api/user/update', '/api/user/profile', '/api/users/update', '/api/users/profile'], express.json({ limit: '10mb' }));
+
+// Conservative global body limits for all other endpoints (prevents large-body DoS attacks)
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ limit: '1mb', extended: true }));
 
 // Session configuration
 app.use(session({
@@ -72,11 +67,67 @@ app.use(session({
     }
 }));
 
-// Serve static frontend assets
-app.use(express.static('./'));
+// Scoped public static asset mounts (isolated to dedicated public directories)
+app.use('/css', express.static(path.join(__dirname, 'css'), { dotfiles: 'ignore', index: false }));
+app.use('/js', express.static(path.join(__dirname, 'js'), { dotfiles: 'ignore', index: false }));
+app.use('/assets', express.static(path.join(__dirname, 'assets'), { dotfiles: 'ignore', index: false }));
+app.get('/style.css', (req, res) => {
+    res.sendFile(path.join(__dirname, 'style.css'));
+});
 
 // Mount centralized API router (all domain routes and legacy compatibility aliases)
 app.use('/api', apiRoutes);
+
+// Approved frontend page routes (default-deny allowlist)
+const APPROVED_HTML_PAGES = new Set([
+    'faculty-management.html',
+    'faculty-pc-reports.html',
+    'index.html',
+    'it-head-dashboard.html',
+    'it-head-my-schedule.html',
+    'it-head-pc-reports.html',
+    'it-head-room-status.html',
+    'key-found.html',
+    'key-transfer.html',
+    'login.html',
+    'master-schedule.html',
+    'mis-keys.html',
+    'mis-maintenance.html',
+    'mis-ojt.html',
+    'mis-qr-generator.html',
+    'mis-staff-dashboard.html',
+    'my-schedule.html',
+    'print-all-schedules.html',
+    'print-schedule.html',
+    'reset-password.html',
+    'room-schedule-editor.html',
+    'room-status.html',
+    'submit-pc-report.html'
+]);
+
+// Root landing page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Legacy key-transfer redirect for faculty
+app.get('/faculty-dashboard.html', (req, res) => {
+    res.redirect('/index.html');
+});
+
+// Approved HTML pages
+app.get('/:page.html', (req, res, next) => {
+    const page = `${req.params.page.toLowerCase()}.html`;
+    if (APPROVED_HTML_PAGES.has(page)) {
+        return res.sendFile(path.join(__dirname, page));
+    }
+    next();
+});
+
+// Fallback 404 handler for unmatched requests
+app.use((req, res) => {
+    res.status(404).send('Not Found');
+});
 
 // Centralized error handling middleware
 app.use(errorHandler);
@@ -108,21 +159,8 @@ process.on('uncaughtException', (err) => {
     handlingUncaughtException = false;
 });
 
-// Start HTTP server
-const server = app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
-
-server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-        console.error(`[Server Error] Port ${PORT} is already in use. Please close the other process and restart.`);
-        process.exit(1);
-    }
-
-    console.error('[Server Error]', err);
-});
-
 // Graceful shutdown handling for Railway / container lifecycle (SIGTERM, SIGINT)
+let server = null;
 let isShuttingDown = false;
 
 async function gracefulShutdown(signal) {
@@ -133,9 +171,21 @@ async function gracefulShutdown(signal) {
     // Stop background timers
     stopRetentionSchedule();
 
-    // Stop accepting new connections
-    server.close(async () => {
-        console.log('[Server] HTTP server closed.');
+    if (server) {
+        // Stop accepting new connections
+        server.close(async () => {
+            console.log('[Server] HTTP server closed.');
+            try {
+                const pool = require('./database/connection');
+                await pool.end();
+                console.log('[Server] Database pool closed.');
+            } catch (dbErr) {
+                console.error('[Server Error] Error closing database pool:', dbErr.message);
+            }
+            console.log('[Server] Graceful shutdown completed.');
+            process.exit(0);
+        });
+    } else {
         try {
             const pool = require('./database/connection');
             await pool.end();
@@ -143,9 +193,8 @@ async function gracefulShutdown(signal) {
         } catch (dbErr) {
             console.error('[Server Error] Error closing database pool:', dbErr.message);
         }
-        console.log('[Server] Graceful shutdown completed.');
         process.exit(0);
-    });
+    }
 
     // Fallback safety timeout if connections do not close within 10s
     setTimeout(() => {
@@ -156,5 +205,41 @@ async function gracefulShutdown(signal) {
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Application startup sequencing: await database readiness and migrations before listening
+async function startServer() {
+    try {
+        // 1. Await database initialization and migrations
+        await initializeDatabase();
+
+        // 2. Initialize background services only after database is ready
+        initActivityLogRetention();
+
+        // 3. Start HTTP server only after database initialization succeeds
+        server = app.listen(PORT, () => {
+            console.log(`Server is running on http://localhost:${PORT}`);
+        });
+
+        server.on('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+                console.error(`[Server Error] Port ${PORT} is already in use. Please close the other process and restart.`);
+                process.exit(1);
+            }
+
+            console.error('[Server Error]', err);
+        });
+    } catch (err) {
+        console.error('[Startup Error] Fatal database initialization failure:', err.message);
+        try {
+            const pool = require('./database/connection');
+            await pool.end();
+        } catch (dbErr) {
+            // Ignore connection pool close errors on fatal abort
+        }
+        process.exit(1);
+    }
+}
+
+startServer();
 
 module.exports = app;

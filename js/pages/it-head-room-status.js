@@ -9,8 +9,22 @@
 (function () {
   'use strict';
 
+  const escapeHtml = (typeof window !== 'undefined' && typeof window.escapeHtml === 'function')
+    ? window.escapeHtml
+    : function (str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+
   // State fingerprint to avoid unnecessary re-renders
   let _inlineActivityLogLastKey = '';
+  let _itHeadRequestId = 0;
+  let _itHeadFirstLoad = true;
 
   // Sidebar scroll clue
   function initSidebarScrollClue() {
@@ -31,19 +45,81 @@
     }
   }
 
+  /**
+   * Formats a date string into human-readable relative time.
+   * @param {string} dateString
+   * @returns {string}
+   */
+  function getRelativeTime(dateString) {
+    if (!dateString) return 'Just now';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Just now';
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 60) return 'Just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr}h ago`;
+    const diffDays = Math.floor(diffHr / 24);
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays} days ago`;
+  }
+
+  /**
+   * Normalizes, deterministically sorts, and deduplicates activity logs.
+   * @param {Array} rawLogs
+   * @returns {Array}
+   */
+  function processOccupancyLogs(rawLogs) {
+    if (!Array.isArray(rawLogs)) return [];
+
+    // Filter only occupancy events (room key events & QR verification)
+    const occupancyOnly = rawLogs.filter(item => item && (item.type === 'occupancy' || (!item.type && item.status && item.status !== 'Pending' && item.status !== 'In Progress' && item.status !== 'Resolved')));
+
+    // Deterministic sort: Newest timestamp first; stable tie-breaker: highest record ID first
+    const sorted = [...occupancyOnly].sort((a, b) => {
+      const timeA = new Date(a.time || 0).getTime();
+      const timeB = new Date(b.time || 0).getTime();
+      if (timeB !== timeA) {
+        return timeB - timeA;
+      }
+      return (Number(b.id) || 0) - (Number(a.id) || 0);
+    });
+
+    // Deduplicate by stable identifier
+    const seenIds = new Set();
+    const deduped = [];
+    for (const log of sorted) {
+      const idKey = log.id != null ? String(log.id) : null;
+      if (idKey) {
+        if (seenIds.has(idKey)) continue;
+        seenIds.add(idKey);
+      }
+      deduped.push(log);
+    }
+
+    return deduped;
+  }
+
   // Load room status & activity logs concurrently with instant SWR cache
   async function loadRoomStatusAndLogs() {
-    // 1. Instant SWR pre-render from cache (0ms delay!)
-    try {
-      const cachedRooms = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
-      if (Array.isArray(cachedRooms) && cachedRooms.length > 0) {
-        renderRoomStatusGrid(cachedRooms);
-      }
-      const cachedNotifs = JSON.parse(sessionStorage.getItem('labsync_cached_activities') || 'null');
-      if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
-        renderActivityLogList(cachedNotifs);
-      }
-    } catch (e) {}
+    // 1. Instant SWR pre-render from cache ONLY on initial first load
+    if (_itHeadFirstLoad) {
+      try {
+        const cachedRooms = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+        if (Array.isArray(cachedRooms) && cachedRooms.length > 0) {
+          renderRoomStatusGrid(cachedRooms);
+        }
+        const cachedNotifs = JSON.parse(sessionStorage.getItem('labsync_cached_activities') || 'null');
+        if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
+          renderActivityLogList(cachedNotifs);
+        }
+      } catch (e) {}
+    }
+
+    const currentReqId = ++_itHeadRequestId;
 
     try {
       const fetchLabsFn = window.fetchLaboratories || (window.laboratoryService && window.laboratoryService.fetchLaboratories);
@@ -58,6 +134,9 @@
 
       const [rooms, notifs] = await Promise.all([roomsPromise, notifsPromise]);
 
+      // Discard stale out-of-order response if another request completed
+      if (currentReqId !== _itHeadRequestId) return;
+
       if (Array.isArray(rooms) && rooms.length > 0) {
         renderRoomStatusGrid(rooms);
       }
@@ -66,7 +145,10 @@
         try { sessionStorage.setItem('labsync_cached_activities', JSON.stringify(notifs)); } catch (e) {}
         renderActivityLogList(notifs);
       }
+
+      _itHeadFirstLoad = false;
     } catch (err) {
+      if (currentReqId !== _itHeadRequestId) return;
       console.error('Error loading room status:', err);
     }
   }
@@ -87,23 +169,6 @@
     }
   }
 
-  function getRelativeTime(dateString) {
-    if (!dateString) return 'Just now';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHr = Math.floor(diffMin / 60);
-    const diffDays = Math.floor(diffHr / 24);
-
-    if (diffSec < 60) return 'Just now';
-    if (diffMin < 60) return `${diffMin}m ago`;
-    if (diffHr < 24) return `${diffHr}h ago`;
-    if (diffDays === 1) return 'Yesterday';
-    return `${diffDays} days ago`;
-  }
-
   // Render activity logs with scroll preservation & change fingerprinting
   function renderActivityLogList(notifs, targetContainer) {
     const container = typeof targetContainer === 'string'
@@ -111,13 +176,13 @@
       : (targetContainer || document.getElementById('ithead-activity-list'));
     if (!container) return;
 
-    // Only show occupancy logs (room key events & QR verification), not PC reports
-    const occupancyOnly = (notifs || []).filter(n => n.type === 'occupancy');
+    // Normalize, deterministically sort, and deduplicate occupancy logs
+    const occupancyOnly = processOccupancyLogs(notifs);
 
     // Build a data fingerprint to detect real changes
     const dataKey = occupancyOnly.length === 0
       ? '__EMPTY__'
-      : occupancyOnly.map(n => `${n.id || ''}-${n.type}-${n.status}-${n.room_number}-${n.session_type || ''}`).join('|');
+      : occupancyOnly.map(n => `${n.id || ''}:${n.time || ''}:${n.status || ''}:${n.room_number || ''}:${n.description || ''}:${n.session_type || ''}`).join('|');
 
     if (container._lastActivitySignature === dataKey) {
       if (occupancyOnly.length === 0 && container.querySelector('.ui-empty-state')) {
@@ -148,20 +213,23 @@
 
     container.innerHTML = occupancyOnly.map(log => {
       let activityText = '';
-      let profName = (log.description && log.description !== 'Room Key') ? log.description : '';
+      let profName = (log.description && log.description !== 'Room Key' && log.description !== 'None' && log.description !== 'N/A') ? log.description : '';
       if (!profName && log.room_number) {
         try {
           const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
           if (Array.isArray(cachedLabs)) {
             const matched = cachedLabs.find(r => String(r.Room_Number).trim().toLowerCase() === String(log.room_number).trim().toLowerCase());
             if (matched) {
-              profName = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
+              const candidate = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
+              if (candidate && candidate !== 'None' && candidate !== 'N/A') {
+                profName = candidate;
+              }
             }
           }
         } catch (e) {}
       }
 
-      const hasUser = !!profName;
+      const hasUser = !!profName && profName !== 'None' && profName !== 'N/A';
       const profText = hasUser
         ? (profName.startsWith('Prof.') ? profName : `Prof. ${profName}`)
         : '';
@@ -188,23 +256,23 @@
       const titleText = profText || (log.room_number ? `RM ${log.room_number} Key` : 'Room Key');
       const detailText = log.detail || (hasUser ? 'Faculty' : 'System');
       const relTime = getRelativeTime(log.time);
-      const roomBadgeHtml = log.room_number ? `<span class="timeline-meta-dot">•</span><span>${roomLabel}</span>` : '';
+      const roomBadgeHtml = log.room_number ? `<span class="timeline-meta-dot">•</span><span>${escapeHtml(roomLabel)}</span>` : '';
 
       return `
         <div class="timeline-item">
           <div class="timeline-panel">
             <div class="timeline-heading">
-              <h4 class="timeline-title">${titleText}</h4>
+              <h4 class="timeline-title">${escapeHtml(titleText)}</h4>
               <p class="timeline-heading-meta">
                 <i data-lucide="clock"></i>
-                <span>${relTime}</span>
+                <span>${escapeHtml(relTime)}</span>
                 <span class="timeline-meta-dot">•</span>
-                <span>${detailText}</span>
+                <span>${escapeHtml(detailText)}</span>
                 ${roomBadgeHtml}
               </p>
             </div>
             <div class="timeline-body">
-              <p>${activityText}</p>
+              <p>${escapeHtml(activityText)}</p>
             </div>
           </div>
         </div>

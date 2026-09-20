@@ -5,6 +5,30 @@
 
 'use strict';
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
+ * Formats a 24-hour time string (HH:MM) to 12-hour AM/PM format.
+ * @param {string} t - Time string in "HH:MM"
+ * @returns {string} Formatted string "h:MM AM/PM"
+ */
+function formatTime24to12(t) {
+  if (!t) return '';
+  let [h, m] = t.split(':');
+  h = parseInt(h, 10);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${m} ${ampm}`;
+}
+
 /**
  * Triggers PDF generation and download using html2pdf library.
  */
@@ -92,14 +116,13 @@ async function initPrintAllSchedulesPage() {
 
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    // Generate 30-minute intervals from 7:00 AM to 8:30 PM
+    // Generate 30-minute intervals from 7:00 AM to 9:00 PM
     const times = [];
-    for (let h = 7; h <= 19; h++) {
+    for (let h = 7; h <= 20; h++) {
       times.push(`${h.toString().padStart(2, '0')}:00`);
       times.push(`${h.toString().padStart(2, '0')}:30`);
     }
-    times.push('20:00');
-    times.push('20:30');
+    times.push('21:00');
 
     // 2. Process each room
     for (const room of rooms) {
@@ -166,9 +189,9 @@ async function initPrintAllSchedulesPage() {
 
             tbodyHtml += `<td rowspan="${cell.rowspan}" class="${bgClass}">
               <div class="class-box">
-                <span class="subject">${cell.data.subject}</span>
-                <span class="section">${cell.data.section}</span>
-                <span class="instructor">${cell.data.professor}</span>
+                <span class="subject">${escapeHtml(cell.data.subject)}</span>
+                <span class="section">${escapeHtml(cell.data.section)}</span>
+                <span class="instructor">${escapeHtml(cell.data.professor)}</span>
               </div>
             </td>`;
           }
@@ -190,7 +213,7 @@ async function initPrintAllSchedulesPage() {
             <h2 style="font-size: 15px; margin: 2px 0; font-weight: bold; color: black; margin-top: 4px;">Bulacan State University</h2>
             <p style="font-size: 11px; margin: 2px 0; color: black;">City of Malolos</p>
             <p style="font-weight: bold; margin-top: 8px; font-size: 13px; color: black; letter-spacing: 0.5px;">ROOM ASSIGNMENT</p>
-            <p style="font-size: 11px; margin: 2px 0; color: black; margin-top: 4px;">Academic Year: ${academicYear} ${semester.toUpperCase()}</p>
+            <p style="font-size: 11px; margin: 2px 0; color: black; margin-top: 4px;">Academic Year: ${escapeHtml(academicYear)} ${escapeHtml(semester.toUpperCase())}</p>
           </div>
           <div style="position: absolute; right: 120px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 10px;">
             <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Campus Logo" style="height: 65px; width: auto; object-fit: contain;">
@@ -198,7 +221,7 @@ async function initPrintAllSchedulesPage() {
         </div>
         <div class="print-room-title-block">
           <span style="float: left; font-size: 11px; font-weight: bold; margin-top: 5px;">BLDG. AND ROOM NO.:</span>
-          <h3>${bldgName.toUpperCase()} RM ${roomNum}</h3>
+          <h3>${escapeHtml(bldgName.toUpperCase())} RM ${escapeHtml(roomNum)}</h3>
         </div>
         <table class="print-table">
           <thead>
@@ -221,7 +244,7 @@ async function initPrintAllSchedulesPage() {
           <div class="signature-block">
             <p style="margin: 0;">Prepared by:</p>
             <div class="signature-line">
-              <span class="sign-name">${programChair}</span><br>
+              <span class="sign-name">${escapeHtml(programChair)}</span><br>
               <span>Program Chair</span>
             </div>
           </div>
@@ -232,7 +255,7 @@ async function initPrintAllSchedulesPage() {
           <div class="signature-block" style="text-align: right;">
             <p style="text-align: left; margin: 0; margin-left: 40px;">Approved by:</p>
             <div class="signature-line" style="text-align: left; margin-left: 40px;">
-              <span class="sign-name">${campusDean}</span><br>
+              <span class="sign-name">${escapeHtml(campusDean)}</span><br>
               <span>Campus Dean</span>
             </div>
           </div>

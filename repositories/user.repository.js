@@ -113,43 +113,38 @@ async function updateUserQR(userId, qrString, executor = db) {
 }
 
 async function findByQRString(qrString, executor = db) {
-    if (!qrString) return [[]];
-    const cleanStr = String(qrString).trim();
+    if (!qrString || typeof qrString !== 'string') return [[]];
+    let cleanStr = qrString.trim();
+    if (!cleanStr) return [[]];
 
-    // 1. Try exact match, FIND_IN_SET, or LIKE on ID_QR_String
-    let [users] = await executor.query(
-        'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE ID_QR_String = ? OR FIND_IN_SET(?, ID_QR_String) > 0 OR ID_QR_String LIKE ?',
-        [cleanStr, cleanStr, `%${cleanStr}%`]
-    );
-    if (users.length > 0) return [users];
-
-    // 2. Try match on Email or User_ID
-    [users] = await executor.query(
-        'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE Email = ? OR User_ID = ?',
-        [cleanStr, cleanStr]
-    );
-    if (users.length > 0) return [users];
-
-    // 3. Fallback: URL decoding or JSON token extraction
-    let extractedToken = cleanStr;
+    // Safe scanner envelope unwrapping if scanner encoded token in a URL query or JSON payload
     if (cleanStr.includes('qrString=')) {
-        const match = cleanStr.match(/qrString=([^&]+)/);
-        if (match) extractedToken = decodeURIComponent(match[1]);
+        const match = cleanStr.match(/[?&]?qrString=([^&]+)/);
+        if (match) {
+            try {
+                cleanStr = decodeURIComponent(match[1]).trim();
+            } catch (e) {
+                cleanStr = match[1].trim();
+            }
+        }
     } else if (cleanStr.startsWith('{') && cleanStr.endsWith('}')) {
         try {
             const parsed = JSON.parse(cleanStr);
-            extractedToken = parsed.qrString || parsed.id || parsed.email || cleanStr;
+            if (parsed && typeof parsed.qrString === 'string' && parsed.qrString.trim()) {
+                cleanStr = parsed.qrString.trim();
+            } else if (parsed && typeof parsed.token === 'string' && parsed.token.trim()) {
+                cleanStr = parsed.token.trim();
+            }
         } catch (e) {}
     }
 
-    if (extractedToken !== cleanStr) {
-        return executor.query(
-            'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE ID_QR_String = ? OR FIND_IN_SET(?, ID_QR_String) > 0 OR ID_QR_String LIKE ? OR Email = ? OR User_ID = ?',
-            [extractedToken, extractedToken, `%${extractedToken}%`, extractedToken, extractedToken]
-        );
-    }
+    if (!cleanStr) return [[]];
 
-    return [[]];
+    // Strict exact matching on ID_QR_String only (disallow LIKE, FIND_IN_SET, Email, or User_ID substitution)
+    return executor.query(
+        'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE ID_QR_String = ?',
+        [cleanStr]
+    );
 }
 
 async function getRoleById(userId, executor = db) {

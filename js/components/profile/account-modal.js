@@ -6,6 +6,16 @@
 (function (global) {
   'use strict';
 
+  const escapeHtml = (typeof global.escapeHtml === 'function') ? global.escapeHtml : function (str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
   // Baseline state tracking for change detection
   let originalAccountSettings = {
     name: '',
@@ -339,7 +349,11 @@
       const avatarInitials = document.getElementById('avatar-initials');
       const removePhotoBtn = document.getElementById('remove-photo-btn');
 
-      if (user.profilePhoto) {
+      const isSafePhoto = typeof global.isValidProfilePhotoUrl === 'function'
+        ? global.isValidProfilePhotoUrl(user.profilePhoto)
+        : (typeof user.profilePhoto === 'string' && /^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(user.profilePhoto.trim()));
+
+      if (isSafePhoto) {
         if (photoImg && avatarInitials && removePhotoBtn) {
           photoImg.src = user.profilePhoto;
           photoImg.style.display = 'block';
@@ -350,7 +364,7 @@
         if (photoImg && avatarInitials && removePhotoBtn) {
           photoImg.src = '';
           photoImg.style.display = 'none';
-          avatarInitials.style.display = 'block';
+          avatarInitials.style.display = 'flex';
           removePhotoBtn.style.display = 'none';
         }
       }
@@ -365,8 +379,12 @@
         if (qrResponse.ok) {
           const qrData = await qrResponse.json();
           const qrContainer = document.getElementById('qr-code-container');
-          if (qrContainer) {
-            qrContainer.innerHTML = `<img src="${qrData.qrCode}" style="width:100%;height:100%;object-fit:contain;">`;
+          if (qrContainer && typeof qrData.qrCode === 'string' && qrData.qrCode.startsWith('data:image/')) {
+            qrContainer.innerHTML = '';
+            const qrImg = document.createElement('img');
+            qrImg.src = qrData.qrCode;
+            qrImg.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+            qrContainer.appendChild(qrImg);
           }
           const dlBtn = document.getElementById('download-qr-btn');
           if (dlBtn) {
@@ -725,7 +743,7 @@
         const valTrim = nameInput.value.trim().replace(/\s+/g, ' ');
         if (nameErr && valTrim.length > 0 && valTrim.length <= 60) {
           if (checkDuplicateNameClient(valTrim)) {
-            nameErr.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>A user with the name "${valTrim}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`;
+            nameErr.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>A user with the name "${escapeHtml(valTrim)}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`;
             nameErr.style.display = 'block';
             nameInput.style.borderColor = '#EF4444';
             if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
@@ -745,7 +763,7 @@
           const valTrim = nameInput.value.trim().replace(/\s+/g, ' ');
           if (nameErr && valTrim.length > 0 && valTrim.length <= 60) {
             if (checkDuplicateNameClient(valTrim)) {
-              nameErr.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>A user with the name "${valTrim}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`;
+              nameErr.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>A user with the name "${escapeHtml(valTrim)}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`;
               nameErr.style.display = 'block';
               nameInput.style.borderColor = '#EF4444';
               if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
@@ -854,7 +872,7 @@
         if (checkDuplicateNameClient(nameVal)) {
           const duplicateMsg = `A user with the name "${nameVal}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`;
           if (nameErrEl) {
-            nameErrEl.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>${duplicateMsg}`;
+            nameErrEl.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>A user with the name "${escapeHtml(nameVal)}" already exists. Please differentiate using a middle initial or suffix (e.g., Jr./Sr./III).`;
             nameErrEl.style.display = 'block';
             if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
           }
@@ -973,7 +991,7 @@
             }
             if (typeof errorMsg === 'string' && errorMsg.toLowerCase().includes('already exists')) {
               if (nameErrEl) {
-                nameErrEl.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>${errorMsg}`;
+                nameErrEl.innerHTML = `<i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>${escapeHtml(errorMsg)}`;
                 nameErrEl.style.display = 'block';
                 if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
               }

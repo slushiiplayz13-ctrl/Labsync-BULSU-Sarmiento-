@@ -4,6 +4,16 @@
 
 'use strict';
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // Component status tracking
 const componentStates = {
   "PC/Laptop": "working",
@@ -208,10 +218,10 @@ function showSystemToast(message, type = 'warning', title = null) {
     </div>
     <div style="flex: 1; min-width: 0;">
       <div style="font-size: 13.5px; font-weight: 700; color: var(--text-dark, #0F172A); margin-bottom: 2px; font-family: var(--font-display, sans-serif); display: flex; align-items: center; justify-content: space-between;">
-        <span>${toastTitle}</span>
+        <span>${escapeHtml(toastTitle)}</span>
         <button class="labsync-toast-close" style="background: none; border: none; font-size: 16px; color: var(--text-muted, #94A3B8); cursor: pointer; padding: 0 4px; line-height: 1; margin-left: 8px;">&times;</button>
       </div>
-      <div style="font-size: 13.5px; color: var(--text-mid, #475569); line-height: 1.4; word-break: break-word;">${message}</div>
+      <div style="font-size: 13.5px; color: var(--text-mid, #475569); line-height: 1.4; word-break: break-word;">${escapeHtml(message)}</div>
     </div>
   `;
 

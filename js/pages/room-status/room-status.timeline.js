@@ -6,8 +6,21 @@
 (function (global) {
   'use strict';
 
+  const escapeHtml = (typeof global.escapeHtml === 'function')
+    ? global.escapeHtml
+    : function (str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+
   let _activityLogFirstLoad = true;
   let _activityLogLastDataKey = '';
+  let _timelineRequestId = 0;
 
   /**
    * Formats a date string into human-readable relative time.
@@ -17,18 +30,54 @@
   function getRelativeTime(dateString) {
     if (!dateString) return 'Just now';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Just now';
     const now = new Date();
     const diffMs = now - date;
     const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHr = Math.floor(diffMin / 60);
-    const diffDays = Math.floor(diffHr / 24);
-
     if (diffSec < 60) return 'Just now';
+    const diffMin = Math.floor(diffSec / 60);
     if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
     if (diffHr < 24) return `${diffHr}h ago`;
+    const diffDays = Math.floor(diffHr / 24);
     if (diffDays === 1) return 'Yesterday';
     return `${diffDays} days ago`;
+  }
+
+  /**
+   * Normalizes, deterministically sorts, and deduplicates activity logs.
+   * @param {Array} rawLogs
+   * @returns {Array}
+   */
+  function processOccupancyLogs(rawLogs) {
+    if (!Array.isArray(rawLogs)) return [];
+
+    // Filter only occupancy events (room key events & QR verification)
+    const occupancyOnly = rawLogs.filter(item => item && (item.type === 'occupancy' || (!item.type && item.status && item.status !== 'Pending' && item.status !== 'In Progress' && item.status !== 'Resolved')));
+
+    // Deterministic sort: Newest timestamp first; stable tie-breaker: highest record ID first
+    const sorted = [...occupancyOnly].sort((a, b) => {
+      const timeA = new Date(a.time || 0).getTime();
+      const timeB = new Date(b.time || 0).getTime();
+      if (timeB !== timeA) {
+        return timeB - timeA;
+      }
+      return (Number(b.id) || 0) - (Number(a.id) || 0);
+    });
+
+    // Deduplicate by stable identifier
+    const seenIds = new Set();
+    const deduped = [];
+    for (const log of sorted) {
+      const idKey = log.id != null ? String(log.id) : null;
+      if (idKey) {
+        if (seenIds.has(idKey)) continue;
+        seenIds.add(idKey);
+      }
+      deduped.push(log);
+    }
+
+    return deduped;
   }
 
   /**
@@ -39,22 +88,24 @@
   function renderTimelineItems(occupancyLogs, timelineList) {
     if (!timelineList || !Array.isArray(occupancyLogs)) return;
 
-    const dataKey = occupancyLogs.length === 0
+    const processedLogs = processOccupancyLogs(occupancyLogs);
+
+    const dataKey = processedLogs.length === 0
       ? '__EMPTY__'
-      : occupancyLogs.map(l => `${l.id}-${l.status}-${l.room_number}-${l.description}-${l.session_type || ''}`).join('|');
+      : processedLogs.map(l => `${l.id || ''}:${l.time || ''}:${l.status || ''}:${l.room_number || ''}:${l.description || ''}:${l.session_type || ''}`).join('|');
 
     if (timelineList._lastActivitySignature === dataKey) {
-      if (occupancyLogs.length === 0 && timelineList.querySelector('.ui-empty-state')) {
+      if (processedLogs.length === 0 && timelineList.querySelector('.ui-empty-state')) {
         return;
       }
-      if (occupancyLogs.length > 0 && timelineList.querySelector('.timeline-item')) {
+      if (processedLogs.length > 0 && timelineList.querySelector('.timeline-item')) {
         return;
       }
     }
     timelineList._lastActivitySignature = dataKey;
     _activityLogLastDataKey = dataKey;
 
-    if (occupancyLogs.length === 0) {
+    if (processedLogs.length === 0) {
       timelineList.innerHTML = `
         <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
           <div class="ui-empty-icon">
@@ -70,22 +121,25 @@
     }
 
     let html = '';
-    occupancyLogs.forEach(log => {
+    processedLogs.forEach(log => {
       let activityText = '';
-      let profName = (log.description && log.description !== 'Room Key') ? log.description : '';
+      let profName = (log.description && log.description !== 'Room Key' && log.description !== 'None' && log.description !== 'N/A') ? log.description : '';
       if (!profName && log.room_number) {
         try {
           const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
           if (Array.isArray(cachedLabs)) {
             const matched = cachedLabs.find(r => String(r.Room_Number).trim().toLowerCase() === String(log.room_number).trim().toLowerCase());
             if (matched) {
-              profName = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
+              const candidate = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
+              if (candidate && candidate !== 'None' && candidate !== 'N/A') {
+                profName = candidate;
+              }
             }
           }
         } catch (e) {}
       }
 
-      const hasUser = !!profName;
+      const hasUser = !!profName && profName !== 'None' && profName !== 'N/A';
       const profText = hasUser
         ? (profName.startsWith('Prof.') ? profName : `Prof. ${profName}`)
         : '';
@@ -112,23 +166,23 @@
       const titleText = profText || (log.room_number ? `RM ${log.room_number} Key` : 'Room Key');
       const detailText = log.detail || (hasUser ? 'Faculty' : 'System');
       const relTime = getRelativeTime(log.time);
-      const roomBadgeHtml = log.room_number ? `<span class="timeline-meta-dot">•</span><span>${roomLabel}</span>` : '';
+      const roomBadgeHtml = log.room_number ? `<span class="timeline-meta-dot">•</span><span>${escapeHtml(roomLabel)}</span>` : '';
 
       html += `
         <div class="timeline-item">
           <div class="timeline-panel">
             <div class="timeline-heading">
-              <h4 class="timeline-title">${titleText}</h4>
+              <h4 class="timeline-title">${escapeHtml(titleText)}</h4>
               <p class="timeline-heading-meta">
                 <i data-lucide="clock"></i>
-                <span>${relTime}</span>
+                <span>${escapeHtml(relTime)}</span>
                 <span class="timeline-meta-dot">•</span>
-                <span>${detailText}</span>
+                <span>${escapeHtml(detailText)}</span>
                 ${roomBadgeHtml}
               </p>
             </div>
             <div class="timeline-body">
-              <p>${activityText}</p>
+              <p>${escapeHtml(activityText)}</p>
             </div>
           </div>
         </div>
@@ -149,15 +203,15 @@
     const timelineList = document.querySelector('.timeline-list');
     if (!timelineList) return;
 
-    // Instant SWR pre-render from cache (0ms delay!)
-    try {
-      const cached = JSON.parse(sessionStorage.getItem('labsync_cached_activities') || 'null');
-      if (Array.isArray(cached) && cached.length > 0) {
-        const occupancyLogs = cached.filter(a => a.type === 'occupancy');
-        renderTimelineItems(occupancyLogs, timelineList);
-        _activityLogFirstLoad = false;
-      }
-    } catch (e) {}
+    // Instant SWR pre-render from cache ONLY on initial load
+    if (_activityLogFirstLoad) {
+      try {
+        const cached = JSON.parse(sessionStorage.getItem('labsync_cached_activities') || 'null');
+        if (Array.isArray(cached) && cached.length > 0) {
+          renderTimelineItems(cached, timelineList);
+        }
+      } catch (e) {}
+    }
 
     // Only show the loading spinner if there is no cache and first load
     if (_activityLogFirstLoad && (!timelineList.children || timelineList.children.length === 0 || timelineList.querySelector('.ui-empty-state'))) {
@@ -174,12 +228,17 @@
       }
     }
 
+    const currentReqId = ++_timelineRequestId;
+
     try {
       const fetchNotifsFn = (global.notificationService && typeof global.notificationService.fetchNotifications === 'function')
         ? global.notificationService.fetchNotifications
         : (typeof global.fetchNotifications === 'function' ? global.fetchNotifications : null);
 
       const activities = typeof fetchNotifsFn === 'function' ? await fetchNotifsFn() : null;
+
+      // Discard stale out-of-order response if another request completed
+      if (currentReqId !== _timelineRequestId) return;
 
       if (!activities || !Array.isArray(activities)) throw new Error('Failed to load activities');
 
@@ -188,15 +247,13 @@
         sessionStorage.setItem('labsync_cached_activities', JSON.stringify(activities));
       } catch (e) {}
 
-      // Filter only occupancy log notifications
-      const occupancyLogs = activities.filter(a => a.type === 'occupancy');
-
       const savedScrollTop = timelineList.scrollTop;
-      renderTimelineItems(occupancyLogs, timelineList);
+      renderTimelineItems(activities, timelineList);
       timelineList.scrollTop = savedScrollTop;
 
       _activityLogFirstLoad = false;
     } catch (err) {
+      if (currentReqId !== _timelineRequestId) return;
       console.error('[RoomStatusTimeline] Error loading room status activities:', err);
       if (_activityLogFirstLoad) {
         timelineList.innerHTML = `

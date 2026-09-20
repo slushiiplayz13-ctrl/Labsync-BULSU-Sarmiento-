@@ -39,13 +39,39 @@
     }
   }
 
+  /**
+   * Validates whether a profile photo URL is an authorized image data URL or safe relative/https path.
+   * Rejects javascript:, data:text/html, unknown protocols, or malformed values.
+   * @param {string} url
+   * @returns {boolean}
+   */
+  function isValidProfilePhotoUrl(url) {
+    if (typeof url !== 'string' || !url.trim()) return false;
+    const trimmed = url.trim();
+    // Allow safe base64 image data URLs (png, jpeg, jpg, webp, gif, svg+xml)
+    if (/^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(trimmed)) {
+      return true;
+    }
+    // Allow safe relative asset paths (e.g. assets/... or /assets/...)
+    if (/^(?:\/|assets\/)[\w./-]+\.(?:png|jpe?g|webp|gif|svg)$/i.test(trimmed)) {
+      return true;
+    }
+    // Allow safe absolute HTTPS image URLs
+    if (/^https:\/\/[\w.-]+(?::\d+)?\/[\w./-]+\.(?:png|jpe?g|webp|gif|svg)$/i.test(trimmed)) {
+      return true;
+    }
+    return false;
+  }
+
   const domUtils = {
     escapeHtml,
+    isValidProfilePhotoUrl,
     renderIcons
   };
 
   global.domUtils = domUtils;
   global.escapeHtml = escapeHtml;
+  global.isValidProfilePhotoUrl = isValidProfilePhotoUrl;
   global.renderIcons = renderIcons;
 
 })(typeof window !== 'undefined' ? window : this);

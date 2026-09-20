@@ -46,7 +46,11 @@
         ? global.facultyUtils.getFacultyInitials(member.Name)
         : (member.Name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
-      const avatarContent = member.Profile_Photo
+      const isSafePhoto = typeof global.isValidProfilePhotoUrl === 'function'
+        ? global.isValidProfilePhotoUrl(member.Profile_Photo)
+        : (typeof member.Profile_Photo === 'string' && /^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(member.Profile_Photo.trim()));
+
+      const avatarContent = isSafePhoto
         ? `<img src="${escapeHtml(member.Profile_Photo)}" alt="${escapeHtml(member.Name)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
         : escapeHtml(initials);
 
@@ -54,9 +58,9 @@
         ? global.facultyUtils.buildFacultySearchString(member)
         : `${member.Name || ''} ${member.Email || ''} ${member.Role || ''} ${member.Phone || ''}`.toLowerCase();
 
-      const memberId = member.User_ID || String(member.Name || '').replace(/\s+/g, '');
-      const escapedProfName = String(member.Name || '').replace(/'/g, "\\'");
-      const escapedRole = String(member.Role || 'Faculty').replace(/'/g, "\\'");
+      const memberId = member.User_ID || String(member.Name || '').replace(/[^a-zA-Z0-9_-]/g, '');
+      const escapedProfName = escapeHtml(member.Name || '');
+      const escapedRole = escapeHtml(member.Role || 'Faculty');
 
       return `
       <div class="faculty-card ${isBoss ? 'boss-card' : ''}" 

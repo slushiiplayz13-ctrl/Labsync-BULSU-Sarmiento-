@@ -46,8 +46,18 @@
     }
 
     if (avatarEl) {
-      if (user.profilePhoto) {
-        avatarEl.innerHTML = `<img src="${user.profilePhoto}" alt="Profile Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      const isSafePhoto = typeof user.profilePhoto === 'string' &&
+        (typeof global.isValidProfilePhotoUrl === 'function'
+          ? global.isValidProfilePhotoUrl(user.profilePhoto)
+          : /^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(user.profilePhoto.trim()));
+
+      if (isSafePhoto) {
+        avatarEl.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = user.profilePhoto;
+        img.alt = 'Profile Photo';
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+        avatarEl.appendChild(img);
       } else if (user.name) {
         const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
         avatarEl.textContent = initials;

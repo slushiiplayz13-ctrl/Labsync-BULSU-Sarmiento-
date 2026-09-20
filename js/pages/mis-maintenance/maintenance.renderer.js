@@ -96,7 +96,7 @@
       if (lower === 'others' || lower === 'other') {
         return `<span class="issue-tag other"${extraStyle}><i data-lucide="alert-circle" style="width:${iconSize};height:${iconSize};"></i> Other</span>`;
       }
-      return `<span class="issue-tag bad"${extraStyle}><i data-lucide="alert-triangle" style="width:${iconSize};height:${iconSize};"></i> ${item}</span>`;
+      return `<span class="issue-tag bad"${extraStyle}><i data-lucide="alert-triangle" style="width:${iconSize};height:${iconSize};"></i> ${escapeText(item)}</span>`;
     }).join(' ');
   }
 
@@ -229,7 +229,7 @@
       }
 
       const sectionChip = parsed.section && parsed.section !== 'N/A'
-        ? `<span class="section-chip">${parsed.section}</span>`
+        ? `<span class="section-chip">${escapeText(parsed.section)}</span>`
         : '';
 
       const issueBadges = formatIssueBadges(parsed.issues, parsed.remarks, false);
@@ -276,13 +276,13 @@
           <td class="col-room" style="white-space: nowrap;">
             <div class="cell-icon-wrap">
               <i data-lucide="map-pin" class="cell-icon room"></i>
-              Room ${report.Room_Number}
+              Room ${escapeText(report.Room_Number)}
             </div>
           </td>
           <td class="col-pc" style="white-space: nowrap;">
             <div class="cell-icon-wrap">
               <i data-lucide="monitor" class="cell-icon pc"></i>
-              PC #${report.PC_Number}
+              PC #${escapeText(report.PC_Number)}
             </div>
           </td>
           <td class="col-issues">

@@ -6,6 +6,16 @@
 (function (global) {
   'use strict';
 
+  const escapeHtml = (typeof global.escapeHtml === 'function') ? global.escapeHtml : function (str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
   /**
    * Initializes real-time notifications dropdown, badges, toasts, and background polling.
    */
@@ -170,10 +180,10 @@
         </div>
         <div class="notif-content">
           <div class="notif-meta-row">
-            <span class="notif-title">${title}</span>
-            <span class="notif-time">${getRelativeTime(notif.time)}</span>
+            <span class="notif-title">${escapeHtml(title)}</span>
+            <span class="notif-time">${escapeHtml(getRelativeTime(notif.time))}</span>
           </div>
-          <p class="notif-message">${text}</p>
+          <p class="notif-message">${escapeHtml(text)}</p>
         </div>
         ${isUnread ? '<div class="notif-unread-dot"></div>' : ''}
       `;
@@ -207,17 +217,17 @@
         </div>
         <div class="notif-toast-content">
           <div class="notif-toast-header-row">
-            <span class="notif-toast-title">${title}</span>
+            <span class="notif-toast-title">${escapeHtml(title)}</span>
             <div class="notif-toast-meta-right">
-              <span class="notif-toast-time">${relTime}</span>
+              <span class="notif-toast-time">${escapeHtml(relTime)}</span>
               <button class="notif-toast-close-btn" title="Close" aria-label="Close">&times;</button>
             </div>
           </div>
-          <p class="notif-toast-message">${text}</p>
+          <p class="notif-toast-message">${escapeHtml(text)}</p>
           <div class="notif-toast-footer-row">
             <div class="notif-toast-tags">
-              ${roomNum ? `<span class="notif-toast-tag room"><i data-lucide="map-pin"></i> RM ${roomNum}</span>` : ''}
-              ${!isReport && notif.session_type ? `<span class="notif-toast-tag session">${notif.session_type}</span>` : (!isReport && notif.status ? `<span class="notif-toast-tag status">${notif.status}</span>` : '')}
+              ${roomNum ? `<span class="notif-toast-tag room"><i data-lucide="map-pin"></i> RM ${escapeHtml(roomNum)}</span>` : ''}
+              ${!isReport && notif.session_type ? `<span class="notif-toast-tag session">${escapeHtml(notif.session_type)}</span>` : (!isReport && notif.status ? `<span class="notif-toast-tag status">${escapeHtml(notif.status)}</span>` : '')}
             </div>
             <span class="notif-toast-cta">View details <i data-lucide="chevron-right"></i></span>
           </div>

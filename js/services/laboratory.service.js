@@ -4,6 +4,16 @@
 
 'use strict';
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 /**
  * Fetches all registered laboratory rooms from backend.
  * @returns {Promise<Array>} Array of laboratory room objects.
@@ -187,7 +197,7 @@ function renderLabCards(labs, targetContainer) {
             <i data-lucide="alert-triangle" class="ld-icon issue-icon"></i>
             <span class="issue-label">${totalPcIssues} PC ${totalPcIssues === 1 ? 'Issue' : 'Issues'}</span>
           </span>
-          <button type="button" class="btn-health-view" data-url="${targetUrl}" title="View reports for RM ${room.Room_Number}">
+          <button type="button" class="btn-health-view" data-url="${targetUrl}" title="View reports for RM ${escapeHtml(room.Room_Number)}">
             <span>View</span>
             <i data-lucide="arrow-right"></i>
           </button>
@@ -209,8 +219,8 @@ function renderLabCards(labs, targetContainer) {
       <div class="lab-card ${statusTheme}">
         <div class="lab-header lc-header">
           <div class="room-title-group">
-            <h3 class="room-num">RM ${room.Room_Number}</h3>
-            <span class="room-subtitle">${room.Building || 'Main Building'}</span>
+            <h3 class="room-num">RM ${escapeHtml(room.Room_Number)}</h3>
+            <span class="room-subtitle">${escapeHtml(room.Building || 'Main Building')}</span>
           </div>
           <span class="badge ${badgeClass}">${displayStatus}</span>
         </div>
@@ -221,7 +231,7 @@ function renderLabCards(labs, targetContainer) {
               <i data-lucide="key-round" class="ld-icon"></i>
               <span>Claimed By</span>
             </span>
-            <strong class="${keyHolderColorClass} ld-value" title="${keyHolderText}">${keyHolderText}</strong>
+            <strong class="${keyHolderColorClass} ld-value" title="${escapeHtml(keyHolderText)}">${escapeHtml(keyHolderText)}</strong>
           </div>
           
           <div class="ld-row scheduled-row">
@@ -229,7 +239,7 @@ function renderLabCards(labs, targetContainer) {
               <i data-lucide="user-check" class="ld-icon"></i>
               <span>Scheduled</span>
             </span>
-            <strong class="${scheduledProfText !== 'None' ? 'ld-value' : 'ld-value muted-text'}" style="${scheduledProfText !== 'None' ? 'color: #64748b;' : ''}" title="${scheduledProfText}">${scheduledProfText}</strong>
+            <strong class="${scheduledProfText !== 'None' ? 'ld-value' : 'ld-value muted-text'}" style="${scheduledProfText !== 'None' ? 'color: #64748b;' : ''}" title="${escapeHtml(scheduledProfText)}">${escapeHtml(scheduledProfText)}</strong>
           </div>
         </div>
 

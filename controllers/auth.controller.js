@@ -21,6 +21,17 @@ async function login(req, res, next) {
         }
 
         const user = result.rawUser;
+
+        // Security Hardening: Regenerate session ID upon privilege escalation to prevent session fixation attacks
+        if (req.session && typeof req.session.regenerate === 'function') {
+            await new Promise((resolve, reject) => {
+                req.session.regenerate((err) => {
+                    if (err) return reject(err);
+                    resolve();
+                });
+            });
+        }
+
         req.session.userId = user.User_ID;
         req.session.userEmail = user.Email;
         req.session.userName = user.Name;
@@ -36,6 +47,15 @@ async function login(req, res, next) {
             resourceType: 'AUTH',
             result: 'SUCCESS'
         });
+
+        if (req.session && typeof req.session.save === 'function') {
+            await new Promise((resolve, reject) => {
+                req.session.save((err) => {
+                    if (err) return reject(err);
+                    resolve();
+                });
+            });
+        }
 
         return res.status(200).json(result.data);
     } catch (err) {

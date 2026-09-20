@@ -6,6 +6,18 @@
 (function (global) {
   'use strict';
 
+  const escapeHtml = (typeof global.escapeHtml === 'function')
+    ? global.escapeHtml
+    : function (str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+
   /**
    * Computes a deterministic signature of the room list.
    * @param {Array} rooms
@@ -63,9 +75,9 @@
       };
 
       card.innerHTML = `
-        <div class="rsc-icon">${room.Room_Number}</div>
-        <div class="rsc-title">Room ${room.Room_Number}</div>
-        <div class="rsc-subtitle">${room.Building || 'Unknown Building'}</div>
+        <div class="rsc-icon">${escapeHtml(room.Room_Number)}</div>
+        <div class="rsc-title">Room ${escapeHtml(room.Room_Number)}</div>
+        <div class="rsc-subtitle">${escapeHtml(room.Building || 'Unknown Building')}</div>
       `;
       grid.appendChild(card);
     });
@@ -84,7 +96,7 @@
     const grid = targetElement || document.getElementById('dynamicRoomGrid');
     if (!grid) return;
     grid._lastRenderSignature = null;
-    grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #EF4444;">${message || 'Failed to load rooms. Please try again later.'}</div>`;
+    grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #EF4444;">${escapeHtml(message || 'Failed to load rooms. Please try again later.')}</div>`;
   }
 
 
@@ -396,7 +408,7 @@
             <i data-lucide="alert-triangle"></i>
           </div>
           <h3 class="pc-empty-title" style="color: #EF4444;">Failed to Load PCs</h3>
-          <p class="pc-empty-desc">${message || 'Could not load computer workstations for this room. Please try again.'}</p>
+          <p class="pc-empty-desc">${escapeHtml(message || 'Could not load computer workstations for this room. Please try again.')}</p>
         </div>
       `;
       if (global.lucide && typeof global.lucide.createIcons === 'function') {

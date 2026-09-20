@@ -335,7 +335,7 @@
             ${statusBadgeHtml}
             <div class="custody-holder-row">
               <i data-lucide="user-check" class="custody-holder-icon"></i>
-              <span class="custody-holder-name">${cleanName}</span>
+              <span class="custody-holder-name">${escapeHtml(cleanName)}</span>
             </div>
           </div>
         `;
@@ -371,24 +371,24 @@
       return `
         <tr class="key-data-row ${isChecked ? 'row-selected' : ''}" data-key-id="${keyId}">
           <td class="col-checkbox text-center" style="white-space: nowrap; text-align: center;">
-            <input type="checkbox" class="key-row-checkbox" data-id="${keyId}" ${isChecked ? 'checked' : ''} aria-label="Select Key ${k.Key_Code}" />
+            <input type="checkbox" class="key-row-checkbox" data-id="${keyId}" ${isChecked ? 'checked' : ''} aria-label="Select Key ${escapeHtml(k.Key_Code)}" />
           </td>
           <td class="col-ticket" style="white-space: nowrap;">
             <span class="key-code-chip">
               <i data-lucide="key" class="key-chip-icon"></i>
-              <span>${k.Key_Code}</span>
+              <span>${escapeHtml(k.Key_Code)}</span>
             </span>
           </td>
           <td class="col-room" style="white-space: nowrap;">
             <div class="cell-icon-wrap">
               <i data-lucide="map-pin" class="cell-icon room"></i>
-              <span class="cell-text-room">${roomFormatted}</span>
+              <span class="cell-text-room">${escapeHtml(roomFormatted)}</span>
             </div>
           </td>
           <td class="col-building" style="white-space: nowrap;">
             <div class="cell-icon-wrap">
               <i data-lucide="building" class="cell-icon bldg"></i>
-              <span class="cell-text-bldg">${building}</span>
+              <span class="cell-text-bldg">${escapeHtml(building)}</span>
             </div>
           </td>
           <td class="col-custody" style="white-space: nowrap;">
@@ -432,8 +432,8 @@
                 
                 <div class="keychain-front-body">
                   <div class="keychain-room-label">ROOM</div>
-                  <div class="keychain-room-number-huge">${tagData.roomNumber}</div>
-                  <div class="keychain-bldg-blue">${buildingStr}</div>
+                  <div class="keychain-room-number-huge">${escapeHtml(tagData.roomNumber)}</div>
+                  <div class="keychain-bldg-blue">${escapeHtml(buildingStr)}</div>
                 </div>
               </div>
             </div>

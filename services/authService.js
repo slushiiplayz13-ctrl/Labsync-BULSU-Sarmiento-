@@ -94,28 +94,13 @@ async function loginUser(email, password) {
     const user = users[0];
     const storedPassword = user.Password;
 
-    if (!storedPassword) {
+    if (!storedPassword || !isBcryptHash(storedPassword)) {
         return { status: 401, error: 'Invalid email or password' };
     }
 
-    if (isBcryptHash(storedPassword)) {
-        // Standard secure path: verify via bcrypt
-        const isMatch = await bcrypt.compare(password, storedPassword);
-        if (!isMatch) {
-            return { status: 401, error: 'Invalid email or password' };
-        }
-    } else {
-        // TEMPORARY LEGACY MIGRATION PATH:
-        // For existing accounts created prior to bcrypt hardening.
-        // Compare plaintext, and if valid, immediately upgrade database to a cost 12 bcrypt hash.
-        const isMatch = (storedPassword === password);
-        if (!isMatch) {
-            return { status: 401, error: 'Invalid email or password' };
-        }
-
-        const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
-        await userRepository.updatePasswordOnly(user.User_ID, hashedPassword);
-        user.Password = hashedPassword;
+    const isMatch = await bcrypt.compare(password, storedPassword);
+    if (!isMatch) {
+        return { status: 401, error: 'Invalid email or password' };
     }
 
     // Lifecycle status enforcement
@@ -154,6 +139,18 @@ async function loginUser(email, password) {
 
 const GENERIC_RECOVERY_MESSAGE = 'If an account exists with that email address, a password recovery link has been sent.';
 
+/**
+ * Computes a deterministic SHA-256 hash of a reset token for secure database storage and lookup.
+ * @param {string} token
+ * @returns {string}
+ */
+function hashResetToken(token) {
+    if (!token || typeof token !== 'string') {
+        return '';
+    }
+    return crypto.createHash('sha256').update(token.trim()).digest('hex');
+}
+
 async function recoverPassword(email) {
     if (!email || !isValidEmailFormat(email)) {
         return { status: 400, error: 'Please enter a valid email address (e.g., user@domain.com).' };
@@ -165,13 +162,14 @@ async function recoverPassword(email) {
     }
 
     const user = users[0];
-    const token = crypto.randomBytes(32).toString('hex');
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = hashResetToken(rawToken);
     const expiry = new Date();
     expiry.setHours(expiry.getHours() + 1);
 
-    await userRepository.updateResetToken(user.User_ID, token, expiry);
+    await userRepository.updateResetToken(user.User_ID, hashedToken, expiry);
 
-    const resetLink = `${APP_URL}/reset-password.html?token=${token}`;
+    const resetLink = `${APP_URL}/reset-password.html?token=${rawToken}`;
     const emailSent = await sendResetPasswordEmail(user.Email, user.Name, resetLink);
 
     if (!emailSent) {
@@ -182,11 +180,12 @@ async function recoverPassword(email) {
 }
 
 async function validateResetToken(token) {
-    if (!token) {
+    if (!token || typeof token !== 'string' || !token.trim()) {
         return { status: 400, valid: false, error: 'Token is required.' };
     }
 
-    const [users] = await userRepository.findByResetToken(token);
+    const hashedToken = hashResetToken(token);
+    const [users] = await userRepository.findByResetToken(hashedToken);
 
     if (users.length === 0) {
         return { status: 400, valid: false, error: 'Reset link is invalid or has expired.' };
@@ -198,11 +197,12 @@ async function validateResetToken(token) {
 const auditService = require('./auditService');
 
 async function resetPassword(token, password) {
-    if (!token || !password) {
+    if (!token || typeof token !== 'string' || !token.trim() || !password) {
         return { status: 400, error: 'Token and new password are required.' };
     }
 
-    const [users] = await userRepository.findByResetToken(token);
+    const hashedToken = hashResetToken(token);
+    const [users] = await userRepository.findByResetToken(hashedToken);
 
     if (users.length === 0) {
         return { status: 400, error: 'Reset link is invalid or has expired.' };
@@ -233,5 +233,6 @@ module.exports = {
     loginUser,
     recoverPassword,
     validateResetToken,
-    resetPassword
+    resetPassword,
+    hashResetToken
 };

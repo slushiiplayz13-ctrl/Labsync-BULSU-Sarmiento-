@@ -208,8 +208,17 @@
                 if (n && u.name) n.textContent = u.name;
                 if (r && u.role) r.textContent = u.role;
                 if (a) {
-                  if (u.profilePhoto) a.innerHTML = "<img src=\"" + u.profilePhoto + "\" alt=\"Profile\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%;\">";
-                  else if (u.name) a.textContent = u.name.split(" ").map(function (x) { return x[0]; }).join("").slice(0, 2).toUpperCase();
+                  var isSafePhoto = typeof u.profilePhoto === 'string' && /^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(u.profilePhoto.trim());
+                  if (isSafePhoto) {
+                    a.innerHTML = '';
+                    var img = document.createElement('img');
+                    img.src = u.profilePhoto;
+                    img.alt = 'Profile';
+                    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+                    a.appendChild(img);
+                  } else if (u.name) {
+                    a.textContent = u.name.split(" ").map(function (x) { return x[0]; }).join("").slice(0, 2).toUpperCase();
+                  }
                 }
               }
               var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";

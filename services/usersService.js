@@ -53,17 +53,11 @@ async function changePassword(userId, currentPassword, newPassword) {
 
     const user = users[0];
 
-    if (!user.Password) {
+    if (!user.Password || !isBcryptHash(user.Password)) {
         return { status: 401, error: 'Current password is incorrect' };
     }
 
-    let isCurrentValid = false;
-    if (isBcryptHash(user.Password)) {
-        isCurrentValid = await bcrypt.compare(currentPassword, user.Password);
-    } else {
-        isCurrentValid = (user.Password === currentPassword);
-    }
-
+    const isCurrentValid = await bcrypt.compare(currentPassword, user.Password);
     if (!isCurrentValid) {
         return { status: 401, error: 'Current password is incorrect' };
     }
@@ -167,19 +161,11 @@ async function updateUserAccount(userId, reqBody, session) {
     }
 
     if (currentPassword && newPassword) {
-        if (!user.Password) {
+        if (!user.Password || !isBcryptHash(user.Password)) {
             return { status: 401, error: 'Current password is incorrect' };
         }
 
-        let isCurrentValid = false;
-        if (isBcryptHash(user.Password)) {
-            // Secure bcrypt verification
-            isCurrentValid = await bcrypt.compare(currentPassword, user.Password);
-        } else {
-            // Temporary legacy plaintext compatibility fallback
-            isCurrentValid = (user.Password === currentPassword);
-        }
-
+        const isCurrentValid = await bcrypt.compare(currentPassword, user.Password);
         if (!isCurrentValid) {
             return { status: 401, error: 'Current password is incorrect' };
         }
@@ -393,6 +379,10 @@ async function getUserQRCode(userId) {
 }
 
 async function scanQRCode(qrString) {
+    if (!qrString || typeof qrString !== 'string' || !qrString.trim()) {
+        return { status: 400, error: 'A valid QR string is required.' };
+    }
+
     const [users] = await userRepository.findByQRString(qrString);
 
     if (users.length === 0) {
@@ -406,7 +396,6 @@ async function scanQRCode(qrString) {
             user: {
                 id: user.User_ID,
                 name: user.Name,
-                email: user.Email,
                 role: user.Role
             }
         }

@@ -1,7 +1,7 @@
 'use strict';
 
 const helmet = require('helmet');
-const { isProduction } = require('../config/app.config');
+const { IS_PRODUCTION } = require('../config/app.config');
 
 /**
  * LabSync Centralized HTTP Security Headers Middleware
@@ -57,7 +57,7 @@ const helmetMiddleware = helmet({
     dnsPrefetchControl: { allow: false },
     frameguard: { action: 'sameorigin' },
     hidePoweredBy: true,
-    hsts: isProduction ? {
+    hsts: IS_PRODUCTION ? {
         maxAge: 15552000, // 180 days
         includeSubDomains: false,
         preload: false

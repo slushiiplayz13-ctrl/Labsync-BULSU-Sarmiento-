@@ -208,8 +208,17 @@
                 if (n && u.name) n.textContent = u.name;
                 if (r && u.role) r.textContent = u.role;
                 if (a) {
-                  if (u.profilePhoto) a.innerHTML = "<img src=\"" + u.profilePhoto + "\" alt=\"Profile\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%;\">";
-                  else if (u.name) a.textContent = u.name.split(" ").map(function (x) { return x[0]; }).join("").slice(0, 2).toUpperCase();
+                  var isSafePhoto = typeof u.profilePhoto === 'string' && /^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(u.profilePhoto.trim());
+                  if (isSafePhoto) {
+                    a.innerHTML = '';
+                    var img = document.createElement('img');
+                    img.src = u.profilePhoto;
+                    img.alt = 'Profile';
+                    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+                    a.appendChild(img);
+                  } else if (u.name) {
+                    a.textContent = u.name.split(" ").map(function (x) { return x[0]; }).join("").slice(0, 2).toUpperCase();
+                  }
                 }
               }
               var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
@@ -287,7 +296,7 @@
                   });
 
                   var escapeHtml = function (str) {
-                    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
                   };
 
                   var html = '';
@@ -297,11 +306,12 @@
                     var crown = isBoss ? '<div class="boss-crown"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-crown"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg></div>' : '';
                     var roleTag = isBoss ? '<div class="boss-role"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-check"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg> ' + escapeHtml(m.Role || '') + '</div>' : '<div style="font-size:12px;color:#6B7280;line-height:1.4;">' + escapeHtml(m.Role || 'Faculty') + '</div>';
                     var initials = (m.Name || 'U').split(' ').map(function (n) { return n[0]; }).join('').toUpperCase().slice(0, 2);
-                    var avatarContent = m.Profile_Photo ? '<img src="' + escapeHtml(m.Profile_Photo) + '" alt="' + escapeHtml(m.Name) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : escapeHtml(initials);
+                    var isSafePhoto = typeof m.Profile_Photo === 'string' && /^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(m.Profile_Photo.trim());
+                    var avatarContent = isSafePhoto ? '<img src="' + escapeHtml(m.Profile_Photo) + '" alt="' + escapeHtml(m.Name) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : escapeHtml(initials);
                     var searchStr = (m.Name || '') + ' ' + (m.Email || '') + ' ' + (m.Role || '') + ' ' + (m.Phone || '');
-                    var memberId = m.User_ID || String(m.Name || '').replace(/\s+/g, '');
-                    var escapedProfName = String(m.Name || '').replace(/'/g, "\\'");
-                    var escapedRole = String(m.Role || 'Faculty').replace(/'/g, "\\'");
+                    var memberId = m.User_ID || String(m.Name || '').replace(/[^a-zA-Z0-9_-]/g, '');
+                    var escapedProfName = escapeHtml(m.Name || '');
+                    var escapedRole = escapeHtml(m.Role || 'Faculty');
 
                     html += '<div class="faculty-card ' + (isBoss ? 'boss-card' : '') + '" data-role="' + (m.Role ? m.Role.toLowerCase() : 'faculty') + '" data-name="' + escapeHtml((m.Name || '').toLowerCase()) + '" data-dept="' + escapeHtml((m.Email || '').toLowerCase()) + '" data-search="' + escapeHtml(searchStr.toLowerCase()) + '" style="position:relative;' + borderStyle + '">' +
                       '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">' +
