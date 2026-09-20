@@ -75,8 +75,15 @@
   function processOccupancyLogs(rawLogs) {
     if (!Array.isArray(rawLogs)) return [];
 
-    // Filter only occupancy events (room key events & QR verification)
-    const occupancyOnly = rawLogs.filter(item => item && (item.type === 'occupancy' || (!item.type && item.status && item.status !== 'Pending' && item.status !== 'In Progress' && item.status !== 'Resolved')));
+    // Filter only meaningful room key custody & hardware security events (exclude intermediate QR scan events)
+    const occupancyOnly = rawLogs.filter(item => {
+      if (!item) return false;
+      const status = String(item.status || '').trim().toLowerCase();
+      if (status === 'qr code' || status === 'qr verified' || status === 'qr' || status.includes('qr verified')) {
+        return false;
+      }
+      return (item.type === 'occupancy' || (!item.type && item.status && item.status !== 'Pending' && item.status !== 'In Progress' && item.status !== 'Resolved'));
+    });
 
     // Deterministic sort: Newest timestamp first; stable tie-breaker: highest record ID first
     const sorted = [...occupancyOnly].sort((a, b) => {
@@ -169,6 +176,57 @@
     }
   }
 
+  // Formats date string into accessible full date and time string
+  function formatExactDateTime(dateString) {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return String(dateString);
+    const datePart = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timePart = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return `${datePart}, ${timePart}`;
+  }
+
+  // Derives presentation metadata for an activity log action
+  function getActionPresentation(log) {
+    if (window.roomStatusTimeline && typeof window.roomStatusTimeline.getActionPresentation === 'function') {
+      return window.roomStatusTimeline.getActionPresentation(log);
+    }
+    const status = String(log.status || '').trim();
+    const sessionType = String(log.session_type || '').trim();
+
+    if (status === 'Key Returned' || status === 'KEY_RETURN' || status.toLowerCase() === 'returned') {
+      return { label: 'Key Returned', actionType: 'returned', icon: 'check' };
+    }
+    if (status === 'Key Taken' || status.toLowerCase() === 'taken') {
+      if (sessionType === 'Borrowed') {
+        return { label: 'Key Borrowed', actionType: 'borrowed', icon: 'key' };
+      }
+      return { label: 'Key Taken', actionType: 'taken', icon: 'key' };
+    }
+    if (status === 'Key Transfer' || status === 'KEY_TRANSFER' || status.toLowerCase() === 'key transferred') {
+      return { label: 'Key Transferred', actionType: 'transfer', icon: 'arrow-right-left' };
+    }
+    if (status.toLowerCase().includes('qr') || status === 'QR Code') {
+      return { label: 'QR Verified', actionType: 'qr', icon: 'qr-code' };
+    }
+    if (status === 'UNAUTHORIZED' || status.toLowerCase().includes('unauthorized')) {
+      return { label: 'Unauthorized Key Access', actionType: 'security', icon: 'shield-alert' };
+    }
+    if (status === 'WRONG_SLOT' || status.toLowerCase().includes('wrong')) {
+      return { label: 'Wrong Key Slot', actionType: 'warning', icon: 'alert-triangle' };
+    }
+    if (status === 'Resolved') {
+      return { label: 'Issue Resolved', actionType: 'resolved', icon: 'check-circle-2' };
+    }
+    if (status === 'In Progress') {
+      return { label: 'In Progress', actionType: 'progress', icon: 'wrench' };
+    }
+    if (status === 'Pending') {
+      return { label: 'Issue Reported', actionType: 'pending', icon: 'alert-circle' };
+    }
+    return { label: status || 'Activity Logged', actionType: 'neutral', icon: 'activity' };
+  }
+
   // Render activity logs with scroll preservation & change fingerprinting
   function renderActivityLogList(notifs, targetContainer) {
     const container = typeof targetContainer === 'string'
@@ -212,7 +270,6 @@
     }
 
     container.innerHTML = occupancyOnly.map(log => {
-      let activityText = '';
       let profName = (log.description && log.description !== 'Room Key' && log.description !== 'None' && log.description !== 'N/A') ? log.description : '';
       if (!profName && log.room_number) {
         try {
@@ -230,50 +287,56 @@
       }
 
       const hasUser = !!profName && profName !== 'None' && profName !== 'N/A';
-      const profText = hasUser
-        ? (profName.startsWith('Prof.') ? profName : `Prof. ${profName}`)
-        : '';
-      const roomLabel = log.room_number ? `RM ${log.room_number}` : 'Room';
+      const actorName = hasUser
+        ? ((profName.startsWith('Prof.') || profName.startsWith('Dr.') || profName.startsWith('Engr.')) ? profName : `Prof. ${profName}`)
+        : (log.detail && log.detail !== 'Faculty' ? log.detail : 'System');
+      const detailText = hasUser
+        ? (log.detail || 'Faculty')
+        : 'Automated Event';
 
-      if (log.status === 'Key Taken') {
-        if (log.session_type === 'In Session') {
-          activityText = profText
-            ? `Key taken for ${roomLabel} by ${profText} (In Session)`
-            : `Key taken for ${roomLabel} (In Session)`;
-        } else if (profText) {
-          activityText = `Key taken for ${roomLabel} by ${profText}`;
-        } else {
-          activityText = `Key taken for ${roomLabel}`;
-        }
-      } else if (log.status === 'Key Returned') {
-        activityText = profText
-          ? `Key returned for ${roomLabel} by ${profText}`
-          : `Key returned for ${roomLabel}`;
-      } else {
-        activityText = `QR Code verified for ${profText || log.description || 'User'} (Awaiting key retrieval).`;
-      }
-
-      const titleText = profText || (log.room_number ? `RM ${log.room_number} Key` : 'Room Key');
-      const detailText = log.detail || (hasUser ? 'Faculty' : 'System');
       const relTime = getRelativeTime(log.time);
-      const roomBadgeHtml = log.room_number ? `<span class="timeline-meta-dot">•</span><span>${escapeHtml(roomLabel)}</span>` : '';
+      const exactStamp = formatExactDateTime(log.time);
+      const isoTime = (function () {
+        if (!log.time) return '';
+        const d = new Date(log.time);
+        return isNaN(d.getTime()) ? '' : d.toISOString();
+      })();
+
+      const actionInfo = getActionPresentation(log);
+
+      const targetHtml = log.room_number
+        ? `<span class="audit-target-tag"><i data-lucide="door-closed"></i><span>RM ${escapeHtml(log.room_number)}</span></span>`
+        : '';
+
+      const extraNoteHtml = (log.description && !hasUser && log.description !== 'Room Key' && log.description !== 'None' && log.description !== 'N/A' && log.description !== actorName)
+        ? `<div class="audit-extra-note">${escapeHtml(log.description)}</div>`
+        : '';
 
       return `
-        <div class="timeline-item">
-          <div class="timeline-panel">
-            <div class="timeline-heading">
-              <h4 class="timeline-title">${escapeHtml(titleText)}</h4>
-              <p class="timeline-heading-meta">
-                <i data-lucide="clock"></i>
-                <span>${escapeHtml(relTime)}</span>
-                <span class="timeline-meta-dot">•</span>
-                <span>${escapeHtml(detailText)}</span>
-                ${roomBadgeHtml}
-              </p>
+        <div class="timeline-item audit-item">
+          <div class="timeline-badge audit-timeline-node node-${escapeHtml(actionInfo.actionType)}" aria-hidden="true">
+            <i data-lucide="${escapeHtml(actionInfo.icon)}"></i>
+          </div>
+          <div class="timeline-panel audit-panel">
+            <div class="audit-row-header">
+              <time class="audit-time-badge" datetime="${escapeHtml(isoTime)}" title="${escapeHtml(relTime)}" aria-label="${escapeHtml(exactStamp)}">
+                <i data-lucide="clock" class="audit-clock-icon"></i>
+                <span>${escapeHtml(exactStamp)}</span>
+              </time>
             </div>
-            <div class="timeline-body">
-              <p>${escapeHtml(activityText)}</p>
+            <div class="audit-action-row">
+              <span class="audit-action-badge action-${escapeHtml(actionInfo.actionType)}">
+                <i data-lucide="${escapeHtml(actionInfo.icon)}"></i>
+                <span>${escapeHtml(actionInfo.label)}</span>
+              </span>
+              ${targetHtml}
             </div>
+            <div class="audit-meta-line">
+              <h4 class="audit-actor-name" title="${escapeHtml(detailText)}">${escapeHtml(actorName)}</h4>
+              <span class="audit-dot">·</span>
+              <span class="audit-role-text">${escapeHtml(detailText)}</span>
+            </div>
+            ${extraNoteHtml}
           </div>
         </div>
       `;

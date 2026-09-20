@@ -12,7 +12,7 @@
   min-height: 0;
   padding: 14px;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
   min-width: 0;
   width: 100%;
   max-width: 100%;
@@ -20,15 +20,9 @@
   flex-direction: column;
 }
 
-/* Subtle decorative background pattern */
+/* Subtle decorative background pattern (disabled to guarantee 100% pure white container parity) */
 .dashboard-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 90% 10%, rgba(30, 187, 215, 0.06) 0%, transparent 50%),
-    radial-gradient(circle at 10% 90%, rgba(14, 165, 201, 0.04) 0%, transparent 50%);
-  pointer-events: none;
+  display: none !important;
 }
 
 .dashboard-overview {
@@ -54,11 +48,13 @@
   flex: 1;
   min-height: 0;
   align-items: stretch;
+  position: relative;
+  z-index: 1;
 }
 
 .content-card {
-  background: var(--bg-white);
-  border-radius: 20px;
+  background: var(--bg-white, #FFFFFF);
+  border-radius: 14px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-light);
   padding: 16px;
@@ -69,6 +65,8 @@
   min-height: 0;
   overflow: hidden;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
 /* ─── Content Card Section Header Component Styles ─── */

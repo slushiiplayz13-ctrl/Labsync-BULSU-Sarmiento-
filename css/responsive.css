@@ -61,6 +61,15 @@
     max-height: 540px !important;
     overflow-y: auto !important;
   }
+
+  .activity-log-card .timeline-list,
+  .dashboard-main-grid #activityLogCard .timeline-list,
+  .dashboard-main-grid .activity-log-card .timeline-list {
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: 1 1 auto !important;
+  }
 }
 
 /* ─── Height-Constrained Windows / Minimized Screens ──────────────── */
@@ -118,6 +127,15 @@
     max-height: 540px !important;
     overflow-y: auto !important;
   }
+
+  .activity-log-card .timeline-list,
+  .dashboard-main-grid #activityLogCard .timeline-list,
+  .dashboard-main-grid .activity-log-card .timeline-list {
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: 1 1 auto !important;
+  }
 }
 
 /* ─── Tablet and Mobile Viewports (Max Width: 1024px) ───────────── */
@@ -161,6 +179,15 @@
     max-height: 520px !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .activity-log-card .timeline-list,
+  .dashboard-main-grid #activityLogCard .timeline-list,
+  .dashboard-main-grid .activity-log-card .timeline-list {
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: 1 1 auto !important;
   }
 
   /* ─── Workspace Mobile/Tablet Tabs (<= 1024px) ─── */
@@ -1166,4 +1193,27 @@
     width: 14px !important;
     height: 14px !important;
   }
+}
+
+/* ─── Activity Log Container & Timeline Zoom Resilience ──────────────── */
+body[data-page="room-status"] #activityLogCard,
+body[data-page="it-head-room-status"] #activityLogCard,
+.activity-log-card {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+body[data-page="room-status"] #activityLogCard .timeline-list,
+body[data-page="it-head-room-status"] #activityLogCard .timeline-list,
+.activity-log-card .timeline-list,
+.dashboard-main-grid #activityLogCard .timeline-list,
+.dashboard-main-grid .activity-log-card .timeline-list {
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
 }

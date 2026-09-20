@@ -124,17 +124,16 @@
         const roomLabel = notif.room_number ? `Room ${notif.room_number}` : 'Room';
 
         if (notif.status === 'Key Taken') {
-          if (notif.session_type === 'In Session') {
-            title = 'Key Taken (In Session)';
-            text = profText
-              ? `Key taken for ${roomLabel} by ${profText} (In Session).`
-              : `Key taken for ${roomLabel} (In Session).`;
-          } else if (profText) {
+          if (notif.session_type === 'Borrowed' || (profText && notif.session_type !== 'In Session')) {
             title = 'Key Borrowed';
-            text = `Key borrowed for ${roomLabel} by ${profText}.`;
+            text = profText
+              ? `Key borrowed for ${roomLabel} by ${profText}.`
+              : `Key borrowed for ${roomLabel}.`;
           } else {
-            title = 'Laboratory Key Taken';
-            text = `Key taken for ${roomLabel}.`;
+            title = 'Key Taken';
+            text = profText
+              ? `Key taken for ${roomLabel} by ${profText}.`
+              : `Key taken for ${roomLabel}.`;
           }
         } else if (notif.status === 'Key Returned') {
           title = 'Laboratory Key Returned';
@@ -227,7 +226,7 @@
           <div class="notif-toast-footer-row">
             <div class="notif-toast-tags">
               ${roomNum ? `<span class="notif-toast-tag room"><i data-lucide="map-pin"></i> RM ${escapeHtml(roomNum)}</span>` : ''}
-              ${!isReport && notif.session_type ? `<span class="notif-toast-tag session">${escapeHtml(notif.session_type)}</span>` : (!isReport && notif.status ? `<span class="notif-toast-tag status">${escapeHtml(notif.status)}</span>` : '')}
+              ${!isReport && notif.session_type && notif.session_type !== 'Borrowed' && notif.session_type !== 'None' && notif.session_type !== 'In Session' ? `<span class="notif-toast-tag session">${escapeHtml(notif.session_type)}</span>` : (!isReport && notif.status && !['Key Taken', 'Key Borrowed', 'Key Returned'].includes(notif.status) ? `<span class="notif-toast-tag status">${escapeHtml(notif.status)}</span>` : '')}
             </div>
             <span class="notif-toast-cta">View details <i data-lucide="chevron-right"></i></span>
           </div>
@@ -333,6 +332,12 @@
         notifications.forEach(notif => {
           // Safeguard: MIS Staff only receives PC hardware report notifications
           if (window.location.pathname.includes('mis-') && notif.type !== 'report') {
+            return;
+          }
+
+          // Exclude intermediate QR scan events (keep feeds focused on actual key custody events)
+          const notifStatus = String(notif.status || '').trim().toLowerCase();
+          if (notifStatus === 'qr code' || notifStatus === 'qr verified' || notifStatus === 'qr' || notifStatus.includes('qr verified')) {
             return;
           }
 
