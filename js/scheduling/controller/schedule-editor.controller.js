@@ -528,6 +528,9 @@
       });
     }
 
+    // Section combobox dropdown selector initialization
+    initSectionSelector();
+
     // Modal Action Buttons
     const modalSaveBtn = document.getElementById('modal-save-btn');
     if (modalSaveBtn) modalSaveBtn.addEventListener('click', closeCardDetailModal);
@@ -636,112 +639,179 @@
     }
   }
 
-  // Section Selector State & Logic
+  // Standard Sections Dataset: 1st to 4th Year, Sections A-E, Batches 1 & 2 (40 options total)
+  const YEARS = [
+    { num: 1, label: '1st Year' },
+    { num: 2, label: '2nd Year' },
+    { num: 3, label: '3rd Year' },
+    { num: 4, label: '4th Year' }
+  ];
+  const SECTION_LETTERS = ['A', 'B', 'C', 'D', 'E'];
+  const BATCHES = [1, 2];
+
+  const STANDARD_SECTIONS = [];
+  YEARS.forEach(y => {
+    SECTION_LETTERS.forEach(l => {
+      BATCHES.forEach(b => {
+        STANDARD_SECTIONS.push({
+          code: `${y.num}${l}-${b}`,
+          year: y.num,
+          yearLabel: y.label,
+          letter: l,
+          batch: b,
+          label: `${y.label} • Batch ${b}`
+        });
+      });
+    });
+  });
+
+  // Legacy state variables kept for backward compatibility
   let selectedYear = '';
   let selectedLetter = '';
   let selectedBatch = '';
 
   /**
-   * Resets the section selector choices and preview value.
+   * Resets the section selector choices, input value, and dropdown filter state.
    */
   function resetSectionSelector() {
+    const input = document.getElementById('block-section');
+    if (input) input.value = '';
+
+    const sectionWrapper = document.getElementById('section-wrapper');
+    if (sectionWrapper) {
+      sectionWrapper.classList.remove('open');
+      const items = sectionWrapper.querySelectorAll('.custom-select-option');
+      items.forEach(item => {
+        item.style.display = 'flex';
+        item.classList.remove('selected');
+      });
+    }
+
     selectedYear = '';
     selectedLetter = '';
     selectedBatch = '';
-    const hiddenInput = document.getElementById('block-section');
-    if (hiddenInput) hiddenInput.value = '';
     const preview = document.getElementById('section-preview');
     if (preview) preview.textContent = '';
-
     document.querySelectorAll('.sec-choice-btn:not(.sec-add-btn)').forEach(btn => {
       btn.classList.remove('selected', 'active');
     });
   }
 
   /**
-   * Recalculates and updates the composed section code (e.g. 2E1).
+   * Safe compatibility implementation of updateSectionValue.
+   * Updates block-section input if passed a string value.
+   * @param {string} [val]
    */
-  function updateSectionValue() {
+  function updateSectionValue(val) {
     const hiddenInput = document.getElementById('block-section');
-    const preview = document.getElementById('section-preview');
-
-    if (selectedYear && selectedLetter && selectedBatch) {
-      const code = `${selectedYear}${selectedLetter}${selectedBatch}`;
-      if (hiddenInput) hiddenInput.value = code;
-      if (preview) preview.textContent = code;
-    } else {
-      if (hiddenInput) hiddenInput.value = '';
-      const partial = `${selectedYear || '?'}${selectedLetter || '?'}${selectedBatch || '?'}`;
-      if (preview) preview.textContent = partial === '???' ? '' : partial;
+    if (hiddenInput && typeof val === 'string') {
+      hiddenInput.value = val;
     }
   }
 
   /**
-   * Initializes Year, Section Letter (with '+' custom adder), and Batch buttons.
+   * Initializes the Section combobox dropdown with 40 standard sections,
+   * live search filtering, and custom section support.
    */
   function initSectionSelector() {
-    const attachBtnHandler = (btn) => {
-      if (btn.dataset.bound) return;
-      btn.dataset.bound = 'true';
+    const sectionWrapper = document.getElementById('section-wrapper');
+    const blockSectionInput = document.getElementById('block-section');
+    const sectionDropdown = document.getElementById('section-select-dropdown');
+    const sectionTrigger = sectionWrapper ? sectionWrapper.querySelector('.custom-select-trigger') : null;
 
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const type = btn.dataset.type;
-        const val = btn.dataset.value;
-        if (!type || !val) return;
+    if (!sectionWrapper || !blockSectionInput || !sectionDropdown) return;
 
-        const group = btn.closest('.simple-btn-group');
-        if (group) {
-          group.querySelectorAll('.sec-choice-btn:not(.sec-add-btn)').forEach(b => {
-            b.classList.remove('selected', 'active');
+    // Populate standard sections if not already populated
+    if (sectionDropdown.children.length === 0) {
+      STANDARD_SECTIONS.forEach(sec => {
+        const item = document.createElement('div');
+        item.className = 'custom-select-option';
+        if (item.classList && typeof item.classList.add === 'function') {
+          item.classList.add('custom-select-option');
+        }
+        item.dataset.value = sec.code;
+        item.setAttribute('data-value', sec.code);
+        item.innerHTML = `
+          <span class="section-option-code" style="font-weight: 600; font-size: 13px;">${sec.code}</span>
+          <span class="section-option-meta" style="font-size: 11px; opacity: 0.65; font-weight: 500;">${sec.label}</span>
+        `;
+
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const code = item.getAttribute('data-value') || sec.code;
+          blockSectionInput.value = code;
+          sectionWrapper.classList.remove('open');
+
+          sectionDropdown.querySelectorAll('.custom-select-option').forEach(o => {
+            o.classList.remove('selected');
           });
-        }
-        btn.classList.add('selected', 'active');
-
-        if (type === 'year') selectedYear = val;
-        else if (type === 'letter') selectedLetter = val;
-        else if (type === 'batch') selectedBatch = val;
-
-        updateSectionValue();
-      });
-    };
-
-    document.querySelectorAll('.sec-choice-btn:not(.sec-add-btn)').forEach(attachBtnHandler);
-
-    // '+' Button for adding custom section letter
-    const addBtn = document.getElementById('simple-add-letter-btn');
-    const letterGroup = document.getElementById('sec-letter-group');
-
-    if (addBtn && letterGroup && !addBtn.dataset.bound) {
-      addBtn.dataset.bound = 'true';
-      addBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const custom = prompt('Enter section letter (e.g. F, G):');
-        if (!custom) return;
-
-        const cleanVal = custom.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3);
-        if (!cleanVal) return;
-
-        let targetBtn = letterGroup.querySelector(`.sec-choice-btn[data-value="${cleanVal}"]`);
-        if (!targetBtn) {
-          targetBtn = document.createElement('button');
-          targetBtn.type = 'button';
-          targetBtn.className = 'sec-choice-btn';
-          targetBtn.dataset.type = 'letter';
-          targetBtn.dataset.value = cleanVal;
-          targetBtn.textContent = cleanVal;
-          attachBtnHandler(targetBtn);
-          letterGroup.insertBefore(targetBtn, addBtn);
-        }
-
-        letterGroup.querySelectorAll('.sec-choice-btn:not(.sec-add-btn)').forEach(b => {
-          b.classList.remove('selected', 'active');
+          item.classList.add('selected');
         });
-        targetBtn.classList.add('selected', 'active');
-        selectedLetter = cleanVal;
-        updateSectionValue();
+
+        sectionDropdown.appendChild(item);
       });
     }
+
+    // Ensure idempotent binding
+    if (sectionWrapper.dataset.boundCombobox === 'true') return;
+    sectionWrapper.dataset.boundCombobox = 'true';
+
+    const openSectionDropdown = () => {
+      if (sectionDropdown.children.length > 0) {
+        document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+          if (w !== sectionWrapper) w.classList.remove('open');
+        });
+
+        if (!blockSectionInput.value.trim()) {
+          sectionDropdown.querySelectorAll('.custom-select-option').forEach(opt => {
+            opt.style.display = 'flex';
+          });
+        }
+        sectionWrapper.classList.add('open');
+      }
+    };
+
+    blockSectionInput.addEventListener('focus', openSectionDropdown);
+    blockSectionInput.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openSectionDropdown();
+    });
+
+    if (sectionTrigger) {
+      sectionTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openSectionDropdown();
+        blockSectionInput.focus();
+      });
+    }
+
+    blockSectionInput.addEventListener('input', () => {
+      const rawVal = blockSectionInput.value;
+      const filter = rawVal.toLowerCase().trim().replace(/\s+/g, ' ');
+      const items = sectionDropdown.querySelectorAll('.custom-select-option');
+      let matchCount = 0;
+
+      items.forEach(item => {
+        const val = (item.getAttribute('data-value') || '').toLowerCase().trim().replace(/\s+/g, ' ');
+        const text = item.textContent.toLowerCase().trim().replace(/\s+/g, ' ');
+
+        const isMatch = !filter || val.includes(filter) || text.includes(filter);
+        item.style.display = isMatch ? 'flex' : 'none';
+        if (isMatch) matchCount++;
+
+        if (filter && (val === filter || val === filter.replace(/\s+/g, ''))) {
+          item.classList.add('selected');
+        } else {
+          item.classList.remove('selected');
+        }
+      });
+
+      if (matchCount > 0) {
+        sectionWrapper.classList.add('open');
+      } else {
+        sectionWrapper.classList.remove('open');
+      }
+    });
   }
 
   const scheduleEditorController = {
@@ -753,7 +823,8 @@
     setupDirtyGuard,
     initSectionSelector,
     resetSectionSelector,
-    updateSectionValue
+    updateSectionValue,
+    STANDARD_SECTIONS
   };
 
   global.scheduleEditorController = scheduleEditorController;
@@ -764,6 +835,7 @@
   global.showUnsavedChangesModal = showUnsavedChangesModal;
   global.resetSectionSelector = resetSectionSelector;
   global.initSectionSelector = initSectionSelector;
+  global.updateSectionValue = updateSectionValue;
 
 })(typeof window !== 'undefined' ? window : this);
 
