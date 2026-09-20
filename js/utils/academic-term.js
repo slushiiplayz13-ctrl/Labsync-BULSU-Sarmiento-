@@ -79,22 +79,30 @@
 
     /**
      * Generates a list of Academic Year ranges for select dropdowns starting from the active year.
+     * Starts at the current active year (2026-2027) and preserves it even when a future year is selected.
      * @param {string} [baseAY] - e.g. "2026-2027"
-     * @param {number} [pastCount=0] - Number of previous AYs to include (default 0: no older years)
+     * @param {number} [pastCount=0] - Number of previous AYs to include (default 0: starts at current active year)
      * @param {number} [futureCount=5] - Number of future AYs to include
      * @returns {string[]} e.g. ["2026-2027", "2027-2028", "2028-2029", ...]
      */
     getAvailableAcademicYears(baseAY, pastCount = 0, futureCount = 5) {
-      let startYear;
-      if (baseAY && /^\d{4}-\d{4}$/.test(baseAY)) {
-        startYear = parseInt(baseAY.split('-')[0], 10);
-      } else {
-        const activeAY = this.getCurrentAcademicYear();
-        startYear = parseInt(activeAY.split('-')[0], 10);
+      const activeAY = this.getCurrentAcademicYear();
+      const activeYear = parseInt(activeAY.split('-')[0], 10);
+
+      let selectedYear = activeYear;
+      if (baseAY) {
+        const clean = String(baseAY).replace(/[\u2013\u2014]/g, '-').trim();
+        if (/^\d{4}-\d{4}$/.test(clean)) {
+          selectedYear = parseInt(clean.split('-')[0], 10);
+        }
       }
 
+      // Anchor starting point to activeYear - pastCount (starts at activeYear when pastCount=0)
+      const minYear = Math.min(activeYear - pastCount, selectedYear < activeYear ? selectedYear : activeYear);
+      const maxYear = Math.max(activeYear + futureCount, selectedYear + 1);
+
       const years = [];
-      for (let y = startYear - pastCount; y <= startYear + futureCount; y++) {
+      for (let y = minYear; y <= maxYear; y++) {
         years.push(`${y}-${y + 1}`);
       }
       return years;

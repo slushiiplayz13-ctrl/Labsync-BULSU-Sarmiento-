@@ -14,14 +14,18 @@
    */
   function getSelectedAcademicYear() {
     const ayWrapper = document.getElementById('academic-year-wrapper') || document.getElementById('academic-year-start-wrapper');
-    const raw = ayWrapper?.dataset?.value ||
+    let raw = ayWrapper?.dataset?.value ||
       ayWrapper?.querySelector('.custom-select-option.selected')?.getAttribute('data-value') ||
-      ayWrapper?.querySelector('.custom-select-trigger span')?.textContent?.trim()?.replace('–', '-');
+      ayWrapper?.querySelector('.custom-select-trigger span')?.textContent?.trim();
+    if (raw) {
+      raw = raw.replace(/[\u2013\u2014]/g, '-').trim();
+    }
     if (raw && raw !== 'Select' && /^\d{4}-\d{4}$/.test(raw)) {
       return raw;
     }
     if (global.AcademicTerm && typeof global.AcademicTerm.getSelectedTerm === 'function') {
-      return global.AcademicTerm.getSelectedTerm('my_schedule').academicYear;
+      const termAy = global.AcademicTerm.getSelectedTerm('my_schedule')?.academicYear;
+      if (termAy) return String(termAy).replace(/[\u2013\u2014]/g, '-').trim();
     }
     const currentYear = new Date().getFullYear();
     return `${currentYear}-${currentYear + 1}`;
@@ -77,14 +81,28 @@
     const ay = academicYear || getSelectedAcademicYear();
     const sem = semester || getSelectedSemester();
 
-    const signature = createFacultyScheduleSignature(schedules, ay, sem);
+    // Filter schedules to ensure they belong to the selected academic year and semester if term metadata is present
+    const matchingSchedules = Array.isArray(schedules)
+      ? schedules.filter(s => {
+          const matchAy = !s.Academic_Year || s.Academic_Year === ay;
+          const matchSem = !s.Semester || s.Semester === sem;
+          return matchAy && matchSem;
+        })
+      : [];
+
+    const signature = createFacultyScheduleSignature(matchingSchedules, ay, sem);
     if (container._lastRenderSignature === signature && container.querySelector('.schedule-columns, .ui-empty-state') !== null) {
       // Unchanged schedule, skip DOM replacement to prevent flicker
       return;
     }
     container._lastRenderSignature = signature;
 
-    if (!Array.isArray(schedules) || schedules.length === 0) {
+    if (matchingSchedules.length === 0) {
+      global.latestUserSchedules = [];
+      if (typeof global.updateStudioPreview === 'function') {
+        global.updateStudioPreview();
+      }
+
       container.innerHTML = `
         <div class="ui-empty-state" style="width: 100%; flex: 1; height: 100%; min-height: 280px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0; box-sizing: border-box;">
           <div class="ui-empty-icon" style="background:#E8F9FC; color:#1EBBD7;">
@@ -102,13 +120,15 @@
 
     const colorsModule = global.facultyScheduleColors;
     const subjectMap = colorsModule && typeof colorsModule.buildSubjectColorMap === 'function'
-      ? colorsModule.buildSubjectColorMap(schedules)
+      ? colorsModule.buildSubjectColorMap(matchingSchedules)
       : new Map();
 
-    global.latestUserSchedules = schedules.map(s => {
+    global.latestUserSchedules = matchingSchedules.map(s => {
       const palette = subjectMap.get((s.Subject_Name || 'General Subject').trim());
       return {
         ...s,
+        Academic_Year: s.Academic_Year || ay,
+        Semester: s.Semester || sem,
         bg: palette ? palette.bg : 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
         color: palette ? palette.color : '#FFFFFF'
       };
@@ -116,7 +136,7 @@
 
     const renderer = global.facultyScheduleRenderer;
     if (renderer && typeof renderer.renderFacultyScheduleLayout === 'function') {
-      container.innerHTML = renderer.renderFacultyScheduleLayout(schedules, subjectMap);
+      container.innerHTML = renderer.renderFacultyScheduleLayout(matchingSchedules, subjectMap);
     }
 
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
@@ -128,7 +148,11 @@
       filterModule.initLegendFilter(container);
     }
 
-    initScheduleDayTabs(container, schedules);
+    initScheduleDayTabs(container, matchingSchedules);
+
+    if (typeof global.updateStudioPreview === 'function') {
+      global.updateStudioPreview();
+    }
   }
 
   /**
@@ -268,6 +292,10 @@
       if (global.AcademicTerm && typeof global.AcademicTerm.setSelectedTerm === 'function') {
         global.AcademicTerm.setSelectedTerm('my_schedule', ay, sem);
       }
+      global.latestUserSchedules = [];
+      if (typeof global.updateStudioPreview === 'function') {
+        global.updateStudioPreview();
+      }
       loadUserSchedule();
     }
 
@@ -295,12 +323,16 @@
     loadUserSchedule,
     renderFacultySchedule,
     createFacultyScheduleSignature,
-    initSchedulePage
+    initSchedulePage,
+    getSelectedAcademicYear,
+    getSelectedSemester
   };
 
   global.facultyScheduleController = facultyScheduleController;
   global.loadUserSchedule = loadUserSchedule;
   global.renderFacultySchedule = renderFacultySchedule;
   global.initSchedulePage = initSchedulePage;
+  global.getSelectedAcademicYear = getSelectedAcademicYear;
+  global.getSelectedSemester = getSelectedSemester;
 
 })(typeof window !== 'undefined' ? window : this);

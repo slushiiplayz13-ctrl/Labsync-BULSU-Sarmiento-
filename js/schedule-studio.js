@@ -13,6 +13,10 @@
     showFooter: true
   };
 
+  const escapeHtml = (typeof window !== 'undefined' && typeof window.escapeHtml === 'function')
+    ? window.escapeHtml
+    : ((s) => (s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : ''));
+
   // Inject Modal Structure into DOM if missing
   function injectStudioModal() {
     if (document.getElementById('studio-modal-overlay')) return;
@@ -246,11 +250,49 @@
     // Fetch user info from active page
     const profileName = document.querySelector('.profile-name')?.textContent || 'Faculty Schedule';
     const profileRole = document.querySelector('.profile-role')?.textContent || 'BulSU Sarmiento Campus';
-    const ayVal = document.getElementById('academic-year-wrapper')?.dataset.value || '2026-2027';
-    const semVal = document.getElementById('semester-wrapper')?.dataset.value || '1st Semester';
+    const rawAyVal = document.getElementById('academic-year-wrapper')?.dataset?.value ||
+      document.getElementById('academic-year-wrapper')?.querySelector('.custom-select-trigger span')?.textContent?.trim() ||
+      (window.facultyScheduleController && typeof window.facultyScheduleController.getSelectedAcademicYear === 'function'
+        ? window.facultyScheduleController.getSelectedAcademicYear()
+        : '2026-2027');
+    const rawSemVal = document.getElementById('semester-wrapper')?.dataset?.value ||
+      document.getElementById('semester-wrapper')?.querySelector('.custom-select-trigger span')?.textContent?.trim() ||
+      (window.facultyScheduleController && typeof window.facultyScheduleController.getSelectedSemester === 'function'
+        ? window.facultyScheduleController.getSelectedSemester()
+        : '1st Semester');
 
-    // Get active schedule items stored by schedule.js or extracted from DOM
-    const schedules = window.latestUserSchedules || extractSchedulesFromDOM();
+    const normalizeAY = (val) => String(val || '').replace(/[\u2013\u2014]/g, '-').trim();
+    const normalizeSem = (val) => String(val || '').trim().toLowerCase();
+
+    const ayVal = normalizeAY(rawAyVal);
+    const semVal = String(rawSemVal).trim();
+
+    // Check if main schedule page has an empty state rendered
+    const scheduleContainer = document.getElementById('schedule-container');
+    const isEmptyStateInDOM = scheduleContainer && scheduleContainer.querySelector('.ui-empty-state') !== null;
+
+    // Get active schedule items stored by controller or extracted from DOM
+    let schedules = [];
+    if (!isEmptyStateInDOM) {
+      if (Array.isArray(window.latestUserSchedules)) {
+        schedules = window.latestUserSchedules;
+      } else {
+        schedules = extractSchedulesFromDOM(rawAyVal, rawSemVal);
+      }
+    }
+
+    // Strict term filter: do not allow schedules from another AY/Semester to render
+    if (Array.isArray(schedules) && schedules.length > 0) {
+      schedules = schedules.filter(s => {
+        const itemAy = normalizeAY(s.Academic_Year);
+        const matchAy = !itemAy || itemAy === ayVal;
+
+        const itemSem = normalizeSem(s.Semester);
+        const matchSem = !itemSem || itemSem === normalizeSem(semVal);
+
+        return matchAy && matchSem;
+      });
+    }
 
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dayShorts = { Monday: 'MON', Tuesday: 'TUE', Wednesday: 'WED', Thursday: 'THU', Friday: 'FRI', Saturday: 'SAT', Sunday: 'SUN' };
@@ -337,7 +379,7 @@
         </div>
         ${state.showMeta ? `
           <div class="canvas-meta-badge">
-            <i data-lucide="calendar" style="width:12px;height:12px;"></i> AY ${escapeHtml(ayVal)} | ${escapeHtml(semVal)}
+            <i data-lucide="calendar" style="width:12px;height:12px;"></i> AY ${escapeHtml(rawAyVal)} | ${escapeHtml(semVal)}
           </div>
         ` : ''}
       </div>
@@ -364,7 +406,7 @@
   }
 
   // Fallback to extract schedules if window.latestUserSchedules is not set
-  function extractSchedulesFromDOM() {
+  function extractSchedulesFromDOM(ayVal, semVal) {
     const list = [];
     document.querySelectorAll('.sg-cell.filled').forEach(cell => {
       const dayCol = cell.closest('.day-column');
@@ -393,6 +435,8 @@
         Subject_Name: subj || 'Subject',
         Room_Name: room || 'TBA',
         Section_Name: sec || '',
+        Academic_Year: ayVal,
+        Semester: semVal,
         bg: cell.style.background || 'linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 100%)',
         color: cell.style.color || '#FFFFFF'
       });
@@ -461,5 +505,7 @@
       downloadBtn.disabled = false;
     }
   }
+
+  window.updateStudioPreview = updateStudioPreview;
 
 })();

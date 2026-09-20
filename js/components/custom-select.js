@@ -153,11 +153,14 @@
       targetId = arg1;
     }
 
-    if (typeof arg2 === 'string' && /^\d{4}-\d{4}$/.test(arg2)) {
-      initAY = arg2;
+    const cleanArg2 = typeof arg2 === 'string' ? arg2.replace(/[\u2013\u2014]/g, '-').trim() : '';
+    const cleanArg3 = typeof arg3 === 'string' ? arg3.replace(/[\u2013\u2014]/g, '-').trim() : '';
+
+    if (cleanArg2 && /^\d{4}-\d{4}$/.test(cleanArg2)) {
+      initAY = cleanArg2;
       if (typeof arg3 === 'function') callback = arg3;
-    } else if (typeof arg3 === 'string' && /^\d{4}-\d{4}$/.test(arg3)) {
-      initAY = arg3;
+    } else if (cleanArg3 && /^\d{4}-\d{4}$/.test(cleanArg3)) {
+      initAY = cleanArg3;
       if (typeof arg4 === 'function') callback = arg4;
     } else if (typeof arg2 === 'function') {
       callback = arg2;
@@ -178,6 +181,16 @@
       for (let y = currentYear; y <= currentYear + 5; y++) {
         yearOptions.push(`${y}-${y + 1}`);
       }
+    }
+
+    // Guarantee defaultAY (current active year) and initAY are always present in options
+    if (defaultAY && !yearOptions.includes(defaultAY)) {
+      yearOptions.push(defaultAY);
+      yearOptions.sort();
+    }
+    if (initAY && !yearOptions.includes(initAY) && /^\d{4}-\d{4}$/.test(initAY)) {
+      yearOptions.push(initAY);
+      yearOptions.sort();
     }
 
     dropdown.innerHTML = '';

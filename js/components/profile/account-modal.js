@@ -485,7 +485,7 @@
 
                     <div style="flex:1; min-width:260px; display:flex; flex-direction:column; gap:20px;">
                       <div>
-                        <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Full Name *</label>
+                        <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Full Name</label>
                         <input type="text" id="settings-name" maxlength="60" required style="width:100%;box-sizing:border-box;padding:12px 16px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;transition:all 0.2s;background:var(--bg-card, #F8FAFC);color:var(--text-dark);" placeholder="Your full name">
                         <div id="settings-name-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Full name must not exceed 60 characters.</div>
                       </div>
@@ -496,7 +496,7 @@
                           <div id="settings-email-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Invalid email address (e.g., user@domain.com)</div>
                         </div>
                         <div>
-                          <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Contact Number *</label>
+                          <label style="display:block;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:8px;">Contact Number</label>
                           <input type="tel" id="settings-phone" inputmode="numeric" maxlength="11" pattern="[0-9]{11}" required style="width:100%;box-sizing:border-box;padding:12px 16px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;font-family:var(--font-body);outline:none;background:var(--bg-card, #F8FAFC);color:var(--text-dark);" placeholder="09171234567">
                           <p style="font-size:11.5px;color:var(--text-muted);margin:4px 0 0 0;">Format: Exactly 11-digit mobile number (e.g. 09XXXXXXXXX)</p>
                           <div id="settings-phone-error" style="display:none;color:#EF4444;font-size:12px;margin-top:4px;font-weight:600;"><i data-lucide="alert-circle" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Contact number must contain exactly 11 digits.</div>
