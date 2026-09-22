@@ -40,14 +40,10 @@ async function getAllLaboratories() {
         const currentHolderName = room.Current_Key_Holder_Name || null;
 
         const isScheduledProfHolder = keyAbsent && hasScheduledClass && (
-            (room.Current_User_ID != null && room.Scheduled_User_ID != null && String(room.Current_User_ID) === String(room.Scheduled_User_ID)) ||
-            (room.Current_User_ID == null && scheduledProfName != null)
+            room.Current_User_ID != null && room.Scheduled_User_ID != null && String(room.Current_User_ID) === String(room.Scheduled_User_ID)
         );
 
-        let resolvedHolderName = currentHolderName;
-        if (!resolvedHolderName && keyAbsent && hasScheduledClass) {
-            resolvedHolderName = scheduledProfName;
-        }
+        const resolvedHolderName = (room.Current_User_ID != null) ? currentHolderName : null;
 
         const formattedScheduledProf = scheduledProfName
             ? (scheduledProfName.startsWith('Prof.') ? scheduledProfName : `Prof. ${scheduledProfName}`)

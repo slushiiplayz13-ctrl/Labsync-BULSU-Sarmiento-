@@ -3,7 +3,7 @@
 /**
  * IoT System Configuration & Constants
  */
-const OFFLINE_THRESHOLD_MS = 15 * 1000; // 15 seconds (3 missed 5-second heartbeats)
+const OFFLINE_THRESHOLD_MS = 25 * 1000; // 25 seconds (2.5 missed 10-second heartbeats + network buffer)
 const CLAIM_EXPIRATION_MS = 15 * 60 * 1000; // 15 minutes claim validity window
 const DEFAULT_HARDWARE_ROOMS = ['203', '204']; // Default physical key box slots
 

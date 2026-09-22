@@ -465,13 +465,22 @@ bool sendScanToServer(String scannedToken) {
 
 // Key slot transition monitor
 void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expectedKey) {
-  KeyType currentState = detectKeyType(pin);
+  KeyType candidateState = detectKeyType(pin);
   
-  if (currentState != lastState) {
-    delay(100); // 100ms debounce
-    KeyType verifyState = detectKeyType(pin);
+  if (candidateState != lastState) {
+    // Continuous stable-state verification over 250ms (5 samples x 50ms)
+    // Rejects momentary mechanical chatter/bounce from loose 6.35mm key jacks
+    bool isStable = true;
+    for (int i = 0; i < 5; i++) {
+      delay(50);
+      if (detectKeyType(pin) != candidateState) {
+        isStable = false;
+        break;
+      }
+    }
     
-    if (currentState == verifyState) {
+    if (isStable) {
+      KeyType verifyState = candidateState;
       // 1. Wrong Key Inserted -> Sound Alarm
       if (verifyState != KEY_NONE && verifyState != expectedKey) {
         String insertedKeyName = (verifyState == KEY_203) ? "203" : "204";
@@ -664,8 +673,8 @@ void loop() {
   handleKeySlot(KEY_PIN_203, lastSlotState203, "203", KEY_203);
   handleKeySlot(KEY_PIN_204, lastSlotState204, "204", KEY_204);
 
-  // 4. Periodic 10-second Heartbeat (only when idle, avoids colliding with QR scan or authorization)
-  if (!isAuthorized && millis() - lastHeartbeatTime >= HEARTBEAT_INTERVAL) {
+  // 4. Periodic 10-second Heartbeat (transmits continuously to keep server presence active)
+  if (millis() - lastHeartbeatTime >= HEARTBEAT_INTERVAL) {
     lastHeartbeatTime = millis();
     sendHeartbeatToServer();
   }

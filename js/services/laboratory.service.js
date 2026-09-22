@@ -159,9 +159,6 @@ function renderLabCards(labs, targetContainer) {
         (room.Current_Status || '').toLowerCase() === 'in session';
       if (isAbsent) {
         let rawHolder = room.Current_Key_Holder;
-        if (!rawHolder && room.Scheduled_Class && room.Scheduled_Class.professor) {
-          rawHolder = room.Scheduled_Class.professor;
-        }
         if (rawHolder) {
           const cleanHolder = String(rawHolder).replace(/^Prof\.?\s*/i, '').trim();
           keyHolderText = cleanHolder;

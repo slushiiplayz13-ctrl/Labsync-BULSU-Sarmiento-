@@ -7,7 +7,7 @@ async function findRoomIdByNumber(roomNumber, executor = db) {
     const clean = raw.replace(/^(room|rm|laboratory|lab)\s*[-:]?\s*/i, '').trim();
     const withRoom = `Room ${clean}`;
     return executor.query(
-        'SELECT Room_ID, Room_Number, Key_Status FROM laboratories WHERE Room_Number = ? OR Room_Number = ? OR Room_Number = ?',
+        'SELECT Room_ID, Room_Number, Key_Status, Current_User_ID FROM laboratories WHERE Room_Number = ? OR Room_Number = ? OR Room_Number = ?',
         [raw, clean, withRoom]
     );
 }

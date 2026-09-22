@@ -177,8 +177,7 @@ async function getITHeadSummary(sessionUserId, academicYear, semester) {
         const keyAbsent = r.Key_Status === 'Absent';
         const hasScheduledClass = !!r.Subject_Name;
         const isScheduledProfHolder = keyAbsent && hasScheduledClass && (
-            (r.Current_User_ID != null && r.Scheduled_User_ID != null && String(r.Current_User_ID) === String(r.Scheduled_User_ID)) ||
-            (r.Current_User_ID == null && r.Scheduled_Professor_Name != null)
+            r.Current_User_ID != null && r.Scheduled_User_ID != null && String(r.Current_User_ID) === String(r.Scheduled_User_ID)
         );
 
         if (!keyAbsent) {

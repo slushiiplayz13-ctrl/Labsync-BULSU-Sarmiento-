@@ -265,21 +265,7 @@
         detailText = 'Alarm Cleared';
         hasUser = true;
       } else {
-        let profName = (log.description && log.description !== 'Room Key' && log.description !== 'Unidentified Person' && log.description !== 'None' && log.description !== 'N/A') ? log.description : '';
-        if (!profName && log.room_number) {
-          try {
-            const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
-            if (Array.isArray(cachedLabs)) {
-              const matched = cachedLabs.find(r => String(r.Room_Number).trim().toLowerCase() === String(log.room_number).trim().toLowerCase());
-              if (matched) {
-                const candidate = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
-                if (candidate && candidate !== 'None' && candidate !== 'N/A') {
-                  profName = candidate;
-                }
-              }
-            }
-          } catch (e) {}
-        }
+        let profName = (log.description && log.description !== 'Room Key' && log.description !== 'Unidentified Person' && log.description !== 'Unregistered' && log.description !== 'None' && log.description !== 'N/A') ? log.description : '';
 
         hasUser = !!profName && profName !== 'None' && profName !== 'N/A';
         actorName = hasUser

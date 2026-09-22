@@ -64,18 +64,7 @@
       } else {
         iconName = 'key-round';
         iconClass = 'notif-icon-occupancy';
-        let profName = (notif.description && notif.description !== 'Room Key' && notif.description !== 'Unidentified Person' && notif.description !== 'None' && notif.description !== 'N/A') ? notif.description : '';
-        if (!profName && notif.room_number) {
-          try {
-            const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
-            if (Array.isArray(cachedLabs)) {
-              const matched = cachedLabs.find(r => String(r.Room_Number).trim().toLowerCase() === String(notif.room_number).trim().toLowerCase());
-              if (matched) {
-                profName = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
-              }
-            }
-          } catch (e) {}
-        }
+        let profName = (notif.description && notif.description !== 'Room Key' && notif.description !== 'Unidentified Person' && notif.description !== 'Unregistered' && notif.description !== 'None' && notif.description !== 'N/A') ? notif.description : '';
 
         const hasUser = !!profName && profName !== 'None' && profName !== 'N/A';
         const profText = hasUser

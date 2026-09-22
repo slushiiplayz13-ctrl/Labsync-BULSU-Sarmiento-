@@ -340,16 +340,28 @@
       } else {
         const cleanName = k.Current_Holder_Name
           ? (k.Current_Holder_Name.startsWith('Prof.') ? k.Current_Holder_Name : `Prof. ${k.Current_Holder_Name}`)
-          : 'Faculty Member';
-        custodyHtml = `
-          <div class="custody-cell-wrap">
-            ${statusBadgeHtml}
-            <div class="custody-holder-row">
-              <i data-lucide="user-check" class="custody-holder-icon"></i>
-              <span class="custody-holder-name">${escapeHtml(cleanName)}</span>
+          : null;
+        if (cleanName) {
+          custodyHtml = `
+            <div class="custody-cell-wrap">
+              ${statusBadgeHtml}
+              <div class="custody-holder-row">
+                <i data-lucide="user-check" class="custody-holder-icon"></i>
+                <span class="custody-holder-name">${escapeHtml(cleanName)}</span>
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        } else {
+          custodyHtml = `
+            <div class="custody-cell-wrap">
+              ${statusBadgeHtml}
+              <div class="custody-holder-row custody-holder-unregistered" style="color: #D97706;">
+                <i data-lucide="user-x" class="custody-holder-icon" style="color: #D97706;"></i>
+                <span class="custody-holder-name amber-text" style="color: #D97706;">Unregistered</span>
+              </div>
+            </div>
+          `;
+        }
       }
 
       // Last Activity display (prominent two-line date & time with status badge)
