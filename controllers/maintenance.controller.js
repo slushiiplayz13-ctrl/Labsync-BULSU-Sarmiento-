@@ -81,9 +81,9 @@ async function deleteReport(req, res, next) {
 
 async function getNotifications(req, res, next) {
     try {
-        const sessionUserId = req.session ? req.session.userId : null;
-        const sessionUserRole = req.session ? req.session.userRole : null;
-        const result = await maintenanceService.getNotifications(sessionUserId, sessionUserRole);
+        const sessionUserId = req.session ? (req.session.userId || (req.session.user && req.session.user.id)) : null;
+        const sessionUserRole = req.session ? (req.session.userRole || (req.session.user && req.session.user.role)) : null;
+        const result = await maintenanceService.getNotifications(sessionUserId, sessionUserRole, req.query);
         return res.status(result.status).json(result.data);
     } catch (err) {
         next(err);

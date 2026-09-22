@@ -134,10 +134,12 @@
         ? fetchLabsFn().catch(() => [])
         : fetch('/api/laboratories', { credentials: 'include' }).then(r => r.ok ? r.json() : []).catch(() => []);
 
-      const fetchNotifsFn = window.fetchNotifications || (window.notificationService && window.notificationService.fetchNotifications);
-      const notifsPromise = typeof fetchNotifsFn === 'function'
-        ? fetchNotifsFn().then(n => n || []).catch(() => [])
-        : Promise.resolve([]);
+      const fetchTimelineFn = window.fetchTimelineActivities || (window.notificationService && window.notificationService.fetchTimelineActivities);
+      const notifsPromise = typeof fetchTimelineFn === 'function'
+        ? fetchTimelineFn().then(n => n || []).catch(() => [])
+        : ((window.fetchNotifications || (window.notificationService && window.notificationService.fetchNotifications))
+          ? (window.fetchNotifications || window.notificationService.fetchNotifications)({ scope: 'timeline' }).then(n => n || []).catch(() => [])
+          : Promise.resolve([]));
 
       const [rooms, notifs] = await Promise.all([roomsPromise, notifsPromise]);
 

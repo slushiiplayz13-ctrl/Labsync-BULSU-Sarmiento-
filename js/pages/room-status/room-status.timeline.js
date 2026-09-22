@@ -364,11 +364,15 @@
     const currentReqId = ++_timelineRequestId;
 
     try {
-      const fetchNotifsFn = (global.notificationService && typeof global.notificationService.fetchNotifications === 'function')
-        ? global.notificationService.fetchNotifications
-        : (typeof global.fetchNotifications === 'function' ? global.fetchNotifications : null);
+      const fetchTimelineFn = (global.notificationService && typeof global.notificationService.fetchTimelineActivities === 'function')
+        ? global.notificationService.fetchTimelineActivities
+        : (typeof global.fetchTimelineActivities === 'function' ? global.fetchTimelineActivities : null);
 
-      const activities = typeof fetchNotifsFn === 'function' ? await fetchNotifsFn() : null;
+      const activities = typeof fetchTimelineFn === 'function'
+        ? await fetchTimelineFn()
+        : ((global.notificationService && typeof global.notificationService.fetchNotifications === 'function')
+          ? await global.notificationService.fetchNotifications({ scope: 'timeline' })
+          : (typeof global.fetchNotifications === 'function' ? await global.fetchNotifications({ scope: 'timeline' }) : null));
 
       // Discard stale out-of-order response if another request completed
       if (currentReqId !== _timelineRequestId) return;

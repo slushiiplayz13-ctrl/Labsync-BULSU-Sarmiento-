@@ -5,6 +5,7 @@ const scheduleRepository = require('../repositories/schedule.repository');
 const labRepository = require('../repositories/laboratory.repository');
 const userRepository = require('../repositories/user.repository');
 const pool = require('../database/connection');
+const { IT_HEAD_ROLES, MIS_STAFF_ROLES, OJT_ROLES } = require('../middleware/auth');
 
 /**
  * Extracts primary issue component category for grouping maintenance issues.
@@ -274,34 +275,37 @@ async function deleteReport(reportId) {
     return { status: 200, message: 'Report deleted successfully.' };
 }
 
-async function getNotifications(sessionUserId, sessionUserRole) {
+async function getNotifications(sessionUserId, sessionUserRole, queryParams = {}) {
     const userId = sessionUserId;
     let role = sessionUserRole;
-    if (!role) {
+    if (!role && userId) {
         const [users] = await userRepository.getRoleById(userId);
         if (users.length > 0) {
             role = users[0].Role;
         }
     }
 
-    if (role === 'MIS Staff' || role === 'OJT') {
-        const [notifications] = await maintenanceRepository.findReportNotifications();
-        return { status: 200, data: notifications };
-    } else if (role === 'IT Dept. Head' || role === 'Department Head') {
+    // scope=timeline deliberately bypasses targeted notification filtering for full room history
+    const scope = queryParams && queryParams.scope;
+    if (scope === 'timeline') {
         const [notifications] = await maintenanceRepository.findAllNotifications();
         return { status: 200, data: notifications };
+    }
+
+    const isMisStaffOrOjt = role === 'MIS Staff' || role === 'OJT' ||
+        (Array.isArray(MIS_STAFF_ROLES) && MIS_STAFF_ROLES.includes(role)) ||
+        (Array.isArray(OJT_ROLES) && OJT_ROLES.includes(role));
+    const isItHead = Array.isArray(IT_HEAD_ROLES) ? IT_HEAD_ROLES.includes(role) : (role === 'IT Dept. Head' || role === 'Department Head');
+
+    if (isMisStaffOrOjt) {
+        const [notifications] = await maintenanceRepository.findReportNotifications();
+        return { status: 200, data: notifications };
+    } else if (isItHead) {
+        const [notifications] = await maintenanceRepository.findDeptHeadNotifications(userId);
+        return { status: 200, data: notifications };
     } else {
-        const [schedules] = await scheduleRepository.findDistinctRoomIdsByUserId(userId);
-
-        if (schedules.length === 0) {
-            const [allNotifications] = await maintenanceRepository.findAllNotifications();
-            return { status: 200, data: allNotifications };
-        }
-
-        const roomIds = schedules.map(s => s.Room_ID);
-        const [reports] = await maintenanceRepository.findNotificationsByRoomIds(roomIds);
-
-        return { status: 200, data: reports };
+        const [notifications] = await maintenanceRepository.findFacultyNotifications(userId);
+        return { status: 200, data: notifications };
     }
 }
 

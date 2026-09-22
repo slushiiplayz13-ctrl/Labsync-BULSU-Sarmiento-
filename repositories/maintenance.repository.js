@@ -284,6 +284,120 @@ async function findNotificationsByRoomIds(roomIds, executor = db) {
     `, [roomIds, roomIds]);
 }
 
+async function findFacultyNotifications(userId, executor = db) {
+    return executor.query(`
+        (SELECT 'report' AS type, i.Issue_ID AS id, i.Created_At AS time, i.Status AS status,
+               p.PC_Number AS pc_number, r.Room_Number AS room_number,
+               CONCAT('[Issues: ', i.Issue_Type, ']') AS description,
+               'Student Report' AS detail, i.Priority_Level AS priority, NULL AS session_type
+        FROM maintenance_issues i
+        JOIN lab_units p ON i.PC_ID = p.PC_ID
+        JOIN laboratories r ON p.Room_ID = r.Room_ID
+        WHERE r.Room_ID IN (
+            SELECT DISTINCT s.Room_ID
+            FROM schedules s
+            WHERE s.User_ID = ?
+        ))
+        UNION ALL
+        (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
+               NULL AS pc_number, r.Room_Number AS room_number,
+               (CASE
+                   WHEN o.Auth_Method IN ('UNAUTHORIZED', 'WRONG_SLOT') THEN 'Unidentified Person'
+                   WHEN (o.Auth_Method = 'Key Returned' OR o.Auth_Method = 'KEY_RETURN') AND o.User_ID IS NULL THEN 'Unidentified Person'
+                   WHEN o.User_ID IS NULL THEN NULL
+                   ELSE COALESCE(u.Name, 'Room Key')
+               END) AS description,
+               (CASE
+                   WHEN o.Auth_Method = 'UNAUTHORIZED' THEN 'Security Alert'
+                   WHEN o.Auth_Method = 'WRONG_SLOT' THEN 'Hardware Warning'
+                   WHEN (o.Auth_Method = 'Key Returned' OR o.Auth_Method = 'KEY_RETURN') AND o.User_ID IS NULL THEN 'Alarm Cleared'
+                   WHEN o.User_ID IS NULL THEN NULL
+                   ELSE COALESCE(u.Role, 'Faculty')
+               END) AS detail,
+               NULL AS priority,
+               (CASE
+                   WHEN o.Auth_Method = 'Key Taken' AND o.User_ID IS NOT NULL AND EXISTS (
+                       SELECT 1 FROM schedules s
+                       WHERE s.Room_ID = o.Room_ID
+                         AND s.User_ID = o.User_ID
+                         AND s.Day_of_Week = DAYNAME(o.Access_Time)
+                         AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time
+                   ) THEN 'In Session'
+                   WHEN o.Auth_Method = 'Key Taken' THEN 'Borrowed'
+                   ELSE NULL
+                END) AS session_type
+        FROM occupancy_log o
+        LEFT JOIN users u ON o.User_ID = u.User_ID
+        JOIN laboratories r ON o.Room_ID = r.Room_ID
+        WHERE EXISTS (
+            SELECT 1
+            FROM schedules s
+            WHERE s.User_ID = ?
+              AND s.Room_ID = o.Room_ID
+              AND s.Day_of_Week = DAYNAME(o.Access_Time)
+              AND TIME(o.Access_Time) >= s.Start_Time
+              AND TIME(o.Access_Time) <= s.End_Time
+        ))
+        ORDER BY time DESC
+        LIMIT 20
+    `, [userId || 0, userId || 0]);
+}
+
+async function findDeptHeadNotifications(userId, executor = db) {
+    return executor.query(`
+        (SELECT 'report' AS type, i.Issue_ID AS id, i.Created_At AS time, i.Status AS status,
+               p.PC_Number AS pc_number, r.Room_Number AS room_number,
+               CONCAT('[Issues: ', i.Issue_Type, ']') AS description,
+               'Student Report' AS detail, i.Priority_Level AS priority, NULL AS session_type
+        FROM maintenance_issues i
+        JOIN lab_units p ON i.PC_ID = p.PC_ID
+        JOIN laboratories r ON p.Room_ID = r.Room_ID)
+        UNION ALL
+        (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
+               NULL AS pc_number, r.Room_Number AS room_number,
+               (CASE
+                   WHEN o.Auth_Method IN ('UNAUTHORIZED', 'WRONG_SLOT') THEN 'Unidentified Person'
+                   WHEN (o.Auth_Method = 'Key Returned' OR o.Auth_Method = 'KEY_RETURN') AND o.User_ID IS NULL THEN 'Unidentified Person'
+                   WHEN o.User_ID IS NULL THEN NULL
+                   ELSE COALESCE(u.Name, 'Room Key')
+               END) AS description,
+               (CASE
+                   WHEN o.Auth_Method = 'UNAUTHORIZED' THEN 'Security Alert'
+                   WHEN o.Auth_Method = 'WRONG_SLOT' THEN 'Hardware Warning'
+                   WHEN (o.Auth_Method = 'Key Returned' OR o.Auth_Method = 'KEY_RETURN') AND o.User_ID IS NULL THEN 'Alarm Cleared'
+                   WHEN o.User_ID IS NULL THEN NULL
+                   ELSE COALESCE(u.Role, 'Faculty')
+               END) AS detail,
+               NULL AS priority,
+               (CASE
+                   WHEN o.Auth_Method = 'Key Taken' AND o.User_ID IS NOT NULL AND EXISTS (
+                       SELECT 1 FROM schedules s
+                       WHERE s.Room_ID = o.Room_ID
+                         AND s.User_ID = o.User_ID
+                         AND s.Day_of_Week = DAYNAME(o.Access_Time)
+                         AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time
+                   ) THEN 'In Session'
+                   WHEN o.Auth_Method = 'Key Taken' THEN 'Borrowed'
+                   ELSE NULL
+                END) AS session_type
+        FROM occupancy_log o
+        LEFT JOIN users u ON o.User_ID = u.User_ID
+        JOIN laboratories r ON o.Room_ID = r.Room_ID
+        WHERE o.Auth_Method IN ('UNAUTHORIZED', 'WRONG_SLOT')
+           OR EXISTS (
+               SELECT 1
+               FROM schedules s
+               WHERE s.User_ID = ?
+                 AND s.Room_ID = o.Room_ID
+                 AND s.Day_of_Week = DAYNAME(o.Access_Time)
+                 AND TIME(o.Access_Time) >= s.Start_Time
+                 AND TIME(o.Access_Time) <= s.End_Time
+           ))
+        ORDER BY time DESC
+        LIMIT 20
+    `, [userId || 0]);
+}
+
 async function getConnection() {
     return db.getConnection();
 }
@@ -330,6 +444,8 @@ module.exports = {
     findReportNotifications,
     findAllNotifications,
     findNotificationsByRoomIds,
+    findFacultyNotifications,
+    findDeptHeadNotifications,
     getConnection,
     withTransaction
 };

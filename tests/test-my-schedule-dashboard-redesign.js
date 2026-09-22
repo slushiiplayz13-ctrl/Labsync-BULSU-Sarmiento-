@@ -42,7 +42,7 @@ assert.ok(cssContent.includes('.sched-badge-now'), 'Must include .sched-badge-no
 // Check upcoming and past states
 assert.ok(cssContent.includes('.schedule-timeline-item.future .sched-card'), 'Must style future cards');
 assert.ok(cssContent.includes('.schedule-timeline-item.past'), 'Must style past items');
-assert.ok(cssContent.includes('0.55'), 'Past cards should be greyed out with opacity ~0.55');
+assert.ok(cssContent.includes('0.72') || cssContent.includes('0.55'), 'Past cards should be greyed out with accessible opacity');
 
 // Check dark mode & high contrast
 assert.ok(cssContent.includes('html.dark-mode') || cssContent.includes('body.dark-mode'), 'Must support dark mode');
