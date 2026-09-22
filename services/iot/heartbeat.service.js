@@ -55,9 +55,39 @@ async function recordHeartbeat(reqBody = {}, device = null) {
         console.error('[IoT Service] Failed to update Last_Seen in database:', err.message);
     }
 
+    // Reconcile physical key slot presence if telemetry reports slot states
+    const slots = (reqBody && typeof reqBody === 'object') ? (reqBody.slots || reqBody.keyStates) : null;
+    if (slots && typeof slots === 'object') {
+        try {
+            const slotEntries = Array.isArray(slots)
+                ? slots.map(s => [s.roomNumber || s.room, s.keyPresent !== undefined ? s.keyPresent : (s.status === 'Present')])
+                : Object.entries(slots);
+
+            for (const [rNum, isPresent] of slotEntries) {
+                if (!rNum) continue;
+                const clean = normalizeRoomNumber(rNum);
+                const expectedStatus = (isPresent === true || isPresent === 'Present' || isPresent === 1 || isPresent === 'true')
+                    ? 'Present'
+                    : 'Absent';
+
+                const [roomsFound] = await labRepository.findByRoomNumber(clean);
+                if (roomsFound && roomsFound.length > 0) {
+                    const currentRoom = roomsFound[0];
+                    if (currentRoom.Key_Status !== expectedStatus) {
+                        const userId = (expectedStatus === 'Present') ? null : currentRoom.Current_User_ID;
+                        await labRepository.updateKeyStatus(currentRoom.Room_ID, expectedStatus, userId);
+                    }
+                }
+            }
+        } catch (syncErr) {
+            console.error('[IoT Service] Failed to reconcile slot state in heartbeat:', syncErr.message);
+        }
+    }
+
     return iotResponseService.createHeartbeatResponse(targetRooms, now);
 }
 
 module.exports = {
     recordHeartbeat
 };
+

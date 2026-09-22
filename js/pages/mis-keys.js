@@ -45,7 +45,7 @@
       const modal = document.getElementById('keyTagPrintModal') || document.getElementById('printKeyModalOverlay');
       if (modal && !modal.classList.contains('hidden')) return;
       await refreshKeys(true);
-    }, 10000);
+    }, 3000);
     if (refreshIntervalId && typeof refreshIntervalId.unref === 'function') {
       refreshIntervalId.unref();
     }
@@ -283,6 +283,17 @@
       tableBody.closest('.keys-table')?.classList.remove('is-empty');
       tableBody.closest('.keys-table-card')?.classList.remove('is-empty');
     }
+
+    // Fingerprint filtered dataset and interactive state to avoid destroying DOM nodes when data is unchanged
+    const dataSignature = `${currentFilter}:${query}:` + currentFilteredKeys.map(k =>
+      `${k.Key_ID}-${k.Room_Key_Status}-${k.deviceOnline}-${k.Current_User_ID}-${k.Current_Holder_Name || ''}-${k.Last_Activity_At || ''}-${selectedKeyIds.has(Number(k.Key_ID))}`
+    ).join('|');
+
+    const hasLoadingSpinner = tableBody.querySelector('.keys-empty-icon-wrap.loading-spinner-wrap') !== null;
+    if (!hasLoadingSpinner && tableBody._lastRenderSignature === dataSignature) {
+      return; // Data and filter selection unchanged: skip re-rendering to prevent any flicker or focus loss!
+    }
+    tableBody._lastRenderSignature = dataSignature;
 
     tableBody.innerHTML = currentFilteredKeys.map(k => {
       const keyId = Number(k.Key_ID);
@@ -803,5 +814,8 @@
       setTimeout(cleanup, 1500);
     }, 150);
   }
+
+  // Preserve global contracts for notifications.js and external callers
+  global.refreshKeys = refreshKeys;
 
 })(typeof window !== 'undefined' ? window : this);

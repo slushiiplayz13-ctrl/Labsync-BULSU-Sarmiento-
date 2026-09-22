@@ -243,29 +243,52 @@
 
     let html = '';
     processedLogs.forEach(log => {
-      let profName = (log.description && log.description !== 'Room Key' && log.description !== 'None' && log.description !== 'N/A') ? log.description : '';
-      if (!profName && log.room_number) {
-        try {
-          const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
-          if (Array.isArray(cachedLabs)) {
-            const matched = cachedLabs.find(r => String(r.Room_Number).trim().toLowerCase() === String(log.room_number).trim().toLowerCase());
-            if (matched) {
-              const candidate = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
-              if (candidate && candidate !== 'None' && candidate !== 'N/A') {
-                profName = candidate;
+      const rawStatus = String(log.status || '').trim();
+      const isSecurityAlert = rawStatus === 'UNAUTHORIZED' || rawStatus.toLowerCase().includes('unauthorized');
+      const isWrongSlot = rawStatus === 'WRONG_SLOT' || rawStatus.toLowerCase().includes('wrong');
+      const isUnauthorizedReturn = (rawStatus === 'Key Returned' || rawStatus === 'KEY_RETURN' || rawStatus.toLowerCase() === 'returned') && (log.detail === 'Alarm Cleared' || log.description === 'Unidentified Person');
+
+      let actorName = '';
+      let detailText = '';
+      let hasUser = false;
+
+      if (isSecurityAlert) {
+        actorName = 'Unidentified Person';
+        detailText = 'Security Alert';
+        hasUser = true;
+      } else if (isWrongSlot) {
+        actorName = 'Unidentified Person';
+        detailText = 'Hardware Warning';
+        hasUser = true;
+      } else if (isUnauthorizedReturn) {
+        actorName = 'Unidentified Person';
+        detailText = 'Alarm Cleared';
+        hasUser = true;
+      } else {
+        let profName = (log.description && log.description !== 'Room Key' && log.description !== 'Unidentified Person' && log.description !== 'None' && log.description !== 'N/A') ? log.description : '';
+        if (!profName && log.room_number) {
+          try {
+            const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+            if (Array.isArray(cachedLabs)) {
+              const matched = cachedLabs.find(r => String(r.Room_Number).trim().toLowerCase() === String(log.room_number).trim().toLowerCase());
+              if (matched) {
+                const candidate = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
+                if (candidate && candidate !== 'None' && candidate !== 'N/A') {
+                  profName = candidate;
+                }
               }
             }
-          }
-        } catch (e) {}
-      }
+          } catch (e) {}
+        }
 
-      const hasUser = !!profName && profName !== 'None' && profName !== 'N/A';
-      const actorName = hasUser
-        ? ((profName.startsWith('Prof.') || profName.startsWith('Dr.') || profName.startsWith('Engr.')) ? profName : `Prof. ${profName}`)
-        : (log.detail && log.detail !== 'Faculty' ? log.detail : 'System');
-      const detailText = hasUser
-        ? (log.detail || 'Faculty')
-        : 'Automated Event';
+        hasUser = !!profName && profName !== 'None' && profName !== 'N/A';
+        actorName = hasUser
+          ? ((profName.startsWith('Prof.') || profName.startsWith('Dr.') || profName.startsWith('Engr.')) ? profName : `Prof. ${profName}`)
+          : (log.detail && log.detail !== 'Faculty' ? log.detail : 'System');
+        detailText = hasUser
+          ? (log.detail || 'Faculty')
+          : 'Automated Event';
+      }
 
       const relTime = getRelativeTime(log.time);
       const exactStamp = formatExactDateTime(log.time);

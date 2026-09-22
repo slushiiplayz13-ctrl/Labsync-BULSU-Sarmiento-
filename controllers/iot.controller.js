@@ -4,7 +4,9 @@ const iotService = require('../services/iotService');
 
 async function logOccupancy(req, res, next) {
     try {
+        console.log('[IoT Endpoint] /api/occupancy/log received payload:', JSON.stringify(req.body));
         const result = await iotService.logOccupancy(req.body, req.device);
+        console.log('[IoT Endpoint] /api/occupancy/log result:', JSON.stringify(result));
         if (result.error) {
             return res.status(result.status || 400).json({
                 error: result.error,
@@ -14,6 +16,7 @@ async function logOccupancy(req, res, next) {
         }
         return res.status(result.status || 200).json(result.data);
     } catch (err) {
+        console.error('[IoT Endpoint] Error in logOccupancy:', err);
         next(err);
     }
 }

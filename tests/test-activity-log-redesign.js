@@ -56,7 +56,15 @@ const mockWindow = {
     createIcons: () => {}
   },
   sessionStorage: {
-    getItem: () => null,
+    getItem: (key) => {
+      if (key === 'labsync_cached_labs') {
+        return JSON.stringify([
+          { Room_Number: '203', Scheduled_Professor_Name: 'Andrei Gabito', Current_Key_Holder_Name: 'Andrei Gabito' },
+          { Room_Number: '204', Scheduled_Professor_Name: 'Andrei Gabito', Current_Key_Holder_Name: 'Andrei Gabito' }
+        ]);
+      }
+      return null;
+    },
     setItem: () => {}
   }
 };
@@ -169,7 +177,7 @@ assert.ok(htmlC.includes('RM 205'), 'Target must be RM 205');
 assert.ok(!htmlC.includes('(Borrowed)'), 'Redundant (Borrowed) context tag must NOT be rendered');
 console.log('  ✓ Test C: Missing actor edge case verified (actor is System, target is RM 205, no (Borrowed) redundancy)');
 
-// Test D: Security Alert & Wrong Key Slot
+// Test D: Security Alert & Wrong Key Slot (Decoupled from cached faculty Andrei Gabito)
 const containerD = createContainer();
 const mockLogsD = [
   {
@@ -191,6 +199,16 @@ const mockLogsD = [
     detail: null,
     session_type: null,
     type: 'occupancy'
+  },
+  {
+    id: 106,
+    time: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+    status: 'Key Returned',
+    room_number: '203',
+    description: 'Unidentified Person',
+    detail: 'Alarm Cleared',
+    session_type: null,
+    type: 'occupancy'
   }
 ];
 
@@ -200,7 +218,14 @@ assert.ok(htmlD.includes('Unauthorized Key Access'), 'Must map to Unauthorized K
 assert.ok(htmlD.includes('action-security'), 'Must have action-security class');
 assert.ok(htmlD.includes('Wrong Key Slot'), 'Must map to Wrong Key Slot');
 assert.ok(htmlD.includes('action-warning'), 'Must have action-warning class');
-console.log('  ✓ Test D: Security alerts & hardware events verified');
+assert.ok(htmlD.includes('Key Returned'), 'Must map to Key Returned');
+assert.ok(htmlD.includes('action-returned'), 'Must have action-returned class');
+assert.ok(!htmlD.includes('Andrei Gabito'), 'Must NOT attribute unauthorized access, wrong slot, or alarm cleared return to scheduled faculty Andrei Gabito');
+assert.ok(htmlD.includes('Unidentified Person'), 'Must attribute security alert to Unidentified Person');
+assert.ok(htmlD.includes('Security Alert'), 'Must label unauthorized access role as Security Alert');
+assert.ok(htmlD.includes('Hardware Warning'), 'Must label wrong slot role as Hardware Warning');
+assert.ok(htmlD.includes('Alarm Cleared'), 'Must label unauthorized return role as Alarm Cleared');
+console.log('  ✓ Test D: Security alerts & hardware events decoupled from faculty identities (Unidentified Person · Security Alert / Hardware Warning / Alarm Cleared)');
 
 // Test E: Empty Activity Log
 const containerE = createContainer();
@@ -235,7 +260,18 @@ console.log('  ✓ Test F: Long names & unknown activity types gracefully handle
 const itHeadJs = fs.readFileSync(path.join(__dirname, '../js/pages/it-head-room-status.js'), 'utf8');
 const mockItHeadWindow = {
   lucide: { createIcons: () => {} },
-  sessionStorage: { getItem: () => null, setItem: () => {} },
+  sessionStorage: {
+    getItem: (key) => {
+      if (key === 'labsync_cached_labs') {
+        return JSON.stringify([
+          { Room_Number: '203', Scheduled_Professor_Name: 'Andrei Gabito', Current_Key_Holder_Name: 'Andrei Gabito' },
+          { Room_Number: '204', Scheduled_Professor_Name: 'Andrei Gabito', Current_Key_Holder_Name: 'Andrei Gabito' }
+        ]);
+      }
+      return null;
+    },
+    setItem: () => {}
+  },
   document: {
     addEventListener: () => {},
     querySelector: () => null,
@@ -254,7 +290,18 @@ assert.ok(htmlG.includes('Key Returned'), 'Dept Head must render Key Returned');
 assert.ok(htmlG.includes('action-returned'), 'Dept Head must have action-returned');
 assert.ok(htmlG.includes('RM 204'), 'Dept Head must render RM 204');
 assert.ok(!htmlG.includes('Key returned for RM 204 by Prof. Andrei Gabito'), 'Dept Head must NOT have repetitive prose');
-console.log('  ✓ Test G: it-head-room-status.js rendering consistency verified');
+
+// Test G2: Verify it-head-room-status.js also decouples unauthorized access and wrong slot from faculty identities
+const containerG2 = createContainer();
+mockItHeadWindow.renderActivityLogList(mockLogsD, containerG2);
+const htmlG2 = containerG2.innerHTML;
+assert.ok(htmlG2.includes('Unauthorized Key Access'), 'Dept Head must render Unauthorized Key Access');
+assert.ok(htmlG2.includes('Wrong Key Slot'), 'Dept Head must render Wrong Key Slot');
+assert.ok(!htmlG2.includes('Andrei Gabito'), 'Dept Head must NOT attribute unauthorized access to Andrei Gabito');
+assert.ok(htmlG2.includes('Unidentified Person'), 'Dept Head must render Unidentified Person');
+assert.ok(htmlG2.includes('Security Alert'), 'Dept Head must render Security Alert');
+assert.ok(htmlG2.includes('Hardware Warning'), 'Dept Head must render Hardware Warning');
+console.log('  ✓ Test G: it-head-room-status.js rendering consistency & faculty decoupling verified');
 
 // Test H: Verify QR Code events are filtered out from timeline rendering
 const containerH = createContainer();
@@ -283,6 +330,67 @@ const htmlH = containerH.innerHTML;
 assert.ok(htmlH.includes('Key Taken'), 'Timeline must display Key Taken');
 assert.ok(!htmlH.includes('QR Verified'), 'Timeline must cleanly filter out intermediate QR Code events');
 console.log('  ✓ Test H: Intermediate QR Code events cleanly filtered from timeline');
+
+// Test I: Verify Notifications Component logic for Unauthorized Key Access & Wrong Slot
+const notificationsJs = fs.readFileSync(path.join(__dirname, '../js/components/notifications.js'), 'utf8');
+const mockNotifWindow = {
+  escapeHtml: (s) => s,
+  sessionStorage: {
+    getItem: (key) => {
+      if (key === 'labsync_cached_labs') {
+        return JSON.stringify([
+          { Room_Number: '203', Scheduled_Professor_Name: 'Andrei Gabito', Current_Key_Holder_Name: 'Andrei Gabito' },
+          { Room_Number: '204', Scheduled_Professor_Name: 'Andrei Gabito', Current_Key_Holder_Name: 'Andrei Gabito' }
+        ]);
+      }
+      return null;
+    }
+  }
+};
+const notifFn = new Function('window', 'document', 'sessionStorage', notificationsJs);
+notifFn(mockNotifWindow, {}, mockNotifWindow.sessionStorage);
+assert.ok(typeof mockNotifWindow.getNotificationDetails === 'function', 'getNotificationDetails must be exposed on window');
+
+const unauthNotif = {
+  type: 'occupancy',
+  status: 'UNAUTHORIZED',
+  room_number: '203',
+  description: null
+};
+const unauthDetails = mockNotifWindow.getNotificationDetails(unauthNotif);
+assert.strictEqual(unauthDetails.title, 'Unauthorized Key Access', 'Notification title must be Unauthorized Key Access');
+assert.strictEqual(unauthDetails.text, 'Key for Room 203 was removed without QR verification. Buzzer alarm triggered.');
+assert.strictEqual(unauthDetails.iconName, 'alert-triangle');
+assert.strictEqual(unauthDetails.iconClass, 'notif-icon-warning');
+assert.ok(!unauthDetails.text.includes('Andrei Gabito'), 'Notification text must NOT mention Andrei Gabito');
+assert.ok(!unauthDetails.title.includes('QR Identity Verified'), 'Notification title must NOT say QR Identity Verified');
+
+const wrongSlotNotif = {
+  type: 'occupancy',
+  status: 'WRONG_SLOT',
+  room_number: '204',
+  description: null
+};
+const wrongSlotDetails = mockNotifWindow.getNotificationDetails(wrongSlotNotif);
+assert.strictEqual(wrongSlotDetails.title, 'Wrong Key Slot');
+assert.strictEqual(wrongSlotDetails.text, 'Key inserted into incorrect slot in Room 204.');
+assert.strictEqual(wrongSlotDetails.iconName, 'alert-triangle');
+assert.strictEqual(wrongSlotDetails.iconClass, 'notif-icon-warning');
+
+const clearedNotif = {
+  type: 'occupancy',
+  status: 'Key Returned',
+  room_number: '203',
+  description: 'Unidentified Person',
+  detail: 'Alarm Cleared'
+};
+const clearedDetails = mockNotifWindow.getNotificationDetails(clearedNotif);
+assert.strictEqual(clearedDetails.title, 'Alarm Cleared', 'Notification title must be Alarm Cleared');
+assert.strictEqual(clearedDetails.text, 'Key returned to Room 203 slot.', 'Notification text must be Key returned to Room 203 slot.');
+assert.strictEqual(clearedDetails.iconName, 'check-circle', 'Notification icon must be check-circle');
+assert.strictEqual(clearedDetails.iconClass, 'notif-icon-resolved', 'Notification icon class must be notif-icon-resolved');
+assert.ok(!clearedDetails.text.includes('Andrei Gabito'), 'Notification text must NOT mention Andrei Gabito');
+console.log('  ✓ Test I: Notifications component handles UNAUTHORIZED, WRONG_SLOT, and Alarm Cleared without faculty attribution');
 
 console.log('\n================================================================');
 console.log('🎉 ALL ACTIVITY LOG REDESIGN TESTS PASSED SUCCESSFULLY!');

@@ -128,6 +128,15 @@ async function logOccupancy(reqBody = {}, device = null) {
             console.error('[IoT Service] Occupancy log insert failed:', e.message);
         }
 
+        // When a key is removed without authorization, immediately update Key_Status to Absent
+        if (keyEvent.includes('Unauthorized')) {
+            try {
+                await labRepository.updateKeyStatus(room.Room_ID, 'Absent', null);
+            } catch (e) {
+                console.error('[IoT Service] Failed to update Key_Status on unauthorized removal:', e.message);
+            }
+        }
+
         return {
             status: 200,
             data: {
@@ -142,7 +151,7 @@ async function logOccupancy(reqBody = {}, device = null) {
     // 3. Physical Key Event (Key Taken / Key Returned)
     if (keyEvent === 'Key Taken' || keyEvent === 'Key Returned') {
         const status = (keyEvent === 'Key Returned') ? 'Present' : 'Absent';
-        const isDuplicateState = (room.Key_Status === status);
+        let isDuplicateState = (room.Key_Status === status);
 
         let claimUserId = null;
         let claimUserName = null;
@@ -179,22 +188,41 @@ async function logOccupancy(reqBody = {}, device = null) {
                 }
             }
             logUserId = claimUserId;
-        } else if (keyEvent === 'Key Returned') {
-            let returnUserId = room.Current_User_ID || null;
-            if (!returnUserId) {
-                const [lastTaken] = await db.query(
-                    `SELECT User_ID FROM occupancy_log 
-                     WHERE Room_ID = ? AND Auth_Method = 'Key Taken' AND User_ID IS NOT NULL 
-                     ORDER BY Access_Time DESC LIMIT 1`,
-                    [room.Room_ID]
-                );
-                if (lastTaken && lastTaken.length > 0) {
-                    returnUserId = lastTaken[0].User_ID;
-                }
+            if (claimUserId) {
+                claimService.clearUserClaims(claimUserId);
             }
-            claimService.clearClaim(roomNumber);
-            claimUserId = null;
-            logUserId = returnUserId;
+        } else if (keyEvent === 'Key Returned') {
+            // Check if this key return is resolving an unauthorized key removal
+            const [lastLogs] = await db.query(
+                `SELECT Auth_Method, User_ID FROM occupancy_log 
+                 WHERE Room_ID = ? ORDER BY Access_Time DESC, Log_ID DESC LIMIT 1`,
+                [room.Room_ID]
+            );
+            const isReturningAfterUnauthorized = (lastLogs && lastLogs.length > 0 && lastLogs[0].Auth_Method === 'UNAUTHORIZED');
+
+            if (isReturningAfterUnauthorized) {
+                // Key returned after unauthorized removal: actor is unidentified and log must not be skipped
+                isDuplicateState = false;
+                claimUserId = null;
+                logUserId = null;
+                claimService.clearClaim(roomNumber);
+            } else {
+                let returnUserId = room.Current_User_ID || null;
+                if (!returnUserId) {
+                    const [lastTaken] = await db.query(
+                        `SELECT User_ID FROM occupancy_log 
+                         WHERE Room_ID = ? AND Auth_Method = 'Key Taken' AND User_ID IS NOT NULL 
+                         ORDER BY Access_Time DESC LIMIT 1`,
+                        [room.Room_ID]
+                    );
+                    if (lastTaken && lastTaken.length > 0) {
+                        returnUserId = lastTaken[0].User_ID;
+                    }
+                }
+                claimService.clearClaim(roomNumber);
+                claimUserId = null;
+                logUserId = returnUserId;
+            }
         }
 
         await iotRepository.withTransaction(async (connection) => {
@@ -217,8 +245,10 @@ async function logOccupancy(reqBody = {}, device = null) {
         );
     }
 
+    console.log(`[IoT QR Scan] Processing verification for qrString: "${qrString}"`);
     const [users] = await userRepository.findByQRString(qrString);
     if (users.length === 0) {
+        console.warn(`[IoT QR Scan] Access Denied: No matching user found for qrString: "${qrString}"`);
         return iotResponseService.createErrorResponse(
             404,
             'User not found for the provided QR code.',
@@ -227,6 +257,20 @@ async function logOccupancy(reqBody = {}, device = null) {
         );
     }
     const user = users[0];
+    console.log(`[IoT QR Scan] Access Granted: User "${user.Name}" (${user.Role}, ID: ${user.User_ID})`);
+
+    // 4b. Anti-Double-Tap Policy: Prevent user from claiming multiple keys simultaneously
+    const [activeKeys] = await labRepository.findActiveKeysByUserId(user.User_ID);
+    if (activeKeys && activeKeys.length > 0) {
+        const heldRoom = activeKeys[0].Room_Number;
+        console.warn(`[IoT QR Scan] Anti-Double-Tap Block: User "${user.Name}" (${user.Role}) already holds key for Room ${heldRoom}.`);
+        return iotResponseService.createErrorResponse(
+            403,
+            `User already holds an active key for Room ${heldRoom}. Please return it before claiming another room.`,
+            'Return Key First',
+            `Hold Key RM ${heldRoom}`.substring(0, 16)
+        );
+    }
 
     if (!user.ID_QR_String) {
         const newQR = `LABSYNC-USER-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;

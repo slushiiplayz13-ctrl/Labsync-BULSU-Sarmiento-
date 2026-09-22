@@ -43,7 +43,7 @@ int lastDisplayedCountdown = -1;
 
 // Periodic Heartbeat Timer
 unsigned long lastHeartbeatTime = 0;
-const unsigned long HEARTBEAT_INTERVAL = 5000; // 5 seconds
+const unsigned long HEARTBEAT_INTERVAL = 10000; // 10 seconds (prevents network socket congestion)
 
 // GM65 Scanner Pins
 #define GM65_RX_PIN 17 
@@ -78,64 +78,92 @@ void showReadyScreen() {
   if (lcdDetected) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("LabSync System");
+    lcd.print("    LabSync");
     lcd.setCursor(0, 1);
-    lcd.print("Scan QR to Begin");
+    lcd.print(" Ready to Scan!");
   }
 }
 
 void clearSerialBuffer() {
+  delay(20);
   while (Serial2.available() > 0) {
     Serial2.read();
+    delay(1);
   }
 }
 
-// Non-blocking read helper for GM65 scanner
+// Robust read helper for GM65 scanner
 String readScannedCode() {
   if (Serial2.available() > 0) {
     String scannedCode = "";
     unsigned long startTime = millis();
     unsigned long lastCharTime = millis();
-    int totalBytesRead = 0;
     
-    while ((millis() - startTime < 60) && (millis() - lastCharTime < 20)) {
+    while ((millis() - startTime < 1000) && (millis() - lastCharTime < 80)) {
       while (Serial2.available() > 0) {
         char c = Serial2.read();
-        totalBytesRead++;
-        if (c >= 32 && c <= 126) scannedCode += c;
         lastCharTime = millis();
-        if (scannedCode.length() >= 128 || totalBytesRead >= 256) break;
+        if (c == '\r' || c == '\n') {
+          if (scannedCode.length() > 0) {
+            delay(15);
+            while (Serial2.available() > 0) {
+              char nextC = Serial2.peek();
+              if (nextC == '\r' || nextC == '\n') Serial2.read();
+              else break;
+            }
+            scannedCode.trim();
+            Serial.println("[GM65] Scanned barcode: " + scannedCode);
+            return scannedCode;
+          }
+        } else if (c >= 32 && c <= 126) {
+          scannedCode += c;
+          if (scannedCode.length() >= 128) break;
+        }
       }
+      delay(2);
     }
     
     scannedCode.trim();
+    if (scannedCode.length() > 0) {
+      Serial.println("[GM65] Scanned barcode (idle): " + scannedCode);
+    }
     return scannedCode;
   }
   return "";
 }
 
-// Lightweight 5-second Heartbeat
+// Forward declaration
+KeyType detectKeyType(int pin);
+
+// Lightweight 10-second Heartbeat with physical key slot presence
 void sendHeartbeatToServer() {
   if (WiFi.status() == WL_CONNECTED) {
+    WiFiClient client;
     HTTPClient http;
-    http.begin(heartbeatUrl);
-    http.setTimeout(800); // Fast 800ms non-blocking timeout
+    http.begin(client, heartbeatUrl);
+    http.setReuse(false);
+    http.setTimeout(2500); // 2500ms timeout for network stability
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", String("Bearer ") + deviceToken);
+    http.addHeader("Connection", "close");
 
-    String jsonPayload = "{\"deviceId\":\"ESP32-KeyBox\",\"rooms\":[\"203\",\"204\"]}";
+    bool key203Present = (detectKeyType(KEY_PIN_203) != KEY_NONE);
+    bool key204Present = (detectKeyType(KEY_PIN_204) != KEY_NONE);
+
+    String jsonPayload = "{\"deviceId\":\"ESP32-KeyBox\",\"rooms\":[\"203\",\"204\"],\"slots\":{\"203\":" +
+                         String(key203Present ? "true" : "false") + ",\"204\":" +
+                         String(key204Present ? "true" : "false") + "}}";
     int code = http.POST(jsonPayload);
-    
-    // Fallback to /api/occupancy/log with keyEvent:Heartbeat if /heartbeat returns 404
-    if (code == 404 || code < 0) {
-      http.end();
-      http.begin(serverUrl);
-      http.setTimeout(800);
-      http.addHeader("Content-Type", "application/json");
-      http.addHeader("Authorization", String("Bearer ") + deviceToken);
-      http.POST("{\"keyEvent\":\"Heartbeat\",\"roomNumber\":\"203\"}");
+    if (code > 0) {
+      Serial.printf("[IoT Heartbeat] Sent successfully with slots (203: %s, 204: %s). Code: %d\n",
+                    key203Present ? "Present" : "Absent",
+                    key204Present ? "Present" : "Absent",
+                    code);
+    } else {
+      Serial.printf("[IoT Heartbeat] Post failed: %d (%s)\n", code, http.errorToString(code).c_str());
     }
     http.end();
+    client.stop();
   }
 }
 
@@ -162,11 +190,14 @@ KeyType detectKeyType(int pin) {
 // Send security alarm events (Unauthorized Removal or Wrong Slot) to server
 void sendSecurityAlertToServer(String room, String alertType) {
   if (WiFi.status() == WL_CONNECTED) {
+    WiFiClient client;
     HTTPClient http;
-    http.begin(serverUrl);
-    http.setTimeout(1000);
+    http.begin(client, serverUrl);
+    http.setReuse(false);
+    http.setTimeout(2500);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", String("Bearer ") + deviceToken);
+    http.addHeader("Connection", "close");
 
     StaticJsonDocument<256> reqDoc;
     reqDoc["keyEvent"] = alertType;
@@ -177,23 +208,28 @@ void sendSecurityAlertToServer(String room, String alertType) {
 
     http.POST(jsonPayload);
     http.end();
+    client.stop();
   }
 }
 
 // Send key presence status transitions to server
 void sendKeyStatusToServer(String room, bool present) {
   if (WiFi.status() == WL_CONNECTED) {
+    WiFiClient client;
     HTTPClient http;
-    http.begin(serverUrl);
-    http.setTimeout(1000);
+    http.begin(client, serverUrl);
+    http.setReuse(false);
+    http.setTimeout(2500);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", String("Bearer ") + deviceToken);
+    http.addHeader("Connection", "close");
 
     String statusStr = present ? "Key Returned" : "Key Taken";
     String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + room + "\"}";
     
     http.POST(jsonPayload);
     http.end();
+    client.stop();
   }
 }
 
@@ -335,15 +371,18 @@ bool sendScanToServer(String scannedToken) {
   }
 
   bool success = false;
-  String line1 = "Access Denied!";
-  String line2 = "Invalid QR Code";
+  String line1 = "Scan Denied";
+  String line2 = "Please Wait...";
 
   if (WiFi.status() == WL_CONNECTED) {
+    WiFiClient client;
     HTTPClient http;
-    http.begin(serverUrl);
-    http.setTimeout(1500);
+    http.begin(client, serverUrl);
+    http.setReuse(false);
+    http.setTimeout(4000); // 4000ms timeout for reliable communication under rapid requests
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", String("Bearer ") + deviceToken);
+    http.addHeader("Connection", "close");
 
     StaticJsonDocument<256> reqDoc;
     reqDoc["qrString"] = scannedToken;
@@ -355,6 +394,8 @@ bool sendScanToServer(String scannedToken) {
     
     int httpResponseCode = http.POST(jsonPayload);
     String response = http.getString();
+    Serial.printf("[IoT] Scan POST status: %d, err: %s, response: %s\n", 
+                  httpResponseCode, http.errorToString(httpResponseCode).c_str(), response.c_str());
 
     StaticJsonDocument<1024> resDoc;
     DeserializationError error = deserializeJson(resDoc, response);
@@ -364,6 +405,14 @@ bool sendScanToServer(String scannedToken) {
       if (resDoc.containsKey("lcdLine2")) line2 = resDoc["lcdLine2"].as<String>();
       else if (resDoc.containsKey("name")) line2 = resDoc["name"].as<String>();
       else if (resDoc.containsKey("user") && resDoc["user"].containsKey("name")) line2 = resDoc["user"]["name"].as<String>();
+    } else {
+      if (httpResponseCode == 404) {
+        line1 = "Access Denied!";
+        line2 = "Invalid QR Code";
+      } else if (httpResponseCode < 0) {
+        line1 = "System Busy";
+        line2 = "Please Retry";
+      }
     }
 
     if (httpResponseCode == 200) {
@@ -391,11 +440,12 @@ bool sendScanToServer(String scannedToken) {
         lcd.setCursor(0, 1);
         lcd.print(line2.substring(0, 16));
       }
-      delay(1500);
+      delay(3500); // Extended to 3.5s so user has plenty of time to read both lines comfortably
       clearSerialBuffer();
       showReadyScreen();
     }
     http.end();
+    client.stop();
   } else {
     triggerBuzzer(300, 1);
     if (lcdDetected) {
@@ -405,7 +455,7 @@ bool sendScanToServer(String scannedToken) {
       lcd.setCursor(0, 1);
       lcd.print("Not Connected");
     }
-    delay(1500);
+    delay(2000);
     clearSerialBuffer();
     showReadyScreen();
   }
@@ -525,7 +575,7 @@ void setup() {
   // Connect Wi-Fi
   WiFi.begin(ssid, password);
   int wifiTimeout = 0;
-  while (WiFi.status() != WL_CONNECTED && wifiTimeout < 20) {
+  while (WiFi.status() != WL_CONNECTED && wifiTimeout < 30) {
     delay(400);
     Serial.print(".");
     wifiTimeout++;
@@ -534,6 +584,7 @@ void setup() {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nConnected to Wi-Fi!");
     triggerBuzzer(100, 1);
+    lastHeartbeatTime = millis();
     sendHeartbeatToServer(); // Immediately announce online presence on boot!
   }
 
@@ -542,11 +593,40 @@ void setup() {
   }
 }
 
+// Track Wi-Fi status transitions for 0ms instant connect/reconnect announcement
+wl_status_t lastWifiStatus = WL_IDLE_STATUS;
+
 void loop() {
-  // 1. GM65 Scanner Detection
+  // 0. Wi-Fi Auto-Reconnect Guard & Instant Connect Trigger
+  wl_status_t currentWifiStatus = WiFi.status();
+
+  if (currentWifiStatus != WL_CONNECTED) {
+    static unsigned long lastWifiReconnectAttempt = 0;
+    if (millis() - lastWifiReconnectAttempt > 10000) {
+      lastWifiReconnectAttempt = millis();
+      Serial.println("[IoT] Wi-Fi disconnected! Reconnecting...");
+      WiFi.reconnect();
+    }
+  } else if (lastWifiStatus != WL_CONNECTED) {
+    // Instant event trigger: Fired the exact millisecond Wi-Fi connects or reconnects!
+    Serial.println("[IoT] Wi-Fi connected! Firing immediate presence heartbeat...");
+    lastHeartbeatTime = millis();
+    sendHeartbeatToServer();
+  }
+  lastWifiStatus = currentWifiStatus;
+
+  // 1. GM65 Scanner Detection with anti-spam cooldown
+  static unsigned long lastScanTime = 0;
   String scannedCode = readScannedCode();
   if (scannedCode.length() > 0) {
-    sendScanToServer(scannedCode);
+    if (millis() - lastScanTime >= 1500) {
+      lastScanTime = millis();
+      sendScanToServer(scannedCode);
+      lastScanTime = millis();
+      clearSerialBuffer();
+    } else {
+      clearSerialBuffer();
+    }
   }
 
   // 2. Live Countdown Window Handling (when authorized)
@@ -584,8 +664,8 @@ void loop() {
   handleKeySlot(KEY_PIN_203, lastSlotState203, "203", KEY_203);
   handleKeySlot(KEY_PIN_204, lastSlotState204, "204", KEY_204);
 
-  // 4. Periodic 5-second Heartbeat
-  if (millis() - lastHeartbeatTime >= HEARTBEAT_INTERVAL) {
+  // 4. Periodic 10-second Heartbeat (only when idle, avoids colliding with QR scan or authorization)
+  if (!isAuthorized && millis() - lastHeartbeatTime >= HEARTBEAT_INTERVAL) {
     lastHeartbeatTime = millis();
     sendHeartbeatToServer();
   }

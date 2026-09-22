@@ -117,6 +117,12 @@ async function findByQRString(qrString, executor = db) {
     let cleanStr = qrString.trim();
     if (!cleanStr) return [[]];
 
+    // Remove matching surrounding quotes if sent by terminal or scanner JSON
+    if ((cleanStr.startsWith('"') && cleanStr.endsWith('"')) ||
+        (cleanStr.startsWith("'") && cleanStr.endsWith("'"))) {
+        cleanStr = cleanStr.slice(1, -1).trim();
+    }
+
     // Safe scanner envelope unwrapping if scanner encoded token in a URL query or JSON payload
     if (cleanStr.includes('qrString=')) {
         const match = cleanStr.match(/[?&]?qrString=([^&]+)/);
@@ -140,11 +146,40 @@ async function findByQRString(qrString, executor = db) {
 
     if (!cleanStr) return [[]];
 
-    // Strict exact matching on ID_QR_String only (disallow LIKE, FIND_IN_SET, Email, or User_ID substitution)
-    return executor.query(
+    // 1. Exact matching on ID_QR_String
+    const [exactUsers] = await executor.query(
         'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE ID_QR_String = ?',
         [cleanStr]
     );
+    if (exactUsers.length > 0) {
+        return [exactUsers];
+    }
+
+    // 2. Prefix fallback for hardware serial truncation:
+    // If the scanner string starts with LABSYNC- and has at least 18 characters (encompassing the unique 13-digit millisecond timestamp),
+    // safely match if exactly one user matches this prefix.
+    if (/^LABSYNC-(?:USER|OJT|FACULTY|MISSTAFF)-\d{10,}/i.test(cleanStr)) {
+        const [prefixUsers] = await executor.query(
+            'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE ID_QR_String LIKE ?',
+            [`${cleanStr}%`]
+        );
+        if (prefixUsers.length === 1) {
+            console.log(`[User Repository] Resolved user "${prefixUsers[0].Name}" (${prefixUsers[0].Role}) via prefix match from scanned string: "${cleanStr}"`);
+            return [prefixUsers];
+        }
+    } else if (/\d{12,}/.test(cleanStr) && cleanStr.length >= 15) {
+        // 3. Substring fragment fallback if rapid scanning cleared the leading 'LABSYNC-' prefix but retains the unique millisecond timestamp
+        const [subUsers] = await executor.query(
+            'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE ID_QR_String LIKE ?',
+            [`%${cleanStr}%`]
+        );
+        if (subUsers.length === 1) {
+            console.log(`[User Repository] Resolved user "${subUsers[0].Name}" (${subUsers[0].Role}) via timestamp fragment match from scanned string: "${cleanStr}"`);
+            return [subUsers];
+        }
+    }
+
+    return [[]];
 }
 
 async function getRoleById(userId, executor = db) {

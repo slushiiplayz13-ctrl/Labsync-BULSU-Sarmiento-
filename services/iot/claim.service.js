@@ -77,10 +77,26 @@ function clearAllClaims() {
     }
 }
 
+/**
+ * Invalidate all in-memory claims associated with a given user across all rooms.
+ * Called immediately upon a key retrieval event to prevent sibling slot claims.
+ *
+ * @param {number} userId
+ */
+function clearUserClaims(userId) {
+    if (!userId) return;
+    for (const key of Object.keys(recentRoomClaims)) {
+        if (recentRoomClaims[key] && recentRoomClaims[key].userId === userId) {
+            delete recentRoomClaims[key];
+        }
+    }
+}
+
 module.exports = {
     recordClaim,
     getValidClaim,
     clearClaim,
+    clearUserClaims,
     getAllClaims,
     clearAllClaims
 };

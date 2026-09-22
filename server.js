@@ -219,6 +219,9 @@ async function startServer() {
         server = app.listen(PORT, () => {
             console.log(`Server is running on http://localhost:${PORT}`);
         });
+        // Limit keep-alive and headers timeout to avoid lingering hung sockets from IoT microcontrollers
+        server.keepAliveTimeout = 5000;
+        server.headersTimeout = 6000;
 
         server.on('error', (err) => {
             if (err.code === 'EADDRINUSE') {

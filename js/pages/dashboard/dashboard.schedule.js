@@ -44,6 +44,40 @@
   }
 
   /**
+   * Smoothly scrolls the schedule timeline to center the active (or next upcoming) schedule item.
+   * Past schedules will already be scrolled above.
+   * @param {HTMLElement} container
+   */
+  function autoScrollToCurrentSchedule(container) {
+    if (!container) return;
+    // 1. Target active/ongoing ("NOW") class first
+    let targetItem = container.querySelector('.schedule-timeline-item.active');
+    // 2. Otherwise target next upcoming ("future") class
+    if (!targetItem) {
+      targetItem = container.querySelector('.schedule-timeline-item.future');
+    }
+    // 3. Fallback to last class if all completed
+    if (!targetItem) {
+      const items = container.querySelectorAll('.schedule-timeline-item');
+      if (items.length > 0) targetItem = items[items.length - 1];
+    }
+
+    if (targetItem) {
+      setTimeout(() => {
+        const containerHeight = container.clientHeight;
+        const itemTop = targetItem.offsetTop;
+        const itemHeight = targetItem.offsetHeight;
+        const targetScroll = itemTop - (containerHeight / 2) + (itemHeight / 2);
+
+        container.scrollTo({
+          top: Math.max(0, targetScroll),
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }
+
+  /**
    * Renders the schedule items into the timeline list DOM element.
    * @param {Array} todaySchedules
    * @param {HTMLElement} timelineList
@@ -57,6 +91,7 @@
         return;
       }
       timelineList._lastScheduleSignature = '__EMPTY__';
+      timelineList.classList.remove('schedule-timeline-list');
 
       timelineList.style.paddingLeft = '0';
       timelineList.style.paddingRight = '0';
@@ -85,11 +120,12 @@
 
     const currentSignature = todaySchedules.map(s => `${s.Schedule_ID || s.Subject_Name}-${s.Start_Time}-${s.End_Time}-${s.Room_Number}-${s.Section}`).join('|') + `_${Math.floor(nowMinutes / 5)}`;
 
-    if (timelineList._lastScheduleSignature === currentSignature && timelineList.querySelector('.timeline-item') !== null) {
+    if (timelineList._lastScheduleSignature === currentSignature && timelineList.querySelector('.schedule-timeline-item') !== null) {
       return; // Already rendered with identical signature, skip DOM rewrite
     }
     timelineList._lastScheduleSignature = currentSignature;
 
+    timelineList.classList.add('schedule-timeline-list');
     timelineList.style.paddingLeft = '';
     timelineList.style.paddingRight = '';
     timelineList.style.display = '';
@@ -103,6 +139,7 @@
     todaySchedules.forEach((s) => {
       let isActive = false;
       let isFuture = false;
+      let isPast = false;
       if (s.Start_Time && s.End_Time) {
         const startParts = s.Start_Time.split(':');
         const endParts = s.End_Time.split(':');
@@ -113,30 +150,37 @@
           isActive = true;
         } else if (nowMinutes < startMin) {
           isFuture = true;
+        } else {
+          isPast = true;
         }
       }
 
-      let timeClass = 'timeline-item';
+      let timeClass = 'schedule-timeline-item timeline-item';
       if (isActive) timeClass += ' active';
       else if (isFuture) timeClass += ' future';
+      else if (isPast) timeClass += ' past';
+
+      const rawRoom = String(s.Room_Number || '').trim();
+      const roomFormatted = rawRoom
+        ? (rawRoom.toLowerCase().startsWith('lab') || rawRoom.toLowerCase().startsWith('rm') ? rawRoom : `Lab ${rawRoom}`)
+        : 'TBA';
 
       html += `
-        <div class="${timeClass}" style="width: 100%; box-sizing: border-box;">
-          <div class="time-marker"></div>
-          <div class="time-content">
-            <div class="tc-top-row">
-              <div class="tc-time">
-                <i data-lucide="clock" style="width:13px;height:13px;flex-shrink:0;"></i>
+        <div class="${timeClass}" data-schedule-id="${escapeText(s.Schedule_ID || '')}" style="width: 100%; box-sizing: border-box;">
+          <div class="sched-timeline-node">
+            <div class="sched-node-dot"></div>
+          </div>
+          <div class="sched-card">
+            <div class="sched-card-header">
+              <div class="sched-card-time">
                 <span>${formatTime(s.Start_Time)} – ${formatTime(s.End_Time)}</span>
               </div>
-              ${isActive ? '<span class="tc-status-pill ongoing"><span class="dot"></span> ONGOING</span>' : (isFuture ? '<span class="tc-status-pill upcoming">UPCOMING</span>' : '<span class="tc-status-pill completed">COMPLETED</span>')}
+              ${isActive ? '<span class="sched-badge-now">NOW</span>' : ''}
             </div>
-            <div class="tc-title">${escapeText(s.Subject_Name || 'Class Session')}</div>
-            <div class="tc-bottom-row">
-              <span class="tc-room-badge">
-                <i data-lucide="map-pin" style="width:12px;height:12px;"></i> RM ${escapeText(s.Room_Number || 'TBA')}
-              </span>
-              ${s.Section ? `<span class="tc-section-badge">${escapeText(s.Section)}</span>` : ''}
+            <div class="sched-card-title">${escapeText(s.Subject_Name || 'Class Session')}</div>
+            <div class="sched-card-subtitle">
+              <span class="sched-card-room">${escapeText(roomFormatted)}</span>
+              ${s.Section ? `<span class="sched-card-section">${escapeText(s.Section)}</span>` : ''}
             </div>
           </div>
         </div>
@@ -147,6 +191,9 @@
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: timelineList });
     }
+
+    // Auto-scroll to center the active (or next upcoming) class
+    autoScrollToCurrentSchedule(timelineList);
   }
 
   /**
@@ -312,7 +359,8 @@
 
   const dashboardSchedule = {
     loadDashboardSchedule,
-    renderScheduleDOM
+    renderScheduleDOM,
+    autoScrollToCurrentSchedule
   };
 
   global.dashboardSchedule = dashboardSchedule;

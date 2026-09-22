@@ -204,62 +204,71 @@ async function findAllNotifications(executor = db) {
         UNION ALL
         (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
                NULL AS pc_number, r.Room_Number AS room_number,
-               COALESCE(
-                   u.Name,
-                   (SELECT u_sched.Name 
-                    FROM schedules s 
-                    JOIN users u_sched ON s.User_ID = u_sched.User_ID 
-                    WHERE s.Room_ID = o.Room_ID 
-                      AND s.Day_of_Week = DAYNAME(o.Access_Time) 
-                      AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time 
-                    LIMIT 1),
-                   (SELECT u_prev.Name 
-                    FROM occupancy_log o_prev 
-                    JOIN users u_prev ON o_prev.User_ID = u_prev.User_ID 
-                    WHERE o_prev.Room_ID = o.Room_ID 
-                      AND o_prev.Auth_Method = 'Key Taken' 
-                      AND o_prev.Access_Time <= o.Access_Time 
-                      AND o_prev.User_ID IS NOT NULL 
-                    ORDER BY o_prev.Access_Time DESC LIMIT 1),
-                   (SELECT u_curr.Name 
-                    FROM laboratories r2 
-                    JOIN users u_curr ON r2.Current_User_ID = u_curr.User_ID 
-                    WHERE r2.Room_ID = o.Room_ID),
-                   (SELECT u_assigned.Name 
-                    FROM schedules s_any 
-                    JOIN users u_assigned ON s_any.User_ID = u_assigned.User_ID 
-                    WHERE s_any.Room_ID = o.Room_ID 
-                    ORDER BY s_any.Schedule_ID ASC LIMIT 1),
-                   'Room Key'
-               ) AS description,
-               COALESCE(
-                   u.Role,
-                   (SELECT u_sched.Role 
-                    FROM schedules s 
-                    JOIN users u_sched ON s.User_ID = u_sched.User_ID 
-                    WHERE s.Room_ID = o.Room_ID 
-                      AND s.Day_of_Week = DAYNAME(o.Access_Time) 
-                      AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time 
-                    LIMIT 1),
-                   (SELECT u_prev.Role 
-                    FROM occupancy_log o_prev 
-                    JOIN users u_prev ON o_prev.User_ID = u_prev.User_ID 
-                    WHERE o_prev.Room_ID = o.Room_ID 
-                      AND o_prev.Auth_Method = 'Key Taken' 
-                      AND o_prev.Access_Time <= o.Access_Time 
-                      AND o_prev.User_ID IS NOT NULL 
-                    ORDER BY o_prev.Access_Time DESC LIMIT 1),
-                   (SELECT u_curr.Role 
-                    FROM laboratories r2 
-                    JOIN users u_curr ON r2.Current_User_ID = u_curr.User_ID 
-                    WHERE r2.Room_ID = o.Room_ID),
-                   (SELECT u_assigned.Role 
-                    FROM schedules s_any 
-                    JOIN users u_assigned ON s_any.User_ID = u_assigned.User_ID 
-                    WHERE s_any.Room_ID = o.Room_ID 
-                    ORDER BY s_any.Schedule_ID ASC LIMIT 1),
-                   'Faculty'
-               ) AS detail,
+               (CASE 
+                   WHEN o.Auth_Method IN ('UNAUTHORIZED', 'WRONG_SLOT') THEN 'Unidentified Person'
+                   WHEN (o.Auth_Method = 'Key Returned' OR o.Auth_Method = 'KEY_RETURN') AND o.User_ID IS NULL THEN 'Unidentified Person'
+                   ELSE COALESCE(
+                       u.Name,
+                       (SELECT u_sched.Name 
+                        FROM schedules s 
+                        JOIN users u_sched ON s.User_ID = u_sched.User_ID 
+                        WHERE s.Room_ID = o.Room_ID 
+                          AND s.Day_of_Week = DAYNAME(o.Access_Time) 
+                          AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time 
+                        LIMIT 1),
+                       (SELECT u_prev.Name 
+                        FROM occupancy_log o_prev 
+                        JOIN users u_prev ON o_prev.User_ID = u_prev.User_ID 
+                        WHERE o_prev.Room_ID = o.Room_ID 
+                          AND o_prev.Auth_Method = 'Key Taken' 
+                          AND o_prev.Access_Time <= o.Access_Time 
+                          AND o_prev.User_ID IS NOT NULL 
+                        ORDER BY o_prev.Access_Time DESC LIMIT 1),
+                       (SELECT u_curr.Name 
+                        FROM laboratories r2 
+                        JOIN users u_curr ON r2.Current_User_ID = u_curr.User_ID 
+                        WHERE r2.Room_ID = o.Room_ID),
+                       (SELECT u_assigned.Name 
+                        FROM schedules s_any 
+                        JOIN users u_assigned ON s_any.User_ID = u_assigned.User_ID 
+                        WHERE s_any.Room_ID = o.Room_ID 
+                        ORDER BY s_any.Schedule_ID ASC LIMIT 1),
+                       'Room Key'
+                   )
+               END) AS description,
+               (CASE 
+                   WHEN o.Auth_Method = 'UNAUTHORIZED' THEN 'Security Alert'
+                   WHEN o.Auth_Method = 'WRONG_SLOT' THEN 'Hardware Warning'
+                   WHEN (o.Auth_Method = 'Key Returned' OR o.Auth_Method = 'KEY_RETURN') AND o.User_ID IS NULL THEN 'Alarm Cleared'
+                   ELSE COALESCE(
+                       u.Role,
+                       (SELECT u_sched.Role 
+                        FROM schedules s 
+                        JOIN users u_sched ON s.User_ID = u_sched.User_ID 
+                        WHERE s.Room_ID = o.Room_ID 
+                          AND s.Day_of_Week = DAYNAME(o.Access_Time) 
+                          AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time 
+                        LIMIT 1),
+                       (SELECT u_prev.Role 
+                        FROM occupancy_log o_prev 
+                        JOIN users u_prev ON o_prev.User_ID = u_prev.User_ID 
+                        WHERE o_prev.Room_ID = o.Room_ID 
+                          AND o_prev.Auth_Method = 'Key Taken' 
+                          AND o_prev.Access_Time <= o.Access_Time 
+                          AND o_prev.User_ID IS NOT NULL 
+                        ORDER BY o_prev.Access_Time DESC LIMIT 1),
+                       (SELECT u_curr.Role 
+                        FROM laboratories r2 
+                        JOIN users u_curr ON r2.Current_User_ID = u_curr.User_ID 
+                        WHERE r2.Room_ID = o.Room_ID),
+                       (SELECT u_assigned.Role 
+                        FROM schedules s_any 
+                        JOIN users u_assigned ON s_any.User_ID = u_assigned.User_ID 
+                        WHERE s_any.Room_ID = o.Room_ID 
+                        ORDER BY s_any.Schedule_ID ASC LIMIT 1),
+                       'Faculty'
+                   )
+               END) AS detail,
                NULL AS priority,
                (CASE 
                    WHEN o.Auth_Method = 'Key Taken' AND EXISTS (
@@ -293,62 +302,71 @@ async function findNotificationsByRoomIds(roomIds, executor = db) {
         UNION ALL
         (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
                NULL AS pc_number, r.Room_Number AS room_number,
-               COALESCE(
-                   u.Name,
-                   (SELECT u_sched.Name 
-                    FROM schedules s 
-                    JOIN users u_sched ON s.User_ID = u_sched.User_ID 
-                    WHERE s.Room_ID = o.Room_ID 
-                      AND s.Day_of_Week = DAYNAME(o.Access_Time) 
-                      AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time 
-                    LIMIT 1),
-                   (SELECT u_prev.Name 
-                    FROM occupancy_log o_prev 
-                    JOIN users u_prev ON o_prev.User_ID = u_prev.User_ID 
-                    WHERE o_prev.Room_ID = o.Room_ID 
-                      AND o_prev.Auth_Method = 'Key Taken' 
-                      AND o_prev.Access_Time <= o.Access_Time 
-                      AND o_prev.User_ID IS NOT NULL 
-                    ORDER BY o_prev.Access_Time DESC LIMIT 1),
-                   (SELECT u_curr.Name 
-                    FROM laboratories r2 
-                    JOIN users u_curr ON r2.Current_User_ID = u_curr.User_ID 
-                    WHERE r2.Room_ID = o.Room_ID),
-                   (SELECT u_assigned.Name 
-                    FROM schedules s_any 
-                    JOIN users u_assigned ON s_any.User_ID = u_assigned.User_ID 
-                    WHERE s_any.Room_ID = o.Room_ID 
-                    ORDER BY s_any.Schedule_ID ASC LIMIT 1),
-                   'Room Key'
-               ) AS description,
-               COALESCE(
-                   u.Role,
-                   (SELECT u_sched.Role 
-                    FROM schedules s 
-                    JOIN users u_sched ON s.User_ID = u_sched.User_ID 
-                    WHERE s.Room_ID = o.Room_ID 
-                      AND s.Day_of_Week = DAYNAME(o.Access_Time) 
-                      AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time 
-                    LIMIT 1),
-                   (SELECT u_prev.Role 
-                    FROM occupancy_log o_prev 
-                    JOIN users u_prev ON o_prev.User_ID = u_prev.User_ID 
-                    WHERE o_prev.Room_ID = o.Room_ID 
-                      AND o_prev.Auth_Method = 'Key Taken' 
-                      AND o_prev.Access_Time <= o.Access_Time 
-                      AND o_prev.User_ID IS NOT NULL 
-                    ORDER BY o_prev.Access_Time DESC LIMIT 1),
-                   (SELECT u_curr.Role 
-                    FROM laboratories r2 
-                    JOIN users u_curr ON r2.Current_User_ID = u_curr.User_ID 
-                    WHERE r2.Room_ID = o.Room_ID),
-                   (SELECT u_assigned.Role 
-                    FROM schedules s_any 
-                    JOIN users u_assigned ON s_any.User_ID = u_assigned.User_ID 
-                    WHERE s_any.Room_ID = o.Room_ID 
-                    ORDER BY s_any.Schedule_ID ASC LIMIT 1),
-                   'Faculty'
-               ) AS detail,
+               (CASE 
+                   WHEN o.Auth_Method IN ('UNAUTHORIZED', 'WRONG_SLOT') THEN 'Unidentified Person'
+                   WHEN (o.Auth_Method = 'Key Returned' OR o.Auth_Method = 'KEY_RETURN') AND o.User_ID IS NULL THEN 'Unidentified Person'
+                   ELSE COALESCE(
+                       u.Name,
+                       (SELECT u_sched.Name 
+                        FROM schedules s 
+                        JOIN users u_sched ON s.User_ID = u_sched.User_ID 
+                        WHERE s.Room_ID = o.Room_ID 
+                          AND s.Day_of_Week = DAYNAME(o.Access_Time) 
+                          AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time 
+                        LIMIT 1),
+                       (SELECT u_prev.Name 
+                        FROM occupancy_log o_prev 
+                        JOIN users u_prev ON o_prev.User_ID = u_prev.User_ID 
+                        WHERE o_prev.Room_ID = o.Room_ID 
+                          AND o_prev.Auth_Method = 'Key Taken' 
+                          AND o_prev.Access_Time <= o.Access_Time 
+                          AND o_prev.User_ID IS NOT NULL 
+                        ORDER BY o_prev.Access_Time DESC LIMIT 1),
+                       (SELECT u_curr.Name 
+                        FROM laboratories r2 
+                        JOIN users u_curr ON r2.Current_User_ID = u_curr.User_ID 
+                        WHERE r2.Room_ID = o.Room_ID),
+                       (SELECT u_assigned.Name 
+                        FROM schedules s_any 
+                        JOIN users u_assigned ON s_any.User_ID = u_assigned.User_ID 
+                        WHERE s_any.Room_ID = o.Room_ID 
+                        ORDER BY s_any.Schedule_ID ASC LIMIT 1),
+                       'Room Key'
+                   )
+               END) AS description,
+               (CASE 
+                   WHEN o.Auth_Method = 'UNAUTHORIZED' THEN 'Security Alert'
+                   WHEN o.Auth_Method = 'WRONG_SLOT' THEN 'Hardware Warning'
+                   WHEN (o.Auth_Method = 'Key Returned' OR o.Auth_Method = 'KEY_RETURN') AND o.User_ID IS NULL THEN 'Alarm Cleared'
+                   ELSE COALESCE(
+                       u.Role,
+                       (SELECT u_sched.Role 
+                        FROM schedules s 
+                        JOIN users u_sched ON s.User_ID = u_sched.User_ID 
+                        WHERE s.Room_ID = o.Room_ID 
+                          AND s.Day_of_Week = DAYNAME(o.Access_Time) 
+                          AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time 
+                        LIMIT 1),
+                       (SELECT u_prev.Role 
+                        FROM occupancy_log o_prev 
+                        JOIN users u_prev ON o_prev.User_ID = u_prev.User_ID 
+                        WHERE o_prev.Room_ID = o.Room_ID 
+                          AND o_prev.Auth_Method = 'Key Taken' 
+                          AND o_prev.Access_Time <= o.Access_Time 
+                          AND o_prev.User_ID IS NOT NULL 
+                        ORDER BY o_prev.Access_Time DESC LIMIT 1),
+                       (SELECT u_curr.Role 
+                        FROM laboratories r2 
+                        JOIN users u_curr ON r2.Current_User_ID = u_curr.User_ID 
+                        WHERE r2.Room_ID = o.Room_ID),
+                       (SELECT u_assigned.Role 
+                        FROM schedules s_any 
+                        JOIN users u_assigned ON s_any.User_ID = u_assigned.User_ID 
+                        WHERE s_any.Room_ID = o.Room_ID 
+                        ORDER BY s_any.Schedule_ID ASC LIMIT 1),
+                       'Faculty'
+                   )
+               END) AS detail,
                NULL AS priority,
                (CASE 
                    WHEN o.Auth_Method = 'Key Taken' AND EXISTS (

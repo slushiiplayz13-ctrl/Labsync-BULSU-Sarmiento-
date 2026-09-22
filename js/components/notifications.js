@@ -17,6 +17,99 @@
   };
 
   /**
+   * Helper to map notification type and status to styled UI details.
+   */
+  function getNotificationDetails(notif) {
+    let iconName = 'bell';
+    let iconClass = 'notif-icon-default';
+    let title = 'System Update';
+    let text = notif.description || '';
+
+    if (notif.type === 'report') {
+      if (notif.status === 'Resolved') {
+        iconName = 'check-circle';
+        iconClass = 'notif-icon-resolved';
+        title = 'PC Report Resolved';
+        text = `PC #${notif.pc_number} in Room ${notif.room_number} is now functional.`;
+      } else {
+        iconName = 'alert-triangle';
+        iconClass = 'notif-icon-warning';
+        title = 'New PC Report';
+        text = `PC #${notif.pc_number} in Room ${notif.room_number}: ${(notif.description || '').substring(0, 80)}`;
+      }
+    } else if (notif.type === 'occupancy') {
+      const rawStatus = String(notif.status || '').trim();
+      const isUnauthorized = rawStatus === 'UNAUTHORIZED' || rawStatus.toLowerCase().includes('unauthorized');
+      const isWrongSlot = rawStatus === 'WRONG_SLOT' || rawStatus.toLowerCase().includes('wrong');
+      const isAlarmClearedReturn = (rawStatus === 'Key Returned' || rawStatus === 'KEY_RETURN') && (notif.detail === 'Alarm Cleared' || notif.description === 'Unidentified Person');
+
+      if (isUnauthorized) {
+        iconName = 'alert-triangle';
+        iconClass = 'notif-icon-warning';
+        title = 'Unauthorized Key Access';
+        const roomStr = notif.room_number ? `Room ${notif.room_number}` : 'the room';
+        text = `Key for ${roomStr} was removed without QR verification. Buzzer alarm triggered.`;
+      } else if (isWrongSlot) {
+        iconName = 'alert-triangle';
+        iconClass = 'notif-icon-warning';
+        title = 'Wrong Key Slot';
+        const roomStr = notif.room_number ? `in Room ${notif.room_number}` : '';
+        text = `Key inserted into incorrect slot${roomStr ? ` ${roomStr}` : ''}.`;
+      } else if (isAlarmClearedReturn) {
+        iconName = 'check-circle';
+        iconClass = 'notif-icon-resolved';
+        title = 'Alarm Cleared';
+        const roomStr = notif.room_number ? `Room ${notif.room_number}` : 'the room';
+        text = `Key returned to ${roomStr} slot.`;
+      } else {
+        iconName = 'key-round';
+        iconClass = 'notif-icon-occupancy';
+        let profName = (notif.description && notif.description !== 'Room Key' && notif.description !== 'Unidentified Person' && notif.description !== 'None' && notif.description !== 'N/A') ? notif.description : '';
+        if (!profName && notif.room_number) {
+          try {
+            const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+            if (Array.isArray(cachedLabs)) {
+              const matched = cachedLabs.find(r => String(r.Room_Number).trim().toLowerCase() === String(notif.room_number).trim().toLowerCase());
+              if (matched) {
+                profName = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
+              }
+            }
+          } catch (e) {}
+        }
+
+        const hasUser = !!profName && profName !== 'None' && profName !== 'N/A';
+        const profText = hasUser
+          ? (profName.startsWith('Prof.') ? profName : `Prof. ${profName}`)
+          : '';
+        const roomLabel = notif.room_number ? `Room ${notif.room_number}` : 'Room';
+
+        if (rawStatus === 'Key Taken') {
+          if (notif.session_type === 'Borrowed' || (profText && notif.session_type !== 'In Session')) {
+            title = 'Key Borrowed';
+            text = profText
+              ? `Key borrowed for ${roomLabel} by ${profText}.`
+              : `Key borrowed for ${roomLabel}.`;
+          } else {
+            title = 'Key Taken';
+            text = profText
+              ? `Key taken for ${roomLabel} by ${profText}.`
+              : `Key taken for ${roomLabel}.`;
+          }
+        } else if (rawStatus === 'Key Returned') {
+          title = 'Laboratory Key Returned';
+          text = profText
+            ? `Key returned for ${roomLabel} by ${profText}.`
+            : `Key returned for ${roomLabel}.`;
+        } else {
+          title = 'QR Identity Verified';
+          text = `${profText || notif.description || 'User'} verified QR code identity (Ready to take key).`;
+        }
+      }
+    }
+    return { iconName, iconClass, title, text };
+  }
+
+  /**
    * Initializes real-time notifications dropdown, badges, toasts, and background polling.
    */
   function initNotifications() {
@@ -80,72 +173,6 @@
       if (diffHr < 24) return `${diffHr}h ago`;
       if (diffDays === 1) return 'Yesterday';
       return `${diffDays} days ago`;
-    }
-
-    // Helper to map type to styled UI details
-    function getNotificationDetails(notif) {
-      let iconName = 'bell';
-      let iconClass = 'notif-icon-default';
-      let title = 'System Update';
-      let text = notif.description || '';
-
-      if (notif.type === 'report') {
-        if (notif.status === 'Resolved') {
-          iconName = 'check-circle';
-          iconClass = 'notif-icon-resolved';
-          title = 'PC Report Resolved';
-          text = `PC #${notif.pc_number} in Room ${notif.room_number} is now functional.`;
-        } else {
-          iconName = 'alert-triangle';
-          iconClass = 'notif-icon-warning';
-          title = 'New PC Report';
-          text = `PC #${notif.pc_number} in Room ${notif.room_number}: ${(notif.description || '').substring(0, 80)}`;
-        }
-      } else if (notif.type === 'occupancy') {
-        iconName = 'key-round';
-        iconClass = 'notif-icon-occupancy';
-        let profName = (notif.description && notif.description !== 'Room Key') ? notif.description : '';
-        if (!profName && notif.room_number) {
-          try {
-            const cachedLabs = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
-            if (Array.isArray(cachedLabs)) {
-              const matched = cachedLabs.find(r => String(r.Room_Number).trim().toLowerCase() === String(notif.room_number).trim().toLowerCase());
-              if (matched) {
-                profName = matched.Current_Key_Holder_Name || matched.Scheduled_Professor_Name || '';
-              }
-            }
-          } catch (e) {}
-        }
-
-        const hasUser = !!profName;
-        const profText = hasUser
-          ? (profName.startsWith('Prof.') ? profName : `Prof. ${profName}`)
-          : '';
-        const roomLabel = notif.room_number ? `Room ${notif.room_number}` : 'Room';
-
-        if (notif.status === 'Key Taken') {
-          if (notif.session_type === 'Borrowed' || (profText && notif.session_type !== 'In Session')) {
-            title = 'Key Borrowed';
-            text = profText
-              ? `Key borrowed for ${roomLabel} by ${profText}.`
-              : `Key borrowed for ${roomLabel}.`;
-          } else {
-            title = 'Key Taken';
-            text = profText
-              ? `Key taken for ${roomLabel} by ${profText}.`
-              : `Key taken for ${roomLabel}.`;
-          }
-        } else if (notif.status === 'Key Returned') {
-          title = 'Laboratory Key Returned';
-          text = profText
-            ? `Key returned for ${roomLabel} by ${profText}.`
-            : `Key returned for ${roomLabel}.`;
-        } else {
-          title = 'QR Identity Verified';
-          text = `${profText || notif.description || 'User'} verified QR code identity (Ready to take key).`;
-        }
-      }
-      return { iconName, iconClass, title, text };
     }
 
     // Helper to handle navigation clicking
@@ -403,6 +430,8 @@
             } else if (typeof global.loadAllRoomStatusLabs === 'function') {
               global.loadAllRoomStatusLabs();
             }
+          } else if (currentPage === 'mis-keys') {
+            if (typeof global.refreshKeys === 'function') global.refreshKeys(true);
           }
         } else {
           // Continuous live refresh for room status cards to detect IoT Offline & Reconnect state changes
@@ -420,6 +449,8 @@
             if (typeof global.loadITHeadDashboardData === 'function') {
               global.loadITHeadDashboardData();
             }
+          } else if (currentPage === 'mis-keys') {
+            if (typeof global.refreshKeys === 'function') global.refreshKeys(true);
           }
         }
 
@@ -483,5 +514,6 @@
 
   // Preserve global contracts for legacy scripts and HTML callers
   global.initNotifications = initNotifications;
+  global.getNotificationDetails = getNotificationDetails;
 
 })(typeof window !== 'undefined' ? window : this);

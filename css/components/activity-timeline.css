@@ -1378,5 +1378,434 @@ body.dark-mode .activity-log-card .audit-extra-note,
   }
 }
 
+/* ==========================================================================
+   LabSync – My Schedule Dashboard Redesign (Timeline Rail, Cards & Auto-Scroll)
+   ========================================================================== */
 
+.timeline-list.schedule-timeline-list,
+.schedule-timeline-list {
+  position: relative;
+  padding-left: 30px !important;
+  padding-right: 6px !important;
+  padding-top: 6px !important;
+  padding-bottom: 12px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scroll-behavior: smooth;
+  flex: 1 1 auto;
+  max-height: 480px;
+  width: 100%;
+  box-sizing: border-box;
+}
 
+/* Continuous vertical timeline stem rail */
+.timeline-list.schedule-timeline-list::before,
+.schedule-timeline-list::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  bottom: 24px;
+  width: 2px;
+  background: #E2E8F0;
+  z-index: 1;
+  display: block !important;
+}
+
+/* Schedule timeline item wrapper */
+.schedule-timeline-item {
+  position: relative;
+  margin-bottom: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.schedule-timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Rail Circle Node */
+.sched-timeline-node {
+  position: absolute;
+  left: -30px;
+  top: 16px;
+  width: 30px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.sched-node-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #CBD5E1;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+/* Active Node (NOW) */
+.schedule-timeline-item.active .sched-node-dot {
+  background: #0284C7;
+  width: 12px;
+  height: 12px;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.22);
+}
+
+/* Future Node */
+.schedule-timeline-item.future .sched-node-dot {
+  background: #3B82F6;
+  width: 10px;
+  height: 10px;
+}
+
+/* Past Node */
+.schedule-timeline-item.past .sched-node-dot {
+  background: #CBD5E1;
+  width: 8px;
+  height: 8px;
+}
+
+/* Schedule Card Container */
+.sched-card {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  border-radius: 16px;
+  padding: 14px 18px;
+  box-sizing: border-box;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+/* Active Card ("NOW") */
+.schedule-timeline-item.active .sched-card {
+  background: #E0F2FE;
+  border: 1px solid rgba(2, 132, 199, 0.22);
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12);
+}
+
+/* Curved cyan left border accent on active card */
+.schedule-timeline-item.active .sched-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: #0284C7;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+}
+
+/* Future Card (Upcoming) */
+.schedule-timeline-item.future .sched-card {
+  background: #EFF6FF;
+  border: 1px solid rgba(219, 234, 254, 0.9);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+/* Past Card (Greyed out) */
+.schedule-timeline-item.past {
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+.schedule-timeline-item.past:hover {
+  opacity: 0.85;
+}
+
+.schedule-timeline-item.past .sched-card {
+  background: #F8FAFC;
+  border: 1px dashed #E2E8F0;
+  box-shadow: none;
+}
+
+/* Card Header: Time & Badges */
+.sched-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.sched-card-time {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #0284C7;
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.schedule-timeline-item.future .sched-card-time {
+  color: #64748B;
+  font-weight: 600;
+}
+
+.schedule-timeline-item.past .sched-card-time {
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+/* NOW Pill Badge */
+.sched-badge-now {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: #0284C7;
+  color: #FFFFFF;
+  padding: 3px 11px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+}
+
+/* Card Title / Subject Name */
+.sched-card-title {
+  font-family: var(--font-display, 'Poppins', sans-serif);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0284C7;
+  line-height: 1.35;
+  margin: 3px 0 4px 0;
+  word-break: break-word;
+}
+
+.schedule-timeline-item.future .sched-card-title {
+  color: #0369A1;
+}
+
+.schedule-timeline-item.past .sched-card-title {
+  color: #64748B;
+  font-weight: 600;
+}
+
+/* Card Subtitle / Location & Section */
+.sched-card-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.schedule-timeline-item.past .sched-card-subtitle {
+  color: #94A3B8;
+}
+
+.sched-card-room {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sched-card-section {
+  font-size: 12px;
+  color: #64748B;
+  background: rgba(15, 23, 42, 0.05);
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.schedule-timeline-item.active .sched-card-section {
+  background: rgba(2, 132, 199, 0.12);
+  color: #0284C7;
+}
+
+.schedule-timeline-item.past .sched-card-section {
+  background: #F1F5F9;
+  color: #94A3B8;
+}
+
+/* ─── Dark Mode & Accessibility Support (Harmonious Slate / Sky Blue, Zero Harsh Neon) ─── */
+html.dark-mode .timeline-list.schedule-timeline-list::before,
+body.dark-mode .timeline-list.schedule-timeline-list::before,
+[data-theme="dark"] .timeline-list.schedule-timeline-list::before,
+html.high-contrast .timeline-list.schedule-timeline-list::before {
+  background: #334155 !important;
+}
+
+/* Rail Node Dots in Dark Mode */
+html.dark-mode .sched-node-dot,
+body.dark-mode .sched-node-dot,
+[data-theme="dark"] .sched-node-dot,
+html.high-contrast .sched-node-dot {
+  background: #475569 !important;
+}
+
+html.dark-mode .schedule-timeline-item.active .sched-node-dot,
+body.dark-mode .schedule-timeline-item.active .sched-node-dot,
+[data-theme="dark"] .schedule-timeline-item.active .sched-node-dot,
+html.high-contrast .schedule-timeline-item.active .sched-node-dot {
+  background: #0284C7 !important;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.28) !important;
+}
+
+html.dark-mode .schedule-timeline-item.past .sched-node-dot,
+body.dark-mode .schedule-timeline-item.past .sched-node-dot,
+[data-theme="dark"] .schedule-timeline-item.past .sched-node-dot,
+html.high-contrast .schedule-timeline-item.past .sched-node-dot {
+  background: #334155 !important;
+}
+
+/* Active Card ("NOW") - Refined Deep Slate with Soft Cyan Accent (Non-Neon) */
+html.dark-mode .schedule-timeline-item.active .sched-card,
+body.dark-mode .schedule-timeline-item.active .sched-card,
+[data-theme="dark"] .schedule-timeline-item.active .sched-card,
+html.high-contrast .schedule-timeline-item.active .sched-card {
+  background: rgba(2, 132, 199, 0.12) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Left Accent Line */
+html.dark-mode .schedule-timeline-item.active .sched-card::before,
+body.dark-mode .schedule-timeline-item.active .sched-card::before,
+[data-theme="dark"] .schedule-timeline-item.active .sched-card::before,
+html.high-contrast .schedule-timeline-item.active .sched-card::before {
+  background: #0284C7 !important;
+}
+
+/* Active Card Typography */
+html.dark-mode .schedule-timeline-item.active .sched-card-title,
+body.dark-mode .schedule-timeline-item.active .sched-card-title,
+[data-theme="dark"] .schedule-timeline-item.active .sched-card-title,
+html.high-contrast .schedule-timeline-item.active .sched-card-title {
+  color: #F8FAFC !important;
+}
+
+html.dark-mode .schedule-timeline-item.active .sched-card-time,
+body.dark-mode .schedule-timeline-item.active .sched-card-time,
+[data-theme="dark"] .schedule-timeline-item.active .sched-card-time,
+html.high-contrast .schedule-timeline-item.active .sched-card-time {
+  color: #38BDF8 !important;
+}
+
+/* NOW Pill Badge - Solid Blue with Clean White Text (No Neon Glow) */
+html.dark-mode .sched-badge-now,
+body.dark-mode .sched-badge-now,
+[data-theme="dark"] .sched-badge-now,
+html.high-contrast .sched-badge-now {
+  background: #0284C7 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35) !important;
+  font-weight: 700 !important;
+}
+
+/* Upcoming / Future Cards */
+html.dark-mode .schedule-timeline-item.future .sched-card,
+body.dark-mode .schedule-timeline-item.future .sched-card,
+[data-theme="dark"] .schedule-timeline-item.future .sched-card,
+html.high-contrast .schedule-timeline-item.future .sched-card {
+  background: #1E293B !important;
+  border: 1px solid #334155 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+html.dark-mode .schedule-timeline-item.future .sched-card-title,
+body.dark-mode .schedule-timeline-item.future .sched-card-title,
+[data-theme="dark"] .schedule-timeline-item.future .sched-card-title,
+html.high-contrast .schedule-timeline-item.future .sched-card-title {
+  color: #F1F5F9 !important;
+}
+
+html.dark-mode .schedule-timeline-item.future .sched-card-time,
+body.dark-mode .schedule-timeline-item.future .sched-card-time,
+[data-theme="dark"] .schedule-timeline-item.future .sched-card-time,
+html.high-contrast .schedule-timeline-item.future .sched-card-time {
+  color: #94A3B8 !important;
+}
+
+/* Past Cards */
+html.dark-mode .schedule-timeline-item.past,
+body.dark-mode .schedule-timeline-item.past,
+[data-theme="dark"] .schedule-timeline-item.past,
+html.high-contrast .schedule-timeline-item.past {
+  opacity: 0.45 !important;
+}
+
+html.dark-mode .schedule-timeline-item.past:hover,
+body.dark-mode .schedule-timeline-item.past:hover,
+[data-theme="dark"] .schedule-timeline-item.past:hover,
+html.high-contrast .schedule-timeline-item.past:hover {
+  opacity: 0.75 !important;
+}
+
+html.dark-mode .schedule-timeline-item.past .sched-card,
+body.dark-mode .schedule-timeline-item.past .sched-card,
+[data-theme="dark"] .schedule-timeline-item.past .sched-card,
+html.high-contrast .schedule-timeline-item.past .sched-card {
+  background: rgba(15, 23, 42, 0.35) !important;
+  border: 1px dashed #334155 !important;
+  box-shadow: none !important;
+}
+
+html.dark-mode .schedule-timeline-item.past .sched-card-title,
+body.dark-mode .schedule-timeline-item.past .sched-card-title,
+[data-theme="dark"] .schedule-timeline-item.past .sched-card-title,
+html.high-contrast .schedule-timeline-item.past .sched-card-title {
+  color: #64748B !important;
+}
+
+html.dark-mode .schedule-timeline-item.past .sched-card-time,
+body.dark-mode .schedule-timeline-item.past .sched-card-time,
+[data-theme="dark"] .schedule-timeline-item.past .sched-card-time,
+html.high-contrast .schedule-timeline-item.past .sched-card-time {
+  color: #64748B !important;
+}
+
+/* Subtitle, Room, and Section Tags in Dark Mode */
+html.dark-mode .sched-card-subtitle,
+body.dark-mode .sched-card-subtitle,
+[data-theme="dark"] .sched-card-subtitle,
+html.high-contrast .sched-card-subtitle {
+  color: #94A3B8 !important;
+}
+
+html.dark-mode .schedule-timeline-item.past .sched-card-subtitle,
+body.dark-mode .schedule-timeline-item.past .sched-card-subtitle,
+[data-theme="dark"] .schedule-timeline-item.past .sched-card-subtitle,
+html.high-contrast .schedule-timeline-item.past .sched-card-subtitle {
+  color: #475569 !important;
+}
+
+html.dark-mode .sched-card-section,
+body.dark-mode .sched-card-section,
+[data-theme="dark"] .sched-card-section,
+html.high-contrast .sched-card-section {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #CBD5E1 !important;
+}
+
+html.dark-mode .schedule-timeline-item.active .sched-card-section,
+body.dark-mode .schedule-timeline-item.active .sched-card-section,
+[data-theme="dark"] .schedule-timeline-item.active .sched-card-section,
+html.high-contrast .schedule-timeline-item.active .sched-card-section {
+  background: rgba(2, 132, 199, 0.22) !important;
+  color: #7DD3FC !important;
+}
+
+html.dark-mode .schedule-timeline-item.past .sched-card-section,
+body.dark-mode .schedule-timeline-item.past .sched-card-section,
+[data-theme="dark"] .schedule-timeline-item.past .sched-card-section,
+html.high-contrast .schedule-timeline-item.past .sched-card-section {
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: #475569 !important;
+}

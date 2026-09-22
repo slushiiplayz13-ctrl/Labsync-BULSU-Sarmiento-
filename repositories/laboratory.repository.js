@@ -146,6 +146,14 @@ async function findActivePCIssuesGroupedByRoom(executor = db) {
     `);
 }
 
+async function findActiveKeysByUserId(userId, executor = db) {
+    if (!userId) return [[]];
+    return executor.query(
+        'SELECT Room_ID, Room_Number, Key_Status FROM laboratories WHERE Current_User_ID = ? AND Key_Status = "Absent"',
+        [userId]
+    );
+}
+
 module.exports = {
     findAllLaboratoriesWithSchedule,
     findByRoomNumber,
@@ -164,5 +172,6 @@ module.exports = {
     updateConditionStatus,
     updateKeyStatus,
     updateLastSeenByRoomNumbers,
-    findActivePCIssuesGroupedByRoom
+    findActivePCIssuesGroupedByRoom,
+    findActiveKeysByUserId
 };
