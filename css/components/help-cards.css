@@ -4,15 +4,16 @@
 
 /* ─── Help & Quick-Start Card Component Styles ─── */
 .help-qs-card {
-  padding: 18px 22px;
-  border-radius: 16px;
+  padding: 16px 20px;
+  border-radius: 14px;
   background: var(--bg-white, #FFFFFF);
   border: 1px solid var(--border-light, #E2E8F0);
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 15px;
   box-sizing: border-box;
 }
 
@@ -28,9 +29,47 @@
   gap: 14px;
 }
 
+/* Fallback for legacy HTML structures where .help-qs-text is outside .help-qs-header */
+.help-qs-card:has(.help-qs-header) {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 15px;
+  row-gap: 4px;
+  align-items: start;
+}
+
+.help-qs-card:has(.help-qs-header) .help-qs-header {
+  display: contents;
+}
+
+.help-qs-card:has(.help-qs-header) .help-qs-icon {
+  grid-row: 1 / span 2;
+  align-self: start;
+}
+
+.help-qs-card:has(.help-qs-header) .help-qs-title {
+  grid-column: 2;
+  align-self: center;
+}
+
+.help-qs-card:has(.help-qs-header) .help-qs-text {
+  grid-column: 2;
+  padding-left: 0 !important;
+  margin: 0;
+}
+
+.help-qs-body,
+.help-qs-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .help-qs-icon {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 12px;
   display: inline-flex;
   align-items: center;
@@ -39,12 +78,13 @@
   background: #F1F5F9;
   color: var(--text-dark, #0F172A);
   transition: all 0.2s ease;
+  margin-top: 1px;
 }
 
 .help-qs-icon i,
 .help-qs-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
 }
 
 .help-qs-icon.theme-teal {
@@ -92,23 +132,24 @@
   font-family: var(--font-display, inherit);
   font-weight: 700;
   color: var(--text-dark, #0F172A);
-  font-size: 16.5px;
+  font-size: 15.5px;
   letter-spacing: -0.2px;
   margin: 0;
+  line-height: 1.3;
 }
 
 .help-qs-text {
   margin: 0;
-  font-size: 14.5px;
+  font-size: 13.5px;
   color: var(--text-mid, #64748B);
-  line-height: 1.6;
-  padding-left: 58px;
+  line-height: 1.55;
+  padding-left: 0;
 }
 
 @media (max-width: 600px) {
   .help-qs-card {
-    padding: 14px 16px;
-    gap: 8px;
+    padding: 13px 15px;
+    gap: 12px;
   }
 
   .help-qs-icon {
@@ -124,12 +165,12 @@
   }
 
   .help-qs-title {
-    font-size: 15.5px;
+    font-size: 15px;
   }
 
   .help-qs-text {
-    font-size: 13.5px;
-    padding-left: 0;
+    font-size: 13px;
+    line-height: 1.45;
   }
 }
 
@@ -423,7 +464,7 @@
 }
 
 .help-modal-footer {
-  padding: 20px 32px;
+  padding: 16px 28px;
   border-top: 1px solid var(--border-light);
   background: #FAFAFA;
   display: flex;
@@ -438,12 +479,12 @@
 }
 
 .help-modal-got-it-btn {
-  padding: 10px 24px;
+  padding: 9px 22px;
   border: none;
   background: var(--primary-teal);
   color: #fff;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition);
@@ -468,15 +509,15 @@
   justify-content: center;
   z-index: 2500 !important;
   pointer-events: auto !important;
-  padding: 20px;
+  padding: 16px;
 }
 
 .help-modal-dialog {
   background: var(--bg-white);
-  border-radius: 20px;
-  width: 100%;
-  max-width: 700px;
-  max-height: 85vh;
+  border-radius: 18px;
+  width: 92%;
+  max-width: 580px;
+  max-height: 88vh;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
@@ -485,7 +526,7 @@
 }
 
 .help-modal-header {
-  padding: 28px 32px;
+  padding: 22px 28px;
   border-bottom: 1px solid var(--border-light);
   display: flex;
   justify-content: space-between;
@@ -500,8 +541,8 @@
 }
 
 .help-modal-icon-box {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   background: var(--primary-teal);
   border-radius: 50%;
   display: flex;
@@ -513,8 +554,8 @@
 
 .help-modal-icon-box i,
 .help-modal-icon-box svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 .help-modal-title-wrap {
@@ -524,16 +565,17 @@
 
 .help-modal-title {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 700;
   color: var(--text-dark);
   margin: 0;
+  line-height: 1.25;
 }
 
 .help-modal-subtitle {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-mid);
-  margin: 4px 0 0 0;
+  margin: 3px 0 0 0;
 }
 
 .help-modal-close-btn,
@@ -550,6 +592,17 @@
   border-radius: 8px;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   outline: none;
+}
+
+.help-modal-close-btn {
+  padding: 7px;
+  border-radius: 8px;
+}
+
+.help-modal-close-btn i,
+.help-modal-close-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .help-modal-close-btn:hover,
@@ -629,14 +682,14 @@ html.high-contrast .help-modal-close-btn:focus-visible {
 .help-modal-body {
   flex: 1;
   overflow-y: auto;
-  padding: 32px;
+  padding: 24px 28px;
 }
 
 .help-modal-section-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text-dark);
-  margin: 0 0 16px 0;
+  margin: 0 0 12px 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -644,15 +697,15 @@ html.high-contrast .help-modal-close-btn:focus-visible {
 
 .help-modal-section-title i,
 .help-modal-section-title svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   color: var(--primary-teal);
 }
 
 .help-qs-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 /* ─── Help & Support Modal Dark Mode & High Contrast Overrides ─── */
@@ -897,4 +950,3 @@ html.high-contrast .help-support-box {
 html.high-contrast .help-support-item span.highlight {
   color: var(--primary-teal) !important;
 }
-

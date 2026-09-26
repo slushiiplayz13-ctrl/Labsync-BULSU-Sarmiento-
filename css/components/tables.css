@@ -170,15 +170,15 @@ html.high-contrast .ticket-id-tag {
 }
 
 @media (min-width: 769px) {
-  .maint-table th.col-ticket, .maint-table td.col-ticket { width: 13%; min-width: 105px; }
-  .maint-table th.col-date, .maint-table td.col-date { width: 14%; min-width: 125px; }
-  .maint-table th.col-room, .maint-table td.col-room { width: 13%; min-width: 105px; }
-  .maint-table th.col-pc, .maint-table td.col-pc { width: 12%; min-width: 95px; }
-  .maint-table th.col-issues, .maint-table td.col-issues { width: 28%; min-width: 220px; }
-  .maint-table th.col-actions, .maint-table td.col-actions { width: 20%; min-width: 250px; text-align: center; }
-  .maint-table { min-width: 900px; }
+  .maint-table th.col-ticket, .maint-table td.col-ticket { width: 11%; min-width: 105px; }
+  .maint-table th.col-date, .maint-table td.col-date { width: 13%; min-width: 125px; }
+  .maint-table th.col-room, .maint-table td.col-room { width: 11%; min-width: 100px; }
+  .maint-table th.col-pc, .maint-table td.col-pc { width: 10%; min-width: 90px; }
+  .maint-table th.col-issues, .maint-table td.col-issues { width: 27%; min-width: 220px; }
+  .maint-table th.col-actions, .maint-table td.col-actions { width: 28%; min-width: 270px; text-align: center; }
+  .maint-table { min-width: 980px; }
   .maint-table th:first-child, .maint-table tr:not(.maintenance-empty-row) td:first-child { padding-left: 20px !important; }
-  .maint-table th:last-child, .maint-table tr:not(.maintenance-empty-row) td:last-child { padding-right: 36px !important; }
+  .maint-table th:last-child, .maint-table tr:not(.maintenance-empty-row) td:last-child { padding-right: 18px !important; }
 }
 
 /* ─── Physical Keys Management Table ─── */
@@ -517,13 +517,19 @@ html.high-contrast .maintenance-empty-text.error {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 8px;
   vertical-align: middle;
 }
 
 @media (min-width: 769px) {
   .table-actions-cluster {
-    margin-right: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+    margin: 0 auto !important;
   }
 
   .table-actions-cluster .btn-view-ticket-info,
@@ -550,12 +556,14 @@ html.high-contrast .maintenance-empty-text.error {
     width: 104px !important;
     min-width: 104px !important;
     max-width: 104px !important;
+    flex-shrink: 0 !important;
   }
 
   .table-actions-cluster .btn-view-ticket-info {
     width: 118px !important;
     min-width: 118px !important;
     max-width: 118px !important;
+    flex-shrink: 0 !important;
     border-radius: 9px !important;
     border: 1.5px solid var(--border-light, #CBD5E1) !important;
     background: var(--bg-card, #FFFFFF) !important;
@@ -573,6 +581,13 @@ html.high-contrast .maintenance-empty-text.error {
     color: var(--badge-completed-text, #047857) !important;
     box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08) !important;
     cursor: pointer;
+  }
+
+  .table-actions-cluster .table-resolved-wrap {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
   }
 
   .table-actions-cluster .btn-view-ticket-info i,
@@ -601,6 +616,8 @@ html.high-contrast .maintenance-empty-text.error {
     height: 32px !important;
     min-height: 32px !important;
     max-height: 32px !important;
+    min-width: 122px !important;
+    flex-shrink: 0 !important;
     box-sizing: border-box !important;
     white-space: nowrap !important;
     vertical-align: middle !important;

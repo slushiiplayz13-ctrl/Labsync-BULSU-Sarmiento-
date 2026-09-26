@@ -240,48 +240,132 @@
   }
 
   /**
-   * Initializes dirty-state guard for page navigation and unloads.
+   * Initializes in-system dirty-state guard for page navigation and unloads.
+   * Completely avoids native browser "Leave site?" alerts in favor of #unsavedChangesModal.
    */
   function setupDirtyGuard() {
-    window.addEventListener('beforeunload', (e) => {
+    function navigateWithDirtyCheck(targetUrl, fallbackAction) {
       const isDirty = (global.scheduleState && global.scheduleState.isDirty) || global.isDirty;
       if (isDirty) {
-        e.preventDefault();
-        e.returnValue = '';
+        showUnsavedChangesModal(() => {
+          if (typeof fallbackAction === 'function') {
+            fallbackAction();
+          } else if (targetUrl) {
+            window.location.href = targetUrl;
+          }
+        });
+      } else {
+        if (typeof fallbackAction === 'function') {
+          fallbackAction();
+        } else if (targetUrl) {
+          window.location.href = targetUrl;
+        }
       }
-    });
+    }
 
-    // Back Button
+    // 1. Browser History Guard (Intercept browser Back button)
+    try {
+      if (window.history && typeof window.history.pushState === 'function') {
+        window.history.pushState({ page: 'schedule-editor' }, '', window.location.href);
+
+        window.addEventListener('popstate', (e) => {
+          const isDirty = (global.scheduleState && global.scheduleState.isDirty) || global.isDirty;
+          if (isDirty) {
+            // Re-push current state to keep URL and show in-system modal
+            window.history.pushState({ page: 'schedule-editor' }, '', window.location.href);
+            showUnsavedChangesModal(() => {
+              if (global.scheduleState) global.scheduleState.isDirty = false;
+              global.isDirty = false;
+              window.history.back();
+            });
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('[ScheduleEditorController] History guard setup skipped:', err);
+    }
+
+    // 2. Back Button (#editor-back-btn)
     const backBtn = document.getElementById('editor-back-btn');
     if (backBtn) {
       backBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        const isDirty = (global.scheduleState && global.scheduleState.isDirty) || global.isDirty;
-        if (isDirty) {
-          showUnsavedChangesModal(() => {
-            window.location.href = 'master-schedule.html';
-          });
-        } else {
-          window.location.href = 'master-schedule.html';
-        }
+        e.stopPropagation();
+        navigateWithDirtyCheck('master-schedule.html');
       });
     }
 
-    // Modal Confirmation Action Buttons
+    // 3. Sidebar Navigation Buttons & Logout
+    document.querySelectorAll('.sidebar-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        if (btn.id === 'sidebar-admin-btn') return; // handles toggle menu
+        if (btn.hasAttribute('onclick') && btn.getAttribute('onclick').includes('openHelpModal')) return; // in-page help modal
+
+        const target = btn.dataset.nav || btn.getAttribute('data-href');
+        if (target) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          navigateWithDirtyCheck(target);
+        } else if (btn.id === 'sidebar-logout-btn' || (btn.hasAttribute('onclick') && btn.getAttribute('onclick').includes('handleLogout'))) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          navigateWithDirtyCheck(null, () => {
+            if (typeof global.handleLogout === 'function') {
+              global.handleLogout();
+            } else {
+              window.location.href = 'index.html';
+            }
+          });
+        }
+      }, true);
+    });
+
+    // 4. Header Logos and any other [data-nav] elements
+    document.querySelectorAll('.header-logos, [data-nav]').forEach(el => {
+      if (el.classList.contains('sidebar-btn')) return;
+      el.addEventListener('click', (e) => {
+        const target = el.dataset.nav;
+        if (target) {
+          e.preventDefault();
+          e.stopPropagation();
+          navigateWithDirtyCheck(target);
+        }
+      });
+    });
+
+    // 5. Intercept standard <a> anchor links
+    document.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const href = link.getAttribute('href');
+        if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+          e.preventDefault();
+          e.stopPropagation();
+          navigateWithDirtyCheck(href);
+        }
+      });
+    });
+
+    // 6. Modal Confirmation Action Buttons
     const cancelConfirmBtn = document.getElementById('confirm-cancel-btn');
     const discardConfirmBtn = document.getElementById('confirm-discard-btn');
     const saveConfirmBtn = document.getElementById('confirm-save-btn');
 
+    function closeModal() {
+      const confirmModal = document.getElementById('unsavedChangesModal') || document.getElementById('unsaved-changes-modal');
+      if (confirmModal) {
+        confirmModal.classList.remove('active');
+        setTimeout(() => { confirmModal.style.display = 'none'; }, 200);
+        if (global.setModalOpenState) global.setModalOpenState(false);
+      }
+      const revertCallback = (global.scheduleState && global.scheduleState.getRevertSelectCallback && global.scheduleState.getRevertSelectCallback()) || global.revertSelectCallback;
+      if (typeof revertCallback === 'function') revertCallback();
+    }
+
     if (cancelConfirmBtn) {
       cancelConfirmBtn.addEventListener('click', () => {
-        const confirmModal = document.getElementById('unsavedChangesModal') || document.getElementById('unsaved-changes-modal');
-        if (confirmModal) {
-          confirmModal.classList.remove('active');
-          setTimeout(() => { confirmModal.style.display = 'none'; }, 200);
-          if (global.setModalOpenState) global.setModalOpenState(false);
-        }
-        const revertCallback = (global.scheduleState && global.scheduleState.getRevertSelectCallback && global.scheduleState.getRevertSelectCallback()) || global.revertSelectCallback;
-        if (typeof revertCallback === 'function') revertCallback();
+        closeModal();
       });
     }
 
@@ -289,12 +373,7 @@
       discardConfirmBtn.addEventListener('click', () => {
         if (global.scheduleState) global.scheduleState.isDirty = false;
         global.isDirty = false;
-        const confirmModal = document.getElementById('unsavedChangesModal') || document.getElementById('unsaved-changes-modal');
-        if (confirmModal) {
-          confirmModal.classList.remove('active');
-          setTimeout(() => { confirmModal.style.display = 'none'; }, 200);
-          if (global.setModalOpenState) global.setModalOpenState(false);
-        }
+        closeModal();
         const pendingAction = (global.scheduleState && global.scheduleState.getPendingAction && global.scheduleState.getPendingAction()) || global.pendingAction;
         if (typeof pendingAction === 'function') pendingAction();
       });
@@ -302,6 +381,13 @@
 
     if (saveConfirmBtn) {
       saveConfirmBtn.addEventListener('click', async () => {
+        const originalContent = saveConfirmBtn.innerHTML;
+        saveConfirmBtn.disabled = true;
+        saveConfirmBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width:16px;height:16px;margin-right:6px;"></i>Saving...';
+        if (global.lucide && typeof global.lucide.createIcons === 'function') {
+          global.lucide.createIcons({ root: saveConfirmBtn });
+        }
+
         const persistence = global.schedulePersistence;
         try {
           if (persistence && typeof persistence.saveCurrentSchedule === 'function') {
@@ -309,16 +395,19 @@
           }
           if (global.scheduleState) global.scheduleState.isDirty = false;
           global.isDirty = false;
-          const confirmModal = document.getElementById('unsavedChangesModal') || document.getElementById('unsaved-changes-modal');
-          if (confirmModal) {
-            confirmModal.classList.remove('active');
-            setTimeout(() => { confirmModal.style.display = 'none'; }, 200);
-            if (global.setModalOpenState) global.setModalOpenState(false);
-          }
+          closeModal();
+
           const pendingAction = (global.scheduleState && global.scheduleState.getPendingAction && global.scheduleState.getPendingAction()) || global.pendingAction;
-          if (typeof pendingAction === 'function') pendingAction();
+          if (typeof pendingAction === 'function') {
+            pendingAction();
+          }
         } catch (err) {
           console.error('Error saving schedule before leaving:', err);
+          saveConfirmBtn.disabled = false;
+          saveConfirmBtn.innerHTML = originalContent;
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons({ root: saveConfirmBtn });
+          }
           if (global.showToast) {
             global.showToast('Failed to save schedule. Please try again.', 'error');
           } else {
@@ -328,19 +417,14 @@
       });
     }
 
-    document.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', (e) => {
-        const isDirty = (global.scheduleState && global.scheduleState.isDirty) || global.isDirty;
-        if (isDirty) {
-          const href = link.getAttribute('href');
-          if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
-            e.preventDefault();
-            showUnsavedChangesModal(() => {
-              window.location.href = href;
-            });
-          }
+    // 7. Keyboard Accessibility: Escape key cancels the modal and stays on page
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const confirmModal = document.getElementById('unsavedChangesModal') || document.getElementById('unsaved-changes-modal');
+        if (confirmModal && confirmModal.classList.contains('active')) {
+          closeModal();
         }
-      });
+      }
     });
   }
 

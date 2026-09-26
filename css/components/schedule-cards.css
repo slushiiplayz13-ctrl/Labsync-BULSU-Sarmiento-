@@ -1267,7 +1267,7 @@ html.high-contrast .grid-card {
   overflow: hidden;
   cursor: grab;
   user-select: none;
-  transition: box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
+  transition: box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s, left 0.25s ease, width 0.25s ease, right 0.25s ease;
   backdrop-filter: blur(4px);
 }
 
@@ -2897,6 +2897,113 @@ body.dark-theme .sec-choice-btn.active,
   text-overflow: ellipsis;
 }
 
+/* ─── Conflict Split Layout (50% / 50% side-by-side) ─── */
+.grid-card.is-split-left {
+  left: 4px !important;
+  right: auto !important;
+  width: calc(50% - 6px) !important;
+  border-left: 3.5px solid #EF4444 !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.18) !important;
+  padding: 4px 6px !important;
+}
+
+.grid-card.is-split-left .grid-card-title {
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  -webkit-line-clamp: 1 !important;
+  line-clamp: 1 !important;
+}
+
+.grid-card.is-split-left .grid-card-section,
+.grid-card.is-split-left .grid-card-prof {
+  font-size: 9.5px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.grid-card.is-split-left .grid-card-time-text {
+  font-size: 9px !important;
+}
+
+.grid-card.is-split-left .card-info-icon {
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px !important;
+  min-height: 14px !important;
+  bottom: 3px !important;
+  right: 3px !important;
+}
+
+.grid-card.is-split-left .card-info-icon i,
+.grid-card.is-split-left .card-info-icon svg {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+.grid-card-ghost.is-split-right {
+  left: calc(50% + 2px) !important;
+  right: auto !important;
+  width: calc(50% - 6px) !important;
+  border-left: 3.5px solid #EF4444 !important;
+  padding: 4px 6px !important;
+  z-index: 5 !important;
+}
+
+.grid-card-ghost.is-split-right .ghost-badge {
+  font-size: 8.5px !important;
+  padding: 1px 4px !important;
+  margin-bottom: 2px !important;
+  gap: 2px !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.grid-card-ghost.is-split-right .ghost-badge span {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.grid-card-ghost.is-split-right .ghost-badge svg,
+.grid-card-ghost.is-split-right .ghost-badge i {
+  width: 8px !important;
+  height: 8px !important;
+  flex-shrink: 0;
+}
+
+.grid-card-ghost.is-split-right .ghost-title {
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  -webkit-line-clamp: 1 !important;
+  line-clamp: 1 !important;
+}
+
+.grid-card-ghost.is-split-right .ghost-prof {
+  font-size: 9.5px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.grid-card-ghost.is-split-right .ghost-sub {
+  font-size: 9px !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
 /* Dark Mode Overrides for Ghost Cards */
 html.high-contrast .grid-card-ghost,
 html.dark-mode .grid-card-ghost,
@@ -3008,4 +3115,26 @@ html.dark-mode .grid-card-ghost.current-room-ghost .ghost-sub,
 body.dark-mode .grid-card-ghost.current-room-ghost .ghost-sub,
 [data-theme="dark"] .grid-card-ghost.current-room-ghost .ghost-sub {
   color: #FCD34D !important;
+}
+
+/* Split cards dark-mode & high-contrast overrides */
+html.high-contrast .grid-card.is-split-left,
+html.dark-mode .grid-card.is-split-left,
+body.dark-mode .grid-card.is-split-left,
+[data-theme="dark"] .grid-card.is-split-left {
+  border-left: 3.5px solid #F87171 !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 10px rgba(239, 68, 68, 0.25) !important;
+}
+
+html.high-contrast .grid-card-ghost.is-split-right,
+html.dark-mode .grid-card-ghost.is-split-right,
+body.dark-mode .grid-card-ghost.is-split-right,
+[data-theme="dark"] .grid-card-ghost.is-split-right {
+  border-left: 3.5px solid #F87171 !important;
+  background: repeating-linear-gradient(135deg,
+      rgba(239, 68, 68, 0.22),
+      rgba(239, 68, 68, 0.22) 10px,
+      rgba(239, 68, 68, 0.35) 10px,
+      rgba(239, 68, 68, 0.35) 20px) !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 12px rgba(239, 68, 68, 0.25) !important;
 }

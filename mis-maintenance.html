@@ -494,17 +494,15 @@
     }
 
     @media (min-width: 769px) {
-      .maint-table {
-        min-width: 900px;
-      }
-      .maint-table th.col-ticket, .maint-table td.col-ticket { width: 13% !important; min-width: 105px; }
-      .maint-table th.col-date, .maint-table td.col-date { width: 14% !important; min-width: 125px; }
-      .maint-table th.col-room, .maint-table td.col-room { width: 13% !important; min-width: 105px; }
-      .maint-table th.col-pc, .maint-table td.col-pc { width: 12% !important; min-width: 95px; }
-      .maint-table th.col-issues, .maint-table td.col-issues { width: 28% !important; min-width: 220px; }
-      .maint-table th.col-actions, .maint-table td.col-actions { width: 20% !important; min-width: 250px !important; text-align: center !important; padding-right: 36px !important; }
+      .maint-table th.col-ticket, .maint-table td.col-ticket { width: 11% !important; min-width: 105px; }
+      .maint-table th.col-date, .maint-table td.col-date { width: 13% !important; min-width: 125px; }
+      .maint-table th.col-room, .maint-table td.col-room { width: 11% !important; min-width: 100px; }
+      .maint-table th.col-pc, .maint-table td.col-pc { width: 10% !important; min-width: 90px; }
+      .maint-table th.col-issues, .maint-table td.col-issues { width: 27% !important; min-width: 220px; }
+      .maint-table th.col-actions, .maint-table td.col-actions { width: 28% !important; min-width: 270px !important; text-align: center !important; padding-right: 18px !important; }
+      .maint-table { min-width: 980px; }
       .maint-table th:first-child, .maint-table tr:not(.maintenance-empty-row) td:first-child { padding-left: 20px !important; }
-      .maint-table th:last-child, .maint-table tr:not(.maintenance-empty-row) td:last-child { padding-right: 36px !important; }
+      .maint-table th:last-child, .maint-table tr:not(.maintenance-empty-row) td:last-child { padding-right: 18px !important; }
     }
 
     .maint-table-wrapper::-webkit-scrollbar {
@@ -999,13 +997,19 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 7px;
+      gap: 8px;
       vertical-align: middle;
     }
 
     @media (min-width: 769px) {
       .table-actions-cluster {
-        margin-right: 14px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        flex-wrap: nowrap !important;
+        white-space: nowrap !important;
+        margin: 0 auto !important;
       }
 
       .table-actions-cluster .btn-view-ticket-info,
@@ -1032,12 +1036,14 @@
         width: 104px !important;
         min-width: 104px !important;
         max-width: 104px !important;
+        flex-shrink: 0 !important;
       }
 
       .table-actions-cluster .btn-view-ticket-info {
         width: 118px !important;
         min-width: 118px !important;
         max-width: 118px !important;
+        flex-shrink: 0 !important;
         border-radius: 9px !important;
         border: 1.5px solid var(--border-light, #CBD5E1) !important;
         background: var(--bg-card, #FFFFFF) !important;
@@ -1055,6 +1061,13 @@
         color: var(--badge-completed-text, #047857) !important;
         box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08) !important;
         cursor: pointer;
+      }
+
+      .table-actions-cluster .table-resolved-wrap {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
       }
 
       .table-actions-cluster .btn-view-ticket-info i,
@@ -1083,6 +1096,8 @@
         height: 32px !important;
         min-height: 32px !important;
         max-height: 32px !important;
+        min-width: 122px !important;
+        flex-shrink: 0 !important;
         box-sizing: border-box !important;
         white-space: nowrap !important;
         vertical-align: middle !important;
@@ -1955,21 +1970,21 @@
         <div class="maint-table-wrapper is-empty" style="overflow-x: auto; flex: 1; min-height: 250px; width: 100%;">
           <table class="maint-table is-empty" style="width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed;">
             <colgroup>
+              <col style="width: 11%;">
               <col style="width: 13%;">
-              <col style="width: 14%;">
-              <col style="width: 13%;">
-              <col style="width: 12%;">
+              <col style="width: 11%;">
+              <col style="width: 10%;">
+              <col style="width: 27%;">
               <col style="width: 28%;">
-              <col style="width: 20%;">
             </colgroup>
             <thead>
               <tr>
-                <th class="col-ticket" style="width: 13%;">Ticket ID</th>
-                <th class="col-date" style="width: 14%;">Date & Time</th>
-                <th class="col-room" style="width: 13%;">Lab Room</th>
-                <th class="col-pc" style="width: 12%;">PC Unit</th>
-                <th class="col-issues" style="width: 28%;">Issue Details</th>
-                <th class="col-actions" style="width: 20%; text-align: center; padding-right: 36px;">Actions</th>
+                <th class="col-ticket" style="width: 11%;">Ticket ID</th>
+                <th class="col-date" style="width: 13%;">Date & Time</th>
+                <th class="col-room" style="width: 11%;">Lab Room</th>
+                <th class="col-pc" style="width: 10%;">PC Unit</th>
+                <th class="col-issues" style="width: 27%;">Issue Details</th>
+                <th class="col-actions" style="width: 28%; text-align: center; padding-right: 18px;">Actions</th>
               </tr>
             </thead>
             <tbody id="dynamicMaintenanceRows">

@@ -15,10 +15,13 @@
   }
 
   /**
-   * Removes all professor ghost blocks from the grid.
+   * Removes all professor ghost blocks from the grid and resets split states.
    */
   function clearGhostBlocks() {
     document.querySelectorAll('.grid-card-ghost').forEach(el => el.remove());
+    document.querySelectorAll('.grid-card.is-split-left, .grid-card.is-clash-conflict').forEach(el => {
+      el.classList.remove('is-split-left', 'is-clash-conflict');
+    });
   }
 
   /**
@@ -80,6 +83,46 @@
         ghostEl.classList.add('span-2');
       } else {
         ghostEl.classList.add('span-3-plus');
+      }
+
+      // Detect collision with existing room cards in this column
+      const existingCards = col.querySelectorAll('.grid-card:not(.grid-card-ghost)');
+      let hasConflict = false;
+
+      existingCards.forEach(card => {
+        let cStart = card.dataset.start !== undefined ? parseInt(card.dataset.start, 10) : NaN;
+        let cEnd = card.dataset.end !== undefined ? parseInt(card.dataset.end, 10) : NaN;
+
+        if (isNaN(cStart) || isNaN(cEnd)) {
+          const topPx = parseFloat(card.style.top) || 0;
+          const heightPx = parseFloat(card.style.height) || (slotHeight * 2);
+          cStart = Math.round(topPx / slotHeight);
+          cEnd = cStart + Math.round(heightPx / slotHeight);
+        }
+
+        // Interval overlap test: [startSlot, endSlot) overlaps [cStart, cEnd)
+        if (startSlot < cEnd && endSlot > cStart) {
+          hasConflict = true;
+          card.classList.add('is-split-left', 'is-clash-conflict');
+        }
+      });
+
+      // Also detect collision with existing ghost cards in this column
+      const prevGhosts = col.querySelectorAll('.grid-card-ghost');
+      prevGhosts.forEach(prevGhost => {
+        const topPx = parseFloat(prevGhost.style.top) || 0;
+        const heightPx = parseFloat(prevGhost.style.height) || (slotHeight * 2);
+        const gStart = Math.round(topPx / slotHeight);
+        const gEnd = gStart + Math.round(heightPx / slotHeight);
+
+        if (startSlot < gEnd && endSlot > gStart) {
+          hasConflict = true;
+          prevGhost.classList.add('is-split-right', 'is-clash-conflict');
+        }
+      });
+
+      if (hasConflict) {
+        ghostEl.classList.add('is-split-right', 'is-clash-conflict');
       }
 
       const assignedProf = s.Professor_Name || s.ProfessorName || professorName || '';

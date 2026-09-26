@@ -96,11 +96,14 @@ function runTest() {
     'Status legend on room status card must be a clean borderless telemetry row');
   console.log('✓ In-container header removal and borderless telemetry row verified');
 
-  // 9. Mobile internal scrolling on .labs-grid
+  // 9. Mobile internal scrolling on .labs-grid and .timeline-list
   assert.ok(!css.includes('max-height: 615px'), 'Forced rigid 615px rule must remain removed');
   assert.ok(max1024Block.includes('.labs-grid') && max1024Block.includes('overflow-y: auto !important') && max1024Block.includes('max-height: 540px !important'),
     'Room status data in .labs-grid must be internally scrollable at <= 1024px with max-height: 540px and overflow-y: auto');
-  console.log('✓ Room status data internal scrolling (overflow-y: auto, max-height: 540px) verified');
+  assert.ok(max1024Block.includes('.activity-log-card .timeline-list') && max1024Block.includes('overflow-y: auto !important') && max1024Block.includes('max-height: 540px !important'),
+    'Activity log data in .timeline-list must be internally scrollable at <= 1024px with max-height: 540px and overflow-y: auto');
+  assert.ok(!max1024Block.includes('max-height: none !important'), 'max1024Block must not have max-height: none !important on timeline-list');
+  console.log('✓ Room status and activity log internal scrolling (overflow-y: auto, max-height: 540px) verified');
 
   // 10. Card Visibility Toggling
   assert.ok(max1024Block.includes('body[data-page="room-status"] .dashboard-main-grid:not(.show-activity-tab) #activityLogCard'), 

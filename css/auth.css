@@ -139,7 +139,7 @@ header {
 }
 
 .header-left img.labsync-logo {
-  height: 60px;
+  height: 63px;
   object-fit: contain;
 }
 
@@ -475,7 +475,7 @@ main {
   }
 
   .header-left img.labsync-logo {
-    height: 46px !important;
+    height: 48px !important;
   }
 
   main {
@@ -536,7 +536,7 @@ main {
   }
 
   .header-left img.labsync-logo {
-    height: 38px !important;
+    height: 40px !important;
   }
 
   .header-right {

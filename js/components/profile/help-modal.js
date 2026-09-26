@@ -33,7 +33,7 @@
         const cached = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || 'null');
         const u = cached && (cached.user || cached);
         if (u && (u.role || u.Role)) userRole = u.role || u.Role;
-      } catch (e) {}
+      } catch (e) { }
     }
 
     const normRole = (userRole || '').trim().toLowerCase();
@@ -54,31 +54,31 @@
     if (isOjt) {
       quickStartHTML = `
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-teal">
-              <i data-lucide="layout-dashboard"></i>
-            </div>
+          <div class="help-qs-icon theme-teal">
+            <i data-lucide="layout-dashboard"></i>
+          </div>
+          <div class="help-qs-body">
             <div class="help-qs-title">Dashboard</div>
+            <p class="help-qs-text">Monitor overall computer lab status, view active work orders, and review recent maintenance activities across assigned labs.</p>
           </div>
-          <p class="help-qs-text">Monitor overall computer lab status, view active work orders, and review recent maintenance activities across assigned labs.</p>
         </div>
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-red">
-              <i data-lucide="wrench"></i>
-            </div>
+          <div class="help-qs-icon theme-red">
+            <i data-lucide="wrench"></i>
+          </div>
+          <div class="help-qs-body">
             <div class="help-qs-title">Maintenance Tracker</div>
+            <p class="help-qs-text">Review assigned PC issue tickets, update diagnostic progress (In Progress, Resolved), and log hardware or software repairs.</p>
           </div>
-          <p class="help-qs-text">Review assigned PC issue tickets, update diagnostic progress (In Progress, Resolved), and log hardware or software repairs.</p>
         </div>
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-blue">
-              <i data-lucide="clipboard-list"></i>
-            </div>
-            <div class="help-qs-title">Issue Monitoring</div>
+          <div class="help-qs-icon theme-blue">
+            <i data-lucide="clipboard-list"></i>
           </div>
-          <p class="help-qs-text">Track reported computer issues, verify hardware faults, and inspect activity logs for laboratory workstations.</p>
+          <div class="help-qs-body">
+            <div class="help-qs-title">Issue Monitoring</div>
+            <p class="help-qs-text">Track reported computer issues, verify hardware faults, and inspect activity logs for laboratory workstations.</p>
+          </div>
         </div>`;
 
       featuresHTML = `
@@ -113,49 +113,49 @@
     } else if (isMis) {
       quickStartHTML = `
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-teal">
-              <i data-lucide="layout-dashboard"></i>
-            </div>
+          <div class="help-qs-icon theme-teal">
+            <i data-lucide="layout-dashboard"></i>
+          </div>
+          <div class="help-qs-body">
             <div class="help-qs-title">Dashboard</div>
+            <p class="help-qs-text">Monitor active work orders, total registered PC counts, and recent student report submissions at a glance.</p>
           </div>
-          <p class="help-qs-text">Monitor active work orders, total registered PC counts, and recent student report submissions at a glance.</p>
         </div>
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-red">
-              <i data-lucide="wrench"></i>
-            </div>
+          <div class="help-qs-icon theme-red">
+            <i data-lucide="wrench"></i>
+          </div>
+          <div class="help-qs-body">
             <div class="help-qs-title">Maintenance Tracker</div>
+            <p class="help-qs-text">Filter tickets by status (All, Pending, Resolved), view issue details, and mark broken PCs as resolved with 1 click.</p>
           </div>
-          <p class="help-qs-text">Filter tickets by status (All, Pending, Resolved), view issue details, and mark broken PCs as resolved with 1 click.</p>
         </div>
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-blue">
-              <i data-lucide="qr-code"></i>
-            </div>
+          <div class="help-qs-icon theme-blue">
+            <i data-lucide="qr-code"></i>
+          </div>
+          <div class="help-qs-body">
             <div class="help-qs-title">PC & QR Management</div>
+            <p class="help-qs-text">Add or delete workstation units, inspect room-by-room lab health, and generate printable QR code stickers.</p>
           </div>
-          <p class="help-qs-text">Add or delete workstation units, inspect room-by-room lab health, and generate printable QR code stickers.</p>
         </div>
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-purple">
-              <i data-lucide="key-round"></i>
-            </div>
+          <div class="help-qs-icon theme-purple">
+            <i data-lucide="key-round"></i>
+          </div>
+          <div class="help-qs-body">
             <div class="help-qs-title">Key Management & Tracking</div>
+            <p class="help-qs-text">Automatically creates lab keys upon room setup. Print 2-sided QR keychain inserts and manage Active, Missing, or Found status.</p>
           </div>
-          <p class="help-qs-text">Automatically creates lab keys upon room setup. Print 2-sided QR keychain inserts and manage Active, Missing, or Found status.</p>
         </div>
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-green">
-              <i data-lucide="user-cog"></i>
-            </div>
-            <div class="help-qs-title">OJT Intern Management</div>
+          <div class="help-qs-icon theme-green">
+            <i data-lucide="user-cog"></i>
           </div>
-          <p class="help-qs-text">Register student interns, track active and expiring internship periods, generate temporary login credentials, and handle password resets.</p>
+          <div class="help-qs-body">
+            <div class="help-qs-title">OJT Intern Management</div>
+            <p class="help-qs-text">Register student interns, track active and expiring internship periods, generate temporary login credentials, and handle password resets.</p>
+          </div>
         </div>`;
 
       featuresHTML = `
@@ -197,92 +197,140 @@
     } else if (isItHead) {
       quickStartHTML = `
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-teal">
-              <i data-lucide="layout-dashboard"></i>
-            </div>
-            <div class="help-qs-title">IT Head Dashboard</div>
+          <div class="help-qs-icon theme-teal">
+            <i data-lucide="layout-dashboard"></i>
           </div>
-          <p class="help-qs-text">Overview of overall lab usage, schedule publishing, and department activity.</p>
+          <div class="help-qs-body">
+            <div class="help-qs-title">Executive Dashboard</div>
+            <p class="help-qs-text">Monitor overall laboratory occupancy, active key loans, weekly publishing stats, and jump quickly to scheduling and oversight tools.</p>
+          </div>
         </div>
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-green">
-              <i data-lucide="calendar-range"></i>
-            </div>
-            <div class="help-qs-title">Master Schedule</div>
+          <div class="help-qs-icon theme-blue">
+            <i data-lucide="monitor-dot"></i>
           </div>
-          <p class="help-qs-text">View and manage the complete laboratory schedule for all faculty members and classes.</p>
+          <div class="help-qs-body">
+            <div class="help-qs-title">Live Room Status & Activity</div>
+            <p class="help-qs-text">Track real-time room availability (Available, Borrowed, In Session), physical key custody status, and laboratory check-in activity logs.</p>
+          </div>
         </div>
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-indigo">
-              <i data-lucide="users"></i>
-            </div>
-            <div class="help-qs-title">Faculty Management</div>
+          <div class="help-qs-icon theme-green">
+            <i data-lucide="calendar-range"></i>
           </div>
-          <p class="help-qs-text">Add new faculty members, manage accounts, and send automated credentials.</p>
+          <div class="help-qs-body">
+            <div class="help-qs-title">Master Schedule Overview</div>
+            <p class="help-qs-text">Select laboratory rooms, configure official Dean and Program Chair signatories, and batch download all room timetables.</p>
+          </div>
         </div>
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-purple">
-              <i data-lucide="calendar-plus"></i>
-            </div>
-            <div class="help-qs-title">Schedule Editor</div>
+          <div class="help-qs-icon theme-purple">
+            <i data-lucide="calendar-plus"></i>
           </div>
-          <p class="help-qs-text">Create and customize room schedule blocks with imported subject catalogs.</p>
+          <div class="help-qs-body">
+            <div class="help-qs-title">Room Schedule Studio</div>
+            <p class="help-qs-text">Build weekly room timetables with drag-and-drop editing, clash prevention, 50/50 split ghost schedule overlays, and unsaved changes safety.</p>
+          </div>
+        </div>
+        <div class="help-qs-card">
+          <div class="help-qs-icon theme-red">
+            <i data-lucide="file-bar-chart-2"></i>
+          </div>
+          <div class="help-qs-body">
+            <div class="help-qs-title">PC Issue Reports</div>
+            <p class="help-qs-text">Supervise workstation maintenance across all computer labs, track diagnosis status, and review resolved tickets handled by MIS Staff and OJTs.</p>
+          </div>
+        </div>
+        <div class="help-qs-card">
+          <div class="help-qs-icon theme-indigo">
+            <i data-lucide="calendar-days"></i>
+          </div>
+          <div class="help-qs-body">
+            <div class="help-qs-title">My Teaching Schedule</div>
+            <p class="help-qs-text">Access your personal weekly teaching assignments, filter timetable blocks by subject, and print high-resolution copies for reference.</p>
+          </div>
+        </div>
+        <div class="help-qs-card">
+          <div class="help-qs-icon theme-amber">
+            <i data-lucide="users"></i>
+          </div>
+          <div class="help-qs-body">
+            <div class="help-qs-title">Faculty Management & Delegation</div>
+            <p class="help-qs-text">Add faculty members, generate credentials, inspect individual teaching schedules, and securely delegate Department Head leadership.</p>
+          </div>
         </div>`;
 
       featuresHTML = `
         <div class="help-feature-card theme-blue">
           <div class="help-feat-title">
-            <i data-lucide="file-spreadsheet"></i>
-            Curriculum Import
+            <i data-lucide="calendar-range"></i>
+            Clash Prevention & Ghost Overlays
           </div>
-          <p class="help-feat-desc">Bulk upload subject catalogs using Excel or CSV templates.</p>
+          <p class="help-feat-desc">Detect multi-room conflicts with side-by-side ghost schedule overlays.</p>
         </div>
         <div class="help-feature-card theme-indigo">
           <div class="help-feat-title">
             <i data-lucide="printer"></i>
-            Schedule Export
+            Institutional Timetable Exports
           </div>
-          <p class="help-feat-desc">Print and export laboratory schedules for department display.</p>
+          <p class="help-feat-desc">Export printable schedules with university headers and signatory blocks.</p>
+        </div>
+        <div class="help-feature-card theme-green">
+          <div class="help-feat-title">
+            <i data-lucide="file-spreadsheet"></i>
+            Curriculum Catalog Sync
+          </div>
+          <p class="help-feat-desc">Bulk import subject catalogs and course sections from Excel or CSV.</p>
+        </div>
+        <div class="help-feature-card theme-purple">
+          <div class="help-feat-title">
+            <i data-lucide="key-round"></i>
+            Physical Key & Room Presence Tracking
+          </div>
+          <p class="help-feat-desc">Track real-time lab key custody and scheduled class presence.</p>
         </div>
         <div class="help-feature-card theme-amber">
           <div class="help-feat-title">
             <i data-lucide="shield-check"></i>
-            Secure Access
+            Leadership Role Delegation
           </div>
-          <p class="help-feat-desc">High-level administrative control over department scheduling.</p>
+          <p class="help-feat-desc">Transfer administrative and scheduling authority securely to successors.</p>
+        </div>
+        <div class="help-feature-card theme-blue">
+          <div class="help-feat-title">
+            <i data-lucide="file-bar-chart-2"></i>
+            Lab Hardware Health Oversight
+          </div>
+          <p class="help-feat-desc">Monitor workstation issue reports from diagnosis to repair completion.</p>
         </div>`;
     } else {
       quickStartHTML = `
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-teal">
-              <i data-lucide="calendar"></i>
-            </div>
+          <div class="help-qs-icon theme-teal">
+            <i data-lucide="calendar"></i>
+          </div>
+          <div class="help-qs-body">
             <div class="help-qs-title">View Schedule</div>
+            <p class="help-qs-text">Check your weekly class schedules and room assignments anytime.</p>
           </div>
-          <p class="help-qs-text">Check your weekly class schedules and room assignments anytime.</p>
         </div>
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-blue">
-              <i data-lucide="file-text"></i>
-            </div>
+          <div class="help-qs-icon theme-blue">
+            <i data-lucide="file-text"></i>
+          </div>
+          <div class="help-qs-body">
             <div class="help-qs-title">Submit Reports</div>
+            <p class="help-qs-text">Report PC issues or lab concerns quickly through the reporting system.</p>
           </div>
-          <p class="help-qs-text">Report PC issues or lab concerns quickly through the reporting system.</p>
         </div>
         <div class="help-qs-card">
-          <div class="help-qs-header">
-            <div class="help-qs-icon theme-purple">
-              <i data-lucide="qr-code"></i>
-            </div>
-            <div class="help-qs-title">QR Code Access</div>
+          <div class="help-qs-icon theme-purple">
+            <i data-lucide="qr-code"></i>
           </div>
-          <p class="help-qs-text">Use your unique QR code for lab access and attendance tracking.</p>
+          <div class="help-qs-body">
+            <div class="help-qs-title">QR Code Access</div>
+            <p class="help-qs-text">Use your unique QR code for lab access and attendance tracking.</p>
+          </div>
         </div>`;
 
       featuresHTML = `
@@ -330,7 +378,7 @@
         <!-- Content -->
         <div class="help-modal-body">
           <!-- Quick Start -->
-          <div style="margin-bottom:32px;">
+          <div style="margin-bottom:24px;">
             <h3 class="help-modal-section-title">
               <i data-lucide="zap"></i>
               Quick Start Guide
@@ -341,7 +389,7 @@
           </div>
           
           <!-- Features -->
-          <div style="margin-bottom:32px;">
+          <div style="margin-bottom:24px;">
             <h3 class="help-modal-section-title">
               <i data-lucide="sparkles"></i>
               Key Features
@@ -391,7 +439,15 @@
       global.lucide.createIcons({ root: modal });
     }
 
+    const handleKeydown = (e) => {
+      if (e.key === 'Escape') {
+        closeHelpFn();
+      }
+    };
+    document.addEventListener('keydown', handleKeydown);
+
     const closeHelpFn = () => {
+      document.removeEventListener('keydown', handleKeydown);
       if (global.setModalOpenState) global.setModalOpenState(false);
       modal.remove();
     };
@@ -401,10 +457,9 @@
     if (closeHelpModalBtn) closeHelpModalBtn.addEventListener('click', closeHelpFn);
     if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelpFn);
     modal.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
-    modal.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
+      if (e.target === modal) {
+        closeHelpFn();
+      }
     });
   }
 

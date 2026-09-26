@@ -211,19 +211,34 @@
     }
 
     .confirm-modal-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
       background: var(--primary-teal-light);
       color: var(--primary-teal);
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
 
-    .confirm-modal-icon i {
-      width: 22px;
-      height: 22px;
+    .confirm-modal-icon i,
+    .confirm-modal-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .confirm-modal-icon.warning-amber {
+      background: #FEF3C7;
+      color: #D97706;
+      border: 1px solid #FDE68A;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15);
+    }
+
+    .confirm-modal-icon.warning-amber i,
+    .confirm-modal-icon.warning-amber svg {
+      stroke: #D97706 !important;
+      color: #D97706 !important;
     }
 
     .confirm-modal-header h3 {
@@ -543,7 +558,7 @@
       overflow: hidden;
       cursor: grab;
       user-select: none;
-      transition: box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
+      transition: box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s, left 0.25s ease, width 0.25s ease, right 0.25s ease;
       backdrop-filter: blur(4px);
     }
 
@@ -1348,6 +1363,113 @@
       text-overflow: ellipsis;
     }
 
+    /* ─── Conflict Split Layout (50% / 50% side-by-side) ─── */
+    .grid-card.is-split-left {
+      left: 4px !important;
+      right: auto !important;
+      width: calc(50% - 6px) !important;
+      border-left: 3.5px solid #EF4444 !important;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.18) !important;
+      padding: 4px 6px !important;
+    }
+
+    .grid-card.is-split-left .grid-card-title {
+      font-size: 11px !important;
+      line-height: 1.2 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      -webkit-line-clamp: 1 !important;
+      line-clamp: 1 !important;
+    }
+
+    .grid-card.is-split-left .grid-card-section,
+    .grid-card.is-split-left .grid-card-prof {
+      font-size: 9.5px !important;
+      line-height: 1.2 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .grid-card.is-split-left .grid-card-time-text {
+      font-size: 9px !important;
+    }
+
+    .grid-card.is-split-left .card-info-icon {
+      width: 14px !important;
+      height: 14px !important;
+      min-width: 14px !important;
+      min-height: 14px !important;
+      bottom: 3px !important;
+      right: 3px !important;
+    }
+
+    .grid-card.is-split-left .card-info-icon i,
+    .grid-card.is-split-left .card-info-icon svg {
+      width: 8px !important;
+      height: 8px !important;
+    }
+
+    .grid-card-ghost.is-split-right {
+      left: calc(50% + 2px) !important;
+      right: auto !important;
+      width: calc(50% - 6px) !important;
+      border-left: 3.5px solid #EF4444 !important;
+      padding: 4px 6px !important;
+      z-index: 5 !important;
+    }
+
+    .grid-card-ghost.is-split-right .ghost-badge {
+      font-size: 8.5px !important;
+      padding: 1px 4px !important;
+      margin-bottom: 2px !important;
+      gap: 2px !important;
+      max-width: 100% !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .grid-card-ghost.is-split-right .ghost-badge span {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .grid-card-ghost.is-split-right .ghost-badge svg,
+    .grid-card-ghost.is-split-right .ghost-badge i {
+      width: 8px !important;
+      height: 8px !important;
+      flex-shrink: 0;
+    }
+
+    .grid-card-ghost.is-split-right .ghost-title {
+      font-size: 11px !important;
+      line-height: 1.2 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      -webkit-line-clamp: 1 !important;
+      line-clamp: 1 !important;
+    }
+
+    .grid-card-ghost.is-split-right .ghost-prof {
+      font-size: 9.5px !important;
+      line-height: 1.2 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .grid-card-ghost.is-split-right .ghost-sub {
+      font-size: 9px !important;
+      line-height: 1.1 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
     /* ─── Dark Mode & High-Contrast Readability Overrides ─── */
     html.high-contrast .grid-card-ghost,
     html.dark-mode .grid-card-ghost,
@@ -1472,6 +1594,107 @@
     body.dark-mode .grid-card-ghost.current-room-ghost .ghost-sub,
     [data-theme="dark"] .grid-card-ghost.current-room-ghost .ghost-sub {
       color: #FCD34D !important;
+    }
+
+    /* Split cards dark-mode & high-contrast overrides */
+    html.high-contrast .grid-card.is-split-left,
+    html.dark-mode .grid-card.is-split-left,
+    body.dark-mode .grid-card.is-split-left,
+    [data-theme="dark"] .grid-card.is-split-left {
+      border-left: 3.5px solid #F87171 !important;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 10px rgba(239, 68, 68, 0.25) !important;
+    }
+
+    html.high-contrast .grid-card-ghost.is-split-right,
+    html.dark-mode .grid-card-ghost.is-split-right,
+    body.dark-mode .grid-card-ghost.is-split-right,
+    [data-theme="dark"] .grid-card-ghost.is-split-right {
+      border-left: 3.5px solid #F87171 !important;
+      background: repeating-linear-gradient(135deg,
+          rgba(239, 68, 68, 0.22),
+          rgba(239, 68, 68, 0.22) 10px,
+          rgba(239, 68, 68, 0.35) 10px,
+          rgba(239, 68, 68, 0.35) 20px) !important;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 12px rgba(239, 68, 68, 0.25) !important;
+    }
+
+    /* Confirm Modal Dark-Mode & High-Contrast Overrides */
+    html.high-contrast .confirm-modal-container,
+    html.dark-mode .confirm-modal-container,
+    body.dark-mode .confirm-modal-container,
+    [data-theme="dark"] .confirm-modal-container {
+      background: #1E293B !important;
+      border-color: #334155 !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75) !important;
+    }
+
+    html.high-contrast .confirm-modal-header h3,
+    html.dark-mode .confirm-modal-header h3,
+    body.dark-mode .confirm-modal-header h3,
+    [data-theme="dark"] .confirm-modal-header h3 {
+      color: #F8FAFC !important;
+    }
+
+    html.high-contrast .confirm-modal-body p,
+    html.dark-mode .confirm-modal-body p,
+    body.dark-mode .confirm-modal-body p,
+    [data-theme="dark"] .confirm-modal-body p {
+      color: #94A3B8 !important;
+    }
+
+    html.high-contrast .confirm-modal-icon.warning-amber,
+    html.dark-mode .confirm-modal-icon.warning-amber,
+    body.dark-mode .confirm-modal-icon.warning-amber,
+    [data-theme="dark"] .confirm-modal-icon.warning-amber {
+      background: rgba(245, 158, 11, 0.18) !important;
+      color: #FBBF24 !important;
+      border-color: rgba(245, 158, 11, 0.45) !important;
+    }
+
+    html.high-contrast .confirm-modal-icon.warning-amber i,
+    html.high-contrast .confirm-modal-icon.warning-amber svg,
+    html.dark-mode .confirm-modal-icon.warning-amber i,
+    html.dark-mode .confirm-modal-icon.warning-amber svg,
+    body.dark-mode .confirm-modal-icon.warning-amber i,
+    body.dark-mode .confirm-modal-icon.warning-amber svg,
+    [data-theme="dark"] .confirm-modal-icon.warning-amber i,
+    [data-theme="dark"] .confirm-modal-icon.warning-amber svg {
+      stroke: #FBBF24 !important;
+      color: #FBBF24 !important;
+    }
+
+    html.high-contrast .confirm-btn-cancel,
+    html.dark-mode .confirm-btn-cancel,
+    body.dark-mode .confirm-btn-cancel,
+    [data-theme="dark"] .confirm-btn-cancel {
+      background: transparent !important;
+      color: #94A3B8 !important;
+      border-color: #475569 !important;
+    }
+
+    html.high-contrast .confirm-btn-cancel:hover,
+    html.dark-mode .confirm-btn-cancel:hover,
+    body.dark-mode .confirm-btn-cancel:hover,
+    [data-theme="dark"] .confirm-btn-cancel:hover {
+      background: #334155 !important;
+      color: #F8FAFC !important;
+    }
+
+    html.high-contrast .confirm-btn-discard,
+    html.dark-mode .confirm-btn-discard,
+    body.dark-mode .confirm-btn-discard,
+    [data-theme="dark"] .confirm-btn-discard {
+      background: rgba(239, 68, 68, 0.15) !important;
+      color: #F87171 !important;
+      border-color: rgba(239, 68, 68, 0.3) !important;
+    }
+
+    html.high-contrast .confirm-btn-discard:hover,
+    html.dark-mode .confirm-btn-discard:hover,
+    body.dark-mode .confirm-btn-discard:hover,
+    [data-theme="dark"] .confirm-btn-discard:hover {
+      background: rgba(239, 68, 68, 0.25) !important;
+      border-color: rgba(239, 68, 68, 0.5) !important;
     }
 
     /* Schedule Editor General Dark-Mode High-Contrast Overrides */
@@ -1616,7 +1839,7 @@
 
     <nav class="sidebar-nav">
       <button class="sidebar-btn" data-tooltip="Dashboard" title="Dashboard"
-        onclick="window.location.href='it-head-dashboard.html'">
+        data-nav="it-head-dashboard.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-home">
@@ -1625,7 +1848,7 @@
         </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="Room Status" title="Room Status"
-        onclick="window.location.href='it-head-room-status.html'">
+        data-nav="it-head-room-status.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-monitor-dot">
@@ -1636,7 +1859,7 @@
         </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="PC Reports" title="PC Reports"
-        onclick="window.location.href='it-head-pc-reports.html'">
+        data-nav="it-head-pc-reports.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-file-bar-chart-2">
@@ -1648,7 +1871,7 @@
         </svg>
       </button>
       <button class="sidebar-btn" data-tooltip="My Schedule" title="My Schedule"
-        onclick="window.location.href='it-head-my-schedule.html'">
+        data-nav="it-head-my-schedule.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-calendar-days">
@@ -1669,7 +1892,7 @@
       </div>
 
       <button class="sidebar-btn desktop-only-btn active" data-tooltip="Master Schedule" title="Master Schedule"
-        onclick="window.location.href='master-schedule.html'">
+        data-nav="master-schedule.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-calendar">
@@ -1680,7 +1903,7 @@
         </svg>
       </button>
       <button class="sidebar-btn desktop-only-btn" data-tooltip="Faculty Management" title="Faculty Management"
-        onclick="window.location.href='faculty-management.html'">
+        data-nav="faculty-management.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-users">
@@ -1725,7 +1948,7 @@
           <path d="M12 17h.01" />
         </svg>
       </button>
-      <button class="sidebar-btn" data-tooltip="Logout" title="Logout" onclick="handleLogout()">
+      <button class="sidebar-btn" data-tooltip="Logout" title="Logout" id="sidebar-logout-btn">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-log-out">
@@ -1744,7 +1967,7 @@
     <header class="header">
 
       <!-- Logos -->
-      <div class="header-logos" style="display: flex; align-items: center; gap: 14px;">
+      <div class="header-logos" style="display: flex; align-items: center; gap: 14px; cursor: pointer;" title="Back to Master Schedule" data-nav="master-schedule.html">
         <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo"
           style="height: 40px; width: auto; object-fit: contain;">
         <div class="logo-divider" style="width: 1px; height: 32px; background: var(--border-light);"></div>
@@ -2054,13 +2277,13 @@
   <div id="unsavedChangesModal" class="confirm-modal-overlay" style="display: none;">
     <div class="confirm-modal-container">
       <div class="confirm-modal-header">
-        <div class="confirm-modal-icon">
-          <i data-lucide="help-circle"></i>
+        <div class="confirm-modal-icon warning-amber">
+          <i data-lucide="alert-triangle"></i>
         </div>
         <h3>Unsaved Changes</h3>
       </div>
       <div class="confirm-modal-body">
-        <p>You have made changes to the schedule. Would you like to save your changes before leaving this page?</p>
+        <p>You have unsaved schedule changes. What would you like to do before leaving?</p>
       </div>
       <div class="confirm-modal-footer">
         <button id="confirm-cancel-btn" class="confirm-btn confirm-btn-cancel">Cancel</button>
