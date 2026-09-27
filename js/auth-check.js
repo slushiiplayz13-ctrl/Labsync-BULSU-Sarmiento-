@@ -14,6 +14,17 @@
         } else {
             document.documentElement.classList.remove('high-contrast');
         }
+
+        // Synchronously check if cached user is OJT and tag root element before DOM paint
+        const cachedUserStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
+        if (cachedUserStr) {
+            const rawUser = JSON.parse(cachedUserStr);
+            const user = (rawUser && (rawUser.user || rawUser)) || null;
+            const userRole = user && (user.role || user.Role);
+            if (String(userRole || '').trim().toLowerCase() === 'ojt') {
+                document.documentElement.classList.add('role-ojt');
+            }
+        }
     } catch (e) {
         // Guard against restricted localStorage
     }
@@ -204,8 +215,9 @@ function revealPage() {
                         }
                     }
 
-                    if (user.role === 'OJT') {
-                        applyRoleNavigation(user.role);
+                    const userRole = (user && (user.role || user.Role)) || '';
+                    if (String(userRole).trim().toLowerCase() === 'ojt') {
+                        applyRoleNavigation(userRole);
                     }
                 }
             }
@@ -235,11 +247,14 @@ function revealPage() {
 })();
 
 /**
- * Hides administrative and restricted navigation buttons for OJT users.
+ * Hides administrative and restricted navigation buttons for OJT users across both desktop and mobile views.
  * @param {string} role
  */
 function applyRoleNavigation(role) {
-    if (role === 'OJT') {
+    const cleanRole = String(role || '').trim().toLowerCase();
+    if (cleanRole === 'ojt') {
+        document.documentElement.classList.add('role-ojt');
+        if (document.body) document.body.classList.add('role-ojt');
         document.querySelectorAll(
             '.sidebar-btn[onclick*="mis-keys.html"], ' +
             '.sidebar-btn[onclick*="mis-qr-generator.html"], ' +
@@ -249,9 +264,14 @@ function applyRoleNavigation(role) {
             '.sidebar-btn[data-tooltip*="PC & QR"], ' +
             '.sidebar-btn[title*="PC & QR"], ' +
             '.sidebar-btn[data-tooltip*="OJT"], ' +
-            '.sidebar-btn[title*="OJT"]'
+            '.sidebar-btn[title*="OJT"], ' +
+            '.sidebar-btn[aria-label*="Key Management"], ' +
+            '.sidebar-btn[aria-label*="PC & QR"], ' +
+            '.sidebar-btn[aria-label*="OJT"]'
         ).forEach(btn => {
-            btn.style.display = 'none';
+            btn.style.setProperty('display', 'none', 'important');
+            btn.setAttribute('hidden', '');
+            btn.classList.add('hidden');
         });
     }
 }
@@ -300,12 +320,13 @@ function applyRoleNavigation(role) {
             sessionStorage.setItem('labsync_user', JSON.stringify(user));
             localStorage.setItem('user', JSON.stringify(user));
         } catch (e) { }
-        const role = user.role || '';
+        const role = user.role || user.Role || '';
+        const normRole = String(role).trim().toLowerCase();
 
         if (!isPageAuthorized(role, page)) {
-            if (role.toLowerCase().includes('head')) {
+            if (normRole.includes('head')) {
                 window.location.replace('/it-head-dashboard.html');
-            } else if (role === 'MIS Staff' || role === 'OJT') {
+            } else if (normRole === 'mis staff' || normRole === 'mis' || normRole === 'ojt') {
                 window.location.replace('/mis-staff-dashboard.html');
             } else {
                 window.location.replace('/index.html');

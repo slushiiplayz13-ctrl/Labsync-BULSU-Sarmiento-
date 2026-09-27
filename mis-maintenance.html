@@ -404,6 +404,13 @@
         width: 100% !important;
       }
 
+      .maint-table tr.maintenance-row td.col-actions .table-resolved-wrap,
+      .maint-table td.col-actions .table-resolved-wrap {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: flex !important;
+      }
+
       .maint-table tr.maintenance-row td.col-actions .btn-view-ticket-info,
       .maint-table tr.maintenance-row td.col-actions .btn-resolve-ticket,
       .maint-table tr.maintenance-row td.col-actions .completed-chip {
@@ -411,6 +418,7 @@
         min-width: 0 !important;
         max-width: 100% !important;
         min-height: 42px !important;
+        max-height: none !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;

@@ -1442,6 +1442,13 @@ html.high-contrast .table-container tbody tr:hover {
     width: 100% !important;
   }
 
+  .maint-table td.col-actions .table-resolved-wrap,
+  .maint-table .table-actions-cluster .table-resolved-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+  }
+
   .maint-table .btn-view-ticket-info,
   .maint-table .btn-resolve-ticket,
   .maint-table .completed-chip,
@@ -1455,6 +1462,7 @@ html.high-contrast .table-container tbody tr:hover {
     min-width: 0 !important;
     max-width: 100% !important;
     min-height: 42px !important;
+    max-height: none !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;

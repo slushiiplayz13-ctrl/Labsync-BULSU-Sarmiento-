@@ -46,20 +46,31 @@
       touchOffsetY = touch.clientY - rect.top;
 
       ghostElement = block.cloneNode(true);
+      ghostElement.classList.add('touch-drag-ghost');
       ghostElement.style.position = 'fixed';
       ghostElement.style.width = rect.width + 'px';
       ghostElement.style.height = rect.height + 'px';
       ghostElement.style.left = rect.left + 'px';
       ghostElement.style.top = rect.top + 'px';
-      ghostElement.style.opacity = '0.8';
+      ghostElement.style.opacity = '0.9';
       ghostElement.style.pointerEvents = 'none';
-      ghostElement.style.zIndex = '10000';
-      ghostElement.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+      ghostElement.style.zIndex = '100005';
+      ghostElement.style.boxShadow = '0 12px 28px rgba(0,0,0,0.25)';
       ghostElement.style.transform = 'scale(1.03)';
 
       document.body.appendChild(ghostElement);
       block.classList.add('dragging');
       document.body.classList.add('dragging-active');
+
+      // Dismiss mobile bottom sheet and remove backdrop blur immediately
+      if (global.mobileScheduleEditor && typeof global.mobileScheduleEditor.closeSheet === 'function') {
+        global.mobileScheduleEditor.closeSheet();
+      }
+      const backdrop = document.getElementById('mobile-sheet-backdrop');
+      if (backdrop) {
+        backdrop.classList.remove('active');
+      }
+      document.body.classList.remove('mobile-sheet-active');
 
       const ghostRenderer = global.ghostScheduleRenderer;
       const profName = ghostRenderer && typeof ghostRenderer.getBlockProfessorName === 'function'
@@ -306,6 +317,36 @@
 
         const updateCountFn = (global.trayBlockRenderer && global.trayBlockRenderer.updateBlockCount) || global.updateBlockCount;
         if (updateCountFn) updateCountFn();
+      }
+
+      draggedElement = null;
+      activeDropZone = null;
+    });
+
+    document.addEventListener('touchcancel', function () {
+      if (!draggedElement) return;
+
+      if (autoScroller && typeof autoScroller.stop === 'function') {
+        autoScroller.stop();
+      }
+      draggedElement.classList.remove('dragging');
+      document.body.classList.remove('dragging-active');
+
+      const removePlaceholderFn = (global.scheduleCardRenderer && global.scheduleCardRenderer.removePlaceholder) || global.removePlaceholder;
+      if (removePlaceholderFn) removePlaceholderFn();
+
+      const ghostRenderer = global.ghostScheduleRenderer;
+      if (ghostRenderer && typeof ghostRenderer.restoreDefaultOrClearGhost === 'function') {
+        ghostRenderer.restoreDefaultOrClearGhost();
+      }
+
+      if (ghostElement) {
+        ghostElement.remove();
+        ghostElement = null;
+      }
+
+      if (activeDropZone) {
+        activeDropZone.classList.remove('drag-over');
       }
 
       draggedElement = null;

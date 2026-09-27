@@ -117,8 +117,8 @@
             <i data-lucide="layout-dashboard"></i>
           </div>
           <div class="help-qs-body">
-            <div class="help-qs-title">Dashboard</div>
-            <p class="help-qs-text">Monitor active work orders, total registered PC counts, and recent student report submissions at a glance.</p>
+            <div class="help-qs-title">MIS Staff Dashboard</div>
+            <p class="help-qs-text">Monitor overall PC fleet health, pending work orders, key custody, OJT interns, and switch between Overview metrics and Recent Reports.</p>
           </div>
         </div>
         <div class="help-qs-card">
@@ -126,8 +126,8 @@
             <i data-lucide="wrench"></i>
           </div>
           <div class="help-qs-body">
-            <div class="help-qs-title">Maintenance Tracker</div>
-            <p class="help-qs-text">Filter tickets by status (All, Pending, Resolved), view issue details, and mark broken PCs as resolved with 1 click.</p>
+            <div class="help-qs-title">Maintenance Tracker & History</div>
+            <p class="help-qs-text">Filter diagnostic tickets by status, perform 1-click repairs, inspect technician accountability, and search the completed maintenance archive with CSV export.</p>
           </div>
         </div>
         <div class="help-qs-card">
@@ -135,8 +135,8 @@
             <i data-lucide="qr-code"></i>
           </div>
           <div class="help-qs-body">
-            <div class="help-qs-title">PC & QR Management</div>
-            <p class="help-qs-text">Add or delete workstation units, inspect room-by-room lab health, and generate printable QR code stickers.</p>
+            <div class="help-qs-title">PC & QR Fleet Management</div>
+            <p class="help-qs-text">Inspect room-by-room workstation grids (Lab 203, 204), monitor PC diagnostic condition, safely configure capacity, and print batch QR stickers.</p>
           </div>
         </div>
         <div class="help-qs-card">
@@ -144,8 +144,8 @@
             <i data-lucide="key-round"></i>
           </div>
           <div class="help-qs-body">
-            <div class="help-qs-title">Key Management & Tracking</div>
-            <p class="help-qs-text">Automatically creates lab keys upon room setup. Print 2-sided QR keychain inserts and manage Active, Missing, or Found status.</p>
+            <div class="help-qs-title">Smart Key Dock & Tracking</div>
+            <p class="help-qs-text">Track physical keys via IoT Smart Key Dock sync (In Dock / In Use), audit custody logs, manage Missing keys, and print 2-sided QR keychain inserts.</p>
           </div>
         </div>
         <div class="help-qs-card">
@@ -153,46 +153,39 @@
             <i data-lucide="user-cog"></i>
           </div>
           <div class="help-qs-body">
-            <div class="help-qs-title">OJT Intern Management</div>
-            <p class="help-qs-text">Register student interns, track active and expiring internship periods, generate temporary login credentials, and handle password resets.</p>
+            <div class="help-qs-title">OJT Intern Lifecycle & Access</div>
+            <p class="help-qs-text">Register interns, track 7-day expiration countdowns, generate temporary credentials, perform 1-click password resets, and manage account statuses.</p>
           </div>
         </div>`;
 
       featuresHTML = `
         <div class="help-feature-card theme-purple">
           <div class="help-feat-title">
-            <i data-lucide="key-round"></i>
-            Auto Keys & 2-Sided QR Inserts
+            <i data-lucide="qr-code"></i>
+            Printable 2-Sided QR Inserts
           </div>
-          <p class="help-feat-desc">New rooms auto-receive default keys. Generate printable 2-sided QR keychain inserts with Key Transfer and Room Claim scanning.</p>
+          <p class="help-feat-desc">Print high-res acrylic keychain inserts featuring Key Return and Room Claim QR codes for swift faculty handovers.</p>
         </div>
-        <div class="help-feature-card theme-indigo">
+        <div class="help-feature-card theme-teal">
           <div class="help-feat-title">
-            <i data-lucide="bell"></i>
-            Instant Ticket Alerts
+            <i data-lucide="file-spreadsheet"></i>
+            Completed Maintenance Archive
           </div>
-          <p class="help-feat-desc">Receive live notifications whenever students or faculty submit new hardware issue reports.</p>
+          <p class="help-feat-desc">Searchable historical work order records with date range filters, resolver accountability, and CSV compliance export.</p>
         </div>
         <div class="help-feature-card theme-blue">
           <div class="help-feat-title">
             <i data-lucide="check-circle-2"></i>
-            1-Click Ticket Repair
+            1-Click Repair & Fleet Sync
           </div>
-          <p class="help-feat-desc">Resolving a ticket updates the work order and restores the PC unit to Functional condition in the database.</p>
+          <p class="help-feat-desc">Resolving a ticket updates the work order, records technician role attribution, and immediately restores PC condition to Functional.</p>
         </div>
         <div class="help-feature-card theme-green">
           <div class="help-feat-title">
             <i data-lucide="user-cog"></i>
-            OJT Lifecycle & Credentials
+            Automated OJT Expiration Guards
           </div>
-          <p class="help-feat-desc">Automatic expiration tracking with 7-day warning alerts, secure temporary password generation, 1-click password resets, and account deactivation.</p>
-        </div>
-        <div class="help-feature-card theme-amber">
-          <div class="help-feat-title">
-            <i data-lucide="shield-check"></i>
-            Shared Account Control
-          </div>
-          <p class="help-feat-desc">Securely manage shared department access credentials and profile security settings.</p>
+          <p class="help-feat-desc">Automatic 7-day expiration countdowns, "Expiring Soon" badges, instant credential generation, and 1-click password resets.</p>
         </div>`;
     } else if (isItHead) {
       quickStartHTML = `

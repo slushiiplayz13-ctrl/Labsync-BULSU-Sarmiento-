@@ -1526,6 +1526,61 @@ html.high-contrast .grid-card {
   height: 11px !important;
 }
 
+/* ─── Schedule Card Header & Selectors Component Styles ─────────── */
+.schedule-header {
+  background: var(--primary-teal, #00b4d8);
+  color: #FFFFFF;
+  padding: 12px 24px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  border-radius: 12px 12px 0 0;
+  flex-shrink: 0;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.schedule-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.schedule-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display, inherit);
+  font-size: 15px;
+  font-weight: 700;
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+.schedule-selectors {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.schedule-selectors .header-select {
+  width: 140px;
+}
+
+.schedule-selectors .header-select#semester-wrapper {
+  width: 145px;
+}
+
+.custom-select-wrapper.header-select#academic-year-wrapper .custom-select-trigger span::before {
+  content: "AY ";
+  font-weight: 700;
+  color: var(--primary-teal, #00b4d8);
+  margin-right: 3px;
+}
+
 /* ─── Faculty Schedule View Subcards & Modal Elements Component Styles ─── */
 .sched-modal-dialog {
   background: var(--bg-white);
@@ -1635,7 +1690,8 @@ html.high-contrast .grid-card {
   letter-spacing: -0.2px;
   line-height: 1.3;
   white-space: normal;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .sched-card-meta {
@@ -1758,6 +1814,194 @@ html.high-contrast .grid-card {
   margin-bottom: 12px;
 }
 
+/* ─── Faculty Schedule Modal Responsive Layout Adaptations ───────── */
+@media (max-width: 640px) {
+  #schedule-view-modal,
+  .sched-modal-backdrop {
+    padding: 18px 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .sched-modal-dialog {
+    width: 92.5vw !important;
+    max-width: 460px !important;
+    max-height: 82vh !important;
+    border-radius: 18px !important;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.28) !important;
+    margin: auto !important;
+  }
+
+  .sched-modal-header {
+    padding: 14px 16px !important;
+    gap: 10px !important;
+    align-items: flex-start !important;
+  }
+
+  .sched-modal-header-text {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .sched-modal-title {
+    font-size: 17px !important;
+    line-height: 1.25 !important;
+  }
+
+  .sched-modal-subtitle {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    margin-top: 2px !important;
+  }
+
+  .sched-modal-close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
+    margin-top: 2px !important;
+  }
+
+  #sched-modal-body,
+  .sched-modal-body {
+    padding: 12px 14px 20px 14px !important;
+  }
+
+  .sched-modal-list {
+    gap: 10px !important;
+  }
+
+  .sched-modal-day-divider {
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    margin-top: 8px !important;
+    margin-bottom: 2px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .sched-modal-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 9px !important;
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+  }
+
+  .sched-card-left {
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 6px !important;
+  }
+
+  .sched-card-subject {
+    font-size: 14.5px !important;
+    line-height: 1.3 !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .sched-card-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px 14px !important;
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+  }
+
+  .sched-meta-item {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+  }
+
+  .sched-card-right {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding-top: 8px !important;
+    border-top: 1px dashed var(--border-light, #E2E8F0) !important;
+    margin-top: 2px !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .sched-time-badge {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: var(--text-dark, #0F172A) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    background: rgba(30, 187, 215, 0.08) !important;
+    padding: 3px 8px !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(30, 187, 215, 0.2) !important;
+    white-space: nowrap !important;
+  }
+
+  .sched-status-pill {
+    font-size: 11px !important;
+    padding: 3px 9px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 360px) {
+  #schedule-view-modal,
+  .sched-modal-backdrop {
+    padding: 14px 8px !important;
+  }
+
+  .sched-modal-dialog {
+    width: 94vw !important;
+    max-width: 338px !important;
+    max-height: 84vh !important;
+    border-radius: 14px !important;
+  }
+
+  .sched-modal-header {
+    padding: 12px 12px !important;
+  }
+
+  .sched-modal-title {
+    font-size: 16px !important;
+  }
+
+  .sched-modal-subtitle {
+    font-size: 11.5px !important;
+  }
+
+  #sched-modal-body,
+  .sched-modal-body {
+    padding: 10px 10px 16px 10px !important;
+  }
+
+  .sched-modal-card {
+    padding: 10px 11px !important;
+    gap: 8px !important;
+  }
+
+  .sched-card-subject {
+    font-size: 13.5px !important;
+  }
+
+  .sched-card-meta {
+    font-size: 11px !important;
+    gap: 6px 8px !important;
+  }
+
+  .sched-time-badge {
+    font-size: 10.5px !important;
+    padding: 2.5px 6px !important;
+  }
+
+  .sched-status-pill {
+    font-size: 10px !important;
+    padding: 2.5px 7px !important;
+  }
+}
+
 /* ─── Schedule & Timetable High-Contrast Theme Overrides ─── */
 html.high-contrast .sg-cell.filled,
 html.high-contrast .canvas-class-block {
@@ -1826,6 +2070,12 @@ html.high-contrast .sched-card-meta {
 
 html.high-contrast .sched-time-badge {
   color: #f8fafc !important;
+  background: rgba(0, 180, 216, 0.12) !important;
+  border-color: rgba(0, 180, 216, 0.25) !important;
+}
+
+html.high-contrast .sched-card-right {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 html.high-contrast .sched-status-pill {
@@ -2030,8 +2280,9 @@ html.high-contrast .calendar-grid-body {
   .schedule-editor-header {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 16px !important;
-    padding: 16px !important;
+    gap: 14px !important;
+    padding: 4px 0 0 0 !important;
+    margin-bottom: 14px !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
@@ -2063,6 +2314,7 @@ html.high-contrast .calendar-grid-body {
   .seh-actions {
     display: flex !important;
     flex-direction: row !important;
+    align-items: center !important;
     gap: 10px !important;
     width: 100% !important;
   }
@@ -2070,117 +2322,554 @@ html.high-contrast .calendar-grid-body {
   .seh-actions button,
   #print-schedule-btn,
   #save-schedule-btn {
-    flex: 1 !important;
+    flex: 1 1 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
     justify-content: center !important;
-    padding: 10px 12px !important;
+    padding: 9px 12px !important;
     font-size: 13px !important;
+    font-weight: 600 !important;
     border-radius: 12px !important;
     white-space: nowrap !important;
-    height: 44px !important;
+    height: 40px !important;
     min-width: 0 !important;
   }
 
   .editor-layout-container {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 16px !important;
-    height: auto !important;
+    gap: 0 !important;
+    height: calc(100vh - 125px) !important;
     max-height: none !important;
-  }
-
-  #create-block-panel {
-    width: 100% !important;
-    height: auto !important;
-    max-height: none !important;
-    min-height: auto !important;
-    padding: 16px !important;
-    box-sizing: border-box !important;
-    position: static !important;
+    position: relative !important;
   }
 
   .editor-schedule-card {
-    height: auto !important;
-    max-height: none !important;
-    min-height: auto !important;
+    flex: 1 1 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
     overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 14px !important;
+    border: 1px solid var(--border-light, #e2e8f0) !important;
+    background: var(--bg-white, #ffffff) !important;
   }
 
   .calendar-grid-container {
-    height: auto !important;
+    flex: 1 1 0 !important;
+    height: 100% !important;
     max-height: none !important;
-    overflow-y: visible !important;
-  }
-
-  #create-block-panel h3 {
-    margin-bottom: 16px !important;
-  }
-
-  .editor-form-grid {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
-    gap: 12px !important;
-    margin-bottom: 16px !important;
-  }
-
-  #create-block-btn {
-    margin-top: 4px !important;
-  }
-
-  .available-blocks-section {
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 85px !important;
     position: relative !important;
-    bottom: auto !important;
-    left: auto !important;
-    right: auto !important;
-    background: transparent !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border-top: 1px solid var(--border-light) !important;
-    border-bottom: none !important;
-    box-shadow: none !important;
-    padding: 16px 0 0 0 !important;
-    margin-top: 20px !important;
-    z-index: 1 !important;
+  }
+
+  /* ─── Standard Weekly Schedule Grid Layout (All Days Mon - Sat) ─── */
+  body[data-page="schedule-editor"] .calendar-grid-header,
+  body[data-page="schedule-editor"] .calendar-grid-body {
+    width: max-content !important;
+    min-width: 100% !important;
+    display: flex !important;
+  }
+
+  body[data-page="schedule-editor"] .grid-header-cell {
+    flex: 0 0 150px !important;
+    min-width: 150px !important;
+    width: 150px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  body[data-page="schedule-editor"] .grid-header-cell:first-child {
+    flex: 0 0 65px !important;
+    min-width: 65px !important;
+    width: 65px !important;
+    position: sticky !important;
+    left: 0 !important;
+    top: 0 !important;
+    z-index: 110 !important;
+  }
+
+  body[data-page="schedule-editor"] .grid-time-column {
+    flex: 0 0 65px !important;
+    min-width: 65px !important;
+    width: 65px !important;
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 40 !important;
+  }
+
+  body[data-page="schedule-editor"] .grid-day-column {
+    flex: 0 0 150px !important;
+    min-width: 150px !important;
+    width: 150px !important;
+    display: block !important;
+  }
+
+  /* ─── Mobile Bottom Sheet Drawer (#create-block-panel) ─── */
+  #create-block-panel {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-height: 80vh !important;
+    height: auto !important;
+    background: var(--bg-white, #ffffff) !important;
+    border: 1px solid var(--border-light, #e2e8f0) !important;
+    border-radius: 24px 24px 0 0 !important;
+    box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.22) !important;
+    z-index: 10002 !important;
+    transform: translateY(105%) !important;
+    transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1) !important;
+    padding: 14px 18px 24px 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     box-sizing: border-box !important;
   }
 
-  html.high-contrast .available-blocks-section {
-    background: transparent !important;
+  html.dark-mode #create-block-panel {
+    background: #0F172A !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6) !important;
   }
 
-  .available-blocks-section h4 {
-    font-size: 11px !important;
-    margin-bottom: 8px !important;
-    color: var(--text-dark) !important;
-    font-family: var(--font-display) !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
+  #create-block-panel.mobile-sheet-open {
+    transform: translateY(0) !important;
+  }
+
+  /* Mobile Sheet Header & Tabs */
+  .mobile-sheet-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+    position: relative !important;
+    width: 100% !important;
+  }
+
+  .sheet-drag-handle {
+    width: 44px !important;
+    height: 4.5px !important;
+    border-radius: 4px !important;
+    background: #CBD5E1 !important;
+  }
+
+  html.dark-mode .sheet-drag-handle {
+    background: #475569 !important;
+  }
+
+  .mobile-sheet-tabs {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+    background: #F1F5F9 !important;
+    padding: 4px !important;
+    border-radius: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  html.dark-mode .mobile-sheet-tabs {
+    background: #1E293B !important;
+  }
+
+  .mobile-sheet-tab {
+    flex: 1 1 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 8px 12px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: var(--text-muted, #64748B) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .mobile-sheet-tab svg,
+  .mobile-sheet-tab i {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .mobile-sheet-tab.active {
+    background: #FFFFFF !important;
+    color: var(--primary-teal, #1ebbd7) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  }
+
+  html.dark-mode .mobile-sheet-tab.active {
+    background: #0F172A !important;
+    color: #38BDF8 !important;
+  }
+
+  .sheet-close-btn {
+    display: none !important;
+  }
+
+  /* Explicit per-tab view rules */
+  #create-block-panel[data-sheet-tab="create"] .editor-create-form-section {
+    display: block !important;
+  }
+
+  #create-block-panel[data-sheet-tab="create"] .available-blocks-section {
+    display: none !important;
+  }
+
+  #create-block-panel[data-sheet-tab="blocks"] .editor-create-form-section {
+    display: none !important;
+  }
+
+  #create-block-panel[data-sheet-tab="blocks"] .available-blocks-section {
+    display: flex !important;
+  }
+
+  .editor-create-form-section {
+    display: none;
+    width: 100% !important;
+    padding-bottom: 12px !important;
+  }
+
+  /* Spacing for Create Block Button */
+  body[data-page="schedule-editor"] #create-block-btn {
+    margin-top: 12px !important;
+    margin-bottom: 20px !important;
+    padding: 13px 18px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35) !important;
+  }
+
+  .available-blocks-section {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: none !important;
   }
 
   #blocks-container {
-    flex-direction: column !important;
-    overflow-x: hidden !important;
+    flex: 1 !important;
+    min-height: 140px !important;
+    max-height: 320px !important;
     overflow-y: auto !important;
-    max-height: 200px !important;
-    padding: 4px !important;
-    gap: 8px !important;
-    background-color: transparent !important;
+    padding: 10px !important;
+    gap: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
   }
 
-  #blocks-container::-webkit-scrollbar {
-    height: 4px !important;
-  }
-
-  #blocks-container::-webkit-scrollbar-thumb {
-    background: rgba(30, 187, 215, 0.2) !important;
-    border-radius: 99px !important;
-  }
-
+  /* Vibrant Teal Schedule Block in Tray with Crisp White Text */
   #blocks-container .schedule-block {
-    flex: 0 0 140px !important;
-    margin-bottom: 0 !important;
-    height: auto !important;
+    cursor: pointer !important;
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+    background: var(--primary-teal, #1ebbd7) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 4px 14px rgba(30, 187, 215, 0.3) !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    gap: 3px !important;
+    user-select: none !important;
+  }
+
+  #blocks-container .schedule-block > div:first-child {
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    color: #FFFFFF !important;
+  }
+
+  #blocks-container .schedule-block > div:not(:first-child) {
+    font-size: 11.5px !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    opacity: 1 !important;
+  }
+
+  html.dark-mode #blocks-container .schedule-block {
+    background: #0284c7 !important;
+    color: #FFFFFF !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35) !important;
+  }
+
+  #blocks-container .schedule-block:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 18px rgba(30, 187, 215, 0.45) !important;
+  }
+
+  #blocks-container .schedule-block:active {
+    transform: scale(0.98) !important;
+  }
+
+  #blocks-container .schedule-block .delete-block-btn {
+    position: absolute !important;
+    top: 8px !important;
+    right: 8px !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: none !important;
+    color: #FFFFFF !important;
+    border-radius: 6px !important;
+    width: 22px !important;
+    height: 22px !important;
     display: inline-flex !important;
-    vertical-align: top !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease !important;
+  }
+
+  #blocks-container .schedule-block .delete-block-btn:hover {
+    background: rgba(239, 68, 68, 0.85) !important;
+  }
+
+  /* ─── Mobile Bottom Sheet Backdrop ─── */
+  .mobile-sheet-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(15, 23, 42, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    z-index: 10001 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.28s ease !important;
+  }
+
+  .mobile-sheet-backdrop.active {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  /* Instantly unblur and dismiss backdrop & drawer during drag & drop */
+  body.dragging-active .mobile-sheet-backdrop,
+  body.dragging-active #mobile-sheet-backdrop,
+  body.dragging-active .mobile-sheet-backdrop.active {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    visibility: hidden !important;
+    transition: none !important;
+  }
+
+  body.dragging-active #create-block-panel {
+    transform: translateY(120%) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: none !important;
+  }
+
+  /* ─── Mobile Floating Dock ─── */
+  #mobile-editor-dock {
+    position: fixed !important;
+    bottom: 82px !important;
+    bottom: calc(70px + 12px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 6px 10px !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1.5px solid rgba(226, 232, 240, 0.9) !important;
+    border-radius: 30px !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06) !important;
+    white-space: nowrap !important;
+  }
+
+  html.dark-mode #mobile-editor-dock {
+    background: rgba(15, 23, 42, 0.94) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .mobile-dock-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 8px 14px !important;
+    border-radius: 20px !important;
+    border: 1px solid var(--border-light, #E2E8F0) !important;
+    background: #FFFFFF !important;
+    color: var(--text-dark, #0F172A) !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+
+  html.dark-mode .mobile-dock-btn {
+    background: #1E293B !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #F8FAFC !important;
+  }
+
+  .mobile-dock-btn svg,
+  .mobile-dock-btn i {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  .mobile-dock-btn-primary {
+    background: var(--primary-teal, #1ebbd7) !important;
+    color: #FFFFFF !important;
+    border-color: var(--primary-teal, #1ebbd7) !important;
+    box-shadow: 0 4px 12px rgba(30, 187, 215, 0.35) !important;
+  }
+
+  /* ─── Mobile Placement Action Bar ─── */
+  #mobile-placement-bar {
+    position: fixed !important;
+    bottom: 82px !important;
+    bottom: calc(70px + 12px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 14px !important;
+    right: 14px !important;
+    z-index: 10000 !important;
+    display: none;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    padding: 10px 14px !important;
+    background: #0F172A !important;
+    color: #FFFFFF !important;
+    border-radius: 16px !important;
+    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.35) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    animation: placementBarSlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+  }
+
+  @keyframes placementBarSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .mpb-content {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .mpb-badge {
+    padding: 3px 8px !important;
+    border-radius: 6px !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    background: var(--primary-teal, #1ebbd7) !important;
+    color: #FFFFFF !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mpb-badge.moving {
+    background: #F59E0B !important;
+  }
+
+  .mpb-text {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    gap: 1px !important;
+  }
+
+  .mpb-title {
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    color: #FFFFFF !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .mpb-hint {
+    font-size: 11px !important;
+    color: #94A3B8 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .mpb-cancel-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    padding: 6px 12px !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    transition: background 0.2s ease !important;
+  }
+
+  .mpb-cancel-btn:hover {
+    background: rgba(239, 68, 68, 0.8) !important;
+  }
+
+  /* ─── Card Moving & Duration Presets ─── */
+  .grid-card.moving-active {
+    opacity: 0.55 !important;
+    box-shadow: 0 0 0 2.5px #F59E0B !important;
+  }
+
+  .duration-chip {
+    padding: 6px 10px !important;
+    border-radius: 8px !important;
+    border: 1.5px solid var(--border-light, #E2E8F0) !important;
+    background: #F8FAFC !important;
+    color: var(--text-dark, #0F172A) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+
+  html.dark-mode .duration-chip {
+    background: #1E293B !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #E2E8F0 !important;
+  }
+
+  .duration-chip.active {
+    background: var(--primary-teal, #1ebbd7) !important;
+    color: #FFFFFF !important;
+    border-color: var(--primary-teal, #1ebbd7) !important;
+    box-shadow: 0 2px 6px rgba(30, 187, 215, 0.3) !important;
   }
 
   #no-blocks-msg {
@@ -2308,19 +2997,62 @@ html.high-contrast .calendar-grid-body {
     height: 14px !important;
   }
 
-  /* Weekly Schedule Header & Selectors */
+  /* Weekly Schedule Header & Selectors Two-Tier Architecture */
   .schedule-header {
     flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 12px !important;
-    padding: 12px 16px !important;
-    height: auto !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+    border-radius: 14px 14px 0 0 !important;
+  }
+
+  .schedule-header-title-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .schedule-header-title {
+    font-size: 14px !important;
+  }
+
+  .schedule-header .btn-schedule-studio {
+    padding: 4px 10px !important;
+    font-size: 11.5px !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
   }
 
   .schedule-selectors {
-    flex-wrap: wrap !important;
-    gap: 8px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .schedule-selectors .header-select {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  .schedule-selectors .header-select .custom-select-trigger {
+    width: 100% !important;
+    height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .schedule-selectors .header-select .custom-select-dropdown {
+    min-width: max(100%, 145px) !important;
+    width: max-content !important;
+    max-width: min(300px, calc(100vw - 24px)) !important;
   }
 
   /* Room Selection Header & Buttons */

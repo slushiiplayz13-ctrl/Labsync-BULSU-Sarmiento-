@@ -162,6 +162,14 @@
       box-shadow: 0 4px 14px var(--primary-teal-glow);
     }
 
+    .toggle-completed-btn .btn-text-full {
+      display: inline;
+    }
+
+    .toggle-completed-btn .btn-text-short {
+      display: none;
+    }
+
     /* Modal Styles */
     .modal-backdrop {
       position: fixed;
@@ -542,21 +550,21 @@
   <!-- Completed Tickets Modal -->
   <div id="completedTicketsModal" class="modal-backdrop" style="display: none;">
     <div class="modal-container completed-modal-container">
-      <div class="modal-header">
-        <div style="display: flex; align-items: center; gap: 12px;">
+      <div class="modal-header completed-modal-header">
+        <div class="completed-modal-header-main">
           <div
+            class="completed-modal-header-icon"
             style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; background: #D1FAE5; color: #059669; flex-shrink: 0;">
             <i data-lucide="check-circle-2" style="width: 22px; height: 22px;"></i>
           </div>
-          <div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <h3
-                style="font-size: 16px; font-weight: 600; color: var(--text-dark); margin: 0; font-family: var(--font-display);">
-                Completed Tickets History</h3>
-              <span id="modalResolvedCountBadge" class="modal-count-badge">0 Resolved</span>
+          <div class="completed-modal-header-text">
+            <div class="completed-modal-header-title-row">
+              <h3 class="completed-modal-title">
+                <span class="modal-title-full">Completed Tickets History</span>
+                <span class="modal-title-short">Completed Tickets</span>
+              </h3>
             </div>
-            <p style="font-size: 12px; font-weight: 500; color: var(--text-muted); margin: 2px 0 0 0;">View and filter
-              historical resolved computer maintenance logs</p>
+            <p class="completed-modal-subtitle">View and filter historical resolved computer maintenance logs</p>
           </div>
         </div>
         <button type="button" class="modal-close-btn" data-action="close-completed-modal" title="Close (Esc)">

@@ -147,9 +147,12 @@
       global.scheduleDragDrop.bindCardDragListeners(card, professor);
     }
 
-    // Click listener: open detail modal when clicking the info icon
+    // Click listener: open detail modal when clicking the info icon, or on mobile tapping anywhere on card
     card.addEventListener('click', (e) => {
-      if (e.target.closest('.card-info-icon')) {
+      if (e.target.closest('.grid-card-resize-handle')) return;
+      if (card.classList.contains('dragging') || card.classList.contains('moving-active')) return;
+
+      if (e.target.closest('.card-info-icon') || window.innerWidth <= 1024) {
         e.stopPropagation();
         if (typeof global.openCardDetailModal === 'function') {
           global.openCardDetailModal(card);

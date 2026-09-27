@@ -312,11 +312,36 @@
             </script>
           </div>
 
+          <!-- Mobile/Tablet Workspace Tabs (<= 1024px) -->
+          <div class="mis-mobile-tabs ithead-mobile-tabs" id="misMobileTabs" role="tablist" aria-label="Dashboard views">
+            <button
+              type="button"
+              class="mis-tab-btn ithead-tab-btn active"
+              data-tab="reports"
+              role="tab"
+              aria-selected="true"
+              aria-controls="misReportsCard">
+              <i data-lucide="clipboard-list"></i>
+              <span>Recent PC Reports</span>
+            </button>
+
+            <button
+              type="button"
+              class="mis-tab-btn ithead-tab-btn"
+              data-tab="overview"
+              role="tab"
+              aria-selected="false"
+              aria-controls="misOverviewCard">
+              <i data-lucide="layout-grid"></i>
+              <span>Issue Overview</span>
+            </button>
+          </div>
+
           <!-- Main Grid -->
-          <div class="dashboard-main-grid" style="margin-top: 16px;">
+          <div class="dashboard-main-grid">
 
             <!-- Left: Recent PC Reports -->
-            <div class="content-card"
+            <div class="content-card" id="misReportsCard" role="tabpanel" aria-label="Recent PC Reports"
               style="padding: 20px 24px; display: flex; flex-direction: column; min-height: 0; box-sizing: border-box;">
               <div class="section-header" style="margin-bottom: 14px;">
                 <div class="sh-left">
@@ -370,7 +395,7 @@
             </div>
 
             <!-- Right: Laboratory Issue Overview -->
-            <div class="content-card lab-issue-overview-card">
+            <div class="content-card lab-issue-overview-card" id="misOverviewCard" role="tabpanel" aria-label="Laboratory Issue Overview">
               <div class="section-header" style="margin-bottom: 14px;">
                 <div class="sh-left">
                   <h3 class="card-section-title">Laboratory Issue Overview</h3>
@@ -385,6 +410,57 @@
             </div>
 
           </div>
+
+          <!-- Mobile Tab Switching Controller -->
+          <script>
+            (function () {
+              function initMISMobileTabs() {
+                var tabsContainer = document.getElementById('misMobileTabs');
+                var grid = document.querySelector('.dashboard-main-grid');
+                if (!tabsContainer || !grid) return;
+
+                var tabButtons = tabsContainer.querySelectorAll('.mis-tab-btn, .ithead-tab-btn');
+                tabButtons.forEach(function (btn) {
+                  btn.addEventListener('click', function () {
+                    var targetTab = btn.getAttribute('data-tab');
+                    var isOverview = targetTab === 'overview';
+
+                    grid.classList.toggle('show-overview-tab', isOverview);
+
+                    tabButtons.forEach(function (b) {
+                      var isActive = b === btn;
+                      b.classList.toggle('active', isActive);
+                      b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                    });
+                  });
+                });
+
+                // Keyboard arrow navigation between tabs (WAI-ARIA pattern)
+                tabsContainer.addEventListener('keydown', function (e) {
+                  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    var btns = Array.prototype.slice.call(tabButtons);
+                    var idx = btns.indexOf(document.activeElement);
+                    if (idx !== -1) {
+                      var nextIdx = e.key === 'ArrowRight' ? (idx + 1) % btns.length : (idx - 1 + btns.length) % btns.length;
+                      btns[nextIdx].focus();
+                      btns[nextIdx].click();
+                    }
+                  }
+                });
+
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                  window.lucide.createIcons({ root: tabsContainer });
+                }
+              }
+
+              if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initMISMobileTabs);
+              } else {
+                initMISMobileTabs();
+              }
+            })();
+          </script>
         </div>
       </div>
 

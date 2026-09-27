@@ -7,12 +7,39 @@
   display: none !important;
 }
 
+.mis-mobile-tabs {
+  display: none !important;
+}
+
+.mobile-meta-icon,
+.card-chevron-icon {
+  display: none !important;
+}
+
 .schedule-day-tabs {
   display: none !important;
 }
 
 .empty-day-state {
   display: none !important;
+}
+
+@media (min-width: 1025px) {
+  .mobile-editor-dock {
+    display: none !important;
+  }
+
+  .mobile-placement-bar {
+    display: none !important;
+  }
+
+  .mobile-sheet-backdrop {
+    display: none !important;
+  }
+
+  .mobile-sheet-header {
+    display: none !important;
+  }
 }
 
 /* ─── Desktop Window Resizing & Laptop Viewports (1025px to 1320px) ─── */
@@ -192,7 +219,8 @@
   /* ─── Workspace Mobile/Tablet Tabs (<= 1024px) ─── */
   /* Unified Container: Top Tab Header */
   .ithead-mobile-tabs,
-  .roomstatus-mobile-tabs {
+  .roomstatus-mobile-tabs,
+  .mis-mobile-tabs {
     display: grid !important;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
@@ -211,12 +239,16 @@
   }
 
   /* Eliminate the 14px flexbox gap from .dashboard-overview so tabs and card fuse seamlessly */
-  body[data-page="it-head-dashboard"] .ithead-mobile-tabs {
+  body[data-page="it-head-dashboard"] .ithead-mobile-tabs,
+  body[data-page="dashboard"] .ithead-mobile-tabs,
+  body[data-page="mis-dashboard"] .mis-mobile-tabs,
+  body[data-page="mis-dashboard"] .ithead-mobile-tabs {
     margin-bottom: -14px !important;
   }
 
   .ithead-tab-btn,
-  .roomstatus-tab-btn {
+  .roomstatus-tab-btn,
+  .mis-tab-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -241,14 +273,17 @@
   }
 
   .ithead-tab-btn:active,
-  .roomstatus-tab-btn:active {
+  .roomstatus-tab-btn:active,
+  .mis-tab-btn:active {
     transform: scale(0.98);
   }
 
   .ithead-tab-btn i,
   .ithead-tab-btn svg,
   .roomstatus-tab-btn i,
-  .roomstatus-tab-btn svg {
+  .roomstatus-tab-btn svg,
+  .mis-tab-btn i,
+  .mis-tab-btn svg {
     width: 16px;
     height: 16px;
     flex-shrink: 0;
@@ -256,13 +291,15 @@
   }
 
   .ithead-tab-btn:hover:not(.active),
-  .roomstatus-tab-btn:hover:not(.active) {
+  .roomstatus-tab-btn:hover:not(.active),
+  .mis-tab-btn:hover:not(.active) {
     background: rgba(148, 163, 184, 0.1);
     color: var(--text-dark, #0F172A);
   }
 
   .ithead-tab-btn.active,
-  .roomstatus-tab-btn.active {
+  .roomstatus-tab-btn.active,
+  .mis-tab-btn.active {
     background: var(--primary-teal-light, #E8F9FC);
     color: var(--primary-teal, #1EBBD7);
     font-weight: 700;
@@ -273,12 +310,15 @@
   .ithead-tab-btn.active i,
   .ithead-tab-btn.active svg,
   .roomstatus-tab-btn.active i,
-  .roomstatus-tab-btn.active svg {
+  .roomstatus-tab-btn.active svg,
+  .mis-tab-btn.active i,
+  .mis-tab-btn.active svg {
     transform: scale(1.05);
   }
 
   .ithead-tab-btn:focus-visible,
-  .roomstatus-tab-btn:focus-visible {
+  .roomstatus-tab-btn:focus-visible,
+  .mis-tab-btn:focus-visible {
     outline: 2px solid var(--primary-teal, #1EBBD7);
     outline-offset: 2px;
   }
@@ -289,7 +329,10 @@
   html.high-contrast .ithead-mobile-tabs,
   html.dark-mode .roomstatus-mobile-tabs,
   body.dark-mode .roomstatus-mobile-tabs,
-  html.high-contrast .roomstatus-mobile-tabs {
+  html.high-contrast .roomstatus-mobile-tabs,
+  html.dark-mode .mis-mobile-tabs,
+  body.dark-mode .mis-mobile-tabs,
+  html.high-contrast .mis-mobile-tabs {
     background: #111827 !important;
     border-color: rgba(51, 65, 85, 0.7) !important;
     border-bottom-color: rgba(51, 65, 85, 0.7) !important;
@@ -300,7 +343,10 @@
   html.high-contrast .ithead-tab-btn,
   html.dark-mode .roomstatus-tab-btn,
   body.dark-mode .roomstatus-tab-btn,
-  html.high-contrast .roomstatus-tab-btn {
+  html.high-contrast .roomstatus-tab-btn,
+  html.dark-mode .mis-tab-btn,
+  body.dark-mode .mis-tab-btn,
+  html.high-contrast .mis-tab-btn {
     color: #94A3B8;
   }
 
@@ -309,7 +355,10 @@
   html.high-contrast .ithead-tab-btn:hover:not(.active),
   html.dark-mode .roomstatus-tab-btn:hover:not(.active),
   body.dark-mode .roomstatus-tab-btn:hover:not(.active),
-  html.high-contrast .roomstatus-tab-btn:hover:not(.active) {
+  html.high-contrast .roomstatus-tab-btn:hover:not(.active),
+  html.dark-mode .mis-tab-btn:hover:not(.active),
+  body.dark-mode .mis-tab-btn:hover:not(.active),
+  html.high-contrast .mis-tab-btn:hover:not(.active) {
     background: rgba(255, 255, 255, 0.05);
     color: #F8FAFC;
   }
@@ -319,7 +368,10 @@
   html.high-contrast .ithead-tab-btn.active,
   html.dark-mode .roomstatus-tab-btn.active,
   body.dark-mode .roomstatus-tab-btn.active,
-  html.high-contrast .roomstatus-tab-btn.active {
+  html.high-contrast .roomstatus-tab-btn.active,
+  html.dark-mode .mis-tab-btn.active,
+  body.dark-mode .mis-tab-btn.active,
+  html.high-contrast .mis-tab-btn.active {
     background: #1e293b !important;
     color: #38bdf8 !important;
     border-color: rgba(56, 189, 248, 0.35) !important;
@@ -329,6 +381,10 @@
   /* Unified Container: Fused content cards directly underneath tab header */
   body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadLabsCard,
   body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  body[data-page="dashboard"] .dashboard-main-grid #itheadLabsCard,
+  body[data-page="dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  body[data-page="mis-dashboard"] .dashboard-main-grid #misReportsCard,
+  body[data-page="mis-dashboard"] .dashboard-main-grid #misOverviewCard,
   body[data-page="room-status"] .dashboard-main-grid #roomStatusCard,
   body[data-page="room-status"] .dashboard-main-grid #activityLogCard,
   body[data-page="it-head-room-status"] .dashboard-main-grid #roomStatusCard,
@@ -349,6 +405,18 @@
   html.dark-mode body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadScheduleCard,
   body.dark-mode body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadScheduleCard,
   html.high-contrast body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  html.dark-mode body[data-page="dashboard"] .dashboard-main-grid #itheadLabsCard,
+  body.dark-mode body[data-page="dashboard"] .dashboard-main-grid #itheadLabsCard,
+  html.high-contrast body[data-page="dashboard"] .dashboard-main-grid #itheadLabsCard,
+  html.dark-mode body[data-page="dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  body.dark-mode body[data-page="dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  html.high-contrast body[data-page="dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  html.dark-mode body[data-page="mis-dashboard"] .dashboard-main-grid #misReportsCard,
+  body.dark-mode body[data-page="mis-dashboard"] .dashboard-main-grid #misReportsCard,
+  html.high-contrast body[data-page="mis-dashboard"] .dashboard-main-grid #misReportsCard,
+  html.dark-mode body[data-page="mis-dashboard"] .dashboard-main-grid #misOverviewCard,
+  body.dark-mode body[data-page="mis-dashboard"] .dashboard-main-grid #misOverviewCard,
+  html.high-contrast body[data-page="mis-dashboard"] .dashboard-main-grid #misOverviewCard,
   html.dark-mode body[data-page="room-status"] .dashboard-main-grid #roomStatusCard,
   body.dark-mode body[data-page="room-status"] .dashboard-main-grid #roomStatusCard,
   html.high-contrast body[data-page="room-status"] .dashboard-main-grid #roomStatusCard,
@@ -367,19 +435,278 @@
 
   /* Hide redundant inner container title & icon on mobile/tablet */
   body[data-page="it-head-dashboard"] #itheadLabsCard .sh-left,
+  body[data-page="dashboard"] #itheadLabsCard .sh-left,
+  body[data-page="mis-dashboard"] #misReportsCard .sh-left,
   body[data-page="room-status"] #roomStatusCard .sh-left,
   body[data-page="it-head-room-status"] #roomStatusCard .sh-left {
     display: none !important;
   }
 
   body[data-page="it-head-dashboard"] #itheadScheduleCard .section-header,
+  body[data-page="dashboard"] #itheadScheduleCard .section-header,
+  body[data-page="mis-dashboard"] #misOverviewCard .section-header,
   body[data-page="room-status"] #activityLogCard .section-header,
   body[data-page="it-head-room-status"] #activityLogCard .section-header {
     display: none !important;
   }
 
+  body[data-page="mis-dashboard"] #misReportsCard .section-header {
+    margin-bottom: 12px !important;
+    padding: 0 !important;
+  }
+
+  body[data-page="mis-dashboard"] #misReportsCard .sh-right {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  body[data-page="mis-dashboard"] #misReportsCard .search-box-header {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  body[data-page="mis-dashboard"] #misReportsCard .table-container {
+    height: auto !important;
+    min-height: 280px !important;
+    max-height: 540px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    padding: 2px 2px 8px 2px !important;
+  }
+
+  body[data-page="mis-dashboard"] #misOverviewCard .lab-issue-container {
+    height: auto !important;
+    min-height: 280px !important;
+    max-height: 540px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  /* ─── MIS Dashboard Mobile Card Transformation for Reports Table (<= 1024px) ─── */
+  body[data-page="mis-dashboard"] .reports-table-head {
+    display: none !important;
+  }
+
+  body[data-page="mis-dashboard"] .reports-table {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    border: none !important;
+  }
+
+  body[data-page="mis-dashboard"] #misDashboardReportRows {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  body[data-page="mis-dashboard"] tr.table-data-row {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-rows: auto auto auto auto !important;
+    gap: 8px 10px !important;
+    background: #FFFFFF !important;
+    border: 1px solid var(--border-light, #E2E8F0) !important;
+    border-radius: 14px !important;
+    padding: 14px 16px !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  body[data-page="mis-dashboard"] tr.table-data-row:hover,
+  body[data-page="mis-dashboard"] tr.table-data-row:focus-visible {
+    transform: translateY(-2px) !important;
+    border-color: var(--primary-teal, #1EBBD7) !important;
+    box-shadow: 0 4px 14px rgba(30, 187, 215, 0.15) !important;
+    outline: none !important;
+  }
+
+  body[data-page="mis-dashboard"] tr.table-data-row:active {
+    transform: scale(0.99) !important;
+  }
+
+  html.dark-mode body[data-page="mis-dashboard"] tr.table-data-row,
+  body.dark-mode body[data-page="mis-dashboard"] tr.table-data-row,
+  html.high-contrast body[data-page="mis-dashboard"] tr.table-data-row {
+    background: #1e293b !important;
+    border-color: rgba(51, 65, 85, 0.7) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  html.dark-mode body[data-page="mis-dashboard"] tr.table-data-row:hover,
+  body.dark-mode body[data-page="mis-dashboard"] tr.table-data-row:hover,
+  html.high-contrast body[data-page="mis-dashboard"] tr.table-data-row:hover {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25) !important;
+  }
+
+  /* Row 1: Ticket ID (Left) & Status (Right) */
+  body[data-page="mis-dashboard"] tr.table-data-row td.col-ticket {
+    grid-column: 1 / 2 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  body[data-page="mis-dashboard"] tr.table-data-row td.col-status {
+    grid-column: 2 / 3 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    text-align: right !important;
+  }
+
+  /* Row 2: Room & PC Units */
+  body[data-page="mis-dashboard"] tr.table-data-row td.col-room {
+    grid-column: 1 / 2 !important;
+    grid-row: 2 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: var(--text-dark, #0F172A) !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  body[data-page="mis-dashboard"] tr.table-data-row td.col-pc {
+    grid-column: 2 / 3 !important;
+    grid-row: 2 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: var(--text-dark, #0F172A) !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  /* Row 3: Date & Time Timestamp */
+  body[data-page="mis-dashboard"] tr.table-data-row td.col-date {
+    grid-column: 1 / 3 !important;
+    grid-row: 3 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 12px !important;
+    color: var(--text-muted, #64748B) !important;
+    font-weight: 500 !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  /* Row 4: Issue Description Pill with Chevron Indicator */
+  body[data-page="mis-dashboard"] tr.table-data-row td.col-issue {
+    grid-column: 1 / 3 !important;
+    grid-row: 4 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    background: #F8FAFC !important;
+    border: 1px solid var(--border-light, #E2E8F0) !important;
+    border-radius: 10px !important;
+    padding: 9px 12px !important;
+    margin: 2px 0 0 0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  html.dark-mode body[data-page="mis-dashboard"] tr.table-data-row td.col-issue,
+  body.dark-mode body[data-page="mis-dashboard"] tr.table-data-row td.col-issue,
+  html.high-contrast body[data-page="mis-dashboard"] tr.table-data-row td.col-issue {
+    background: rgba(15, 23, 42, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  body[data-page="mis-dashboard"] .issue-pill-text {
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: var(--text-dark, #0F172A) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    flex: 1 1 auto !important;
+  }
+
+  html.dark-mode body[data-page="mis-dashboard"] .issue-pill-text,
+  body.dark-mode body[data-page="mis-dashboard"] .issue-pill-text,
+  html.high-contrast body[data-page="mis-dashboard"] .issue-pill-text,
+  html.dark-mode body[data-page="mis-dashboard"] tr.table-data-row .room-val,
+  body.dark-mode body[data-page="mis-dashboard"] tr.table-data-row .room-val,
+  html.dark-mode body[data-page="mis-dashboard"] tr.table-data-row .pc-val,
+  body.dark-mode body[data-page="mis-dashboard"] tr.table-data-row .pc-val {
+    color: #F8FAFC !important;
+  }
+
+  html.dark-mode body[data-page="mis-dashboard"] tr.table-data-row .date-val,
+  body.dark-mode body[data-page="mis-dashboard"] tr.table-data-row .date-val {
+    color: #94A3B8 !important;
+  }
+
+  body[data-page="mis-dashboard"] .mobile-meta-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--primary-teal, #1EBBD7) !important;
+    flex-shrink: 0 !important;
+  }
+
+  body[data-page="mis-dashboard"] .mobile-meta-icon svg,
+  body[data-page="mis-dashboard"] .mobile-meta-icon i {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  body[data-page="mis-dashboard"] .card-chevron-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--primary-teal, #1EBBD7) !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.2s ease !important;
+  }
+
+  body[data-page="mis-dashboard"] .card-chevron-icon svg,
+  body[data-page="mis-dashboard"] .card-chevron-icon i {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  body[data-page="mis-dashboard"] tr.table-data-row:hover .card-chevron-icon {
+    transform: translateX(3px) !important;
+  }
+
   /* Clean borderless telemetry row for Available / Borrowed / In Session */
   body[data-page="it-head-dashboard"] #itheadLabsCard .section-header,
+  body[data-page="dashboard"] #itheadLabsCard .section-header,
   body[data-page="room-status"] #roomStatusCard .section-header,
   body[data-page="it-head-room-status"] #roomStatusCard .section-header {
     margin-bottom: 6px !important;
@@ -387,6 +714,7 @@
   }
 
   body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend,
+  body[data-page="dashboard"] #itheadLabsCard .sh-legend,
   body[data-page="room-status"] #roomStatusCard .sh-legend,
   body[data-page="it-head-room-status"] #roomStatusCard .sh-legend {
     margin-left: 0 !important;
@@ -402,6 +730,7 @@
   }
 
   body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .legend-item,
+  body[data-page="dashboard"] #itheadLabsCard .sh-legend .legend-item,
   body[data-page="room-status"] #roomStatusCard .sh-legend .legend-item,
   body[data-page="it-head-room-status"] #roomStatusCard .sh-legend .legend-item {
     display: flex;
@@ -418,6 +747,9 @@
   html.dark-mode body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .legend-item,
   body.dark-mode body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .legend-item,
   html.high-contrast body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .legend-item,
+  html.dark-mode body[data-page="dashboard"] #itheadLabsCard .sh-legend .legend-item,
+  body.dark-mode body[data-page="dashboard"] #itheadLabsCard .sh-legend .legend-item,
+  html.high-contrast body[data-page="dashboard"] #itheadLabsCard .sh-legend .legend-item,
   html.dark-mode body[data-page="room-status"] #roomStatusCard .sh-legend .legend-item,
   body.dark-mode body[data-page="room-status"] #roomStatusCard .sh-legend .legend-item,
   html.high-contrast body[data-page="room-status"] #roomStatusCard .sh-legend .legend-item,
@@ -429,29 +761,34 @@
 
   /* Status dot live telemetry glows */
   body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .dot.green,
+  body[data-page="dashboard"] #itheadLabsCard .sh-legend .dot.green,
   body[data-page="room-status"] #roomStatusCard .sh-legend .dot.green,
   body[data-page="it-head-room-status"] #roomStatusCard .sh-legend .dot.green {
     box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
   }
 
   body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .dot.orange,
+  body[data-page="dashboard"] #itheadLabsCard .sh-legend .dot.orange,
   body[data-page="room-status"] #roomStatusCard .sh-legend .dot.orange,
   body[data-page="it-head-room-status"] #roomStatusCard .sh-legend .dot.orange {
     box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
   }
 
   body[data-page="it-head-dashboard"] #itheadLabsCard .sh-legend .dot.red,
+  body[data-page="dashboard"] #itheadLabsCard .sh-legend .dot.red,
   body[data-page="room-status"] #roomStatusCard .sh-legend .dot.red,
   body[data-page="it-head-room-status"] #roomStatusCard .sh-legend .dot.red {
     box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
   }
 
-  /* Department Head Mobile Tab Card Visibility Toggling */
-  body[data-page="it-head-dashboard"] .dashboard-main-grid:not(.show-schedule-tab) #itheadScheduleCard {
+  /* Dashboard Mobile Tab Card Visibility Toggling (Dept Head & Faculty) */
+  body[data-page="it-head-dashboard"] .dashboard-main-grid:not(.show-schedule-tab) #itheadScheduleCard,
+  body[data-page="dashboard"] .dashboard-main-grid:not(.show-schedule-tab) #itheadScheduleCard {
     display: none !important;
   }
 
-  body[data-page="it-head-dashboard"] .dashboard-main-grid.show-schedule-tab #itheadLabsCard {
+  body[data-page="it-head-dashboard"] .dashboard-main-grid.show-schedule-tab #itheadLabsCard,
+  body[data-page="dashboard"] .dashboard-main-grid.show-schedule-tab #itheadLabsCard {
     display: none !important;
   }
 
@@ -466,13 +803,26 @@
     display: none !important;
   }
 
+  /* MIS Dashboard Mobile Tab Card Visibility Toggling */
+  body[data-page="mis-dashboard"] .dashboard-main-grid:not(.show-overview-tab) #misOverviewCard {
+    display: none !important;
+  }
+
+  body[data-page="mis-dashboard"] .dashboard-main-grid.show-overview-tab #misReportsCard {
+    display: none !important;
+  }
+
   /* Smooth tab switch transition */
   body[data-page="it-head-dashboard"] .dashboard-main-grid.show-schedule-tab #itheadScheduleCard,
   body[data-page="it-head-dashboard"] .dashboard-main-grid:not(.show-schedule-tab) #itheadLabsCard,
+  body[data-page="dashboard"] .dashboard-main-grid.show-schedule-tab #itheadScheduleCard,
+  body[data-page="dashboard"] .dashboard-main-grid:not(.show-schedule-tab) #itheadLabsCard,
   body[data-page="room-status"] .dashboard-main-grid.show-activity-tab #activityLogCard,
   body[data-page="room-status"] .dashboard-main-grid:not(.show-activity-tab) #roomStatusCard,
   body[data-page="it-head-room-status"] .dashboard-main-grid.show-activity-tab #activityLogCard,
-  body[data-page="it-head-room-status"] .dashboard-main-grid:not(.show-activity-tab) #roomStatusCard {
+  body[data-page="it-head-room-status"] .dashboard-main-grid:not(.show-activity-tab) #roomStatusCard,
+  body[data-page="mis-dashboard"] .dashboard-main-grid.show-overview-tab #misOverviewCard,
+  body[data-page="mis-dashboard"] .dashboard-main-grid:not(.show-overview-tab) #misReportsCard {
     animation: itheadTabFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
@@ -510,38 +860,56 @@
   }
 
   body[data-page="pc-reports"] .reports-controls {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    flex-wrap: nowrap !important;
     width: 100% !important;
     max-width: 100% !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
     box-sizing: border-box !important;
   }
 
   body[data-page="pc-reports"] .reports-controls .search-box {
-    width: 100% !important;
-    max-width: 100% !important;
+    flex: 1 1 auto !important;
     min-width: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+    position: relative !important;
     box-sizing: border-box !important;
   }
 
   body[data-page="pc-reports"] .reports-controls .search-input {
     width: 100% !important;
     max-width: 100% !important;
+    height: 42px !important;
     box-sizing: border-box !important;
   }
 
   body[data-page="pc-reports"] #completedToggleContainer {
-    width: 100% !important;
-    max-width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+    width: auto !important;
+    max-width: none !important;
     box-sizing: border-box !important;
   }
 
   body[data-page="pc-reports"] .reports-controls .toggle-completed-btn {
-    width: 100% !important;
-    max-width: 100% !important;
+    display: inline-flex !important;
+    align-items: center !important;
     justify-content: center !important;
+    width: auto !important;
+    max-width: none !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
     box-sizing: border-box !important;
+  }
+
+  body[data-page="pc-reports"] .completed-modal-container {
+    max-width: 86vw !important;
+    max-height: 80vh !important;
   }
 
   body[data-page="pc-reports"] #dynamicReportsList {
@@ -644,9 +1012,60 @@
     flex: 1 !important;
   }
 
+  body[data-page="schedule-editor"] .page-content {
+    padding: 10px 14px 0 14px !important;
+    overflow: hidden !important;
+    height: calc(100vh - 65px) !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+
+  body[data-page="schedule-editor"] .schedule-editor-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 4px 0 0 0 !important;
+    margin-bottom: 14px !important;
+    gap: 14px !important;
+  }
+
+  body[data-page="schedule-editor"] .schedule-editor-header h1 {
+    font-size: 18px !important;
+  }
+
+  body[data-page="schedule-editor"] .schedule-editor-header .clock-block {
+    display: none !important;
+  }
+
+  body[data-page="schedule-editor"] .schedule-editor-header .seh-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  body[data-page="schedule-editor"] .schedule-editor-header .seh-actions button,
+  body[data-page="schedule-editor"] #print-schedule-btn,
+  body[data-page="schedule-editor"] #save-schedule-btn {
+    flex: 1 1 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 9px 12px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    border-radius: 12px !important;
+    white-space: nowrap !important;
+    height: 40px !important;
+    min-width: 0 !important;
+  }
+
   /* ─── Mobile Schedule Day Tabs & Streamlined Controls (<= 1024px) ─── */
   body[data-page="my-schedule"] .schedule-header,
-  body[data-page="it-head-my-schedule"] .schedule-header {
+  body[data-page="it-head-my-schedule"] .schedule-header,
+  body[data-page="schedule-editor"] .schedule-header {
     flex-direction: column !important;
     align-items: stretch !important;
     gap: 10px !important;
@@ -654,33 +1073,66 @@
     border-radius: 14px 14px 0 0 !important;
   }
 
-  body[data-page="my-schedule"] .schedule-header>div:first-child,
-  body[data-page="it-head-my-schedule"] .schedule-header>div:first-child {
+  body[data-page="my-schedule"] .schedule-header-title-row,
+  body[data-page="it-head-my-schedule"] .schedule-header-title-row,
+  body[data-page="schedule-editor"] .schedule-header-title-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  body[data-page="my-schedule"] .schedule-header-title,
+  body[data-page="it-head-my-schedule"] .schedule-header-title,
+  body[data-page="schedule-editor"] .schedule-header-title {
     font-size: 14px !important;
   }
 
-  body[data-page="my-schedule"] .schedule-selectors,
-  body[data-page="it-head-my-schedule"] .schedule-selectors {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    width: 100% !important;
-  }
-
-  body[data-page="my-schedule"] .schedule-selectors .btn-schedule-studio,
-  body[data-page="it-head-my-schedule"] .schedule-selectors .btn-schedule-studio {
+  body[data-page="my-schedule"] .schedule-header .btn-schedule-studio,
+  body[data-page="it-head-my-schedule"] .schedule-header .btn-schedule-studio {
     padding: 4px 10px !important;
     font-size: 11.5px !important;
     height: 32px !important;
+    flex-shrink: 0 !important;
+  }
+
+  body[data-page="my-schedule"] .schedule-selectors,
+  body[data-page="it-head-my-schedule"] .schedule-selectors,
+  body[data-page="schedule-editor"] .schedule-selectors {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 8px !important;
   }
 
   body[data-page="my-schedule"] .schedule-selectors .header-select,
-  body[data-page="it-head-my-schedule"] .schedule-selectors .header-select {
+  body[data-page="it-head-my-schedule"] .schedule-selectors .header-select,
+  body[data-page="schedule-editor"] .schedule-selectors .header-select {
+    flex: 1 1 0 !important;
     width: auto !important;
-    min-width: 105px !important;
+    min-width: 0 !important;
+  }
+
+  body[data-page="my-schedule"] .schedule-selectors .header-select .custom-select-trigger,
+  body[data-page="it-head-my-schedule"] .schedule-selectors .header-select .custom-select-trigger,
+  body[data-page="schedule-editor"] .schedule-selectors .header-select .custom-select-trigger {
+    width: 100% !important;
+    height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  body[data-page="my-schedule"] .schedule-selectors .header-select .custom-select-dropdown,
+  body[data-page="it-head-my-schedule"] .schedule-selectors .header-select .custom-select-dropdown,
+  body[data-page="schedule-editor"] .schedule-selectors .header-select .custom-select-dropdown {
+    min-width: max(100%, 150px) !important;
+    width: max-content !important;
+    max-width: min(300px, calc(100vw - 20px)) !important;
   }
 
   body[data-page="my-schedule"] #schedule-container,
@@ -1086,7 +1538,319 @@
 
 }
 
+/* ─── PC Reports Responsive Controls Adaptation (Max Width: 640px) ─── */
+@media (max-width: 640px) {
+  body[data-page="pc-reports"] .reports-controls {
+    gap: 8px !important;
+  }
 
+  body[data-page="pc-reports"] .toggle-completed-btn {
+    padding: 0 12px !important;
+    gap: 6px !important;
+    font-size: 13px !important;
+  }
+
+  body[data-page="pc-reports"] .toggle-completed-btn .btn-text-full {
+    display: none !important;
+  }
+
+  body[data-page="pc-reports"] .toggle-completed-btn .btn-text-short {
+    display: inline !important;
+  }
+
+  /* Completed Tickets Modal & Card Mobile Responsive Adaptations */
+  #completedTicketsModal {
+    padding: 20px 14px !important;
+  }
+
+  .completed-modal-container {
+    width: 92.5vw !important;
+    max-width: 460px !important;
+    height: auto !important;
+    max-height: 80vh !important;
+    border-radius: 18px !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  .completed-modal-header {
+    padding: 12px 14px !important;
+    gap: 8px !important;
+  }
+
+  .completed-modal-header-main {
+    gap: 10px !important;
+  }
+
+  .completed-modal-header-icon {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+  }
+
+  .completed-modal-header-icon i,
+  .completed-modal-header-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .completed-modal-title {
+    font-size: 14.5px !important;
+  }
+
+  .completed-modal-subtitle {
+    display: none !important;
+  }
+
+  .completed-modal-container .modal-toolbar {
+    padding: 8px 10px !important;
+    gap: 8px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .completed-modal-container .modal-search-wrapper {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: none !important;
+  }
+
+  .completed-modal-container .modal-search-wrapper input {
+    height: 36px !important;
+    font-size: 12.5px !important;
+    padding: 0 32px 0 32px !important;
+    border-radius: 8px !important;
+  }
+
+  .completed-modal-container .modal-search-icon {
+    left: 10px !important;
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .completed-modal-container .modal-time-filters {
+    width: 100% !important;
+    display: flex !important;
+    gap: 6px !important;
+    justify-content: stretch !important;
+  }
+
+  .completed-modal-container .modal-filter-chip {
+    flex: 1 1 0 !important;
+    text-align: center !important;
+    justify-content: center !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 6px 2px !important;
+    font-size: 11.5px !important;
+    border-radius: 8px !important;
+    white-space: nowrap !important;
+  }
+
+  .completed-modal-container .modal-body {
+    padding: 10px 10px 16px 10px !important;
+  }
+
+  .modal-tickets-grid {
+    gap: 10px !important;
+  }
+
+  .modal-ticket-card {
+    padding: 12px 12px !important;
+    gap: 9px !important;
+    border-radius: 12px !important;
+    min-height: auto !important;
+  }
+
+  .modal-ticket-card .report-card-header,
+  .report-card-header {
+    gap: 8px !important;
+  }
+
+  .modal-ticket-card .rc-asset-icon {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+  }
+
+  .modal-ticket-card .rc-asset-title {
+    font-size: 14px !important;
+  }
+
+  .modal-ticket-card .status-badge {
+    font-size: 10.5px !important;
+    padding: 2.5px 8px !important;
+  }
+
+  /* Critical: Stack Middle Row on Mobile to prevent ANY horizontal collision */
+  .report-card-middle-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .rc-issue-block {
+    width: 100% !important;
+    flex: none !important;
+  }
+
+  .rc-badges-list {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .rc-action-block {
+    width: 100% !important;
+    flex: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-top: 2px !important;
+  }
+
+  .rc-action-block .btn-view-full-report {
+    width: 100% !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    justify-content: center !important;
+    font-size: 12px !important;
+    padding: 0 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ─── Faculty Schedule Modal Responsive Layout Adaptations ───────── */
+  #schedule-view-modal,
+  .sched-modal-backdrop {
+    padding: 18px 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .sched-modal-dialog {
+    width: 92.5vw !important;
+    max-width: 460px !important;
+    max-height: 82vh !important;
+    border-radius: 18px !important;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.28) !important;
+    margin: auto !important;
+  }
+
+  .sched-modal-header {
+    padding: 14px 16px !important;
+    gap: 10px !important;
+    align-items: flex-start !important;
+  }
+
+  .sched-modal-header-text {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .sched-modal-title {
+    font-size: 17px !important;
+    line-height: 1.25 !important;
+  }
+
+  .sched-modal-subtitle {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    margin-top: 2px !important;
+  }
+
+  .sched-modal-close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
+    margin-top: 2px !important;
+  }
+
+  #sched-modal-body,
+  .sched-modal-body {
+    padding: 12px 14px 20px 14px !important;
+  }
+
+  .sched-modal-list {
+    gap: 10px !important;
+  }
+
+  .sched-modal-day-divider {
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    margin-top: 8px !important;
+    margin-bottom: 2px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .sched-modal-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 9px !important;
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+  }
+
+  .sched-card-left {
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 6px !important;
+  }
+
+  .sched-card-subject {
+    font-size: 14.5px !important;
+    line-height: 1.3 !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .sched-card-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px 14px !important;
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+  }
+
+  .sched-meta-item {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+  }
+
+  .sched-card-right {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding-top: 8px !important;
+    border-top: 1px dashed var(--border-light, #E2E8F0) !important;
+    margin-top: 2px !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .sched-time-badge {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: var(--text-dark, #0F172A) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    background: rgba(30, 187, 215, 0.08) !important;
+    padding: 3px 8px !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(30, 187, 215, 0.2) !important;
+    white-space: nowrap !important;
+  }
+
+  .sched-status-pill {
+    font-size: 11px !important;
+    padding: 3px 9px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+  }
+}
 
 /* ─── Mobile Viewports (Max Width: 600px) ────────────────────────── */
 @media (max-width: 600px) {
@@ -1108,6 +1872,8 @@
 
   body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadLabsCard,
   body[data-page="it-head-dashboard"] .dashboard-main-grid #itheadScheduleCard,
+  body[data-page="dashboard"] .dashboard-main-grid #itheadLabsCard,
+  body[data-page="dashboard"] .dashboard-main-grid #itheadScheduleCard,
   body[data-page="room-status"] .dashboard-main-grid #roomStatusCard,
   body[data-page="room-status"] .dashboard-main-grid #activityLogCard,
   body[data-page="it-head-room-status"] .dashboard-main-grid #roomStatusCard,
@@ -1186,7 +1952,8 @@
 @media (max-width: 380px) {
 
   .ithead-tab-btn,
-  .roomstatus-tab-btn {
+  .roomstatus-tab-btn,
+  .mis-tab-btn {
     font-size: 12px !important;
     gap: 5px !important;
     padding: 10px 4px !important;
@@ -1195,9 +1962,140 @@
   .ithead-tab-btn i,
   .ithead-tab-btn svg,
   .roomstatus-tab-btn i,
-  .roomstatus-tab-btn svg {
+  .roomstatus-tab-btn svg,
+  .mis-tab-btn i,
+  .mis-tab-btn svg {
     width: 14px !important;
     height: 14px !important;
+  }
+
+}
+
+/* ─── Ultra-Narrow Mobile Viewports (Max Width: 360px) ─────────────── */
+@media (max-width: 360px) {
+  body[data-page="pc-reports"] .reports-controls {
+    gap: 6px !important;
+  }
+
+  body[data-page="pc-reports"] .toggle-completed-btn {
+    padding: 0 8px !important;
+    gap: 4px !important;
+  }
+
+  body[data-page="pc-reports"] .toggle-completed-btn .btn-text-full {
+    display: none !important;
+  }
+
+  body[data-page="pc-reports"] .toggle-completed-btn .btn-text-short {
+    display: inline !important;
+    font-size: 11.5px !important;
+  }
+
+  body[data-page="pc-reports"] .reports-controls .search-box input.search-input {
+    padding-left: 36px !important;
+    font-size: 12px !important;
+  }
+
+  body[data-page="pc-reports"] .reports-controls .search-box > svg,
+  body[data-page="pc-reports"] .reports-controls .search-box > i {
+    left: 10px !important;
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  #completedTicketsModal {
+    padding: 14px 8px !important;
+  }
+
+  .completed-modal-container {
+    width: 93.5vw !important;
+    max-width: 338px !important;
+    max-height: 82vh !important;
+    border-radius: 14px !important;
+  }
+
+  .completed-modal-header {
+    padding: 10px 10px !important;
+  }
+
+  .completed-modal-title .modal-title-full {
+    display: none !important;
+  }
+
+  .completed-modal-title .modal-title-short {
+    display: inline !important;
+  }
+
+  .completed-modal-subtitle {
+    display: none !important;
+  }
+
+  .completed-modal-container .modal-body {
+    padding: 8px 6px 12px 6px !important;
+  }
+
+  .modal-ticket-card {
+    padding: 10px 10px !important;
+    border-radius: 10px !important;
+  }
+
+  .completed-modal-container .modal-filter-chip {
+    font-size: 10px !important;
+    padding: 5px 2px !important;
+    letter-spacing: -0.2px !important;
+  }
+
+  #schedule-view-modal,
+  .sched-modal-backdrop {
+    padding: 14px 8px !important;
+  }
+
+  .sched-modal-dialog {
+    width: 94vw !important;
+    max-width: 338px !important;
+    max-height: 84vh !important;
+    border-radius: 14px !important;
+  }
+
+  .sched-modal-header {
+    padding: 12px 12px !important;
+  }
+
+  .sched-modal-title {
+    font-size: 16px !important;
+  }
+
+  .sched-modal-subtitle {
+    font-size: 11.5px !important;
+  }
+
+  #sched-modal-body,
+  .sched-modal-body {
+    padding: 10px 10px 16px 10px !important;
+  }
+
+  .sched-modal-card {
+    padding: 10px 11px !important;
+    gap: 8px !important;
+  }
+
+  .sched-card-subject {
+    font-size: 13.5px !important;
+  }
+
+  .sched-card-meta {
+    font-size: 11px !important;
+    gap: 6px 8px !important;
+  }
+
+  .sched-time-badge {
+    font-size: 10.5px !important;
+    padding: 2.5px 6px !important;
+  }
+
+  .sched-status-pill {
+    font-size: 10px !important;
+    padding: 2.5px 7px !important;
   }
 }
 

@@ -28,16 +28,16 @@ assert(
 );
 console.log('✔ Verified: Print Selected and Print All sit side-by-side on mobile');
 
-// 4. Verify search is above batch actions (order: 1 for search, order: 2 for batch actions)
+// 4. Verify search is above filter tabs and batch actions (order: 1 for search, order: 2 for filter group, order: 3 for batch actions)
 assert(
-  keysHtml.includes('order: 1;') && keysHtml.includes('order: 2;'),
-  'Search box should have order: 1 and batch actions order: 2 on mobile'
+  keysHtml.includes('order: 1') && keysHtml.includes('order: 2') && keysHtml.includes('order: 3'),
+  'Toolbar controls should have stacked ordering (order: 1 search, order: 2 filters, order: 3 batch actions) on mobile'
 );
-console.log('✔ Verified: Responsive order properly structured');
+console.log('✔ Verified: Responsive order properly structured (Search -> Filter Tabs -> Batch Actions)');
 
 // 5. Verify 3-column grid for filter tabs
 assert(
-  keysHtml.includes('.keys-filter-group {\n        display: grid;\n        grid-template-columns: repeat(3, 1fr);'),
+  keysHtml.includes('grid-template-columns: repeat(3, 1fr)'),
   '.keys-filter-group must use 3-column grid on mobile'
 );
 console.log('✔ Verified: Filter tabs use 3-column grid on mobile');

@@ -117,6 +117,15 @@
   box-shadow: 0 4px 14px var(--primary-teal-glow, rgba(2, 132, 199, 0.25));
 }
 
+.toggle-completed-btn .btn-text-full {
+  display: inline;
+}
+
+.toggle-completed-btn .btn-text-short {
+  display: none;
+}
+
+
 /* ─── Modern Integrated PC Card Delete Button Component Styles ─── */
 .delete-pc-btn,
 .card-action-delete,

@@ -346,6 +346,18 @@ select.editor-select option {
   color: var(--primary-teal);
 }
 
+.custom-select-wrapper.header-select .custom-select-dropdown {
+  min-width: max(100%, 150px);
+  width: max-content;
+  max-width: min(320px, calc(100vw - 24px));
+}
+
+.custom-select-wrapper.header-select#semester-wrapper .custom-select-dropdown,
+.custom-select-wrapper.header-select.align-right .custom-select-dropdown {
+  left: auto;
+  right: 0;
+}
+
 /* ─── Remove Background Container Strips Behind Search Inputs Component Styles ─── */
 .maint-controls-row,
 .maint-search-wrap,

@@ -132,15 +132,38 @@
       const isResolved = (r.Status || '').toLowerCase() === 'resolved';
       const displayIssue = getDisplayIssue(r.Issue_Description);
 
+      const rawId = r.Report_ID != null ? r.Report_ID : (r.Ticket_ID != null ? r.Ticket_ID : (r.id != null ? r.id : ''));
+      const idMatch = String(rawId).match(/\d+/);
+      const numericId = idMatch ? idMatch[0] : rawId;
+      const ticketTag = String(rawId).toUpperCase().startsWith('LS-TKT-') ? rawId : `LS-TKT-${numericId || 'N/A'}`;
+
+      const rawRoom = String(r.Room_Number || '').trim();
+      const displayRoom = rawRoom ? (rawRoom.toUpperCase().startsWith('RM') ? rawRoom : `Room ${rawRoom}`) : 'Room N/A';
+
+      const rawPC = String(r.PC_Number || '').trim();
+      const displayPC = rawPC ? (rawPC.toUpperCase().startsWith('PC') ? rawPC : `PC ${rawPC}`) : 'PC N/A';
+
       return `
-        <tr class="table-data-row">
+        <tr class="table-data-row" data-ticket="${numericId}" data-room="${encodeURIComponent(rawRoom)}" tabindex="0" role="button" aria-label="View ticket ${ticketTag}">
           <td class="table-cell ticket-id-cell col-ticket">
-            <span class="ticket-id-tag">LS-TKT-${r.Report_ID}</span>
+            <span class="ticket-id-tag">${ticketTag}</span>
           </td>
-          <td class="table-cell date-cell col-date">${formattedDate}</td>
-          <td class="table-cell room-cell col-room">Room ${r.Room_Number || 'N/A'}</td>
-          <td class="table-cell pc-cell col-pc">PC ${r.PC_Number || 'N/A'}</td>
-          <td class="table-cell issue-cell col-issue">${escapeText(displayIssue)}</td>
+          <td class="table-cell date-cell col-date">
+            <span class="mobile-meta-icon"><i data-lucide="clock"></i></span>
+            <span class="date-val">${formattedDate}</span>
+          </td>
+          <td class="table-cell room-cell col-room">
+            <span class="mobile-meta-icon"><i data-lucide="door-closed"></i></span>
+            <span class="room-val">${displayRoom}</span>
+          </td>
+          <td class="table-cell pc-cell col-pc">
+            <span class="mobile-meta-icon"><i data-lucide="monitor"></i></span>
+            <span class="pc-val">${displayPC}</span>
+          </td>
+          <td class="table-cell issue-cell col-issue">
+            <span class="issue-pill-text">${escapeText(displayIssue)}</span>
+            <span class="card-chevron-icon"><i data-lucide="chevron-right"></i></span>
+          </td>
           <td class="table-cell col-status text-center">
             <span class="status-pill ${isResolved ? 'resolved' : 'pending'}">
               ${r.Status || 'Pending'}

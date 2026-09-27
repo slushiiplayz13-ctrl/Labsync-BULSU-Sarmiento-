@@ -64,6 +64,7 @@
   });
 
   document.addEventListener('dragend', () => {
+    document.body.classList.remove('dragging-active');
     const autoScroller = global.scheduleAutoScroller || global.AutoScroller;
     if (autoScroller && typeof autoScroller.stop === 'function') {
       autoScroller.stop();
@@ -71,6 +72,7 @@
   });
 
   document.addEventListener('drop', () => {
+    document.body.classList.remove('dragging-active');
     const autoScroller = global.scheduleAutoScroller || global.AutoScroller;
     if (autoScroller && typeof autoScroller.stop === 'function') {
       autoScroller.stop();
@@ -92,6 +94,15 @@
       }
       e.dataTransfer.setData('text/plain', card.id);
       card.classList.add('dragging');
+      document.body.classList.add('dragging-active');
+
+      // Dismiss mobile bottom sheet and remove backdrop blur
+      if (global.mobileScheduleEditor && typeof global.mobileScheduleEditor.closeSheet === 'function') {
+        global.mobileScheduleEditor.closeSheet();
+      }
+      const backdrop = document.getElementById('mobile-sheet-backdrop');
+      if (backdrop) backdrop.classList.remove('active');
+      document.body.classList.remove('mobile-sheet-active');
 
       const ghostRenderer = global.ghostScheduleRenderer;
       if (ghostRenderer && typeof ghostRenderer.loadProfessorGhostSchedule === 'function') {
@@ -102,6 +113,7 @@
 
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging');
+      document.body.classList.remove('dragging-active');
       const autoScroller = global.scheduleAutoScroller || global.AutoScroller;
       if (autoScroller && typeof autoScroller.stop === 'function') autoScroller.stop();
 
@@ -127,6 +139,15 @@
       }
       e.dataTransfer.setData('text/plain', block.id);
       block.classList.add('dragging');
+      document.body.classList.add('dragging-active');
+
+      // Dismiss mobile bottom sheet and remove backdrop blur
+      if (global.mobileScheduleEditor && typeof global.mobileScheduleEditor.closeSheet === 'function') {
+        global.mobileScheduleEditor.closeSheet();
+      }
+      const backdrop = document.getElementById('mobile-sheet-backdrop');
+      if (backdrop) backdrop.classList.remove('active');
+      document.body.classList.remove('mobile-sheet-active');
 
       const ghostRenderer = global.ghostScheduleRenderer;
       if (ghostRenderer && typeof ghostRenderer.loadProfessorGhostSchedule === 'function') {
@@ -137,6 +158,7 @@
 
     block.addEventListener('dragend', () => {
       block.classList.remove('dragging');
+      document.body.classList.remove('dragging-active');
       const autoScroller = global.scheduleAutoScroller || global.AutoScroller;
       if (autoScroller && typeof autoScroller.stop === 'function') autoScroller.stop();
 

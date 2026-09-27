@@ -328,6 +328,32 @@
         }
       });
     }
+
+    // Delegated click & keyboard listener for Recent PC Reports card deep-linking
+    const reportRows = document.getElementById('misDashboardReportRows');
+    if (reportRows) {
+      reportRows.addEventListener('click', (e) => {
+        const row = e.target.closest('.table-data-row');
+        if (!row) return;
+        const ticketId = row.getAttribute('data-ticket');
+        if (ticketId) {
+          window.location.href = `mis-maintenance.html?ticket=${encodeURIComponent(ticketId)}`;
+        }
+      });
+
+      reportRows.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          const row = e.target.closest('.table-data-row');
+          if (row && document.activeElement === row) {
+            e.preventDefault();
+            const ticketId = row.getAttribute('data-ticket');
+            if (ticketId) {
+              window.location.href = `mis-maintenance.html?ticket=${encodeURIComponent(ticketId)}`;
+            }
+          }
+        }
+      });
+    }
   }
 
   // Auto-initialize on DOMContentLoaded

@@ -190,6 +190,41 @@ html.high-contrast .sidebar-floating-tooltip::before {
   display: none !important;
 }
 
+/* ─── Role-Based Navigation & Hidden Item Enforcement ───────────── */
+.sidebar-btn[style*="display: none"],
+.sidebar-btn[style*="display:none"],
+.sidebar-btn.hidden,
+.sidebar-btn[hidden] {
+  display: none !important;
+}
+
+html.role-ojt .sidebar-btn[onclick*="mis-keys.html"],
+html.role-ojt .sidebar-btn[onclick*="mis-qr-generator.html"],
+html.role-ojt .sidebar-btn[onclick*="mis-ojt.html"],
+html.role-ojt .sidebar-btn[data-tooltip*="Key Management"],
+html.role-ojt .sidebar-btn[title*="Key Management"],
+html.role-ojt .sidebar-btn[data-tooltip*="PC & QR"],
+html.role-ojt .sidebar-btn[title*="PC & QR"],
+html.role-ojt .sidebar-btn[data-tooltip*="OJT"],
+html.role-ojt .sidebar-btn[title*="OJT"],
+html.role-ojt .sidebar-btn[aria-label*="Key Management"],
+html.role-ojt .sidebar-btn[aria-label*="PC & QR"],
+html.role-ojt .sidebar-btn[aria-label*="OJT"],
+body.role-ojt .sidebar-btn[onclick*="mis-keys.html"],
+body.role-ojt .sidebar-btn[onclick*="mis-qr-generator.html"],
+body.role-ojt .sidebar-btn[onclick*="mis-ojt.html"],
+body.role-ojt .sidebar-btn[data-tooltip*="Key Management"],
+body.role-ojt .sidebar-btn[title*="Key Management"],
+body.role-ojt .sidebar-btn[data-tooltip*="PC & QR"],
+body.role-ojt .sidebar-btn[title*="PC & QR"],
+body.role-ojt .sidebar-btn[data-tooltip*="OJT"],
+body.role-ojt .sidebar-btn[title*="OJT"],
+body.role-ojt .sidebar-btn[aria-label*="Key Management"],
+body.role-ojt .sidebar-btn[aria-label*="PC & QR"],
+body.role-ojt .sidebar-btn[aria-label*="OJT"] {
+  display: none !important;
+}
+
 /* ─── Tablet and Mobile Viewports (Max Width: 1024px) ───────────── */
 @media (max-width: 1024px) {
   .sidebar-btn.mobile-only-btn {
@@ -231,6 +266,26 @@ html.high-contrast .sidebar-floating-tooltip::before {
     background: var(--bg-white) !important;
   }
 
+  html.dark-mode .sidebar,
+  body.dark-mode .sidebar,
+  [data-theme="dark"] .sidebar {
+    background: rgba(17, 24, 39, 0.95) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  html.dark-mode .sidebar-btn,
+  body.dark-mode .sidebar-btn,
+  [data-theme="dark"] .sidebar-btn {
+    color: #94A3B8 !important;
+  }
+
+  html.dark-mode .sidebar-btn.active,
+  body.dark-mode .sidebar-btn.active,
+  [data-theme="dark"] .sidebar-btn.active {
+    color: #38BDF8 !important;
+  }
+
   .sidebar-nav {
     display: flex !important;
     flex-direction: row !important;
@@ -262,6 +317,41 @@ html.high-contrast .sidebar-floating-tooltip::before {
     position: relative !important;
     cursor: pointer !important;
     user-select: none !important;
+  }
+
+  /* Ensure hidden / role-restricted buttons are never forced open on mobile */
+  .sidebar-btn[style*="display: none"],
+  .sidebar-btn[style*="display:none"],
+  .sidebar-btn.hidden,
+  .sidebar-btn[hidden] {
+    display: none !important;
+  }
+
+  html.role-ojt .sidebar-btn[onclick*="mis-keys.html"],
+  html.role-ojt .sidebar-btn[onclick*="mis-qr-generator.html"],
+  html.role-ojt .sidebar-btn[onclick*="mis-ojt.html"],
+  html.role-ojt .sidebar-btn[data-tooltip*="Key Management"],
+  html.role-ojt .sidebar-btn[title*="Key Management"],
+  html.role-ojt .sidebar-btn[data-tooltip*="PC & QR"],
+  html.role-ojt .sidebar-btn[title*="PC & QR"],
+  html.role-ojt .sidebar-btn[data-tooltip*="OJT"],
+  html.role-ojt .sidebar-btn[title*="OJT"],
+  html.role-ojt .sidebar-btn[aria-label*="Key Management"],
+  html.role-ojt .sidebar-btn[aria-label*="PC & QR"],
+  html.role-ojt .sidebar-btn[aria-label*="OJT"],
+  body.role-ojt .sidebar-btn[onclick*="mis-keys.html"],
+  body.role-ojt .sidebar-btn[onclick*="mis-qr-generator.html"],
+  body.role-ojt .sidebar-btn[onclick*="mis-ojt.html"],
+  body.role-ojt .sidebar-btn[data-tooltip*="Key Management"],
+  body.role-ojt .sidebar-btn[title*="Key Management"],
+  body.role-ojt .sidebar-btn[data-tooltip*="PC & QR"],
+  body.role-ojt .sidebar-btn[title*="PC & QR"],
+  body.role-ojt .sidebar-btn[data-tooltip*="OJT"],
+  body.role-ojt .sidebar-btn[title*="OJT"],
+  body.role-ojt .sidebar-btn[aria-label*="Key Management"],
+  body.role-ojt .sidebar-btn[aria-label*="PC & QR"],
+  body.role-ojt .sidebar-btn[aria-label*="OJT"] {
+    display: none !important;
   }
 
   .sidebar-btn i,

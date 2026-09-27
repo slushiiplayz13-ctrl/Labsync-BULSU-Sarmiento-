@@ -131,6 +131,18 @@
   }
 
   /**
+   * Updates Completed Tickets modal search placeholder responsively.
+   */
+  function updateModalSearchPlaceholder() {
+    const modalSearch = document.getElementById('modalTicketSearch');
+    if (!modalSearch) return;
+    const isMobile = (window.innerWidth || (document.documentElement && document.documentElement.clientWidth) || 0) <= 640;
+    modalSearch.placeholder = isMobile
+      ? 'Search completed tickets...'
+      : 'Search ticket #, room, PC, student, or issue...';
+  }
+
+  /**
    * Opens completed tickets modal and pre-fills search from page search if present.
    */
   function openCompletedModal() {
@@ -150,6 +162,8 @@
         });
       }
 
+      window.addEventListener('resize', updateModalSearchPlaceholder);
+
       const timeChips = modal.querySelectorAll('[data-time-filter]');
       timeChips.forEach(chip => {
         chip.addEventListener('click', () => {
@@ -160,6 +174,8 @@
         });
       });
     }
+
+    updateModalSearchPlaceholder();
 
     const pageSearch = document.getElementById('reportSearchInput');
     const modalSearch = document.getElementById('modalTicketSearch');

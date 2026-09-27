@@ -341,8 +341,83 @@
     }
 
     @media (max-width: 1024px) {
+      body[data-page="schedule-editor"],
+      body[data-page="schedule-editor"] .main-wrapper {
+        height: 100vh !important;
+        min-height: 100vh !important;
+        overflow: hidden !important;
+        padding-bottom: 0 !important;
+      }
+
       body[data-page="schedule-editor"] .page-content {
+        padding: 8px 12px 0 12px !important;
+        overflow: hidden !important;
+        height: calc(100vh - 70px) !important;
+        max-height: calc(100vh - 70px) !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 auto !important;
+      }
+
+      .schedule-editor-header {
+        flex-shrink: 0 !important;
+        margin-bottom: 8px !important;
+      }
+
+      .editor-layout-container {
+        flex-direction: column !important;
+        flex: 1 1 0 !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        gap: 0 !important;
+        position: relative !important;
+        overflow: hidden !important;
+      }
+
+      .editor-schedule-card {
+        flex: 1 1 0 !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        border-radius: 14px !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+
+      .calendar-grid-container {
+        flex: 1 1 0 !important;
+        height: 100% !important;
+        min-height: 0 !important;
         overflow-y: auto !important;
+      }
+
+      #create-block-panel {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        max-height: 80vh !important;
+        height: auto !important;
+        background: var(--bg-white, #ffffff) !important;
+        border: 1px solid var(--border-light, #e2e8f0) !important;
+        border-radius: 24px 24px 0 0 !important;
+        box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.22) !important;
+        z-index: 10002 !important;
+        transform: translateY(105%) !important;
+        transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1) !important;
+        padding: 14px 18px 24px 18px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        box-sizing: border-box !important;
+      }
+
+      #create-block-panel.mobile-sheet-open {
+        transform: translateY(0) !important;
       }
     }
 
@@ -2093,67 +2168,80 @@
         </div>
       </div>
 
-      <!-- Term Selector Panel Removed (now placed inside the table header) -->
-
       <div class="editor-layout-container">
 
         <!-- Left Panel: Create Block -->
         <div id="create-block-panel">
-          <h3
-            style="font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="plus" style="width: 18px; height: 18px; color: var(--primary-teal);"></i>
-            Create Schedule Block
-          </h3>
-
-          <div class="editor-form-grid" style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px;">
-            <div class="editor-field-group" style="display: flex; flex-direction: column; width: 100%;">
-              <label class="editor-label"
-                style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px; display: block;">SUBJECT</label>
-              <div class="custom-select-wrapper" id="subject-wrapper" style="width: 100%;">
-                <div class="custom-select-trigger"
-                  style="width: 100%; height: 45px; box-sizing: border-box; padding: 0 16px; font-size: 14px; border: 1.5px solid var(--border-light); border-radius: 8px; background: var(--bg-white); color: var(--text-dark); cursor: text; display: flex; align-items: center; justify-content: space-between;">
-                  <input type="text" class="custom-select-input" id="block-subject" placeholder="Select or type subject"
-                    autocomplete="off">
-                  <i data-lucide="chevron-down"></i>
-                </div>
-                <div class="custom-select-dropdown" id="subject-select-dropdown" style="width: 100%;"></div>
-              </div>
-            </div>
-
-            <div class="editor-field-group" style="display: flex; flex-direction: column; width: 100%;">
-              <label class="editor-label"
-                style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px; display: block;">PROFESSOR</label>
-              <div class="custom-select-wrapper" id="professor-wrapper" style="width: 100%;">
-                <div class="custom-select-trigger"
-                  style="width: 100%; height: 45px; box-sizing: border-box; padding: 12px 16px; font-size: 14px; border: 1.5px solid var(--border-light); border-radius: 8px; background: var(--bg-white); color: var(--text-dark); cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
-                  <span style="color: #94A3B8;">Select Professor</span>
-                  <i data-lucide="chevron-down"></i>
-                </div>
-                <div class="custom-select-dropdown" style="width: 100%;"></div>
-              </div>
-            </div>
-
-            <div class="editor-field-group" style="display: flex; flex-direction: column; width: 100%;">
-              <label class="editor-label"
-                style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px; display: block;">SECTION</label>
-              <div class="custom-select-wrapper" id="section-wrapper" style="width: 100%;">
-                <div class="custom-select-trigger"
-                  style="width: 100%; height: 45px; box-sizing: border-box; padding: 0 16px; font-size: 14px; border: 1.5px solid var(--border-light); border-radius: 8px; background: var(--bg-white); color: var(--text-dark); cursor: text; display: flex; align-items: center; justify-content: space-between;">
-                  <input type="text" class="custom-select-input" id="block-section" placeholder="Select or type section"
-                    autocomplete="off">
-                  <i data-lucide="chevron-down"></i>
-                </div>
-                <div class="custom-select-dropdown" id="section-select-dropdown" style="width: 100%;"></div>
-              </div>
+          <!-- Mobile Drawer Header & Tabs (Mobile Only) -->
+          <div class="mobile-sheet-header">
+            <div class="sheet-drag-handle"></div>
+            <div class="mobile-sheet-tabs">
+              <button type="button" class="mobile-sheet-tab active" data-tab="blocks">
+                <i data-lucide="package"></i> Blocks (<span class="mobile-sheet-count">0</span>)
+              </button>
+              <button type="button" class="mobile-sheet-tab" data-tab="create">
+                <i data-lucide="plus-circle"></i> Create Block
+              </button>
             </div>
           </div>
 
-          <button id="create-block-btn"
-            style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; background: var(--primary-teal); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(30,187,215,0.35);"
-            onmouseover="this.style.background='#17a3bc';this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 18px rgba(30,187,215,0.45)'"
-            onmouseout="this.style.background='var(--primary-teal)';this.style.transform='none';this.style.boxShadow='0 4px 14px rgba(30,187,215,0.35)'">
-            <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Create Block
-          </button>
+          <div class="editor-create-form-section">
+            <h3
+              style="font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="plus" style="width: 18px; height: 18px; color: var(--primary-teal);"></i>
+              Create Schedule Block
+            </h3>
+
+            <div class="editor-form-grid" style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px;">
+              <div class="editor-field-group" style="display: flex; flex-direction: column; width: 100%;">
+                <label class="editor-label"
+                  style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px; display: block;">SUBJECT</label>
+                <div class="custom-select-wrapper" id="subject-wrapper" style="width: 100%;">
+                  <div class="custom-select-trigger"
+                    style="width: 100%; height: 45px; box-sizing: border-box; padding: 0 16px; font-size: 14px; border: 1.5px solid var(--border-light); border-radius: 8px; background: var(--bg-white); color: var(--text-dark); cursor: text; display: flex; align-items: center; justify-content: space-between;">
+                    <input type="text" class="custom-select-input" id="block-subject" placeholder="Select or type subject"
+                      autocomplete="off">
+                    <i data-lucide="chevron-down"></i>
+                  </div>
+                  <div class="custom-select-dropdown" id="subject-select-dropdown" style="width: 100%;"></div>
+                </div>
+              </div>
+
+              <div class="editor-field-group" style="display: flex; flex-direction: column; width: 100%;">
+                <label class="editor-label"
+                  style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px; display: block;">PROFESSOR</label>
+                <div class="custom-select-wrapper" id="professor-wrapper" style="width: 100%;">
+                  <div class="custom-select-trigger"
+                    style="width: 100%; height: 45px; box-sizing: border-box; padding: 12px 16px; font-size: 14px; border: 1.5px solid var(--border-light); border-radius: 8px; background: var(--bg-white); color: var(--text-dark); cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="color: #94A3B8;">Select Professor</span>
+                    <i data-lucide="chevron-down"></i>
+                  </div>
+                  <div class="custom-select-dropdown" style="width: 100%;"></div>
+                </div>
+              </div>
+
+              <div class="editor-field-group" style="display: flex; flex-direction: column; width: 100%;">
+                <label class="editor-label"
+                  style="font-size: 10px; color: #94A3B8; font-weight: 700; margin-bottom: 8px; display: block;">SECTION</label>
+                <div class="custom-select-wrapper" id="section-wrapper" style="width: 100%;">
+                  <div class="custom-select-trigger"
+                    style="width: 100%; height: 45px; box-sizing: border-box; padding: 0 16px; font-size: 14px; border: 1.5px solid var(--border-light); border-radius: 8px; background: var(--bg-white); color: var(--text-dark); cursor: text; display: flex; align-items: center; justify-content: space-between;">
+                    <input type="text" class="custom-select-input" id="block-section" placeholder="Select or type section"
+                      autocomplete="off">
+                    <i data-lucide="chevron-down"></i>
+                  </div>
+                  <div class="custom-select-dropdown" id="section-select-dropdown" style="width: 100%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <button id="create-block-btn"
+              style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; background: var(--primary-teal); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(30,187,215,0.35);"
+              onmouseover="this.style.background='#17a3bc';this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 18px rgba(30,187,215,0.45)'"
+              onmouseout="this.style.background='var(--primary-teal)';this.style.transform='none';this.style.boxShadow='0 4px 14px rgba(30,187,215,0.35)'">
+              <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Create Block
+            </button>
+          </div>
 
           <div class="available-blocks-section"
             style="margin-top: 32px; border-top: 1px solid var(--border-light); padding-top: 24px;">
@@ -2170,42 +2258,32 @@
         <!-- Right Panel: Schedule Table -->
         <div class="dashboard-card editor-schedule-card">
           <!-- Header -->
-          <div class="schedule-header"
-            style="background: var(--primary-teal); color: white; padding: 12px 24px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; font-size: 15px; border-radius: 12px 12px 0 0;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <i data-lucide="calendar" style="width: 20px; height: 20px;"></i> Weekly Schedule – Room 204
+          <div class="schedule-header">
+            <div class="schedule-header-title-row">
+              <div class="schedule-header-title">
+                <i data-lucide="calendar"></i> Weekly Schedule – Room 204
+              </div>
             </div>
 
             <!-- In-Header Selector Panel -->
-            <div class="schedule-selectors" style="display: flex; align-items: center; gap: 16px;">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span
-                  style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Academic
-                  Year:</span>
-                <div class="custom-select-wrapper header-select" id="academic-year-wrapper" style="width: 125px;">
-                  <div class="custom-select-trigger"
-                    style="padding: 5px 10px; font-size: 12.5px; border-radius: 6px; height: auto;">
-                    <span>Select</span>
-                    <i data-lucide="chevron-down"></i>
-                  </div>
-                  <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
+            <div class="schedule-selectors">
+              <div class="custom-select-wrapper header-select" id="academic-year-wrapper">
+                <div class="custom-select-trigger">
+                  <span>Select</span>
+                  <i data-lucide="chevron-down"></i>
                 </div>
+                <div class="custom-select-dropdown" style="color: var(--text-dark);"></div>
               </div>
 
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span
-                  style="font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.95); font-family: var(--font-display);">Semester:</span>
-                <div class="custom-select-wrapper header-select" id="semester-wrapper" style="width: 135px;">
-                  <div class="custom-select-trigger"
-                    style="padding: 5px 8px; font-size: 12.5px; border-radius: 6px; height: auto;">
-                    <span>1st Semester</span>
-                    <i data-lucide="chevron-down"></i>
-                  </div>
-                  <div class="custom-select-dropdown" style="color: var(--text-dark);">
-                    <div class="custom-select-option selected" data-value="1st Semester">1st Semester</div>
-                    <div class="custom-select-option" data-value="2nd Semester">2nd Semester</div>
-                    <div class="custom-select-option" data-value="Summer">Summer</div>
-                  </div>
+              <div class="custom-select-wrapper header-select align-right" id="semester-wrapper">
+                <div class="custom-select-trigger">
+                  <span>1st Semester</span>
+                  <i data-lucide="chevron-down"></i>
+                </div>
+                <div class="custom-select-dropdown" style="color: var(--text-dark);">
+                  <div class="custom-select-option selected" data-value="1st Semester">1st Semester</div>
+                  <div class="custom-select-option" data-value="2nd Semester">2nd Semester</div>
+                  <div class="custom-select-option" data-value="Summer">Summer</div>
                 </div>
               </div>
             </div>
@@ -2268,6 +2346,35 @@
 
       </div>
 
+      <!-- Mobile Bottom Sheet Backdrop -->
+      <div id="mobile-sheet-backdrop" class="mobile-sheet-backdrop"></div>
+
+      <!-- Mobile Placement Action Bar -->
+      <div id="mobile-placement-bar" class="mobile-placement-bar" style="display: none;">
+        <div class="mpb-content">
+          <div class="mpb-badge" id="mpb-badge">Placing</div>
+          <div class="mpb-text">
+            <div class="mpb-title" id="mpb-title">Class</div>
+            <div class="mpb-hint" id="mpb-hint">Tap any slot on the timetable to drop</div>
+          </div>
+        </div>
+        <button type="button" id="mpb-cancel-btn" class="mpb-cancel-btn" title="Cancel placement">
+          <i data-lucide="x"></i> Cancel
+        </button>
+      </div>
+
+      <!-- Mobile Floating Dock -->
+      <div id="mobile-editor-dock" class="mobile-editor-dock">
+        <button type="button" id="mobile-dock-blocks-btn" class="mobile-dock-btn" title="View available blocks">
+          <i data-lucide="package"></i>
+          <span>Blocks (<span id="mobile-dock-count">0</span>)</span>
+        </button>
+        <button type="button" id="mobile-dock-create-btn" class="mobile-dock-btn mobile-dock-btn-primary" title="Create new block">
+          <i data-lucide="plus"></i>
+          <span>New Block</span>
+        </button>
+      </div>
+
       <!-- PRINT FOOTER REMOVED -->
     </main>
   </div>
@@ -2327,14 +2434,16 @@
 
         <!-- Editable Actions (only active in Edit Mode) -->
         <div id="modal-edit-actions"
-          style="margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 16px; display: flex; flex-direction: column; gap: 12px;">
-          <label
-            style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; font-family: var(--font-body);">Color
-            Theme</label>
-          <div id="modal-color-picker"
-            style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 4px 0;">
-
-            <!-- Color dots populated dynamically in JS -->
+          style="margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <!-- Color Theme -->
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label
+              style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; font-family: var(--font-body);">Color
+              Theme</label>
+            <div id="modal-color-picker"
+              style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 4px 0;">
+              <!-- Color dots populated dynamically in JS -->
+            </div>
           </div>
         </div>
       </div>
@@ -2382,6 +2491,7 @@
   <script src="js/scheduling/interactions/card-resize.js"></script>
   <script src="js/scheduling/interactions/mouse-drag.js"></script>
   <script src="js/scheduling/interactions/touch-drag.js"></script>
+  <script src="js/scheduling/interactions/tap-to-place.js"></script>
   <script src="js/scheduling/persistence/schedule.persistence.js"></script>
   <script src="js/scheduling/controller/schedule-editor.controller.js"></script>
   <script src="js/scheduling/time-utils.js"></script>
@@ -2390,6 +2500,7 @@
   <script src="js/scheduling/grid.js"></script>
   <script src="js/scheduling/dragdrop.js"></script>
   <script src="js/scheduling/editor.js"></script>
+  <script src="js/scheduling/mobile-editor.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
   <script src="js/room-schedule-editor.js"></script>

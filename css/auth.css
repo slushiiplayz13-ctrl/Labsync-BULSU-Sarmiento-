@@ -843,11 +843,12 @@ html.high-contrast img.bsu-logo {
   display: block;
   width: 100%;
   text-align: center;
-  font-size: 13px;
+  font-size: 13.5px;
   color: #94A3B8;
   text-decoration: none;
   font-weight: 600;
   letter-spacing: 0.3px;
+  margin-top: 22px;
   transition: color 0.2s;
 }
 

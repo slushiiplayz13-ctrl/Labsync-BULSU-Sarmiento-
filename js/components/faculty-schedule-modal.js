@@ -33,12 +33,13 @@
 
       const modal = document.createElement('div');
       modal.id = 'schedule-view-modal';
-      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:2500 !important;opacity:0;transition:opacity 0.25s ease;overscroll-behavior:contain;';
+      modal.className = 'sched-modal-backdrop';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:2500 !important;opacity:0;transition:opacity 0.25s ease;overscroll-behavior:contain;box-sizing:border-box;';
 
       modal.innerHTML = `
         <div class="sched-modal-dialog">
           <div class="sched-modal-header">
-            <div>
+            <div class="sched-modal-header-text">
               <h2 class="sched-modal-title">Faculty Schedule</h2>
               <p class="sched-modal-subtitle">Weekly class assignments for <strong>${escapeHtml(profName)}</strong></p>
             </div>
@@ -47,7 +48,7 @@
             </button>
           </div>
           
-          <div id="sched-modal-body" class="sched-modal-body" style="padding:24px 28px;overflow-y:auto;overscroll-behavior:contain;overscroll-behavior-y:contain;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:220px;">
+          <div id="sched-modal-body" class="sched-modal-body" style="overflow-y:auto;overscroll-behavior:contain;overscroll-behavior-y:contain;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:220px;">
             <div class="sched-spinner" style="border: 3px solid var(--border-light, #E5E7EB); border-top: 3px solid var(--primary-teal, #00b4d8); border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin-bottom:12px;"></div>
             <span style="font-family:var(--font-body);font-size:13.5px;color:var(--text-muted, #6B7280);">Loading schedule data from all rooms...</span>
           </div>
@@ -141,7 +142,7 @@
           return (a.startTime || a.Start_Time || '').localeCompare(b.startTime || b.Start_Time || '');
         });
 
-        let html = `<div style="display:flex;flex-direction:column;gap:14px;font-family:var(--font-body);">`;
+        let html = `<div class="sched-modal-list" style="display:flex;flex-direction:column;gap:14px;font-family:var(--font-body);">`;
         let currentDay = '';
 
         profSchedules.forEach(s => {

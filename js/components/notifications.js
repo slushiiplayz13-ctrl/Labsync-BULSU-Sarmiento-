@@ -461,11 +461,21 @@
       if (profileMenu) profileMenu.style.display = 'none';
 
       if (!isShowing) {
-        // Align the dropdown under the bell button dynamically
-        const notifBtnRect = notifBtn.getBoundingClientRect();
-        const rightOffset = window.innerWidth - (notifBtnRect.left + notifBtnRect.width / 2);
-        const calculatedRight = rightOffset - 190;
-        notifMenu.style.right = `${Math.max(20, calculatedRight)}px`;
+        if (window.innerWidth <= 1024) {
+          // Centered horizontally on mobile & tablet devices
+          notifMenu.style.left = '50%';
+          notifMenu.style.right = 'auto';
+          notifMenu.style.transform = 'translateX(-50%)';
+        } else {
+          // Desktop / large screen: positioned under bell button
+          notifMenu.style.left = 'auto';
+          notifMenu.style.transform = 'none';
+          const notifBtnRect = notifBtn.getBoundingClientRect();
+          const menuWidth = notifMenu.offsetWidth || 340;
+          const bellCenter = notifBtnRect.left + notifBtnRect.width / 2;
+          const calculatedRight = Math.max(20, window.innerWidth - (bellCenter + menuWidth / 2));
+          notifMenu.style.right = `${calculatedRight}px`;
+        }
 
         notifMenu.style.display = 'block';
         loadNotifications();
@@ -488,8 +498,23 @@
       if (notifMenu) notifMenu.style.display = 'none';
     });
 
-    // Reposition toast container dynamically on window resize
+    // Reposition notification dropdown and toast container dynamically on window resize
     window.addEventListener('resize', () => {
+      if (notifMenu && notifMenu.style.display === 'block') {
+        if (window.innerWidth <= 1024) {
+          notifMenu.style.left = '50%';
+          notifMenu.style.right = 'auto';
+          notifMenu.style.transform = 'translateX(-50%)';
+        } else {
+          notifMenu.style.left = 'auto';
+          notifMenu.style.transform = 'none';
+          const notifBtnRect = notifBtn.getBoundingClientRect();
+          const menuWidth = notifMenu.offsetWidth || 340;
+          const bellCenter = notifBtnRect.left + notifBtnRect.width / 2;
+          const calculatedRight = Math.max(20, window.innerWidth - (bellCenter + menuWidth / 2));
+          notifMenu.style.right = `${calculatedRight}px`;
+        }
+      }
       if (notifBtn && toastContainer) {
         const notifBtnRect = notifBtn.getBoundingClientRect();
         const rightOffset = window.innerWidth - (notifBtnRect.left + notifBtnRect.width / 2);

@@ -105,6 +105,20 @@
       if (modalDeleteBtn) modalDeleteBtn.style.display = 'inline-flex';
       if (modalSaveBtn) modalSaveBtn.textContent = 'Done';
 
+      // Highlight active duration chip
+      const start = parseFloat(card.dataset.start) || 0;
+      const end = parseFloat(card.dataset.end) || (start + 3);
+      const currentDurationSlots = end - start;
+      const presetChips = document.querySelectorAll('#modal-duration-presets .duration-chip');
+      presetChips.forEach(chip => {
+        const slots = parseInt(chip.dataset.slots, 10);
+        if (slots === currentDurationSlots) {
+          chip.classList.add('active');
+        } else {
+          chip.classList.remove('active');
+        }
+      });
+
       const currentColor = card.dataset.color || 'Default';
       const palettes = global.COLOR_PALETTES || {};
 
@@ -634,6 +648,71 @@
 
     const modalCloseX = document.getElementById('modal-close-btn');
     if (modalCloseX) modalCloseX.addEventListener('click', closeCardDetailModal);
+
+    // Mobile/Quick Action: Move Class (Tap-to-Place)
+    const modalMoveBtn = document.getElementById('modal-move-btn');
+    if (modalMoveBtn) {
+      modalMoveBtn.addEventListener('click', () => {
+        const cardToMove = activeEditingCard;
+        if (cardToMove && global.scheduleTapToPlace && typeof global.scheduleTapToPlace.startMovingCard === 'function') {
+          global.scheduleTapToPlace.startMovingCard(cardToMove);
+        }
+      });
+    }
+
+    // Quick Action: Duration Steppers (-30m / +30m)
+    const decBtn = document.getElementById('modal-duration-dec-btn');
+    if (decBtn) {
+      decBtn.addEventListener('click', () => {
+        if (activeEditingCard && global.scheduleTapToPlace && typeof global.scheduleTapToPlace.adjustCardDuration === 'function') {
+          global.scheduleTapToPlace.adjustCardDuration(activeEditingCard, -1);
+          // Update active preset chip
+          const start = parseFloat(activeEditingCard.dataset.start);
+          const end = parseFloat(activeEditingCard.dataset.end);
+          const slots = end - start;
+          document.querySelectorAll('#modal-duration-presets .duration-chip').forEach(chip => {
+            chip.classList.toggle('active', parseInt(chip.dataset.slots, 10) === slots);
+          });
+        }
+      });
+    }
+
+    const incBtn = document.getElementById('modal-duration-inc-btn');
+    if (incBtn) {
+      incBtn.addEventListener('click', () => {
+        if (activeEditingCard && global.scheduleTapToPlace && typeof global.scheduleTapToPlace.adjustCardDuration === 'function') {
+          global.scheduleTapToPlace.adjustCardDuration(activeEditingCard, 1);
+          // Update active preset chip
+          const start = parseFloat(activeEditingCard.dataset.start);
+          const end = parseFloat(activeEditingCard.dataset.end);
+          const slots = end - start;
+          document.querySelectorAll('#modal-duration-presets .duration-chip').forEach(chip => {
+            chip.classList.toggle('active', parseInt(chip.dataset.slots, 10) === slots);
+          });
+        }
+      });
+    }
+
+    // Quick Action: Duration Presets
+    document.querySelectorAll('#modal-duration-presets .duration-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        if (!activeEditingCard) return;
+        const targetSlots = parseInt(chip.dataset.slots, 10);
+        const currentStart = parseFloat(activeEditingCard.dataset.start);
+        const currentEnd = parseFloat(activeEditingCard.dataset.end);
+        const currentSlots = currentEnd - currentStart;
+        const delta = targetSlots - currentSlots;
+        if (delta !== 0 && global.scheduleTapToPlace) {
+          global.scheduleTapToPlace.adjustCardDuration(activeEditingCard, delta).then(success => {
+            if (success) {
+              document.querySelectorAll('#modal-duration-presets .duration-chip').forEach(c => {
+                c.classList.toggle('active', c === chip);
+              });
+            }
+          });
+        }
+      });
+    });
 
     const detailModal = document.getElementById('card-detail-modal');
     if (detailModal) {

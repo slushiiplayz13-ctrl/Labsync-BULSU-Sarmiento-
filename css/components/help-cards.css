@@ -400,11 +400,62 @@
   color: #15803D;
 }
 
+.help-feature-card.theme-teal {
+  background: #E0F7FA;
+  border: 1.5px solid #A7F3D0;
+  color: #0F766E;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.08);
+}
+
+.help-feature-card.theme-teal .help-feat-title {
+  color: #0D9488;
+}
+
+.help-feature-card.theme-teal .help-feat-desc {
+  color: #0F766E;
+}
+
+.help-feature-card.theme-teal .feature-icon-box,
+.help-feature-card.theme-teal .help-feat-icon-badge {
+  background: #CCFBF1;
+  border: 1px solid #5EEAD4;
+  color: #0D9488;
+}
+
+.help-feature-card.theme-red {
+  background: #FEF2F2;
+  border: 1.5px solid #FECACA;
+  color: #991B1B;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);
+}
+
+.help-feature-card.theme-red .help-feat-title {
+  color: #DC2626;
+}
+
+.help-feature-card.theme-red .help-feat-desc {
+  color: #B91C1C;
+}
+
+.help-feature-card.theme-red .feature-icon-box,
+.help-feature-card.theme-red .help-feat-icon-badge {
+  background: #FEE2E2;
+  border: 1px solid #FCA5A5;
+  color: #DC2626;
+}
+
 /* ─── Help & Support Feature Cards Grid & Action Buttons Component Styles ─── */
 .help-features-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+@media (max-width: 520px) {
+  .help-features-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 
 .help-feature-card {
@@ -910,6 +961,72 @@ html.high-contrast .help-feature-card.theme-green .feature-icon-box {
   color: #A7F3D0 !important;
 }
 
+/* Teal Theme Dark Mode Override */
+html.dark-mode .help-feature-card.theme-teal,
+body.dark-mode .help-feature-card.theme-teal,
+[data-theme="dark"] .help-feature-card.theme-teal,
+html.high-contrast .help-feature-card.theme-teal {
+  background: rgba(13, 148, 136, 0.12) !important;
+  border: 1.5px solid rgba(13, 148, 136, 0.35) !important;
+  color: #99F6E4 !important;
+}
+
+html.dark-mode .help-feature-card.theme-teal .help-feat-title,
+body.dark-mode .help-feature-card.theme-teal .help-feat-title,
+[data-theme="dark"] .help-feature-card.theme-teal .help-feat-title,
+html.high-contrast .help-feature-card.theme-teal .help-feat-title {
+  color: #2DD4BF !important;
+}
+
+html.dark-mode .help-feature-card.theme-teal .help-feat-desc,
+body.dark-mode .help-feature-card.theme-teal .help-feat-desc,
+[data-theme="dark"] .help-feature-card.theme-teal .help-feat-desc,
+html.high-contrast .help-feature-card.theme-teal .help-feat-desc {
+  color: #99F6E4 !important;
+}
+
+html.dark-mode .help-feature-card.theme-teal .feature-icon-box,
+body.dark-mode .help-feature-card.theme-teal .feature-icon-box,
+[data-theme="dark"] .help-feature-card.theme-teal .feature-icon-box,
+html.high-contrast .help-feature-card.theme-teal .feature-icon-box {
+  background: rgba(13, 148, 136, 0.25) !important;
+  border: 1px solid rgba(13, 148, 136, 0.45) !important;
+  color: #99F6E4 !important;
+}
+
+/* Red Theme Dark Mode Override */
+html.dark-mode .help-feature-card.theme-red,
+body.dark-mode .help-feature-card.theme-red,
+[data-theme="dark"] .help-feature-card.theme-red,
+html.high-contrast .help-feature-card.theme-red {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border: 1.5px solid rgba(239, 68, 68, 0.35) !important;
+  color: #FECACA !important;
+}
+
+html.dark-mode .help-feature-card.theme-red .help-feat-title,
+body.dark-mode .help-feature-card.theme-red .help-feat-title,
+[data-theme="dark"] .help-feature-card.theme-red .help-feat-title,
+html.high-contrast .help-feature-card.theme-red .help-feat-title {
+  color: #F87171 !important;
+}
+
+html.dark-mode .help-feature-card.theme-red .help-feat-desc,
+body.dark-mode .help-feature-card.theme-red .help-feat-desc,
+[data-theme="dark"] .help-feature-card.theme-red .help-feat-desc,
+html.high-contrast .help-feature-card.theme-red .help-feat-desc {
+  color: #FECACA !important;
+}
+
+html.dark-mode .help-feature-card.theme-red .feature-icon-box,
+body.dark-mode .help-feature-card.theme-red .feature-icon-box,
+[data-theme="dark"] .help-feature-card.theme-red .feature-icon-box,
+html.high-contrast .help-feature-card.theme-red .feature-icon-box {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border: 1px solid rgba(239, 68, 68, 0.45) !important;
+  color: #FECACA !important;
+}
+
 html.dark-mode .help-qs-card,
 body.dark-mode .help-qs-card,
 [data-theme="dark"] .help-qs-card,
@@ -942,9 +1059,40 @@ html.high-contrast .help-qs-text {
   color: #94A3B8 !important;
 }
 
+html.dark-mode .help-support-box,
+body.dark-mode .help-support-box,
+[data-theme="dark"] .help-support-box,
 html.high-contrast .help-support-box {
-  background: linear-gradient(135deg, rgba(0, 163, 196, 0.15) 0%, var(--bg-card) 100%) !important;
-  border-color: rgba(0, 163, 196, 0.3) !important;
+  background: linear-gradient(135deg, rgba(30, 187, 215, 0.12) 0%, rgba(30, 41, 59, 0.85) 100%) !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
+}
+
+html.dark-mode .help-support-title,
+body.dark-mode .help-support-title,
+[data-theme="dark"] .help-support-title,
+html.high-contrast .help-support-title {
+  color: #F8FAFC !important;
+}
+
+html.dark-mode .help-support-desc,
+body.dark-mode .help-support-desc,
+[data-theme="dark"] .help-support-desc,
+html.high-contrast .help-support-desc {
+  color: #94A3B8 !important;
+}
+
+html.dark-mode .help-support-item,
+body.dark-mode .help-support-item,
+[data-theme="dark"] .help-support-item,
+html.high-contrast .help-support-item {
+  color: #CBD5E1 !important;
+}
+
+html.dark-mode .help-support-item strong,
+body.dark-mode .help-support-item strong,
+[data-theme="dark"] .help-support-item strong,
+html.high-contrast .help-support-item strong {
+  color: #F1F5F9 !important;
 }
 
 html.high-contrast .help-support-item span.highlight {

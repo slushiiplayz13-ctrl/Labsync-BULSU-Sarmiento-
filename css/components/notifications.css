@@ -442,12 +442,37 @@ html.high-contrast .banner-mis-notice.warning .banner-text {
   background: var(--bg-white);
   border-radius: 16px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-  width: 380px;
-  max-width: 90vw;
+  width: 340px;
+  max-width: calc(100vw - 24px);
   z-index: 1000;
   border: 1px solid var(--border-light);
   overflow: hidden;
   font-family: var(--font-body);
+}
+
+/* Center the notification menu on mobile and tablet devices */
+@media (max-width: 1024px) {
+  .notif-menu {
+    top: 68px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: min(340px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 0 auto !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .notif-menu {
+    top: 66px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: min(340px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 0 auto !important;
+  }
 }
 
 .notif-header {

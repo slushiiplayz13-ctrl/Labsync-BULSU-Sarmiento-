@@ -84,10 +84,10 @@
       ? global.reportFilters.matchesReportQuery
       : (global.matchesReportQuery || (() => true));
 
-    const totalResolvedReports = reports.filter(r => (r.Status || '').toLowerCase() === 'resolved');
+    const totalResolvedReports = reports.filter(r => (r.Status || r.status || '').toLowerCase() === 'resolved');
     const filteredReports = reports.filter(r => matchFn(r, query));
-    const activeReports = filteredReports.filter(r => (r.Status || '').toLowerCase() !== 'resolved');
-    const resolvedReports = filteredReports.filter(r => (r.Status || '').toLowerCase() === 'resolved');
+    const activeReports = filteredReports.filter(r => (r.Status || r.status || '').toLowerCase() !== 'resolved');
+    const resolvedReports = filteredReports.filter(r => (r.Status || r.status || '').toLowerCase() === 'resolved');
 
     const signature = createReportSignature(filteredReports, query);
     if (container._lastRenderSignature === signature && container.querySelector('.report-card, .ui-empty-state') !== null) {
@@ -101,9 +101,10 @@
     if (toggleContainer) {
       if (totalResolvedReports.length > 0) {
         toggleContainer.innerHTML = `
-          <button type="button" class="toggle-completed-btn" id="btn-view-completed-tickets" data-action="open-completed-modal">
-            <i data-lucide="history" style="width:16px;height:16px;"></i>
-            <span>View Completed Tickets</span>
+          <button type="button" class="toggle-completed-btn" id="btn-view-completed-tickets" data-action="open-completed-modal" title="View Completed Tickets" aria-label="View Completed Tickets">
+            <i data-lucide="history" style="width:16px;height:16px;flex-shrink:0;"></i>
+            <span class="btn-text-full">View Completed Tickets</span>
+            <span class="btn-text-short">Completed Ticket</span>
           </button>
         `;
       } else {
@@ -188,6 +189,17 @@
    */
   function initReportPage() {
     const searchInput = document.getElementById('reportSearchInput');
+
+    function updateSearchPlaceholder() {
+      if (!searchInput) return;
+      if (window.innerWidth <= 640) {
+        searchInput.placeholder = 'Search reports...';
+      } else {
+        searchInput.placeholder = 'Search by room, PC number, issue details, or student name...';
+      }
+    }
+    updateSearchPlaceholder();
+    window.addEventListener('resize', updateSearchPlaceholder);
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room');

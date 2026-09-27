@@ -111,9 +111,12 @@
     .ojt-filter-pill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 6.5px 12.5px;
-      border-radius: 8px;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 15px;
+      height: 38px;
+      min-height: 38px;
+      border-radius: 10px;
       background: var(--bg-body, #F8FAFC);
       border: 1px solid var(--border-light, #CBD5E1);
       color: var(--text-mid, #64748B);
@@ -121,16 +124,29 @@
       font-weight: 600;
       font-family: var(--font-body);
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
       user-select: none;
-      line-height: 1.2;
+      line-height: 1;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
       outline: none;
+      box-sizing: border-box;
+    }
+
+    .ojt-filter-pill i,
+    .ojt-filter-pill svg {
+      width: 14px !important;
+      height: 14px !important;
+      stroke-width: 2.2 !important;
+      flex-shrink: 0;
+      stroke: currentColor;
     }
 
     .ojt-filter-pill:hover {
-      border-color: var(--primary-teal);
-      color: var(--primary-teal);
-      background: rgba(30, 187, 215, 0.06);
+      border-color: var(--primary-teal, #0284C7);
+      color: var(--primary-teal, #0284C7);
+      background: rgba(30, 187, 215, 0.08);
+      transform: translateY(-0.5px);
     }
 
     .ojt-filter-pill:focus-visible {
@@ -139,10 +155,11 @@
     }
 
     .ojt-filter-pill.active {
-      background: var(--primary-teal);
+      background: #0284C7;
       color: #FFFFFF;
-      border-color: var(--primary-teal);
-      box-shadow: 0 2px 8px rgba(30, 187, 215, 0.3);
+      border-color: #0284C7;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
     }
 
     .ojt-filter-pill .pill-count {
@@ -222,28 +239,94 @@
     }
 
     @media (max-width: 768px) {
+      .ojt-main-card {
+        padding: 16px 14px !important;
+      }
       .ojt-toolbar {
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
+        width: 100%;
       }
       .ojt-toolbar-left {
-        overflow-x: auto;
-        padding-bottom: 6px;
-        flex-wrap: nowrap;
-        -webkit-overflow-scrolling: touch;
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        width: 100% !important;
+        gap: 6px !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+      }
+      .ojt-toolbar-left .ojt-filter-pill {
+        width: 100% !important;
+        height: 38px !important;
+        min-height: 38px !important;
+        padding: 0 4px !important;
+        font-size: 12px !important;
+        gap: 5px !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+      }
+      .ojt-toolbar-left .ojt-filter-pill i,
+      .ojt-toolbar-left .ojt-filter-pill svg {
+        width: 13px !important;
+        height: 13px !important;
+        flex-shrink: 0 !important;
+      }
+      .ojt-filter-chip {
+        grid-column: 1 / -1 !important;
+        width: fit-content !important;
+        margin-top: 4px !important;
       }
       .ojt-toolbar-right {
-        flex-direction: column;
-        align-items: stretch;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
       }
       .ojt-search-wrap {
-        min-width: 100%;
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        width: auto !important;
+      }
+      .ojt-search-input {
+        width: 100% !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        font-size: 13px !important;
+        padding: 8px 30px 8px 34px !important;
+        text-overflow: ellipsis !important;
       }
       .btn-add-ojt {
-        width: 100%;
-        justify-content: center;
+        flex: 0 0 auto !important;
+        width: auto !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        padding: 0 12px !important;
+        font-size: 12.5px !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        white-space: nowrap !important;
+        gap: 5px !important;
       }
+      .btn-add-ojt i,
+      .btn-add-ojt svg {
+        width: 14px !important;
+        height: 14px !important;
+        flex-shrink: 0 !important;
+      }
+      .btn-add-text-full {
+        display: none !important;
+      }
+      .btn-add-text-short {
+        display: inline !important;
+      }
+    }
+
+    .btn-add-text-short {
+      display: none;
     }
 
     .ojt-search-input {
@@ -891,71 +974,140 @@
     }
 
     /* ─── Mobile Table Card Transformation (<= 768px) ─── */
+    /* ─── Mobile Table Card Transformation (<= 768px) ─── */
     @media (max-width: 768px) {
       .ojt-table thead {
-        display: none;
+        display: none !important;
       }
       .ojt-table,
       .ojt-table tbody {
-        display: block;
-        width: 100%;
+        display: block !important;
+        width: 100% !important;
       }
       .ojt-table-wrap {
-        border: none;
-        background: transparent;
+        border: none !important;
+        background: transparent !important;
       }
       .ojt-table tbody {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 14px !important;
       }
       .ojt-table tbody tr {
-        display: flex;
-        flex-direction: column;
-        gap: 11px;
-        padding: 15px;
-        border-radius: 14px;
-        background: var(--bg-card, #FFFFFF);
-        border: 1px solid var(--border-light, #E2E8F0);
-        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+        display: grid !important;
+        grid-template-columns: 1fr auto !important;
+        grid-template-areas:
+          "intern  status"
+          "email   email"
+          "period  period"
+          "actions actions" !important;
+        gap: 12px !important;
+        padding: 16px !important;
+        border-radius: 16px !important;
+        background: var(--bg-card, #FFFFFF) !important;
+        border: 1px solid var(--border-light, #E2E8F0) !important;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
       }
       .ojt-table td {
-        display: block;
-        padding: 0;
-        border: none;
-        width: 100%;
+        display: block !important;
+        padding: 0 !important;
+        border: none !important;
+        width: 100% !important;
       }
-      .ojt-card-top-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
+      .ojt-table td:nth-child(1) {
+        grid-area: intern !important;
+        min-width: 0 !important;
       }
-      .ojt-card-detail-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        color: var(--text-dark);
+      .ojt-table td:nth-child(4) {
+        grid-area: status !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: flex-start !important;
+        width: auto !important;
+        padding-top: 2px !important;
       }
+      .ojt-table td:nth-child(2) {
+        grid-area: email !important;
+        min-width: 0 !important;
+      }
+      .ojt-table td:nth-child(3) {
+        grid-area: period !important;
+        min-width: 0 !important;
+      }
+      .ojt-table td:nth-child(5) {
+        grid-area: actions !important;
+        min-width: 0 !important;
+      }
+
+      /* Intern Avatar & Info */
+      .ojt-intern-cell {
+        gap: 12px !important;
+        min-width: 0;
+      }
+      .ojt-avatar {
+        width: 42px !important;
+        height: 42px !important;
+        font-size: 15px !important;
+      }
+      .ojt-name {
+        font-size: 14.5px !important;
+        font-weight: 700 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .ojt-sub {
+        font-size: 12px !important;
+        color: var(--text-muted, #94A3B8) !important;
+      }
+
+      /* Email Row styling */
+      .ojt-table td:nth-child(2) > div {
+        padding: 7px 10px !important;
+        background: rgba(0, 0, 0, 0.02) !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--border-light, #F1F5F9) !important;
+        font-size: 12.5px !important;
+      }
+
+      /* Period Row styling */
+      .ojt-period-cell {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+      }
+      .ojt-period-dates {
+        font-size: 12.5px !important;
+        font-weight: 600 !important;
+      }
+
+      /* 3-Column Actions Row */
       .ojt-actions-wrap {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        padding-top: 10px;
-        border-top: 1px solid var(--border-light, #F1F5F9);
-        margin-top: 2px;
-        width: 100%;
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+        padding-top: 12px !important;
+        border-top: 1px solid var(--border-light, #F1F5F9) !important;
+        margin-top: 2px !important;
+        width: 100% !important;
       }
       .btn-tbl-action {
-        min-height: 40px;
-        justify-content: center;
-        font-size: 13px;
-        padding: 8px 12px;
+        min-height: 38px !important;
+        height: 38px !important;
+        justify-content: center !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        padding: 0 6px !important;
+        border-radius: 9px !important;
+        grid-column: auto !important;
+        white-space: nowrap !important;
       }
       .ojt-actions-wrap .btn-tbl-action.danger,
       .ojt-actions-wrap .btn-tbl-action.success {
-        grid-column: span 2;
+        grid-column: auto !important;
       }
     }
 
@@ -1180,9 +1332,10 @@
       outline-offset: 1.5px;
     }
 
-    /* Dark Mode Overrides */
+    /* Dark Mode & High Contrast Overrides */
     html.dark-mode .ojt-main-card,
     body.dark-mode .ojt-main-card,
+    html.high-contrast .ojt-main-card,
     [data-theme="dark"] .ojt-main-card {
       background: #111827 !important;
       border-color: rgba(255, 255, 255, 0.08) !important;
@@ -1190,10 +1343,109 @@
 
     html.dark-mode .ojt-filter-pill,
     body.dark-mode .ojt-filter-pill,
+    html.high-contrast .ojt-filter-pill,
     [data-theme="dark"] .ojt-filter-pill {
-      background: #1F2937 !important;
-      border-color: rgba(255, 255, 255, 0.08) !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
       color: #94A3B8 !important;
+    }
+
+    html.dark-mode .ojt-filter-pill:hover,
+    body.dark-mode .ojt-filter-pill:hover,
+    html.high-contrast .ojt-filter-pill:hover,
+    [data-theme="dark"] .ojt-filter-pill:hover {
+      background: rgba(255, 255, 255, 0.09) !important;
+      border-color: rgba(255, 255, 255, 0.2) !important;
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .ojt-filter-pill.active,
+    body.dark-mode .ojt-filter-pill.active,
+    html.high-contrast .ojt-filter-pill.active,
+    [data-theme="dark"] .ojt-filter-pill.active {
+      background: rgba(14, 165, 233, 0.16) !important;
+      border: 1.5px solid #38BDF8 !important;
+      color: #38BDF8 !important;
+      font-weight: 700 !important;
+      box-shadow: 0 0 14px rgba(14, 165, 233, 0.22) !important;
+    }
+
+    html.dark-mode .btn-add-ojt,
+    body.dark-mode .btn-add-ojt,
+    html.high-contrast .btn-add-ojt,
+    [data-theme="dark"] .btn-add-ojt {
+      background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+      border: 1px solid rgba(56, 189, 248, 0.35) !important;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25) !important;
+      color: #FFFFFF !important;
+    }
+
+    html.dark-mode .btn-add-ojt:hover:not(:disabled),
+    body.dark-mode .btn-add-ojt:hover:not(:disabled),
+    html.high-contrast .btn-add-ojt:hover:not(:disabled),
+    [data-theme="dark"] .btn-add-ojt:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0369A1 0%, #0284C7 100%) !important;
+      border-color: #38BDF8 !important;
+      box-shadow: 0 6px 18px rgba(14, 165, 233, 0.35) !important;
+      transform: translateY(-1px);
+    }
+
+    html.dark-mode .ojt-search-input,
+    body.dark-mode .ojt-search-input,
+    html.high-contrast .ojt-search-input,
+    [data-theme="dark"] .ojt-search-input {
+      background: rgba(255, 255, 255, 0.04) !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .ojt-search-input:focus,
+    body.dark-mode .ojt-search-input:focus,
+    html.high-contrast .ojt-search-input:focus,
+    [data-theme="dark"] .ojt-search-input:focus {
+      border-color: #38BDF8 !important;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15) !important;
+    }
+
+    html.dark-mode .ojt-table tbody tr,
+    body.dark-mode .ojt-table tbody tr,
+    html.high-contrast .ojt-table tbody tr,
+    [data-theme="dark"] .ojt-table tbody tr {
+      background: #151D2A !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    html.dark-mode .ojt-table td:nth-child(2) > div,
+    body.dark-mode .ojt-table td:nth-child(2) > div,
+    html.high-contrast .ojt-table td:nth-child(2) > div,
+    [data-theme="dark"] .ojt-table td:nth-child(2) > div {
+      background: rgba(255, 255, 255, 0.03) !important;
+      border-color: rgba(255, 255, 255, 0.06) !important;
+      color: #CBD5E1 !important;
+    }
+
+    html.dark-mode .ojt-actions-wrap,
+    body.dark-mode .ojt-actions-wrap,
+    html.high-contrast .ojt-actions-wrap,
+    [data-theme="dark"] .ojt-actions-wrap {
+      border-top-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    html.dark-mode .ojt-period-dates,
+    body.dark-mode .ojt-period-dates,
+    html.high-contrast .ojt-period-dates,
+    [data-theme="dark"] .ojt-period-dates {
+      color: #E2E8F0 !important;
+    }
+
+    html.dark-mode .ojt-period-badge.active,
+    body.dark-mode .ojt-period-badge.active,
+    html.high-contrast .ojt-period-badge.active,
+    [data-theme="dark"] .ojt-period-badge.active {
+      background: rgba(14, 165, 233, 0.12) !important;
+      border: 1px solid rgba(56, 189, 248, 0.3) !important;
+      color: #38BDF8 !important;
     }
 
     html.dark-mode .ojt-filter-chip,
@@ -1582,7 +1834,8 @@
             </div>
             <button type="button" class="btn-add-ojt" id="btnAddOjt" aria-label="Add new OJT intern">
               <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
-              <span>+ Add OJT Intern</span>
+              <span class="btn-add-text-full">+ Add OJT Intern</span>
+              <span class="btn-add-text-short">+ Add OJT</span>
             </button>
           </div>
         </div>

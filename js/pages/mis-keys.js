@@ -581,13 +581,37 @@
         }
 
         const btn = e.target.closest('.key-action-btn');
-        if (!btn) return;
+        if (btn) {
+          const action = btn.dataset.action;
+          const keyId = Number(btn.dataset.id);
 
-        const action = btn.dataset.action;
-        const keyId = Number(btn.dataset.id);
+          if (action === 'print-tag') {
+            await openBatchPrintModal([keyId]);
+          }
+          return;
+        }
 
-        if (action === 'print-tag') {
-          await openBatchPrintModal([keyId]);
+        // Tap-target selection delegation: Tapping anywhere on the mobile card or row header toggles selection
+        const row = e.target.closest('tr.key-data-row');
+        if (row && !e.target.closest('button') && !e.target.closest('a') && !e.target.closest('input[type="checkbox"]')) {
+          const isMobile = window.innerWidth <= 768;
+          const isTapCell = e.target.closest('.col-checkbox') || e.target.closest('.col-ticket') || e.target.closest('.col-custody');
+          if (isMobile || isTapCell) {
+            const cb = row.querySelector('.key-row-checkbox');
+            if (cb) {
+              cb.checked = !cb.checked;
+              const keyId = Number(cb.dataset.id);
+              if (cb.checked) {
+                selectedKeyIds.add(keyId);
+                row.classList.add('row-selected');
+              } else {
+                selectedKeyIds.delete(keyId);
+                row.classList.remove('row-selected');
+              }
+              updateSelectAllCheckboxState();
+              updateBatchToolbar();
+            }
+          }
         }
       });
     }
