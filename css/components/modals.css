@@ -975,6 +975,28 @@ body.modal-open #toast-container {
   box-shadow: none !important;
 }
 
+/* ─── Import Subjects Save Button Disabled State ─── */
+#saveImportCurriculumBtn:disabled,
+#saveImportCurriculumBtn[disabled],
+.import-btn-save:disabled,
+.import-btn-save[disabled],
+.import-btn-save.disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  filter: grayscale(20%) !important;
+}
+
+#saveImportCurriculumBtn:disabled:hover,
+#saveImportCurriculumBtn[disabled]:hover,
+.import-btn-save:disabled:hover,
+.import-btn-save[disabled]:hover,
+.import-btn-save.disabled:hover {
+  background: var(--primary-teal) !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
 /* ─── Delete Faculty Modal Buttons Disabled State ─── */
 #confirm-delete-btn:disabled,
 #confirm-delete-btn[disabled] {
@@ -1046,6 +1068,30 @@ html.high-contrast .ticket-modal-date,
 body.high-contrast .ticket-modal-date,
 [data-theme="dark"] .ticket-modal-date {
   color: #94A3B8 !important;
+}
+
+/* Ticket Details Modal Dark Mode & High Contrast Enhancements */
+html.dark-mode #ticket-details-modal .modal-close-btn,
+body.dark-mode #ticket-details-modal .modal-close-btn,
+html.high-contrast #ticket-details-modal .modal-close-btn,
+body.high-contrast #ticket-details-modal .modal-close-btn,
+html.dark #ticket-details-modal .modal-close-btn,
+body.dark #ticket-details-modal .modal-close-btn,
+html.dark-theme #ticket-details-modal .modal-close-btn,
+body.dark-theme #ticket-details-modal .modal-close-btn,
+[data-theme="dark"] #ticket-details-modal .modal-close-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #CBD5E1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+html.dark-mode #ticket-details-modal .modal-close-btn:hover,
+body.dark-mode #ticket-details-modal .modal-close-btn:hover,
+html.high-contrast #ticket-details-modal .modal-close-btn:hover,
+body.high-contrast #ticket-details-modal .modal-close-btn:hover,
+[data-theme="dark"] #ticket-details-modal .modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #FFFFFF !important;
 }
 
 .ticket-modal-body {

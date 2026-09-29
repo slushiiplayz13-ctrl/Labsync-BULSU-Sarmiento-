@@ -57,13 +57,36 @@ function isPageAuthorized(role, page) {
         page === 'my-schedule.html';
 
     if (cleanRole.toLowerCase().includes('head')) {
-        return isItHeadPage || isFacultyPage;
+        return isItHeadPage;
     } else if (cleanRole === 'MIS Staff') {
         return isMisPage;
     } else if (cleanRole === 'OJT') {
         return OJT_ALLOWED_PAGES.has(page);
     } else {
         return isFacultyPage;
+    }
+}
+
+/**
+ * Returns the appropriate dashboard/page URL for the given role and current page context.
+ * @param {string} role
+ * @param {string} page
+ * @returns {string}
+ */
+function getAuthorizedRedirect(role, page) {
+    const normRole = String(role || '').trim().toLowerCase();
+    if (normRole.includes('head')) {
+        if (page === 'room-status.html') return '/it-head-room-status.html';
+        if (page === 'faculty-pc-reports.html') return '/it-head-pc-reports.html';
+        if (page === 'my-schedule.html') return '/it-head-my-schedule.html';
+        return '/it-head-dashboard.html';
+    } else if (normRole === 'mis staff' || normRole === 'mis' || normRole === 'ojt') {
+        return '/mis-staff-dashboard.html';
+    } else {
+        if (page === 'it-head-room-status.html') return '/room-status.html';
+        if (page === 'it-head-pc-reports.html') return '/faculty-pc-reports.html';
+        if (page === 'it-head-my-schedule.html') return '/my-schedule.html';
+        return '/index.html';
     }
 }
 
@@ -324,13 +347,8 @@ function applyRoleNavigation(role) {
         const normRole = String(role).trim().toLowerCase();
 
         if (!isPageAuthorized(role, page)) {
-            if (normRole.includes('head')) {
-                window.location.replace('/it-head-dashboard.html');
-            } else if (normRole === 'mis staff' || normRole === 'mis' || normRole === 'ojt') {
-                window.location.replace('/mis-staff-dashboard.html');
-            } else {
-                window.location.replace('/index.html');
-            }
+            const redirectUrl = getAuthorizedRedirect(role, page);
+            window.location.replace(redirectUrl);
             return;
         }
 
@@ -343,14 +361,144 @@ function applyRoleNavigation(role) {
             }
         } catch (e) {}
         revealPage();
+
+        // Start live role watcher for real-time role changes
+        startLiveRoleWatcher();
     } catch (error) {
         console.error('Auth check failed:', error);
         // Fallback: if session was cached, reveal; otherwise redirect to login
         const cachedUserStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
         if (cachedUserStr) {
             revealPage();
+            startLiveRoleWatcher();
         } else {
             window.location.replace('/login.html');
         }
     }
 })();
+
+// 5. Live Role Synchronization Watcher
+let _isRoleChecking = false;
+
+async function checkLiveRoleChange() {
+    if (_isRoleChecking) return;
+    _isRoleChecking = true;
+
+    try {
+        const response = await fetch('/api/user/current', {
+            credentials: 'include',
+            headers: { 'X-Background-Poll': 'true' }
+        });
+
+        if (!response.ok) {
+            let reason = '';
+            let isExpired = false;
+            try {
+                const data = await response.json();
+                if (data && data.code === 'ACCOUNT_DEACTIVATED') {
+                    reason = 'deactivated';
+                } else if (data && (data.code === 'OJT_EXPIRED' || (data.error && data.error.includes('internship period has concluded')))) {
+                    reason = 'ojt_expired';
+                } else if (data && (data.code === 'SESSION_EXPIRED' || (data.error && data.error.includes('expired')))) {
+                    isExpired = true;
+                    reason = 'inactivity';
+                }
+            } catch (e) {}
+
+            try {
+                sessionStorage.removeItem('labsync_user');
+                localStorage.removeItem('user');
+                localStorage.removeItem('labsync_last_activity');
+                if (isExpired) {
+                    localStorage.setItem('labsync_session_expired', Date.now().toString());
+                }
+            } catch (e) {}
+
+            window.location.replace(reason ? `/login.html?reason=${encodeURIComponent(reason)}` : '/login.html');
+            return;
+        }
+
+        const rawData = await response.json();
+        const user = (rawData && (rawData.user || rawData)) || {};
+        const newRole = user.role || user.Role || '';
+        if (!newRole) return;
+
+        // Retrieve previously cached role
+        let oldRole = '';
+        try {
+            const cachedStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
+            if (cachedStr) {
+                const cached = JSON.parse(cachedStr);
+                const cu = (cached && (cached.user || cached)) || {};
+                oldRole = cu.role || cu.Role || '';
+            }
+        } catch (e) {}
+
+        const path = window.location.pathname;
+        let page = path.substring(path.lastIndexOf('/') + 1);
+        if (!page || page === '/') page = 'index.html';
+
+        const normNew = String(newRole).trim().toLowerCase();
+        const normOld = String(oldRole).trim().toLowerCase();
+
+        // Update local session caches with fresh user data
+        try {
+            sessionStorage.setItem('labsync_user', JSON.stringify(user));
+            localStorage.setItem('user', JSON.stringify(user));
+        } catch (e) {}
+
+        // If role changed or current page is no longer authorized for new role, redirect
+        const roleChanged = Boolean(oldRole && (normNew !== normOld));
+        const unauthorized = !isPageAuthorized(newRole, page);
+
+        if (unauthorized || roleChanged) {
+            const target = getAuthorizedRedirect(newRole, page);
+            const currentNormPath = (path.startsWith('/') ? path : `/${path}`).toLowerCase();
+            const targetNormPath = (target.startsWith('/') ? target : `/${target}`).toLowerCase();
+
+            if (currentNormPath !== targetNormPath && !currentNormPath.endsWith(targetNormPath)) {
+                window.location.replace(target);
+                return;
+            }
+        }
+
+        // If on authorized page, keep DOM role and name labels in sync
+        const profileRoleEl = document.querySelector('.profile-role');
+        if (profileRoleEl && user.role && profileRoleEl.textContent !== user.role) {
+            profileRoleEl.textContent = user.role;
+        }
+        const profileNameEl = document.querySelector('.profile-name');
+        if (profileNameEl && user.name && profileNameEl.textContent !== user.name) {
+            profileNameEl.textContent = user.name;
+        }
+
+        applyRoleNavigation(newRole);
+    } catch (e) {
+        // Network blip, will retry on next poll interval
+    } finally {
+        _isRoleChecking = false;
+    }
+}
+
+function startLiveRoleWatcher() {
+    if (typeof window === 'undefined' || window.__labsync_role_watcher_started) return;
+    window.__labsync_role_watcher_started = true;
+
+    // Check periodically every 3 seconds
+    setInterval(checkLiveRoleChange, 3000);
+
+    // Check on window focus and visibility changes (user returns to tab)
+    window.addEventListener('focus', checkLiveRoleChange);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            checkLiveRoleChange();
+        }
+    });
+
+    // Cross-tab broadcast listener
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'labsync_role_updated' || e.key === 'user' || e.key === 'labsync_user') {
+            checkLiveRoleChange();
+        }
+    });
+}

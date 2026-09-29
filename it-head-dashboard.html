@@ -400,6 +400,21 @@
             </script>
           </div>
 
+          <!-- Pending Multi-Key Authorizations Section (Shown when requests exist) -->
+          <div id="pendingKeyRequestsSection" class="pending-key-requests-section" style="display: none;">
+            <div class="pending-section-header">
+              <div class="pending-section-title">
+                <i data-lucide="key-round" style="width: 18px; height: 18px; color: #D97706;"></i>
+                <span>Pending Key Authorizations</span>
+                <span class="pending-count-badge" id="pendingKeyCount">0</span>
+              </div>
+              <span class="pending-section-sub">Faculty requesting 2nd laboratory key custody</span>
+            </div>
+            <div class="pending-requests-grid" id="pendingKeyRequestsList">
+              <!-- Dynamically populated by it-head-dashboard.js -->
+            </div>
+          </div>
+
           <!-- Mobile/Tablet Workspace Tabs (<= 1024px) -->
           <div class="ithead-mobile-tabs" id="itheadMobileTabs" role="tablist" aria-label="Dashboard views">
             <button

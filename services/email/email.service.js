@@ -4,6 +4,10 @@ const { getSenderAddress, sendMailWithTimeout } = require('./email.transport');
 const { renderWelcomeEmail } = require('./templates/welcome');
 const { renderResetPasswordEmail } = require('./templates/reset-password');
 const { renderEmailVerificationEmail } = require('./templates/verification');
+const {
+    renderKeyAuthorizationRequestEmail,
+    renderKeyAuthorizationOutcomeEmail
+} = require('./templates/key-authorization');
 
 /**
  * Sends a welcome email containing generated login credentials to a new faculty member.
@@ -77,8 +81,58 @@ async function sendEmailVerificationEmail(recipientEmail, recipientName, verific
     }
 }
 
+/**
+ * Dispatches an urgent email notice to the Department Head when a faculty member requests a 2nd key.
+ *
+ * @param {string} recipientEmail - Department Head's email
+ * @param {string} recipientName - Department Head's name
+ * @param {object} details - Request details
+ * @returns {Promise<boolean>}
+ */
+async function sendKeyAuthorizationEmail(recipientEmail, recipientName, details) {
+    const { subject, html } = renderKeyAuthorizationRequestEmail(recipientName, details);
+    try {
+        await sendMailWithTimeout({
+            from: getSenderAddress(),
+            to: recipientEmail,
+            subject,
+            html,
+        });
+        return true;
+    } catch (err) {
+        console.error('[emailService] sendKeyAuthorizationEmail failed:', err.message);
+        return false;
+    }
+}
+
+/**
+ * Dispatches an outcome email to the faculty member when Department Head approves or declines.
+ *
+ * @param {string} recipientEmail - Faculty member's email
+ * @param {string} recipientName - Faculty member's name
+ * @param {object} details - Outcome details
+ * @returns {Promise<boolean>}
+ */
+async function sendKeyAuthorizationOutcomeEmail(recipientEmail, recipientName, details) {
+    const { subject, html } = renderKeyAuthorizationOutcomeEmail(recipientName, details);
+    try {
+        await sendMailWithTimeout({
+            from: getSenderAddress(),
+            to: recipientEmail,
+            subject,
+            html,
+        });
+        return true;
+    } catch (err) {
+        console.error('[emailService] sendKeyAuthorizationOutcomeEmail failed:', err.message);
+        return false;
+    }
+}
+
 module.exports = {
     sendWelcomeEmail,
     sendResetPasswordEmail,
-    sendEmailVerificationEmail
+    sendEmailVerificationEmail,
+    sendKeyAuthorizationEmail,
+    sendKeyAuthorizationOutcomeEmail
 };

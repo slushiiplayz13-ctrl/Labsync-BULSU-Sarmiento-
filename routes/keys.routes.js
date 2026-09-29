@@ -8,6 +8,7 @@
 const express = require('express');
 const router = express.Router();
 const keysController = require('../controllers/keys.controller');
+const keyAuthController = require('../controllers/key-authorization.controller');
 const { requireAuth, requireRole, MIS_STAFF_ROLES, KEY_TRANSFER_ROLES } = require('../middleware/auth');
 
 // ─── 1. KEY TRANSFER & ROOM CLAIM ENDPOINTS ──────────────────────────────────
@@ -16,6 +17,22 @@ router.get('/transfer-info/:keyCode', requireAuth, keysController.getKeyTransfer
 
 // POST /api/keys/transfer — Execute physical key handoff (Faculty and IT Dept Head only)
 router.post('/transfer', requireAuth, requireRole(KEY_TRANSFER_ROLES), keysController.transferKey);
+
+// ─── 1B. MULTI-KEY AUTHORIZATION WORKFLOW ENDPOINTS ──────────────────────────
+// POST /api/keys/request-additional — Faculty submits request to borrow a 2nd key
+router.post('/request-additional', requireAuth, requireRole(KEY_TRANSFER_ROLES), keyAuthController.requestAdditionalKey);
+
+// GET /api/keys/my-request-status — Faculty checks status of their key request
+router.get('/my-request-status', requireAuth, requireRole(KEY_TRANSFER_ROLES), keyAuthController.getFacultyRequestStatus);
+
+// GET /api/keys/pending-requests — IT Dept Head views all pending key requests
+router.get('/pending-requests', requireAuth, requireRole(['IT Dept. Head']), keyAuthController.getPendingRequestsForDeptHead);
+
+// POST /api/keys/requests/:requestId/approve — IT Dept Head approves multi-key request
+router.post('/requests/:requestId/approve', requireAuth, requireRole(['IT Dept. Head']), keyAuthController.approveRequest);
+
+// POST /api/keys/requests/:requestId/reject — IT Dept Head declines multi-key request
+router.post('/requests/:requestId/reject', requireAuth, requireRole(['IT Dept. Head']), keyAuthController.rejectRequest);
 
 
 // ─── 2. MIS STAFF KEY INVENTORY ENDPOINTS ─────────────────────────────────────

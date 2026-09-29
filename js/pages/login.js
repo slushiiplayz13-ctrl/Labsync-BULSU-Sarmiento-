@@ -287,6 +287,64 @@
     }
   }
 
+  // Safe Internal Redirect Helper
+  function getSafeRedirectUrl() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect');
+      if (!redirect) return null;
+      const clean = decodeURIComponent(redirect).trim();
+      if (clean.startsWith('//') || clean.startsWith('\\\\') || clean.includes('://') || clean.toLowerCase().startsWith('javascript:')) {
+        return null;
+      }
+      if (clean.startsWith('/') || clean.endsWith('.html') || clean.includes('.html?')) {
+        return clean;
+      }
+    } catch (e) { }
+    return null;
+  }
+
+  // Mobile Device Detection Helper
+  function isMobileDevice() {
+    try {
+      if (typeof window === 'undefined') return false;
+      const nav = typeof navigator !== 'undefined' ? navigator : null;
+      const ua = nav ? (nav.userAgent || nav.vendor || '') : '';
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(ua);
+      const isTouch = (typeof window !== 'undefined' && 'ontouchstart' in window) || (nav && nav.maxTouchPoints > 0);
+      const isNarrow = typeof window !== 'undefined' && window.innerWidth <= 768;
+      return Boolean(isMobileUA || (isTouch && isNarrow));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Synchronize Mobile-only Remember Me Controls
+  function syncMobileDeviceUI() {
+    try {
+      if (typeof document === 'undefined') return;
+      const isMobile = isMobileDevice();
+      const rememberMeLabel = document.querySelector('.remember-me-label');
+      const rememberMeInput = document.getElementById('rememberMe');
+
+      if (isMobile) {
+        if (document.body) document.body.classList.add('is-mobile-device');
+        if (rememberMeLabel) rememberMeLabel.style.display = 'inline-flex';
+        if (rememberMeInput) {
+          rememberMeInput.disabled = false;
+          rememberMeInput.checked = true;
+        }
+      } else {
+        if (document.body) document.body.classList.remove('is-mobile-device');
+        if (rememberMeLabel) rememberMeLabel.style.display = 'none';
+        if (rememberMeInput) {
+          rememberMeInput.disabled = true;
+          rememberMeInput.checked = false;
+        }
+      }
+    } catch (e) { }
+  }
+
   // Perform Login Handler
   async function performLogin(e) {
     if (e) e.preventDefault();
@@ -294,10 +352,13 @@
 
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
+    const rememberMeInput = document.getElementById('rememberMe');
     const loginBtn = document.getElementById('loginBtn');
 
     const email = emailInput ? emailInput.value.trim() : '';
     const password = passwordInput ? passwordInput.value : '';
+    const isMobile = isMobileDevice();
+    const isRememberMe = Boolean(isMobile && rememberMeInput && rememberMeInput.checked);
 
     if (!email || !password) {
       showLoginError("Please enter both email and password.");
@@ -313,15 +374,24 @@
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, rememberMe: isRememberMe, isMobile })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('labsync_last_activity', Date.now().toString());
-        localStorage.removeItem('labsync_session_expired');
+        try {
+          if (typeof localStorage !== 'undefined') {
+            if (isRememberMe && isMobile) {
+              localStorage.setItem('labsync_remembered_email', email);
+            } else {
+              localStorage.removeItem('labsync_remembered_email');
+            }
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('labsync_last_activity', Date.now().toString());
+            localStorage.removeItem('labsync_session_expired');
+          }
+        } catch (storageErr) { }
         try { sessionStorage.setItem('labsync_user', JSON.stringify(data.user)); } catch (e) { }
         hideLoginError();
 
@@ -387,6 +457,13 @@
           console.warn('[Login] Dashboard prefetch warning:', prefetchErr);
         }
 
+        // Check if there is an intended redirect destination
+        const targetRedirect = getSafeRedirectUrl();
+        if (targetRedirect) {
+          window.location.href = targetRedirect;
+          return;
+        }
+
         if (isItHead) {
           window.location.href = 'it-head-dashboard.html';
         } else if (isMis || isOjt) {
@@ -411,7 +488,7 @@
     }
   }
 
-  // Ensure login form fields start empty by default on fresh load and back/forward navigation
+  // Ensure login form fields start empty by default on fresh load, or prefilled if remembered on mobile
   function resetLoginForm() {
     const loginForm = document.getElementById('loginForm');
     if (loginForm && typeof loginForm.reset === 'function') {
@@ -419,9 +496,26 @@
     }
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
-    if (emailInput) emailInput.value = '';
+    const rememberMeInput = document.getElementById('rememberMe');
+    const isMobile = isMobileDevice();
+
+    if (rememberMeInput) {
+      rememberMeInput.checked = isMobile;
+      rememberMeInput.disabled = !isMobile;
+    }
+
+    if (emailInput) {
+      let rememberedEmail = '';
+      try {
+        if (typeof localStorage !== 'undefined' && isMobile) {
+          rememberedEmail = localStorage.getItem('labsync_remembered_email');
+        }
+      } catch (storageErr) { }
+      emailInput.value = rememberedEmail || '';
+    }
     if (passwordInput) passwordInput.value = '';
     syncEmailClearVisibility();
+    syncMobileDeviceUI();
   }
 
   // Pageshow event handler for back/forward navigation
@@ -479,7 +573,7 @@
     }
   }
 
-  // Session Expiry Notice Handler
+  // Session Expiry & Redirect Hints Handler
   function checkSessionExpiryNotice() {
     let noticeMessage = "";
 
@@ -487,7 +581,17 @@
       const urlParams = new URLSearchParams(window.location.search);
       const reason = urlParams.get('reason');
 
-      if (reason === 'deactivated') {
+      if (reason === 'claim-key' || reason === 'key-transfer') {
+        const infoBanner = document.getElementById('loginInfoBanner');
+        const infoText = document.getElementById('loginInfoText');
+        if (infoBanner) {
+          if (infoText) {
+            infoText.textContent = "Please sign in with your Faculty or Department Head account to claim this laboratory key.";
+          }
+          infoBanner.style.display = 'flex';
+          if (window.lucide && lucide.createIcons) lucide.createIcons({ root: infoBanner });
+        }
+      } else if (reason === 'deactivated') {
         noticeMessage = "Your account has been deactivated. Please contact the administrator.";
       } else if (reason === 'ojt_expired') {
         noticeMessage = "Your OJT internship period has concluded. Please contact the MIS Staff.";
@@ -503,12 +607,16 @@
           localStorage.removeItem('labsync_session_expired');
         }
       }
+
+      // If email was remembered and password is empty, place focus on password
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      if (emailInput && emailInput.value && passwordInput && !passwordInput.value) {
+        passwordInput.focus();
+      }
     } catch (e) {}
 
     if (noticeMessage) {
-      if (window.history && window.history.replaceState) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
       showLoginError(noticeMessage);
     }
   }
@@ -524,6 +632,10 @@
     initPageShowReset();
     initLoginFormListeners();
     checkSessionExpiryNotice();
+    syncMobileDeviceUI();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', syncMobileDeviceUI);
+    }
   }
 
   // Execute on DOM Ready or immediately

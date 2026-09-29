@@ -16,6 +16,13 @@ const { INACTIVITY_TIMEOUT_MS } = require('../config/app.config');
 
 function checkSessionInactivity(req, res) {
     const now = Date.now();
+
+    // Exempt persistent "Remember Me" sessions from strict short idle logout
+    if (req.session && req.session.rememberMe) {
+        req.session.lastActivity = now;
+        return true;
+    }
+
     const lastActivity = req.session.lastActivity || now;
 
     if (now - lastActivity > INACTIVITY_TIMEOUT_MS) {

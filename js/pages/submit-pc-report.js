@@ -143,6 +143,42 @@ function toggleStatus(btnTarget, statusValue) {
   } else if (statusValue === 'issue') {
     card.classList.add('status-issue');
   }
+
+  updateSubmitButtonState();
+}
+
+/**
+ * Checks whether at least one equipment has an issue flagged or remarks are provided.
+ * @returns {boolean}
+ */
+function hasReportableIssue() {
+  const hasEquipmentIssue = Object.values(componentStates).some(status => status === 'issue');
+  const remarksEl = document.getElementById('remarks');
+  const hasRemarks = Boolean(remarksEl && remarksEl.value.trim().length > 0);
+  return hasEquipmentIssue || hasRemarks;
+}
+
+/**
+ * Updates the disabled/enabled state of the Submit Report button.
+ */
+function updateSubmitButtonState() {
+  const submitBtn = document.getElementById('submit-button');
+  if (!submitBtn) return;
+
+  const hasIssue = hasReportableIssue();
+  const canSubmit = isConfirmed && !isSubmitting && hasIssue;
+
+  if (canSubmit) {
+    submitBtn.classList.remove('btn-disabled');
+    submitBtn.removeAttribute('disabled');
+    submitBtn.disabled = false;
+    submitBtn.setAttribute('aria-disabled', 'false');
+  } else {
+    submitBtn.classList.add('btn-disabled');
+    submitBtn.setAttribute('disabled', 'true');
+    submitBtn.disabled = true;
+    submitBtn.setAttribute('aria-disabled', 'true');
+  }
 }
 
 /**
@@ -157,7 +193,6 @@ function toggleCheckbox(forceState) {
 
   const checkbox = document.getElementById('custom-checkbox');
   const confirmRow = document.querySelector('.confirm-row');
-  const submitBtn = document.getElementById('submit-button');
 
   if (typeof forceState === 'boolean') {
     isConfirmed = forceState;
@@ -174,17 +209,7 @@ function toggleCheckbox(forceState) {
     checkbox.innerHTML = isConfirmed ? checkSvgHTML : '';
   }
 
-  if (submitBtn) {
-    if (isConfirmed && !isSubmitting) {
-      submitBtn.classList.remove('btn-disabled');
-      submitBtn.removeAttribute('disabled');
-      submitBtn.disabled = false;
-    } else {
-      submitBtn.classList.add('btn-disabled');
-      submitBtn.setAttribute('disabled', 'true');
-      submitBtn.disabled = true;
-    }
-  }
+  updateSubmitButtonState();
 }
 
 /**
@@ -277,6 +302,22 @@ async function handleSubmit() {
     return;
   }
 
+  const hasEquipmentIssue = Object.values(componentStates).some(state => state === 'issue');
+  const hasRemarks = Boolean(remarksInput && remarksInput.length > 0);
+
+  if (!hasEquipmentIssue && !hasRemarks) {
+    showSystemToast('Please toggle at least one equipment to "Issue" or describe the problem in Issue Details to submit a report.', 'warning', 'No Issue Reported');
+    if (remarksEl) {
+      remarksEl.focus();
+      remarksEl.style.outline = '2px solid #EF4444';
+      remarksEl.style.outlineOffset = '2px';
+      setTimeout(() => {
+        remarksEl.style.outline = 'none';
+      }, 2500);
+    }
+    return;
+  }
+
   // Strict check: Require user to check confirmation box
   if (!isConfirmed) {
     showSystemToast('Please check the confirmation box to confirm you are using this PC.', 'warning', 'Confirmation Required');
@@ -348,10 +389,7 @@ async function handleSubmit() {
     isSubmitting = false;
     if (submitBtn) {
       submitBtn.innerHTML = 'Submit Report';
-      if (!isConfirmed) {
-        submitBtn.classList.add('btn-disabled');
-        submitBtn.disabled = true;
-      }
+      updateSubmitButtonState();
     }
   }
 }
@@ -399,6 +437,7 @@ function closeSuccessModal() {
 
   // Reset checkbox & submit button
   if (isConfirmed) toggleCheckbox(false);
+  updateSubmitButtonState();
 }
 
 /**
@@ -452,9 +491,17 @@ document.addEventListener('click', function (e) {
 });
 
 /**
- * Keyboard navigation support for confirmation checkbox
+ * Keyboard navigation support for confirmation checkbox and modal dismissal
  */
 document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    const successModalEl = document.getElementById('success-modal');
+    if (successModalEl && (successModalEl.classList.contains('active') || successModalEl.style.display === 'flex')) {
+      closeSuccessModal();
+      return;
+    }
+  }
+
   const activeEl = document.activeElement;
   if (activeEl && activeEl.classList && activeEl.classList.contains('confirm-row')) {
     if (e.key === ' ' || e.key === 'Enter') {
@@ -490,6 +537,7 @@ function initSubmitPcReportPage() {
         remarksCounter.classList.remove('counter-at-limit', 'counter-near-limit');
       }
     }
+    updateSubmitButtonState();
   }
 
   if (remarksTextarea) {
@@ -521,7 +569,7 @@ function initSubmitPcReportPage() {
     });
   }
 
-  // 4. Modal card backdrop dismiss listener
+  // 4. Modal card backdrop dismiss and direct close button listeners
   const successModalEl = document.getElementById('success-modal');
   if (successModalEl) {
     successModalEl.style.display = 'none';
@@ -538,12 +586,29 @@ function initSubmitPcReportPage() {
     const successCard = successModalEl.querySelector('.success-card');
     if (successCard) {
       successCard.addEventListener('click', (e) => {
+        // If clicking the close button inside the card, close the modal immediately
+        if (e.target && e.target.closest && e.target.closest('.success-btn')) {
+          e.preventDefault();
+          closeSuccessModal();
+          return;
+        }
         e.stopPropagation();
+      });
+    }
+
+    const closeBtn = document.getElementById('success-close-btn') || successModalEl.querySelector('.success-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeSuccessModal();
       });
     }
   }
 
-  // 5. Ensure Lucide icons render
+  // 5. Initial submit button state check
+  updateSubmitButtonState();
+
+  // 6. Ensure Lucide icons render
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();
   }
@@ -561,4 +626,6 @@ window.toggleStatus = toggleStatus;
 window.toggleCheckbox = toggleCheckbox;
 window.handleSubmit = handleSubmit;
 window.closeSuccessModal = closeSuccessModal;
+window.hasReportableIssue = hasReportableIssue;
+window.updateSubmitButtonState = updateSubmitButtonState;
 window.initSubmitPcReportPage = initSubmitPcReportPage;

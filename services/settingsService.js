@@ -26,8 +26,15 @@ async function updateSettings(settings, sessionUserId, sessionUserRole) {
         return { status: 403, error: 'Privilege required: Only administrators can modify system settings.' };
     }
 
+    if (settings.program_chair && typeof settings.program_chair === 'string' && settings.program_chair.trim().length > 50) {
+        return { status: 400, error: 'Program chair name cannot exceed 50 characters.' };
+    }
+    if (settings.campus_dean && typeof settings.campus_dean === 'string' && settings.campus_dean.trim().length > 50) {
+        return { status: 400, error: 'Campus dean name cannot exceed 50 characters.' };
+    }
+
     for (const [key, value] of Object.entries(settings)) {
-        await settingsRepository.upsertSetting(key, value);
+        await settingsRepository.upsertSetting(key, typeof value === 'string' ? value.trim() : value);
     }
 
     return { status: 200, message: 'System settings updated successfully.' };

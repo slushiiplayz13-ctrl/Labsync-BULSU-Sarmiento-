@@ -550,20 +550,26 @@
       </div>
 
       <div style="margin-bottom: 20px;">
-        <label
-          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Program
-          Chair Name</label>
-        <input type="text" id="programChairInput" placeholder=""
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label
+            style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Program
+            Chair Name</label>
+          <span id="chairCharCount" style="font-size: 11px; color: var(--text-light); font-weight: 500;">0/50</span>
+        </div>
+        <input type="text" id="programChairInput" placeholder="" maxlength="50"
           style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
           onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
           onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
       </div>
 
       <div style="margin-bottom: 32px;">
-        <label
-          style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Campus
-          Dean Name</label>
-        <input type="text" id="campusDeanInput" placeholder=""
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label
+            style="display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Campus
+            Dean Name</label>
+          <span id="deanCharCount" style="font-size: 11px; color: var(--text-light); font-weight: 500;">0/50</span>
+        </div>
+        <input type="text" id="campusDeanInput" placeholder="" maxlength="50"
           style="width: 100%; padding: 14px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-size: 14.5px; outline: none; transition: all 0.2s; box-sizing: border-box;"
           onfocus="this.style.borderColor='var(--primary-teal)'; this.style.boxShadow='0 0 0 3px rgba(30, 187, 215, 0.1)';"
           onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
@@ -663,9 +669,9 @@
             style="padding: 12px 20px; background: var(--bg-body); color: var(--text-dark); border: 1px solid var(--border-light); border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer;">
             Cancel
           </button>
-          <button id="saveImportCurriculumBtn" class="import-btn-save" type="button"
-            style="padding: 12px 24px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
-            onmouseover="this.style.background='#17a3bc';" onmouseout="this.style.background='var(--primary-teal)';">
+          <button id="saveImportCurriculumBtn" class="import-btn-save" type="button" disabled aria-disabled="true"
+            style="padding: 12px 24px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: not-allowed; opacity: 0.45; transition: all 0.2s; box-shadow: none;"
+            onmouseover="if (!this.disabled) this.style.background='#17a3bc';" onmouseout="if (!this.disabled) this.style.background='var(--primary-teal)';">
             Save & Import Subjects
           </button>
         </div>

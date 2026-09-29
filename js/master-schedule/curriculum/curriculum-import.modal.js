@@ -9,6 +9,65 @@
   let parsedCurriculumData = [];
   let isFileUploadedToCurriculum = false;
 
+  function updateSaveButtonState() {
+    const saveImportCurriculumBtn = document.getElementById('saveImportCurriculumBtn');
+    if (!saveImportCurriculumBtn) return;
+
+    const canSave = Boolean(isFileUploadedToCurriculum && parsedCurriculumData && parsedCurriculumData.length > 0);
+    saveImportCurriculumBtn.disabled = !canSave;
+    if (!canSave) {
+      saveImportCurriculumBtn.setAttribute('disabled', 'true');
+      saveImportCurriculumBtn.setAttribute('aria-disabled', 'true');
+      saveImportCurriculumBtn.classList.add('disabled');
+      saveImportCurriculumBtn.style.opacity = '0.45';
+      saveImportCurriculumBtn.style.cursor = 'not-allowed';
+      saveImportCurriculumBtn.style.boxShadow = 'none';
+      saveImportCurriculumBtn.style.background = 'var(--primary-teal)';
+    } else {
+      saveImportCurriculumBtn.removeAttribute('disabled');
+      saveImportCurriculumBtn.setAttribute('aria-disabled', 'false');
+      saveImportCurriculumBtn.classList.remove('disabled');
+      saveImportCurriculumBtn.style.opacity = '1';
+      saveImportCurriculumBtn.style.cursor = 'pointer';
+      saveImportCurriculumBtn.style.boxShadow = '0 4px 14px rgba(30, 187, 215, 0.35)';
+      saveImportCurriculumBtn.style.background = 'var(--primary-teal)';
+    }
+  }
+
+  function updateDropzoneWithFileInfo(file, count) {
+    const desktopText = document.querySelector('.dropzone-text-desktop');
+    const mobileText = document.querySelector('.dropzone-text-mobile');
+    const subtext = document.querySelector('#dropZone div:last-child');
+    if (desktopText && file) {
+      desktopText.textContent = `Selected: ${file.name}`;
+      desktopText.style.color = 'var(--primary-teal)';
+    }
+    if (mobileText && file) {
+      mobileText.textContent = `Selected: ${file.name}`;
+      mobileText.style.color = 'var(--primary-teal)';
+    }
+    if (subtext && count !== undefined) {
+      subtext.textContent = `${count} subjects parsed and ready to import. Click to change file.`;
+    }
+  }
+
+  function resetDropzoneUI() {
+    const desktopText = document.querySelector('.dropzone-text-desktop');
+    const mobileText = document.querySelector('.dropzone-text-mobile');
+    const subtext = document.querySelector('#dropZone div:last-child');
+    if (desktopText) {
+      desktopText.textContent = 'Click or Drag & Drop File';
+      desktopText.style.color = 'var(--text-dark)';
+    }
+    if (mobileText) {
+      mobileText.textContent = 'Tap to Upload File';
+      mobileText.style.color = 'var(--text-dark)';
+    }
+    if (subtext) {
+      subtext.textContent = 'Supports Excel (.xlsx, .xls), CSV, or JSON format';
+    }
+  }
+
   function renderCurriculumTable() {
     const curriculumTableBody = document.getElementById('curriculumTableBody');
     if (!curriculumTableBody) return;
@@ -45,6 +104,7 @@
       if (!isFileUploadedToCurriculum) {
         parsedCurriculumData = data;
         renderCurriculumTable();
+        updateSaveButtonState();
       }
     } catch (err) {
       console.error('[CurriculumImportModal] Failed to fetch existing curriculum:', err);
@@ -53,13 +113,26 @@
 
   function handleFile(file) {
     if (!file) return;
-    isFileUploadedToCurriculum = true;
-    global.isFileUploadedToCurriculum = true;
     if (global.curriculumImport && typeof global.curriculumImport.processUploadedFile === 'function') {
       global.curriculumImport.processUploadedFile(file, (subjects) => {
-        parsedCurriculumData = subjects;
-        renderCurriculumTable();
+        if (subjects && subjects.length > 0) {
+          isFileUploadedToCurriculum = true;
+          global.isFileUploadedToCurriculum = true;
+          parsedCurriculumData = subjects;
+          renderCurriculumTable();
+          updateDropzoneWithFileInfo(file, subjects.length);
+          updateSaveButtonState();
+        } else {
+          isFileUploadedToCurriculum = false;
+          global.isFileUploadedToCurriculum = false;
+          updateSaveButtonState();
+        }
       });
+    } else {
+      isFileUploadedToCurriculum = true;
+      global.isFileUploadedToCurriculum = true;
+      updateDropzoneWithFileInfo(file, parsedCurriculumData.length);
+      updateSaveButtonState();
     }
   }
 
@@ -79,6 +152,9 @@
     function openModal() {
       isFileUploadedToCurriculum = false;
       global.isFileUploadedToCurriculum = false;
+      resetDropzoneUI();
+      if (curriculumFileInput) curriculumFileInput.value = '';
+      updateSaveButtonState();
       fetchExistingCurriculum();
       const wasAlreadyOpen = importCurriculumModal.style.display === 'flex' && !importCurriculumModal.classList.contains('closing');
       importCurriculumModal.classList.remove('closing');
@@ -109,6 +185,11 @@
         importCurriculumModal.removeAttribute('data-closing');
         importCurriculumModal.scrollTop = 0;
         if (dialog) dialog.style.transform = '';
+        isFileUploadedToCurriculum = false;
+        global.isFileUploadedToCurriculum = false;
+        resetDropzoneUI();
+        if (curriculumFileInput) curriculumFileInput.value = '';
+        updateSaveButtonState();
         if (global.setModalOpenState) {
           global.setModalOpenState(false);
           global.setModalOpenState(null);
@@ -154,7 +235,9 @@
         });
       });
       dropZone.addEventListener('drop', (e) => {
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        e.preventDefault();
+        dropZone.style.background = 'rgba(30, 187, 215, 0.05)';
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
           handleFile(e.dataTransfer.files[0]);
         }
       });
@@ -170,16 +253,17 @@
 
     if (saveImportCurriculumBtn) {
       saveImportCurriculumBtn.addEventListener('click', async () => {
-        if (!parsedCurriculumData || parsedCurriculumData.length === 0) {
+        if (!isFileUploadedToCurriculum || !parsedCurriculumData || parsedCurriculumData.length === 0) {
           if (global.showToast) {
-            global.showToast('Please upload or load subject data before saving.', 'warning');
+            global.showToast('Please add and upload a subject catalog file before saving.', 'warning');
           } else {
-            alert('Please upload or load subject data before saving.');
+            alert('Please add and upload a subject catalog file before saving.');
           }
           return;
         }
 
         saveImportCurriculumBtn.disabled = true;
+        saveImportCurriculumBtn.setAttribute('disabled', 'true');
         saveImportCurriculumBtn.textContent = 'Saving...';
 
         try {
@@ -203,11 +287,16 @@
           } else {
             alert('Subjects imported and saved successfully!');
           }
+          isFileUploadedToCurriculum = false;
+          global.isFileUploadedToCurriculum = false;
+          resetDropzoneUI();
+          if (curriculumFileInput) curriculumFileInput.value = '';
+          updateSaveButtonState();
           closeModal();
         } catch (err) {
           alert(err.message || 'An unexpected error occurred.');
         } finally {
-          saveImportCurriculumBtn.disabled = false;
+          updateSaveButtonState();
           saveImportCurriculumBtn.textContent = 'Save & Import Subjects';
         }
       });
@@ -239,7 +328,12 @@
             await fetch('/api/curriculum', { method: 'DELETE', credentials: 'include' });
           }
           parsedCurriculumData = [];
+          isFileUploadedToCurriculum = false;
+          global.isFileUploadedToCurriculum = false;
+          resetDropzoneUI();
+          if (curriculumFileInput) curriculumFileInput.value = '';
           renderCurriculumTable();
+          updateSaveButtonState();
           if (global.showToast) {
             global.showToast('Subjects cleared successfully.', 'success');
           } else {
@@ -250,12 +344,17 @@
         }
       });
     }
+
+    resetDropzoneUI();
+    updateSaveButtonState();
   }
 
   const curriculumImportModal = {
     initCurriculumImportModal,
     renderCurriculumTable,
-    fetchExistingCurriculum
+    fetchExistingCurriculum,
+    updateSaveButtonState,
+    get isFileUploaded() { return isFileUploadedToCurriculum; }
   };
 
   global.curriculumImportModal = curriculumImportModal;

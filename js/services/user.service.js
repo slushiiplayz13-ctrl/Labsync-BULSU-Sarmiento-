@@ -7,9 +7,30 @@
   'use strict';
 
   /**
-   * Clears user storage and initiates backend logout session invalidation.
+   * Prompts user with a confirmation modal and, if confirmed,
+   * clears user storage and initiates backend logout session invalidation.
    */
   async function handleLogout() {
+    const confirmFn = global.showConfirmModal || (typeof window !== 'undefined' ? window.showConfirmModal : null);
+    let confirmed = false;
+
+    if (typeof confirmFn === 'function') {
+      confirmed = await confirmFn({
+        title: 'Confirm Logout',
+        message: 'Are you sure you want to log out of LabSync?',
+        confirmText: 'Log Out',
+        cancelText: 'Cancel',
+        icon: 'log-out',
+        isDestructive: false
+      });
+    } else if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      confirmed = window.confirm('Are you sure you want to log out of LabSync?');
+    } else {
+      confirmed = true;
+    }
+
+    if (!confirmed) return;
+
     try {
       localStorage.removeItem('user');
       localStorage.removeItem('labsync_tutorial_completed');

@@ -1034,6 +1034,16 @@ body.dark-mode .day-column.highlight-day .day-header .today-tag,
   gap: 16px;
 }
 
+.seh-left h1,
+.seh-left p,
+.seh-left > div,
+.schedule-editor-header h1,
+.schedule-editor-header p,
+.schedule-header-title {
+  cursor: default !important;
+  user-select: none;
+}
+
 .back-btn {
   width: 40px;
   height: 40px;

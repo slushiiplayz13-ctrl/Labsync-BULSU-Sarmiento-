@@ -516,51 +516,123 @@ html.high-contrast .rc-block-label {
 html.dark-mode .issue-badge-fault,
 body.dark-mode .issue-badge-fault,
 [data-theme="dark"] .issue-badge-fault,
-html.high-contrast .issue-badge-fault {
-  background: rgba(239, 68, 68, 0.18);
-  color: #F87171;
-  border-color: rgba(239, 68, 68, 0.4);
+html.high-contrast .issue-badge-fault,
+body.high-contrast .issue-badge-fault,
+html.dark .issue-badge-fault,
+body.dark .issue-badge-fault,
+html.dark-theme .issue-badge-fault,
+body.dark-theme .issue-badge-fault {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #F87171 !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
 }
 
 html.dark-mode .issue-badge-fault i,
 body.dark-mode .issue-badge-fault i,
 [data-theme="dark"] .issue-badge-fault i,
-html.high-contrast .issue-badge-fault i {
-  color: #F87171;
+html.high-contrast .issue-badge-fault i,
+body.high-contrast .issue-badge-fault i,
+html.dark .issue-badge-fault i,
+body.dark .issue-badge-fault i,
+html.dark-theme .issue-badge-fault i,
+body.dark-theme .issue-badge-fault i,
+html.dark-mode .issue-badge-fault svg,
+body.dark-mode .issue-badge-fault svg,
+[data-theme="dark"] .issue-badge-fault svg,
+html.high-contrast .issue-badge-fault svg,
+body.high-contrast .issue-badge-fault svg,
+html.dark .issue-badge-fault svg,
+body.dark .issue-badge-fault svg,
+html.dark-theme .issue-badge-fault svg,
+body.dark-theme .issue-badge-fault svg {
+  color: #F87171 !important;
+  stroke: #F87171 !important;
 }
 
 html.dark-mode .issue-badge-other,
 body.dark-mode .issue-badge-other,
 [data-theme="dark"] .issue-badge-other,
-html.high-contrast .issue-badge-other {
-  background: rgba(217, 119, 6, 0.18);
-  color: #FBBF24;
-  border-color: rgba(217, 119, 6, 0.4);
+html.high-contrast .issue-badge-other,
+body.high-contrast .issue-badge-other,
+html.dark .issue-badge-other,
+body.dark .issue-badge-other,
+html.dark-theme .issue-badge-other,
+body.dark-theme .issue-badge-other {
+  background: rgba(217, 119, 6, 0.18) !important;
+  color: #FBBF24 !important;
+  border-color: rgba(217, 119, 6, 0.4) !important;
 }
 
 html.dark-mode .issue-badge-other i,
 body.dark-mode .issue-badge-other i,
 [data-theme="dark"] .issue-badge-other i,
-html.high-contrast .issue-badge-other i {
-  color: #FBBF24;
+html.high-contrast .issue-badge-other i,
+body.high-contrast .issue-badge-other i,
+html.dark .issue-badge-other i,
+body.dark .issue-badge-other i,
+html.dark-theme .issue-badge-other i,
+body.dark-theme .issue-badge-other i,
+html.dark-mode .issue-badge-other svg,
+body.dark-mode .issue-badge-other svg,
+[data-theme="dark"] .issue-badge-other svg,
+html.high-contrast .issue-badge-other svg,
+body.high-contrast .issue-badge-other svg,
+html.dark .issue-badge-other svg,
+body.dark .issue-badge-other svg,
+html.dark-theme .issue-badge-other svg,
+body.dark-theme .issue-badge-other svg {
+  color: #FBBF24 !important;
+  stroke: #FBBF24 !important;
 }
 
 html.dark-mode .issue-badge-none,
 body.dark-mode .issue-badge-none,
 [data-theme="dark"] .issue-badge-none,
-html.high-contrast .issue-badge-none {
-  background: rgba(255, 255, 255, 0.08);
-  color: #94A3B8;
-  border-color: rgba(255, 255, 255, 0.1);
+html.high-contrast .issue-badge-none,
+body.high-contrast .issue-badge-none,
+html.dark .issue-badge-none,
+body.dark .issue-badge-none,
+html.dark-theme .issue-badge-none,
+body.dark-theme .issue-badge-none {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #94A3B8 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark-mode .issue-badge-none i,
+body.dark-mode .issue-badge-none i,
+[data-theme="dark"] .issue-badge-none i,
+html.high-contrast .issue-badge-none i,
+body.high-contrast .issue-badge-none i,
+html.dark .issue-badge-none i,
+body.dark .issue-badge-none i,
+html.dark-theme .issue-badge-none i,
+body.dark-theme .issue-badge-none i,
+html.dark-mode .issue-badge-none svg,
+body.dark-mode .issue-badge-none svg,
+[data-theme="dark"] .issue-badge-none svg,
+html.high-contrast .issue-badge-none svg,
+body.high-contrast .issue-badge-none svg,
+html.dark .issue-badge-none svg,
+body.dark .issue-badge-none svg,
+html.dark-theme .issue-badge-none svg,
+body.dark-theme .issue-badge-none svg {
+  color: #94A3B8 !important;
+  stroke: #94A3B8 !important;
 }
 
 html.dark-mode .issue-badge-more,
 body.dark-mode .issue-badge-more,
 [data-theme="dark"] .issue-badge-more,
-html.high-contrast .issue-badge-more {
-  background: rgba(217, 119, 6, 0.18);
-  color: #FBBF24;
-  border-color: rgba(217, 119, 6, 0.4);
+html.high-contrast .issue-badge-more,
+body.high-contrast .issue-badge-more,
+html.dark .issue-badge-more,
+body.dark .issue-badge-more,
+html.dark-theme .issue-badge-more,
+body.dark-theme .issue-badge-more {
+  background: rgba(217, 119, 6, 0.18) !important;
+  color: #FBBF24 !important;
+  border-color: rgba(217, 119, 6, 0.4) !important;
 }
 
 html.dark-mode .remarks-box,

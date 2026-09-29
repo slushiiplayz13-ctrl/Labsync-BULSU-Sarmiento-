@@ -219,6 +219,18 @@ async function logOccupancy(reqBody = {}, device = null) {
             if (!isDuplicateState) {
                 await iotRepository.insertOccupancyLog(logUserId, room.Room_ID, keyEvent, connection);
             }
+
+            // Sync multi-key authorization lifecycle
+            if (keyEvent === 'Key Taken' && claimUserId) {
+                const keyAuthRepo = require('../../repositories/key-authorization.repository');
+                const [appr] = await keyAuthRepo.findActiveApprovedByUserIdAndRoom(claimUserId, room.Room_ID, connection);
+                if (appr && appr.length > 0) {
+                    await keyAuthRepo.markClaimed(appr[0].Request_ID, connection);
+                }
+            } else if (keyEvent === 'Key Returned' && logUserId) {
+                const keyAuthRepo = require('../../repositories/key-authorization.repository');
+                await keyAuthRepo.markCompletedByRoomAndUser(room.Room_ID, logUserId, connection);
+            }
         });
 
         return iotResponseService.createKeyStatusResponse(roomNumber, status, claimUserName);
@@ -248,17 +260,36 @@ async function logOccupancy(reqBody = {}, device = null) {
     const user = users[0];
     console.log(`[IoT QR Scan] Access Granted: User "${user.Name}" (${user.Role}, ID: ${user.User_ID})`);
 
-    // 4b. Anti-Double-Tap Policy: Prevent user from claiming multiple keys simultaneously
+    // 4b. Anti-Double-Tap Policy: Prevent user from claiming multiple keys simultaneously,
+    // unless authorized by Department Head (strictly max 2 keys)
     const [activeKeys] = await labRepository.findActiveKeysByUserId(user.User_ID);
     if (activeKeys && activeKeys.length > 0) {
-        const heldRoom = activeKeys[0].Room_Number;
-        console.warn(`[IoT QR Scan] Anti-Double-Tap Block: User "${user.Name}" (${user.Role}) already holds key for Room ${heldRoom}.`);
-        return iotResponseService.createErrorResponse(
-            403,
-            `User already holds an active key for Room ${heldRoom}. Please return it before claiming another room.`,
-            'Return Key First',
-            `Hold Key RM ${heldRoom}`.substring(0, 16)
-        );
+        if (activeKeys.length >= 2) {
+            console.warn(`[IoT QR Scan] Strict Ceiling Block: User "${user.Name}" (${user.Role}) already holds 2 keys.`);
+            return iotResponseService.createErrorResponse(
+                403,
+                'Strict key limit reached: You cannot hold more than 2 keys simultaneously under any circumstance.',
+                'Max 2 Keys Held',
+                'Max 2 Keys Limit'
+            );
+        }
+
+        const keyAuthRepo = require('../../repositories/key-authorization.repository');
+        const [approvedRows] = await keyAuthRepo.findActiveApprovedByUserIdAndRoomNumber(user.User_ID, roomNumber);
+        const [anyAuthRows] = await keyAuthRepo.findAnyActiveAuthorizationByUserId(user.User_ID);
+
+        const hasAuthorization = (approvedRows && approvedRows.length > 0) || (anyAuthRows && anyAuthRows.length > 0);
+        if (!hasAuthorization) {
+            const heldRoom = activeKeys[0].Room_Number;
+            console.warn(`[IoT QR Scan] Anti-Double-Tap Block: User "${user.Name}" (${user.Role}) already holds key for Room ${heldRoom}.`);
+            return iotResponseService.createErrorResponse(
+                403,
+                `User already holds an active key for Room ${heldRoom}. Please return it before claiming another room, or request 2nd key approval from the Department Head.`,
+                'Return Key First',
+                `Hold Key RM ${heldRoom}`.substring(0, 16)
+            );
+        }
+        console.log(`[IoT QR Scan] Multi-Key Authorization Detected for User "${user.Name}". Permitting 2nd key withdrawal.`);
     }
 
     if (!user.ID_QR_String) {

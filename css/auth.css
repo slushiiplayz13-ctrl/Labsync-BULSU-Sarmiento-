@@ -297,6 +297,33 @@ main {
   }
 }
 
+/* Inline Card Info / Notification Banner */
+.login-info-banner {
+  width: 100%;
+  background: #F0F9FF;
+  border: 1.5px solid #BAE6FD;
+  color: #0369A1;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  animation: loginErrorSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  line-height: 1.45;
+}
+
+.login-info-banner i,
+.login-info-banner svg {
+  width: 18px;
+  height: 18px;
+  color: #0284C7;
+  flex-shrink: 0;
+}
+
 /* Form */
 .form-group {
   width: 100%;
@@ -375,21 +402,173 @@ main {
   border-radius: 6px;
 }
 
-.forgot-link {
-  display: block;
+/* Login Options Row (Desktop-first: Remember Me hidden, Recover link right-aligned) */
+.login-options-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   width: 100%;
-  text-align: right;
-  font-size: 11px;
-  color: #94A3B8;
-  text-decoration: none;
-  margin-top: -10px;
-  margin-bottom: 25px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  margin-top: -6px;
+  margin-bottom: 22px;
+  gap: 12px;
 }
 
-.forgot-link:hover {
+/* Remember Me is restricted exclusively to mobile devices */
+.remember-me-label {
+  display: none !important;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: -0.1px;
+  transition: all 0.2s ease;
+  position: relative;
+  line-height: 1;
+  margin: 0;
+  padding: 2px 0;
+}
+
+.remember-me-label:hover {
+  color: var(--text-dark, #0F172A);
+}
+
+/* Visually hide native checkbox while maintaining full accessibility */
+.remember-me-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+/* Premium Custom Checkbox Container */
+.custom-checkbox {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  max-width: 18px;
+  border-radius: 5px;
+  background: #FFFFFF;
+  border: 1.5px solid #CBD5E1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Hover state */
+.remember-me-label:hover .custom-checkbox {
+  border-color: #38BDF8;
+  background: #F0F9FF;
+}
+
+/* Focus state for keyboard accessibility */
+.remember-me-label input[type="checkbox"]:focus-visible + .custom-checkbox {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+  border-color: var(--primary-teal);
+}
+
+/* Checked state: vibrant cyan gradient & subtle glow */
+.remember-me-label input[type="checkbox"]:checked + .custom-checkbox {
+  background: linear-gradient(135deg, #1EBBD7 0%, #0EA5C9 100%);
+  border-color: #0EA5C9;
+  box-shadow: 0 2px 6px rgba(14, 165, 201, 0.35);
+}
+
+/* Interactive tactile feedback on press */
+.remember-me-label:active .custom-checkbox {
+  transform: scale(0.92);
+}
+
+/* Crisp SVG Checkmark with spring pop micro-animation */
+.custom-checkbox .check-icon {
+  width: 11px;
+  height: 11px;
+  opacity: 0;
+  transform: scale(0.3) rotate(-15deg);
+  transition: opacity 0.15s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: block;
+}
+
+.remember-me-label input[type="checkbox"]:checked + .custom-checkbox .check-icon {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.remember-me-text {
+  line-height: 1;
+  display: inline-block;
+  user-select: none;
+}
+
+/* Recover Password link styling */
+.login-options-row .forgot-link {
+  display: inline-block;
+  width: auto;
+  margin: 0;
+  text-align: right;
+  font-size: 12px;
+  color: #64748B;
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.login-options-row .forgot-link:hover {
   color: var(--primary-teal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Reveal Remember Me exclusively on mobile devices */
+@media (max-width: 768px) {
+  .login-options-row {
+    justify-content: space-between;
+  }
+
+  .remember-me-label {
+    display: inline-flex !important;
+  }
+}
+
+body.is-mobile-device .login-options-row {
+  justify-content: space-between;
+}
+
+body.is-mobile-device .remember-me-label {
+  display: inline-flex !important;
+}
+
+/* High Contrast Theme support */
+html.high-contrast .custom-checkbox {
+  background: #1E2937;
+  border-color: #4B5563;
+}
+
+html.high-contrast .remember-me-label {
+  color: #E2E8F0;
+}
+
+html.high-contrast .remember-me-label:hover {
+  color: #FFFFFF;
+}
+
+html.high-contrast .remember-me-label input[type="checkbox"]:checked + .custom-checkbox {
+  background: var(--primary-teal, #0EA5C9);
+  border-color: var(--primary-teal, #0EA5C9);
+  box-shadow: 0 0 8px rgba(0, 163, 196, 0.6);
 }
 
 .submit-btn {
@@ -584,9 +763,13 @@ main {
     border-radius: 12px !important;
   }
 
-  .forgot-link {
-    margin-top: -6px !important;
+  .login-options-row {
+    margin-top: -4px !important;
     margin-bottom: 20px !important;
+  }
+
+  .login-options-row .forgot-link {
+    margin: 0 !important;
     font-size: 11.5px !important;
   }
 

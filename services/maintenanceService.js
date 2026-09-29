@@ -92,19 +92,21 @@ async function submitReport(reqBody = {}) {
     const desc = `[Program & Section: ${cleanStudentSection}] [Issues: ${issueComponents.join(', ') || 'None'}] Remarks: ${cleanRemarks || 'None'}`;
     const issueType = extractPrimaryIssueType(components || {}, cleanRemarks);
 
+    if (issueType === 'None') {
+        return {
+            status: 400,
+            error: 'Cannot submit report: No equipment issue was selected and no issue remarks were provided. Please flag an issue or provide details.'
+        };
+    }
+
     let priority = 'Low';
     let status = 'Pending';
     let pcCondition = 'Under Maintenance';
 
-    if (issueType === 'None') {
-        status = 'Resolved';
-        pcCondition = 'Functional';
-    } else {
-        if (components && (components['PC/Laptop'] === 'issue' || components['System Unit'] === 'issue')) {
-            priority = 'High';
-        } else if (components && components['Monitor'] === 'issue') {
-            priority = 'Medium';
-        }
+    if (components && (components['PC/Laptop'] === 'issue' || components['System Unit'] === 'issue')) {
+        priority = 'High';
+    } else if (components && components['Monitor'] === 'issue') {
+        priority = 'Medium';
     }
 
     let issueId;

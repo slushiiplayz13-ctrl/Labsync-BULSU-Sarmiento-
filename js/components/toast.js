@@ -327,6 +327,9 @@
       if (okBtn) okBtn.addEventListener('click', () => cleanup(true));
 
       overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          cleanup(false);
+        }
         e.stopPropagation();
       });
       overlay.addEventListener('mousedown', (e) => {

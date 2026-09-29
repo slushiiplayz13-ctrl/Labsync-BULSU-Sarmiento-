@@ -32,12 +32,33 @@
         return;
       }
 
+      function getSafeRedirectUrl() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect');
+          if (!redirect) return null;
+          const clean = decodeURIComponent(redirect).trim();
+          if (clean.startsWith('//') || clean.startsWith('\\\\') || clean.includes('://') || clean.toLowerCase().startsWith('javascript:')) {
+            return null;
+          }
+          if (clean.startsWith('/') || clean.endsWith('.html') || clean.includes('.html?')) {
+            return clean;
+          }
+        } catch (e) { }
+        return null;
+      }
+
       // Session hint exists: verify authoritatively against the server
       try {
         const response = await fetch('/api/user/current', { credentials: 'include' });
         if (response.ok) {
           const user = await response.json();
           if (user && user.role) {
+            const targetRedirect = getSafeRedirectUrl();
+            if (targetRedirect) {
+              window.location.replace(targetRedirect);
+              return;
+            }
             if (user.role.toLowerCase().includes('head')) {
               window.location.replace('it-head-dashboard.html');
               return;
@@ -110,6 +131,11 @@
         <p>Access your lab schedules and resources in one place.</p>
       </div>
 
+      <div id="loginInfoBanner" class="login-info-banner" style="display: none;">
+        <i data-lucide="key" style="width: 18px; height: 18px; color: #0284C7; flex-shrink: 0;"></i>
+        <span id="loginInfoText">Please sign in with your Faculty account to claim this laboratory key.</span>
+      </div>
+
       <div id="loginErrorMessage" class="login-error-banner" style="display: none;">
         <i data-lucide="alert-circle" style="width: 18px; height: 18px; color: #EF4444; flex-shrink: 0;"></i>
         <span id="loginErrorText"></span>
@@ -130,7 +156,18 @@
         </button>
       </div>
 
-      <a href="#" class="forgot-link">Recover Password ?</a>
+      <div class="login-options-row">
+        <label class="remember-me-label" for="rememberMe">
+          <input type="checkbox" id="rememberMe" checked>
+          <span class="custom-checkbox" aria-hidden="true">
+            <svg class="check-icon" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 7.2L5.4 9.6L11 4" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="remember-me-text">Remember me</span>
+        </label>
+        <a href="#" class="forgot-link">Recover Password ?</a>
+      </div>
 
       <button type="submit" class="submit-btn" id="loginBtn">Sign In</button>
 

@@ -84,7 +84,11 @@
       }
       const logoutBtn = profileMenu.querySelector('#profile-menu-logout-btn');
       if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
+        logoutBtn.addEventListener('click', (e) => {
+          if (e) e.stopPropagation();
+          profileMenu.style.display = 'none';
+          const profileBtn = document.getElementById('profile-btn');
+          if (profileBtn) profileBtn.setAttribute('aria-expanded', 'false');
           if (typeof global.handleLogout === 'function') global.handleLogout();
         });
       }

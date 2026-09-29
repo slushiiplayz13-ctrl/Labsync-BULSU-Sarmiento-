@@ -295,13 +295,13 @@
     const issueBadgesHtml = allIssueNames.map(comp => {
       const lower = comp.toLowerCase();
       if (lower === 'none' || lower === 'n/a') {
-        return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600; padding:4px 10px; border-radius:8px; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0;"><i data-lucide="check-circle-2" style="width:13px;height:13px;color:#10B981;"></i> No Faults</span>`;
+        return `<span class="issue-badge-none"><i data-lucide="check-circle-2" style="width:13px;height:13px;"></i> No Faults</span>`;
       }
       if (lower === 'others' || lower === 'other') {
-        return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:700; padding:4px 11px; border-radius:8px; background:#FEF3C7; color:#D97706; border:1.5px solid #FDE68A;"><i data-lucide="alert-circle" style="width:14px;height:14px;color:#D97706;"></i> Others</span>`;
+        return `<span class="issue-badge-other"><i data-lucide="alert-circle" style="width:13px;height:13px;"></i> Others</span>`;
       }
-      return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:800; padding:4px 11px; border-radius:8px; background:#FEF2F2; color:#DC2626; border:1.5px solid #FCA5A5;"><i data-lucide="alert-triangle" style="width:14px;height:14px;color:#EF4444;"></i> ${escapeFn(comp)}</span>`;
-    }).join('');
+      return `<span class="issue-badge-fault"><i data-lucide="alert-triangle" style="width:13px;height:13px;"></i> ${escapeFn(comp)}</span>`;
+    }).join(' ');
 
     const isResolved = (report.Status || '').toLowerCase() === 'resolved';
 
@@ -521,15 +521,13 @@
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
                 <h3 id="fullReportModalTitle" style="font-size:18px; font-weight:800; color:var(--text-dark); margin:0;">Ticket #${escapeFn(String(report.Report_ID || reportId))}</h3>
-                <span class="badge ${isResolved ? 'badge-resolved' : 'badge-pending'}" style="font-size:11px; font-weight:700; padding:3px 8px; border-radius:99px; text-transform:uppercase; letter-spacing:0.5px; background:${isResolved ? '#DCFCE7' : '#FEF3C7'}; color:${isResolved ? '#15803D' : '#D97706'};">
-                  ${isResolved ? 'RESOLVED' : 'PENDING'}
-                </span>
+                <span class="status-badge ${isResolved ? 'resolved' : 'pending'}" style="font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; text-transform:uppercase; letter-spacing:0.5px; background:${isResolved ? '#DCFCE7' : '#FEF3C7'}; color:${isResolved ? '#15803D' : '#D97706'}; display:inline-flex; align-items:center; justify-content:center; line-height:1.2;">${isResolved ? 'RESOLVED' : 'PENDING'}</span>
               </div>
               <div style="font-size:12.5px; color:var(--text-muted); margin-top:4px; font-weight:500;">
                 ${headerSubtitle}
               </div>
             </div>
-            <button type="button" data-action="close-modal" class="modal-close-btn" aria-label="Close modal" style="background:#F1F5F9; border:none; color:var(--text-mid); cursor:pointer; width:32px; height:32px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;">
+            <button type="button" data-action="close-modal" class="modal-close-btn" aria-label="Close modal" style="background:var(--bg-page, #F1F5F9); border:1px solid var(--border-light, #E2E8F0); color:var(--text-mid); cursor:pointer; width:32px; height:32px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;">
               <i data-lucide="x" style="width:16px;height:16px;"></i>
             </button>
           </div>

@@ -2,10 +2,12 @@
 
 const authService = require('../services/authService');
 const auditService = require('../services/auditService');
+const db = require('../database/connection');
+const { SESSION_MAX_AGE, SESSION_REMEMBER_MAX_AGE, INACTIVITY_TIMEOUT_MS } = require('../config/app.config');
 
 async function login(req, res, next) {
     try {
-        const { email, password } = req.body;
+        const { email, password, rememberMe, isMobile: clientIsMobile } = req.body;
         const result = await authService.loginUser(email, password);
 
         if (result.error) {
@@ -32,11 +34,23 @@ async function login(req, res, next) {
             });
         }
 
+        const userAgent = (req.headers && req.headers['user-agent']) || '';
+        const isMobileUA = /mobile|android|iphone|ipad|ipod|blackberry|opera mini|iemobile/i.test(userAgent);
+        const isMobileDevice = clientIsMobile !== undefined ? Boolean(clientIsMobile) : isMobileUA;
+
+        // Remember Me is strictly restricted to mobile devices (e.g. personal smartphones for QR key scanning)
+        const isRememberMe = Boolean(rememberMe && isMobileDevice);
         req.session.userId = user.User_ID;
         req.session.userEmail = user.Email;
         req.session.userName = user.Name;
         req.session.userRole = user.Role;
+        req.session.rememberMe = isRememberMe;
+        req.session.isMobile = isMobileDevice;
         req.session.lastActivity = Date.now();
+
+        if (req.session.cookie) {
+            req.session.cookie.maxAge = isRememberMe ? SESSION_REMEMBER_MAX_AGE : SESSION_MAX_AGE;
+        }
 
         await auditService.logSecurityEvent({
             req,
@@ -91,15 +105,31 @@ async function logout(req, res, next) {
 
 async function checkAuth(req, res) {
     if (req.session && req.session.userId) {
-        const now = Date.now();
-        const lastActivity = req.session.lastActivity || now;
-        const { INACTIVITY_TIMEOUT_MS } = require('../config/app.config');
-        if (now - lastActivity > INACTIVITY_TIMEOUT_MS) {
-            req.session.destroy(() => {});
-            res.clearCookie('connect.sid');
-            return res.json({ authenticated: false, expired: true });
+        if (!req.session.rememberMe) {
+            const now = Date.now();
+            const lastActivity = req.session.lastActivity || now;
+            if (now - lastActivity > INACTIVITY_TIMEOUT_MS) {
+                req.session.destroy(() => {});
+                res.clearCookie('connect.sid');
+                return res.json({ authenticated: false, expired: true });
+            }
         }
-        return res.json({ authenticated: true, userId: req.session.userId });
+        try {
+            const [users] = await db.query('SELECT User_ID, Name, Email, Role, Status FROM users WHERE User_ID = ?', [req.session.userId]);
+            if (!users || users.length === 0 || users[0].Status === 'DEACTIVATED') {
+                req.session.destroy(() => {});
+                res.clearCookie('connect.sid');
+                return res.json({ authenticated: false });
+            }
+            const user = users[0];
+            if (req.session.userRole !== user.Role) {
+                req.session.userRole = user.Role;
+                req.session.save(() => {});
+            }
+            return res.json({ authenticated: true, userId: user.User_ID, role: user.Role, name: user.Name });
+        } catch (e) {
+            return res.json({ authenticated: true, userId: req.session.userId, role: req.session.userRole });
+        }
     } else {
         return res.json({ authenticated: false });
     }
@@ -108,7 +138,14 @@ async function checkAuth(req, res) {
 async function touchSession(req, res) {
     if (req.session && req.session.userId) {
         req.session.lastActivity = Date.now();
-        return res.json({ ok: true, lastActivity: req.session.lastActivity });
+        try {
+            const [users] = await db.query('SELECT Role FROM users WHERE User_ID = ?', [req.session.userId]);
+            if (users && users.length > 0 && req.session.userRole !== users[0].Role) {
+                req.session.userRole = users[0].Role;
+                req.session.save(() => {});
+            }
+        } catch (e) {}
+        return res.json({ ok: true, lastActivity: req.session.lastActivity, role: req.session.userRole });
     }
     return res.status(401).json({ error: 'Authentication required' });
 }

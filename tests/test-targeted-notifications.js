@@ -46,7 +46,14 @@ async function runTargetedNotificationTests() {
   assert.ok(usersA.length > 0, "IT Dept. Head user must exist");
   const deptHead = usersA[0];
 
-  const [usersFaculty] = await db.query("SELECT User_ID, Name, Role FROM users WHERE Role = 'Faculty' AND User_ID != ? LIMIT 2", [deptHead.User_ID]);
+  let tempFacultyId = null;
+  let [usersFaculty] = await db.query("SELECT User_ID, Name, Role FROM users WHERE Role = 'Faculty' AND User_ID != ? LIMIT 2", [deptHead.User_ID]);
+  if (usersFaculty.length < 2) {
+    const [ins] = await db.query("INSERT INTO users (Name, Email, Role, Status) VALUES ('Lebron James', 'lebron@labsync.test', 'Faculty', 'Active')");
+    tempFacultyId = ins.insertId;
+    const [refreshed] = await db.query("SELECT User_ID, Name, Role FROM users WHERE Role = 'Faculty' AND User_ID != ? LIMIT 2", [deptHead.User_ID]);
+    usersFaculty = refreshed;
+  }
   assert.ok(usersFaculty.length >= 2, "At least two Faculty users must exist for multi-faculty isolation tests");
   const facultyA = usersFaculty[0];
   const facultyB = usersFaculty[1];
@@ -280,6 +287,9 @@ async function runTargetedNotificationTests() {
     }
     if (createdScheduleIds.length > 0) {
       await db.query("DELETE FROM schedules WHERE Schedule_ID IN (?)", [createdScheduleIds]);
+    }
+    if (tempFacultyId) {
+      await db.query("DELETE FROM users WHERE User_ID = ?", [tempFacultyId]);
     }
     console.log('✓ Teardown: Test schedules and occupancy logs cleaned up successfully.');
   }

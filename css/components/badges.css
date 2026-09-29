@@ -90,8 +90,13 @@
   padding: 4px 10px;
 }
 
-.badge.teal::before {
-  display: none;
+.badge.teal::before,
+.badge.badge-pending::before,
+.badge.badge-resolved::before,
+.badge-pending::before,
+.badge-resolved::before {
+  display: none !important;
+  content: none !important;
 }
 
 .badge.offline,

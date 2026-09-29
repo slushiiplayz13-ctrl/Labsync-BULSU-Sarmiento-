@@ -130,7 +130,8 @@ async function loginUser(email, password) {
                 name: user.Name,
                 email: user.Email,
                 role: user.Role,
-                status: user.Status
+                status: user.Status,
+                profilePhoto: user.Profile_Photo || null
             }
         },
         rawUser: user

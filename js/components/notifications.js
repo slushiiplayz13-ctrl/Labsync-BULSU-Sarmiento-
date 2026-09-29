@@ -94,6 +94,30 @@
           text = `${profText || notif.description || 'User'} verified QR code identity (Ready to take key).`;
         }
       }
+    } else if (notif.type === 'key_auth') {
+      const rawStatus = String(notif.status || '').toUpperCase();
+      const roomLabel = notif.room_number ? `Room ${notif.room_number}` : 'Room';
+      if (rawStatus === 'APPROVED') {
+        iconName = 'shield-check';
+        iconClass = 'notif-icon-resolved';
+        title = 'Key Request Approved';
+        text = `Your request to take Key for ${roomLabel} was approved by Dept. Head! Valid for 2 hours.`;
+      } else if (rawStatus === 'REJECTED') {
+        iconName = 'x-circle';
+        iconClass = 'notif-icon-warning';
+        title = 'Key Request Declined';
+        text = `Request for ${roomLabel} was declined: ${notif.detail || 'No reason provided'}`;
+      } else if (rawStatus === 'PENDING') {
+        iconName = 'clock';
+        iconClass = 'notif-icon-occupancy';
+        title = 'Key Authorization Pending';
+        text = `${notif.description || 'Key Request'} for ${roomLabel}: "${notif.detail || 'Awaiting Dept Head review'}"`;
+      } else {
+        iconName = 'key-round';
+        iconClass = 'notif-icon-default';
+        title = 'Key Authorization';
+        text = `${roomLabel}: ${notif.detail || ''}`;
+      }
     }
     return { iconName, iconClass, title, text };
   }
@@ -176,6 +200,9 @@
         } else {
           window.location.href = 'faculty-pc-reports.html';
         }
+      } else if (notif.type === 'key_auth') {
+        const isHead = document.querySelector('.profile-role')?.textContent.trim().toLowerCase().includes('head');
+        window.location.href = isHead ? 'it-head-dashboard.html' : 'room-status.html';
       } else {
         const isHead = document.querySelector('.profile-role')?.textContent.trim().toLowerCase().includes('head');
         window.location.href = isHead ? 'it-head-room-status.html' : 'room-status.html';

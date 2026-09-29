@@ -338,9 +338,23 @@ async function findFacultyNotifications(userId, executor = db) {
               AND TIME(o.Access_Time) >= s.Start_Time
               AND TIME(o.Access_Time) <= s.End_Time
         ))
+        UNION ALL
+        (SELECT 'key_auth' AS type, r.Request_ID AS id,
+               COALESCE(r.Approved_At, r.Requested_At) AS time, r.Status AS status,
+               NULL AS pc_number, lab.Room_Number AS room_number,
+               (CASE
+                   WHEN r.Status = 'APPROVED' THEN 'Key Request Approved'
+                   WHEN r.Status = 'REJECTED' THEN 'Key Request Declined'
+                   WHEN r.Status = 'PENDING' THEN 'Key Request Pending'
+                   ELSE 'Key Authorization'
+                END) AS description,
+               COALESCE(r.Rejection_Reason, r.Reason) AS detail, NULL AS priority, NULL AS session_type
+        FROM key_authorization_requests r
+        JOIN laboratories lab ON r.Room_ID = lab.Room_ID
+        WHERE r.User_ID = ? AND r.Status IN ('PENDING', 'APPROVED', 'REJECTED'))
         ORDER BY time DESC
         LIMIT 20
-    `, [userId || 0, userId || 0]);
+    `, [userId || 0, userId || 0, userId || 0]);
 }
 
 async function findDeptHeadNotifications(userId, executor = db) {
@@ -393,6 +407,15 @@ async function findDeptHeadNotifications(userId, executor = db) {
                  AND TIME(o.Access_Time) >= s.Start_Time
                  AND TIME(o.Access_Time) <= s.End_Time
            ))
+        UNION ALL
+        (SELECT 'key_auth' AS type, r.Request_ID AS id, r.Requested_At AS time, r.Status AS status,
+               NULL AS pc_number, lab.Room_Number AS room_number,
+               CONCAT('Key Request from ', u.Name) AS description,
+               r.Reason AS detail, NULL AS priority, NULL AS session_type
+        FROM key_authorization_requests r
+        JOIN users u ON r.User_ID = u.User_ID
+        JOIN laboratories lab ON r.Room_ID = lab.Room_ID
+        WHERE r.Status = 'PENDING')
         ORDER BY time DESC
         LIMIT 20
     `, [userId || 0]);

@@ -13,6 +13,8 @@ const keysRepository = require('../repositories/keys.repository');
 const auditService = require('./auditService');
 const iotService = require('./iotService');
 const { KEY_TRANSFER_ROLES } = require('../middleware/auth');
+const userRepository = require('../repositories/user.repository');
+const labRepository = require('../repositories/laboratory.repository');
 
 /**
  * Fetches all registered physical lab keys and calculates summary metrics.
@@ -218,7 +220,8 @@ async function getKeyTransferInfo(keyCode, req = null) {
             id: key.Current_User_ID,
             name: key.Current_Holder_Name || 'Unknown Faculty',
             email: key.Current_Holder_Email || '',
-            role: key.Current_Holder_Role || 'Faculty'
+            role: key.Current_Holder_Role || 'Faculty',
+            profilePhoto: key.Current_Holder_Profile_Photo || null
         };
     }
 
@@ -226,6 +229,12 @@ async function getKeyTransferInfo(keyCode, req = null) {
     const isSelf = Boolean(sessionUserId && key.Current_User_ID && String(sessionUserId) === String(key.Current_User_ID));
 
     let cannotTransferReason = null;
+    let heldOtherRoom = null;
+
+    let isApprovedMultiKey = false;
+    let approvalExpiresAt = null;
+    let canRequestApproval = false;
+
     if (!sessionUserId) {
         cannotTransferReason = 'Please log in with your Faculty or Department Head account to transfer this key.';
     } else if (sessionUserRole === 'MIS Staff') {
@@ -234,9 +243,45 @@ async function getKeyTransferInfo(keyCode, req = null) {
         cannotTransferReason = 'You are already the registered holder of this key.';
     } else if (!isEligibleRole) {
         cannotTransferReason = 'Only authorized Faculty and Department Heads can claim or transfer this key.';
+    } else {
+        // Enforce 1 key per faculty policy: check if faculty already holds another active key
+        const [activeKeys] = await labRepository.findActiveKeysByUserId(sessionUserId);
+        const otherHeldKey = (activeKeys || []).find(k => k.Room_ID !== key.Room_ID);
+        if (otherHeldKey) {
+            heldOtherRoom = otherHeldKey.Room_Number;
+            // Check for Department Head multi-key approval
+            const keyAuthService = require('./keyAuthorizationService');
+            const activeApproval = await keyAuthService.checkActiveApproval(sessionUserId, key.Room_ID);
+            if (activeApproval) {
+                isApprovedMultiKey = true;
+                approvalExpiresAt = activeApproval.Expires_At;
+            } else {
+                cannotTransferReason = `You already hold an active key for Room ${otherHeldKey.Room_Number}. A faculty member cannot hold multiple laboratory keys simultaneously unless approved by the Department Head.`;
+                canRequestApproval = true;
+            }
+        }
     }
 
-    const canTransfer = Boolean(sessionUserId && isEligibleRole && !isSelf);
+    const canTransfer = Boolean(sessionUserId && isEligibleRole && !isSelf && (!cannotTransferReason || isApprovedMultiKey));
+
+    let currentUser = null;
+    if (sessionUserId) {
+        let userPhoto = null;
+        try {
+            const [uRows] = await userRepository.findById(sessionUserId);
+            if (uRows && uRows.length > 0) {
+                userPhoto = uRows[0].Profile_Photo || null;
+            }
+        } catch (e) {
+            // fallback
+        }
+        currentUser = {
+            id: sessionUserId,
+            name: sessionUserName,
+            role: sessionUserRole,
+            profilePhoto: userPhoto
+        };
+    }
 
     return {
         status: 200,
@@ -248,13 +293,13 @@ async function getKeyTransferInfo(keyCode, req = null) {
             keyStatus: key.Key_Status,
             roomKeyStatus: key.Room_Key_Status,
             currentHolder,
-            currentUser: sessionUserId ? {
-                id: sessionUserId,
-                name: sessionUserName,
-                role: sessionUserRole
-            } : null,
+            currentUser,
             canTransfer,
-            cannotTransferReason
+            cannotTransferReason,
+            heldOtherRoom,
+            isApprovedMultiKey,
+            approvalExpiresAt,
+            canRequestApproval
         }
     };
 }
@@ -306,6 +351,51 @@ async function transferKey(keyCode, req) {
         if (previousUserId && String(previousUserId) === String(newUserId)) {
             await connection.rollback();
             return { status: 400, error: 'You are already the registered holder of this key.' };
+        }
+
+        // 2b. Reject if user already holds another active key, unless approved by Department Head
+        const [activeKeys] = await labRepository.findActiveKeysByUserId(newUserId, connection);
+        const alreadyHeldKey = (activeKeys || []).find(k => k.Room_ID !== keyInfo.Room_ID);
+        if (alreadyHeldKey) {
+            if (activeKeys.length >= 2) {
+                await connection.rollback();
+                return { status: 403, error: 'Key limit reached: You cannot hold more than 2 keys simultaneously under any circumstance.' };
+            }
+            const keyAuthRepo = require('../repositories/key-authorization.repository');
+            const [approvedRows] = await keyAuthRepo.findActiveApprovedByUserIdAndRoom(newUserId, keyInfo.Room_ID, connection);
+            const [anyAuthRows] = await keyAuthRepo.findAnyActiveAuthorizationByUserId(newUserId, connection);
+
+            if (approvedRows && approvedRows.length > 0) {
+                // Target key is specifically approved by Department Head! Mark as CLAIMED
+                await keyAuthRepo.markClaimed(approvedRows[0].Request_ID, connection);
+            } else if (anyAuthRows && anyAuthRows.length > 0) {
+                // User holds Dept Head authorization for their 2nd key allowance
+                const pendingMatch = anyAuthRows.find(r => r.Status === 'APPROVED' && r.Room_ID === keyInfo.Room_ID);
+                if (pendingMatch) {
+                    await keyAuthRepo.markClaimed(pendingMatch.Request_ID, connection);
+                }
+            } else {
+                await connection.rollback();
+                await auditService.logSecurityEvent({
+                    req,
+                    action: 'KEY_TRANSFER_LIMIT_BLOCKED',
+                    resourceType: 'LAB_KEY',
+                    resourceId: keyInfo.Key_ID,
+                    details: {
+                        attemptedRoomId: keyInfo.Room_ID,
+                        attemptedRoomNumber: keyInfo.Room_Number,
+                        attemptedKeyCode: keyInfo.Key_Code,
+                        heldRoomNumber: alreadyHeldKey.Room_Number,
+                        userId: newUserId,
+                        userName: newUserName
+                    },
+                    result: 'DENIED'
+                });
+                return {
+                    status: 403,
+                    error: `Transfer rejected: You already hold an active key for Room ${alreadyHeldKey.Room_Number}. Department Head approval is required to hold multiple keys.`
+                };
+            }
         }
 
         // 3. Resolve previous holder name for audit trail

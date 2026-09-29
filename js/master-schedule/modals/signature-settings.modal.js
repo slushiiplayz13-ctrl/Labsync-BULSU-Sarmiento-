@@ -15,6 +15,41 @@
     const saveSignatureBtn = document.getElementById('saveSignatureBtn');
     const programChairInput = document.getElementById('programChairInput');
     const campusDeanInput = document.getElementById('campusDeanInput');
+    const chairCharCount = document.getElementById('chairCharCount');
+    const deanCharCount = document.getElementById('deanCharCount');
+
+    function updateCharCount(input, countEl, max = 50) {
+      if (!input) return;
+      if (input.value.length > max) {
+        input.value = input.value.slice(0, max);
+      }
+      if (countEl) {
+        countEl.textContent = `${input.value.length}/${max}`;
+        if (input.value.length >= max) {
+          countEl.style.color = '#ef4444';
+          countEl.style.fontWeight = '600';
+        } else {
+          countEl.style.color = 'var(--text-light)';
+          countEl.style.fontWeight = '500';
+        }
+      }
+    }
+
+    if (programChairInput) {
+      programChairInput.setAttribute('maxlength', '50');
+      programChairInput.addEventListener('input', () => updateCharCount(programChairInput, chairCharCount, 50));
+      programChairInput.addEventListener('paste', () => {
+        setTimeout(() => updateCharCount(programChairInput, chairCharCount, 50), 0);
+      });
+    }
+
+    if (campusDeanInput) {
+      campusDeanInput.setAttribute('maxlength', '50');
+      campusDeanInput.addEventListener('input', () => updateCharCount(campusDeanInput, deanCharCount, 50));
+      campusDeanInput.addEventListener('paste', () => {
+        setTimeout(() => updateCharCount(campusDeanInput, deanCharCount, 50), 0);
+      });
+    }
 
     async function openSignatureModal() {
       try {
@@ -26,8 +61,14 @@
           const res = await fetch('/api/settings', { credentials: 'include' });
           if (res.ok) settings = await res.json();
         }
-        if (programChairInput) programChairInput.value = settings.program_chair || '';
-        if (campusDeanInput) campusDeanInput.value = settings.campus_dean || '';
+        if (programChairInput) {
+          programChairInput.value = settings.program_chair || '';
+          updateCharCount(programChairInput, chairCharCount, 50);
+        }
+        if (campusDeanInput) {
+          campusDeanInput.value = settings.campus_dean || '';
+          updateCharCount(campusDeanInput, deanCharCount, 50);
+        }
       } catch (err) {
         console.error('[SignatureSettingsModal] Failed to fetch signature settings:', err);
       }
@@ -114,6 +155,15 @@
             global.showToast('Both signature fields are required.', 'warning');
           } else {
             alert('Both signature fields are required.');
+          }
+          return;
+        }
+
+        if (chair.length > 50 || dean.length > 50) {
+          if (global.showToast) {
+            global.showToast('Signatory names cannot exceed 50 characters.', 'warning');
+          } else {
+            alert('Signatory names cannot exceed 50 characters.');
           }
           return;
         }

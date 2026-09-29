@@ -35,7 +35,8 @@ async function findKeyWithRoomAndHolder(keyCode, executor = db) {
     return executor.query(`
         SELECT k.Key_ID, k.Room_ID, k.Key_Code, k.Status, k.Created_At, k.Updated_At,
                r.Room_Number, r.Building, r.Key_Status AS Room_Key_Status, r.Current_User_ID,
-               u.Name AS Current_Holder_Name, u.Email AS Current_Holder_Email, u.Role AS Current_Holder_Role
+               u.Name AS Current_Holder_Name, u.Email AS Current_Holder_Email, u.Role AS Current_Holder_Role,
+               u.Profile_Photo AS Current_Holder_Profile_Photo
         FROM laboratory_keys k
         JOIN laboratories r ON k.Room_ID = r.Room_ID
         LEFT JOIN users u ON r.Current_User_ID = u.User_ID
