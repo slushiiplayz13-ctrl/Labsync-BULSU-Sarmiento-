@@ -418,7 +418,7 @@
         
         <!-- Footer -->
         <div class="help-modal-footer">
-          <p>LabSync v1.0 - BSU Sarmiento Campus</p>
+          <p>LabSync v1.0 - BSU Sarmiento Campus • <a href="terms.html" target="_blank" rel="noopener" class="help-footer-terms-link" style="color:var(--primary-teal); text-decoration:none; font-weight:600;">Policies &amp; Terms</a></p>
           <button id="close-help-btn" class="help-modal-got-it-btn">
             Got it!
           </button>

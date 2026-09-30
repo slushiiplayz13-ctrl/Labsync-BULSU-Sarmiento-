@@ -145,6 +145,7 @@ header {
 
 .header-right {
   display: flex;
+  align-items: center;
   gap: 32px;
   margin-right: 20px;
 }
@@ -155,10 +156,19 @@ header {
   font-weight: 600;
   font-size: 13.5px;
   transition: color 0.2s;
+  white-space: nowrap;
 }
 
 .header-right a:hover {
   color: var(--text-dark);
+}
+
+html.high-contrast .header-right a {
+  color: #CBD5E1;
+}
+
+html.high-contrast .header-right a:hover {
+  color: var(--primary-teal);
 }
 
 /* Main Content */
@@ -631,6 +641,7 @@ html.high-contrast .remember-me-label input[type="checkbox"]:checked + .custom-c
 
   .header-right {
     display: flex !important;
+    align-items: center !important;
     gap: 18px !important;
     margin-right: 0 !important;
   }
@@ -702,31 +713,37 @@ html.high-contrast .remember-me-label input[type="checkbox"]:checked + .custom-c
   }
 
   header {
-    padding: 14px 16px !important;
+    padding: 12px 14px !important;
+  }
+
+  .header-left {
+    gap: 0 !important;
   }
 
   .header-left img.bsu-logo {
-    height: 36px !important;
+    height: 32px !important;
   }
 
   .divider {
-    height: 28px !important;
-    margin: 0 2px 0 8px !important;
+    height: 22px !important;
+    margin: 0 4px !important;
   }
 
   .header-left img.labsync-logo {
-    height: 40px !important;
+    height: 32px !important;
   }
 
   .header-right {
     display: flex !important;
-    gap: 14px !important;
+    align-items: center !important;
+    gap: 11px !important;
     margin-right: 0 !important;
   }
 
   .header-right a {
     font-size: 11.5px !important;
     font-weight: 600 !important;
+    white-space: nowrap !important;
   }
 
   main {
@@ -782,6 +799,33 @@ html.high-contrast .remember-me-label input[type="checkbox"]:checked + .custom-c
   .footer-text {
     margin-top: 24px !important;
     font-size: 11px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  header {
+    padding: 10px 10px !important;
+  }
+
+  .header-left img.bsu-logo {
+    height: 28px !important;
+  }
+
+  .divider {
+    height: 18px !important;
+    margin: 0 3px !important;
+  }
+
+  .header-left img.labsync-logo {
+    height: 28px !important;
+  }
+
+  .header-right {
+    gap: 8px !important;
+  }
+
+  .header-right a {
+    font-size: 10.5px !important;
   }
 }
 
@@ -1115,8 +1159,9 @@ html.high-contrast .status-message {
   color: #CBD5E1;
 }
 
-/* About Modal Styles */
-.about-modal-card {
+/* About & Policies Modal Styles */
+.about-modal-card,
+.policies-modal-card {
   width: 840px;
   max-width: 95%;
   max-height: 85vh;
@@ -1126,23 +1171,27 @@ html.high-contrast .status-message {
 
 /* Fallback for non-WebKit browsers (Firefox) without triggering native OS buttons in Chromium */
 @supports not selector(::-webkit-scrollbar) {
-  .about-modal-card {
+  .about-modal-card,
+  .policies-modal-card {
     scrollbar-width: thin;
     scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
   }
 }
 
-/* Custom Sleek Scrollbar for About Modal */
-.about-modal-card::-webkit-scrollbar {
+/* Custom Sleek Scrollbar for About & Policies Modal */
+.about-modal-card::-webkit-scrollbar,
+.policies-modal-card::-webkit-scrollbar {
   width: 7px;
 }
 
-.about-modal-card::-webkit-scrollbar-track {
+.about-modal-card::-webkit-scrollbar-track,
+.policies-modal-card::-webkit-scrollbar-track {
   background: transparent;
   margin: 26px 0;
 }
 
-.about-modal-card::-webkit-scrollbar-thumb {
+.about-modal-card::-webkit-scrollbar-thumb,
+.policies-modal-card::-webkit-scrollbar-thumb {
   background-color: rgba(148, 163, 184, 0.45);
   border-radius: 99px;
   border: 1.5px solid transparent;
@@ -1150,11 +1199,13 @@ html.high-contrast .status-message {
   transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.about-modal-card::-webkit-scrollbar-thumb:hover {
+.about-modal-card::-webkit-scrollbar-thumb:hover,
+.policies-modal-card::-webkit-scrollbar-thumb:hover {
   background-color: var(--primary-teal, #00A3C4);
 }
 
-.about-modal-card::-webkit-scrollbar-thumb:active {
+.about-modal-card::-webkit-scrollbar-thumb:active,
+.policies-modal-card::-webkit-scrollbar-thumb:active {
   background-color: #0284C7;
 }
 
@@ -1163,6 +1214,11 @@ html.high-contrast .status-message {
 .about-modal-card::-webkit-scrollbar-button:end,
 .about-modal-card::-webkit-scrollbar-button:vertical:decrement,
 .about-modal-card::-webkit-scrollbar-button:vertical:increment,
+.policies-modal-card::-webkit-scrollbar-button,
+.policies-modal-card::-webkit-scrollbar-button:start,
+.policies-modal-card::-webkit-scrollbar-button:end,
+.policies-modal-card::-webkit-scrollbar-button:vertical:decrement,
+.policies-modal-card::-webkit-scrollbar-button:vertical:increment,
 ::-webkit-scrollbar-button {
   display: none !important;
   width: 0 !important;
@@ -1328,30 +1384,35 @@ html.high-contrast .about-logo {
   font-weight: 600;
 }
 
-/* High Contrast Adjustments for About Modal */
-html.high-contrast .about-modal-card {
+/* High Contrast Adjustments for About & Policies Modal */
+html.high-contrast .about-modal-card,
+html.high-contrast .policies-modal-card {
   background: #111827;
   border: 1px solid #374151;
 }
 
 @supports not selector(::-webkit-scrollbar) {
-  html.high-contrast .about-modal-card {
+  html.high-contrast .about-modal-card,
+  html.high-contrast .policies-modal-card {
     scrollbar-color: #64748B transparent;
   }
 }
 
-html.high-contrast .about-modal-card::-webkit-scrollbar-thumb {
+html.high-contrast .about-modal-card::-webkit-scrollbar-thumb,
+html.high-contrast .policies-modal-card::-webkit-scrollbar-thumb {
   background-color: rgba(148, 163, 184, 0.4);
   border: 1.5px solid transparent;
   background-clip: padding-box;
 }
 
-html.high-contrast .about-modal-card::-webkit-scrollbar-thumb:hover {
+html.high-contrast .about-modal-card::-webkit-scrollbar-thumb:hover,
+html.high-contrast .policies-modal-card::-webkit-scrollbar-thumb:hover {
   background-color: var(--primary-teal, #00A3C4);
   box-shadow: 0 0 6px rgba(0, 163, 196, 0.5);
 }
 
-html.high-contrast .about-modal-card::-webkit-scrollbar-thumb:active {
+html.high-contrast .about-modal-card::-webkit-scrollbar-thumb:active,
+html.high-contrast .policies-modal-card::-webkit-scrollbar-thumb:active {
   background-color: #38BDF8;
 }
 
@@ -1382,11 +1443,231 @@ html.high-contrast .about-footer {
   color: var(--text-mid, #CBD5E1);
 }
 
-/* Responsive grid & layout for About Modal */
+/* Policy Highlights Grid for Policies Modal */
+.policy-highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.policy-highlight-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.policy-highlight-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  border-color: rgba(30, 187, 215, 0.4);
+}
+
+.policy-icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--primary-teal-light);
+  color: var(--primary-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.policy-icon-wrapper i,
+.policy-icon-wrapper svg {
+  width: 18px;
+  height: 18px;
+}
+
+.policy-content {
+  flex: 1;
+}
+
+.policy-content strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.policy-content p {
+  font-size: 12px !important;
+  color: #64748B !important;
+  line-height: 1.45 !important;
+  text-align: left !important;
+  margin: 0 !important;
+}
+
+/* Policy Action Banner (Light Mode) */
+.policy-action-banner {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.policy-action-info {
+  flex: 1;
+  min-width: 220px;
+}
+
+.policy-action-title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-dark, #0F172A);
+  margin-bottom: 3px;
+}
+
+.policy-action-desc {
+  font-size: 12.5px !important;
+  color: #64748B !important;
+  line-height: 1.45 !important;
+  text-align: left !important;
+  margin: 0 !important;
+}
+
+.policy-action-btn {
+  text-decoration: none !important;
+  padding: 11px 20px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  max-width: none !important;
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  border-radius: 12px !important;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(30, 187, 215, 0.25) !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.policy-action-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(30, 187, 215, 0.35) !important;
+}
+
+/* High Contrast / Dark Mode Overrides for Policies Modal */
+html.high-contrast .policy-highlight-card,
+html.dark-mode .policy-highlight-card,
+body.dark-mode .policy-highlight-card,
+[data-theme="dark"] .policy-highlight-card {
+  background: #1F2937;
+  border-color: #374151;
+}
+
+html.high-contrast .policy-highlight-card:hover,
+html.dark-mode .policy-highlight-card:hover,
+body.dark-mode .policy-highlight-card:hover,
+[data-theme="dark"] .policy-highlight-card:hover {
+  border-color: var(--primary-teal);
+}
+
+html.high-contrast .policy-content strong,
+html.dark-mode .policy-content strong,
+body.dark-mode .policy-content strong,
+[data-theme="dark"] .policy-content strong {
+  color: #F8FAFC;
+}
+
+html.high-contrast .policy-content p,
+html.dark-mode .policy-content p,
+body.dark-mode .policy-content p,
+[data-theme="dark"] .policy-content p {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .policy-icon-wrapper,
+html.dark-mode .policy-icon-wrapper,
+body.dark-mode .policy-icon-wrapper,
+[data-theme="dark"] .policy-icon-wrapper {
+  background: rgba(30, 187, 215, 0.15);
+  color: #38BDF8;
+}
+
+html.high-contrast .policy-action-banner,
+html.dark-mode .policy-action-banner,
+body.dark-mode .policy-action-banner,
+[data-theme="dark"] .policy-action-banner {
+  background: #1F2937 !important;
+  border-color: #374151 !important;
+}
+
+html.high-contrast .policy-action-title,
+html.dark-mode .policy-action-title,
+body.dark-mode .policy-action-title,
+[data-theme="dark"] .policy-action-title {
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .policy-action-desc,
+html.dark-mode .policy-action-desc,
+body.dark-mode .policy-action-desc,
+[data-theme="dark"] .policy-action-desc {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .about-section h3,
+html.dark-mode .about-section h3,
+body.dark-mode .about-section h3,
+[data-theme="dark"] .about-section h3 {
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .about-section p,
+html.dark-mode .about-section p,
+body.dark-mode .about-section p,
+[data-theme="dark"] .about-section p {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .about-section p strong,
+html.dark-mode .about-section p strong,
+body.dark-mode .about-section p strong,
+[data-theme="dark"] .about-section p strong {
+  color: #F1F5F9 !important;
+}
+
+html.high-contrast .modal-close-btn,
+html.dark-mode .modal-close-btn,
+body.dark-mode .modal-close-btn,
+[data-theme="dark"] .modal-close-btn {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .modal-close-btn:hover,
+html.dark-mode .modal-close-btn:hover,
+body.dark-mode .modal-close-btn:hover,
+[data-theme="dark"] .modal-close-btn:hover {
+  color: #FFFFFF !important;
+}
+
+/* Responsive grid & layout for About & Policies Modal */
 @media (max-width: 768px) {
-  .about-modal-card {
+  .about-modal-card,
+  .policies-modal-card {
     padding: 32px 24px;
     max-width: 92%;
+  }
+
+  .policy-highlights-grid {
+    grid-template-columns: 1fr;
   }
 
   .devs-grid {
@@ -1404,7 +1685,8 @@ html.high-contrast .about-footer {
 }
 
 @media (max-width: 480px) {
-  .about-modal-card {
+  .about-modal-card,
+  .policies-modal-card {
     width: calc(100% - 24px);
     max-width: calc(100% - 24px);
     max-height: 88vh;
@@ -1412,11 +1694,13 @@ html.high-contrast .about-footer {
     border-radius: 24px;
   }
 
-  .about-modal-card::-webkit-scrollbar {
+  .about-modal-card::-webkit-scrollbar,
+  .policies-modal-card::-webkit-scrollbar {
     width: 5px;
   }
 
-  .about-modal-card::-webkit-scrollbar-track {
+  .about-modal-card::-webkit-scrollbar-track,
+  .policies-modal-card::-webkit-scrollbar-track {
     margin: 18px 0;
   }
 

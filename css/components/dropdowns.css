@@ -200,6 +200,7 @@
   transition: background var(--transition), color var(--transition);
   font-family: var(--font-body);
   box-sizing: border-box;
+  text-decoration: none;
 }
 
 .profile-menu-item:hover {
@@ -313,6 +314,7 @@ html.high-contrast .profile-menu {
 
 html.high-contrast .profile-menu-item {
   color: #f8fafc;
+  text-decoration: none;
 }
 
 html.high-contrast .profile-menu-item:hover {

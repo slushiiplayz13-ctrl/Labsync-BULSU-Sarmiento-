@@ -43,6 +43,10 @@
           <i data-lucide="play-circle" style="width:16px;height:16px;"></i>
           Watch System Tutorial
         </button>
+        <a href="terms.html" id="profile-menu-policies-btn" class="profile-menu-item" target="_blank" rel="noopener">
+          <i data-lucide="shield-check" style="width:16px;height:16px;"></i>
+          Policies &amp; Terms
+        </a>
         <div class="profile-menu-divider"></div>
         <button type="button" id="profile-menu-logout-btn" class="profile-menu-item logout">
           <i data-lucide="log-out" style="width:16px;height:16px;"></i>
@@ -80,6 +84,14 @@
           } else if (typeof global.startFacultyTutorial === 'function') {
             global.startFacultyTutorial(true);
           }
+        });
+      }
+      const policiesBtn = profileMenu.querySelector('#profile-menu-policies-btn');
+      if (policiesBtn) {
+        policiesBtn.addEventListener('click', () => {
+          profileMenu.style.display = 'none';
+          const profileBtn = document.getElementById('profile-btn');
+          if (profileBtn) profileBtn.setAttribute('aria-expanded', 'false');
         });
       }
       const logoutBtn = profileMenu.querySelector('#profile-menu-logout-btn');

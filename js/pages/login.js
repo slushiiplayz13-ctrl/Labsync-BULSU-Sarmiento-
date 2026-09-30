@@ -117,6 +117,9 @@
       if (closeAboutBtn) {
         closeAboutBtn.focus({ preventScroll: true });
       }
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons({ root: aboutModal });
+      }
     });
 
     function closeModal() {
@@ -186,6 +189,74 @@
       }
     });
   }
+
+  // Policies Modal Controller
+  function initPoliciesModal() {
+    const policiesLink = document.getElementById('policiesLink');
+    const footerPoliciesLink = document.getElementById('footerPoliciesLink');
+    const policiesModal = document.getElementById('policiesModal');
+    const closePoliciesBtn = document.getElementById('closePoliciesModalBtn');
+    const closePoliciesActionBtn = document.getElementById('closePoliciesActionBtn');
+
+    if (!policiesModal) return;
+
+    function openModal(e) {
+      if (e) {
+        // Allow middle click / ctrl click to open terms.html directly if user wants new tab
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.which === 2 || e.button === 1) {
+          return;
+        }
+        e.preventDefault();
+      }
+      policiesModal.classList.add('active');
+      if (global.setModalOpenState) global.setModalOpenState(true);
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons({ root: policiesModal });
+      }
+      const card = typeof policiesModal.querySelector === 'function' ? policiesModal.querySelector('.policies-modal-card') : null;
+      if (card) {
+        card.scrollTop = 0;
+      }
+      if (closePoliciesBtn) {
+        closePoliciesBtn.focus({ preventScroll: true });
+      }
+    }
+
+    function closeModal() {
+      policiesModal.classList.remove('active');
+      if (global.setModalOpenState) global.setModalOpenState(false);
+      if (policiesLink) policiesLink.focus();
+    }
+
+    if (policiesLink) {
+      policiesLink.addEventListener('click', openModal);
+    }
+
+    if (footerPoliciesLink) {
+      footerPoliciesLink.addEventListener('click', openModal);
+    }
+
+    if (closePoliciesBtn) {
+      closePoliciesBtn.addEventListener('click', closeModal);
+    }
+
+    if (closePoliciesActionBtn) {
+      closePoliciesActionBtn.addEventListener('click', closeModal);
+    }
+
+    policiesModal.addEventListener('click', (e) => {
+      if (e.target === policiesModal) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && policiesModal.classList.contains('active')) {
+        closeModal();
+      }
+    });
+  }
+
 
   // Email Field Clear Controller
   function syncEmailClearVisibility() {
@@ -627,6 +698,7 @@
     initRecoverModal();
     initAboutModal();
     initContactModal();
+    initPoliciesModal();
     initEmailClear();
     initPasswordToggle();
     initPageShowReset();

@@ -115,6 +115,7 @@
     </div>
     <div class="header-right">
       <a href="#" id="aboutLink">About</a>
+      <a href="terms.html" id="policiesLink">Policies</a>
       <a href="#" id="contactLink">Contact</a>
     </div>
   </header>
@@ -283,6 +284,89 @@
       <h2 id="contactModalTitle">Contact LabSync</h2>
       <p>Contact information is currently unavailable.<br>Please check back later for the appropriate contact details.</p>
       <button type="button" class="submit-btn" id="closeContactActionBtn" style="max-width: 140px; padding: 12px 20px; font-size: 14px;">Close</button>
+    </div>
+  </div>
+
+  <!-- Policies Modal -->
+  <div id="policiesModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="policiesModalTitle">
+    <div class="modal-card about-modal-card policies-modal-card">
+      <button type="button" class="modal-close-btn" id="closePoliciesModalBtn" aria-label="Close policies modal">&times;</button>
+      <div class="about-header">
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" class="about-logo">
+        <p class="about-tagline">Laboratory Policies & Terms of Service</p>
+      </div>
+
+      <div class="about-body">
+        <section class="about-section">
+          <h3 id="policiesModalTitle">Institutional Governance & Compliance</h3>
+          <p>
+            LabSync operates in full compliance with the <strong>Bulacan State University - Sarmiento Campus</strong>
+            Laboratory Code of Conduct and the <strong>Philippine Data Privacy Act of 2012 (Republic Act No. 10173)</strong>.
+            All students, faculty members, and administrative personnel must adhere to the policies governing
+            computer workstation access, resource allocation, and digital accountability.
+          </p>
+        </section>
+
+        <section class="about-section">
+          <h3>Core Laboratory Principles</h3>
+          <div class="policy-highlights-grid">
+            <div class="policy-highlight-card">
+              <div class="policy-icon-wrapper">
+                <i data-lucide="shield-check"></i>
+              </div>
+              <div class="policy-content">
+                <strong>1. Authorized Academic Use</strong>
+                <p>Workstations and network privileges are reserved solely for curriculum-related laboratory activities, programming, research, and scheduled classes.</p>
+              </div>
+            </div>
+
+            <div class="policy-highlight-card">
+              <div class="policy-icon-wrapper">
+                <i data-lucide="monitor"></i>
+              </div>
+              <div class="policy-content">
+                <strong>2. Hardware & Peripherals Integrity</strong>
+                <p>Disconnecting, swapping, or tampering with PC components, peripherals, cables, or power supplies is strictly prohibited. Report issues immediately.</p>
+              </div>
+            </div>
+
+            <div class="policy-highlight-card">
+              <div class="policy-icon-wrapper">
+                <i data-lucide="lock"></i>
+              </div>
+              <div class="policy-content">
+                <strong>3. Privacy & Session Accountability</strong>
+                <p>Under RA 10173, user activity logs, QR schedule scans, and maintenance reports are safeguarded. Users must log out and never share credentials.</p>
+              </div>
+            </div>
+
+            <div class="policy-highlight-card">
+              <div class="policy-icon-wrapper">
+                <i data-lucide="key-round"></i>
+              </div>
+              <div class="policy-content">
+                <strong>4. Key Custody & Room Security</strong>
+                <p>Laboratory key claims and transfers are digitally logged with timestamps. Custodians are responsible for ensuring physical room security.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="policy-action-banner">
+          <div class="policy-action-info">
+            <h4 class="policy-action-title">Comprehensive Terms & Privacy Policy</h4>
+            <p class="policy-action-desc">Review complete terms, dispute resolution, retention schedules, and legal provisions.</p>
+          </div>
+          <a href="terms.html?from=login" target="_blank" rel="noopener" class="submit-btn policy-action-btn">
+            <span>Read Full Document</span>
+            <i data-lucide="external-link" style="width: 15px; height: 15px;"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="about-footer">
+        © 2026 LabSync • BulSU Sarmiento Campus
+      </div>
     </div>
   </div>
 

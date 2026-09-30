@@ -608,10 +608,119 @@ function initSubmitPcReportPage() {
   // 5. Initial submit button state check
   updateSubmitButtonState();
 
-  // 6. Ensure Lucide icons render
+  // 6. Initialize Theme Toggle
+  initThemeToggle();
+
+  // 7. Ensure Lucide icons render
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();
   }
+}
+
+/**
+ * Light / Dark Mode Controller for Submit PC Report
+ */
+function initThemeToggle() {
+  const toggleBtn = document.getElementById('theme-toggle-btn');
+  if (!toggleBtn) return;
+
+  function updateThemeUI(isDark, animate = false) {
+    const moonIcon = toggleBtn.querySelector('.theme-icon-moon');
+    const sunIcon = toggleBtn.querySelector('.theme-icon-sun');
+
+    toggleBtn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    toggleBtn.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    toggleBtn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+
+    if (moonIcon && sunIcon) {
+      if (isDark) {
+        moonIcon.style.display = 'none';
+        sunIcon.style.display = 'block';
+        if (animate) {
+          sunIcon.classList.remove('theme-icon-animating');
+          void sunIcon.offsetWidth;
+          sunIcon.classList.add('theme-icon-animating');
+        }
+      } else {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+        if (animate) {
+          moonIcon.classList.remove('theme-icon-animating');
+          void moonIcon.offsetWidth;
+          moonIcon.classList.add('theme-icon-animating');
+        }
+      }
+    }
+
+    const logoLight = document.querySelector('.labsync-logo-light');
+    const logoDark = document.querySelector('.labsync-logo-dark');
+    if (logoLight && logoDark) {
+      logoLight.style.setProperty('display', isDark ? 'none' : 'block', 'important');
+      logoDark.style.setProperty('display', isDark ? 'block' : 'none', 'important');
+    }
+  }
+
+  function setTheme(isDark, animate = true) {
+    if (isDark) {
+      document.documentElement.classList.add('dark-mode', 'high-contrast');
+      document.documentElement.setAttribute('data-theme', 'dark');
+      if (document.body) {
+        document.body.classList.add('dark-mode', 'high-contrast');
+      }
+    } else {
+      document.documentElement.classList.remove('dark-mode', 'high-contrast');
+      document.documentElement.setAttribute('data-theme', 'light');
+      if (document.body) {
+        document.body.classList.remove('dark-mode', 'high-contrast');
+      }
+    }
+
+    try {
+      localStorage.setItem('labsync-theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('labsync-high-contrast', isDark ? 'true' : 'false');
+    } catch (e) {}
+
+    updateThemeUI(isDark, animate);
+  }
+
+  function toggleTheme() {
+    const isCurrentlyDark = document.documentElement.classList.contains('dark-mode') ||
+      document.documentElement.getAttribute('data-theme') === 'dark' ||
+      document.documentElement.classList.contains('high-contrast');
+    setTheme(!isCurrentlyDark, true);
+  }
+
+  if (!toggleBtn.dataset.listenerAttached) {
+    toggleBtn.dataset.listenerAttached = 'true';
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleTheme();
+    });
+
+    toggleBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleTheme();
+      }
+    });
+  }
+
+  const isDarkInitial = document.documentElement.classList.contains('dark-mode') ||
+    document.documentElement.getAttribute('data-theme') === 'dark' ||
+    document.documentElement.classList.contains('high-contrast') ||
+    localStorage.getItem('labsync-theme') === 'dark' ||
+    localStorage.getItem('theme') === 'dark' ||
+    localStorage.getItem('labsync-high-contrast') === 'true';
+
+  if (isDarkInitial) {
+    document.documentElement.classList.add('dark-mode', 'high-contrast');
+    document.documentElement.setAttribute('data-theme', 'dark');
+    if (document.body) {
+      document.body.classList.add('dark-mode', 'high-contrast');
+    }
+  }
+  updateThemeUI(isDarkInitial, false);
 }
 
 // Auto-initialize on script load or DOMContentLoaded
@@ -629,3 +738,8 @@ window.closeSuccessModal = closeSuccessModal;
 window.hasReportableIssue = hasReportableIssue;
 window.updateSubmitButtonState = updateSubmitButtonState;
 window.initSubmitPcReportPage = initSubmitPcReportPage;
+window.initThemeToggle = initThemeToggle;
+window.toggleTheme = function() {
+  const toggleBtn = document.getElementById('theme-toggle-btn');
+  if (toggleBtn) toggleBtn.click();
+};

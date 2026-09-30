@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    (function applySavedTheme() {
+      try {
+        const savedTheme = localStorage.getItem('labsync-theme') || localStorage.getItem('theme');
+        const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
+        const isDark = savedTheme === 'dark' || (savedTheme !== 'light' && savedContrast);
+        if (isDark) {
+          document.documentElement.classList.add('dark-mode', 'high-contrast');
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else if (savedTheme === 'light' || savedContrast === false) {
+          document.documentElement.classList.remove('dark-mode', 'high-contrast');
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync – Terms of Service & Privacy Policy | BulSU-SC</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
+  <link rel="preload" as="image" href="assets/labsync-logo.png" />
+  <link rel="preload" as="image" href="assets/labsync-logo - dark mode.png" />
+  <link rel="preload" as="image" href="assets/bsu-sarmiento-logo.png" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    :root {
+      --primary-teal: #1EBBD7;
+      --primary-teal-light: #EBF8FA;
+      --primary-teal-hover: #17a2bc;
+      --text-dark: #0F172A;
+      --text-mid: #475569;
+      --text-muted: #64748B;
+      --bg-page: #F8FAFC;
+      --border-light: #E2E8F0;
+      --card-bg: #FFFFFF;
+      --badge-bg: rgba(30, 187, 215, 0.1);
+      --badge-text: #0284C7;
+      --font-display: 'Poppins', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      --radius-card: 20px;
+    }
+
+    /* Dark Mode Tokens */
+    html.dark-mode,
+    body.dark-mode,
+    [data-theme="dark"],
+    html.high-contrast {
+      color-scheme: dark;
+      --primary-teal: #00A3C4;
+      --primary-teal-light: rgba(0, 163, 196, 0.15);
+      --primary-teal-hover: #008EA6;
+      --text-dark: #F8FAFC;
+      --text-mid: #CBD5E1;
+      --text-muted: #94A3B8;
+      --bg-page: #0B0F19;
+      --border-light: rgba(255, 255, 255, 0.12);
+      --card-bg: #111827;
+      --badge-bg: rgba(0, 163, 196, 0.2);
+      --badge-text: #38BDF8;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: radial-gradient(circle at 0% 0%, rgba(30, 187, 215, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 100% 100%, rgba(14, 165, 201, 0.06) 0%, transparent 45%),
+        var(--bg-page);
+      background-attachment: fixed;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 64px 16px;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    html.dark-mode body,
+    body.dark-mode,
+    [data-theme="dark"] body,
+    html.high-contrast body {
+      background: radial-gradient(circle at 0% 0%, rgba(30, 187, 215, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 100% 100%, rgba(14, 165, 201, 0.04) 0%, transparent 50%),
+        #0B0F19 !important;
+      color: #F8FAFC !important;
+    }
+
+    /* ─── STICKY TOP CONTROLS ────────────────────────────────────────── */
+    .top-actions-bar {
+      width: 100%;
+      max-width: 890px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      position: sticky;
+      top: 12px;
+      z-index: 100;
+      padding: 4px 0;
+      pointer-events: none;
+    }
+
+    .top-actions-left,
+    .top-actions-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .action-pill-btn {
+      height: 42px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 16px;
+      cursor: pointer;
+      border: 1px solid var(--border-light);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+      color: var(--text-mid);
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all var(--transition);
+      outline: none;
+    }
+
+    .action-pill-btn:hover {
+      transform: translateY(-2px);
+      border-color: var(--primary-teal);
+      color: var(--primary-teal);
+      box-shadow: 0 6px 20px rgba(30, 187, 215, 0.2);
+    }
+
+    .theme-toggle-btn {
+      width: 42px;
+      padding: 0;
+      justify-content: center;
+    }
+
+    .theme-toggle-btn .theme-icon-moon {
+      display: block;
+    }
+    .theme-toggle-btn .theme-icon-sun {
+      display: none;
+    }
+
+    html.dark-mode .action-pill-btn,
+    body.dark-mode .action-pill-btn,
+    [data-theme="dark"] .action-pill-btn,
+    html.high-contrast .action-pill-btn {
+      background: rgba(30, 41, 59, 0.85) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      color: #F8FAFC !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    html.dark-mode .action-pill-btn:hover,
+    body.dark-mode .action-pill-btn:hover,
+    [data-theme="dark"] .action-pill-btn:hover,
+    html.high-contrast .action-pill-btn:hover {
+      background: rgba(51, 65, 85, 0.95) !important;
+      border-color: rgba(56, 189, 248, 0.5) !important;
+      color: #38BDF8 !important;
+    }
+
+    html.dark-mode .theme-toggle-btn .theme-icon-moon,
+    body.dark-mode .theme-toggle-btn .theme-icon-moon,
+    [data-theme="dark"] .theme-toggle-btn .theme-icon-moon,
+    html.high-contrast .theme-toggle-btn .theme-icon-moon {
+      display: none !important;
+    }
+
+    html.dark-mode .theme-toggle-btn .theme-icon-sun,
+    body.dark-mode .theme-toggle-btn .theme-icon-sun,
+    [data-theme="dark"] .theme-toggle-btn .theme-icon-sun,
+    html.high-contrast .theme-toggle-btn .theme-icon-sun {
+      display: block !important;
+    }
+
+    /* ─── PAGE CONTAINER ─────────────────────────────────────────────── */
+    .terms-container {
+      width: 100%;
+      max-width: 890px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ─── BRAND HEADER ───────────────────────────────────────────────── */
+    .brand-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+      text-align: center;
+    }
+
+    .brand-logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    .brand-logos img,
+    .brand-logos .logo-img {
+      height: 56px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .brand-logos img.bsu-logo {
+      height: 56px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .brand-logos img.labsync-brand-logo {
+      height: 62px;
+      max-width: 220px;
+    }
+
+    .brand-logos img.labsync-logo-light {
+      display: block !important;
+    }
+
+    .brand-logos img.labsync-logo-dark {
+      display: none !important;
+    }
+
+    html.dark-mode .brand-logos img.labsync-logo-light,
+    body.dark-mode .brand-logos img.labsync-logo-light,
+    [data-theme="dark"] .brand-logos img.labsync-logo-light,
+    html.high-contrast .brand-logos img.labsync-logo-light {
+      display: none !important;
+    }
+
+    html.dark-mode .brand-logos img.labsync-logo-dark,
+    body.dark-mode .brand-logos img.labsync-logo-dark,
+    [data-theme="dark"] .brand-logos img.labsync-logo-dark,
+    html.high-contrast .brand-logos img.labsync-logo-dark {
+      display: block !important;
+    }
+
+    .bsu-logo {
+      transition: filter 0.2s ease;
+      will-change: filter;
+    }
+
+    html.dark-mode .bsu-logo,
+    body.dark-mode .bsu-logo,
+    [data-theme="dark"] .bsu-logo,
+    html.high-contrast .bsu-logo {
+      filter: drop-shadow(0px 0px 4px rgba(255, 255, 255, 0.65)) !important;
+    }
+
+    .logo-divider {
+      width: 2px;
+      height: 36px;
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 99px;
+    }
+
+    html.dark-mode .logo-divider,
+    body.dark-mode .logo-divider,
+    [data-theme="dark"] .logo-divider,
+    html.high-contrast .logo-divider {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .page-title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: var(--text-dark);
+      margin-bottom: 6px;
+    }
+
+    html.dark-mode .page-title,
+    body.dark-mode .page-title,
+    [data-theme="dark"] .page-title,
+    html.high-contrast .page-title {
+      color: #FFFFFF !important;
+    }
+
+    .page-subtitle {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      max-width: 620px;
+      line-height: 1.55;
+    }
+
+    /* Meta Badges Row */
+    .meta-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .meta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      border: 1px solid rgba(30, 187, 215, 0.2);
+    }
+
+    /* ─── QUICK NAVIGATION CHIPS ─────────────────────────────────────── */
+    .nav-chips-container {
+      width: 100%;
+      margin-bottom: 24px;
+      padding: 6px 4px 8px 4px;
+      overflow: visible;
+      scrollbar-width: none;
+    }
+
+    .nav-chips-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-chips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 7px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .nav-chip {
+      padding: 7px 13px;
+      border-radius: 999px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-light);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-mid);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-chip:hover {
+      border-color: var(--primary-teal);
+      color: var(--primary-teal);
+      transform: translateY(-1px);
+    }
+
+    html.dark-mode .nav-chip,
+    body.dark-mode .nav-chip,
+    [data-theme="dark"] .nav-chip,
+    html.high-contrast .nav-chip {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: #CBD5E1;
+    }
+
+    /* ─── MAIN CONTENT CARD ──────────────────────────────────────────── */
+    .terms-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
+      width: 100%;
+      padding: 40px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.01);
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+      border: 1px solid var(--border-light);
+      position: relative;
+      overflow: hidden;
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .terms-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #1EBBD7, #0EA5C9);
+    }
+
+    html.dark-mode .terms-card,
+    body.dark-mode .terms-card,
+    [data-theme="dark"] .terms-card,
+    html.high-contrast .terms-card {
+      background: #111827 !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    /* ─── SECTIONS & TYPOGRAPHY ──────────────────────────────────────── */
+    .terms-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-margin-top: 80px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .section-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--badge-bg);
+      color: var(--primary-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    html.dark-mode .section-title,
+    body.dark-mode .section-title,
+    [data-theme="dark"] .section-title,
+    html.high-contrast .section-title {
+      color: #F8FAFC !important;
+    }
+
+    .terms-p {
+      font-size: 14.5px;
+      line-height: 1.7;
+      color: var(--text-mid);
+    }
+
+    html.dark-mode .terms-p,
+    body.dark-mode .terms-p,
+    [data-theme="dark"] .terms-p,
+    html.high-contrast .terms-p {
+      color: #CBD5E1 !important;
+    }
+
+    .policy-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-left: 4px;
+    }
+
+    .policy-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-mid);
+    }
+
+    html.dark-mode .policy-item,
+    body.dark-mode .policy-item,
+    [data-theme="dark"] .policy-item,
+    html.high-contrast .policy-item {
+      color: #CBD5E1 !important;
+    }
+
+    .policy-bullet {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary-teal);
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Highlight Notice Boxes */
+    .callout-box {
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: rgba(30, 187, 215, 0.08);
+      border: 1px solid rgba(30, 187, 215, 0.25);
+    }
+
+    .callout-box.callout-warning {
+      background: rgba(245, 158, 11, 0.08);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .callout-box.callout-success {
+      background: rgba(34, 197, 94, 0.08);
+      border-color: rgba(34, 197, 94, 0.25);
+    }
+
+    .callout-icon {
+      color: var(--primary-teal);
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .callout-warning .callout-icon {
+      color: #D97706;
+    }
+
+    .callout-success .callout-icon {
+      color: #16A34A;
+    }
+
+    .callout-content {
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: var(--text-dark);
+    }
+
+    html.dark-mode .callout-content,
+    body.dark-mode .callout-content,
+    [data-theme="dark"] .callout-content,
+    html.high-contrast .callout-content {
+      color: #F8FAFC !important;
+    }
+
+    /* ─── DATA PRIVACY TABLE ─────────────────────────────────────────── */
+    .privacy-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border-light);
+      margin-top: 6px;
+    }
+
+    .privacy-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      text-align: left;
+    }
+
+    .privacy-table th {
+      background: rgba(148, 163, 184, 0.1);
+      padding: 12px 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+      border-bottom: 1px solid var(--border-light);
+      font-family: var(--font-display);
+    }
+
+    html.dark-mode .privacy-table th,
+    body.dark-mode .privacy-table th,
+    [data-theme="dark"] .privacy-table th,
+    html.high-contrast .privacy-table th {
+      background: rgba(30, 41, 59, 0.6);
+      color: #F8FAFC;
+    }
+
+    .privacy-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-mid);
+      vertical-align: top;
+    }
+
+    html.dark-mode .privacy-table td,
+    body.dark-mode .privacy-table td,
+    [data-theme="dark"] .privacy-table td,
+    html.high-contrast .privacy-table td {
+      color: #CBD5E1;
+    }
+
+    .privacy-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* ─── FOOTER ─────────────────────────────────────────────────────── */
+    .terms-footer {
+      margin-top: 36px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer-text {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .footer-btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      border: 1px solid var(--border-light);
+      background: var(--card-bg);
+      color: var(--text-mid);
+      transition: all var(--transition);
+    }
+
+    .footer-btn:hover {
+      border-color: var(--primary-teal);
+      color: var(--primary-teal);
+      transform: translateY(-2px);
+    }
+
+    .footer-btn.btn-primary {
+      background: linear-gradient(135deg, #1EBBD7, #0EA5C9);
+      color: #FFFFFF;
+      border: none;
+      box-shadow: 0 4px 16px rgba(30, 187, 215, 0.35);
+    }
+
+    .footer-btn.btn-primary:hover {
+      background: linear-gradient(135deg, #17a2bc, #0284C7);
+      color: #FFFFFF;
+      transform: translateY(-2px);
+    }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      body {
+        padding: 16px 12px 48px 12px;
+      }
+
+      .top-actions-bar {
+        margin-bottom: 14px;
+      }
+
+      #btn-print-policy {
+        display: none !important;
+      }
+
+      .nav-chips-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 6px 4px 8px 4px;
+      }
+
+      .nav-chips {
+        flex-wrap: nowrap;
+        width: max-content;
+        justify-content: flex-start;
+        padding: 0 4px;
+      }
+
+      .action-pill-btn span {
+        display: none;
+      }
+
+      .action-pill-btn {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        justify-content: center;
+      }
+
+      .page-title {
+        font-size: 20px;
+      }
+
+      .page-subtitle {
+        font-size: 13px;
+      }
+
+      .terms-card {
+        padding: 24px 16px;
+        gap: 28px;
+        border-radius: 16px;
+      }
+
+      .section-title {
+        font-size: 16px;
+      }
+    }
+
+    /* Formal Print Document Components (Hidden on Screen) */
+    .print-official-header,
+    .print-meta-strip,
+    .print-signatory-block {
+      display: none;
+    }
+
+    /* Print Styles: Formal Academic / Institutional Policy Document */
+    @media print {
+      @page {
+        margin: 1.5cm 1.8cm;
+        size: A4 portrait;
+      }
+
+      /* Root page backgrounds: enforce pure white page and formal academic font */
+      html,
+      html.dark-mode,
+      html.high-contrast,
+      [data-theme="dark"],
+      body,
+      body.dark-mode,
+      html.dark-mode body,
+      html.high-contrast body,
+      [data-theme="dark"] body {
+        background: #FFFFFF !important;
+        background-color: #FFFFFF !important;
+        background-image: none !important;
+        color: #000000 !important;
+        font-family: 'Times New Roman', Times, 'Georgia', serif !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .terms-container {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      /* STAGE 1: REMOVE ALL WEB APPS, ICONS & INTERACTIVE CHROME */
+      .top-actions-bar,
+      .nav-chips-container,
+      .theme-toggle-btn,
+      #btn-back-nav,
+      #btn-print-policy,
+      .meta-badges,
+      .section-icon-box,
+      .callout-icon,
+      .policy-bullet,
+      i[data-lucide],
+      svg.lucide,
+      svg,
+      .terms-card::before {
+        display: none !important;
+      }
+
+      /* STAGE 2: FORMAL UNIVERSITY LETTERHEAD */
+      .brand-header {
+        gap: 8px !important;
+        margin-bottom: 12pt !important;
+        text-align: center !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+
+      .print-official-header {
+        display: block !important;
+        text-align: center !important;
+        margin-top: 0 !important;
+        margin-bottom: 12pt !important;
+      }
+
+      .print-republic {
+        font-size: 8.5pt !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        color: #475569 !important;
+        margin: 0 !important;
+        font-family: 'Times New Roman', Times, serif !important;
+      }
+
+      .print-univ {
+        font-size: 13pt !important;
+        font-weight: bold !important;
+        letter-spacing: 0.5px !important;
+        color: #000000 !important;
+        margin: 2pt 0 !important;
+        font-family: 'Times New Roman', Times, serif !important;
+      }
+
+      .print-campus {
+        font-size: 9pt !important;
+        color: #334155 !important;
+        margin: 0 !important;
+        font-family: 'Times New Roman', Times, serif !important;
+      }
+
+      .print-office {
+        font-size: 8.5pt !important;
+        font-weight: bold !important;
+        color: #0284C7 !important;
+        text-transform: uppercase !important;
+        margin-top: 3pt !important;
+        letter-spacing: 0.4px !important;
+        font-family: 'Times New Roman', Times, serif !important;
+      }
+
+      .brand-logos {
+        margin: 0 auto 2pt auto !important;
+        display: grid !important;
+        grid-template-columns: 1fr auto 1fr !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0 !important;
+        max-width: 480px !important;
+        transform: translateX(-32px) !important;
+      }
+
+      html.dark-mode .brand-logos img.labsync-logo-light,
+      html.high-contrast .brand-logos img.labsync-logo-light,
+      [data-theme="dark"] .brand-logos img.labsync-logo-light,
+      body.dark-mode .brand-logos img.labsync-logo-light,
+      .brand-logos img.labsync-logo-light {
+        display: block !important;
+        height: 72px !important;
+        width: auto !important;
+        object-fit: contain !important;
+        justify-self: start !important;
+        margin-left: 3px !important;
+      }
+
+      html.dark-mode .brand-logos img.labsync-logo-dark,
+      html.high-contrast .brand-logos img.labsync-logo-dark,
+      [data-theme="dark"] .brand-logos img.labsync-logo-dark,
+      body.dark-mode .brand-logos img.labsync-logo-dark,
+      .brand-logos img.labsync-logo-dark {
+        display: none !important;
+      }
+
+      html.dark-mode .bsu-logo,
+      html.high-contrast .bsu-logo,
+      [data-theme="dark"] .bsu-logo,
+      body.dark-mode .bsu-logo,
+      .bsu-logo {
+        filter: none !important;
+        height: 64px !important;
+        width: auto !important;
+        object-fit: contain !important;
+        justify-self: end !important;
+        margin-right: 18px !important;
+      }
+
+      html.dark-mode .logo-divider,
+      html.high-contrast .logo-divider,
+      [data-theme="dark"] .logo-divider,
+      body.dark-mode .logo-divider,
+      .logo-divider {
+        display: block !important;
+        width: 1.5px !important;
+        height: 46px !important;
+        background: #94A3B8 !important;
+        justify-self: center !important;
+      }
+
+      html.dark-mode .page-title,
+      html.high-contrast .page-title,
+      [data-theme="dark"] .page-title,
+      body.dark-mode .page-title,
+      .page-title {
+        font-family: 'Times New Roman', Times, serif !important;
+        color: #000000 !important;
+        font-size: 15pt !important;
+        font-weight: bold !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        text-align: center !important;
+        margin: 6pt 0 3pt 0 !important;
+      }
+
+      .page-subtitle {
+        font-family: 'Times New Roman', Times, serif !important;
+        color: #334155 !important;
+        font-size: 9.5pt !important;
+        line-height: 1.4 !important;
+        margin: 0 auto 6pt auto !important;
+        max-width: 100% !important;
+        text-align: center !important;
+      }
+
+      /* Formal Document Metadata Strip */
+      .print-meta-strip {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 8px !important;
+        font-size: 8pt !important;
+        color: #334155 !important;
+        border-top: 1pt solid #000000 !important;
+        border-bottom: 1pt solid #000000 !important;
+        padding: 3pt 0 !important;
+        margin: 8pt 0 12pt 0 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.3px !important;
+        font-family: 'Times New Roman', Times, serif !important;
+      }
+
+      /* STAGE 3: DOCUMENT BODY & CONTENT CARD */
+      html.dark-mode .terms-card,
+      html.high-contrast .terms-card,
+      [data-theme="dark"] .terms-card,
+      body.dark-mode .terms-card,
+      .terms-card {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        background: #FFFFFF !important;
+        background-color: #FFFFFF !important;
+        display: block !important;
+      }
+
+      .terms-section {
+        display: block !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 14pt !important;
+      }
+
+      /* Formal Section Headers (No icons, clean academic underline) */
+      .section-header {
+        display: block !important;
+        border-bottom: 1pt solid #000000 !important;
+        padding-bottom: 2pt !important;
+        margin-top: 12pt !important;
+        margin-bottom: 6pt !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+
+      html.dark-mode .section-title,
+      html.high-contrast .section-title,
+      [data-theme="dark"] .section-title,
+      body.dark-mode .section-title,
+      .section-title {
+        font-family: 'Times New Roman', Times, serif !important;
+        color: #000000 !important;
+        font-size: 11pt !important;
+        font-weight: bold !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.4px !important;
+        margin: 0 !important;
+        display: block !important;
+      }
+
+      /* Formal Paragraphs */
+      html.dark-mode .terms-p,
+      html.high-contrast .terms-p,
+      [data-theme="dark"] .terms-p,
+      body.dark-mode .terms-p,
+      .terms-p {
+        font-family: 'Times New Roman', Times, serif !important;
+        color: #000000 !important;
+        font-size: 9.5pt !important;
+        line-height: 1.5 !important;
+        text-align: justify !important;
+        text-justify: inter-word !important;
+        margin-bottom: 5pt !important;
+      }
+
+      .terms-p strong {
+        color: #000000 !important;
+        font-weight: bold !important;
+      }
+
+      /* Formal Numbered Lists */
+      .policy-list {
+        display: block !important;
+        list-style-type: decimal !important;
+        padding-left: 20pt !important;
+        margin: 4pt 0 8pt 0 !important;
+      }
+
+      html.dark-mode .policy-item,
+      html.high-contrast .policy-item,
+      [data-theme="dark"] .policy-item,
+      body.dark-mode .policy-item,
+      .policy-item {
+        display: list-item !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        font-size: 9.5pt !important;
+        line-height: 1.45 !important;
+        color: #000000 !important;
+        margin-bottom: 4pt !important;
+        text-align: justify !important;
+        padding: 0 !important;
+      }
+
+      html.dark-mode .policy-item strong,
+      html.high-contrast .policy-item strong,
+      [data-theme="dark"] .policy-item strong,
+      body.dark-mode .policy-item strong,
+      .policy-item strong {
+        color: #000000 !important;
+        font-weight: bold !important;
+      }
+
+      /* Formal Indented Notice Block (Replaces web alert boxes) */
+      .callout-box,
+      .callout-box.callout-warning,
+      .callout-box.callout-success {
+        display: block !important;
+        background: #F8F9FA !important;
+        border-left: 3pt solid #000000 !important;
+        border-top: none !important;
+        border-right: none !important;
+        border-bottom: none !important;
+        border-radius: 0 !important;
+        padding: 5pt 10pt !important;
+        margin: 6pt 0 8pt 0 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      html.dark-mode .callout-content,
+      html.high-contrast .callout-content,
+      [data-theme="dark"] .callout-content,
+      body.dark-mode .callout-content,
+      .callout-content {
+        font-family: 'Times New Roman', Times, serif !important;
+        color: #111827 !important;
+        font-size: 9pt !important;
+        line-height: 1.45 !important;
+        font-style: italic !important;
+      }
+
+      .callout-content strong,
+      .callout-content em,
+      .callout-content a {
+        color: #000000 !important;
+        text-decoration: none !important;
+        font-style: normal !important;
+      }
+
+      /* Formal University Table (Data Privacy RA 10173 Matrix) */
+      .privacy-table-wrapper {
+        border: none !important;
+        overflow: visible !important;
+        margin: 6pt 0 8pt 0 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      .privacy-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        border: 1pt solid #000000 !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        font-size: 8.5pt !important;
+      }
+
+      html.dark-mode .privacy-table th,
+      html.high-contrast .privacy-table th,
+      [data-theme="dark"] .privacy-table th,
+      body.dark-mode .privacy-table th,
+      .privacy-table th {
+        background: #F1F5F9 !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+        border: 1pt solid #000000 !important;
+        padding: 4pt 6pt !important;
+        text-transform: uppercase !important;
+        font-size: 8pt !important;
+      }
+
+      html.dark-mode .privacy-table td,
+      html.high-contrast .privacy-table td,
+      [data-theme="dark"] .privacy-table td,
+      body.dark-mode .privacy-table td,
+      .privacy-table td {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        border: 1pt solid #000000 !important;
+        padding: 4pt 6pt !important;
+        font-size: 8.5pt !important;
+        line-height: 1.35 !important;
+        vertical-align: top !important;
+      }
+
+      .privacy-table tbody tr:nth-child(even) td {
+        background: #FAFAFA !important;
+      }
+
+      .privacy-table td strong {
+        color: #000000 !important;
+        font-weight: bold !important;
+      }
+
+      code {
+        background: none !important;
+        border: none !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+        padding: 0 !important;
+      }
+
+      /* STAGE 4: FORMAL SIGNATORY & CERTIFICATION BLOCK */
+      .print-signatory-block {
+        display: block !important;
+        margin-top: 20pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      .signatory-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        margin-top: 18pt !important;
+        padding: 0 10pt !important;
+      }
+
+      .signatory-col {
+        width: 44% !important;
+        text-align: center !important;
+      }
+
+      .signatory-role {
+        font-family: 'Times New Roman', Times, serif !important;
+        font-size: 8.5pt !important;
+        color: #334155 !important;
+        margin-bottom: 24pt !important;
+        text-align: left !important;
+      }
+
+      .signatory-line {
+        border-bottom: 1pt solid #000000 !important;
+        margin-bottom: 3pt !important;
+      }
+
+      .signatory-name {
+        font-family: 'Times New Roman', Times, serif !important;
+        font-size: 9pt !important;
+        font-weight: bold !important;
+        color: #000000 !important;
+        text-transform: uppercase !important;
+        margin: 0 !important;
+      }
+
+      .signatory-dept {
+        font-family: 'Times New Roman', Times, serif !important;
+        font-size: 8pt !important;
+        color: #475569 !important;
+        margin: 0 !important;
+      }
+
+      /* STAGE 5: OFFICIAL DOCUMENT FOOTER */
+      .terms-footer {
+        display: block !important;
+        margin-top: 16pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border-top: 1pt solid #CBD5E1 !important;
+        padding-top: 6pt !important;
+        text-align: center !important;
+      }
+
+      .footer-text {
+        font-family: 'Times New Roman', Times, serif !important;
+        color: #64748B !important;
+        font-size: 8pt !important;
+        line-height: 1.35 !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="terms-container">
+
+    <!-- Top Action Controls -->
+    <nav class="top-actions-bar" aria-label="Quick Actions">
+      <div class="top-actions-left">
+        <a href="login.html" class="action-pill-btn" id="btn-back-nav" title="Back to previous page">
+          <i data-lucide="arrow-left" style="width: 17px; height: 17px;"></i>
+          <span>Back</span>
+        </a>
+      </div>
+      <div class="top-actions-right">
+        <button type="button" class="action-pill-btn" id="btn-print-policy" onclick="window.print()" title="Print policy document">
+          <i data-lucide="printer" style="width: 17px; height: 17px;"></i>
+          <span>Print</span>
+        </button>
+        <button type="button" id="theme-toggle-btn" class="action-pill-btn theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle theme (Light / Dark)">
+          <i data-lucide="moon" class="theme-icon-moon" style="width: 18px; height: 18px;"></i>
+          <i data-lucide="sun" class="theme-icon-sun" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Brand Header -->
+    <header class="brand-header">
+      <div class="brand-logos">
+        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo" class="logo-img bsu-logo" />
+        <div class="logo-divider"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" class="logo-img labsync-brand-logo labsync-logo-light" />
+        <img src="assets/labsync-logo - dark mode.png" alt="LabSync Logo" class="logo-img labsync-brand-logo labsync-logo-dark" />
+      </div>
+
+      <div class="print-official-header">
+        <p class="print-republic">Republic of the Philippines</p>
+        <h2 class="print-univ">BULACAN STATE UNIVERSITY</h2>
+        <p class="print-campus">SARMIENTO CAMPUS &bull; City of San Jose del Monte, Bulacan</p>
+        <p class="print-office">Management Information System (MIS) Office &bull; IT Department</p>
+      </div>
+      <h1 class="page-title">Terms of Service & Privacy Policy</h1>
+      <p class="page-subtitle">
+        Official laboratory management, workstation fault reporting, and physical key governance framework for
+        Bulacan State University – Sarmiento Campus.
+      </p>
+      <div class="print-meta-strip">
+        <span><strong>Statutory Reference:</strong> RA 10173 (Data Privacy Act of 2012)</span>
+        <span>&bull;</span>
+        <span><strong>Effective:</strong> Academic Year 2026–2027</span>
+        <span>&bull;</span>
+        <span><strong>Classification:</strong> Official Institutional Laboratory Policy</span>
+      </div>
+      <div class="meta-badges">
+        <span class="meta-badge"><i data-lucide="shield-check" style="width:13px;height:13px;"></i> RA 10173 Compliant</span>
+        <span class="meta-badge"><i data-lucide="clock" style="width:13px;height:13px;"></i> Effective: Academic Year 2026–2027</span>
+        <span class="meta-badge"><i data-lucide="building" style="width:13px;height:13px;"></i> MIS Office & IT Department</span>
+      </div>
+    </header>
+
+    <!-- Navigation Chips -->
+    <nav class="nav-chips-container" aria-label="Policy Sections">
+      <div class="nav-chips">
+        <a href="#sec-overview" class="nav-chip"><i data-lucide="info" style="width:14px;height:14px;"></i> Overview</a>
+        <a href="#sec-workstation" class="nav-chip"><i data-lucide="monitor" style="width:14px;height:14px;"></i> PC Reporting</a>
+        <a href="#sec-privacy" class="nav-chip"><i data-lucide="lock" style="width:14px;height:14px;"></i> Data Privacy (DPA)</a>
+        <a href="#sec-keys" class="nav-chip"><i data-lucide="key" style="width:14px;height:14px;"></i> Key Accountability</a>
+        <a href="#sec-retention" class="nav-chip"><i data-lucide="database" style="width:14px;height:14px;"></i> Retention & Rights</a>
+        <a href="#sec-contact" class="nav-chip"><i data-lucide="phone-call" style="width:14px;height:14px;"></i> Support</a>
+      </div>
+    </nav>
+
+    <!-- Policy Document Card -->
+    <main class="terms-card">
+
+      <!-- Section 1: Overview -->
+      <section class="terms-section" id="sec-overview">
+        <div class="section-header">
+          <div class="section-icon-box">
+            <i data-lucide="compass"></i>
+          </div>
+          <h2 class="section-title">1. Purpose & Scope of the System</h2>
+        </div>
+        <p class="terms-p">
+          <strong>LabSync</strong> is the dedicated, smart laboratory resource management and workstation monitoring infrastructure deployed across the Computer Laboratories of <strong>Bulacan State University – Sarmiento Campus (BulSU-SC)</strong>.
+        </p>
+        <p class="terms-p">
+          This system regulates and audits the following campus operations:
+        </p>
+        <ul class="policy-list">
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Student Workstation Issue Reporting:</strong> Zero-login, mobile-first defect submissions via durable QR code labels affixed to lab computers.</span>
+          </li>
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Faculty & Class Laboratory Scheduling:</strong> Automated timetable management and conflict-free room reservations.</span>
+          </li>
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>IoT Smart Key Cabinet & Physical Key Circulation:</strong> Profile QR-authenticated key dispatching (scanning the faculty member's personal profile QR code on the key cabinet), strict faculty key accountability, and digital peer-to-peer key transfer handovers.</span>
+          </li>
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>MIS Technical Maintenance:</strong> Digital repair ticketing, component diagnostics, technician assignment, and resolution logging.</span>
+          </li>
+        </ul>
+        <div class="callout-box">
+          <i data-lucide="shield-alert" class="callout-icon"></i>
+          <div class="callout-content">
+            By interacting with any LabSync interface—including scanning workstation QR codes, submitting issue reports, claiming laboratory keys, or operating system dashboards—you acknowledge and agree to comply with this Policy and the BulSU Student/Faculty Code of Conduct.
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Workstation & Fault Reporting -->
+      <section class="terms-section" id="sec-workstation">
+        <div class="section-header">
+          <div class="section-icon-box">
+            <i data-lucide="cpu"></i>
+          </div>
+          <h2 class="section-title">2. Workstation QR Fault Reporting Policy</h2>
+        </div>
+        <p class="terms-p">
+          LabSync provides zero-friction fault reporting so students and faculty can immediately report hardware or software malfunctions without administrative barriers. To ensure system reliability and prompt technical repair:
+        </p>
+        <ul class="policy-list">
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Honest & Accurate Submissions:</strong> Users must report genuine, directly observed defects (e.g., monitor no-display, defective mouse/keyboard, system unit power failure, or operating system errors).</span>
+          </li>
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Verification Confirmation:</strong> Before submission, the reporting student must confirm that they are currently occupying the specified PC unit and that their report accurately reflects the workstation's condition.</span>
+          </li>
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Prohibition of Ticket Spamming & Fraud:</strong> Submitting fictitious fault reports, flooding duplicate tickets, or reporting functional equipment as broken disrupts laboratory scheduling and MIS maintenance. Repeat fraudulent submissions will be reported to the College Disciplinary Committee.</span>
+          </li>
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Physical Equipment Protection:</strong> Students must exercise due care with laboratory peripherals. Any intentional physical tampering, hardware detachment, or vandalism is strictly penalized under University rules.</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Section 3: Data Privacy (RA 10173) -->
+      <section class="terms-section" id="sec-privacy">
+        <div class="section-header">
+          <div class="section-icon-box">
+            <i data-lucide="shield-check"></i>
+          </div>
+          <h2 class="section-title">3. Data Privacy Notice (RA 10173 Compliance)</h2>
+        </div>
+        <p class="terms-p">
+          In strict compliance with <strong>Republic Act No. 10173</strong>, also known as the <em>Philippine Data Privacy Act of 2012 (DPA)</em>, Bulacan State University – Sarmiento Campus is committed to protecting the privacy and personal information of its students, faculty, and administrative staff.
+        </p>
+
+        <div class="privacy-table-wrapper">
+          <table class="privacy-table">
+            <thead>
+              <tr>
+                <th>User Category</th>
+                <th>Information Collected</th>
+                <th>Purpose of Processing</th>
+                <th>Authorized Recipients</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Students</strong> (Public QR Scan)</td>
+                <td>Full Name, Academic Program & Section, PC Unit ID, Room Number, Issue Remarks.</td>
+                <td>Workstation fault verification, preventing ticket spam, and technician diagnosis.</td>
+                <td>MIS Technical Team, Campus IT Head.</td>
+              </tr>
+              <tr>
+                <td><strong>Faculty Members</strong></td>
+                <td>Full Name, Institutional Email, Faculty ID, Personal Profile QR Code, Class Schedules.</td>
+                <td>Schedule verification, smart key cabinet release via profile QR scan, and class laboratory tracking.</td>
+                <td>IT Department Head, MIS Custodians.</td>
+              </tr>
+              <tr>
+                <td><strong>MIS & OJT Staff</strong></td>
+                <td>Account credentials, Staff ID, Action/Resolution logs, Timestamped system audits.</td>
+                <td>System security, technician accountability, and repair lifecycle management.</td>
+                <td>System Administrators, Campus Leadership.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout-box callout-success">
+          <i data-lucide="lock" class="callout-icon"></i>
+          <div class="callout-content">
+            <strong>Confidentiality Commitment:</strong> LabSync never sells, leases, or transmits your personal data to commercial third parties. All stored data is hosted on secured institutional infrastructure protected with encrypted sessions and role-based access control (RBAC).
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Physical Key & Smart Cabinet Accountability -->
+      <section class="terms-section" id="sec-keys">
+        <div class="section-header">
+          <div class="section-icon-box">
+            <i data-lucide="key-round"></i>
+          </div>
+          <h2 class="section-title">4. Physical Key & Smart Cabinet Accountability</h2>
+        </div>
+        <p class="terms-p">
+          Laboratory rooms contain sensitive institutional assets and technology equipment. The following rules govern all physical keys circulating under the LabSync ecosystem:
+        </p>
+        <ul class="policy-list">
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Authorized Possession:</strong> Only faculty members with verified active teaching schedules or authorized MIS personnel may claim laboratory room keys from the Smart Key Cabinet by scanning their personal profile QR code on the cabinet's optical scanner.</span>
+          </li>
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Immutable Audit Trails:</strong> Every key transaction—including profile QR authorization, solenoid unlock, key extraction, key return, and peer-to-peer transfer—is logged with cryptographic timestamps in the system database.</span>
+          </li>
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Peer-to-Peer Transfer Protocol:</strong> If an instructor passes a room key to the succeeding instructor, both parties must execute the digital transfer via <code>key-transfer.html</code> to reassign accountability. Handing off keys without digital recording leaves the original holder accountable for any subsequent room incidents.</span>
+          </li>
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Immediate Return Duty:</strong> Keys must be returned to the Smart Cabinet or designated custodian immediately after the conclusion of scheduled laboratory classes. Holding keys overnight without explicit IT Head approval is strictly prohibited.</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Section 5: Retention & User Rights -->
+      <section class="terms-section" id="sec-retention">
+        <div class="section-header">
+          <div class="section-icon-box">
+            <i data-lucide="archive"></i>
+          </div>
+          <h2 class="section-title">5. Data Retention, Disposal & User Rights</h2>
+        </div>
+        <p class="terms-p">
+          Under the provisions of the Philippine Data Privacy Act, data subjects hold specific statutory rights regarding their personal data processed by LabSync:
+        </p>
+        <ul class="policy-list">
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Right to be Informed:</strong> You have the right to know how your information is collected, stored, and utilized.</span>
+          </li>
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Right to Access & Rectify:</strong> You may request review or correction of inaccurate records (e.g., mistaken student name or erroneous key log) through the MIS Office.</span>
+          </li>
+          <li class="policy-item">
+            <span class="policy-bullet"></span>
+            <span><strong>Data Retention Period:</strong> Workstation defect tickets and routine key logs are retained for a maximum of <strong>one (1) Academic Year</strong> for operational analytics, equipment warranty claims, and accreditation auditing. Historical logs are systematically archived or anonymized thereafter.</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Section 6: Contact & Inquiries -->
+      <section class="terms-section" id="sec-contact">
+        <div class="section-header">
+          <div class="section-icon-box">
+            <i data-lucide="life-buoy"></i>
+          </div>
+          <h2 class="section-title">6. Inquiries, Concerns & Data Protection Contact</h2>
+        </div>
+        <p class="terms-p">
+          If you have questions, reports of system misuse, or data privacy concerns, please contact the campus administrative offices:
+        </p>
+        <div class="callout-box">
+          <i data-lucide="map-pin" class="callout-icon"></i>
+          <div class="callout-content">
+            <strong>Management Information System (MIS) Office</strong><br />
+            Bulacan State University – Sarmiento Campus<br />
+            City of San Jose del Monte, Bulacan, Philippines<br />
+            <em>Email:</em> <a href="mailto:mis.sarmiento@bulsu.edu.ph" style="color:var(--primary-teal);text-decoration:underline;">mis.sarmiento@bulsu.edu.ph</a><br />
+            <em>Office Hours:</em> Monday to Friday, 8:00 AM – 5:00 PM
+          </div>
+        </div>
+      </section>
+
+      <!-- Institutional Certification / Signatory Block for Formal Document Print -->
+      <div class="print-signatory-block">
+        <div class="signatory-row">
+          <div class="signatory-col">
+            <p class="signatory-role">Document Promulgated By:</p>
+            <div class="signatory-line"></div>
+            <p class="signatory-name">MIS Office Technical Staff</p>
+            <p class="signatory-dept">Bulacan State University – Sarmiento Campus</p>
+          </div>
+          <div class="signatory-col">
+            <p class="signatory-role">Approved & Recommended:</p>
+            <div class="signatory-line"></div>
+            <p class="signatory-name">Head, IT Department</p>
+            <p class="signatory-dept">Bulacan State University – Sarmiento Campus</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="terms-footer">
+      <p class="footer-text">
+        &copy; 2026 Bulacan State University – Sarmiento Campus. All rights reserved.<br />
+        LabSync Laboratory Management System
+      </p>
+    </footer>
+
+  </div>
+
+  <script>
+    // Theme Controller for terms.html
+    function initTermsTheme() {
+      const toggleBtn = document.getElementById('theme-toggle-btn');
+      if (!toggleBtn) return;
+
+      function updateUI(isDark) {
+        toggleBtn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+        toggleBtn.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+      }
+
+      function setTheme(isDark) {
+        if (isDark) {
+          document.documentElement.classList.add('dark-mode', 'high-contrast');
+          document.documentElement.setAttribute('data-theme', 'dark');
+          if (document.body) document.body.classList.add('dark-mode', 'high-contrast');
+        } else {
+          document.documentElement.classList.remove('dark-mode', 'high-contrast');
+          document.documentElement.setAttribute('data-theme', 'light');
+          if (document.body) document.body.classList.remove('dark-mode', 'high-contrast');
+        }
+
+        try {
+          localStorage.setItem('labsync-theme', isDark ? 'dark' : 'light');
+          localStorage.setItem('theme', isDark ? 'dark' : 'light');
+          localStorage.setItem('labsync-high-contrast', isDark ? 'true' : 'false');
+        } catch (e) {}
+
+        updateUI(isDark);
+      }
+
+      toggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isCurrentlyDark = document.documentElement.classList.contains('dark-mode') ||
+          document.documentElement.getAttribute('data-theme') === 'dark' ||
+          document.documentElement.classList.contains('high-contrast');
+        setTheme(!isCurrentlyDark);
+      });
+
+      const isDarkInitial = document.documentElement.classList.contains('dark-mode') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.documentElement.classList.contains('high-contrast') ||
+        localStorage.getItem('labsync-theme') === 'dark' ||
+        localStorage.getItem('theme') === 'dark' ||
+        localStorage.getItem('labsync-high-contrast') === 'true';
+
+      if (isDarkInitial) {
+        setTheme(true);
+      } else {
+        updateUI(false);
+      }
+    }
+
+    // Smart Back Navigation Controller
+    function initTermsBackNav() {
+      const backBtn = document.getElementById('btn-back-nav');
+      if (!backBtn) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromParam = urlParams.get('from');
+
+      let targetUrl = 'login.html';
+      if (fromParam === 'report' || fromParam === 'submit-pc-report') {
+        targetUrl = 'submit-pc-report.html';
+      } else if (fromParam === 'login') {
+        targetUrl = 'login.html';
+      } else if (document.referrer) {
+        try {
+          const ref = new URL(document.referrer);
+          if (ref.origin === window.location.origin) {
+            const page = ref.pathname.split('/').pop();
+            if (page && page !== 'terms.html') {
+              targetUrl = page;
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Ensure default fallback href is always valid
+      backBtn.setAttribute('href', targetUrl);
+
+      backBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        // 1. If page was opened in a new tab/window, try closing it first so user returns to origin tab
+        if (window.opener || window.history.length <= 1) {
+          try {
+            window.close();
+          } catch (_) {}
+        }
+
+        // 2. If there is valid navigation history from the same origin in this tab, navigate back
+        const hasOriginHistory = window.history.length > 1 &&
+          document.referrer &&
+          document.referrer.startsWith(window.location.origin);
+
+        if (hasOriginHistory) {
+          window.history.back();
+          // Fallback if browser history.back() didn't leave terms.html within 200ms
+          setTimeout(() => {
+            if (window.location.pathname.endsWith('terms.html')) {
+              window.location.href = targetUrl;
+            }
+          }, 200);
+          return;
+        }
+
+        // 3. Fallback: navigate directly to targetUrl
+        window.location.href = targetUrl;
+      });
+    }
+
+    // Print Controller: temporarily enforce light DOM during print dialog
+    function initTermsPrint() {
+      let savedWasDark = false;
+
+      window.addEventListener('beforeprint', () => {
+        savedWasDark = document.documentElement.classList.contains('dark-mode') ||
+          document.documentElement.getAttribute('data-theme') === 'dark' ||
+          document.documentElement.classList.contains('high-contrast');
+
+        if (savedWasDark) {
+          document.documentElement.classList.remove('dark-mode', 'high-contrast');
+          document.documentElement.setAttribute('data-theme', 'light');
+          if (document.body) {
+            document.body.classList.remove('dark-mode', 'high-contrast');
+          }
+        }
+      });
+
+      window.addEventListener('afterprint', () => {
+        if (savedWasDark) {
+          document.documentElement.classList.add('dark-mode', 'high-contrast');
+          document.documentElement.setAttribute('data-theme', 'dark');
+          if (document.body) {
+            document.body.classList.add('dark-mode', 'high-contrast');
+          }
+        }
+      });
+    }
+
+    // Nav Chips horizontal wheel scroll translation for PC layout
+    function initNavChipsScroll() {
+      const container = document.querySelector('.nav-chips-container');
+      if (!container) return;
+
+      container.addEventListener('wheel', (e) => {
+        if (container.scrollWidth > container.clientWidth && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          container.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initTermsTheme();
+      initTermsBackNav();
+      initTermsPrint();
+      initNavChipsScroll();
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+
+</html>

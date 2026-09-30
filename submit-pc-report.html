@@ -4,11 +4,17 @@
 <head>
   <meta charset="UTF-8" />
   <script>
-    (function applyAccessibilitySettings() {
+    (function applySavedTheme() {
       try {
+        const savedTheme = localStorage.getItem('labsync-theme') || localStorage.getItem('theme');
         const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
-        if (savedContrast) {
-          document.documentElement.classList.add('high-contrast');
+        const isDark = savedTheme === 'dark' || (savedTheme !== 'light' && savedContrast);
+        if (isDark) {
+          document.documentElement.classList.add('dark-mode', 'high-contrast');
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else if (savedTheme === 'light' || savedContrast === false) {
+          document.documentElement.classList.remove('dark-mode', 'high-contrast');
+          document.documentElement.setAttribute('data-theme', 'light');
         }
       } catch (e) {}
     })();
@@ -16,6 +22,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LabSync – Computer Laboratory Monitoring Form</title>
   <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
+  <link rel="preload" as="image" href="assets/labsync-logo.png" />
+  <link rel="preload" as="image" href="assets/labsync-logo - dark mode.png" />
+  <link rel="preload" as="image" href="assets/bsu-sarmiento-logo.png" />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -64,8 +73,13 @@
       --bg-card: #111827;
     }
 
-    html.high-contrast body {
-      background: #0B0F19 !important;
+    html.high-contrast body,
+    html.dark-mode body,
+    body.dark-mode,
+    [data-theme="dark"] body {
+      background: radial-gradient(circle at 0% 0%, rgba(30, 187, 215, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 100% 100%, rgba(14, 165, 201, 0.05) 0%, transparent 50%),
+        #0B0F19 !important;
       color: #F8FAFC !important;
     }
 
@@ -268,6 +282,46 @@
       border: 1px solid rgba(255, 255, 255, 0.15) !important;
     }
 
+    html.dark-mode .form-title,
+    body.dark-mode .form-title,
+    [data-theme="dark"] .form-title,
+    html.high-contrast .form-title {
+      background: linear-gradient(135deg, #F8FAFC, #CBD5E1) !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .logo-divider,
+    body.dark-mode .logo-divider,
+    [data-theme="dark"] .logo-divider,
+    html.high-contrast .logo-divider {
+      background: rgba(255, 255, 255, 0.2) !important;
+    }
+
+    html.dark-mode .section-title,
+    body.dark-mode .section-title,
+    [data-theme="dark"] .section-title,
+    html.high-contrast .section-title {
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .eq-name,
+    body.dark-mode .eq-name,
+    [data-theme="dark"] .eq-name,
+    html.high-contrast .eq-name {
+      color: #F8FAFC !important;
+    }
+
+    html.dark-mode .equipment-card.status-working .eq-icon-wrapper,
+    body.dark-mode .equipment-card.status-working .eq-icon-wrapper,
+    [data-theme="dark"] .equipment-card.status-working .eq-icon-wrapper,
+    html.high-contrast .equipment-card.status-working .eq-icon-wrapper {
+      background: rgba(30, 187, 215, 0.15) !important;
+      color: #38BDF8 !important;
+    }
+
     html.dark-mode .success-text,
     body.dark-mode .success-text,
     [data-theme="dark"] .success-text,
@@ -275,15 +329,158 @@
       color: #CBD5E1 !important;
     }
 
-    html.dark-mode img[src*="labsync-logo"],
-    body.dark-mode img[src*="labsync-logo"],
-    [data-theme="dark"] img[src*="labsync-logo"],
-    html.high-contrast img[src*="labsync-logo"] {
-      content: url("assets/labsync-logo - dark mode.png") !important;
+    /* ─── GLITCH-FREE INSTANT LOGO DISPLAY ───────────────────────────── */
+    .brand-logos .labsync-brand-logo {
+      content: normal !important;
     }
 
-    html.high-contrast img[src*="bsu-sarmiento-logo"] {
+    .bsu-logo {
+      transition: filter 0.2s ease;
+      will-change: filter;
+    }
+
+    html.dark-mode .bsu-logo,
+    body.dark-mode .bsu-logo,
+    [data-theme="dark"] .bsu-logo,
+    html.high-contrast .bsu-logo {
       filter: drop-shadow(0px 0px 4px rgba(255, 255, 255, 0.65)) !important;
+    }
+
+    /* ─── THEME TOGGLE BUTTON (Light/Dark Mode) ─────────────────────── */
+    .theme-toggle-btn {
+      position: fixed;
+      top: 18px;
+      right: 20px;
+      z-index: 1000;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 1px solid rgba(226, 232, 240, 0.85);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+      color: #475569;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      padding: 0;
+    }
+
+    .theme-toggle-btn:hover {
+      transform: translateY(-2px);
+      border-color: rgba(30, 187, 215, 0.5);
+      color: var(--primary-teal);
+      box-shadow: 0 6px 20px rgba(30, 187, 215, 0.22);
+    }
+
+    .theme-toggle-btn:active {
+      transform: translateY(0) scale(0.96);
+    }
+
+    .theme-toggle-btn:focus-visible {
+      outline: 2px solid var(--primary-teal);
+      outline-offset: 2px;
+    }
+
+    .theme-toggle-btn .theme-toggle-icon {
+      width: 20px;
+      height: 20px;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .theme-toggle-btn:hover .theme-toggle-icon {
+      transform: rotate(15deg);
+    }
+
+    /* Icon visibility: Light Mode (default) shows Moon */
+    .theme-toggle-btn .theme-icon-moon {
+      display: block;
+    }
+    .theme-toggle-btn .theme-icon-sun {
+      display: none;
+    }
+
+    /* Icon visibility: Dark Mode shows Sun */
+    html.dark-mode .theme-toggle-btn,
+    body.dark-mode .theme-toggle-btn,
+    [data-theme="dark"] .theme-toggle-btn,
+    html.high-contrast .theme-toggle-btn {
+      background: rgba(30, 41, 59, 0.85) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      color: #F8FAFC !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 12px rgba(30, 187, 215, 0.2) !important;
+    }
+
+    html.dark-mode .theme-toggle-btn:hover,
+    body.dark-mode .theme-toggle-btn:hover,
+    [data-theme="dark"] .theme-toggle-btn:hover,
+    html.high-contrast .theme-toggle-btn:hover {
+      background: rgba(51, 65, 85, 0.95) !important;
+      border-color: rgba(56, 189, 248, 0.5) !important;
+      color: #38BDF8 !important;
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.25) !important;
+    }
+
+    html.dark-mode .theme-toggle-btn .theme-icon-moon,
+    body.dark-mode .theme-toggle-btn .theme-icon-moon,
+    [data-theme="dark"] .theme-toggle-btn .theme-icon-moon,
+    html.high-contrast .theme-toggle-btn .theme-icon-moon {
+      display: none !important;
+    }
+
+    html.dark-mode .theme-toggle-btn .theme-icon-sun,
+    body.dark-mode .theme-toggle-btn .theme-icon-sun,
+    [data-theme="dark"] .theme-toggle-btn .theme-icon-sun,
+    html.high-contrast .theme-toggle-btn .theme-icon-sun {
+      display: block !important;
+    }
+
+    @keyframes themeToggleSpin {
+      0% {
+        transform: rotate(0deg) scale(0.7);
+        opacity: 0;
+      }
+      60% {
+        transform: rotate(200deg) scale(1.1);
+      }
+      100% {
+        transform: rotate(360deg) scale(1);
+        opacity: 1;
+      }
+    }
+
+    .theme-icon-animating {
+      animation: themeToggleSpin 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @media (max-width: 480px) {
+      .theme-toggle-btn {
+        top: 14px;
+        right: 14px;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+      }
+      .theme-toggle-btn .theme-toggle-icon {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    /* Smooth theme transitions */
+    body,
+    .form-card,
+    .equipment-card,
+    .info-header-box,
+    .input-field,
+    .remarks-textarea,
+    .theme-toggle-btn {
+      transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
     }
 
 
@@ -395,12 +592,37 @@
       max-width: none !important;
       border-radius: 0 !important;
       object-fit: contain !important;
-      display: block !important;
     }
 
     .brand-logos img.labsync-brand-logo {
       height: 64px !important;
       max-width: 220px !important;
+    }
+
+    .brand-logos .labsync-brand-logo {
+      content: normal !important;
+    }
+
+    .brand-logos img.labsync-logo-light {
+      display: block !important;
+    }
+
+    .brand-logos img.labsync-logo-dark {
+      display: none !important;
+    }
+
+    html.dark-mode .brand-logos img.labsync-logo-light,
+    body.dark-mode .brand-logos img.labsync-logo-light,
+    [data-theme="dark"] .brand-logos img.labsync-logo-light,
+    html.high-contrast .brand-logos img.labsync-logo-light {
+      display: none !important;
+    }
+
+    html.dark-mode .brand-logos img.labsync-logo-dark,
+    body.dark-mode .brand-logos img.labsync-logo-dark,
+    [data-theme="dark"] .brand-logos img.labsync-logo-dark,
+    html.high-contrast .brand-logos img.labsync-logo-dark {
+      display: block !important;
     }
 
     .logo-divider {
@@ -1390,7 +1612,7 @@
     /* In-App Toast Notification Styling */
     #labsync-toast-container {
       position: fixed !important;
-      top: 20px !important;
+      top: 76px !important;
       right: 20px !important;
       z-index: 999999 !important;
       display: flex !important;
@@ -1402,7 +1624,7 @@
 
     @media (max-width: 640px) {
       #labsync-toast-container {
-        top: 14px !important;
+        top: 66px !important;
         right: 14px !important;
         left: 14px !important;
         align-items: center !important;
@@ -1472,6 +1694,12 @@
 
 <body>
 
+  <!-- Theme Toggle Button (Light & Dark Mode) -->
+  <button type="button" id="theme-toggle-btn" class="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle theme (Light / Dark)">
+    <i data-lucide="moon" class="theme-toggle-icon theme-icon-moon"></i>
+    <i data-lucide="sun" class="theme-toggle-icon theme-icon-sun"></i>
+  </button>
+
   <div class="app-container">
 
     <!-- Brand Header -->
@@ -1479,7 +1707,8 @@
       <div class="brand-logos">
         <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo" class="logo-img bsu-logo" />
         <div class="logo-divider"></div>
-        <img src="assets/labsync-logo.png" alt="LabSync Logo" class="logo-img labsync-brand-logo" />
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" class="logo-img labsync-brand-logo labsync-logo-light" />
+        <img src="assets/labsync-logo - dark mode.png" alt="LabSync Logo" class="logo-img labsync-brand-logo labsync-logo-dark" />
       </div>
       <h1 class="form-title">Computer Laboratory Monitoring Form</h1>
     </header>
@@ -1655,6 +1884,14 @@
       </div>
 
     </main>
+
+    <!-- Footer Note with Policies Link -->
+    <footer class="form-footer-note" style="margin-top: 18px; text-align: center; font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+      <span>By submitting this report, you agree to the</span>
+      <a href="terms.html?from=report" target="_blank" rel="noopener" class="policy-link" style="color: var(--primary-teal); text-decoration: underline; font-weight: 600; margin-left: 3px;">
+        Lab Policies &amp; Data Privacy Terms
+      </a>
+    </footer>
 
   </div>
 
