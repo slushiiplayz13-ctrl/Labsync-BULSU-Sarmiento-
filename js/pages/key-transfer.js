@@ -315,6 +315,19 @@
     const btnCancelModal = document.getElementById('btnCancelKeyRequest');
     const btnSubmitReq = document.getElementById('btnSubmitKeyRequest');
     const reasonInput = document.getElementById('reqReasonInput');
+    const charCountEl = document.getElementById('reqReasonCharCount');
+
+    function updateCharCount() {
+      if (!charCountEl || !reasonInput) return;
+      const len = reasonInput.value.length;
+      charCountEl.textContent = `${len} / 150`;
+      charCountEl.classList.toggle('counter-warning', len >= 135 && len < 150);
+      charCountEl.classList.toggle('counter-limit', len >= 150);
+    }
+
+    if (reasonInput) {
+      reasonInput.addEventListener('input', updateCharCount);
+    }
 
     function openModal() {
       if (!modal || !keyData) return;
@@ -322,7 +335,10 @@
       const modalHeldRoom = document.getElementById('modalHeldRoom');
       if (modalReqRoom) modalReqRoom.textContent = `Laboratory ${keyData.roomNumber}`;
       if (modalHeldRoom) modalHeldRoom.textContent = `Room ${keyData.heldOtherRoom || 'Unknown'}`;
-      if (reasonInput) reasonInput.value = '';
+      if (reasonInput) {
+        reasonInput.value = '';
+        updateCharCount();
+      }
       modal.style.display = 'flex';
       if (window.lucide) window.lucide.createIcons();
     }
@@ -341,6 +357,10 @@
         const reason = reasonInput ? reasonInput.value.trim() : '';
         if (reason.length < 5) {
           alert('Please enter a brief justification for requesting this key (at least 5 characters).');
+          return;
+        }
+        if (reason.length > 150) {
+          alert('Justification cannot exceed 150 characters.');
           return;
         }
 

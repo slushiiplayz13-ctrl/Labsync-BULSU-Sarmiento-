@@ -25,20 +25,32 @@
 }
 
 @media (min-width: 1025px) {
+  #mobile-editor-dock,
   .mobile-editor-dock {
     display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 
+  #mobile-placement-bar,
   .mobile-placement-bar {
     display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 
+  #mobile-sheet-backdrop,
   .mobile-sheet-backdrop {
     display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 
+  #mobile-day-tabs,
   .mobile-sheet-header {
     display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 }
 

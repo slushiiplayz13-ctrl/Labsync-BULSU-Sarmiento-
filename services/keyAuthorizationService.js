@@ -2,8 +2,8 @@
 
 /**
  * services/keyAuthorizationService.js
- * Business logic for requesting, reviewing, approving, and managing
- * multi-key authorization workflows between Faculty and IT Department Head.
+ * Business logic for advance laboratory key reservation requests,
+ * conflict prevention, Dept Head approvals, and pickup verification.
  */
 
 const db = require('../database/connection');
@@ -15,9 +15,33 @@ const appConfig = require('../config/app.config');
 const { KEY_TRANSFER_ROLES } = require('../middleware/auth');
 
 /**
- * Submit a request to borrow an additional laboratory key.
+ * Computes maximum allowed reservation date (Saturday of next week).
+ * Academic weeks run Monday through Saturday.
  */
-async function requestAdditionalKey(userId, userRole, userName, roomId, reason, req = null) {
+function getMaxAllowedReservationDate() {
+    const now = new Date();
+    const day = now.getDay(); // 0 is Sun, 1 is Mon, ..., 6 is Sat
+    const daysToThisSaturday = day === 0 ? 6 : (6 - day);
+    const daysToNextSaturday = daysToThisSaturday + 7;
+    const maxDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysToNextSaturday);
+    const y = maxDate.getFullYear();
+    const m = String(maxDate.getMonth() + 1).padStart(2, '0');
+    const d = String(maxDate.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+function getTodayDateString() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+/**
+ * Submit an advance reservation request to borrow an additional laboratory key.
+ */
+async function requestAdditionalKey(userId, userRole, userName, roomId, reason, reservationDate = null, startTime = null, endTime = null, req = null) {
     if (!userId) {
         return { status: 401, error: 'Authentication required' };
     }
@@ -40,14 +64,14 @@ async function requestAdditionalKey(userId, userRole, userName, roomId, reason, 
 
     const cleanReason = reason.trim().substring(0, 500);
 
-    // Verify room exists
+    // Verify target room exists
     const [rooms] = await db.query('SELECT Room_ID, Room_Number, Building FROM laboratories WHERE Room_ID = ?', [parsedRoomId]);
     if (rooms.length === 0) {
         return { status: 404, error: 'Target laboratory room not found.' };
     }
     const targetRoom = rooms[0];
 
-    // Check if user already holds 2 or more keys
+    // Check if user currently holds 2 or more physical keys
     const [activeKeys] = await labRepo.findActiveKeysByUserId(userId);
     if (activeKeys && activeKeys.length >= 2) {
         return {
@@ -56,33 +80,128 @@ async function requestAdditionalKey(userId, userRole, userName, roomId, reason, 
         };
     }
 
-    // Check if user already holds THIS specific room key
+    // Check if user already holds THIS specific room key right now
     const holdsThisKey = (activeKeys || []).some(k => k.Room_ID === parsedRoomId);
     if (holdsThisKey) {
-        return { status: 400, error: `You already hold the key for Room ${targetRoom.Room_Number}.` };
+        return { status: 400, error: `You already hold the physical key for Room ${targetRoom.Room_Number}.` };
     }
 
-    // Check if user already has an active PENDING request
-    const [pendingRequests] = await keyAuthRepo.findPendingByUserId(userId);
-    if (pendingRequests && pendingRequests.length > 0) {
+    const todayStr = getTodayDateString();
+    const maxDateStr = getMaxAllowedReservationDate();
+
+    // Validate Reservation Date
+    let cleanDate = todayStr;
+    if (reservationDate) {
+        const rawDate = String(reservationDate).trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+            return { status: 400, error: 'Invalid reservation date format. Please use YYYY-MM-DD.' };
+        }
+        cleanDate = rawDate;
+        const [yr, mo, da] = cleanDate.split('-').map(Number);
+        const dateObj = new Date(yr, mo - 1, da);
+        if (isNaN(dateObj.getTime())) {
+            return { status: 400, error: 'Invalid reservation date provided.' };
+        }
+        if (dateObj.getDay() === 0) {
+            return { status: 400, error: 'Reservations are only available Monday through Saturday. Sunday classes are not held.' };
+        }
+        if (cleanDate < todayStr) {
+            return { status: 400, error: 'Reservation date cannot be in the past.' };
+        }
+        if (cleanDate > maxDateStr) {
+            return { status: 400, error: `Reservation date cannot exceed next week's Saturday (${maxDateStr}).` };
+        }
+    }
+
+    // Validate Reservation Time Window
+    let cleanStartTime = null;
+    let cleanEndTime = null;
+    let calculatedDuration = 120;
+
+    if (startTime && endTime) {
+        const sMatch = String(startTime).trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+        const eMatch = String(endTime).trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+        if (!sMatch || !eMatch) {
+            return { status: 400, error: 'Invalid time format. Please provide valid start and end times (HH:MM).' };
+        }
+        const sHour = parseInt(sMatch[1], 10);
+        const sMin = parseInt(sMatch[2], 10);
+        const eHour = parseInt(eMatch[1], 10);
+        const eMin = parseInt(eMatch[2], 10);
+
+        if (sHour < 7 || sHour > 20 || eHour < 7 || (eHour === 21 && eMin > 0) || eHour > 21) {
+            return { status: 400, error: 'Reservations must be within campus laboratory hours (7:00 AM – 9:00 PM).' };
+        }
+
+        const startTotalMin = sHour * 60 + sMin;
+        const endTotalMin = eHour * 60 + eMin;
+
+        if (endTotalMin <= startTotalMin) {
+            return { status: 400, error: 'Reservation end time must be after start time.' };
+        }
+
+        calculatedDuration = endTotalMin - startTotalMin;
+        if (calculatedDuration < 30) {
+            return { status: 400, error: 'Reservation duration must be at least 30 minutes.' };
+        }
+        if (calculatedDuration > 360) {
+            return { status: 400, error: 'Reservation duration cannot exceed 6 hours.' };
+        }
+
+        cleanStartTime = `${String(sHour).padStart(2, '0')}:${String(sMin).padStart(2, '0')}:00`;
+        cleanEndTime = `${String(eHour).padStart(2, '0')}:${String(eMin).padStart(2, '0')}:00`;
+
+        if (cleanDate === todayStr) {
+            const now = new Date();
+            const currentTotalMin = now.getHours() * 60 + now.getMinutes();
+            // Allow up to 15 min buffer
+            if (startTotalMin + 15 < currentTotalMin) {
+                return { status: 400, error: 'Reservation start time cannot be in the past for today.' };
+            }
+        }
+    } else {
+        const now = new Date();
+        const sHour = now.getHours();
+        const sMin = now.getMinutes();
+        cleanStartTime = `${String(sHour).padStart(2, '0')}:${String(sMin).padStart(2, '0')}:00`;
+        const endTotal = sHour * 60 + sMin + 120;
+        const eH = Math.min(21, Math.floor(endTotal / 60));
+        const eM = endTotal % 60;
+        cleanEndTime = `${String(eH).padStart(2, '0')}:${String(eM).padStart(2, '0')}:00`;
+        calculatedDuration = 120;
+    }
+
+    // Check for conflicting reservations for this room and time window
+    const [conflicts] = await keyAuthRepo.findConflictingReservations(parsedRoomId, cleanDate, cleanStartTime, cleanEndTime);
+    if (conflicts && conflicts.length > 0) {
+        const c = conflicts[0];
+        const sStr = String(c.Start_Time).slice(0, 5);
+        const eStr = String(c.End_Time).slice(0, 5);
         return {
             status: 409,
-            error: `You already have a pending key request for Room ${pendingRequests[0].Room_Number} awaiting Department Head review.`
+            error: `Room ${targetRoom.Room_Number} is already reserved by ${c.Requester_Name} on ${cleanDate} (${sStr} – ${eStr}). Please choose another room or time slot.`
         };
     }
 
-    // Check if user already has an active APPROVED authorization for this room
-    const [existingApproved] = await keyAuthRepo.findActiveApprovedByUserIdAndRoom(userId, parsedRoomId);
-    if (existingApproved && existingApproved.length > 0) {
+    // Check if user already has an active PENDING request for this room on the same date
+    const [userPending] = await keyAuthRepo.findPendingByUserId(userId);
+    const dupPending = (userPending || []).find(r => r.Room_ID === parsedRoomId && String(r.Reservation_Date).slice(0, 10) === cleanDate);
+    if (dupPending) {
         return {
-            status: 200,
-            message: `You already have an active approval for Room ${targetRoom.Room_Number}. You may claim the key now.`,
-            data: { alreadyApproved: true, requestId: existingApproved[0].Request_ID }
+            status: 409,
+            error: `You already have a pending key reservation for Room ${targetRoom.Room_Number} on ${cleanDate} awaiting Department Head review.`
         };
     }
 
-    // Insert request
-    const [result] = await keyAuthRepo.createRequest(userId, parsedRoomId, cleanReason);
+    // Insert reservation request
+    const [result] = await keyAuthRepo.createRequest(
+        userId,
+        parsedRoomId,
+        cleanReason,
+        cleanDate,
+        cleanStartTime,
+        cleanEndTime
+    );
     const requestId = result.insertId;
 
     await auditService.logSecurityEvent({
@@ -95,6 +214,10 @@ async function requestAdditionalKey(userId, userRole, userName, roomId, reason, 
             userName,
             roomId: parsedRoomId,
             roomNumber: targetRoom.Room_Number,
+            reservationDate: cleanDate,
+            startTime: cleanStartTime,
+            endTime: cleanEndTime,
+            durationMinutes: calculatedDuration,
             reason: cleanReason
         },
         result: 'SUCCESS'
@@ -111,6 +234,7 @@ async function requestAdditionalKey(userId, userRole, userName, roomId, reason, 
                     ? activeKeys.map(k => `Room ${k.Room_Number}`).join(', ')
                     : 'None';
                 const reviewLink = `${appConfig.APP_URL}/it-head-dashboard.html`;
+                const dateDisplay = `${cleanDate} (${cleanStartTime.slice(0, 5)} – ${cleanEndTime.slice(0, 5)})`;
 
                 for (const head of deptHeads) {
                     if (head.Email) {
@@ -121,7 +245,7 @@ async function requestAdditionalKey(userId, userRole, userName, roomId, reason, 
                             heldRooms: heldStr,
                             reason: cleanReason,
                             reviewLink,
-                            requestedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            requestedAt: dateDisplay
                         });
                     }
                 }
@@ -133,15 +257,28 @@ async function requestAdditionalKey(userId, userRole, userName, roomId, reason, 
 
     return {
         status: 201,
-        message: `Key request for Room ${targetRoom.Room_Number} submitted successfully to the Department Head.`,
+        message: `Advance reservation request for Room ${targetRoom.Room_Number} on ${cleanDate} (${cleanStartTime.slice(0, 5)} – ${cleanEndTime.slice(0, 5)}) submitted successfully to the Department Head.`,
         data: {
             requestId,
             roomId: parsedRoomId,
             roomNumber: targetRoom.Room_Number,
+            reservationDate: cleanDate,
+            startTime: cleanStartTime,
+            endTime: cleanEndTime,
+            durationMinutes: calculatedDuration,
             reason: cleanReason,
             status: 'PENDING'
         }
     };
+}
+
+function toLocalDateString(d) {
+    if (!d) return null;
+    if (typeof d === 'string') return d.split('T')[0];
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
 }
 
 /**
@@ -170,6 +307,35 @@ async function getFacultyRequestStatus(userId) {
     if (request) {
         request.heldCount = heldCount;
         request.heldRooms = heldList;
+
+        if (request.Reservation_Date && request.Start_Time && request.End_Time) {
+            const resDateStr = toLocalDateString(request.Reservation_Date);
+            const startTimeStr = String(request.Start_Time).slice(0, 5);
+            const endTimeStr = String(request.End_Time).slice(0, 5);
+
+            request.Reservation_Date_Str = resDateStr;
+            request.Start_Time_Str = startTimeStr;
+            request.End_Time_Str = endTimeStr;
+
+            const [sh, sm] = startTimeStr.split(':').map(Number);
+            const [eh, em] = endTimeStr.split(':').map(Number);
+            const [yr, mo, da] = resDateStr.split('-').map(Number);
+
+            const pickupStart = new Date(yr, mo - 1, da, sh, sm, 0);
+            pickupStart.setMinutes(pickupStart.getMinutes() - 15); // 15-minute early pickup buffer
+
+            const pickupEnd = new Date(yr, mo - 1, da, eh, em, 0);
+
+            const now = new Date();
+            request.isPickupReady = (request.Status === 'APPROVED' && now >= pickupStart && now <= pickupEnd);
+            request.isFutureReservation = (request.Status === 'APPROVED' && now < pickupStart);
+            request.isExpired = (now > pickupEnd && request.Status !== 'CLAIMED' && request.Status !== 'COMPLETED');
+            request.Pickup_Opens_At = pickupStart.toISOString();
+        } else {
+            request.isPickupReady = request.Status === 'APPROVED';
+            request.isFutureReservation = false;
+        }
+
         return {
             status: 200,
             data: request
@@ -215,7 +381,7 @@ async function getPendingRequestsForDeptHead(userId, userRole) {
 /**
  * Approve a pending key authorization request.
  */
-async function approveRequest(requestId, approvedBy, userRole, durationMinutes = 120, req = null) {
+async function approveRequest(requestId, approvedBy, userRole, durationMinutes = null, req = null) {
     if (!approvedBy) {
         return { status: 401, error: 'Authentication required' };
     }
@@ -229,11 +395,10 @@ async function approveRequest(requestId, approvedBy, userRole, durationMinutes =
         return { status: 400, error: 'Valid Request ID is required.' };
     }
 
-    const parsedDuration = Math.max(15, Math.min(1440, Number(durationMinutes) || 120));
-    const expiresAt = new Date(Date.now() + parsedDuration * 60 * 1000);
-
     const connection = await db.getConnection();
     let requestInfo = null;
+    let expiresAt = null;
+    let finalDuration = 120;
 
     try {
         await connection.beginTransaction();
@@ -254,7 +419,29 @@ async function approveRequest(requestId, approvedBy, userRole, durationMinutes =
             };
         }
 
-        await keyAuthRepo.approveRequest(parsedRequestId, approvedBy, parsedDuration, expiresAt, connection);
+        // Set expiresAt to the reservation date and end time
+        if (requestInfo.Reservation_Date && requestInfo.End_Time) {
+            const dateStr = toLocalDateString(requestInfo.Reservation_Date);
+            const [eh, em, es] = String(requestInfo.End_Time).split(':').map(Number);
+            const [yr, mo, da] = dateStr.split('-').map(Number);
+            expiresAt = new Date(yr, mo - 1, da, eh, em || 0, es || 0);
+
+            if (requestInfo.Duration_Minutes) {
+                finalDuration = requestInfo.Duration_Minutes;
+            }
+
+            if (expiresAt <= new Date()) {
+                const parsedDuration = Math.max(15, Math.min(1440, Number(durationMinutes) || 120));
+                finalDuration = parsedDuration;
+                expiresAt = new Date(Date.now() + parsedDuration * 60 * 1000);
+            }
+        } else {
+            const parsedDuration = Math.max(15, Math.min(1440, Number(durationMinutes) || 120));
+            finalDuration = parsedDuration;
+            expiresAt = new Date(Date.now() + parsedDuration * 60 * 1000);
+        }
+
+        await keyAuthRepo.approveRequest(parsedRequestId, approvedBy, finalDuration, expiresAt, connection);
         await connection.commit();
     } catch (err) {
         await connection.rollback();
@@ -275,8 +462,9 @@ async function approveRequest(requestId, approvedBy, userRole, durationMinutes =
             requesterName: requestInfo.Requester_Name,
             roomId: requestInfo.Room_ID,
             roomNumber: requestInfo.Room_Number,
-            durationMinutes: parsedDuration,
-            expiresAt: expiresAt.toISOString()
+            reservationDate: requestInfo.Reservation_Date,
+            durationMinutes: finalDuration,
+            expiresAt: expiresAt ? expiresAt.toISOString() : null
         },
         result: 'SUCCESS'
     });
@@ -291,7 +479,7 @@ async function approveRequest(requestId, approvedBy, userRole, durationMinutes =
                     status: 'APPROVED',
                     roomNumber: requestInfo.Room_Number,
                     approverName: (approverRows && approverRows.length > 0) ? approverRows[0].Name : 'IT Department Head',
-                    durationMinutes: parsedDuration,
+                    durationMinutes: finalDuration,
                     actionLink: `${appConfig.APP_URL}/room-status.html`
                 });
             }
@@ -302,12 +490,12 @@ async function approveRequest(requestId, approvedBy, userRole, durationMinutes =
 
     return {
         status: 200,
-        message: `Key request for Room ${requestInfo.Room_Number} approved for ${requestInfo.Requester_Name} (${parsedDuration} minutes).`,
+        message: `Key request for Room ${requestInfo.Room_Number} approved for ${requestInfo.Requester_Name}.`,
         data: {
             requestId: parsedRequestId,
             status: 'APPROVED',
-            durationMinutes: parsedDuration,
-            expiresAt: expiresAt.toISOString()
+            durationMinutes: finalDuration,
+            expiresAt: expiresAt ? expiresAt.toISOString() : null
         }
     };
 }
@@ -412,6 +600,55 @@ async function rejectRequest(requestId, approvedBy, userRole, rejectionReason = 
 }
 
 /**
+ * Cancel a pending or approved key reservation request.
+ */
+async function cancelRequest(requestId, userId, userRole, req = null) {
+    if (!userId) {
+        return { status: 401, error: 'Authentication required' };
+    }
+
+    const parsedRequestId = Number(requestId);
+    if (!Number.isInteger(parsedRequestId) || parsedRequestId <= 0) {
+        return { status: 400, error: 'Valid Request ID is required.' };
+    }
+
+    const [rows] = await keyAuthRepo.findById(parsedRequestId);
+    if (!rows || rows.length === 0) {
+        return { status: 404, error: 'Reservation request not found.' };
+    }
+
+    const requestInfo = rows[0];
+    if (requestInfo.User_ID !== userId && userRole !== 'IT Dept. Head') {
+        return { status: 403, error: 'You are not authorized to cancel this reservation.' };
+    }
+
+    if (requestInfo.Status === 'CLAIMED' || requestInfo.Status === 'COMPLETED') {
+        return { status: 400, error: 'Cannot cancel a reservation that has already been claimed or completed.' };
+    }
+
+    await keyAuthRepo.cancelRequest(parsedRequestId, requestInfo.User_ID);
+
+    await auditService.logSecurityEvent({
+        req,
+        action: 'KEY_RESERVATION_CANCELLED',
+        resourceType: 'LAB_KEY',
+        resourceId: parsedRequestId,
+        details: {
+            requestId: parsedRequestId,
+            userId,
+            roomId: requestInfo.Room_ID,
+            roomNumber: requestInfo.Room_Number
+        },
+        result: 'SUCCESS'
+    });
+
+    return {
+        status: 200,
+        message: `Reservation for Room ${requestInfo.Room_Number} has been cancelled.`
+    };
+}
+
+/**
  * Check if a user has an active, approved authorization to claim a specific room's key.
  */
 async function checkActiveApproval(userId, roomId, executor = db) {
@@ -429,12 +666,68 @@ async function checkActiveApprovalByRoomNumber(userId, roomNumber, executor = db
     return (rows && rows.length > 0) ? rows[0] : null;
 }
 
+/**
+ * Get room availability & conflict status for a specific date and time window.
+ */
+async function getRoomAvailability(reservationDate, startTime, endTime) {
+    const todayStr = getTodayDateString();
+    let cleanDate = reservationDate ? String(reservationDate).trim() : todayStr;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanDate)) {
+        cleanDate = todayStr;
+    }
+
+    let cleanStartTime = startTime ? String(startTime).trim() : '08:00:00';
+    if (!/^\d{1,2}:\d{2}(:\d{2})?$/.test(cleanStartTime)) cleanStartTime = '08:00:00';
+    if (cleanStartTime.length === 5) cleanStartTime += ':00';
+
+    let cleanEndTime = endTime ? String(endTime).trim() : '10:00:00';
+    if (!/^\d{1,2}:\d{2}(:\d{2})?$/.test(cleanEndTime)) cleanEndTime = '10:00:00';
+    if (cleanEndTime.length === 5) cleanEndTime += ':00';
+
+    const [conflicts] = await keyAuthRepo.findAllRoomConflicts(cleanDate, cleanStartTime, cleanEndTime);
+
+    const rooms = {};
+    (conflicts || []).forEach(row => {
+        const rId = row.Room_ID;
+        const isReserved = row.Status === 'APPROVED' || row.Status === 'CLAIMED';
+        // Priority: If already marked RESERVED, keep RESERVED. Otherwise if PENDING, upgrade to RESERVED if this row is approved/claimed.
+        if (!rooms[rId] || isReserved) {
+            rooms[rId] = {
+                roomId: rId,
+                roomNumber: row.Room_Number,
+                building: row.Building,
+                status: isReserved ? 'RESERVED' : 'PENDING',
+                label: isReserved ? 'Reserved' : 'Pending',
+                badgeClass: isReserved ? 'is-reserved-badge' : 'is-pending-badge',
+                requesterName: row.Requester_Name,
+                startTime: String(row.Start_Time).slice(0, 5),
+                endTime: String(row.End_Time).slice(0, 5),
+                requestId: row.Request_ID
+            };
+        }
+    });
+
+    return {
+        status: 200,
+        data: {
+            date: cleanDate,
+            startTime: cleanStartTime.slice(0, 5),
+            endTime: cleanEndTime.slice(0, 5),
+            rooms
+        }
+    };
+}
+
 module.exports = {
+    getMaxAllowedReservationDate,
+    getTodayDateString,
     requestAdditionalKey,
     getFacultyRequestStatus,
     getPendingRequestsForDeptHead,
     approveRequest,
     rejectRequest,
+    cancelRequest,
     checkActiveApproval,
-    checkActiveApprovalByRoomNumber
+    checkActiveApprovalByRoomNumber,
+    getRoomAvailability
 };

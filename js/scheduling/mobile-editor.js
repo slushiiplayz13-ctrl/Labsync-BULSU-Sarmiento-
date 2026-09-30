@@ -148,14 +148,18 @@
       }, 330);
     }
 
-    // Restore floating dock if not in active placement mode
+    // Restore floating dock if not in active placement mode AND on mobile (<= 1024px)
     const dock = document.getElementById('mobile-editor-dock');
     if (dock) {
-      const isPlacing = (global.tapToPlaceEngine && typeof global.tapToPlaceEngine.getState === 'function')
-        ? (global.tapToPlaceEngine.getState().mode !== 'idle')
-        : false;
-      if (!isPlacing) {
-        dock.style.setProperty('display', 'flex', 'important');
+      if (window.innerWidth <= 1024) {
+        const isPlacing = (global.tapToPlaceEngine && typeof global.tapToPlaceEngine.getState === 'function')
+          ? (global.tapToPlaceEngine.getState().mode !== 'idle')
+          : false;
+        if (!isPlacing) {
+          dock.style.setProperty('display', 'flex', 'important');
+        }
+      } else {
+        dock.style.setProperty('display', 'none', 'important');
       }
     }
   }
@@ -332,10 +336,21 @@
       // Desktop: restore panel and reset sheet states
       restorePanelToDesktop();
       closeSheet();
+      const dock = document.getElementById('mobile-editor-dock');
+      if (dock) dock.style.setProperty('display', 'none', 'important');
+      const bar = document.getElementById('mobile-placement-bar');
+      if (bar) bar.style.setProperty('display', 'none', 'important');
+      const backdrop = document.getElementById('mobile-sheet-backdrop');
+      if (backdrop) backdrop.style.setProperty('display', 'none', 'important');
       const createFormSection = document.querySelector('.editor-create-form-section');
       const availableBlocksSection = document.querySelector('.available-blocks-section');
       if (createFormSection) createFormSection.style.display = '';
       if (availableBlocksSection) availableBlocksSection.style.display = '';
+    } else {
+      const dock = document.getElementById('mobile-editor-dock');
+      if (dock && !document.body.classList.contains('mobile-sheet-active')) {
+        dock.style.setProperty('display', 'flex', 'important');
+      }
     }
   }
 
@@ -351,6 +366,15 @@
 
     initDayTabs();
     initMobileDockAndSheet();
+
+    if (window.innerWidth > 1024) {
+      const dock = document.getElementById('mobile-editor-dock');
+      if (dock) dock.style.setProperty('display', 'none', 'important');
+      const bar = document.getElementById('mobile-placement-bar');
+      if (bar) bar.style.setProperty('display', 'none', 'important');
+      const backdrop = document.getElementById('mobile-sheet-backdrop');
+      if (backdrop) backdrop.style.setProperty('display', 'none', 'important');
+    }
 
     window.addEventListener('resize', handleResize);
 

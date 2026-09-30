@@ -198,7 +198,7 @@
           border: ${cardBorder};
           border-radius: 20px;
           padding: 28px 24px 22px 24px;
-          max-width: 420px;
+          max-width: 440px;
           width: 100%;
           box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08);
           display: flex;
@@ -244,38 +244,52 @@
 
           <div style="
             display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 10px;
+            align-items: stretch;
+            justify-content: center;
+            gap: 12px;
             width: 100%;
           ">
             <button type="button" class="btn-confirm-cancel" style="
               flex: 1;
-              padding: 10px 16px;
+              min-height: 44px;
+              padding: 10px 14px;
               border-radius: 12px;
               background: ${cancelBg};
               color: ${cancelTextColor};
               border: ${cancelBorder};
-              font-size: 13.5px;
+              font-size: 13px;
               font-weight: 600;
               cursor: pointer;
               transition: all 0.2s ease;
               font-family: inherit;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+              white-space: nowrap;
+              box-sizing: border-box;
             ">${escapeFn(config.cancelText)}</button>
 
             <button type="button" class="btn-confirm-ok" style="
               flex: 1;
-              padding: 10px 16px;
+              min-height: 44px;
+              padding: 10px 14px;
               border-radius: 12px;
               background: ${confirmBtnBg};
               color: #FFFFFF;
               border: none;
-              font-size: 13.5px;
+              font-size: 13px;
               font-weight: 700;
               cursor: pointer;
               box-shadow: ${confirmBtnShadow};
               transition: all 0.2s ease;
               font-family: inherit;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+              white-space: nowrap;
+              box-sizing: border-box;
             ">${escapeFn(config.confirmText)}</button>
           </div>
         </div>

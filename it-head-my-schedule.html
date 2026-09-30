@@ -343,6 +343,40 @@
 
       <!-- Right Profile -->
       <div class="header-right">
+        <!-- Key Authorization Requests Button -->
+        <button class="header-key-requests-btn" id="btnHeaderKeyRequests" title="Key Authorization Requests" aria-label="Key Authorization Requests" aria-haspopup="true" aria-expanded="false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="lucide lucide-key-round" data-lucide="key-round">
+            <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" />
+            <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
+          </svg>
+          <span class="key-requests-btn-label">Key Requests</span>
+          <span class="key-requests-btn-badge" id="headerKeyRequestsBadge" style="display: none;">0</span>
+        </button>
+
+        <!-- Key Authorization Requests Dropdown Menu -->
+        <div id="key-requests-menu" class="notif-menu key-requests-menu" style="display: none;">
+          <div class="notif-header key-requests-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-key-round" data-lucide="key-round" style="color: #D97706;">
+                <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" />
+                <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
+              </svg>
+              <span class="notif-header-title">Key Authorizations</span>
+            </div>
+            <span class="key-requests-count-pill" id="keyRequestsDropdownCount">0 Pending</span>
+          </div>
+          <div class="key-requests-dropdown-list" id="keyRequestsDropdownList">
+            <div class="key-requests-empty-state">
+              <i data-lucide="check-check"></i>
+              <p>No pending key requests</p>
+            </div>
+          </div>
+        </div>
+
         <button class="notif-btn" title="Notifications">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -393,6 +427,16 @@
                 }
               }
               var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
+              var pendingKeyCount = parseInt(sessionStorage.getItem("labsync_dept_head_pending_key_count") || "0", 10);
+              var keyBtn = hr ? hr.querySelector("#btnHeaderKeyRequests") : null;
+              var keyBadge = hr ? hr.querySelector("#headerKeyRequestsBadge") : null;
+              if (pendingKeyCount > 0) {
+                if (keyBtn) keyBtn.classList.add("has-pending");
+                if (keyBadge) {
+                  keyBadge.style.display = "inline-flex";
+                  keyBadge.textContent = String(pendingKeyCount);
+                }
+              }
               var d = hr ? hr.querySelector(".notif-dot") : null;
               if (d) d.style.display = hasUnread ? "block" : "none";
             } catch (e) { }
@@ -513,6 +557,7 @@
   <script src="js/components/notifications.js"></script>
   <script src="js/components/custom-select.js"></script>
   <script src="js/components/sidebar-nav.js"></script>
+  <script src="js/components/dept-head-key-authorizations.js?v=1.0.0"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
   <script src="js/schedule.js"></script>

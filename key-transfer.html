@@ -235,8 +235,11 @@
               </div>
             </div>
 
-            <label for="reqReasonInput" class="kt-input-label">Justification / Reason:</label>
-            <textarea id="reqReasonInput" class="kt-textarea" rows="3" placeholder="e.g., Simultaneous lab session, dual examination proctoring, emergency lab change..."></textarea>
+            <div class="kt-label-row">
+              <label for="reqReasonInput" class="kt-input-label">Justification / Reason:</label>
+              <span class="kt-char-counter" id="reqReasonCharCount" aria-live="polite">0 / 150</span>
+            </div>
+            <textarea id="reqReasonInput" class="kt-textarea" rows="3" maxlength="150" placeholder="e.g., Simultaneous lab session, dual examination proctoring, emergency lab change..."></textarea>
             <div class="kt-hint">
               <i data-lucide="info" class="kt-hint-icon"></i>
               <span>Department Head will receive an instant notification to review and approve.</span>

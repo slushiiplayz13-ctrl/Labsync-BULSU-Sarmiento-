@@ -34,6 +34,12 @@ router.post('/requests/:requestId/approve', requireAuth, requireRole(['IT Dept. 
 // POST /api/keys/requests/:requestId/reject — IT Dept Head declines multi-key request
 router.post('/requests/:requestId/reject', requireAuth, requireRole(['IT Dept. Head']), keyAuthController.rejectRequest);
 
+// POST /api/keys/requests/:requestId/cancel — Faculty or Dept Head cancels a key reservation
+router.post('/requests/:requestId/cancel', requireAuth, requireRole(KEY_TRANSFER_ROLES), keyAuthController.cancelRequest);
+
+// GET /api/keys/room-availability — Check reservation status of rooms for a date/time window
+router.get('/room-availability', requireAuth, keyAuthController.getRoomAvailability);
+
 
 // ─── 2. MIS STAFF KEY INVENTORY ENDPOINTS ─────────────────────────────────────
 // GET /api/keys — List all registered laboratory keys and summary statistics

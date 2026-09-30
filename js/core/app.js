@@ -22,6 +22,9 @@
     if (typeof global.initNotifications === 'function') {
       global.initNotifications();
     }
+    if (typeof global.initDeptHeadKeyAuthorizations === 'function') {
+      global.initDeptHeadKeyAuthorizations();
+    }
     if (typeof global.initHelpButtons === 'function') {
       global.initHelpButtons();
     }

@@ -2447,7 +2447,11 @@ html.high-contrast .calendar-grid-body {
     box-sizing: border-box !important;
   }
 
-  html.dark-mode #create-block-panel {
+  html.high-contrast #create-block-panel,
+  body.high-contrast #create-block-panel,
+  html.dark-mode #create-block-panel,
+  body.dark-mode #create-block-panel,
+  [data-theme="dark"] #create-block-panel {
     background: #0F172A !important;
     border-color: rgba(255, 255, 255, 0.12) !important;
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6) !important;
@@ -2475,7 +2479,11 @@ html.high-contrast .calendar-grid-body {
     background: #CBD5E1 !important;
   }
 
-  html.dark-mode .sheet-drag-handle {
+  html.high-contrast .sheet-drag-handle,
+  body.high-contrast .sheet-drag-handle,
+  html.dark-mode .sheet-drag-handle,
+  body.dark-mode .sheet-drag-handle,
+  [data-theme="dark"] .sheet-drag-handle {
     background: #475569 !important;
   }
 
@@ -2490,8 +2498,13 @@ html.high-contrast .calendar-grid-body {
     box-sizing: border-box !important;
   }
 
-  html.dark-mode .mobile-sheet-tabs {
+  html.high-contrast .mobile-sheet-tabs,
+  body.high-contrast .mobile-sheet-tabs,
+  html.dark-mode .mobile-sheet-tabs,
+  body.dark-mode .mobile-sheet-tabs,
+  [data-theme="dark"] .mobile-sheet-tabs {
     background: #1E293B !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
   }
 
   .mobile-sheet-tab {
@@ -2511,6 +2524,22 @@ html.high-contrast .calendar-grid-body {
     transition: all 0.2s ease !important;
   }
 
+  html.high-contrast .mobile-sheet-tab,
+  body.high-contrast .mobile-sheet-tab,
+  html.dark-mode .mobile-sheet-tab,
+  body.dark-mode .mobile-sheet-tab,
+  [data-theme="dark"] .mobile-sheet-tab {
+    color: #94A3B8 !important;
+  }
+
+  html.high-contrast .mobile-sheet-tab:hover,
+  body.high-contrast .mobile-sheet-tab:hover,
+  html.dark-mode .mobile-sheet-tab:hover,
+  body.dark-mode .mobile-sheet-tab:hover,
+  [data-theme="dark"] .mobile-sheet-tab:hover {
+    color: #F8FAFC !important;
+  }
+
   .mobile-sheet-tab svg,
   .mobile-sheet-tab i {
     width: 14px !important;
@@ -2524,9 +2553,14 @@ html.high-contrast .calendar-grid-body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
   }
 
-  html.dark-mode .mobile-sheet-tab.active {
+  html.high-contrast .mobile-sheet-tab.active,
+  body.high-contrast .mobile-sheet-tab.active,
+  html.dark-mode .mobile-sheet-tab.active,
+  body.dark-mode .mobile-sheet-tab.active,
+  [data-theme="dark"] .mobile-sheet-tab.active {
     background: #0F172A !important;
     color: #38BDF8 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
   }
 
   .sheet-close-btn {
@@ -2620,7 +2654,11 @@ html.high-contrast .calendar-grid-body {
     opacity: 1 !important;
   }
 
-  html.dark-mode #blocks-container .schedule-block {
+  html.high-contrast #blocks-container .schedule-block,
+  body.high-contrast #blocks-container .schedule-block,
+  html.dark-mode #blocks-container .schedule-block,
+  body.dark-mode #blocks-container .schedule-block,
+  [data-theme="dark"] #blocks-container .schedule-block {
     background: #0284c7 !important;
     color: #FFFFFF !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
@@ -2657,198 +2695,256 @@ html.high-contrast .calendar-grid-body {
     background: rgba(239, 68, 68, 0.85) !important;
   }
 
-  /* ─── Mobile Bottom Sheet Backdrop ─── */
+  /* ─── Mobile Schedule Editor Controls (Strictly Hidden on Desktop > 1024px) ─── */
+  #mobile-editor-dock,
+  .mobile-editor-dock,
+  #mobile-placement-bar,
+  .mobile-placement-bar,
+  #mobile-sheet-backdrop,
   .mobile-sheet-backdrop {
-    position: fixed !important;
-    inset: 0 !important;
-    background: rgba(15, 23, 42, 0.5) !important;
-    backdrop-filter: blur(4px) !important;
-    -webkit-backdrop-filter: blur(4px) !important;
-    z-index: 10001 !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transition: opacity 0.28s ease !important;
-  }
-
-  .mobile-sheet-backdrop.active {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-  }
-
-  /* Instantly unblur and dismiss backdrop & drawer during drag & drop */
-  body.dragging-active .mobile-sheet-backdrop,
-  body.dragging-active #mobile-sheet-backdrop,
-  body.dragging-active .mobile-sheet-backdrop.active {
     display: none !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    visibility: hidden !important;
-    transition: none !important;
   }
 
-  body.dragging-active #create-block-panel {
-    transform: translateY(120%) !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    transition: none !important;
+  @media (max-width: 1024px) {
+    /* ─── Mobile Bottom Sheet Backdrop ─── */
+    .mobile-sheet-backdrop {
+      position: fixed !important;
+      inset: 0 !important;
+      background: rgba(15, 23, 42, 0.5) !important;
+      backdrop-filter: blur(4px) !important;
+      -webkit-backdrop-filter: blur(4px) !important;
+      z-index: 10001 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.28s ease !important;
+      display: block !important;
+    }
+
+    .mobile-sheet-backdrop.active {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+
+    /* Instantly unblur and dismiss backdrop & drawer during drag & drop */
+    body.dragging-active .mobile-sheet-backdrop,
+    body.dragging-active #mobile-sheet-backdrop,
+    body.dragging-active .mobile-sheet-backdrop.active {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      visibility: hidden !important;
+      transition: none !important;
+    }
+
+    body.dragging-active #create-block-panel {
+      transform: translateY(120%) !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transition: none !important;
+    }
+
+    /* ─── Mobile Floating Dock ─── */
+    #mobile-editor-dock {
+      position: fixed !important;
+      bottom: 82px !important;
+      bottom: calc(70px + 12px + env(safe-area-inset-bottom, 0px)) !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      z-index: 9999 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 6px 10px !important;
+      background: rgba(255, 255, 255, 0.94) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border: 1.5px solid rgba(226, 232, 240, 0.9) !important;
+      border-radius: 30px !important;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06) !important;
+      white-space: nowrap !important;
+    }
+
+    html.high-contrast #mobile-editor-dock,
+    body.high-contrast #mobile-editor-dock,
+    html.dark-mode #mobile-editor-dock,
+    body.dark-mode #mobile-editor-dock,
+    [data-theme="dark"] #mobile-editor-dock {
+      background: rgba(15, 23, 42, 0.94) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .mobile-dock-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      padding: 8px 14px !important;
+      border-radius: 20px !important;
+      border: 1px solid var(--border-light, #E2E8F0) !important;
+      background: #FFFFFF !important;
+      color: var(--text-dark, #0F172A) !important;
+      font-size: 12.5px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+    }
+
+    html.high-contrast .mobile-dock-btn,
+    body.high-contrast .mobile-dock-btn,
+    html.dark-mode .mobile-dock-btn,
+    body.dark-mode .mobile-dock-btn,
+    [data-theme="dark"] .mobile-dock-btn {
+      background: #1E293B !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+      color: #F8FAFC !important;
+    }
+
+    html.high-contrast .mobile-dock-btn:hover,
+    body.high-contrast .mobile-dock-btn:hover,
+    html.dark-mode .mobile-dock-btn:hover,
+    body.dark-mode .mobile-dock-btn:hover,
+    [data-theme="dark"] .mobile-dock-btn:hover {
+      background: #273549 !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
+      color: #FFFFFF !important;
+    }
+
+    .mobile-dock-btn svg,
+    .mobile-dock-btn i {
+      width: 15px !important;
+      height: 15px !important;
+    }
+
+    .mobile-dock-btn-primary {
+      background: var(--primary-teal, #1ebbd7) !important;
+      color: #FFFFFF !important;
+      border-color: var(--primary-teal, #1ebbd7) !important;
+      box-shadow: 0 4px 12px rgba(30, 187, 215, 0.35) !important;
+    }
+
+    html.high-contrast .mobile-dock-btn-primary,
+    body.high-contrast .mobile-dock-btn-primary,
+    html.dark-mode .mobile-dock-btn-primary,
+    body.dark-mode .mobile-dock-btn-primary,
+    [data-theme="dark"] .mobile-dock-btn-primary {
+      background: #0284c7 !important;
+      border-color: #38bdf8 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4) !important;
+    }
+
+    /* ─── Mobile Placement Action Bar ─── */
+    #mobile-placement-bar {
+      position: fixed !important;
+      bottom: 82px !important;
+      bottom: calc(70px + 12px + env(safe-area-inset-bottom, 0px)) !important;
+      left: 14px !important;
+      right: 14px !important;
+      z-index: 10000 !important;
+      display: none;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 12px !important;
+      padding: 10px 14px !important;
+      background: #0F172A !important;
+      color: #FFFFFF !important;
+      border-radius: 16px !important;
+      box-shadow: 0 12px 35px rgba(15, 23, 42, 0.35) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      animation: placementBarSlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    }
+
+    @keyframes placementBarSlideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .mpb-content {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      min-width: 0 !important;
+      flex: 1 1 auto !important;
+    }
+
+    .mpb-badge {
+      padding: 3px 8px !important;
+      border-radius: 6px !important;
+      font-size: 10px !important;
+      font-weight: 800 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.5px !important;
+      background: var(--primary-teal, #1ebbd7) !important;
+      color: #FFFFFF !important;
+      flex-shrink: 0 !important;
+    }
+
+    .mpb-badge.moving {
+      background: #F59E0B !important;
+    }
+
+    .mpb-text {
+      display: flex !important;
+      flex-direction: column !important;
+      min-width: 0 !important;
+      gap: 1px !important;
+    }
+
+    .mpb-title {
+      font-size: 12.5px !important;
+      font-weight: 700 !important;
+      color: #FFFFFF !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .mpb-hint {
+      font-size: 11px !important;
+      color: #94A3B8 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .mpb-cancel-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+      background: rgba(255, 255, 255, 0.16) !important;
+      color: #FFFFFF !important;
+      border: none !important;
+      padding: 6px 12px !important;
+      border-radius: 10px !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      flex-shrink: 0 !important;
+      transition: background 0.2s ease !important;
+    }
+
+    .mpb-cancel-btn:hover {
+      background: rgba(239, 68, 68, 0.8) !important;
+    }
   }
 
-  /* ─── Mobile Floating Dock ─── */
-  #mobile-editor-dock {
-    position: fixed !important;
-    bottom: 82px !important;
-    bottom: calc(70px + 12px + env(safe-area-inset-bottom, 0px)) !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    z-index: 9999 !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    padding: 6px 10px !important;
-    background: rgba(255, 255, 255, 0.94) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1.5px solid rgba(226, 232, 240, 0.9) !important;
-    border-radius: 30px !important;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06) !important;
-    white-space: nowrap !important;
-  }
-
-  html.dark-mode #mobile-editor-dock {
-    background: rgba(15, 23, 42, 0.94) !important;
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
-  }
-
-  .mobile-dock-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    padding: 8px 14px !important;
-    border-radius: 20px !important;
-    border: 1px solid var(--border-light, #E2E8F0) !important;
-    background: #FFFFFF !important;
-    color: var(--text-dark, #0F172A) !important;
-    font-size: 12.5px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-  }
-
-  html.dark-mode .mobile-dock-btn {
-    background: #1E293B !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    color: #F8FAFC !important;
-  }
-
-  .mobile-dock-btn svg,
-  .mobile-dock-btn i {
-    width: 15px !important;
-    height: 15px !important;
-  }
-
-  .mobile-dock-btn-primary {
-    background: var(--primary-teal, #1ebbd7) !important;
-    color: #FFFFFF !important;
-    border-color: var(--primary-teal, #1ebbd7) !important;
-    box-shadow: 0 4px 12px rgba(30, 187, 215, 0.35) !important;
-  }
-
-  /* ─── Mobile Placement Action Bar ─── */
-  #mobile-placement-bar {
-    position: fixed !important;
-    bottom: 82px !important;
-    bottom: calc(70px + 12px + env(safe-area-inset-bottom, 0px)) !important;
-    left: 14px !important;
-    right: 14px !important;
-    z-index: 10000 !important;
-    display: none;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 12px !important;
-    padding: 10px 14px !important;
-    background: #0F172A !important;
-    color: #FFFFFF !important;
-    border-radius: 16px !important;
-    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.35) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    animation: placementBarSlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) both !important;
-  }
-
-  @keyframes placementBarSlideUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .mpb-content {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-    min-width: 0 !important;
-    flex: 1 1 auto !important;
-  }
-
-  .mpb-badge {
-    padding: 3px 8px !important;
-    border-radius: 6px !important;
-    font-size: 10px !important;
-    font-weight: 800 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    background: var(--primary-teal, #1ebbd7) !important;
-    color: #FFFFFF !important;
-    flex-shrink: 0 !important;
-  }
-
-  .mpb-badge.moving {
-    background: #F59E0B !important;
-  }
-
-  .mpb-text {
-    display: flex !important;
-    flex-direction: column !important;
-    min-width: 0 !important;
-    gap: 1px !important;
-  }
-
-  .mpb-title {
-    font-size: 12.5px !important;
-    font-weight: 700 !important;
-    color: #FFFFFF !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .mpb-hint {
-    font-size: 11px !important;
-    color: #94A3B8 !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .mpb-cancel-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 5px !important;
-    background: rgba(255, 255, 255, 0.16) !important;
-    color: #FFFFFF !important;
-    border: none !important;
-    padding: 6px 12px !important;
-    border-radius: 10px !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    flex-shrink: 0 !important;
-    transition: background 0.2s ease !important;
-  }
-
-  .mpb-cancel-btn:hover {
-    background: rgba(239, 68, 68, 0.8) !important;
+  @media (min-width: 1025px) {
+    #mobile-editor-dock,
+    .mobile-editor-dock,
+    #mobile-placement-bar,
+    .mobile-placement-bar,
+    #mobile-sheet-backdrop,
+    .mobile-sheet-backdrop,
+    #mobile-day-tabs,
+    .schedule-day-tabs,
+    .mobile-sheet-header {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
   }
 
   /* ─── Card Moving & Duration Presets ─── */
@@ -2869,7 +2965,11 @@ html.high-contrast .calendar-grid-body {
     transition: all 0.2s ease !important;
   }
 
-  html.dark-mode .duration-chip {
+  html.high-contrast .duration-chip,
+  body.high-contrast .duration-chip,
+  html.dark-mode .duration-chip,
+  body.dark-mode .duration-chip,
+  [data-theme="dark"] .duration-chip {
     background: #1E293B !important;
     border-color: rgba(255, 255, 255, 0.1) !important;
     color: #E2E8F0 !important;

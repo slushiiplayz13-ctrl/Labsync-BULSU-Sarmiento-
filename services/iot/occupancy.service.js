@@ -280,11 +280,36 @@ async function logOccupancy(reqBody = {}, device = null) {
 
         const hasAuthorization = (approvedRows && approvedRows.length > 0) || (anyAuthRows && anyAuthRows.length > 0);
         if (!hasAuthorization) {
+            // Check if user has an upcoming approved reservation that is not yet ready for pickup
+            const [upcomingRows] = await db.query(
+                `SELECT r.*, lab.Room_Number 
+                 FROM key_authorization_requests r
+                 JOIN laboratories lab ON r.Room_ID = lab.Room_ID
+                 WHERE r.User_ID = ? AND r.Status = 'APPROVED'
+                   AND (r.Reservation_Date > CURDATE() OR (r.Reservation_Date = CURDATE() AND r.End_Time >= CURTIME()))
+                 ORDER BY r.Reservation_Date ASC, r.Start_Time ASC LIMIT 1`,
+                [user.User_ID]
+            );
+
+            if (upcomingRows && upcomingRows.length > 0) {
+                const up = upcomingRows[0];
+                const upDate = up.Reservation_Date instanceof Date 
+                    ? up.Reservation_Date.toISOString().split('T')[0]
+                    : String(up.Reservation_Date).split('T')[0];
+                const timeStr = String(up.Start_Time).slice(0, 5);
+                return iotResponseService.createErrorResponse(
+                    403,
+                    `Your reservation for Room ${up.Room_Number} is scheduled for ${upDate} at ${timeStr}. Key pickup opens 15 minutes before class.`,
+                    'Pickup Not Yet',
+                    `Res: ${upDate}`.substring(0, 16)
+                );
+            }
+
             const heldRoom = activeKeys[0].Room_Number;
             console.warn(`[IoT QR Scan] Anti-Double-Tap Block: User "${user.Name}" (${user.Role}) already holds key for Room ${heldRoom}.`);
             return iotResponseService.createErrorResponse(
                 403,
-                `User already holds an active key for Room ${heldRoom}. Please return it before claiming another room, or request 2nd key approval from the Department Head.`,
+                `User already holds an active key for Room ${heldRoom}. Please return it before claiming another room, or reserve 2nd key approval from the Department Head.`,
                 'Return Key First',
                 `Hold Key RM ${heldRoom}`.substring(0, 16)
             );

@@ -316,119 +316,27 @@
 
   /**
    * Fetches and renders pending multi-key authorization requests for Dept Head.
+   * Delegates to dept-head-key-authorizations.js controller.
    */
   async function loadPendingKeyAuthorizations() {
-    const section = document.getElementById('pendingKeyRequestsSection');
-    const list = document.getElementById('pendingKeyRequestsList');
-    const badge = document.getElementById('pendingKeyCount');
-    if (!section || !list) return;
+    if (typeof global.loadPendingKeyAuthorizations === 'function' && global.loadPendingKeyAuthorizations !== loadPendingKeyAuthorizations) {
+      return await global.loadPendingKeyAuthorizations();
+    }
 
+    // Fallback if standalone component script is not present
+    const keyBtn = document.getElementById('btnHeaderKeyRequests');
+    const keyDot = document.getElementById('headerKeyRequestsDot');
     try {
       const response = await fetch('/api/keys/pending-requests', { credentials: 'include' });
       if (!response.ok) return;
       const requests = await response.json();
-
-      if (!Array.isArray(requests) || requests.length === 0) {
-        section.style.display = 'none';
-        return;
+      const count = Array.isArray(requests) ? requests.length : 0;
+      if (keyDot) {
+        keyDot.style.display = count > 0 ? 'block' : 'none';
       }
-
-      if (badge) badge.textContent = requests.length;
-      section.style.display = 'block';
-
-      list.innerHTML = requests.map(req => {
-        const initials = req.Requester_Name
-          ? req.Requester_Name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-          : 'U';
-        const photoHtml = req.Requester_Profile_Photo
-          ? `<img src="${escapeText(req.Requester_Profile_Photo)}" alt="${escapeText(req.Requester_Name)}">`
-          : initials;
-
-        const timeStr = req.Requested_At ? new Date(req.Requested_At).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-        const heldRooms = req.Currently_Held_Rooms ? `Holding Room ${escapeText(req.Currently_Held_Rooms)}` : 'No other key held';
-
-        return `
-          <div class="pending-req-card" data-request-id="${req.Request_ID}">
-            <div class="pending-req-top">
-              <div class="pending-req-avatar">${photoHtml}</div>
-              <div class="pending-req-user-info">
-                <h4 class="pending-req-name">${escapeText(req.Requester_Name)}</h4>
-                <p class="pending-req-role">${escapeText(req.Requester_Role || 'Faculty')}</p>
-              </div>
-              <span class="pending-req-time">${timeStr}</span>
-            </div>
-            <div class="pending-req-rooms">
-              <span class="pending-room-tag held">${escapeText(heldRooms)}</span>
-              <span>➔</span>
-              <span class="pending-room-tag requested">Requesting RM ${escapeText(req.Requested_Room_Number)}</span>
-            </div>
-            <div class="pending-req-reason">"${escapeText(req.Reason)}"</div>
-            <div class="pending-req-actions">
-              <button type="button" class="btn-pending-approve" data-id="${req.Request_ID}" data-room="${escapeText(req.Requested_Room_Number)}">
-                <i data-lucide="check" style="width:14px;height:14px;"></i> Approve (2 hrs)
-              </button>
-              <button type="button" class="btn-pending-decline" data-id="${req.Request_ID}" data-room="${escapeText(req.Requested_Room_Number)}">
-                <i data-lucide="x" style="width:14px;height:14px;"></i> Decline
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons();
+      if (keyBtn) {
+        keyBtn.classList.toggle('has-pending', count > 0);
       }
-
-      // Attach button event listeners
-      list.querySelectorAll('.btn-pending-approve').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const reqId = btn.getAttribute('data-id');
-          btn.disabled = true;
-          btn.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width:14px;height:14px;"></i> Approving...';
-          try {
-            const resp = await fetch(`/api/keys/requests/${reqId}/approve`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({ durationMinutes: 120 })
-            });
-            const resJson = await resp.json().catch(() => ({}));
-            if (!resp.ok) throw new Error(resJson.error || 'Failed to approve');
-            await loadPendingKeyAuthorizations();
-          } catch (err) {
-            alert(err.message || 'Approval failed');
-            btn.disabled = false;
-            btn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Approve (2 hrs)';
-          }
-        });
-      });
-
-      list.querySelectorAll('.btn-pending-decline').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const reqId = btn.getAttribute('data-id');
-          const reason = prompt('Optional: Reason for declining key request?', 'Room is currently unavailable or reserved.');
-          if (reason === null) return;
-
-          btn.disabled = true;
-          btn.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width:14px;height:14px;"></i> Declining...';
-          try {
-            const resp = await fetch(`/api/keys/requests/${reqId}/reject`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({ reason: reason || 'Declined by Department Head.' })
-            });
-            const resJson = await resp.json().catch(() => ({}));
-            if (!resp.ok) throw new Error(resJson.error || 'Failed to decline');
-            await loadPendingKeyAuthorizations();
-          } catch (err) {
-            alert(err.message || 'Decline failed');
-            btn.disabled = false;
-            btn.innerHTML = '<i data-lucide="x" style="width:14px;height:14px;"></i> Decline';
-          }
-        });
-      });
-
     } catch (e) {
       console.error('[ITHeadDashboard] Error loading pending key authorizations:', e);
     }
@@ -443,8 +351,10 @@
 
     loadITHeadDashboardData();
 
-    // Auto-poll for new pending key requests every 8 seconds
-    setInterval(loadPendingKeyAuthorizations, 8000);
+    // Auto-poll for new pending key requests every 8 seconds (only if not already managed by dept-head-key-authorizations.js)
+    if (typeof global.initDeptHeadKeyAuthorizations !== 'function') {
+      setInterval(loadPendingKeyAuthorizations, 8000);
+    }
   }
 
   // Expose globally

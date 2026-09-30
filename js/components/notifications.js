@@ -487,6 +487,13 @@
       const profileMenu = document.getElementById('profile-menu');
       if (profileMenu) profileMenu.style.display = 'none';
 
+      // Always close Key Requests menu so panels never overlap
+      const keyRequestsMenu = document.getElementById('key-requests-menu');
+      if (keyRequestsMenu) keyRequestsMenu.style.display = 'none';
+      if (typeof global.toggleKeyRequestsDropdown === 'function') {
+        global.toggleKeyRequestsDropdown(false);
+      }
+
       if (!isShowing) {
         if (window.innerWidth <= 1024) {
           // Centered horizontally on mobile & tablet devices
@@ -521,9 +528,14 @@
       });
     }
 
-    document.addEventListener('click', () => {
-      if (notifMenu) notifMenu.style.display = 'none';
-    });
+    // Close on outside click (capture phase ensures it closes even when another element calls stopPropagation)
+    document.addEventListener('click', (e) => {
+      if (notifMenu && notifMenu.style.display === 'block') {
+        if (!notifMenu.contains(e.target) && (!notifBtn || !notifBtn.contains(e.target))) {
+          notifMenu.style.display = 'none';
+        }
+      }
+    }, true);
 
     // Reposition notification dropdown and toast container dynamically on window resize
     window.addEventListener('resize', () => {

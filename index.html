@@ -18,7 +18,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
   <!-- External Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1.1.3" />
+  <link rel="stylesheet" href="style.css?v=1.1.6" />
   <link rel="stylesheet" href="css/tutorial.css" />
   <script src="js/auth-check.js"></script>
   <script src="js/utils/core-utils.js"></script>
@@ -344,9 +344,6 @@
             </script>
           </div>
 
-          <!-- Faculty Key Request Status Banner (Live Approved / Pending / Declined feedback) -->
-          <div id="facultyKeyStatusBanner" class="faculty-key-status-banner" style="display: none;"></div>
-
           <!-- Mobile/Tablet Workspace Tabs (<= 1024px) -->
           <div class="ithead-mobile-tabs" id="itheadMobileTabs" role="tablist" aria-label="Dashboard views">
             <button
@@ -392,15 +389,21 @@
                     </div>
                   </div>
                 </div>
-                <div class="sh-legend">
-                  <div class="legend-item">
-                    <div class="dot green"></div> Available
-                  </div>
-                  <div class="legend-item">
-                    <div class="dot orange"></div> Borrowed
-                  </div>
-                  <div class="legend-item">
-                    <div class="dot red"></div> In Session
+                <div class="sh-right" style="display: flex; align-items: center; gap: 12px;">
+                  <button type="button" class="btn-reserve-key-header" id="btnHeaderReserveKey" title="Reserve a second laboratory key in advance">
+                    <i data-lucide="calendar-plus" style="width: 14px; height: 14px;"></i>
+                    <span>Reserve 2nd Key</span>
+                  </button>
+                  <div class="sh-legend">
+                    <div class="legend-item">
+                      <div class="dot green"></div> Available
+                    </div>
+                    <div class="legend-item">
+                      <div class="dot orange"></div> Borrowed
+                    </div>
+                    <div class="legend-item">
+                      <div class="dot red"></div> In Session
+                    </div>
                   </div>
                 </div>
               </div>

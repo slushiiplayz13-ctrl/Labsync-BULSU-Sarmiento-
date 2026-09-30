@@ -149,7 +149,7 @@
         if (window.innerWidth <= 1024) {
           dock.style.setProperty('display', 'flex', 'important');
         } else {
-          dock.style.removeProperty('display');
+          dock.style.setProperty('display', 'none', 'important');
         }
       }
       return;
@@ -481,8 +481,8 @@
       const dock = document.getElementById('mobile-editor-dock');
       const bar = document.getElementById('mobile-placement-bar');
       if (window.innerWidth > 1024) {
-        if (dock) dock.style.removeProperty('display');
-        if (bar) bar.style.removeProperty('display');
+        if (dock) dock.style.setProperty('display', 'none', 'important');
+        if (bar) bar.style.setProperty('display', 'none', 'important');
       } else {
         if (placementState.mode === 'idle' && dock) {
           dock.style.setProperty('display', 'flex', 'important');

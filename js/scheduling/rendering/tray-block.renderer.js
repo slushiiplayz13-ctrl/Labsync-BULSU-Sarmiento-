@@ -20,21 +20,15 @@
     let emptyMsg = document.getElementById('no-blocks-msg');
     if (count === 0) {
       if (!emptyMsg) {
-        emptyMsg = document.createElement('div');
+        emptyMsg = document.createElement('p');
         emptyMsg.id = 'no-blocks-msg';
-        emptyMsg.className = 'ui-empty-state';
-        emptyMsg.style.cssText = 'padding: 24px 12px; margin: 0; min-height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1.5px dashed var(--border-light); border-radius: 12px;';
-        emptyMsg.innerHTML = `
-          <div class="ui-empty-icon" style="width: 36px; height: 36px; border-radius: 50%; background: #F1F5F9; color: #64748B; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
-            <i data-lucide="inbox" style="width: 18px; height: 18px;"></i>
-          </div>
-          <p style="font-size: 13px; font-weight: 600; color: var(--text-dark, #0F172A); margin: 0 0 2px 0;">No Available Subjects</p>
-          <p style="font-size: 11.5px; color: var(--text-muted, #94A3B8); margin: 0;">Create a block above or reset the grid.</p>
-        `;
+        emptyMsg.style.cssText = 'font-size: 11.5px; color: #94A3B8; font-weight: 500; text-align: center; line-height: 1.5; margin: 10px auto; width: 100%;';
+        emptyMsg.textContent = 'No blocks created yet. Create a block to start scheduling.';
         blocksContainer.appendChild(emptyMsg);
-        if (global.lucide && typeof global.lucide.createIcons === 'function') {
-          global.lucide.createIcons({ root: emptyMsg });
-        }
+      } else {
+        emptyMsg.className = '';
+        emptyMsg.style.cssText = 'font-size: 11.5px; color: #94A3B8; font-weight: 500; text-align: center; line-height: 1.5; margin: 10px auto; width: 100%;';
+        emptyMsg.textContent = 'No blocks created yet. Create a block to start scheduling.';
       }
     } else {
       if (emptyMsg) emptyMsg.remove();

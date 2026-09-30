@@ -181,13 +181,24 @@
     function toggleMenu(e) {
       e.stopPropagation();
       const isOpening = profileMenu.style.display !== 'block';
-      profileMenu.style.display = isOpening ? 'block' : 'none';
       if (isOpening) {
+        // Close notifications menu
+        const notifMenu = document.getElementById('notif-menu');
+        if (notifMenu) notifMenu.style.display = 'none';
+
+        // Close Key Requests menu so panels never overlap
+        const keyRequestsMenu = document.getElementById('key-requests-menu');
+        if (keyRequestsMenu) keyRequestsMenu.style.display = 'none';
+        if (typeof global.toggleKeyRequestsDropdown === 'function') {
+          global.toggleKeyRequestsDropdown(false);
+        }
+
         syncDarkModeUI();
         if (global.lucide && typeof global.lucide.createIcons === 'function') {
           global.lucide.createIcons({ root: profileMenu });
         }
       }
+      profileMenu.style.display = isOpening ? 'block' : 'none';
     }
 
     profileDropdown.addEventListener('click', toggleMenu);
@@ -195,9 +206,14 @@
       chevronBtn.addEventListener('click', toggleMenu);
     }
 
-    document.addEventListener('click', () => {
-      profileMenu.style.display = 'none';
-    });
+    // Close on outside click (capture phase ensures it closes even when another element calls stopPropagation)
+    document.addEventListener('click', (e) => {
+      if (profileMenu && profileMenu.style.display === 'block') {
+        if (!profileMenu.contains(e.target) && (!profileDropdown || !profileDropdown.contains(e.target)) && (!chevronBtn || !chevronBtn.contains(e.target))) {
+          profileMenu.style.display = 'none';
+        }
+      }
+    }, true);
   }
 
   const profileDropdown = {
