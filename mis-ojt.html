@@ -143,8 +143,8 @@
     }
 
     .ojt-filter-pill:hover {
-      border-color: var(--primary-teal, #0284C7);
-      color: var(--primary-teal, #0284C7);
+      border-color: var(--primary-teal, #1EBBD7);
+      color: var(--primary-teal, #1EBBD7);
       background: rgba(30, 187, 215, 0.08);
       transform: translateY(-0.5px);
     }
@@ -155,11 +155,11 @@
     }
 
     .ojt-filter-pill.active {
-      background: #0284C7;
+      background: var(--primary-teal, #1EBBD7);
       color: #FFFFFF;
-      border-color: #0284C7;
+      border-color: var(--primary-teal, #1EBBD7);
       font-weight: 700;
-      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+      box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);
     }
 
     .ojt-filter-pill .pill-count {
@@ -1276,8 +1276,8 @@
 
     /* Credential Modal Specific */
     .ojt-credential-card {
-      background: rgba(14, 165, 233, 0.06);
-      border: 1.5px solid rgba(14, 165, 233, 0.22);
+      background: rgba(30, 187, 215, 0.06);
+      border: 1.5px solid rgba(30, 187, 215, 0.22);
       border-radius: 12px;
       padding: 15px;
       display: flex;
@@ -1300,7 +1300,7 @@
       font-family: monospace;
       font-size: 17px;
       font-weight: 700;
-      color: #0284C7;
+      color: var(--primary-teal, #1EBBD7);
       letter-spacing: 1px;
       user-select: all;
       word-break: break-all;
@@ -1363,20 +1363,20 @@
     body.dark-mode .ojt-filter-pill.active,
     html.high-contrast .ojt-filter-pill.active,
     [data-theme="dark"] .ojt-filter-pill.active {
-      background: rgba(14, 165, 233, 0.16) !important;
-      border: 1.5px solid #38BDF8 !important;
-      color: #38BDF8 !important;
+      background: var(--primary-teal, #00A3C4) !important;
+      border: 1.5px solid var(--primary-teal, #00A3C4) !important;
+      color: #FFFFFF !important;
       font-weight: 700 !important;
-      box-shadow: 0 0 14px rgba(14, 165, 233, 0.22) !important;
+      box-shadow: 0 4px 14px rgba(0, 163, 196, 0.35) !important;
     }
 
     html.dark-mode .btn-add-ojt,
     body.dark-mode .btn-add-ojt,
     html.high-contrast .btn-add-ojt,
     [data-theme="dark"] .btn-add-ojt {
-      background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
-      border: 1px solid rgba(56, 189, 248, 0.35) !important;
-      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25) !important;
+      background: linear-gradient(135deg, var(--primary-teal, #1EBBD7) 0%, #17a2ba 100%) !important;
+      border: 1px solid rgba(30, 187, 215, 0.35) !important;
+      box-shadow: 0 4px 14px rgba(30, 187, 215, 0.25) !important;
       color: #FFFFFF !important;
     }
 
@@ -1384,9 +1384,9 @@
     body.dark-mode .btn-add-ojt:hover:not(:disabled),
     html.high-contrast .btn-add-ojt:hover:not(:disabled),
     [data-theme="dark"] .btn-add-ojt:hover:not(:disabled) {
-      background: linear-gradient(135deg, #0369A1 0%, #0284C7 100%) !important;
-      border-color: #38BDF8 !important;
-      box-shadow: 0 6px 18px rgba(14, 165, 233, 0.35) !important;
+      background: linear-gradient(135deg, #17a2ba 0%, var(--primary-teal, #1EBBD7) 100%) !important;
+      border-color: var(--primary-teal, #1EBBD7) !important;
+      box-shadow: 0 6px 18px rgba(30, 187, 215, 0.35) !important;
       transform: translateY(-1px);
     }
 
@@ -1443,9 +1443,9 @@
     body.dark-mode .ojt-period-badge.active,
     html.high-contrast .ojt-period-badge.active,
     [data-theme="dark"] .ojt-period-badge.active {
-      background: rgba(14, 165, 233, 0.12) !important;
-      border: 1px solid rgba(56, 189, 248, 0.3) !important;
-      color: #38BDF8 !important;
+      background: rgba(30, 187, 215, 0.15) !important;
+      border: 1px solid rgba(30, 187, 215, 0.3) !important;
+      color: var(--primary-teal, #1EBBD7) !important;
     }
 
     html.dark-mode .ojt-filter-chip,

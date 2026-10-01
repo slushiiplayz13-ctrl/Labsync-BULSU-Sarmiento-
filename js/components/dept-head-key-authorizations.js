@@ -41,7 +41,8 @@
   function ensureHeaderElementsMounted() {
     let user = null;
     try {
-      user = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || 'null');
+      const rawUser = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || 'null');
+      user = (rawUser && (rawUser.user || rawUser)) || null;
     } catch (e) {}
 
     // Only mount for IT Dept Head or Admin

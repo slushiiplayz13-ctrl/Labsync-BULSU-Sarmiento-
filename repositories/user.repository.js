@@ -148,7 +148,7 @@ async function findByQRString(qrString, executor = db) {
 
     // 1. Exact matching on ID_QR_String
     const [exactUsers] = await executor.query(
-        'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE ID_QR_String = ?',
+        'SELECT User_ID, Name, Email, Role, Status, OJT_End_Date, ID_QR_String FROM users WHERE ID_QR_String = ?',
         [cleanStr]
     );
     if (exactUsers.length > 0) {
@@ -160,7 +160,7 @@ async function findByQRString(qrString, executor = db) {
     // safely match if exactly one user matches this prefix.
     if (/^LABSYNC-(?:USER|OJT|FACULTY|MISSTAFF)-\d{10,}/i.test(cleanStr)) {
         const [prefixUsers] = await executor.query(
-            'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE ID_QR_String LIKE ?',
+            'SELECT User_ID, Name, Email, Role, Status, OJT_End_Date, ID_QR_String FROM users WHERE ID_QR_String LIKE ?',
             [`${cleanStr}%`]
         );
         if (prefixUsers.length === 1) {
@@ -170,7 +170,7 @@ async function findByQRString(qrString, executor = db) {
     } else if (/\d{12,}/.test(cleanStr) && cleanStr.length >= 15) {
         // 3. Substring fragment fallback if rapid scanning cleared the leading 'LABSYNC-' prefix but retains the unique millisecond timestamp
         const [subUsers] = await executor.query(
-            'SELECT User_ID, Name, Email, Role, ID_QR_String FROM users WHERE ID_QR_String LIKE ?',
+            'SELECT User_ID, Name, Email, Role, Status, OJT_End_Date, ID_QR_String FROM users WHERE ID_QR_String LIKE ?',
             [`%${cleanStr}%`]
         );
         if (subUsers.length === 1) {

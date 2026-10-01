@@ -430,11 +430,32 @@ html.high-contrast .lab-card-back {
 }
 
 .teal-text {
-  color: #0284C7 !important;
+  color: #0369A1 !important;
 }
 
 .amber-text {
   color: #D97706 !important;
+}
+
+/* Dark mode theme overrides for card text contrast */
+html.dark-mode .teal-text,
+body.dark-mode .teal-text,
+[data-theme="dark"] .teal-text,
+html.dark-mode .lab-card .ld-value.teal-text,
+body.dark-mode .lab-card .ld-value.teal-text,
+[data-theme="dark"] .lab-card .ld-value.teal-text,
+html.high-contrast .lab-card .ld-value.teal-text {
+  color: #38BDF8 !important;
+}
+
+html.dark-mode .amber-text,
+body.dark-mode .amber-text,
+[data-theme="dark"] .amber-text,
+html.dark-mode .lab-card .ld-value.amber-text,
+body.dark-mode .lab-card .ld-value.amber-text,
+[data-theme="dark"] .lab-card .ld-value.amber-text,
+html.high-contrast .lab-card .ld-value.amber-text {
+  color: #FBBF24 !important;
 }
 
 /* ─── Impeccable Lab Status Card Structure ─── */
@@ -525,6 +546,60 @@ html.high-contrast .lab-card-back {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 185px;
+}
+
+.ld-value.has-role-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 5px !important;
+  max-width: 200px !important;
+  text-align: right;
+}
+
+.ld-value.has-role-badge .ld-holder-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ld-role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  line-height: 1.25;
+}
+
+/* Light mode: crisp, high-contrast sky badge with clear border */
+.ld-role-badge.mis-badge {
+  background: #E0F2FE;
+  color: #0369A1;
+  border: 1.5px solid #38BDF8;
+  box-shadow: 0 1px 2px rgba(2, 132, 199, 0.08);
+}
+
+/* Dark mode: vibrant, glowing luminous sky pill */
+html.dark-mode .ld-role-badge.mis-badge,
+body.dark-mode .ld-role-badge.mis-badge,
+[data-theme="dark"] .ld-role-badge.mis-badge {
+  background: rgba(14, 165, 233, 0.22) !important;
+  color: #38BDF8 !important;
+  border: 1.5px solid #38BDF8 !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25) !important;
+}
+
+/* High Contrast mode */
+html.high-contrast .ld-role-badge.mis-badge {
+  background: #0C4A6E !important;
+  color: #E0F2FE !important;
+  border: 1.5px solid #38BDF8 !important;
 }
 
 /* Compact Separated Status Footer */
@@ -656,14 +731,23 @@ html.high-contrast .lab-card .ld-icon {
   color: #64748B !important;
 }
 
+html.dark-mode .lab-card .ld-value,
+body.dark-mode .lab-card .ld-value,
+[data-theme="dark"] .lab-card .ld-value,
 html.high-contrast .lab-card .ld-value {
   color: #F1F5F9 !important;
 }
 
+html.dark-mode .lab-card .ld-value.teal-text,
+body.dark-mode .lab-card .ld-value.teal-text,
+[data-theme="dark"] .lab-card .ld-value.teal-text,
 html.high-contrast .lab-card .ld-value.teal-text {
   color: #38BDF8 !important;
 }
 
+html.dark-mode .lab-card .ld-value.muted-text,
+body.dark-mode .lab-card .ld-value.muted-text,
+[data-theme="dark"] .lab-card .ld-value.muted-text,
 html.high-contrast .lab-card .ld-value.muted-text {
   color: #94A3B8 !important;
 }

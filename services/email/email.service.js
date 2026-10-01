@@ -8,6 +8,7 @@ const {
     renderKeyAuthorizationRequestEmail,
     renderKeyAuthorizationOutcomeEmail
 } = require('./templates/key-authorization');
+const { renderKeyReturnReminderEmail } = require('./templates/key-reminder');
 
 /**
  * Sends a welcome email containing generated login credentials to a new faculty member.
@@ -129,10 +130,35 @@ async function sendKeyAuthorizationOutcomeEmail(recipientEmail, recipientName, d
     }
 }
 
+/**
+ * Dispatches an automated key return / transfer reminder email to the actual current key holder.
+ *
+ * @param {string} recipientEmail - Registered email of the current key holder
+ * @param {object} reminderData - Reminder details
+ * @returns {Promise<boolean>}
+ */
+async function sendKeyReturnReminderEmail(recipientEmail, reminderData) {
+    const { subject, html } = renderKeyReturnReminderEmail(reminderData);
+    try {
+        const emailTransport = require('./email.transport');
+        await emailTransport.sendMailWithTimeout({
+            from: emailTransport.getSenderAddress(),
+            to: recipientEmail,
+            subject,
+            html,
+        });
+        return true;
+    } catch (err) {
+        console.error('[emailService] sendKeyReturnReminderEmail failed:', err.message);
+        return false;
+    }
+}
+
 module.exports = {
     sendWelcomeEmail,
     sendResetPasswordEmail,
     sendEmailVerificationEmail,
     sendKeyAuthorizationEmail,
-    sendKeyAuthorizationOutcomeEmail
+    sendKeyAuthorizationOutcomeEmail,
+    sendKeyReturnReminderEmail
 };

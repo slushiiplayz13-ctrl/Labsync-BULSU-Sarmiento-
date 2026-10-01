@@ -7,6 +7,7 @@ const labRepository = require('../../repositories/laboratory.repository');
 const userRepository = require('../../repositories/user.repository');
 
 const { DEFAULT_HARDWARE_ROOMS, getRoomKeyVariations, normalizeRoomNumber } = require('./iot.config');
+const { KEY_BOX_ACCESS_ROLES, MIS_STAFF_ROLES, OJT_ROLES } = require('../../middleware/auth');
 const deviceStateService = require('./device-state.service');
 const claimService = require('./claim.service');
 const iotResponseService = require('./iot-response.service');
@@ -153,12 +154,13 @@ async function logOccupancy(reqBody = {}, device = null) {
         const status = (keyEvent === 'Key Returned') ? 'Present' : 'Absent';
         let isDuplicateState = (room.Key_Status === status);
 
+        let claim = null;
         let claimUserId = null;
         let claimUserName = null;
         let logUserId = null;
 
         if (keyEvent === 'Key Taken') {
-            const claim = claimService.getValidClaim(roomNumber, now);
+            claim = claimService.getValidClaim(roomNumber, now);
             if (claim) {
                 claimUserId = claim.userId;
                 claimUserName = claim.userName;
@@ -212,6 +214,33 @@ async function logOccupancy(reqBody = {}, device = null) {
             }
         }
 
+        let misCustodyEvent = null;
+        if (keyEvent === 'Key Taken' && claimUserId) {
+            let userRole = (claim && claim.role) || null;
+            if (!userRole) {
+                const [roleRows] = await db.query('SELECT Role FROM users WHERE User_ID = ?', [claimUserId]);
+                if (roleRows && roleRows.length > 0) userRole = roleRows[0].Role;
+            }
+            if (userRole === 'MIS Staff') {
+                misCustodyEvent = {
+                    action: 'IOT_KEY_WITHDRAWAL',
+                    userId: claimUserId,
+                    actorRole: 'MIS Staff',
+                    purpose: 'IT Maintenance'
+                };
+            }
+        } else if (keyEvent === 'Key Returned' && logUserId) {
+            const [roleRows] = await db.query('SELECT Role FROM users WHERE User_ID = ?', [logUserId]);
+            if (roleRows && roleRows.length > 0 && roleRows[0].Role === 'MIS Staff') {
+                misCustodyEvent = {
+                    action: 'IOT_KEY_RETURN',
+                    userId: logUserId,
+                    actorRole: 'MIS Staff',
+                    purpose: 'IT Maintenance'
+                };
+            }
+        }
+
         await iotRepository.withTransaction(async (connection) => {
             if (!isDuplicateState || (keyEvent === 'Key Taken' && claimUserId !== room.Current_User_ID)) {
                 await labRepository.updateKeyStatus(room.Room_ID, status, claimUserId, connection);
@@ -232,6 +261,29 @@ async function logOccupancy(reqBody = {}, device = null) {
                 await keyAuthRepo.markCompletedByRoomAndUser(room.Room_ID, logUserId, connection);
             }
         });
+
+        if (misCustodyEvent) {
+            const auditService = require('../auditService');
+            try {
+                await auditService.logSecurityEvent({
+                    userId: misCustodyEvent.userId,
+                    actorRole: misCustodyEvent.actorRole,
+                    action: misCustodyEvent.action,
+                    resourceType: 'LABORATORY',
+                    resourceId: room.Room_ID,
+                    details: {
+                        purpose: misCustodyEvent.purpose,
+                        roomNumber: room.Room_Number || roomNumber,
+                        deviceId: device ? device.id : 'ESP32-KeyBox',
+                        keyEvent,
+                        status
+                    },
+                    result: 'SUCCESS'
+                });
+            } catch (auditErr) {
+                console.error('[IoT Service] Failed to log MIS key custody audit event:', auditErr.message);
+            }
+        }
 
         return iotResponseService.createKeyStatusResponse(roomNumber, status, claimUserName);
     }
@@ -258,6 +310,39 @@ async function logOccupancy(reqBody = {}, device = null) {
         );
     }
     const user = users[0];
+
+    // 4a. Account Status & Role Authorization Check
+    const userStatus = String(user.Status || '').toUpperCase();
+    if (userStatus === 'DEACTIVATED' || (userStatus && userStatus !== 'ACTIVE')) {
+        console.warn(`[IoT QR Scan] Access Denied: Account inactive/deactivated for user "${user.Name}" (${user.Role}, ID: ${user.User_ID})`);
+        return iotResponseService.createErrorResponse(
+            403,
+            'Your account is inactive or deactivated. Please contact the administrator.',
+            'Access Denied!',
+            'Account Inactive'
+        );
+    }
+
+    if (OJT_ROLES.includes(user.Role) || user.Role === 'OJT') {
+        console.warn(`[IoT QR Scan] Access Denied: OJT role "${user.Role}" is not authorized for physical key withdrawal.`);
+        return iotResponseService.createErrorResponse(
+            403,
+            'Forbidden: OJT is not authorized for independent physical key withdrawal.',
+            'Access Denied!',
+            'OJT Unauthorized'
+        );
+    }
+
+    if (!KEY_BOX_ACCESS_ROLES.includes(user.Role)) {
+        console.warn(`[IoT QR Scan] Access Denied: Role "${user.Role}" is not authorized for physical key-box access.`);
+        return iotResponseService.createErrorResponse(
+            403,
+            'Forbidden: Insufficient privileges for physical key-box access.',
+            'Access Denied!',
+            'Role Denied'
+        );
+    }
+
     console.log(`[IoT QR Scan] Access Granted: User "${user.Name}" (${user.Role}, ID: ${user.User_ID})`);
 
     // 4b. Anti-Double-Tap Policy: Prevent user from claiming multiple keys simultaneously,

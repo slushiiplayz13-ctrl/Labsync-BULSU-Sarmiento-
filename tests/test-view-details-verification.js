@@ -23,7 +23,7 @@ const rawTables = fs.readFileSync(path.join(__dirname, '..', 'css', 'components'
 const tablesCss = rawTables.replace(/\r\n/g, '\n');
 
 assert(tablesCss.includes('.table-actions-cluster .btn-view-ticket-info {\n    width: 118px !important;'), 'tables.css desktop cluster must set .btn-view-ticket-info width to 118px');
-assert(tablesCss.includes('.table-actions-cluster .completed-chip {\n    width: 104px !important;'), 'tables.css desktop cluster must preserve .completed-chip width at 104px');
+assert(tablesCss.includes('.table-actions-cluster .completed-chip {\n    width: 130px !important;'), 'tables.css desktop cluster must set .completed-chip width to 130px for row alignment');
 assert(tablesCss.includes('width: 118px;\n  min-width: 118px;\n  max-width: 118px;'), 'tables.css base .btn-view-ticket-info must have 118px width');
 
 // Check mobile table rules
@@ -39,7 +39,7 @@ const rawMaint = fs.readFileSync(path.join(__dirname, '..', 'mis-maintenance.htm
 const maintHtml = rawMaint.replace(/\r\n/g, '\n');
 
 assert(maintHtml.includes('.table-actions-cluster .btn-view-ticket-info {\n        width: 118px !important;'), 'mis-maintenance.html desktop cluster must set .btn-view-ticket-info width to 118px');
-assert(maintHtml.includes('.table-actions-cluster .completed-chip {\n        width: 104px !important;'), 'mis-maintenance.html desktop cluster must preserve .completed-chip width at 104px');
+assert(maintHtml.includes('.table-actions-cluster .completed-chip {\n        width: 130px !important;'), 'mis-maintenance.html desktop cluster must set .completed-chip width to 130px for row alignment');
 assert(maintHtml.includes('width: 118px;\n      min-width: 118px;\n      max-width: 118px;'), 'mis-maintenance.html base .btn-view-ticket-info must have 118px width');
 
 // Check mobile HTML rules

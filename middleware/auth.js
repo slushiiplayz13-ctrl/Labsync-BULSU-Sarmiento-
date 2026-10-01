@@ -11,6 +11,7 @@ const MIS_STAFF_ROLES = ['MIS Staff'];
 const OJT_ROLES = ['OJT'];
 const TICKET_UPDATE_ROLES = [...ADMIN_ROLES, 'OJT'];
 const KEY_TRANSFER_ROLES = ['Faculty', ...IT_HEAD_ROLES];
+const KEY_BOX_ACCESS_ROLES = ['Faculty', ...IT_HEAD_ROLES, ...MIS_STAFF_ROLES];
 
 const { INACTIVITY_TIMEOUT_MS } = require('../config/app.config');
 
@@ -137,5 +138,6 @@ module.exports = {
     MIS_STAFF_ROLES,
     OJT_ROLES,
     TICKET_UPDATE_ROLES,
-    KEY_TRANSFER_ROLES
+    KEY_TRANSFER_ROLES,
+    KEY_BOX_ACCESS_ROLES
 };

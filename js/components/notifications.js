@@ -67,9 +67,19 @@
         let profName = (notif.description && notif.description !== 'Room Key' && notif.description !== 'Unidentified Person' && notif.description !== 'Unregistered' && notif.description !== 'None' && notif.description !== 'N/A') ? notif.description : '';
 
         const hasUser = !!profName && profName !== 'None' && profName !== 'N/A';
-        const profText = hasUser
-          ? (profName.startsWith('Prof.') ? profName : `Prof. ${profName}`)
-          : '';
+        const role = String(notif.detail || notif.role || notif.actor_role || notif.Actor_Role || '').trim();
+        const isMisPersonnel = /MIS/i.test(role) || /OJT/i.test(role) || role === 'MIS Staff' || role === 'OJT' || notif.borrow_purpose === 'IT Maintenance' || notif.Borrow_Purpose === 'IT Maintenance';
+
+        let profText = '';
+        if (hasUser) {
+          if (isMisPersonnel) {
+            profText = String(profName).replace(/^Prof\.?\s*/i, '').trim();
+          } else {
+            profText = (profName.startsWith('Prof.') || profName.startsWith('Dr.') || profName.startsWith('Engr.'))
+              ? profName
+              : `Prof. ${profName}`;
+          }
+        }
         const roomLabel = notif.room_number ? `Room ${notif.room_number}` : 'Room';
 
         if (rawStatus === 'Key Taken') {

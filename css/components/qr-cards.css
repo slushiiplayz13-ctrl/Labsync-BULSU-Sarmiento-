@@ -417,12 +417,77 @@
 }
 
 
+/* ─── PC Grid Header & Room Info Bar ────────────────────────────── */
+.pc-grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.pc-grid-room-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.pc-grid-room-info .back-btn {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-light, #e2e8f0);
+  background: var(--bg-white, #ffffff);
+  color: var(--text-dark, #0f172a);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.pc-grid-room-info .back-btn:hover {
+  background: var(--bg-main, #f8fafc);
+  border-color: var(--primary-teal, #1EBBD7);
+  color: var(--primary-teal, #1EBBD7);
+  transform: translateX(-2px);
+  box-shadow: 0 4px 10px rgba(30, 187, 215, 0.18);
+}
+
+.pc-grid-room-info .back-btn:active {
+  transform: translateX(-1px) scale(0.96);
+}
+
+.pc-grid-room-info h2,
+#selectedRoomTitle {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-dark, #0f172a);
+  font-family: var(--font-display, inherit);
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
 /* ─── Top Header Action Buttons ────────────────────────────────── */
 .header-actions-group {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  margin-left: auto;
 }
 
 .header-add-pc-btn {
@@ -776,6 +841,25 @@ html.high-contrast .generate-all-btn {
   background: var(--primary-teal, #00A3C4) !important;
   color: #FFFFFF !important;
   border: 1px solid #FFFFFF !important;
+}
+
+/* Back Button in Dark & High Contrast Mode */
+html.high-contrast .pc-grid-room-info .back-btn,
+html.dark-mode .pc-grid-room-info .back-btn,
+[data-theme="dark"] .pc-grid-room-info .back-btn {
+  background: var(--bg-card, #1F2937) !important;
+  border-color: var(--border-light, #374151) !important;
+  color: var(--text-dark, #F8FAFC) !important;
+  box-shadow: none !important;
+}
+
+html.high-contrast .pc-grid-room-info .back-btn:hover,
+html.dark-mode .pc-grid-room-info .back-btn:hover,
+[data-theme="dark"] .pc-grid-room-info .back-btn:hover {
+  background: rgba(0, 163, 196, 0.15) !important;
+  border-color: var(--primary-teal, #00A3C4) !important;
+  color: var(--primary-teal, #00A3C4) !important;
+  box-shadow: 0 4px 12px rgba(0, 163, 196, 0.25) !important;
 }
 
 /* Room Unit Count Badge in Dark & High Contrast Mode */

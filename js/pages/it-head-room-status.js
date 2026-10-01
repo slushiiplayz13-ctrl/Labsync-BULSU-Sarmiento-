@@ -297,12 +297,22 @@
         let profName = (log.description && log.description !== 'Room Key' && log.description !== 'Unidentified Person' && log.description !== 'Unregistered' && log.description !== 'None' && log.description !== 'N/A') ? log.description : '';
 
         hasUser = !!profName && profName !== 'None' && profName !== 'N/A';
-        actorName = hasUser
-          ? ((profName.startsWith('Prof.') || profName.startsWith('Dr.') || profName.startsWith('Engr.')) ? profName : `Prof. ${profName}`)
-          : (log.detail && log.detail !== 'Faculty' ? log.detail : 'System');
-        detailText = hasUser
-          ? (log.detail || 'Faculty')
-          : 'Automated Event';
+        const role = String(log.detail || log.role || log.actor_role || log.Actor_Role || '').trim();
+        const isMisPersonnel = /MIS/i.test(role) || /OJT/i.test(role) || role === 'MIS Staff' || role === 'OJT' || log.borrow_purpose === 'IT Maintenance' || log.Borrow_Purpose === 'IT Maintenance';
+
+        if (hasUser) {
+          if (isMisPersonnel) {
+            actorName = String(profName).replace(/^Prof\.?\s*/i, '').trim();
+          } else {
+            actorName = (profName.startsWith('Prof.') || profName.startsWith('Dr.') || profName.startsWith('Engr.'))
+              ? profName
+              : `Prof. ${profName}`;
+          }
+          detailText = role || 'Faculty';
+        } else {
+          actorName = (role && role !== 'Faculty') ? role : 'System';
+          detailText = 'Automated Event';
+        }
       }
 
       const relTime = getRelativeTime(log.time);

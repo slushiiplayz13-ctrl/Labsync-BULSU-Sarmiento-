@@ -335,9 +335,10 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
           return;
         }
 
-        if (isAuthorized) {
-          // Authorized key withdrawal
-          isAuthorized = false; // consume authorization
+        if (isAuthorized && millis() < authExpiresAt) {
+          // Authorized key withdrawal: strictly single-use!
+          isAuthorized = false; // immediately consume authorization on first valid withdrawal
+          authExpiresAt = 0;    // invalidate countdown window immediately
           isUnauth = false;
           triggerBuzzer(80, 2);
           if (lcdDetected) {
@@ -633,6 +634,7 @@ void loop() {
     } else {
       // Authorization window expired without key withdrawal
       isAuthorized = false;
+      authExpiresAt = 0;
       triggerBuzzer(180, 1);
       if (lcdDetected) {
         lcd.clear();

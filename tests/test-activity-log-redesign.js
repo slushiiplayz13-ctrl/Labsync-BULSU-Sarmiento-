@@ -392,6 +392,40 @@ assert.strictEqual(clearedDetails.iconClass, 'notif-icon-resolved', 'Notificatio
 assert.ok(!clearedDetails.text.includes('Andrei Gabito'), 'Notification text must NOT mention Andrei Gabito');
 console.log('  ✓ Test I: Notifications component handles UNAUTHORIZED, WRONG_SLOT, and Alarm Cleared without faculty attribution');
 
+// Test J: MIS Personnel formatting (No 'Prof.' prefix in activity timeline & notifications)
+const containerJ = createContainer();
+const mockLogsJ = [
+  {
+    id: 105,
+    time: new Date().toISOString(),
+    status: 'Key Taken',
+    room_number: '204',
+    description: 'Miles Moralejo',
+    detail: 'MIS Staff',
+    session_type: 'Borrowed',
+    type: 'occupancy'
+  }
+];
+
+roomStatusTimeline.renderTimelineItems(mockLogsJ, containerJ);
+const htmlJ = containerJ.innerHTML;
+assert.ok(htmlJ.includes('Miles Moralejo'), 'Must render Miles Moralejo');
+assert.ok(!htmlJ.includes('Prof. Miles Moralejo'), 'Must NOT prefix Prof. to MIS Staff');
+assert.ok(htmlJ.includes('MIS Staff'), 'Must display MIS Staff role');
+
+const misNotif = {
+  type: 'occupancy',
+  status: 'Key Taken',
+  session_type: 'Borrowed',
+  room_number: '204',
+  description: 'Miles Moralejo',
+  detail: 'MIS Staff'
+};
+const misDetails = mockNotifWindow.getNotificationDetails(misNotif);
+assert.ok(misDetails.text.includes('Miles Moralejo'), 'Notification must mention Miles Moralejo');
+assert.ok(!misDetails.text.includes('Prof. Miles Moralejo'), 'Notification must NOT prefix Prof. to MIS Staff');
+console.log('  ✓ Test J: MIS Personnel activity timeline and notifications correctly omit "Prof." prefix');
+
 console.log('\n================================================================');
 console.log('🎉 ALL ACTIVITY LOG REDESIGN TESTS PASSED SUCCESSFULLY!');
 console.log('================================================================\n');

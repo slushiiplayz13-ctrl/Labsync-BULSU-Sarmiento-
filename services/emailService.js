@@ -10,11 +10,13 @@
 const {
     sendWelcomeEmail,
     sendResetPasswordEmail,
-    sendEmailVerificationEmail
+    sendEmailVerificationEmail,
+    sendKeyReturnReminderEmail
 } = require('./email/email.service');
 
 module.exports = {
     sendWelcomeEmail,
     sendResetPasswordEmail,
-    sendEmailVerificationEmail
+    sendEmailVerificationEmail,
+    sendKeyReturnReminderEmail
 };

@@ -27,16 +27,17 @@
   let currentLoadedRole = '';
 
   /**
-   * Product Rule: Personal Profile QR Code is available ONLY to IT Department Head and Faculty.
-   * It is NOT available to MIS Staff or OJT.
+   * Product Policy: Personal Profile QR Code is available to IT Department Head, Faculty, and MIS Staff.
+   * MIS Staff uses their personal QR for authorized laboratory key access for IT maintenance.
+   * OJT is strictly restricted from personal QR physical key access.
    */
   function isPersonalQrAllowed(role) {
     if (!role) return false;
     const clean = String(role).trim().toLowerCase();
-    if (clean === 'mis staff' || clean === 'mis' || clean === 'ojt' || clean.startsWith('ojt')) {
+    if (clean === 'ojt' || clean.startsWith('ojt')) {
       return false;
     }
-    return clean.includes('head') || clean.includes('faculty');
+    return clean.includes('head') || clean.includes('faculty') || clean.includes('mis');
   }
 
   /**
@@ -301,12 +302,22 @@
       if (modalTitle) modalTitle.textContent = 'Account Settings';
       if (modalSubtitle) modalSubtitle.textContent = 'Manage your profile information and security settings';
 
-      // Role-aware QR Tab: Only IT Department Head and Faculty have Personal QR Codes
+      // Role-aware QR Tab: Available to IT Department Head, Faculty, and MIS Staff
       if (allowQr) {
         if (qrTabBtn) qrTabBtn.style.display = 'flex';
       } else {
         if (qrTabBtn) qrTabBtn.style.display = 'none';
         if (qrPanel) qrPanel.style.display = 'none';
+      }
+
+      const qrSubtitle = document.getElementById('qr-code-subtitle');
+      if (qrSubtitle) {
+        const cleanRole = String(role || '').toLowerCase();
+        if (cleanRole.includes('mis')) {
+          qrSubtitle.textContent = 'Personal QR — used for authorized laboratory key access for IT maintenance.';
+        } else {
+          qrSubtitle.textContent = 'Use this personal QR code for laboratory entry scanner';
+        }
       }
       if (saveBtn) saveBtn.style.display = 'block';
       if (cancelBtn) {
@@ -372,8 +383,8 @@
       // Establish original saved baseline values for change detection
       setBaselineSettings();
 
-      // Fetch personal QR code ONLY for authorized academic/personnel roles (Faculty & IT Head)
-      // MIS Staff and OJT do NOT have personal QR codes and do NOT call /api/user/qrcode
+      // Fetch personal QR code for authorized academic and MIS personnel roles (Faculty, IT Head, MIS Staff)
+      // OJT is strictly restricted and does NOT call /api/user/qrcode
       if (allowQr) {
         const qrResponse = await fetch('/api/user/qrcode', { credentials: 'include' });
         if (qrResponse.ok) {
@@ -551,7 +562,7 @@
               <div id="panel-qrcode" class="settings-tab-panel" style="display:none;">
                 <div style="margin-bottom:28px;">
                   <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">My QR Code</h3>
-                  <p style="font-size:13.5px;color:var(--text-mid);margin:0;">Use this personal QR code for laboratory entry scanner</p>
+                  <p id="qr-code-subtitle" style="font-size:13.5px;color:var(--text-mid);margin:0;">Use this personal QR code for laboratory entry scanner</p>
                 </div>
 
                 <div style="display:flex; flex-direction:column; align-items:center; gap:24px; padding:32px 0;">

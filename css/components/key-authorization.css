@@ -14,10 +14,10 @@
   border-radius: 9999px;
   border: 1px solid var(--border-light, #E2E8F0);
   background: var(--bg-card, #FFFFFF);
-  color: var(--text-dark, #0F172A);
+  color: var(--text-mid, #475569);
   font-family: var(--font-display, 'Poppins', sans-serif);
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
@@ -58,6 +58,8 @@
 .key-requests-btn-label {
   display: inline-block;
   line-height: 1;
+  color: inherit;
+  font-weight: inherit;
 }
 
 .key-requests-btn-badge {

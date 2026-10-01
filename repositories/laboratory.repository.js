@@ -16,7 +16,8 @@ async function findAllLaboratoriesWithSchedule(today, nowTime, executor = db) {
                 ) AS Subject_Name,
                 c.Subject_Code, c.Subject_Name AS Curriculum_Subject_Name,
                 u_sched.Name AS Scheduled_Professor_Name,
-                u_curr.Name AS Current_Key_Holder_Name
+                u_curr.Name AS Current_Key_Holder_Name,
+                u_curr.Role AS Current_Key_Holder_Role
          FROM laboratories r
          LEFT JOIN schedules s ON r.Room_ID = s.Room_ID 
              AND s.Day_of_Week = ? 

@@ -24,7 +24,7 @@
   <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <link rel="preload" as="image" href="assets/labsync-logo.png" />
   <link rel="preload" as="image" href="assets/labsync-logo - dark mode.png" />
-  <link rel="preload" as="image" href="assets/bsu-sarmiento-logo.png" />
+  <link rel="preload" as="image" href="assets/bsu-sarmiento-logo.png?v=1.1" />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -334,16 +334,29 @@
       content: normal !important;
     }
 
-    .bsu-logo {
-      transition: filter 0.2s ease;
-      will-change: filter;
+    .bsu-logo,
+    .brand-logos img.bsu-logo,
+    img.bsu-logo,
+    img[src*="bsu-sarmiento-logo"] {
+      height: 54px !important;
+      width: auto !important;
+      object-fit: contain !important;
+      filter: none !important;
+      -webkit-filter: none !important;
+      image-rendering: auto !important;
     }
 
-    html.dark-mode .bsu-logo,
-    body.dark-mode .bsu-logo,
-    [data-theme="dark"] .bsu-logo,
-    html.high-contrast .bsu-logo {
-      filter: drop-shadow(0px 0px 4px rgba(255, 255, 255, 0.65)) !important;
+    html.dark-mode .brand-logos img.bsu-logo,
+    body.dark-mode .brand-logos img.bsu-logo,
+    [data-theme="dark"] .brand-logos img.bsu-logo,
+    html.high-contrast .brand-logos img.bsu-logo,
+    html.high-contrast img[src*="bsu-sarmiento-logo"],
+    html.high-contrast img.bsu-logo,
+    body.dark-mode img[src*="bsu-sarmiento-logo"],
+    html.dark-mode img[src*="bsu-sarmiento-logo"] {
+      filter: none !important;
+      -webkit-filter: none !important;
+      image-rendering: auto !important;
     }
 
     /* ─── THEME TOGGLE BUTTON (Light/Dark Mode) ─────────────────────── */
@@ -587,16 +600,21 @@
 
     .brand-logos img,
     .brand-logos .logo-img {
-      height: 56px !important;
+      height: 54px !important;
       width: auto !important;
       max-width: none !important;
       border-radius: 0 !important;
       object-fit: contain !important;
+      image-rendering: auto !important;
+    }
+
+    .brand-logos img.bsu-logo {
+      height: 54px !important;
     }
 
     .brand-logos img.labsync-brand-logo {
-      height: 64px !important;
-      max-width: 220px !important;
+      height: 58px !important;
+      max-width: 200px !important;
     }
 
     .brand-logos .labsync-brand-logo {
@@ -649,7 +667,7 @@
       background: #FFFFFF;
       border-radius: var(--radius-card);
       width: 100%;
-      padding: 24px 16px;
+      padding: 24px 16px 20px;
       box-shadow: 0 20px 50px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.01);
       display: flex;
       flex-direction: column;
@@ -1150,6 +1168,8 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
+      margin: 0 !important;
+      margin-bottom: 0 !important;
     }
 
     .submit-btn:hover {
@@ -1302,12 +1322,16 @@
 
       .brand-logos img,
       .brand-logos .logo-img {
+        height: 38px !important;
+      }
+
+      .brand-logos img.bsu-logo {
         height: 40px !important;
       }
 
       .brand-logos img.labsync-brand-logo {
-        height: 46px !important;
-        max-width: 160px !important;
+        height: 42px !important;
+        max-width: 150px !important;
       }
 
       .logo-divider {
@@ -1365,8 +1389,8 @@
       }
 
       .form-card {
-        padding: 40px;
-        gap: 32px;
+        padding: 36px 32px 24px;
+        gap: 28px;
       }
 
       /* Make inputs row side by side */
@@ -1459,12 +1483,16 @@
 
       .brand-logos img,
       .brand-logos .logo-img {
+        height: 42px !important;
+      }
+
+      .brand-logos img.bsu-logo {
         height: 44px !important;
       }
 
       .brand-logos img.labsync-brand-logo {
-        height: 52px !important;
-        max-width: 180px !important;
+        height: 46px !important;
+        max-width: 160px !important;
       }
 
       .logo-divider {
@@ -1477,7 +1505,7 @@
       }
 
       .form-card {
-        padding: 20px 12px;
+        padding: 20px 12px 16px;
         gap: 20px;
         border-radius: 20px;
       }
@@ -1652,8 +1680,8 @@
       }
 
       .form-card {
-        padding: 48px 40px;
-        gap: 36px;
+        padding: 40px 40px 32px;
+        gap: 32px;
       }
 
       .info-header-box {
@@ -1665,16 +1693,32 @@
         display: grid;
         grid-template-columns: 1.1fr 1fr;
         gap: 48px;
-        align-items: start;
+        align-items: stretch;
       }
 
       .form-right-col {
         position: sticky;
         top: 32px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .remarks-group {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+
+      .textarea-wrapper {
+        flex: 1;
+        display: flex;
       }
 
       .remarks-textarea {
-        min-height: 160px;
+        flex: 1;
+        min-height: 180px;
       }
 
       /* On Desktop, revert to 1 column for equipment since we split the card */
@@ -1705,7 +1749,7 @@
     <!-- Brand Header -->
     <header class="brand-header">
       <div class="brand-logos">
-        <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Logo" class="logo-img bsu-logo" />
+        <img src="assets/bsu-sarmiento-logo.png?v=1.1" alt="BSU Sarmiento Logo" class="logo-img bsu-logo" />
         <div class="logo-divider"></div>
         <img src="assets/labsync-logo.png" alt="LabSync Logo" class="logo-img labsync-brand-logo labsync-logo-light" />
         <img src="assets/labsync-logo - dark mode.png" alt="LabSync Logo" class="logo-img labsync-brand-logo labsync-logo-dark" />

@@ -79,10 +79,15 @@ function createKeyStatusResponse(roomNumber, status, claimUserName = null) {
  */
 function createQrVerificationResponse(user) {
     const userName = user.Name || '';
+    const isMis = user.Role === 'MIS Staff';
+    const message = isMis
+        ? 'MIS Staff QR verified. Awaiting key retrieval.'
+        : 'Professor QR verified. Awaiting key retrieval.';
+
     return {
         status: 200,
         data: {
-            message: 'Professor QR verified. Awaiting key retrieval.',
+            message,
             user: {
                 name: user.Name,
                 role: user.Role

@@ -38,6 +38,7 @@ async function getAllLaboratories() {
 
         const scheduledProfName = room.Scheduled_Professor_Name || null;
         const currentHolderName = room.Current_Key_Holder_Name || null;
+        const currentHolderRole = room.Current_Key_Holder_Role || null;
 
         const isScheduledProfHolder = keyAbsent && hasScheduledClass && (
             room.Current_User_ID != null && room.Scheduled_User_ID != null && String(room.Current_User_ID) === String(room.Scheduled_User_ID)
@@ -49,7 +50,9 @@ async function getAllLaboratories() {
             ? (scheduledProfName.startsWith('Prof.') ? scheduledProfName : `Prof. ${scheduledProfName}`)
             : 'Faculty';
         const formattedHolder = resolvedHolderName
-            ? (resolvedHolderName.startsWith('Prof.') ? resolvedHolderName : `Prof. ${resolvedHolderName}`)
+            ? ((currentHolderRole === 'MIS Staff')
+                ? resolvedHolderName
+                : (resolvedHolderName.startsWith('Prof.') ? resolvedHolderName : `Prof. ${resolvedHolderName}`))
             : null;
 
         let currentStatus = 'Available';
@@ -63,7 +66,10 @@ async function getAllLaboratories() {
                 currentClassInfo = 'None';
             }
         } else {
-            if (hasScheduledClass && isScheduledProfHolder) {
+            if (currentHolderRole === 'MIS Staff') {
+                currentStatus = 'Borrowed';
+                currentClassInfo = 'IT Maintenance';
+            } else if (hasScheduledClass && isScheduledProfHolder) {
                 currentStatus = 'In Session';
                 currentClassInfo = 'In Session';
             } else {
@@ -93,6 +99,8 @@ async function getAllLaboratories() {
                 endTime: room.End_Time
             } : null,
             Current_Key_Holder: resolvedHolderName,
+            Current_Key_Holder_Role: currentHolderRole,
+            Borrow_Purpose: (currentHolderRole === 'MIS Staff') ? 'IT Maintenance' : null,
             deviceOnline: isOnline,
             lastSeen: lastSeenTimestamp,
             pc_issues: roomIssueData.issues,

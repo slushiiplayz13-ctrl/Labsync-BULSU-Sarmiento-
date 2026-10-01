@@ -111,7 +111,7 @@ function renderLabCards(labs, targetContainer) {
   }
 
   // Fingerprint data to avoid destroying and recreating DOM nodes when data is unchanged
-  const dataSignature = labs.map(r => `${r.Room_ID || r.Room_Number}-${r.Current_Status}-${r.deviceOnline}-${r.Key_Status}-${r.Current_Key_Holder || ''}-${r.total_pc_issues}-${r.Scheduled_Class ? (r.Scheduled_Class.professor || '') + '-' + (r.Scheduled_Class.subject || '') : ''}`).join('|');
+  const dataSignature = labs.map(r => `${r.Room_ID || r.Room_Number}-${r.Current_Status}-${r.deviceOnline}-${r.Key_Status}-${r.Current_Key_Holder || ''}-${r.Current_Key_Holder_Role || ''}-${r.total_pc_issues}-${r.Scheduled_Class ? (r.Scheduled_Class.professor || '') + '-' + (r.Scheduled_Class.subject || '') : ''}`).join('|');
 
   const hasLoadingSpinner = container.querySelector('.animate-spin') !== null;
   if (!hasLoadingSpinner && container._lastRenderSignature === dataSignature) {
@@ -149,6 +149,7 @@ function renderLabCards(labs, targetContainer) {
 
     let keyHolderText = 'None';
     let keyHolderColorClass = 'muted-text';
+    let isMisHolder = false;
 
     if (!isOnline) {
       keyHolderText = 'N/A';
@@ -160,7 +161,12 @@ function renderLabCards(labs, targetContainer) {
       if (isAbsent) {
         let rawHolder = room.Current_Key_Holder;
         if (rawHolder) {
-          const cleanHolder = String(rawHolder).replace(/^Prof\.?\s*/i, '').trim();
+          let cleanHolder = String(rawHolder).replace(/^Prof\.?\s*/i, '').trim();
+          const holderRole = String(room.Current_Key_Holder_Role || '').trim();
+          if (holderRole === 'MIS Staff' || /MIS/i.test(holderRole) || room.Borrow_Purpose === 'IT Maintenance') {
+            isMisHolder = true;
+            cleanHolder = cleanHolder.replace(/\s*\((MIS|MIS Staff|MIS Maintenance)\)$/i, '').trim();
+          }
           keyHolderText = cleanHolder;
           keyHolderColorClass = 'teal-text';
         } else {
@@ -228,7 +234,14 @@ function renderLabCards(labs, targetContainer) {
               <i data-lucide="key-round" class="ld-icon"></i>
               <span>Claimed By</span>
             </span>
-            <strong class="${keyHolderColorClass} ld-value" title="${escapeHtml(keyHolderText)}">${escapeHtml(keyHolderText)}</strong>
+            ${isMisHolder ? `
+              <strong class="${keyHolderColorClass} ld-value has-role-badge" title="${escapeHtml(keyHolderText)} (MIS Staff)">
+                <span class="ld-holder-name">${escapeHtml(keyHolderText)}</span>
+                <span class="ld-role-badge mis-badge" title="MIS Personnel">MIS</span>
+              </strong>
+            ` : `
+              <strong class="${keyHolderColorClass} ld-value" title="${escapeHtml(keyHolderText)}">${escapeHtml(keyHolderText)}</strong>
+            `}
           </div>
           
           <div class="ld-row scheduled-row">

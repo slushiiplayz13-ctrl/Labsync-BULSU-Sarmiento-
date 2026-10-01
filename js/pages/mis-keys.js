@@ -338,9 +338,13 @@
           </div>
         `;
       } else {
-        const cleanName = k.Current_Holder_Name
-          ? (k.Current_Holder_Name.startsWith('Prof.') ? k.Current_Holder_Name : `Prof. ${k.Current_Holder_Name}`)
-          : null;
+        const isMisStaff = (k.Current_Holder_Role === 'MIS Staff');
+        let cleanName = null;
+        if (k.Current_Holder_Name) {
+          cleanName = isMisStaff
+            ? `${k.Current_Holder_Name} (MIS Maintenance)`
+            : (k.Current_Holder_Name.startsWith('Prof.') ? k.Current_Holder_Name : `Prof. ${k.Current_Holder_Name}`);
+        }
         if (cleanName) {
           custodyHtml = `
             <div class="custody-cell-wrap">

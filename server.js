@@ -22,6 +22,7 @@ const {
 
 const { initializeDatabase } = require('./services/dbInit');
 const { initActivityLogRetention, stopRetentionSchedule } = require('./services/activityRetentionService');
+const { initKeyReturnReminderSchedule, stopKeyReturnReminderSchedule } = require('./services/keyReminderService');
 const errorHandler = require('./middleware/errorHandler');
 const securityHeaders = require('./middleware/securityHeaders');
 const apiRoutes = require('./routes');
@@ -171,6 +172,7 @@ async function gracefulShutdown(signal) {
 
     // Stop background timers
     stopRetentionSchedule();
+    stopKeyReturnReminderSchedule();
 
     if (server) {
         // Stop accepting new connections
@@ -215,6 +217,7 @@ async function startServer() {
 
         // 2. Initialize background services only after database is ready
         initActivityLogRetention();
+        initKeyReturnReminderSchedule();
 
         // 3. Start HTTP server only after database initialization succeeds
         server = app.listen(PORT, () => {
