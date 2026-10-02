@@ -636,6 +636,7 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
           unauthAlarmStarted = millis(); // Start audible timer for unauthorized removal
           Serial.printf("🚨 UNAUTHORIZED KEY REMOVAL! Key %s removed without scanning QR!\n", slotRoom.c_str());
           dispatchSecurityAlertAsync(slotRoom.c_str(), "Unauthorized Removal");
+          dispatchKeyStatusAsync(slotRoom.c_str(), false);
           showUnauthorizedScreen();
           buzzerOn(); // Immediate alarm tone without waiting for network!
           return;

@@ -8,6 +8,7 @@
 const assert = require('assert');
 const iotService = require('../services/iotService');
 const claimService = require('../services/iot/claim.service');
+const laboratoryService = require('../services/laboratoryService');
 const db = require('../database/connection');
 
 async function runTests() {
@@ -38,6 +39,57 @@ async function runTests() {
   );
   assert.ok(unauthLogs.length > 0, 'Expected UNAUTHORIZED entry in occupancy_log');
   console.log('✔ Verified UNAUTHORIZED entry recorded in occupancy_log table.');
+
+  // 1a. Test Unauthorized Removal Reflects as Borrowed on Lab Card & Heartbeat Consistency
+  console.log('\n--- 1a. Testing Unauthorized Removal Reflects as Borrowed & Heartbeat Consistency ---');
+  // Verify Key_Status is Absent and Current_User_ID is NULL immediately after unauthorized removal
+  const [unauthRoomState] = await db.query(
+    `SELECT Key_Status, Current_User_ID FROM laboratories WHERE Room_Number = '203' LIMIT 1`
+  );
+  assert.strictEqual(unauthRoomState[0].Key_Status, 'Absent', 'Key_Status must be Absent after unauthorized removal');
+  assert.strictEqual(unauthRoomState[0].Current_User_ID, null, 'Current_User_ID must be NULL after unauthorized removal');
+
+  // Verify that the companion synchronized physical event (Key Taken) is safely treated as duplicate
+  const [[{ count: takenCountBefore }]] = await db.query(
+    `SELECT COUNT(*) as count FROM occupancy_log WHERE Room_ID = (SELECT Room_ID FROM laboratories WHERE Room_Number = '203' LIMIT 1) AND Auth_Method = 'Key Taken'`
+  );
+
+  const syncTakenRes = await iotService.logOccupancy({
+    keyEvent: 'Key Taken',
+    roomNumber: '203'
+  }, mockDevice);
+  assert.strictEqual(syncTakenRes.status, 200, 'Expected 200 from synchronized Key Taken event');
+
+  const [[{ count: takenCountAfter }]] = await db.query(
+    `SELECT COUNT(*) as count FROM occupancy_log WHERE Room_ID = (SELECT Room_ID FROM laboratories WHERE Room_Number = '203' LIMIT 1) AND Auth_Method = 'Key Taken'`
+  );
+  assert.strictEqual(takenCountAfter, takenCountBefore, 'Synchronized Key Taken must not insert duplicate occupancy log');
+
+  // Send subsequent heartbeat reporting slots: { '203': false, '204': true } (matching slotTargetState203 = false)
+  const hbRes = await iotService.recordHeartbeat({
+    deviceId: 'ESP32-KeyBox',
+    rooms: ['203', '204'],
+    slots: {
+      '203': false,
+      '204': true
+    }
+  }, mockDevice);
+  assert.strictEqual(hbRes.status, 200, 'Heartbeat should succeed with status 200');
+
+  // Heartbeat must NOT revert room to Present or invent a holder
+  const [roomAfterHb] = await db.query(
+    `SELECT Key_Status, Current_User_ID FROM laboratories WHERE Room_Number = '203' LIMIT 1`
+  );
+  assert.strictEqual(roomAfterHb[0].Key_Status, 'Absent', 'Room 203 Key_Status must remain Absent after heartbeat');
+  assert.strictEqual(roomAfterHb[0].Current_User_ID, null, 'Current_User_ID must remain NULL after heartbeat');
+
+  // Laboratory card must show Borrowed (NOT Available!) with no named holder
+  const allLabs = await laboratoryService.getAllLaboratories();
+  const lab203 = allLabs.data.find(l => String(l.Room_Number) === '203');
+  assert.strictEqual(lab203.Key_Status, 'Absent', 'Lab 203 Key_Status should be Absent');
+  assert.strictEqual(lab203.Current_Status, 'Borrowed', 'Lab 203 Current_Status MUST be Borrowed (NOT Available)');
+  assert.strictEqual(lab203.Current_Key_Holder, null, 'Current_Key_Holder must be NULL (no invented holder)');
+  console.log('✔ Verified Unauthorized Removal reflects as "Borrowed" on Lab Card and heartbeat preserves Absent state.');
 
   // 1b. Test Returning Key after Unauthorized Removal (Buzzer Alarm Cleared)
   console.log('\n--- 1b. Testing Key Returned After Unauthorized Removal ---');
