@@ -7,11 +7,13 @@
 // ==============================================================
 // LabSync IoT Key Dock Firmware - High Performance & Multi-Slot
 // Bulacan State University – Sarmiento Campus
+// Architecture: Fully Decoupled Dual-Core (Core 1: Sensor/UI, Core 0: Network)
 // ==============================================================
 
 // Global LCD placeholder (auto-detected I2C address)
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 bool lcdDetected = false;
+SemaphoreHandle_t i2cMutex = NULL;
 
 // Wi-Fi Credentials
 const char* ssid = "BLK 26 LT POGI - 2.4Ghz";
@@ -44,16 +46,27 @@ bool isUnauthorized204 = false;
 bool isWrongKey203 = false;
 bool isWrongKey204 = false;
 
-// Authorization Window State (User must scan QR before key release)
+// Maximum audible duration for security alarm (30 seconds)
+const unsigned long SECURITY_ALARM_MAX_DURATION_MS = 30000;
+
+// Per-slot audible alarm start timestamps (0 = inactive / stopped)
+unsigned long unauthorizedAlarmStarted203 = 0;
+unsigned long unauthorizedAlarmStarted204 = 0;
+unsigned long wrongKeyAlarmStarted203 = 0;
+unsigned long wrongKeyAlarmStarted204 = 0;
+
+// Authorization Window State (Thread-safe critical section)
+portMUX_TYPE authMux = portMUX_INITIALIZER_UNLOCKED;
 bool isAuthorized = false;
 unsigned long authExpiresAt = 0;
 const unsigned long AUTH_WINDOW_MS = 15000; // 15-second key retrieval countdown
-String authorizedUserName = "";
 int lastDisplayedCountdown = -1;
 
-// Periodic Heartbeat Timer
-unsigned long lastHeartbeatTime = 0;
-const unsigned long HEARTBEAT_INTERVAL = 10000; // 10 seconds
+// Periodic Heartbeat Interval
+const unsigned long HEARTBEAT_INTERVAL = 5000; // 5 seconds (rapid freshness against network jitter)
+
+// Non-blocking LCD Reversion Timer
+unsigned long lcdRevertAt = 0;
 
 // GM65 Scanner Pins
 #define GM65_RX_PIN 17 
@@ -65,14 +78,21 @@ const unsigned long HEARTBEAT_INTERVAL = 10000; // 10 seconds
 
 // Buzzer Configuration (Active Low-Level Trigger)
 #define BUZZER_PIN 25 
+bool isBuzzerCurrentlyOn = false;
 
 void buzzerOn() {
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW); // LOW = Beep ON
+  if (!isBuzzerCurrentlyOn) {
+    pinMode(BUZZER_PIN, OUTPUT);
+    digitalWrite(BUZZER_PIN, LOW); // LOW = Beep ON
+    isBuzzerCurrentlyOn = true;
+  }
 }
 
 void buzzerOff() {
-  pinMode(BUZZER_PIN, INPUT); // High-Z float = Beep OFF
+  if (isBuzzerCurrentlyOn) {
+    pinMode(BUZZER_PIN, INPUT); // High-Z float = Beep OFF
+    isBuzzerCurrentlyOn = false;
+  }
 }
 
 void triggerBuzzer(int durationMs = 80, int count = 1) {
@@ -84,39 +104,36 @@ void triggerBuzzer(int durationMs = 80, int count = 1) {
   }
 }
 
-void showReadyScreen() {
-  if (lcdDetected) {
+// Thread-safe LCD print helper
+void safeLcdPrint(const String& line1, const String& line2) {
+  if (!lcdDetected) return;
+  if (i2cMutex != NULL && xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("    LabSync");
+    lcd.print(line1.substring(0, 16));
     lcd.setCursor(0, 1);
-    lcd.print(" Ready to Scan!");
+    lcd.print(line2.substring(0, 16));
+    xSemaphoreGive(i2cMutex);
   }
+}
+
+void showReadyScreen() {
+  safeLcdPrint("    LabSync", " Ready to Scan!");
 }
 
 void showUnauthorizedScreen() {
-  if (!lcdDetected) return;
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("! UNAUTHORIZED !");
-  lcd.setCursor(0, 1);
-  if (isUnauthorized203 && isUnauthorized204) {
-    lcd.print("RETURN 203 & 204");
-  } else if (isUnauthorized203) {
-    lcd.print("RETURN KEY 203! ");
-  } else if (isUnauthorized204) {
-    lcd.print("RETURN KEY 204! ");
-  }
+  String l2 = "RETURN KEY!     ";
+  if (isUnauthorized203 && isUnauthorized204) l2 = "RETURN 203 & 204";
+  else if (isUnauthorized203) l2 = "RETURN KEY 203! ";
+  else if (isUnauthorized204) l2 = "RETURN KEY 204! ";
+  safeLcdPrint("! UNAUTHORIZED !", l2);
 }
 
 void showWrongKeyScreen() {
-  if (!lcdDetected) return;
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("WRONG KEY SLOT!");
-  lcd.setCursor(0, 1);
-  if (isWrongKey203) lcd.print("Slot 203 Wrong! ");
-  else if (isWrongKey204) lcd.print("Slot 204 Wrong! ");
+  String l2 = "Wrong Key Insert";
+  if (isWrongKey203) l2 = "Slot 203 Wrong! ";
+  else if (isWrongKey204) l2 = "Slot 204 Wrong! ";
+  safeLcdPrint("WRONG KEY SLOT!", l2);
 }
 
 void clearSerialBuffer() {
@@ -184,201 +201,144 @@ KeyType detectKeyType(int pin) {
   return KEY_NONE;
 }
 
-// Send key presence status transitions to server
-void sendKeyStatusToServer(String room, bool present) {
-  if (WiFi.status() == WL_CONNECTED) {
-    WiFiClient client;
-    HTTPClient http;
-    http.begin(client, serverUrl);
-    http.setReuse(false);
-    http.setTimeout(1500); // 1.5s timeout: snappy and responsive
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", String("Bearer ") + deviceToken);
-    http.addHeader("Connection", "close");
+// ==============================================================
+// FreeRTOS Decoupled Network Worker Subsystem (Core 0)
+// ==============================================================
 
-    String statusStr = present ? "Key Returned" : "Key Taken";
-    String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + room + "\"}";
-    
-    int code = http.POST(jsonPayload);
-    Serial.printf("[IoT HTTP] %s for Room %s: Status %d\n", statusStr.c_str(), room.c_str(), code);
-    http.end();
-    client.stop();
+enum NetMsgType {
+  MSG_KEY_STATUS,
+  MSG_SECURITY_ALERT,
+  MSG_QR_SCAN
+};
+
+struct NetMessage {
+  NetMsgType type;
+  char room[8];
+  bool keyPresent;
+  char strPayload[64]; // alertType or qrString
+};
+
+QueueHandle_t netQueue = NULL;
+const int NET_QUEUE_LEN = 16;
+TaskHandle_t netTaskHandle = NULL;
+
+// Coalesced pending synchronization state with critical section protection
+portMUX_TYPE stateMux = portMUX_INITIALIZER_UNLOCKED;
+volatile bool slotNeedsSync203 = false;
+volatile bool slotTargetState203 = true; // true = Present, false = Absent
+
+volatile bool slotNeedsSync204 = false;
+volatile bool slotTargetState204 = true;
+
+// Direct HTTP dispatch for key status transitions
+bool sendKeyStatusHttp(const char* room, bool present) {
+  if (WiFi.status() != WL_CONNECTED) return false;
+
+  WiFiClient client;
+  HTTPClient http;
+  http.begin(client, serverUrl);
+  http.setReuse(false);
+  http.setConnectTimeout(1500); // 1.5s connection timeout
+  http.setTimeout(2000);        // 2.0s socket timeout
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", String("Bearer ") + deviceToken);
+  http.addHeader("Connection", "close");
+
+  String statusStr = present ? "Key Returned" : "Key Taken";
+  String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + String(room) + "\"}";
+
+  int code = http.POST(jsonPayload);
+  Serial.printf("[NetWorker HTTP] %s for Room %s: Status %d\n", statusStr.c_str(), room, code);
+
+  if (code > 0) {
+    WiFiClient* stream = http.getStreamPtr();
+    if (stream) {
+      while (stream->available() > 0) stream->read();
+    }
   }
+  http.end();
+  client.stop();
+  return (code > 0);
 }
 
-// Send security alarm events (Unauthorized Removal or Wrong Slot) to server
-void sendSecurityAlertToServer(String room, String alertType) {
-  if (WiFi.status() == WL_CONNECTED) {
-    WiFiClient client;
-    HTTPClient http;
-    http.begin(client, serverUrl);
-    http.setReuse(false);
-    http.setTimeout(1500);
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", String("Bearer ") + deviceToken);
-    http.addHeader("Connection", "close");
+// Direct HTTP dispatch for security alerts
+bool sendSecurityAlertHttp(const char* room, const char* alertType) {
+  if (WiFi.status() != WL_CONNECTED) return false;
 
-    StaticJsonDocument<256> reqDoc;
-    reqDoc["keyEvent"] = alertType;
-    reqDoc["roomNumber"] = room;
+  WiFiClient client;
+  HTTPClient http;
+  http.begin(client, serverUrl);
+  http.setReuse(false);
+  http.setConnectTimeout(1500);
+  http.setTimeout(2000);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", String("Bearer ") + deviceToken);
+  http.addHeader("Connection", "close");
 
-    String jsonPayload;
-    serializeJson(reqDoc, jsonPayload);
+  StaticJsonDocument<256> reqDoc;
+  reqDoc["keyEvent"] = alertType;
+  reqDoc["roomNumber"] = room;
 
-    int code = http.POST(jsonPayload);
-    Serial.printf("[IoT HTTP Alert] %s for Room %s: Status %d\n", alertType.c_str(), room.c_str(), code);
-    http.end();
-    client.stop();
+  String jsonPayload;
+  serializeJson(reqDoc, jsonPayload);
+
+  int code = http.POST(jsonPayload);
+  Serial.printf("[NetWorker Alert] %s for Room %s: Status %d\n", alertType, room, code);
+
+  if (code > 0) {
+    WiFiClient* stream = http.getStreamPtr();
+    if (stream) {
+      while (stream->available() > 0) stream->read();
+    }
   }
+  http.end();
+  client.stop();
+  return (code > 0);
 }
 
-// Periodic Heartbeat with physical key slot presence
-void sendHeartbeatToServer() {
+// Direct HTTP dispatch for telemetry heartbeat
+void sendHeartbeatHttp() {
   if (WiFi.status() == WL_CONNECTED) {
     WiFiClient client;
     HTTPClient http;
     http.begin(client, heartbeatUrl);
     http.setReuse(false);
-    http.setTimeout(1500);
+    http.setConnectTimeout(1500);
+    http.setTimeout(2000);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", String("Bearer ") + deviceToken);
     http.addHeader("Connection", "close");
 
-    bool key203Present = (detectKeyType(KEY_PIN_203) != KEY_NONE);
-    bool key204Present = (detectKeyType(KEY_PIN_204) != KEY_NONE);
+    bool key203Present = false;
+    bool key204Present = false;
+    portENTER_CRITICAL(&stateMux);
+    key203Present = slotTargetState203;
+    key204Present = slotTargetState204;
+    portEXIT_CRITICAL(&stateMux);
 
     String jsonPayload = "{\"deviceId\":\"ESP32-KeyBox\",\"rooms\":[\"203\",\"204\"],\"slots\":{\"203\":" +
                          String(key203Present ? "true" : "false") + ",\"204\":" +
                          String(key204Present ? "true" : "false") + "}}";
     int code = http.POST(jsonPayload);
     if (code > 0) {
-      Serial.printf("[IoT Heartbeat] Sent (203: %s, 204: %s). Code: %d\n",
+      Serial.printf("[NetWorker Heartbeat] Sent (203: %s, 204: %s). Code: %d, FreeHeap: %u, MinHeap: %u\n",
                     key203Present ? "Present" : "Absent",
                     key204Present ? "Present" : "Absent",
-                    code);
+                    code,
+                    ESP.getFreeHeap(),
+                    ESP.getMinFreeHeap());
+      WiFiClient* stream = http.getStreamPtr();
+      if (stream) {
+        while (stream->available() > 0) stream->read();
+      }
     }
     http.end();
     client.stop();
   }
 }
 
-// Non-blocking Key slot transition monitor (Monitors each slot independently without blocking the loop)
-void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expectedKey, bool &isUnauth, bool &isWrong) {
-  KeyType candidateState = detectKeyType(pin);
-  
-  if (candidateState != lastState) {
-    delay(40); // 40ms fast debounce (rejects contact friction while responding instantly)
-    KeyType verifyState = detectKeyType(pin);
-    
-    if (candidateState == verifyState) {
-      KeyType oldState = lastState;
-      lastState = verifyState;
-
-      Serial.printf("[Slot %s] State changed: %d -> %d\n", slotRoom.c_str(), (int)oldState, (int)verifyState);
-
-      // 1. Wrong Key Inserted
-      if (verifyState != KEY_NONE && verifyState != expectedKey) {
-        isWrong = true;
-        String insertedKeyName = (verifyState == KEY_203) ? "203" : "204";
-        Serial.printf("❌ WRONG KEY SLOT! Key %s inserted into Slot %s\n", insertedKeyName.c_str(), slotRoom.c_str());
-        sendSecurityAlertToServer(slotRoom, "Wrong Key Slot");
-        showWrongKeyScreen();
-        return;
-      }
-
-      // 2. Correct Key Returned
-      if (verifyState == expectedKey) {
-        bool wasUnauth = isUnauth;
-        isUnauth = false;
-        isWrong = false;
-
-        triggerBuzzer(80, 2);
-        if (lcdDetected) {
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print(slotRoom + " Key Return");
-          lcd.setCursor(0, 1);
-          lcd.print(wasUnauth ? "Alarm Cleared " : "Room Secured  ");
-        }
-        sendKeyStatusToServer(slotRoom, true);
-        delay(1000);
-        clearSerialBuffer();
-
-        // If the other slot is still unauthorized, show its warning; otherwise return to ready screen
-        if (isUnauthorized203 || isUnauthorized204) {
-          showUnauthorizedScreen();
-        } else if (isWrongKey203 || isWrongKey204) {
-          showWrongKeyScreen();
-        } else {
-          showReadyScreen();
-        }
-        return;
-      } 
-
-      // 3. Key Taken (Went to KEY_NONE)
-      else if (verifyState == KEY_NONE) {
-        // If it was just a wrong key being removed
-        if (isWrong) {
-          isWrong = false;
-          triggerBuzzer(60, 1);
-          if (lcdDetected) {
-            lcd.clear();
-            lcd.setCursor(0, 0);
-            lcd.print("Key Removed");
-            lcd.setCursor(0, 1);
-            lcd.print("System Ready");
-          }
-          delay(800);
-          clearSerialBuffer();
-          if (isUnauthorized203 || isUnauthorized204) showUnauthorizedScreen();
-          else showReadyScreen();
-          return;
-        }
-
-        if (isAuthorized && millis() < authExpiresAt) {
-          // Authorized key withdrawal: strictly single-use!
-          isAuthorized = false; // immediately consume authorization on first valid withdrawal
-          authExpiresAt = 0;    // invalidate countdown window immediately
-          isUnauth = false;
-          triggerBuzzer(80, 2);
-          if (lcdDetected) {
-            lcd.clear();
-            lcd.setCursor(0, 0);
-            lcd.print(slotRoom + " Key Taken");
-            lcd.setCursor(0, 1);
-            lcd.print("Room Active");
-          }
-          sendKeyStatusToServer(slotRoom, false);
-          delay(1000);
-          clearSerialBuffer();
-          showReadyScreen();
-          return;
-        } else {
-          // UNAUTHORIZED KEY REMOVAL!
-          // Flags this specific slot as unauthorized and notifies the server immediately!
-          // NEVER blocks loop(): other slots will continue being monitored concurrently!
-          isUnauth = true;
-          Serial.printf("🚨 UNAUTHORIZED KEY REMOVAL! Key %s removed without scanning QR!\n", slotRoom.c_str());
-          sendSecurityAlertToServer(slotRoom, "Unauthorized Removal");
-          showUnauthorizedScreen();
-          return;
-        }
-      }
-    }
-  }
-}
-
-// Scan verification handler (returns true if access granted)
-bool sendScanToServer(String scannedToken) {
-  if (lcdDetected) {
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Verifying QR...");
-    lcd.setCursor(0, 1);
-    lcd.print("Please wait...");
-  }
-
-  bool success = false;
+// Direct HTTP dispatch for QR scan verification
+void processQrScanHttp(const char* scannedToken, const char* room) {
   String line1 = "Scan Denied";
   String line2 = "Please Wait...";
 
@@ -387,23 +347,23 @@ bool sendScanToServer(String scannedToken) {
     HTTPClient http;
     http.begin(client, serverUrl);
     http.setReuse(false);
-    http.setTimeout(3500); // 3.5s timeout
+    http.setConnectTimeout(1500);
+    http.setTimeout(3500);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", String("Bearer ") + deviceToken);
     http.addHeader("Connection", "close");
 
     StaticJsonDocument<256> reqDoc;
     reqDoc["qrString"] = scannedToken;
-    reqDoc["roomNumber"] = defaultScanRoom;
+    reqDoc["roomNumber"] = room;
     reqDoc["authMethod"] = "QR Code";
 
     String jsonPayload;
     serializeJson(reqDoc, jsonPayload);
-    
+
     int httpResponseCode = http.POST(jsonPayload);
     String response = http.getString();
-    Serial.printf("[IoT] Scan POST status: %d, err: %s, response: %s\n", 
-                  httpResponseCode, http.errorToString(httpResponseCode).c_str(), response.c_str());
+    Serial.printf("[NetWorker Scan] POST status: %d, response: %s\n", httpResponseCode, response.c_str());
 
     StaticJsonDocument<1024> resDoc;
     DeserializationError error = deserializeJson(resDoc, response);
@@ -424,59 +384,274 @@ bool sendScanToServer(String scannedToken) {
     }
 
     if (httpResponseCode == 200) {
-      success = true;
-      triggerBuzzer(80, 2); 
+      portENTER_CRITICAL(&authMux);
       isAuthorized = true;
       authExpiresAt = millis() + AUTH_WINDOW_MS;
-      authorizedUserName = line2;
       lastDisplayedCountdown = -1;
+      portEXIT_CRITICAL(&authMux);
 
-      if (lcdDetected) {
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print(line1.substring(0, 16));
-        lcd.setCursor(0, 1);
-        lcd.print(line2.substring(0, 16));
-      }
-      delay(800); // Brief 800ms display so user sees confirmation, then countdown begins
+      triggerBuzzer(80, 2);
+      safeLcdPrint(line1, line2);
+      lcdRevertAt = millis() + 800; // Countdown display takes over after 800ms
     } else {
-      triggerBuzzer(250, 1); 
-      if (lcdDetected) {
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print(line1.substring(0, 16));
-        lcd.setCursor(0, 1);
-        lcd.print(line2.substring(0, 16));
-      }
-      delay(2500);
-      clearSerialBuffer();
-      showReadyScreen();
+      triggerBuzzer(250, 1);
+      safeLcdPrint(line1, line2);
+      lcdRevertAt = millis() + 2500;
     }
     http.end();
     client.stop();
   } else {
     triggerBuzzer(250, 1);
-    if (lcdDetected) {
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("Wi-Fi Error!");
-      lcd.setCursor(0, 1);
-      lcd.print("Not Connected");
-    }
-    delay(2000);
-    clearSerialBuffer();
-    showReadyScreen();
+    safeLcdPrint("Wi-Fi Error!", "Not Connected");
+    lcdRevertAt = millis() + 2000;
   }
+}
 
-  return success;
+// Background FreeRTOS Worker Task running on Core 0
+void networkWorkerTask(void* pvParameters) {
+  Serial.printf("[NetWorker] Task active on Core %d\n", xPortGetCoreID());
+
+  unsigned long lastWorkerHeartbeat = millis();
+
+  while (true) {
+    NetMessage msg;
+    // Block on FreeRTOS queue for up to 200ms
+    BaseType_t gotMsg = xQueueReceive(netQueue, &msg, pdMS_TO_TICKS(200));
+
+    if (gotMsg == pdPASS) {
+      if (WiFi.status() == WL_CONNECTED) {
+        if (msg.type == MSG_KEY_STATUS) {
+          if (sendKeyStatusHttp(msg.room, msg.keyPresent)) {
+            portENTER_CRITICAL(&stateMux);
+            if (strcmp(msg.room, "203") == 0 && slotTargetState203 == msg.keyPresent) slotNeedsSync203 = false;
+            if (strcmp(msg.room, "204") == 0 && slotTargetState204 == msg.keyPresent) slotNeedsSync204 = false;
+            portEXIT_CRITICAL(&stateMux);
+          }
+        } else if (msg.type == MSG_SECURITY_ALERT) {
+          sendSecurityAlertHttp(msg.room, msg.strPayload);
+        } else if (msg.type == MSG_QR_SCAN) {
+          processQrScanHttp(msg.strPayload, msg.room);
+        }
+      } else {
+        // Wi-Fi offline: guarantee coalesced state retention
+        if (msg.type == MSG_KEY_STATUS) {
+          portENTER_CRITICAL(&stateMux);
+          if (strcmp(msg.room, "203") == 0) slotNeedsSync203 = true;
+          if (strcmp(msg.room, "204") == 0) slotNeedsSync204 = true;
+          portEXIT_CRITICAL(&stateMux);
+        }
+      }
+    }
+
+    // Coalesced pending state reconciliation when Wi-Fi is connected
+    wl_status_t currentWifiStatus = WiFi.status();
+    static wl_status_t lastRecordedWifi = WL_IDLE_STATUS;
+
+    if (currentWifiStatus == WL_CONNECTED) {
+      // If link was just restored, immediately announce presence!
+      if (lastRecordedWifi != WL_CONNECTED) {
+        Serial.println("[NetWorker] Wi-Fi link restored! Sending immediate presence heartbeat...");
+        lastWorkerHeartbeat = millis();
+        sendHeartbeatHttp();
+      }
+
+      bool need203 = false, target203 = true;
+      bool need204 = false, target204 = true;
+
+      portENTER_CRITICAL(&stateMux);
+      need203 = slotNeedsSync203; target203 = slotTargetState203;
+      need204 = slotNeedsSync204; target204 = slotTargetState204;
+      portEXIT_CRITICAL(&stateMux);
+
+      if (need203) {
+        if (sendKeyStatusHttp("203", target203)) {
+          portENTER_CRITICAL(&stateMux);
+          if (slotTargetState203 == target203) slotNeedsSync203 = false;
+          portEXIT_CRITICAL(&stateMux);
+        }
+      }
+      if (need204) {
+        if (sendKeyStatusHttp("204", target204)) {
+          portENTER_CRITICAL(&stateMux);
+          if (slotTargetState204 == target204) slotNeedsSync204 = false;
+          portEXIT_CRITICAL(&stateMux);
+        }
+      }
+
+      // Periodic 5-second heartbeat
+      if (millis() - lastWorkerHeartbeat >= HEARTBEAT_INTERVAL) {
+        lastWorkerHeartbeat = millis();
+        sendHeartbeatHttp();
+      }
+    }
+
+    // Auto-reconnect guard
+    if (currentWifiStatus != WL_CONNECTED) {
+      static unsigned long lastReconnect = 0;
+      if (millis() - lastReconnect >= 5000) {
+        lastReconnect = millis();
+        Serial.println("[NetWorker] Wi-Fi disconnected! Reconnecting...");
+        WiFi.reconnect();
+      }
+    }
+    lastRecordedWifi = currentWifiStatus;
+
+    vTaskDelay(pdMS_TO_TICKS(10));
+  }
+}
+
+// Helpers to push into FreeRTOS queue non-blockingly
+void dispatchKeyStatusAsync(const char* room, bool present) {
+  portENTER_CRITICAL(&stateMux);
+  if (strcmp(room, "203") == 0) {
+    slotTargetState203 = present;
+    slotNeedsSync203 = true;
+  } else if (strcmp(room, "204") == 0) {
+    slotTargetState204 = present;
+    slotNeedsSync204 = true;
+  }
+  portEXIT_CRITICAL(&stateMux);
+
+  if (netQueue != NULL) {
+    NetMessage msg;
+    msg.type = MSG_KEY_STATUS;
+    strncpy(msg.room, room, sizeof(msg.room) - 1);
+    msg.room[sizeof(msg.room) - 1] = '\0';
+    msg.keyPresent = present;
+    msg.strPayload[0] = '\0';
+    xQueueSend(netQueue, &msg, 0); // 0 timeout: non-blocking immediate return
+  }
+}
+
+void dispatchSecurityAlertAsync(const char* room, const char* alertType) {
+  if (netQueue != NULL) {
+    NetMessage msg;
+    msg.type = MSG_SECURITY_ALERT;
+    strncpy(msg.room, room, sizeof(msg.room) - 1);
+    msg.room[sizeof(msg.room) - 1] = '\0';
+    msg.keyPresent = false;
+    strncpy(msg.strPayload, alertType, sizeof(msg.strPayload) - 1);
+    msg.strPayload[sizeof(msg.strPayload) - 1] = '\0';
+    xQueueSend(netQueue, &msg, 0);
+  }
+}
+
+void dispatchQrScanAsync(const String& scannedCode) {
+  if (netQueue != NULL) {
+    NetMessage msg;
+    msg.type = MSG_QR_SCAN;
+    strncpy(msg.room, defaultScanRoom, sizeof(msg.room) - 1);
+    msg.room[sizeof(msg.room) - 1] = '\0';
+    msg.keyPresent = false;
+    strncpy(msg.strPayload, scannedCode.c_str(), sizeof(msg.strPayload) - 1);
+    msg.strPayload[sizeof(msg.strPayload) - 1] = '\0';
+    xQueueSend(netQueue, &msg, 0);
+  }
+}
+
+// Backward-compatible wrappers
+void sendKeyStatusToServer(String room, bool present) {
+  dispatchKeyStatusAsync(room.c_str(), present);
+}
+
+void sendSecurityAlertToServer(String room, String alertType) {
+  dispatchSecurityAlertAsync(room.c_str(), alertType.c_str());
+}
+
+// Non-blocking Key slot transition monitor (Runs on Core 1 in loop())
+void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expectedKey,
+                   bool &isUnauth, bool &isWrong,
+                   unsigned long &unauthAlarmStarted, unsigned long &wrongAlarmStarted) {
+  KeyType candidateState = detectKeyType(pin);
+  
+  if (candidateState != lastState) {
+    delay(40); // 40ms fast debounce (rejects contact friction while responding instantly)
+    KeyType verifyState = detectKeyType(pin);
+    
+    if (candidateState == verifyState) {
+      KeyType oldState = lastState;
+      lastState = verifyState;
+
+      Serial.printf("[Slot %s] State changed: %d -> %d\n", slotRoom.c_str(), (int)oldState, (int)verifyState);
+
+      // 1. Wrong Key Inserted
+      if (verifyState != KEY_NONE && verifyState != expectedKey) {
+        isWrong = true;
+        wrongAlarmStarted = millis(); // Start audible timer for wrong key
+        String insertedKeyName = (verifyState == KEY_203) ? "203" : "204";
+        Serial.printf("❌ WRONG KEY SLOT! Key %s inserted into Slot %s\n", insertedKeyName.c_str(), slotRoom.c_str());
+        dispatchSecurityAlertAsync(slotRoom.c_str(), "Wrong Key Slot");
+        showWrongKeyScreen();
+        lcdRevertAt = millis() + 2500;
+        return;
+      }
+
+      // 2. Correct Key Returned
+      if (verifyState == expectedKey) {
+        bool wasUnauth = isUnauth;
+        isUnauth = false;
+        isWrong = false;
+        unauthAlarmStarted = 0; // Reset audible alarm timers
+        wrongAlarmStarted = 0;
+
+        triggerBuzzer(80, 2);
+        safeLcdPrint(slotRoom + " Key Return", wasUnauth ? "Alarm Cleared " : "Room Secured  ");
+        dispatchKeyStatusAsync(slotRoom.c_str(), true);
+        lcdRevertAt = millis() + 1500;
+        return;
+      } 
+
+      // 3. Key Taken (Went to KEY_NONE)
+      else if (verifyState == KEY_NONE) {
+        // If it was just a wrong key being removed
+        if (isWrong) {
+          isWrong = false;
+          wrongAlarmStarted = 0;
+          triggerBuzzer(60, 1);
+          safeLcdPrint("Key Removed", "System Ready");
+          lcdRevertAt = millis() + 1000;
+          return;
+        }
+
+        bool hasValidAuth = false;
+        portENTER_CRITICAL(&authMux);
+        if (isAuthorized && millis() < authExpiresAt) {
+          isAuthorized = false; // strictly single-use
+          authExpiresAt = 0;
+          hasValidAuth = true;
+        }
+        portEXIT_CRITICAL(&authMux);
+
+        if (hasValidAuth) {
+          isUnauth = false;
+          unauthAlarmStarted = 0;
+          triggerBuzzer(80, 2);
+          safeLcdPrint(slotRoom + " Key Taken", "Room Active");
+          dispatchKeyStatusAsync(slotRoom.c_str(), false);
+          lcdRevertAt = millis() + 1500;
+          return;
+        } else {
+          // UNAUTHORIZED KEY REMOVAL!
+          isUnauth = true;
+          unauthAlarmStarted = millis(); // Start audible timer for unauthorized removal
+          Serial.printf("🚨 UNAUTHORIZED KEY REMOVAL! Key %s removed without scanning QR!\n", slotRoom.c_str());
+          dispatchSecurityAlertAsync(slotRoom.c_str(), "Unauthorized Removal");
+          showUnauthorizedScreen();
+          buzzerOn(); // Immediate alarm tone without waiting for network!
+          return;
+        }
+      }
+    }
+  }
 }
 
 void setup() {
   Serial.begin(115200);
   delay(300);
-  Serial.println("\n--- LabSync Device Booting ---");
+  Serial.println("\n--- LabSync Device Booting (Dual-Core Architecture) ---");
 
   buzzerOff();
+  isBuzzerCurrentlyOn = false;
 
   analogSetPinAttenuation(KEY_PIN_203, ADC_11db);
   analogSetPinAttenuation(KEY_PIN_204, ADC_11db);
@@ -485,9 +660,15 @@ void setup() {
 
   lastSlotState203 = detectKeyType(KEY_PIN_203);
   lastSlotState204 = detectKeyType(KEY_PIN_204);
+  portENTER_CRITICAL(&stateMux);
+  slotTargetState203 = (lastSlotState203 != KEY_NONE);
+  slotTargetState204 = (lastSlotState204 != KEY_NONE);
+  portEXIT_CRITICAL(&stateMux);
 
-  // Initialize LCD
+  // Initialize LCD & Mutex
+  i2cMutex = xSemaphoreCreateMutex();
   Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+  Wire.setTimeOut(50); // 50ms I2C timeout protects against infinite bus lockup
   byte count = 0;
   byte foundAddress = 0;
 
@@ -499,23 +680,26 @@ void setup() {
     }
   }
 
+  unsigned long connectingScreenShownAt = 0;
   if (count > 0 && foundAddress != 0) {
     lcd = LiquidCrystal_I2C(foundAddress, 16, 2);
     lcd.init();
     lcd.backlight();
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Connecting to");
-    lcd.setCursor(0, 1);
-    lcd.print("Wi-Fi...");
-    lcdDetected = true;
+    lcdDetected = true; // MUST be true before safeLcdPrint can succeed
+    safeLcdPrint("Connecting to", "Wi-Fi...");
+    connectingScreenShownAt = millis();
   }
 
   // Initialize GM65 Scanner
   Serial2.begin(9600, SERIAL_8N1, GM65_RX_PIN, GM65_TX_PIN);
   clearSerialBuffer();
 
+  // Create FreeRTOS Network Queue (16 elements)
+  netQueue = xQueueCreate(NET_QUEUE_LEN, sizeof(NetMessage));
+
   // Connect Wi-Fi
+  WiFi.setAutoReconnect(true); // Enable ESP32 hardware Wi-Fi auto-reconnect
+  WiFi.setSleep(false); // Disable modem sleep to prevent latency spikes and ARP drops
   WiFi.begin(ssid, password);
   int wifiTimeout = 0;
   while (WiFi.status() != WL_CONNECTED && wifiTimeout < 30) {
@@ -524,39 +708,43 @@ void setup() {
     wifiTimeout++;
   }
   
+  // Enforce small minimum display time (~800ms) so "Connecting to Wi-Fi..." is visibly readable
+  if (connectingScreenShownAt > 0) {
+    while (millis() - connectingScreenShownAt < 800) {
+      delay(50);
+    }
+  }
+
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nConnected to Wi-Fi!");
     triggerBuzzer(80, 1);
-    lastHeartbeatTime = millis();
-    sendHeartbeatToServer(); // Immediately announce online presence on boot
+    safeLcdPrint("Connected!", "Wi-Fi Ready     ");
+    delay(1200); // 1.2s confirmation screen
+  } else {
+    Serial.println("\nWi-Fi connection timed out!");
+    safeLcdPrint("Wi-Fi Offline", "Scan/Retry Later");
+    delay(1500); // 1.5s offline notification screen
   }
+
+  // Spawn Dedicated Network Worker Task pinned to Core 0 (8192 bytes stack)
+  xTaskCreatePinnedToCore(
+    networkWorkerTask,   // Task function
+    "NetWorkerTask",     // Task name
+    8192,                // Stack size in bytes
+    NULL,                // Parameter
+    1,                   // Priority (1 = background network priority)
+    &netTaskHandle,      // Task handle
+    0                    // Core 0 (dedicated network core)
+  );
 
   if (lcdDetected) {
     showReadyScreen();
   }
 }
 
-// Track Wi-Fi status transitions for 0ms instant connect/reconnect announcement
-wl_status_t lastWifiStatus = WL_IDLE_STATUS;
-
+// Main Hardware Monitoring Loop (Runs on Core 1)
 void loop() {
   bool alarmActive = (isUnauthorized203 || isUnauthorized204 || isWrongKey203 || isWrongKey204);
-
-  // 0. Wi-Fi Auto-Reconnect Guard
-  wl_status_t currentWifiStatus = WiFi.status();
-  if (currentWifiStatus != WL_CONNECTED) {
-    static unsigned long lastWifiReconnectAttempt = 0;
-    if (millis() - lastWifiReconnectAttempt > 10000) {
-      lastWifiReconnectAttempt = millis();
-      Serial.println("[IoT] Wi-Fi disconnected! Reconnecting...");
-      WiFi.reconnect();
-    }
-  } else if (lastWifiStatus != WL_CONNECTED) {
-    Serial.println("[IoT] Wi-Fi connected! Firing presence heartbeat...");
-    lastHeartbeatTime = millis();
-    sendHeartbeatToServer();
-  }
-  lastWifiStatus = currentWifiStatus;
 
   // 1. GM65 Scanner Detection with anti-spam cooldown
   static unsigned long lastScanTime = 0;
@@ -564,52 +752,60 @@ void loop() {
   if (scannedCode.length() > 0) {
     if (millis() - lastScanTime >= 1200) {
       lastScanTime = millis();
-      buzzerOff(); // Mute buzzer while scanning
+      buzzerOff();
 
-      bool scanSuccess = sendScanToServer(scannedCode);
+      // Immediate local verification screen
+      safeLcdPrint("Verifying QR...", "Please wait...");
+
+      // Offload HTTP verification asynchronously to Core 0 network worker!
+      dispatchQrScanAsync(scannedCode);
       lastScanTime = millis();
       clearSerialBuffer();
 
-      if (scanSuccess && (isUnauthorized203 || isUnauthorized204)) {
-        // Retroactively authorize removed key(s)
+      // Handle retroactive authorization if alarm was active
+      if (isUnauthorized203 || isUnauthorized204) {
         if (isUnauthorized204 && !isUnauthorized203) {
           isUnauthorized204 = false;
-          sendKeyStatusToServer("204", false);
+          unauthorizedAlarmStarted204 = 0;
+          dispatchKeyStatusAsync("204", false);
         } else if (isUnauthorized203 && !isUnauthorized204) {
           isUnauthorized203 = false;
-          sendKeyStatusToServer("203", false);
+          unauthorizedAlarmStarted203 = 0;
+          dispatchKeyStatusAsync("203", false);
         } else if (isUnauthorized203 && isUnauthorized204) {
           isUnauthorized204 = false;
           isUnauthorized203 = false;
-          sendKeyStatusToServer("204", false);
-          sendKeyStatusToServer("203", false);
+          unauthorizedAlarmStarted204 = 0;
+          unauthorizedAlarmStarted203 = 0;
+          dispatchKeyStatusAsync("204", false);
+          dispatchKeyStatusAsync("203", false);
         }
+        portENTER_CRITICAL(&authMux);
         isAuthorized = false;
+        portEXIT_CRITICAL(&authMux);
+
         buzzerOff();
         triggerBuzzer(80, 2);
-        if (lcdDetected) {
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print("Access Granted! ");
-          lcd.setCursor(0, 1);
-          lcd.print("Key Authorized  ");
-        }
-        delay(1200);
-        clearSerialBuffer();
-        showReadyScreen();
+        safeLcdPrint("Access Granted! ", "Key Authorized  ");
+        lcdRevertAt = millis() + 1500;
       }
     } else {
       clearSerialBuffer();
     }
   }
 
-  // 2. Multi-Slot Key Monitoring: BOTH slots are checked on every iteration!
-  handleKeySlot(KEY_PIN_203, lastSlotState203, "203", KEY_203, isUnauthorized203, isWrongKey203);
-  handleKeySlot(KEY_PIN_204, lastSlotState204, "204", KEY_204, isUnauthorized204, isWrongKey204);
+  // 2. Multi-Slot Key Monitoring: BOTH slots are checked on Core 1 without network delay!
+  handleKeySlot(KEY_PIN_203, lastSlotState203, "203", KEY_203, isUnauthorized203, isWrongKey203, unauthorizedAlarmStarted203, wrongKeyAlarmStarted203);
+  handleKeySlot(KEY_PIN_204, lastSlotState204, "204", KEY_204, isUnauthorized204, isWrongKey204, unauthorizedAlarmStarted204, wrongKeyAlarmStarted204);
 
-  // 3. Alarm Buzzer Sounding (Non-blocking: 70ms on, 50ms off)
-  alarmActive = (isUnauthorized203 || isUnauthorized204 || isWrongKey203 || isWrongKey204);
-  if (alarmActive) {
+  // 3. Alarm Buzzer Sounding (Non-blocking: 70ms on, 50ms off with 30s auto-stop)
+  bool audible203 = (isUnauthorized203 && (millis() - unauthorizedAlarmStarted203 < SECURITY_ALARM_MAX_DURATION_MS)) ||
+                    (isWrongKey203 && (millis() - wrongKeyAlarmStarted203 < SECURITY_ALARM_MAX_DURATION_MS));
+  bool audible204 = (isUnauthorized204 && (millis() - unauthorizedAlarmStarted204 < SECURITY_ALARM_MAX_DURATION_MS)) ||
+                    (isWrongKey204 && (millis() - wrongKeyAlarmStarted204 < SECURITY_ALARM_MAX_DURATION_MS));
+  bool shouldSoundAlarm = audible203 || audible204;
+
+  if (shouldSoundAlarm) {
     unsigned long cycle = millis() % 120;
     if (cycle < 70) buzzerOn();
     else buzzerOff();
@@ -617,42 +813,39 @@ void loop() {
     buzzerOff();
   }
 
-  // 4. Live Countdown Window Handling (when authorized and no alarm active)
+  // 4. Non-Blocking LCD Screen Reversion
+  if (lcdRevertAt > 0 && millis() >= lcdRevertAt) {
+    lcdRevertAt = 0;
+    clearSerialBuffer();
+    if (isUnauthorized203 || isUnauthorized204) {
+      showUnauthorizedScreen();
+    } else if (isWrongKey203 || isWrongKey204) {
+      showWrongKeyScreen();
+    } else if (!isAuthorized) {
+      showReadyScreen();
+    }
+  }
+
+  // 5. Live Countdown Window Handling (when authorized and no alarm active)
   if (!alarmActive && isAuthorized) {
     if (millis() < authExpiresAt) {
       int secLeft = (int)((authExpiresAt - millis() + 999) / 1000);
       if (secLeft != lastDisplayedCountdown) {
         lastDisplayedCountdown = secLeft;
-        if (lcdDetected) {
-          lcd.setCursor(0, 0);
-          lcd.print("Access Granted! ");
-          lcd.setCursor(0, 1);
-          String cdText = "Take Key: " + String(secLeft) + "s   ";
-          lcd.print(cdText.substring(0, 16));
-        }
+        String cdText = "Take Key: " + String(secLeft) + "s   ";
+        safeLcdPrint("Access Granted! ", cdText);
       }
     } else {
       // Authorization window expired without key withdrawal
+      portENTER_CRITICAL(&authMux);
       isAuthorized = false;
       authExpiresAt = 0;
-      triggerBuzzer(180, 1);
-      if (lcdDetected) {
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("Session Expired ");
-        lcd.setCursor(0, 1);
-        lcd.print("Scan QR Again   ");
-      }
-      delay(1200);
-      clearSerialBuffer();
-      showReadyScreen();
-    }
-  }
+      portEXIT_CRITICAL(&authMux);
 
-  // 5. Periodic 10-second Heartbeat (only when idle, avoids colliding with QR scan or authorization)
-  if (!isAuthorized && !alarmActive && (millis() - lastHeartbeatTime >= HEARTBEAT_INTERVAL)) {
-    lastHeartbeatTime = millis();
-    sendHeartbeatToServer();
+      triggerBuzzer(180, 1);
+      safeLcdPrint("Session Expired ", "Scan QR Again   ");
+      lcdRevertAt = millis() + 1500;
+    }
   }
 
   delay(10);
