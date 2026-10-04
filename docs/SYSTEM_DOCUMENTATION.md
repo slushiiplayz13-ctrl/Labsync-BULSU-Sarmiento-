@@ -435,7 +435,7 @@ The web application is structured across **24 approved HTML pages** allowlisted 
 
 #### `mis-maintenance.html` — Deduplicated Maintenance Queue
 - **Relational Issue Tracking:** Displays master tickets from `maintenance_issues` with aggregated reporter badges (`👤 Andrei [+2]`).
-- **Ticket Details Modal:** Reveals full history of all corroborating student submissions with exact timestamps, academic sections, and student remarks.
+- **Ticket Details Modal (`[ 👁️ View Details ]`):** Reveals full history of all corroborating student submissions with exact timestamps, academic sections, and student remarks.
 - **Resolver Attribution:** Records the authenticated user who resolved each ticket via `Resolved_By_User_ID`.
 - **Automatic Health Restoration:** Automatically restores `lab_units.Condition_Status` to `Functional` once all active component defects on that workstation are resolved.
 

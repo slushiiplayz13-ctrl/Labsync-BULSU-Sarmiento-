@@ -63,27 +63,35 @@ async function testMobileMenu() {
     await send(pWs, 'Page.navigate', { url });
     await new Promise(r => setTimeout(r, 1500));
 
-    // Check visibility of desktop nav vs mobile nav
+    // Check visibility and responsive styling of header navigation on mobile
     let navState = await send(pWs, 'Runtime.evaluate', {
       expression: `(() => {
-        const desktopNav = document.querySelector('.desktop-nav');
-        const mobileNav = document.querySelector('.mobile-nav-wrapper');
-        const dStyle = window.getComputedStyle(desktopNav);
-        const mStyle = window.getComputedStyle(mobileNav);
+        const headerLeft = document.querySelector('.header-left');
+        const headerRight = document.querySelector('.header-right');
+        const lStyle = window.getComputedStyle(headerLeft);
+        const rStyle = window.getComputedStyle(headerRight);
+        const links = Array.from(headerRight.querySelectorAll('a')).map(a => a.textContent.trim());
         return {
-          desktopDisplay: dStyle.display,
-          mobileDisplay: mStyle.display
+          headerLeftDisplay: lStyle.display,
+          headerRightDisplay: rStyle.display,
+          linkCount: links.length,
+          links: links
         };
       })()`,
       returnByValue: true
     });
     console.log('Mobile nav state:', navState.result.value);
 
-    if (navState.result.value.desktopDisplay !== 'none') {
-      throw new Error('.desktop-nav should be hidden on mobile (got: ' + navState.result.value.desktopDisplay + ')');
+    if (navState.result.value.headerRightDisplay !== 'flex') {
+      throw new Error('.header-right should be display:flex on mobile (got: ' + navState.result.value.headerRightDisplay + ')');
     }
-    if (navState.result.value.mobileDisplay !== 'block') {
-      throw new Error('.mobile-nav-wrapper should be visible on mobile (got: ' + navState.result.value.mobileDisplay + ')');
+    if (navState.result.value.linkCount !== 3) {
+      throw new Error('.header-right should have 3 links on mobile (got: ' + navState.result.value.linkCount + ')');
+    }
+
+    const expectedMobileOrder = ['About', 'Policies', 'Contact'];
+    if (JSON.stringify(navState.result.value.links) !== JSON.stringify(expectedMobileOrder)) {
+      throw new Error('Expected mobile links ' + JSON.stringify(expectedMobileOrder) + ' but got ' + JSON.stringify(navState.result.value.links));
     }
 
     // Capture screenshot of mobile header
@@ -92,53 +100,32 @@ async function testMobileMenu() {
     fs.writeFileSync(out1, Buffer.from(cap1.data, 'base64'));
     console.log('✔ Captured mobile header screenshot:', out1);
 
-    // 2. Open Mobile Dropdown
-    console.log('Clicking #mobileMenuBtn...');
+    // 2. Click Policies link on mobile -> opens policies modal
+    console.log('Clicking #policiesLink on mobile...');
     await send(pWs, 'Runtime.evaluate', {
-      expression: `document.getElementById('mobileMenuBtn').click()`
-    });
-    await new Promise(r => setTimeout(r, 350));
-
-    let dropState = await send(pWs, 'Runtime.evaluate', {
-      expression: `document.getElementById('mobileMenuDropdown').classList.contains('active')`,
-      returnByValue: true
-    });
-    console.log('Dropdown active after click:', dropState.result.value);
-    if (!dropState.result.value) {
-      throw new Error('Mobile menu dropdown is not active after clicking menu button');
-    }
-
-    const cap2 = await send(pWs, 'Page.captureScreenshot', { format: 'png' });
-    const out2 = path.join(__dirname, 'login-mobile-dropdown-open.png');
-    fs.writeFileSync(out2, Buffer.from(cap2.data, 'base64'));
-    console.log('✔ Captured open mobile dropdown screenshot:', out2);
-
-    // 3. Click Policies inside dropdown -> should open policies modal
-    console.log('Clicking #mobilePoliciesBtn...');
-    await send(pWs, 'Runtime.evaluate', {
-      expression: `document.getElementById('mobilePoliciesBtn').click()`
+      expression: `document.getElementById('policiesLink').click()`
     });
     await new Promise(r => setTimeout(r, 400));
 
     let modalState = await send(pWs, 'Runtime.evaluate', {
       expression: `(() => {
-        const drop = document.getElementById('mobileMenuDropdown');
         const modal = document.getElementById('policiesModal');
         return {
-          dropdownActive: drop.classList.contains('active'),
-          policiesModalActive: modal.classList.contains('active')
+          policiesModalActive: modal ? modal.classList.contains('active') : false
         };
       })()`,
       returnByValue: true
     });
-    console.log('After clicking mobile policies item:', modalState.result.value);
+    console.log('After clicking policies item on mobile:', modalState.result.value);
 
-    if (modalState.result.value.dropdownActive) {
-      throw new Error('Dropdown should close when item is clicked');
-    }
     if (!modalState.result.value.policiesModalActive) {
-      throw new Error('Policies modal should open when mobile policies item is clicked');
+      throw new Error('Policies modal should open when policies link is clicked on mobile');
     }
+
+    const cap2 = await send(pWs, 'Page.captureScreenshot', { format: 'png' });
+    const out2 = path.join(__dirname, 'login-mobile-dropdown-open.png');
+    fs.writeFileSync(out2, Buffer.from(cap2.data, 'base64'));
+    console.log('✔ Captured mobile policies modal screenshot:', out2);
 
     // Close modal
     await send(pWs, 'Runtime.evaluate', {
@@ -146,7 +133,15 @@ async function testMobileMenu() {
     });
     await new Promise(r => setTimeout(r, 400));
 
-    // 4. Desktop Check (1200x800)
+    let closedState = await send(pWs, 'Runtime.evaluate', {
+      expression: `document.getElementById('policiesModal').classList.contains('active')`,
+      returnByValue: true
+    });
+    if (closedState.result.value !== false) {
+      throw new Error('Policies modal should close when close button is clicked');
+    }
+
+    // 3. Desktop Check (1200x800)
     await send(pWs, 'Emulation.setDeviceMetricsOverride', {
       width: 1200,
       height: 800,
@@ -157,12 +152,10 @@ async function testMobileMenu() {
 
     let desktopCheck = await send(pWs, 'Runtime.evaluate', {
       expression: `(() => {
-        const desktopNav = document.querySelector('.desktop-nav');
-        const mobileNav = document.querySelector('.mobile-nav-wrapper');
-        const links = Array.from(desktopNav.querySelectorAll('a')).map(a => a.textContent.trim());
+        const headerRight = document.querySelector('.header-right');
+        const links = Array.from(headerRight.querySelectorAll('a')).map(a => a.textContent.trim());
         return {
-          desktopDisplay: window.getComputedStyle(desktopNav).display,
-          mobileDisplay: window.getComputedStyle(mobileNav).display,
+          desktopDisplay: window.getComputedStyle(headerRight).display,
           linkOrder: links
         };
       })()`,
@@ -171,10 +164,7 @@ async function testMobileMenu() {
     console.log('Desktop layout check:', desktopCheck.result.value);
 
     if (desktopCheck.result.value.desktopDisplay !== 'flex') {
-      throw new Error('Desktop nav should be display:flex on desktop');
-    }
-    if (desktopCheck.result.value.mobileDisplay !== 'none') {
-      throw new Error('Mobile nav wrapper should be display:none on desktop');
+      throw new Error('.header-right should be display:flex on desktop');
     }
 
     const expectedOrder = ['About', 'Policies', 'Contact'];

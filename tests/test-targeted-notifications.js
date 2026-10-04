@@ -36,35 +36,50 @@ async function runTargetedNotificationTests() {
   console.log('🧪 TARGETED KEY ACTIVITY NOTIFICATION SUITE (STRICT CLASS TIME)');
   console.log('================================================================\n');
 
-  // Verify test users and rooms
-  const [rooms] = await db.query("SELECT Room_ID, Room_Number FROM laboratories WHERE Room_Number IN ('203', '204') ORDER BY Room_Number");
-  assert.ok(rooms.length >= 2, "Must have at least Room 203 and Room 204 in database");
-  const room203 = rooms.find(r => r.Room_Number === '203');
-  const room204 = rooms.find(r => r.Room_Number === '204');
-
-  const [usersA] = await db.query("SELECT User_ID, Name, Role FROM users WHERE Role IN ('IT Dept. Head', 'IT Head', 'Department Head') LIMIT 1");
-  assert.ok(usersA.length > 0, "IT Dept. Head user must exist");
-  const deptHead = usersA[0];
-
-  let tempFacultyId = null;
-  let [usersFaculty] = await db.query("SELECT User_ID, Name, Role FROM users WHERE Role = 'Faculty' AND User_ID != ? LIMIT 2", [deptHead.User_ID]);
-  if (usersFaculty.length < 2) {
-    const [ins] = await db.query("INSERT INTO users (Name, Email, Role, Status) VALUES ('Lebron James', 'lebron@labsync.test', 'Faculty', 'Active')");
-    tempFacultyId = ins.insertId;
-    const [refreshed] = await db.query("SELECT User_ID, Name, Role FROM users WHERE Role = 'Faculty' AND User_ID != ? LIMIT 2", [deptHead.User_ID]);
-    usersFaculty = refreshed;
-  }
-  assert.ok(usersFaculty.length >= 2, "At least two Faculty users must exist for multi-faculty isolation tests");
-  const facultyA = usersFaculty[0];
-  const facultyB = usersFaculty[1];
-
-  console.log(`✓ Test Users: Dept Head: ${deptHead.Name} (ID: ${deptHead.User_ID}), Faculty A: ${facultyA.Name} (ID: ${facultyA.User_ID}), Faculty B: ${facultyB.Name} (ID: ${facultyB.User_ID})`);
-  console.log(`✓ Test Rooms: Room 204 (ID: ${room204.Room_ID}), Room 203 (ID: ${room203.Room_ID})`);
-
+  const createdRoomIds = [];
+  const createdUserIds = [];
   const createdScheduleIds = [];
   const createdLogIds = [];
 
   try {
+    const uniqueId = Date.now();
+
+    // Create dedicated isolated temporary test rooms to avoid collision with developer/seed data
+    const [insRoomA] = await db.query(
+      "INSERT INTO laboratories (Room_Number, Building, Current_Status, Key_Status) VALUES (?, 'Test Bldg', 'Available', 'Present')",
+      [`TEST-${uniqueId}-204`]
+    );
+    const [insRoomB] = await db.query(
+      "INSERT INTO laboratories (Room_Number, Building, Current_Status, Key_Status) VALUES (?, 'Test Bldg', 'Available', 'Present')",
+      [`TEST-${uniqueId}-203`]
+    );
+    const room204 = { Room_ID: insRoomA.insertId, Room_Number: `TEST-${uniqueId}-204` };
+    const room203 = { Room_ID: insRoomB.insertId, Room_Number: `TEST-${uniqueId}-203` };
+    createdRoomIds.push(room204.Room_ID, room203.Room_ID);
+
+    // Create dedicated isolated temporary test users
+    const [insHead] = await db.query(
+      "INSERT INTO users (Name, Email, Role, Status) VALUES ('Test Dept Head', ?, 'IT Dept. Head', 'ACTIVE')",
+      [`test-head-${uniqueId}@labsync.test`]
+    );
+    const deptHead = { User_ID: insHead.insertId, Name: 'Test Dept Head', Role: 'IT Dept. Head' };
+
+    const [insFacA] = await db.query(
+      "INSERT INTO users (Name, Email, Role, Status) VALUES ('Test Faculty A', ?, 'Faculty', 'ACTIVE')",
+      [`test-faca-${uniqueId}@labsync.test`]
+    );
+    const facultyA = { User_ID: insFacA.insertId, Name: 'Test Faculty A', Role: 'Faculty' };
+
+    const [insFacB] = await db.query(
+      "INSERT INTO users (Name, Email, Role, Status) VALUES ('Test Faculty B', ?, 'Faculty', 'ACTIVE')",
+      [`test-facb-${uniqueId}@labsync.test`]
+    );
+    const facultyB = { User_ID: insFacB.insertId, Name: 'Test Faculty B', Role: 'Faculty' };
+    createdUserIds.push(deptHead.User_ID, facultyA.User_ID, facultyB.User_ID);
+
+    console.log(`✓ Test Users (Isolated): Dept Head: ${deptHead.Name} (ID: ${deptHead.User_ID}), Faculty A: ${facultyA.Name} (ID: ${facultyA.User_ID}), Faculty B: ${facultyB.Name} (ID: ${facultyB.User_ID})`);
+    console.log(`✓ Test Rooms (Isolated): Primary Room: ${room204.Room_Number} (ID: ${room204.Room_ID}), Secondary Room: ${room203.Room_Number} (ID: ${room203.Room_ID})`);
+
     const [dayRow] = await db.query("SELECT DAYNAME(NOW()) as dayName, DATE_FORMAT(NOW(), '%Y-%m-%d') as curDateStr");
     const currentDay = dayRow[0].dayName;
     const currentDate = dayRow[0].curDateStr; // YYYY-MM-DD
@@ -281,17 +296,20 @@ async function runTargetedNotificationTests() {
     console.log('================================================================');
 
   } finally {
-    // Teardown test data
+    // Teardown test data in reverse-dependency order
     if (createdLogIds.length > 0) {
       await db.query("DELETE FROM occupancy_log WHERE Log_ID IN (?)", [createdLogIds]);
     }
     if (createdScheduleIds.length > 0) {
       await db.query("DELETE FROM schedules WHERE Schedule_ID IN (?)", [createdScheduleIds]);
     }
-    if (tempFacultyId) {
-      await db.query("DELETE FROM users WHERE User_ID = ?", [tempFacultyId]);
+    if (createdRoomIds.length > 0) {
+      await db.query("DELETE FROM laboratories WHERE Room_ID IN (?)", [createdRoomIds]);
     }
-    console.log('✓ Teardown: Test schedules and occupancy logs cleaned up successfully.');
+    if (createdUserIds.length > 0) {
+      await db.query("DELETE FROM users WHERE User_ID IN (?)", [createdUserIds]);
+    }
+    console.log('✓ Teardown: Isolated test rooms, users, schedules, and occupancy logs cleaned up successfully.');
   }
 }
 

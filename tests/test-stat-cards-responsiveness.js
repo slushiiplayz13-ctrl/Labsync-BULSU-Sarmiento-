@@ -49,7 +49,7 @@ assert(styleCss.includes("stat-cards.css?v=1.1.3"), 'style.css must reference st
 assert(styleCss.includes("responsive.css?v=1.1.3"), 'style.css must reference responsive.css?v=1.1.3');
 
 const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-assert(indexHtml.includes("style.css?v=1.1.3"), 'index.html must reference style.css?v=1.1.3');
+assert(indexHtml.includes("style.css?v=1.1.6"), 'index.html must reference style.css?v=1.1.6');
 
 const itHeadHtml = fs.readFileSync(path.join(__dirname, '..', 'it-head-dashboard.html'), 'utf8');
 assert(itHeadHtml.includes("style.css?v=1.1.3"), 'it-head-dashboard.html must reference style.css?v=1.1.3');

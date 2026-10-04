@@ -156,6 +156,9 @@ const sandbox = {
     setItem: () => {}
   },
   setTimeout: (fn) => fn(),
+  setInterval: () => {},
+  clearInterval: () => {},
+  fetch: async () => ({ ok: true, json: async () => ({}) }),
   console: console
 };
 sandbox.window = sandbox;

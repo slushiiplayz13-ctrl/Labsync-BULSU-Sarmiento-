@@ -141,7 +141,16 @@ async function testLoginPoliciesVisual() {
     fs.writeFileSync(cleanOutPath, Buffer.from(cleanCap.data, 'base64'));
     console.log('✔ Clean login screenshot saved to', cleanOutPath);
 
-    // Test re-open and bottom action close button
+    // Verify closePoliciesActionBtn remains absent from the DOM (approved design)
+    const checkActionBtn = await send(pWs, 'Runtime.evaluate', {
+      expression: `!document.getElementById('closePoliciesActionBtn')`,
+      returnByValue: true
+    });
+    if (!checkActionBtn.result.value) {
+      throw new Error('closePoliciesActionBtn must remain absent from DOM');
+    }
+
+    // Test re-open and closing via Escape key handling
     console.log('Re-opening modal via #policiesLink...');
     await send(pWs, 'Runtime.evaluate', {
       expression: `document.getElementById('policiesLink').click()`
@@ -149,7 +158,7 @@ async function testLoginPoliciesVisual() {
     await new Promise(r => setTimeout(r, 400));
 
     await send(pWs, 'Runtime.evaluate', {
-      expression: `document.getElementById('closePoliciesActionBtn').click()`
+      expression: `document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`
     });
     await new Promise(r => setTimeout(r, 400));
 
@@ -158,7 +167,7 @@ async function testLoginPoliciesVisual() {
       returnByValue: true
     });
     if (state.result.value !== false) {
-      throw new Error('Modal did not close on closePoliciesActionBtn click');
+      throw new Error('Modal did not close on Escape key');
     }
 
     console.log('🎉 VISUAL TEST PASSED 100%!');

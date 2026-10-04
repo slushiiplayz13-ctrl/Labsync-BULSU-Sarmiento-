@@ -10,6 +10,7 @@ node_modules/
 # Temporary/scratch scripts & test caches
 scratch/
 tests/temp-*
+tests/*.png
 
 # IDEs and editors
 .vscode/

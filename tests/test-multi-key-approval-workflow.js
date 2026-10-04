@@ -108,6 +108,9 @@ async function runTests() {
     assert.strictEqual(subRes.status, 201, 'Request submission must return 201 Created');
     const requestId = subRes.data.requestId;
     assert.ok(requestId > 0, 'Must return valid requestId');
+    // Ensure immediate multi-key authorization is time-window independent (Reservation_Date = NULL)
+    // so the test remains deterministic regardless of execution time relative to 9:00 PM laboratory closing hours.
+    await db.query("UPDATE key_authorization_requests SET Reservation_Date = NULL, Start_Time = NULL, End_Time = NULL WHERE Request_ID = ?", [requestId]);
     console.log(`✔ PASS: Request submitted with ID ${requestId}.`);
 
     // -------------------------------------------------------------
@@ -245,6 +248,7 @@ async function runTests() {
       faculty.User_ID, faculty.Role, faculty.Name, room204.Room_ID, 'IoT box test retrieval'
     );
     const iotReqId = iotReqSub.data.requestId;
+    await db.query("UPDATE key_authorization_requests SET Reservation_Date = NULL, Start_Time = NULL, End_Time = NULL WHERE Request_ID = ?", [iotReqId]);
     await keyAuthService.approveRequest(iotReqId, deptHead.User_ID, deptHead.Role, 60);
 
     // Faculty scans QR at IoT Key Box while still holding Room 203
