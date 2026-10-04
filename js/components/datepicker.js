@@ -90,13 +90,17 @@
     const minAttr = input.getAttribute('min') || input.dataset.min;
     if (minAttr) return minAttr;
 
-    // Automatic linking for OJT end date
+    // Automatic linking for OJT end date & report end date
     if (input.id === 'addOjtEndDate') {
       const startVal = document.getElementById('addOjtStartDate')?.value;
       if (startVal && /^\d{4}-\d{2}-\d{2}$/.test(startVal)) return startVal;
     }
     if (input.id === 'editOjtEndDate') {
       const startVal = document.getElementById('editOjtStartDate')?.value;
+      if (startVal && /^\d{4}-\d{2}-\d{2}$/.test(startVal)) return startVal;
+    }
+    if (input.id === 'reportEndDate') {
+      const startVal = document.getElementById('reportStartDate')?.value;
       if (startVal && /^\d{4}-\d{2}-\d{2}$/.test(startVal)) return startVal;
     }
 
@@ -109,13 +113,17 @@
     const maxAttr = input.getAttribute('max') || input.dataset.max;
     if (maxAttr) return maxAttr;
 
-    // Automatic linking for OJT start date
+    // Automatic linking for OJT start date & report start date
     if (input.id === 'addOjtStartDate') {
       const endVal = document.getElementById('addOjtEndDate')?.value;
       if (endVal && /^\d{4}-\d{2}-\d{2}$/.test(endVal)) return endVal;
     }
     if (input.id === 'editOjtStartDate') {
       const endVal = document.getElementById('editOjtEndDate')?.value;
+      if (endVal && /^\d{4}-\d{2}-\d{2}$/.test(endVal)) return endVal;
+    }
+    if (input.id === 'reportStartDate') {
+      const endVal = document.getElementById('reportEndDate')?.value;
       if (endVal && /^\d{4}-\d{2}-\d{2}$/.test(endVal)) return endVal;
     }
 
@@ -358,29 +366,66 @@
     if (!popoverEl || !currentInput) return;
 
     const rect = currentInput.getBoundingClientRect();
-    const popoverWidth = popoverEl.offsetWidth || 324;
-    const popoverHeight = popoverEl.offsetHeight || 360;
-    const padding = 12;
+    const popoverWidth = popoverEl.offsetWidth || 312;
+    const popoverHeight = popoverEl.offsetHeight || 315;
+    const padding = 10;
+    const gap = 6;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
 
+    // 1. Horizontal Positioning & Clamping
     let left = rect.left;
 
-    // Detect if input is inside a modal dialog to stay neatly within modal bounds
-    const modalEl = currentInput.closest('.ojt-modal, .modal-card, .modal-content, [role="dialog"]');
-    if (modalEl) {
-      const modalRect = modalEl.getBoundingClientRect();
-      if (rect.left + popoverWidth > modalRect.right - 12) {
-        // Align right edge of popover with right edge of input
-        left = Math.max(modalRect.left + 12, rect.right - popoverWidth);
+    if (viewportWidth <= 480) {
+      // Center horizontally on mobile screens for clean layout and zero cutoff
+      left = Math.round((viewportWidth - popoverWidth) / 2);
+    } else {
+      // If input is inside a modal dialog, keep within modal or align with right edge of input
+      const modalEl = currentInput.closest('.ojt-modal, .modal-card, .modal-content, [role="dialog"], .report-modal-dialog');
+      if (modalEl) {
+        const modalRect = modalEl.getBoundingClientRect();
+        if (rect.left + popoverWidth > modalRect.right - padding) {
+          left = rect.right - popoverWidth;
+        }
+      } else if (rect.left + popoverWidth > viewportWidth - padding) {
+        left = rect.right - popoverWidth;
       }
-    } else if (left + popoverWidth > window.innerWidth - padding) {
-      left = Math.max(padding, window.innerWidth - popoverWidth - padding);
     }
-    if (left < padding) left = padding;
 
-    let top = rect.bottom + 6;
-    // If not enough room at the bottom, place it above the input
-    if (top + popoverHeight > window.innerHeight - padding && rect.top - popoverHeight - 6 > padding) {
-      top = rect.top - popoverHeight - 6;
+    // Viewport horizontal boundary clamping
+    if (left + popoverWidth > viewportWidth - padding) {
+      left = viewportWidth - popoverWidth - padding;
+    }
+    if (left < padding) {
+      left = padding;
+    }
+
+    // 2. Vertical Positioning (Smart Flip + Strict Viewport Clamp)
+    const spaceBelow = viewportHeight - rect.bottom - gap - padding;
+    const spaceAbove = rect.top - gap - padding;
+
+    let top;
+    if (spaceBelow >= popoverHeight) {
+      // Comfortably fits below
+      top = rect.bottom + gap;
+    } else if (spaceAbove >= popoverHeight) {
+      // Comfortably fits above
+      top = rect.top - popoverHeight - gap;
+    } else {
+      // Limited clearance: place on the side with MORE space and clamp strictly to viewport
+      if (spaceAbove > spaceBelow) {
+        top = Math.max(padding, rect.top - popoverHeight - gap);
+      } else {
+        top = Math.min(rect.bottom + gap, viewportHeight - popoverHeight - padding);
+      }
+    }
+
+    // Strict safety clamp: ensure popover is never cut off at top or bottom
+    if (top + popoverHeight > viewportHeight - padding) {
+      top = Math.max(padding, viewportHeight - popoverHeight - padding);
+    }
+    if (top < padding) {
+      top = padding;
     }
 
     popoverEl.style.left = `${Math.round(left)}px`;
@@ -488,7 +533,9 @@
       '#addOjtStartDate',
       '#addOjtEndDate',
       '#editOjtStartDate',
-      '#editOjtEndDate'
+      '#editOjtEndDate',
+      '#reportStartDate',
+      '#reportEndDate'
     ];
 
     document.querySelectorAll(selectors.join(',')).forEach(attach);

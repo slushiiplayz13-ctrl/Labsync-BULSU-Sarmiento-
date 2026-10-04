@@ -25,7 +25,8 @@
 #signatureSettingsModal,
 #importCurriculumModal,
 #ticket-details-modal,
-#accessibility-modal {
+#accessibility-modal,
+#roomStatusReportModal {
   position: fixed;
   top: 0;
   left: 0;
@@ -125,7 +126,9 @@ html.dark-mode #signatureSettingsModal .modal-content,
 #importCurriculumModal[style*="display: flex"],
 #importCurriculumModal[style*="display: block"],
 #ticket-details-modal,
-#accessibility-modal {
+#accessibility-modal,
+#roomStatusReportModal[style*="display: flex"],
+#roomStatusReportModal[style*="display: block"] {
   opacity: 1;
   pointer-events: auto !important;
 }
@@ -133,7 +136,8 @@ html.dark-mode #signatureSettingsModal .modal-content,
 /* ─── Modal Content Centering & Layout Safety (Prevents Top-Edge Clipping) ─── */
 #signatureSettingsModal .modal-content,
 #downloadModal .modal-content,
-#importCurriculumModal .modal-content {
+#importCurriculumModal .modal-content,
+#roomStatusReportModal .modal-content {
   margin: auto !important;
   box-sizing: border-box !important;
   max-height: calc(100vh - 40px);
@@ -152,6 +156,8 @@ html.dark-mode #signatureSettingsModal .modal-content,
 #addRoomModal[data-closing="true"],
 #editRoomModal.closing,
 #editRoomModal[data-closing="true"],
+#roomStatusReportModal.closing,
+#roomStatusReportModal[data-closing="true"],
 .modal-backdrop.closing,
 .modal-backdrop[data-closing="true"] {
   opacity: 0 !important;
@@ -168,6 +174,8 @@ html.dark-mode #signatureSettingsModal .modal-content,
 #addRoomModal[data-closing="true"] .modal-content,
 #editRoomModal.closing .modal-content,
 #editRoomModal[data-closing="true"] .modal-content,
+#roomStatusReportModal.closing .modal-content,
+#roomStatusReportModal[data-closing="true"] .modal-content,
 .modal-backdrop.closing .modal-content,
 .modal-backdrop[data-closing="true"] .modal-content {
   opacity: 0 !important;
@@ -2064,4 +2072,1203 @@ html.high-contrast .rc-card-res-role {
 html.high-contrast .rc-card-res-when {
   color: #E2E8F0 !important;
 }
+
+/* ─── Room Status Activity Report Modal ──────────────────────────── */
+#roomStatusReportModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2500;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+#roomStatusReportModal .modal-content,
+.report-modal-content {
+  max-width: 490px;
+  width: 100%;
+  border-radius: 20px;
+  padding: 0;
+  overflow: hidden;
+  margin: auto;
+  box-sizing: border-box;
+  transform: translateY(12px);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.03);
+}
+
+/* Modal Header */
+.report-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  box-sizing: border-box;
+}
+
+.report-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.report-modal-icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #E8F9FC;
+  color: #0891B2;
+  border: 1px solid rgba(8, 145, 178, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.report-modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0F172A;
+  font-family: var(--font-display, var(--font-body, sans-serif));
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.report-modal-subtitle {
+  font-size: 12.5px;
+  color: #64748B;
+  margin: 2px 0 0 0;
+  font-weight: 400;
+}
+
+.report-modal-close-btn {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748B;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+}
+
+.report-modal-close-btn:hover {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #0F172A;
+  transform: scale(1.05);
+}
+
+/* Modal Body */
+.report-modal-body {
+  padding: 20px 24px 22px;
+  box-sizing: border-box;
+}
+
+.report-form-group {
+  margin-bottom: 18px;
+}
+
+.report-form-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 8px;
+}
+
+.report-label-icon {
+  width: 14px;
+  height: 14px;
+  color: #1EBBD7;
+}
+
+/* Period Options Grid */
+.period-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 420px) {
+  .period-options-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.period-radio-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 1.5px solid #E2E8F0;
+  background: #FFFFFF;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.period-radio-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.period-radio-custom-ring {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 2px solid #CBD5E1;
+  background: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.period-radio-card:hover {
+  border-color: #1EBBD7;
+  background: #F8FAFC;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+}
+
+.period-radio-card:hover .period-radio-custom-ring {
+  border-color: #1EBBD7;
+}
+
+.period-radio-card.active {
+  border-color: #1EBBD7 !important;
+  background: #E8F9FC !important;
+  color: #0891B2 !important;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px #1EBBD7, 0 2px 8px rgba(30, 187, 215, 0.18) !important;
+}
+
+.period-radio-card.active .period-radio-label {
+  color: #0891B2 !important;
+}
+
+.period-radio-card.active .period-radio-custom-ring {
+  border: 5px solid #1EBBD7 !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 0 2px rgba(30, 187, 215, 0.25);
+}
+
+.period-radio-label {
+  line-height: 1.25;
+}
+
+/* Custom Date Range Container */
+.report-custom-date-container {
+  margin-bottom: 18px;
+  padding: 14px;
+  background: #F8FAFC;
+  border: 1.5px dashed #CBD5E1;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+.report-custom-date-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.report-date-sublabel {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 5px;
+}
+
+/* Date Input Wrap with Custom Datepicker Component */
+.report-date-input-wrap.labsync-date-input-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.report-date-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 38px 0 12px !important;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  color: #0F172A;
+  background: #FFFFFF;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.report-date-input:hover {
+  border-color: #1EBBD7;
+}
+
+.report-date-input:focus {
+  border-color: #1EBBD7;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(30, 187, 215, 0.18);
+}
+
+.report-date-input-wrap .labsync-date-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: #94A3B8;
+  pointer-events: none;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.report-date-input-wrap .labsync-date-icon i,
+.report-date-input-wrap .labsync-date-icon svg {
+  width: 15px !important;
+  height: 15px !important;
+  max-width: 15px !important;
+  max-height: 15px !important;
+  stroke-width: 2 !important;
+}
+
+.report-date-input-wrap:hover .labsync-date-icon,
+.report-date-input-wrap:focus-within .labsync-date-icon {
+  color: #1EBBD7;
+  transform: translateY(-50%) scale(1.06);
+}
+
+/* Laboratory Room Custom Select Component */
+.report-select-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.report-select-wrap .custom-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.report-select-wrap .custom-select-trigger {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  color: #1E293B;
+  background: #FFFFFF;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.report-select-wrap .custom-select-trigger:hover,
+.report-select-wrap .custom-select-wrapper.open .custom-select-trigger {
+  border-color: #1EBBD7;
+  box-shadow: 0 0 0 3px rgba(30, 187, 215, 0.18);
+}
+
+.report-select-wrap .custom-select-trigger .report-select-chevron {
+  position: static;
+  transform: none;
+  width: 16px;
+  height: 16px;
+  color: #64748B;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s ease;
+  flex-shrink: 0;
+}
+
+.report-select-wrap .custom-select-wrapper.open .report-select-chevron {
+  transform: rotate(180deg);
+  color: #1EBBD7;
+}
+
+.report-select-wrap .custom-select-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 12px;
+  border: 1.5px solid #E2E8F0;
+  background: #FFFFFF;
+  box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.15);
+  z-index: 2600;
+  padding: 6px;
+  box-sizing: border-box;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.report-select-wrap .custom-select-wrapper.open .custom-select-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.report-select-wrap .custom-select-option {
+  padding: 9px 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #334155;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.report-select-wrap .custom-select-option:hover {
+  background: #E8F9FC;
+  color: #0891B2;
+}
+
+.report-select-wrap .custom-select-option.selected {
+  background: #1EBBD7 !important;
+  color: #FFFFFF !important;
+  font-weight: 700;
+}
+
+.report-select-wrap .custom-select-option.selected::after {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+/* Included Period Summary Display — Solid LabSync Teal Tint (No Gradient) */
+.report-summary-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  margin-bottom: 22px;
+  background: #E8F9FC;
+  border: 1px solid rgba(30, 187, 215, 0.3);
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.report-summary-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(30, 187, 215, 0.15);
+  color: #0891B2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.report-summary-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.report-summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.report-summary-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #0891B2;
+}
+
+.report-summary-value {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Error Banner */
+.report-error-banner {
+  padding: 11px 14px;
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: 10px;
+  color: #991B1B;
+  font-size: 12.5px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+/* Modal Footer */
+.report-modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid #F1F5F9;
+  box-sizing: border-box;
+}
+
+.report-btn-cancel {
+  height: 42px;
+  padding: 0 20px;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-body);
+}
+
+.report-btn-cancel:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+
+.report-btn-submit,
+.btn-generate-report {
+  height: 42px;
+  padding: 0 22px;
+  background: #1EBBD7;
+  color: #FFFFFF !important;
+  border: none;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(30, 187, 215, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-body);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.report-btn-submit:hover,
+.btn-generate-report:hover {
+  background: #17a2bc;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(30, 187, 215, 0.4);
+}
+
+.report-btn-submit:active,
+.btn-generate-report:active {
+  background: #1594ab;
+  transform: translateY(0);
+}
+
+.report-btn-submit:disabled,
+.report-btn-submit.loading,
+.btn-generate-report:disabled,
+.btn-generate-report.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   DARK MODE & HIGH CONTRAST REFINEMENTS
+   ══════════════════════════════════════════════════════════════════════ */
+html.high-contrast #roomStatusReportModal .modal-content,
+html.high-contrast .report-modal-content,
+html.dark-mode #roomStatusReportModal .modal-content,
+html.dark-mode .report-modal-content,
+body.high-contrast #roomStatusReportModal .modal-content,
+body.high-contrast .report-modal-content,
+body.dark-mode #roomStatusReportModal .modal-content,
+body.dark-mode .report-modal-content,
+[data-theme="dark"] #roomStatusReportModal .modal-content,
+[data-theme="dark"] .report-modal-content {
+  background: #0F172A !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #F8FAFC !important;
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+html.high-contrast .report-modal-header,
+html.dark-mode .report-modal-header,
+body.high-contrast .report-modal-header,
+body.dark-mode .report-modal-header,
+[data-theme="dark"] .report-modal-header {
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.high-contrast .report-modal-icon-badge,
+html.dark-mode .report-modal-icon-badge,
+body.high-contrast .report-modal-icon-badge,
+body.dark-mode .report-modal-icon-badge,
+[data-theme="dark"] .report-modal-icon-badge {
+  background: rgba(30, 187, 215, 0.15) !important;
+  color: #1EBBD7 !important;
+  border-color: rgba(30, 187, 215, 0.3) !important;
+}
+
+html.high-contrast .report-modal-title,
+html.dark-mode .report-modal-title,
+body.high-contrast .report-modal-title,
+body.dark-mode .report-modal-title,
+[data-theme="dark"] .report-modal-title {
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .report-modal-subtitle,
+html.dark-mode .report-modal-subtitle,
+body.high-contrast .report-modal-subtitle,
+body.dark-mode .report-modal-subtitle,
+[data-theme="dark"] .report-modal-subtitle {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .report-modal-close-btn,
+html.dark-mode .report-modal-close-btn,
+body.high-contrast .report-modal-close-btn,
+body.dark-mode .report-modal-close-btn,
+[data-theme="dark"] .report-modal-close-btn {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .report-modal-close-btn:hover,
+html.dark-mode .report-modal-close-btn:hover,
+body.high-contrast .report-modal-close-btn:hover,
+body.dark-mode .report-modal-close-btn:hover,
+[data-theme="dark"] .report-modal-close-btn:hover {
+  background: #334155 !important;
+  border-color: #475569 !important;
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .report-form-label,
+html.dark-mode .report-form-label,
+body.high-contrast .report-form-label,
+body.dark-mode .report-form-label,
+[data-theme="dark"] .report-form-label {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .report-label-icon,
+html.dark-mode .report-label-icon,
+body.high-contrast .report-label-icon,
+body.dark-mode .report-label-icon,
+[data-theme="dark"] .report-label-icon {
+  color: #1EBBD7 !important;
+}
+
+/* Inactive Period Radio Cards in Dark Mode / High Contrast */
+html.high-contrast .period-radio-card,
+html.dark-mode .period-radio-card,
+body.high-contrast .period-radio-card,
+body.dark-mode .period-radio-card,
+[data-theme="dark"] .period-radio-card {
+  background: #1E293B !important;
+  border: 1.5px solid #334155 !important;
+  color: #CBD5E1 !important;
+}
+
+html.high-contrast .period-radio-custom-ring,
+html.dark-mode .period-radio-custom-ring,
+body.high-contrast .period-radio-custom-ring,
+body.dark-mode .period-radio-custom-ring,
+[data-theme="dark"] .period-radio-custom-ring {
+  background: #1E293B !important;
+  border: 2px solid #475569 !important;
+}
+
+html.high-contrast .period-radio-card:hover,
+html.dark-mode .period-radio-card:hover,
+body.high-contrast .period-radio-card:hover,
+body.dark-mode .period-radio-card:hover,
+[data-theme="dark"] .period-radio-card:hover {
+  border-color: #1EBBD7 !important;
+  background: #243248 !important;
+  color: #FFFFFF !important;
+}
+
+html.high-contrast .period-radio-card:hover .period-radio-custom-ring,
+html.dark-mode .period-radio-card:hover .period-radio-custom-ring,
+body.high-contrast .period-radio-card:hover .period-radio-custom-ring,
+body.dark-mode .period-radio-card:hover .period-radio-custom-ring,
+[data-theme="dark"] .period-radio-card:hover .period-radio-custom-ring {
+  border-color: #1EBBD7 !important;
+}
+
+/* Active Period Radio Card in Dark Mode / High Contrast */
+html.high-contrast .period-radio-card.active,
+html.dark-mode .period-radio-card.active,
+body.high-contrast .period-radio-card.active,
+body.dark-mode .period-radio-card.active,
+[data-theme="dark"] .period-radio-card.active {
+  background: rgba(30, 187, 215, 0.15) !important;
+  border-color: #1EBBD7 !important;
+  color: #38d6f0 !important;
+  box-shadow: 0 0 0 1px #1EBBD7, 0 2px 12px rgba(30, 187, 215, 0.22) !important;
+}
+
+/* Period Radio Text Label — Zero border, Zero outline, Zero box */
+.period-radio-label,
+html.high-contrast .period-radio-label,
+html.dark-mode .period-radio-label,
+body.high-contrast .period-radio-label,
+body.dark-mode .period-radio-label,
+[data-theme="dark"] .period-radio-label {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.high-contrast .period-radio-card .period-radio-label,
+html.dark-mode .period-radio-card .period-radio-label,
+body.high-contrast .period-radio-card .period-radio-label,
+body.dark-mode .period-radio-card .period-radio-label,
+[data-theme="dark"] .period-radio-card .period-radio-label {
+  color: #CBD5E1 !important;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.high-contrast .period-radio-card:hover .period-radio-label,
+html.dark-mode .period-radio-card:hover .period-radio-label,
+body.high-contrast .period-radio-card:hover .period-radio-label,
+body.dark-mode .period-radio-card:hover .period-radio-label,
+[data-theme="dark"] .period-radio-card:hover .period-radio-label {
+  color: #FFFFFF !important;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.high-contrast .period-radio-card.active .period-radio-label,
+html.dark-mode .period-radio-card.active .period-radio-label,
+body.high-contrast .period-radio-card.active .period-radio-label,
+body.dark-mode .period-radio-card.active .period-radio-label,
+[data-theme="dark"] .period-radio-card.active .period-radio-label {
+  color: #38d6f0 !important;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.high-contrast .period-radio-card.active .period-radio-custom-ring,
+html.dark-mode .period-radio-card.active .period-radio-custom-ring,
+body.high-contrast .period-radio-card.active .period-radio-custom-ring,
+body.dark-mode .period-radio-card.active .period-radio-custom-ring,
+[data-theme="dark"] .period-radio-card.active .period-radio-custom-ring {
+  border: 5px solid #1EBBD7 !important;
+  background: #0F172A !important;
+  box-shadow: 0 0 0 2px rgba(30, 187, 215, 0.3) !important;
+}
+
+html.high-contrast .report-custom-date-container,
+html.dark-mode .report-custom-date-container,
+body.high-contrast .report-custom-date-container,
+body.dark-mode .report-custom-date-container,
+[data-theme="dark"] .report-custom-date-container {
+  background: #172133 !important;
+  border-color: #334155 !important;
+}
+
+html.high-contrast .report-date-sublabel,
+html.dark-mode .report-date-sublabel,
+body.high-contrast .report-date-sublabel,
+body.dark-mode .report-date-sublabel,
+[data-theme="dark"] .report-date-sublabel {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .report-date-input,
+html.dark-mode .report-date-input,
+body.high-contrast .report-date-input,
+body.dark-mode .report-date-input,
+[data-theme="dark"] .report-date-input {
+  background: #0F172A !important;
+  border-color: #334155 !important;
+  color: #F8FAFC !important;
+  color-scheme: dark !important;
+}
+
+html.high-contrast .report-date-input:focus,
+html.dark-mode .report-date-input:focus,
+body.high-contrast .report-date-input:focus,
+body.dark-mode .report-date-input:focus,
+[data-theme="dark"] .report-date-input:focus {
+  border-color: #1EBBD7 !important;
+  box-shadow: 0 0 0 3px rgba(30, 187, 215, 0.22) !important;
+}
+
+html.high-contrast .report-select-input,
+html.dark-mode .report-select-input,
+body.high-contrast .report-select-input,
+body.dark-mode .report-select-input,
+[data-theme="dark"] .report-select-input {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .report-select-input:hover,
+html.dark-mode .report-select-input:hover,
+body.high-contrast .report-select-input:hover,
+body.dark-mode .report-select-input:hover,
+[data-theme="dark"] .report-select-input:hover {
+  border-color: #1EBBD7 !important;
+}
+
+html.high-contrast .report-select-input:focus,
+html.dark-mode .report-select-input:focus,
+body.high-contrast .report-select-input:focus,
+body.dark-mode .report-select-input:focus,
+[data-theme="dark"] .report-select-input:focus {
+  border-color: #1EBBD7 !important;
+  box-shadow: 0 0 0 3px rgba(30, 187, 215, 0.22) !important;
+}
+
+html.high-contrast .report-select-chevron,
+html.dark-mode .report-select-chevron,
+body.high-contrast .report-select-chevron,
+body.dark-mode .report-select-chevron,
+[data-theme="dark"] .report-select-chevron {
+  color: #94A3B8 !important;
+}
+
+/* Custom Select Dark Mode / High Contrast Styling */
+html.high-contrast .report-select-wrap .custom-select-trigger,
+html.dark-mode .report-select-wrap .custom-select-trigger,
+body.high-contrast .report-select-wrap .custom-select-trigger,
+body.dark-mode .report-select-wrap .custom-select-trigger,
+[data-theme="dark"] .report-select-wrap .custom-select-trigger {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+html.high-contrast .report-select-wrap .custom-select-trigger:hover,
+html.dark-mode .report-select-wrap .custom-select-trigger:hover,
+body.high-contrast .report-select-wrap .custom-select-trigger:hover,
+body.dark-mode .report-select-wrap .custom-select-trigger:hover,
+[data-theme="dark"] .report-select-wrap .custom-select-trigger:hover,
+html.high-contrast .report-select-wrap .custom-select-wrapper.open .custom-select-trigger,
+html.dark-mode .report-select-wrap .custom-select-wrapper.open .custom-select-trigger,
+body.high-contrast .report-select-wrap .custom-select-wrapper.open .custom-select-trigger,
+body.dark-mode .report-select-wrap .custom-select-wrapper.open .custom-select-trigger,
+[data-theme="dark"] .report-select-wrap .custom-select-wrapper.open .custom-select-trigger {
+  border-color: #1EBBD7 !important;
+  box-shadow: 0 0 0 3px rgba(30, 187, 215, 0.22) !important;
+}
+
+html.high-contrast .report-select-wrap .custom-select-dropdown,
+html.dark-mode .report-select-wrap .custom-select-dropdown,
+body.high-contrast .report-select-wrap .custom-select-dropdown,
+body.dark-mode .report-select-wrap .custom-select-dropdown,
+[data-theme="dark"] .report-select-wrap .custom-select-dropdown {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.high-contrast .report-select-wrap .custom-select-option,
+html.dark-mode .report-select-wrap .custom-select-option,
+body.high-contrast .report-select-wrap .custom-select-option,
+body.dark-mode .report-select-wrap .custom-select-option,
+[data-theme="dark"] .report-select-wrap .custom-select-option {
+  color: #CBD5E1 !important;
+  background: transparent !important;
+}
+
+html.high-contrast .report-select-wrap .custom-select-option:hover,
+html.dark-mode .report-select-wrap .custom-select-option:hover,
+body.high-contrast .report-select-wrap .custom-select-option:hover,
+body.dark-mode .report-select-wrap .custom-select-option:hover,
+[data-theme="dark"] .report-select-wrap .custom-select-option:hover {
+  background: #243248 !important;
+  color: #FFFFFF !important;
+}
+
+html.high-contrast .report-select-wrap .custom-select-option.selected,
+html.dark-mode .report-select-wrap .custom-select-option.selected,
+body.high-contrast .report-select-wrap .custom-select-option.selected,
+body.dark-mode .report-select-wrap .custom-select-option.selected,
+[data-theme="dark"] .report-select-wrap .custom-select-option.selected {
+  background: #1EBBD7 !important;
+  color: #FFFFFF !important;
+}
+
+/* Custom Datepicker Icon Dark Mode */
+html.high-contrast .report-date-input-wrap .labsync-date-icon,
+html.dark-mode .report-date-input-wrap .labsync-date-icon,
+body.high-contrast .report-date-input-wrap .labsync-date-icon,
+body.dark-mode .report-date-input-wrap .labsync-date-icon,
+[data-theme="dark"] .report-date-input-wrap .labsync-date-icon {
+  color: #94A3B8 !important;
+}
+
+html.high-contrast .report-date-input-wrap:hover .labsync-date-icon,
+html.high-contrast .report-date-input-wrap:focus-within .labsync-date-icon,
+html.dark-mode .report-date-input-wrap:hover .labsync-date-icon,
+html.dark-mode .report-date-input-wrap:focus-within .labsync-date-icon,
+body.high-contrast .report-date-input-wrap:hover .labsync-date-icon,
+body.high-contrast .report-date-input-wrap:focus-within .labsync-date-icon,
+body.dark-mode .report-date-input-wrap:hover .labsync-date-icon,
+body.dark-mode .report-date-input-wrap:focus-within .labsync-date-icon,
+[data-theme="dark"] .report-date-input-wrap:hover .labsync-date-icon,
+[data-theme="dark"] .report-date-input-wrap:focus-within .labsync-date-icon {
+  color: #1EBBD7 !important;
+}
+
+/* Dark Mode Summary Box — Solid LabSync Teal Tint (No Gradient) */
+html.high-contrast .report-summary-box,
+html.dark-mode .report-summary-box,
+body.high-contrast .report-summary-box,
+body.dark-mode .report-summary-box,
+[data-theme="dark"] .report-summary-box {
+  background: rgba(30, 187, 215, 0.1) !important;
+  border: 1px solid rgba(30, 187, 215, 0.3) !important;
+}
+
+html.high-contrast .report-summary-icon-wrap,
+html.dark-mode .report-summary-icon-wrap,
+body.high-contrast .report-summary-icon-wrap,
+body.dark-mode .report-summary-icon-wrap,
+[data-theme="dark"] .report-summary-icon-wrap {
+  background: rgba(30, 187, 215, 0.2) !important;
+  color: #1EBBD7 !important;
+}
+
+html.high-contrast .report-summary-label,
+html.dark-mode .report-summary-label,
+body.high-contrast .report-summary-label,
+body.dark-mode .report-summary-label,
+[data-theme="dark"] .report-summary-label {
+  color: #1EBBD7 !important;
+}
+
+html.high-contrast .report-summary-value,
+html.dark-mode .report-summary-value,
+body.high-contrast .report-summary-value,
+body.dark-mode .report-summary-value,
+[data-theme="dark"] .report-summary-value {
+  color: #F8FAFC !important;
+}
+
+/* Dark Mode Error Banner */
+html.high-contrast .report-error-banner,
+html.dark-mode .report-error-banner,
+body.high-contrast .report-error-banner,
+body.dark-mode .report-error-banner,
+[data-theme="dark"] .report-error-banner {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #FCA5A5 !important;
+}
+
+/* Dark Mode Footer */
+html.high-contrast .report-modal-footer,
+html.dark-mode .report-modal-footer,
+body.high-contrast .report-modal-footer,
+body.dark-mode .report-modal-footer,
+[data-theme="dark"] .report-modal-footer {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.high-contrast .report-btn-cancel,
+html.dark-mode .report-btn-cancel,
+body.high-contrast .report-btn-cancel,
+body.dark-mode .report-btn-cancel,
+[data-theme="dark"] .report-btn-cancel {
+  background: #1E293B !important;
+  color: #CBD5E1 !important;
+  border-color: #334155 !important;
+}
+
+html.high-contrast .report-btn-cancel:hover,
+html.dark-mode .report-btn-cancel:hover,
+body.high-contrast .report-btn-cancel:hover,
+body.dark-mode .report-btn-cancel:hover,
+[data-theme="dark"] .report-btn-cancel:hover {
+  background: #334155 !important;
+  border-color: #475569 !important;
+  color: #FFFFFF !important;
+}
+
+html.high-contrast .report-btn-submit,
+html.high-contrast .btn-generate-report,
+html.dark-mode .report-btn-submit,
+html.dark-mode .btn-generate-report,
+body.high-contrast .report-btn-submit,
+body.high-contrast .btn-generate-report,
+body.dark-mode .report-btn-submit,
+body.dark-mode .btn-generate-report,
+[data-theme="dark"] .report-btn-submit,
+[data-theme="dark"] .btn-generate-report {
+  background: #1EBBD7 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35) !important;
+}
+
+html.high-contrast .report-btn-submit:hover,
+html.high-contrast .btn-generate-report:hover,
+html.dark-mode .report-btn-submit:hover,
+html.dark-mode .btn-generate-report:hover,
+body.high-contrast .report-btn-submit:hover,
+body.high-contrast .btn-generate-report:hover,
+body.dark-mode .report-btn-submit:hover,
+body.dark-mode .btn-generate-report:hover,
+[data-theme="dark"] .report-btn-submit:hover,
+[data-theme="dark"] .btn-generate-report:hover {
+  background: #17a2bc !important;
+  box-shadow: 0 6px 18px rgba(30, 187, 215, 0.45) !important;
+}
+
+html.high-contrast .report-btn-submit:active,
+html.high-contrast .btn-generate-report:active,
+html.dark-mode .report-btn-submit:active,
+html.dark-mode .btn-generate-report:active,
+body.high-contrast .report-btn-submit:active,
+body.high-contrast .btn-generate-report:active,
+body.dark-mode .report-btn-submit:active,
+body.dark-mode .btn-generate-report:active,
+[data-theme="dark"] .report-btn-submit:active,
+[data-theme="dark"] .btn-generate-report:active {
+  background: #1594ab !important;
+}
+
+/* Report Trigger Button inside Activity Log Card Header */
+.btn-card-action#btnOpenReportModal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--primary-teal-light, #e8f9fc);
+  color: var(--primary-teal, #1ebbd7);
+  border: 1px solid rgba(30, 187, 215, 0.35);
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  white-space: nowrap;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-card-action#btnOpenReportModal:focus-visible {
+  outline: 2px solid #1ebbd7;
+  outline-offset: 1px;
+}
+
+.btn-card-action#btnOpenReportModal:hover {
+  background: var(--primary-teal, #1ebbd7);
+  color: #ffffff;
+  border-color: var(--primary-teal, #1ebbd7);
+  box-shadow: 0 2px 8px rgba(30, 187, 215, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-card-action#btnOpenReportModal:active {
+  transform: translateY(0);
+}
+
+html.high-contrast .btn-card-action#btnOpenReportModal,
+html.dark-mode .btn-card-action#btnOpenReportModal,
+body.high-contrast .btn-card-action#btnOpenReportModal,
+body.dark-mode .btn-card-action#btnOpenReportModal,
+[data-theme="dark"] .btn-card-action#btnOpenReportModal {
+  background: rgba(30, 187, 215, 0.15) !important;
+  color: #38d6f0 !important;
+  border-color: rgba(56, 214, 240, 0.35) !important;
+}
+
+html.high-contrast .btn-card-action#btnOpenReportModal:hover,
+html.dark-mode .btn-card-action#btnOpenReportModal:hover,
+body.high-contrast .btn-card-action#btnOpenReportModal:hover,
+body.dark-mode .btn-card-action#btnOpenReportModal:hover,
+[data-theme="dark"] .btn-card-action#btnOpenReportModal:hover {
+  background: #1ebbd7 !important;
+  color: #ffffff !important;
+  border-color: #1ebbd7 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE STYLING FOR ROOM STATUS REPORT MODAL
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  #roomStatusReportModal {
+    padding: 12px 10px !important;
+    align-items: center !important;
+    display: none;
+  }
+
+  #roomStatusReportModal[style*="display: flex"],
+  #roomStatusReportModal[style*="display: block"] {
+    display: flex !important;
+  }
+
+  #roomStatusReportModal .modal-content,
+  .report-modal-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: calc(100dvh - 24px) !important;
+    max-height: calc(100vh - 24px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    margin: auto !important;
+  }
+
+  .report-modal-header {
+    flex-shrink: 0 !important;
+    padding: 14px 16px 12px !important;
+  }
+
+  .report-modal-title {
+    font-size: 15.5px !important;
+  }
+
+  .report-modal-subtitle {
+    font-size: 11.5px !important;
+  }
+
+  .report-modal-body {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 14px 16px 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Single Column Stack for Start Date / End Date on Mobile (prevents date truncation) */
+  .report-custom-date-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .report-custom-date-container {
+    padding: 12px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .report-form-group {
+    margin-bottom: 14px !important;
+  }
+
+  .period-radio-card {
+    padding: 9.5px 12px !important;
+    font-size: 12.5px !important;
+  }
+
+  .report-summary-box {
+    padding: 11px 13px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .report-modal-footer {
+    flex-shrink: 0 !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: #FFFFFF !important;
+    padding-top: 12px !important;
+    padding-bottom: 2px !important;
+    margin-top: auto !important;
+    border-top: 1px solid #F1F5F9 !important;
+    z-index: 5 !important;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04) !important;
+  }
+
+  html.dark-mode .report-modal-footer,
+  body.dark-mode .report-modal-footer,
+  html.high-contrast .report-modal-footer,
+  [data-theme="dark"] .report-modal-footer {
+    background: #0F172A !important;
+    border-top-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .report-btn-cancel,
+  .report-btn-submit,
+  .btn-generate-report {
+    height: 40px !important;
+    font-size: 13px !important;
+  }
+}
+
+
+
 

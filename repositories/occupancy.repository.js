@@ -79,9 +79,83 @@ async function insertLog(userId, roomId, authMethod, accessTime = null, executor
     );
 }
 
+async function findActivityLogsForReport({ startDateTime, endDateTime, roomNumber = null, excludeIntermediateQr = true }, executor = db) {
+    let sql = `
+        SELECT 
+            o.Log_ID AS id,
+            o.Access_Time AS access_time,
+            DATE_FORMAT(o.Access_Time, '%Y-%m-%d') AS log_date,
+            DATE_FORMAT(o.Access_Time, '%h:%i %p') AS log_time,
+            r.Room_ID AS room_id,
+            r.Room_Number AS room_number,
+            r.Building AS building,
+            o.Auth_Method AS raw_auth_method,
+            o.User_ID AS user_id,
+            u.Name AS user_name,
+            u.Role AS user_role,
+            (CASE 
+                WHEN o.Auth_Method IN ('UNAUTHORIZED', 'WRONG_SLOT') THEN 'Unidentified Person'
+                WHEN (o.Auth_Method = 'Key Returned' OR o.Auth_Method = 'KEY_RETURN') AND o.User_ID IS NULL THEN 'Unidentified Person'
+                WHEN o.User_ID IS NULL THEN 'System'
+                ELSE COALESCE(u.Name, 'System')
+            END) AS actor_name,
+            (CASE 
+                WHEN o.Auth_Method = 'UNAUTHORIZED' THEN 'Security Alert'
+                WHEN o.Auth_Method = 'WRONG_SLOT' THEN 'Hardware Warning'
+                WHEN (o.Auth_Method = 'Key Returned' OR o.Auth_Method = 'KEY_RETURN') AND o.User_ID IS NULL THEN 'Alarm Cleared'
+                WHEN o.User_ID IS NULL THEN 'System'
+                ELSE COALESCE(u.Role, 'N/A')
+            END) AS actor_role,
+            (CASE 
+                WHEN o.Auth_Method = 'Key Taken' AND o.User_ID IS NOT NULL AND EXISTS (
+                    SELECT 1 FROM schedules s 
+                    WHERE s.Room_ID = o.Room_ID 
+                      AND s.User_ID = o.User_ID
+                      AND s.Day_of_Week = DAYNAME(o.Access_Time) 
+                      AND TIME(o.Access_Time) BETWEEN s.Start_Time AND s.End_Time
+                ) THEN 'In Session'
+                WHEN o.Auth_Method = 'Key Taken' THEN 'Borrowed'
+                ELSE NULL
+            END) AS session_type
+        FROM occupancy_log o
+        LEFT JOIN users u ON o.User_ID = u.User_ID
+        JOIN laboratories r ON o.Room_ID = r.Room_ID
+        WHERE o.Access_Time >= ? AND o.Access_Time <= ?
+    `;
+
+    const params = [startDateTime, endDateTime];
+
+    if (excludeIntermediateQr) {
+        sql += ` AND LOWER(o.Auth_Method) NOT IN ('qr code', 'qr verified', 'qr')`;
+    }
+
+    if (roomNumber && String(roomNumber).toLowerCase() !== 'all') {
+        sql += ` AND r.Room_Number = ?`;
+        params.push(String(roomNumber));
+    }
+
+    sql += ` ORDER BY o.Access_Time DESC, o.Log_ID DESC`;
+
+    return executor.query(sql, params);
+}
+
+/**
+ * Retrieves valid laboratory rooms for room filtering in reports.
+ *
+ * @param {object} [executor=db]
+ * @returns {Promise<[Array, any]>}
+ */
+async function getAvailableRoomsForReport(executor = db) {
+    return executor.query(
+        'SELECT Room_ID, Room_Number, Building FROM laboratories ORDER BY Room_Number ASC'
+    );
+}
+
 module.exports = {
     deleteLogsOlderThan,
     countLogsOlderThan,
     countAllLogs,
-    insertLog
+    insertLog,
+    findActivityLogsForReport,
+    getAvailableRoomsForReport
 };

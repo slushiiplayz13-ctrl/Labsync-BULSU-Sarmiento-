@@ -35,27 +35,40 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 16px;
+  height: 16px;
   color: var(--text-muted, #94A3B8);
   pointer-events: none;
   transition: color 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.labsync-date-input-container .labsync-date-icon i,
+.labsync-date-input-container .labsync-date-icon svg {
+  width: 15px !important;
+  height: 15px !important;
+  max-width: 15px !important;
+  max-height: 15px !important;
+  stroke-width: 2 !important;
+}
+
 .labsync-date-input-container:hover .labsync-date-icon,
 .labsync-date-input-container:focus-within .labsync-date-icon {
   color: var(--primary-teal, #1EBBD7);
-  transform: translateY(-50%) scale(1.12);
+  transform: translateY(-50%) scale(1.06);
 }
 
 /* ─── Datepicker Floating Popover Card ─── */
 .labsync-datepicker-popover {
   position: fixed;
   z-index: 100050;
-  width: 324px;
-  padding: 16px 18px;
+  width: min(312px, calc(100vw - 20px));
+  max-width: calc(100vw - 20px);
+  max-height: calc(100vh - 20px);
+  padding: 12px 14px 10px 14px;
   background: var(--bg-white, #FFFFFF);
   border: 1px solid rgba(226, 232, 240, 0.95);
-  border-radius: 20px;
-  box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.18), 
+  border-radius: 16px;
+  box-shadow: 0 16px 40px -8px rgba(15, 23, 42, 0.18), 
               0 4px 14px -2px rgba(15, 23, 42, 0.06), 
               0 0 0 1px rgba(0, 0, 0, 0.04);
   font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
@@ -64,11 +77,13 @@
   box-sizing: border-box;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(8px) scale(0.97);
+  transform: translateY(6px) scale(0.98);
   transform-origin: top center;
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
-              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
-              visibility 0.2s;
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), 
+              visibility 0.18s;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .labsync-datepicker-popover.active {
@@ -82,7 +97,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .ldp-nav-btn {
@@ -149,7 +164,7 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   text-align: center;
 }
 
@@ -158,26 +173,26 @@
   font-weight: 700;
   text-transform: uppercase;
   color: var(--text-muted, #94A3B8);
-  letter-spacing: 0.6px;
-  padding: 4px 0;
+  letter-spacing: 0.5px;
+  padding: 2px 0;
 }
 
 /* ─── Day Grid & Day Pills ─── */
 .ldp-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 3px;
 }
 
 .ldp-day {
-  height: 36px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-dark, #1E293B);
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   border: none;
   background: transparent;
@@ -189,7 +204,7 @@
 .ldp-day:hover:not(:disabled):not(.disabled) {
   background: #F1F5F9;
   color: var(--text-dark, #0F172A);
-  transform: scale(1.08);
+  transform: scale(1.06);
   z-index: 1;
 }
 
@@ -207,7 +222,7 @@
 .ldp-day.today::after {
   content: '';
   position: absolute;
-  bottom: 4px;
+  bottom: 3px;
   left: 50%;
   transform: translateX(-50%);
   width: 4px;
@@ -217,11 +232,11 @@
 }
 
 .ldp-day.selected {
-  background: linear-gradient(135deg, #1EBBD7 0%, #0EA5C9 100%) !important;
+  background: var(--primary-teal, #1EBBD7) !important;
   color: #FFFFFF !important;
   font-weight: 700;
-  box-shadow: 0 4px 14px rgba(30, 187, 215, 0.42);
-  transform: scale(1.06);
+  box-shadow: 0 3px 10px rgba(30, 187, 215, 0.38);
+  transform: scale(1.05);
   z-index: 2;
 }
 
@@ -241,16 +256,16 @@
 .ldp-months-view {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  padding: 6px 0;
+  gap: 6px;
+  padding: 4px 0;
 }
 
 .ldp-month-btn {
-  padding: 11px 6px;
-  border-radius: 12px;
+  padding: 9px 5px;
+  border-radius: 10px;
   border: 1px solid var(--border-light, #E2E8F0);
   background: var(--bg-white, #FFFFFF);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-mid, #475569);
   cursor: pointer;
@@ -267,11 +282,11 @@
 }
 
 .ldp-month-btn.active {
-  background: linear-gradient(135deg, #1EBBD7 0%, #0EA5C9 100%);
+  background: var(--primary-teal, #1EBBD7);
   border-color: transparent;
   color: #FFFFFF;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(30, 187, 215, 0.35);
+  box-shadow: 0 3px 10px rgba(30, 187, 215, 0.35);
 }
 
 /* ─── Footer Action Bar ─── */
@@ -279,8 +294,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 14px;
-  padding-top: 12px;
+  margin-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid var(--border-light, #F1F5F9);
 }
 
@@ -340,7 +355,9 @@
 }
 
 /* ─── Accessibility & Dark Mode Support ─── */
+html.high-contrast .labsync-datepicker-popover,
 html.dark-mode .labsync-datepicker-popover,
+body.high-contrast .labsync-datepicker-popover,
 body.dark-mode .labsync-datepicker-popover,
 [data-theme="dark"] .labsync-datepicker-popover {
   background: #1E293B;
@@ -350,15 +367,24 @@ body.dark-mode .labsync-datepicker-popover,
               0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
+html.high-contrast .labsync-date-input-container .ojt-form-input,
+html.high-contrast .labsync-date-input-container .report-date-input,
 html.dark-mode .labsync-date-input-container .ojt-form-input,
+html.dark-mode .labsync-date-input-container .report-date-input,
+body.high-contrast .labsync-date-input-container .ojt-form-input,
+body.high-contrast .labsync-date-input-container .report-date-input,
 body.dark-mode .labsync-date-input-container .ojt-form-input,
-[data-theme="dark"] .labsync-date-input-container .ojt-form-input {
+body.dark-mode .labsync-date-input-container .report-date-input,
+[data-theme="dark"] .labsync-date-input-container .ojt-form-input,
+[data-theme="dark"] .labsync-date-input-container .report-date-input {
   background: #1E293B;
   color: #F8FAFC;
   border-color: #334155;
 }
 
+html.high-contrast .ldp-nav-btn,
 html.dark-mode .ldp-nav-btn,
+body.high-contrast .ldp-nav-btn,
 body.dark-mode .ldp-nav-btn,
 [data-theme="dark"] .ldp-nav-btn {
   background: #0F172A;
@@ -366,7 +392,9 @@ body.dark-mode .ldp-nav-btn,
   color: #94A3B8;
 }
 
+html.high-contrast .ldp-nav-btn:hover,
 html.dark-mode .ldp-nav-btn:hover,
+body.high-contrast .ldp-nav-btn:hover,
 body.dark-mode .ldp-nav-btn:hover,
 [data-theme="dark"] .ldp-nav-btn:hover {
   background: rgba(30, 187, 215, 0.18);
@@ -374,58 +402,76 @@ body.dark-mode .ldp-nav-btn:hover,
   color: #1EBBD7;
 }
 
+html.high-contrast .ldp-title-btn,
 html.dark-mode .ldp-title-btn,
+body.high-contrast .ldp-title-btn,
 body.dark-mode .ldp-title-btn,
 [data-theme="dark"] .ldp-title-btn {
   color: #F8FAFC;
 }
 
+html.high-contrast .ldp-title-btn:hover,
 html.dark-mode .ldp-title-btn:hover,
+body.high-contrast .ldp-title-btn:hover,
 body.dark-mode .ldp-title-btn:hover,
 [data-theme="dark"] .ldp-title-btn:hover {
   background: #334155;
   color: #1EBBD7;
 }
 
+html.high-contrast .ldp-weekday,
 html.dark-mode .ldp-weekday,
+body.high-contrast .ldp-weekday,
 body.dark-mode .ldp-weekday,
 [data-theme="dark"] .ldp-weekday {
   color: #64748B;
 }
 
+html.high-contrast .ldp-day,
 html.dark-mode .ldp-day,
+body.high-contrast .ldp-day,
 body.dark-mode .ldp-day,
 [data-theme="dark"] .ldp-day {
   color: #E2E8F0;
 }
 
+html.high-contrast .ldp-day:hover:not(:disabled):not(.disabled),
 html.dark-mode .ldp-day:hover:not(:disabled):not(.disabled),
+body.high-contrast .ldp-day:hover:not(:disabled):not(.disabled),
 body.dark-mode .ldp-day:hover:not(:disabled):not(.disabled),
 [data-theme="dark"] .ldp-day:hover:not(:disabled):not(.disabled) {
   background: #334155;
   color: #FFFFFF;
 }
 
+html.high-contrast .ldp-day.other-month,
 html.dark-mode .ldp-day.other-month,
+body.high-contrast .ldp-day.other-month,
 body.dark-mode .ldp-day.other-month,
 [data-theme="dark"] .ldp-day.other-month {
   color: #475569;
   opacity: 0.45;
 }
 
+html.high-contrast .ldp-footer,
 html.dark-mode .ldp-footer,
+body.high-contrast .ldp-footer,
 body.dark-mode .ldp-footer,
 [data-theme="dark"] .ldp-footer {
   border-color: #334155;
 }
 
+html.high-contrast .ldp-btn-clear,
 html.dark-mode .ldp-btn-clear,
+body.high-contrast .ldp-btn-clear,
 body.dark-mode .ldp-btn-clear,
 [data-theme="dark"] .ldp-btn-clear {
   color: #94A3B8;
 }
 
+html.high-contrast .ldp-month-btn,
 html.dark-mode .ldp-month-btn,
+body.high-contrast .ldp-month-btn,
 body.dark-mode .ldp-month-btn,
 [data-theme="dark"] .ldp-month-btn {
   background: #0F172A;
@@ -433,7 +479,9 @@ body.dark-mode .ldp-month-btn,
   color: #CBD5E1;
 }
 
+html.high-contrast .ldp-month-btn:hover,
 html.dark-mode .ldp-month-btn:hover,
+body.high-contrast .ldp-month-btn:hover,
 body.dark-mode .ldp-month-btn:hover,
 [data-theme="dark"] .ldp-month-btn:hover {
   background: #334155;
@@ -441,7 +489,9 @@ body.dark-mode .ldp-month-btn:hover,
   border-color: #1EBBD7;
 }
 
+html.high-contrast .ldp-btn-today,
 html.dark-mode .ldp-btn-today,
+body.high-contrast .ldp-btn-today,
 body.dark-mode .ldp-btn-today,
 [data-theme="dark"] .ldp-btn-today {
   background: rgba(30, 187, 215, 0.16);
@@ -449,8 +499,53 @@ body.dark-mode .ldp-btn-today,
   color: #38BDF8;
 }
 
+html.high-contrast .ldp-preview-badge,
 html.dark-mode .ldp-preview-badge,
+body.high-contrast .ldp-preview-badge,
 body.dark-mode .ldp-preview-badge,
 [data-theme="dark"] .ldp-preview-badge {
   color: #94A3B8;
+}
+
+/* ─── Responsive Adjustments Across All Screen Sizes & Heights ─── */
+@media (max-width: 480px) {
+  .labsync-datepicker-popover {
+    width: min(300px, calc(100vw - 16px));
+    padding: 10px 10px 8px 10px;
+    border-radius: 14px;
+  }
+  .ldp-day {
+    height: 30px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+  .ldp-header {
+    margin-bottom: 6px;
+  }
+  .ldp-footer {
+    margin-top: 8px;
+    padding-top: 6px;
+  }
+}
+
+@media (max-height: 620px) {
+  .labsync-datepicker-popover {
+    padding: 8px 10px 6px 10px;
+    max-height: calc(100vh - 12px);
+  }
+  .ldp-header {
+    margin-bottom: 4px;
+  }
+  .ldp-nav-btn {
+    width: 28px;
+    height: 28px;
+  }
+  .ldp-day {
+    height: 27px;
+    font-size: 11.5px;
+  }
+  .ldp-footer {
+    margin-top: 6px;
+    padding-top: 6px;
+  }
 }
