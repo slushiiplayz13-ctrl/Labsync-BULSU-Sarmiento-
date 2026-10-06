@@ -28,6 +28,15 @@ let isSubmitting = false;
 let currentRoomNumber = '';
 let currentPcNumber = '';
 
+// Student ID Verification State
+let verifiedStudent = null; // { studentName, studentNumber, verificationToken, verificationTimestamp }
+let html5QrCodeInstance = null;
+let isCameraScanning = false;
+let isProcessingQR = false;
+let isVerifyingID = false;
+let currentCameraIndex = 0;
+let availableCameras = [];
+
 const checkSvgHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><polyline points="20 6 9 17 4 12"/></svg>`;
 
 /**
@@ -267,9 +276,11 @@ async function handleSubmit() {
   if (isSubmitting) return;
 
   const nameEl = document.getElementById('student-name');
+  const numberEl = document.getElementById('student-number');
   const sectionEl = document.getElementById('student-section');
   const remarksEl = document.getElementById('remarks');
   const studentNameInput = nameEl?.value.trim();
+  const studentNumberInput = numberEl?.value.trim().toUpperCase();
   const studentSectionInput = sectionEl?.value.trim().toUpperCase();
   const remarksInput = remarksEl?.value.trim();
   const submitBtn = document.getElementById('submit-button');
@@ -285,8 +296,8 @@ async function handleSubmit() {
   }
 
   if (!studentNameInput) {
-    showSystemToast('Please enter your Full Name.', 'warning', 'Required Field');
-    nameEl?.focus();
+    showSystemToast('Please scan your Student ID QR code to verify your identity.', 'warning', 'ID Verification Required');
+    document.getElementById('student-verification-section')?.scrollIntoView({ behavior: 'smooth' });
     return;
   }
 
@@ -346,7 +357,10 @@ async function handleSubmit() {
       roomNumber: currentRoomNumber,
       pcNumber: currentPcNumber,
       studentName: studentNameInput,
+      studentNumber: studentNumberInput || (verifiedStudent ? verifiedStudent.studentNumber : ''),
       studentSection: studentSectionInput,
+      verificationToken: verifiedStudent ? verifiedStudent.verificationToken : null,
+      verificationTimestamp: verifiedStudent ? verifiedStudent.verificationTimestamp : null,
       components: componentStates,
       remarks: remarksInput
     };
@@ -364,6 +378,12 @@ async function handleSubmit() {
       result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Failed to submit report');
     }
+
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem('labsync_verified_student');
+      }
+    } catch (_) {}
 
     // Trigger success modal with assigned ticket reference
     const ticketIdEl = document.getElementById('ticket-id');
@@ -408,12 +428,32 @@ function closeSuccessModal() {
 
   // Reset input fields
   const nameEl = document.getElementById('student-name');
+  const numberEl = document.getElementById('student-number');
   const sectionEl = document.getElementById('student-section');
   const remarksEl = document.getElementById('remarks');
 
-  if (nameEl) nameEl.value = '';
+  if (nameEl) {
+    nameEl.value = '';
+    nameEl.setAttribute('readonly', 'true');
+  }
+  if (numberEl) {
+    numberEl.value = '';
+    numberEl.setAttribute('readonly', 'true');
+  }
   if (sectionEl) sectionEl.value = '';
   if (remarksEl) remarksEl.value = '';
+
+  verifiedStudent = null;
+
+  const nameTag = document.getElementById('name-verified-tag');
+  const numberTag = document.getElementById('number-verified-tag');
+  const bannerEl = document.getElementById('verified-identity-banner');
+  const scannerSection = document.getElementById('student-verification-section');
+
+  if (nameTag) nameTag.style.display = 'none';
+  if (numberTag) numberTag.style.display = 'none';
+  if (bannerEl) bannerEl.style.display = 'none';
+  if (scannerSection) scannerSection.style.display = 'block';
 
   const remarksCounterEl = document.getElementById('remarks-char-counter');
   if (remarksCounterEl) {
@@ -518,7 +558,13 @@ function initSubmitPcReportPage() {
   // 1. Parse URL query params and populate room / PC / date
   parseWorkstationParams();
 
-  // 2. Character counter for Issue Details / Remarks
+  // 2. Gateway check: Ensure Student ID was verified on dedicated verification page
+  const isVerified = checkVerificationGateway();
+  if (!isVerified && typeof window !== 'undefined' && window.location && typeof window.location.replace === 'function') {
+    return;
+  }
+
+  // 3. Character counter for Issue Details / Remarks
   const remarksTextarea = document.getElementById('remarks');
   const remarksCounter = document.getElementById('remarks-char-counter');
 
@@ -608,8 +654,20 @@ function initSubmitPcReportPage() {
   // 5. Initial submit button state check
   updateSubmitButtonState();
 
-  // 6. Initialize Theme Toggle
-  initThemeToggle();
+  // 6. Enforce Light Mode (Submit PC Report form is permanently Light Mode)
+  if (typeof document !== 'undefined') {
+    if (document.documentElement) {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove('dark-mode', 'high-contrast');
+      }
+      if (typeof document.documentElement.setAttribute === 'function') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    }
+    if (document.body && document.body.classList) {
+      document.body.classList.remove('dark-mode', 'high-contrast');
+    }
+  }
 
   // 7. Ensure Lucide icons render
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -617,110 +675,175 @@ function initSubmitPcReportPage() {
   }
 }
 
+/* ================================================================
+   Student ID Verification Gateway Integration
+   ================================================================ */
+
 /**
- * Light / Dark Mode Controller for Submit PC Report
+ * Redirects to the dedicated Student ID Verification page.
  */
-function initThemeToggle() {
-  const toggleBtn = document.getElementById('theme-toggle-btn');
-  if (!toggleBtn) return;
+function redirectToVerificationGateway() {
+  const room = currentRoomNumber || '';
+  const pc = currentPcNumber || '';
+  const params = new URLSearchParams();
+  if (room) params.set('room', room);
+  if (pc) params.set('pc', pc);
+  const qs = params.toString();
+  const dest = 'student-id-verification.html' + (qs ? '?' + qs : '');
 
-  function updateThemeUI(isDark, animate = false) {
-    const moonIcon = toggleBtn.querySelector('.theme-icon-moon');
-    const sunIcon = toggleBtn.querySelector('.theme-icon-sun');
+  if (typeof window !== 'undefined' && window.location && typeof window.location.replace === 'function') {
+    window.location.replace(dest);
+  }
+}
 
-    toggleBtn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
-    toggleBtn.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
-    toggleBtn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+/**
+ * Checks whether a valid Student ID verification session exists from
+ * student-id-verification.html for the current workstation.
+ * If absent, invalid, or mismatched, redirects to the verification page.
+ */
+function checkVerificationGateway() {
+  if (typeof window !== 'undefined' && window.__disableGatewayRedirectForTesting) {
+    return true;
+  }
 
-    if (moonIcon && sunIcon) {
-      if (isDark) {
-        moonIcon.style.display = 'none';
-        sunIcon.style.display = 'block';
-        if (animate) {
-          sunIcon.classList.remove('theme-icon-animating');
-          void sunIcon.offsetWidth;
-          sunIcon.classList.add('theme-icon-animating');
-        }
-      } else {
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'block';
-        if (animate) {
-          moonIcon.classList.remove('theme-icon-animating');
-          void moonIcon.offsetWidth;
-          moonIcon.classList.add('theme-icon-animating');
-        }
+  const room = currentRoomNumber || '';
+  const pc = currentPcNumber || '';
+
+  try {
+    if (typeof sessionStorage === 'undefined') {
+      redirectToVerificationGateway();
+      return false;
+    }
+
+    const raw = sessionStorage.getItem('labsync_verified_student');
+    if (!raw) {
+      redirectToVerificationGateway();
+      return false;
+    }
+
+    const data = JSON.parse(raw);
+    if (!data || !data.verificationToken || !data.studentName || !data.studentNumber) {
+      redirectToVerificationGateway();
+      return false;
+    }
+
+    // Workstation context matching check
+    if (data.roomNumber && room && String(data.roomNumber).trim().toLowerCase() !== String(room).trim().toLowerCase()) {
+      redirectToVerificationGateway();
+      return false;
+    }
+    if (data.pcNumber && pc) {
+      const cleanDataPc = String(data.pcNumber).replace(/^pc-?/i, '').trim().toLowerCase();
+      const cleanParamPc = String(pc).replace(/^pc-?/i, '').trim().toLowerCase();
+      if (cleanDataPc !== cleanParamPc) {
+        redirectToVerificationGateway();
+        return false;
       }
     }
 
-    const logoLight = document.querySelector('.labsync-logo-light');
-    const logoDark = document.querySelector('.labsync-logo-dark');
-    if (logoLight && logoDark) {
-      logoLight.style.setProperty('display', isDark ? 'none' : 'block', 'important');
-      logoDark.style.setProperty('display', isDark ? 'block' : 'none', 'important');
+    verifiedStudent = {
+      studentName: data.studentName,
+      studentNumber: data.studentNumber,
+      verificationToken: data.verificationToken,
+      verificationTimestamp: data.verificationTimestamp
+    };
+
+    applyVerifiedStudentUI();
+    return true;
+  } catch (err) {
+    redirectToVerificationGateway();
+    return false;
+  }
+}
+
+/**
+ * Populates verified student identity fields in read-only mode and reveals verified banner.
+ */
+function applyVerifiedStudentUI() {
+  if (!verifiedStudent) return;
+
+  const nameEl = document.getElementById('student-name');
+  const numberEl = document.getElementById('student-number');
+  const nameTag = document.getElementById('name-verified-tag');
+  const numberTag = document.getElementById('number-verified-tag');
+  const bannerEl = document.getElementById('verified-identity-banner');
+  const summaryEl = document.getElementById('verified-student-summary');
+  const sectionInput = document.getElementById('student-section');
+
+  if (nameEl) {
+    nameEl.value = verifiedStudent.studentName;
+    nameEl.setAttribute('readonly', 'true');
+  }
+  if (numberEl) {
+    numberEl.value = verifiedStudent.studentNumber;
+    numberEl.setAttribute('readonly', 'true');
+  }
+  if (nameTag) nameTag.style.display = 'inline-flex';
+  if (numberTag) numberTag.style.display = 'inline-flex';
+
+  if (summaryEl) {
+    summaryEl.textContent = verifiedStudent.studentName;
+  }
+  if (bannerEl) bannerEl.style.display = 'flex';
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+
+  if (sectionInput) {
+    sectionInput.focus();
+  }
+
+  updateSubmitButtonState();
+}
+
+/**
+ * Resets verification and redirects back to the dedicated Student ID verification page.
+ */
+function reScanStudentID() {
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('labsync_verified_student');
     }
-  }
+  } catch (_) {}
+  verifiedStudent = null;
+  redirectToVerificationGateway();
+}
 
-  function setTheme(isDark, animate = true) {
-    if (isDark) {
-      document.documentElement.classList.add('dark-mode', 'high-contrast');
-      document.documentElement.setAttribute('data-theme', 'dark');
-      if (document.body) {
-        document.body.classList.add('dark-mode', 'high-contrast');
-      }
-    } else {
-      document.documentElement.classList.remove('dark-mode', 'high-contrast');
-      document.documentElement.setAttribute('data-theme', 'light');
-      if (document.body) {
-        document.body.classList.remove('dark-mode', 'high-contrast');
-      }
-    }
-
-    try {
-      localStorage.setItem('labsync-theme', isDark ? 'dark' : 'light');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      localStorage.setItem('labsync-high-contrast', isDark ? 'true' : 'false');
-    } catch (e) {}
-
-    updateThemeUI(isDark, animate);
-  }
-
-  function toggleTheme() {
-    const isCurrentlyDark = document.documentElement.classList.contains('dark-mode') ||
-      document.documentElement.getAttribute('data-theme') === 'dark' ||
-      document.documentElement.classList.contains('high-contrast');
-    setTheme(!isCurrentlyDark, true);
-  }
-
-  if (!toggleBtn.dataset.listenerAttached) {
-    toggleBtn.dataset.listenerAttached = 'true';
-    toggleBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      toggleTheme();
+/**
+ * Compatibility stubs (retained for backward compatibility and test delegates)
+ */
+async function handleQRScanSuccess(decodedText) { return processScannedID(decodedText); }
+async function startCameraScanner() {}
+function selectPreferredCamera() { return null; }
+async function stopCameraScanner() {}
+async function switchCamera() {}
+function toggleFallbackInput() {}
+async function handleQRFileUpload() {}
+async function processScannedID(qrData) {
+  if (!qrData || typeof qrData !== 'string') return;
+  const room = currentRoomNumber || 'N/A';
+  const pc = currentPcNumber || 'N/A';
+  try {
+    const response = await fetch('/api/reports/verify-student-id', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qrData, roomNumber: room, pcNumber: pc })
     });
-
-    toggleBtn.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        toggleTheme();
-      }
-    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Student ID verification failed');
+    verifiedStudent = {
+      studentName: result.studentName,
+      studentNumber: result.studentNumber,
+      verificationToken: result.verificationToken,
+      verificationTimestamp: result.verificationTimestamp
+    };
+    applyVerifiedStudentUI();
+    return result;
+  } catch (err) {
+    console.error('ID verification error:', err);
+    showSystemToast(err.message || 'Verification Failed', 'error', 'Verification Failed');
   }
-
-  const isDarkInitial = document.documentElement.classList.contains('dark-mode') ||
-    document.documentElement.getAttribute('data-theme') === 'dark' ||
-    document.documentElement.classList.contains('high-contrast') ||
-    localStorage.getItem('labsync-theme') === 'dark' ||
-    localStorage.getItem('theme') === 'dark' ||
-    localStorage.getItem('labsync-high-contrast') === 'true';
-
-  if (isDarkInitial) {
-    document.documentElement.classList.add('dark-mode', 'high-contrast');
-    document.documentElement.setAttribute('data-theme', 'dark');
-    if (document.body) {
-      document.body.classList.add('dark-mode', 'high-contrast');
-    }
-  }
-  updateThemeUI(isDarkInitial, false);
 }
 
 // Auto-initialize on script load or DOMContentLoaded
@@ -738,8 +861,10 @@ window.closeSuccessModal = closeSuccessModal;
 window.hasReportableIssue = hasReportableIssue;
 window.updateSubmitButtonState = updateSubmitButtonState;
 window.initSubmitPcReportPage = initSubmitPcReportPage;
-window.initThemeToggle = initThemeToggle;
-window.toggleTheme = function() {
-  const toggleBtn = document.getElementById('theme-toggle-btn');
-  if (toggleBtn) toggleBtn.click();
-};
+window.startCameraScanner = startCameraScanner;
+window.stopCameraScanner = stopCameraScanner;
+window.switchCamera = switchCamera;
+window.toggleFallbackInput = toggleFallbackInput;
+window.handleQRFileUpload = handleQRFileUpload;
+window.processScannedID = processScannedID;
+window.reScanStudentID = reScanStudentID;

@@ -4,33 +4,32 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 console.log('================================================================');
-console.log('🧪 Starting Submit PC Report Light/Dark Mode Toggle Tests');
+console.log('🧪 Starting Submit PC Report Permanent Light Mode Verification');
 console.log('================================================================\n');
 
 // 1. Verify Markup in submit-pc-report.html
 const htmlPath = path.join(__dirname, '..', 'submit-pc-report.html');
 const htmlContent = fs.readFileSync(htmlPath, 'utf8');
 
-assert(htmlContent.includes('id="theme-toggle-btn"'), 'Must contain theme toggle button with id="theme-toggle-btn"');
-assert(htmlContent.includes('class="theme-toggle-btn"'), 'Must contain class="theme-toggle-btn"');
-assert(htmlContent.includes('theme-icon-moon'), 'Must contain moon icon for light mode');
-assert(htmlContent.includes('theme-icon-sun'), 'Must contain sun icon for dark mode');
-assert(htmlContent.includes('applySavedTheme'), 'Must contain early theme restore script in head');
-assert(htmlContent.includes('[data-theme="dark"] .form-title') || htmlContent.includes('html.dark-mode .form-title'), 'Must style form-title in dark mode');
-console.log('✔ PASS: submit-pc-report.html markup and styles verified');
+assert(!htmlContent.includes('id="theme-toggle-btn"'), 'Theme toggle button must be removed from submit-pc-report.html');
+assert(!htmlContent.includes('class="theme-toggle-btn"'), 'Class theme-toggle-btn must be removed from submit-pc-report.html');
+assert(!htmlContent.includes('labsync-logo - dark mode.png'), 'Dark mode logo must not be present in submit-pc-report.html');
+assert(htmlContent.includes('data-theme="light"'), 'Must declare data-theme="light" on html element');
+assert(htmlContent.includes('enforceLightMode'), 'Must contain inline light mode enforcement script in head');
+console.log('✔ PASS: submit-pc-report.html markup verified (Theme toggle completely removed, light mode enforced)');
 
 // 2. Verify Logic in js/pages/submit-pc-report.js
 const jsPath = path.join(__dirname, '..', 'js', 'pages', 'submit-pc-report.js');
 const jsContent = fs.readFileSync(jsPath, 'utf8');
 
-assert(jsContent.includes('function initThemeToggle'), 'Must contain initThemeToggle function');
-assert(jsContent.includes('function toggleTheme') || jsContent.includes('toggleTheme ='), 'Must contain toggleTheme logic');
-assert(jsContent.includes('window.initThemeToggle'), 'Must export initThemeToggle globally');
-console.log('✔ PASS: submit-pc-report.js theme toggle controller code verified');
+assert(!jsContent.includes('function initThemeToggle'), 'initThemeToggle must be removed from submit-pc-report.js');
+assert(!jsContent.includes('window.initThemeToggle'), 'window.initThemeToggle export must be removed');
+assert(!jsContent.includes('window.toggleTheme'), 'window.toggleTheme export must be removed');
+console.log('✔ PASS: submit-pc-report.js logic verified (Theme toggle logic completely removed)');
 
-// 3. Headless Chrome Visual Capture (Light & Dark Mode)
-async function captureScreenshots() {
-  console.log('\n--- Capturing Headless Chrome Screenshots (Light & Dark Mode) ---');
+// 3. Headless Chrome In-Browser Verification with Pre-existing Dark Mode localStorage
+async function verifyBrowserBehavior() {
+  console.log('\n--- Running Headless Chrome Light Mode Isolation Verification ---');
   const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
   if (!fs.existsSync(chromePath)) {
     console.log('Chrome not found, skipping visual snapshot');
@@ -38,7 +37,7 @@ async function captureScreenshots() {
   }
 
   const port = 9585;
-  const tempProfile = path.join(__dirname, 'temp-chrome-theme-' + Date.now());
+  const tempProfile = path.join(__dirname, 'temp-chrome-light-' + Date.now());
   const chromeProc = spawn(chromePath, [
     '--headless=new',
     `--remote-debugging-port=${port}`,
@@ -84,66 +83,62 @@ async function captureScreenshots() {
     });
 
     const fileUrl = 'file:///' + htmlPath.replace(/\\/g, '/') + '?room=203&pc=04';
+
+    // Seed dark theme into localStorage beforehand to simulate a user who previously used dark mode elsewhere
+    // Also seed verified student session so submit-pc-report does not redirect to verification gateway
+    await send(pWs, 'Page.addScriptToEvaluateOnNewDocument', {
+      source: `
+        sessionStorage.setItem('labsync_verified_student', JSON.stringify({
+          verificationToken: 'test-token-12345',
+          studentName: 'DELA CRUZ, JUAN M.',
+          studentNumber: '2023-100456',
+          room: '203',
+          pc: '04',
+          verificationTimestamp: Date.now()
+        }));
+        localStorage.setItem('labsync-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        localStorage.setItem('labsync-high-contrast', 'true');
+      `
+    });
+
     await send(pWs, 'Page.navigate', { url: fileUrl });
     await new Promise(r => setTimeout(r, 1500));
 
-    // Capture Light Mode
-    const lightCap = await send(pWs, 'Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(__dirname, 'submit-pc-report-light.png'), Buffer.from(lightCap.data, 'base64'));
-    console.log('✔ Captured light mode screenshot: tests/submit-pc-report-light.png');
-
-    // Click theme toggle button
-    await send(pWs, 'Runtime.evaluate', {
-      expression: `(() => {
-        const btn = document.getElementById('theme-toggle-btn');
-        if (btn) btn.click();
-      })()`
-    });
-    await new Promise(r => setTimeout(r, 800));
-
-    // Verify dark mode attributes in DOM
+    // Verify DOM state
     const evalRes = await send(pWs, 'Runtime.evaluate', {
       expression: `(() => {
+        const btn = document.getElementById('theme-toggle-btn');
         return {
+          currentUrl: window.location.href,
+          hasToggleBtn: btn !== null,
           dataTheme: document.documentElement.getAttribute('data-theme'),
           hasDarkClass: document.documentElement.classList.contains('dark-mode'),
           hasHcClass: document.documentElement.classList.contains('high-contrast'),
-          themeStorage: localStorage.getItem('labsync-theme')
+          bgColor: window.getComputedStyle(document.body).backgroundColor
         };
       })()`,
       returnByValue: true
     });
 
-    console.log('Evaluated DOM state after toggle:', evalRes.result.value);
-    assert.strictEqual(evalRes.result.value.dataTheme, 'dark', 'data-theme must be dark');
-    assert.strictEqual(evalRes.result.value.hasDarkClass, true, 'html must have dark-mode class');
-    assert.strictEqual(evalRes.result.value.themeStorage, 'dark', 'localStorage must store dark theme');
-    console.log('✔ PASS: In-browser toggle to Dark Mode verified');
+    console.log('Evaluated DOM state with pre-existing dark localStorage:', evalRes.result.value);
+    assert.strictEqual(evalRes.result.value.hasToggleBtn, false, 'Theme toggle button must NOT exist in DOM');
+    assert.strictEqual(evalRes.result.value.dataTheme, 'light', 'data-theme must strictly be "light"');
+    assert.strictEqual(evalRes.result.value.hasDarkClass, false, 'html element must NOT have "dark-mode" class');
+    assert.strictEqual(evalRes.result.value.hasHcClass, false, 'html element must NOT have "high-contrast" class');
+    console.log('✔ PASS: submit-pc-report.html ignores pre-existing dark theme and remains strictly in Light Mode');
 
-    // Capture Dark Mode
-    const darkCap = await send(pWs, 'Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(__dirname, 'submit-pc-report-dark.png'), Buffer.from(darkCap.data, 'base64'));
-    console.log('✔ Captured dark mode screenshot: tests/submit-pc-report-dark.png');
+    // Capture Light Mode screenshot
+    const lightCap = await send(pWs, 'Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(__dirname, 'submit-pc-report-light.png'), Buffer.from(lightCap.data, 'base64'));
+    console.log('✔ Captured light mode mobile screenshot: tests/submit-pc-report-light.png');
 
     // Desktop view test
     await send(pWs, 'Emulation.setDeviceMetricsOverride', {
-      width: 1200,
+      width: 1280,
       height: 900,
       deviceScaleFactor: 2,
       mobile: false
-    });
-    await new Promise(r => setTimeout(r, 600));
-
-    const darkDesktopCap = await send(pWs, 'Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(__dirname, 'submit-pc-report-dark-desktop.png'), Buffer.from(darkDesktopCap.data, 'base64'));
-    console.log('✔ Captured dark mode desktop screenshot: tests/submit-pc-report-dark-desktop.png');
-
-    // Toggle back to light mode on desktop
-    await send(pWs, 'Runtime.evaluate', {
-      expression: `(() => {
-        const btn = document.getElementById('theme-toggle-btn');
-        if (btn) btn.click();
-      })()`
     });
     await new Promise(r => setTimeout(r, 600));
 
@@ -159,9 +154,9 @@ async function captureScreenshots() {
   }
 }
 
-captureScreenshots().then(() => {
+verifyBrowserBehavior().then(() => {
   console.log('\n================================================================');
-  console.log('🎉 ALL THEME TOGGLE TESTS PASSED SUCCESSFULLY!');
+  console.log('🎉 ALL PERMANENT LIGHT MODE TESTS PASSED SUCCESSFULLY!');
   console.log('================================================================\n');
 }).catch(err => {
   console.error('❌ Test failed:', err);

@@ -108,6 +108,18 @@ const pcDuplicateReportLimiter = rateLimit({
     }
 });
 
+// 8. Student ID QR Verification Rate Limiter (Protection for QR verification endpoint: 60 attempts / 10 minutes per IP)
+const studentVerifyLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 60, // 60 verification attempts per window
+    standardHeaders: true,
+    legacyHeaders: false,
+    statusCode: 429,
+    message: {
+        error: 'Too many Student ID verification attempts. Please wait a moment.'
+    }
+});
+
 module.exports = {
     loginLimiter,
     passwordRecoveryLimiter,
@@ -115,6 +127,8 @@ module.exports = {
     validateResetTokenLimiter,
     publicReportLimiter,
     publicPCReportLimiter,
-    pcDuplicateReportLimiter
+    pcDuplicateReportLimiter,
+    studentVerifyLimiter
 };
+
 

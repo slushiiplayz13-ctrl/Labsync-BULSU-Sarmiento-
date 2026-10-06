@@ -5,6 +5,9 @@ const scheduleRepository = require('../repositories/schedule.repository');
 const labRepository = require('../repositories/laboratory.repository');
 const userRepository = require('../repositories/user.repository');
 const pool = require('../database/connection');
+const studentVerificationService = require('./studentVerificationService');
+const studentVerificationRepository = require('../repositories/student-verification.repository');
+const auditService = require('./auditService');
 const { IT_HEAD_ROLES, MIS_STAFF_ROLES, OJT_ROLES } = require('../middleware/auth');
 
 /**
@@ -32,7 +35,18 @@ function extractPrimaryIssueType(components = {}, remarks = '') {
 }
 
 async function submitReport(reqBody = {}) {
-    const { roomNumber, pcNumber, studentName, studentSection, components, remarks } = reqBody;
+    const {
+        roomNumber,
+        pcNumber,
+        studentName,
+        studentNumber,
+        studentSection,
+        components,
+        remarks,
+        verificationToken,
+        verificationTimestamp,
+        qrData
+    } = reqBody;
 
     if (!studentName || typeof studentName !== 'string' || studentName.trim().length < 2) {
         return { status: 400, error: 'Student Name is required (minimum 2 characters).' };
@@ -65,9 +79,63 @@ async function submitReport(reqBody = {}) {
         return { status: 400, error: 'PC Number is required.' };
     }
 
-    const cleanStudentName = studentName.trim();
+    let cleanStudentName = studentName.trim();
+    let cleanStudentNumber = studentNumber ? String(studentNumber).trim().toUpperCase() : null;
     const cleanStudentSection = studentSection.trim().toUpperCase();
     const cleanRemarks = typeof remarks === 'string' ? remarks.trim() : '';
+
+    if (cleanStudentNumber && cleanStudentNumber.length > 50) {
+        return { status: 400, error: 'Student Number must not exceed 50 characters.' };
+    }
+
+    const issueComponents = Object.keys(components || {}).filter(key => components[key] === 'issue');
+    const issueType = extractPrimaryIssueType(components || {}, cleanRemarks);
+
+    if (issueType === 'None') {
+        return {
+            status: 400,
+            error: 'Cannot submit report: No equipment issue was selected and no issue remarks were provided. Please flag an issue or provide details.'
+        };
+    }
+
+    // Direct QR data validation if submitted directly (e.g. headless scripts)
+    if (qrData) {
+        const parsed = studentVerificationService.parseStudentIDQR(qrData);
+        if (!parsed) {
+            return { status: 400, error: 'Invalid Student ID QR Code. Could not extract student identity.' };
+        }
+        cleanStudentNumber = parsed.studentNumber;
+        if (cleanStudentName.toUpperCase() !== parsed.studentName.toUpperCase()) {
+            return { status: 403, error: 'Submitted Student Name does not match scanned Student ID.' };
+        }
+    }
+
+    // QR-based Student Identity Capture: Enforce short-lived, workstation-bound verification token
+    if (!verificationToken) {
+        return {
+            status: 403,
+            error: 'Student ID QR verification token is missing. Please scan your physical Student ID QR code before submitting.'
+        };
+    }
+
+    const tokenVerification = await studentVerificationService.verifyCaptureToken(
+        verificationToken,
+        cleanStudentNumber || '',
+        cleanStudentName,
+        roomNumber,
+        pcNumber
+    );
+
+    if (!tokenVerification.valid) {
+        return {
+            status: 403,
+            error: tokenVerification.error || 'Student verification token is invalid or expired. Please re-scan your Student ID QR code.'
+        };
+    }
+
+    // Authoritatively bind identity from the validated token session
+    cleanStudentNumber = tokenVerification.payload.studentNumber;
+    cleanStudentName = tokenVerification.payload.studentName;
 
     const [rooms] = await scheduleRepository.findRoomIdByNumber(roomNumber);
     if (rooms.length === 0) {
@@ -88,16 +156,8 @@ async function submitReport(reqBody = {}) {
         pcId = pcs[0].PC_ID;
     }
 
-    const issueComponents = Object.keys(components || {}).filter(key => components[key] === 'issue');
-    const desc = `[Program & Section: ${cleanStudentSection}] [Issues: ${issueComponents.join(', ') || 'None'}] Remarks: ${cleanRemarks || 'None'}`;
-    const issueType = extractPrimaryIssueType(components || {}, cleanRemarks);
-
-    if (issueType === 'None') {
-        return {
-            status: 400,
-            error: 'Cannot submit report: No equipment issue was selected and no issue remarks were provided. Please flag an issue or provide details.'
-        };
-    }
+    const studentIdPrefix = cleanStudentNumber ? `[Student ID: ${cleanStudentNumber}] ` : '';
+    const desc = `${studentIdPrefix}[Program & Section: ${cleanStudentSection}] [Issues: ${issueComponents.join(', ') || 'None'}] Remarks: ${cleanRemarks || 'None'}`;
 
     let priority = 'Low';
     let status = 'Pending';
@@ -109,81 +169,125 @@ async function submitReport(reqBody = {}) {
         priority = 'Medium';
     }
 
-    let issueId;
-    await maintenanceRepository.withTransaction(async (connection) => {
-        // Concurrency Safeguard: Explicitly lock the PC row first
-        await maintenanceRepository.lockPCForUpdate(pcId, connection);
+    let issueId = null;
+    let reportId = null;
 
-        if (status === 'Resolved') {
-            // Direct submission without fault flag
-            const [newIssue] = await maintenanceRepository.insertMaintenanceIssue({
-                pcId,
-                issueType,
-                status: 'Resolved',
-                priority: 'Low'
-            }, connection);
-            issueId = newIssue.insertId;
+    try {
+        await maintenanceRepository.withTransaction(async (connection) => {
+            // Concurrency Safeguard: Explicitly lock the PC row first
+            await maintenanceRepository.lockPCForUpdate(pcId, connection);
 
-            await maintenanceRepository.insertStudentReport({
-                issueId,
-                pcId,
-                studentName: cleanStudentName,
-                desc,
-                status: 'Resolved',
-                priority: 'Low'
-            }, connection);
-
-            // Check if PC has any other active issues before marking functional
-            const [activeCount] = await maintenanceRepository.countActiveIssuesByPCId(pcId, connection);
-            if (activeCount[0].count === 0) {
-                await labRepository.updateConditionStatus(pcId, 'Functional', connection);
+            // Replay Defense: Atomically mark persistent verification session as used
+            const [markResult] = await studentVerificationRepository.markSessionAsUsed(
+                tokenVerification.payload.nonce,
+                connection
+            );
+            if (!markResult || markResult.affectedRows === 0) {
+                const err = new Error('Student ID verification session has already been used. Please re-scan your Student ID QR code.');
+                err.status = 403;
+                throw err;
             }
-        } else {
-            // Check for existing active issue for (PC_ID, Issue_Type)
-            const [activeIssues] = await maintenanceRepository.findActiveIssueByPCAndType(pcId, issueType, connection);
 
-            if (activeIssues.length > 0) {
-                // Link new student report to existing active Maintenance Issue
-                issueId = activeIssues[0].Issue_ID;
-                const existingPriority = activeIssues[0].Priority_Level;
-
-                // Escalate priority level if new report has higher priority
-                if (priority === 'High' && existingPriority !== 'High') {
-                    await maintenanceRepository.updateIssuePriority(issueId, 'High', connection);
-                } else if (priority === 'Medium' && existingPriority === 'Low') {
-                    await maintenanceRepository.updateIssuePriority(issueId, 'Medium', connection);
-                }
-            } else {
-                // Create new Maintenance Issue
+            if (status === 'Resolved') {
+                // Direct submission without fault flag
                 const [newIssue] = await maintenanceRepository.insertMaintenanceIssue({
                     pcId,
                     issueType,
+                    status: 'Resolved',
+                    priority: 'Low'
+                }, connection);
+                issueId = newIssue.insertId;
+
+                const [newReport] = await maintenanceRepository.insertStudentReport({
+                    issueId,
+                    pcId,
+                    studentName: cleanStudentName,
+                    studentNumber: cleanStudentNumber,
+                    desc,
+                    status: 'Resolved',
+                    priority: 'Low'
+                }, connection);
+                reportId = newReport.insertId;
+
+                // Check if PC has any other active issues before marking functional
+                const [activeCount] = await maintenanceRepository.countActiveIssuesByPCId(pcId, connection);
+                if (activeCount[0].count === 0) {
+                    await labRepository.updateConditionStatus(pcId, 'Functional', connection);
+                }
+            } else {
+                // Check for existing active issue for (PC_ID, Issue_Type)
+                const [activeIssues] = await maintenanceRepository.findActiveIssueByPCAndType(pcId, issueType, connection);
+
+                if (activeIssues.length > 0) {
+                    // Link new student report to existing active Maintenance Issue
+                    issueId = activeIssues[0].Issue_ID;
+                    const existingPriority = activeIssues[0].Priority_Level;
+
+                    // Escalate priority level if new report has higher priority
+                    if (priority === 'High' && existingPriority !== 'High') {
+                        await maintenanceRepository.updateIssuePriority(issueId, 'High', connection);
+                    } else if (priority === 'Medium' && existingPriority === 'Low') {
+                        await maintenanceRepository.updateIssuePriority(issueId, 'Medium', connection);
+                    }
+                } else {
+                    // Create new Maintenance Issue
+                    const [newIssue] = await maintenanceRepository.insertMaintenanceIssue({
+                        pcId,
+                        issueType,
+                        status: 'Pending',
+                        priority
+                    }, connection);
+                    issueId = newIssue.insertId;
+                }
+
+                // Insert distinct student report linked to the maintenance issue
+                const [newReport] = await maintenanceRepository.insertStudentReport({
+                    issueId,
+                    pcId,
+                    studentName: cleanStudentName,
+                    studentNumber: cleanStudentNumber,
+                    desc,
                     status: 'Pending',
                     priority
                 }, connection);
-                issueId = newIssue.insertId;
+                reportId = newReport.insertId;
+
+                // Update PC condition to Under Maintenance
+                await labRepository.updateConditionStatus(pcId, 'Under Maintenance', connection);
             }
-
-            // Insert distinct student report linked to the maintenance issue
-            await maintenanceRepository.insertStudentReport({
-                issueId,
-                pcId,
-                studentName: cleanStudentName,
-                desc,
-                status: 'Pending',
-                priority
-            }, connection);
-
-            // Update PC condition to Under Maintenance
-            await labRepository.updateConditionStatus(pcId, 'Under Maintenance', connection);
+        });
+    } catch (txErr) {
+        if (txErr.status === 403 || (txErr.message && txErr.message.includes('already been used'))) {
+            return {
+                status: 403,
+                error: txErr.message || 'Student ID verification session has already been used. Please re-scan your Student ID QR code.'
+            };
         }
+        throw txErr;
+    }
+
+    await auditService.logSecurityEvent({
+        action: 'SUBMIT_PC_REPORT',
+        resourceType: 'MAINTENANCE',
+        resourceId: reportId || issueId,
+        actorRole: 'Student',
+        details: {
+            studentName: cleanStudentName,
+            studentNumber: cleanStudentNumber,
+            roomNumber,
+            pcNumber,
+            section: cleanStudentSection,
+            ticketId: `LS-TKT-${issueId}`
+        },
+        result: 'SUCCESS'
     });
 
     return {
         status: 200,
         data: {
             message: 'Report submitted successfully!',
-            ticketId: `LS-TKT-${issueId}`
+            ticketId: `LS-TKT-${issueId}`,
+            reportId
         }
     };
 }

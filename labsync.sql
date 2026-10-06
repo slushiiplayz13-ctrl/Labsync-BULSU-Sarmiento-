@@ -239,6 +239,7 @@ CREATE TABLE `maintenance` (
   `Maintenance_Issue_ID` int(11) DEFAULT NULL,
   `User_ID` int(11) DEFAULT NULL,
   `Student_Name` varchar(100) DEFAULT NULL,
+  `Student_Number` varchar(50) DEFAULT NULL,
   `Issue_Description` text DEFAULT NULL,
   `Date_Reported` datetime DEFAULT NULL,
   `Status` varchar(20) DEFAULT NULL,
@@ -268,6 +269,30 @@ CREATE TABLE `maintenance_issues` (
   UNIQUE KEY `uq_active_pc_issue` (`Active_Issue_Key`),
   KEY `idx_pc_issue_status` (`PC_ID`, `Status`, `Issue_Type`),
   KEY `idx_maintenance_resolved_by` (`Resolved_By_User_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `student_verification_sessions`
+--
+
+CREATE TABLE IF NOT EXISTS `student_verification_sessions` (
+  `Session_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `Verification_ID` varchar(64) NOT NULL,
+  `Nonce` varchar(64) NOT NULL,
+  `Student_Name` varchar(100) NOT NULL,
+  `Student_Number` varchar(50) NOT NULL,
+  `Room_Number` varchar(50) NOT NULL,
+  `PC_Number` varchar(50) NOT NULL,
+  `Issued_At` datetime NOT NULL,
+  `Expires_At` datetime NOT NULL,
+  `Used_At` datetime DEFAULT NULL,
+  PRIMARY KEY (`Session_ID`),
+  UNIQUE KEY `idx_svs_nonce` (`Nonce`),
+  KEY `idx_svs_verification_id` (`Verification_ID`),
+  KEY `idx_svs_expires_at` (`Expires_At`),
+  KEY `idx_svs_used_at` (`Used_At`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------

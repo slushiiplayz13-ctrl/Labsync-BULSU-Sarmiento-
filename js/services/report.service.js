@@ -85,15 +85,41 @@
     return data;
   }
 
+  /**
+   * Verifies scanned Student ID QR payload with backend.
+   * @param {string} qrData
+   * @param {string|number} roomNumber
+   * @param {string|number} pcNumber
+   * @returns {Promise<{studentName: string, studentNumber: string, verificationToken: string, verificationTimestamp: number}>}
+   */
+  async function verifyStudentID(qrData, roomNumber, pcNumber) {
+    const response = await fetch('/api/reports/verify-student-id', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({ qrData, roomNumber, pcNumber })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to verify Student ID');
+    }
+    return data;
+  }
+
   const reportService = {
     fetchReports,
     submitReport,
+    verifyStudentID,
     updateReportStatus,
     deleteReport
   };
 
   global.fetchReports = fetchReports;
   global.submitReport = submitReport;
+  global.verifyStudentID = verifyStudentID;
   global.updateReportStatus = updateReportStatus;
   global.deleteReport = deleteReport;
   global.reportService = reportService;

@@ -76,10 +76,10 @@ function securityHeaders(req, res, next) {
     helmetMiddleware(req, res, (err) => {
         if (err) return next(err);
 
-        // Apply Permissions-Policy (Feature Policy) to restrict sensitive browser APIs
+        // Apply Permissions-Policy (Feature Policy) to restrict sensitive browser APIs (camera enabled for self to allow Student ID QR scanning)
         res.setHeader(
             'Permissions-Policy',
-            'camera=(), microphone=(), geolocation=(), payment=(), usb=(), vr=()'
+            'camera=(self), microphone=(), geolocation=(), payment=(), usb=(), vr=()'
         );
 
         next();

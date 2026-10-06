@@ -328,7 +328,7 @@ async function getPCQRCode(pcId) {
     }
 
     const pc = pcs[0];
-    const reportUrl = `${APP_URL}/submit-pc-report.html?room=${pc.Room_Number}&pc=${pc.PC_Number}`;
+    const reportUrl = `${APP_URL}/student-id-verification.html?room=${pc.Room_Number}&pc=${pc.PC_Number}`;
 
     const qrCodeDataURL = await QRCode.toDataURL(reportUrl, {
         width: 300,
@@ -352,7 +352,7 @@ async function getBatchQRCodes(roomId) {
 
     const baseUrl = APP_URL;
     const qrList = await Promise.all(pcs.map(async (pc) => {
-        const reportUrl = `${baseUrl}/submit-pc-report.html?room=${pc.Room_Number}&pc=${pc.PC_Number}`;
+        const reportUrl = `${baseUrl}/student-id-verification.html?room=${pc.Room_Number}&pc=${pc.PC_Number}`;
         const qrCodeDataURL = await QRCode.toDataURL(reportUrl, {
             width: 300,
             margin: 2,

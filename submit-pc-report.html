@@ -1,20 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
   <meta charset="UTF-8" />
   <script>
-    (function applySavedTheme() {
+    (function enforceLightMode() {
       try {
-        const savedTheme = localStorage.getItem('labsync-theme') || localStorage.getItem('theme');
-        const savedContrast = localStorage.getItem('labsync-high-contrast') === 'true';
-        const isDark = savedTheme === 'dark' || (savedTheme !== 'light' && savedContrast);
-        if (isDark) {
-          document.documentElement.classList.add('dark-mode', 'high-contrast');
-          document.documentElement.setAttribute('data-theme', 'dark');
-        } else if (savedTheme === 'light' || savedContrast === false) {
-          document.documentElement.classList.remove('dark-mode', 'high-contrast');
-          document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.classList.remove('dark-mode', 'high-contrast');
+        document.documentElement.setAttribute('data-theme', 'light');
+        if (document.body) {
+          document.body.classList.remove('dark-mode', 'high-contrast');
         }
       } catch (e) {}
     })();
@@ -23,7 +18,6 @@
   <title>LabSync – Computer Laboratory Monitoring Form</title>
   <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <link rel="preload" as="image" href="assets/labsync-logo.png" />
-  <link rel="preload" as="image" href="assets/labsync-logo - dark mode.png" />
   <link rel="preload" as="image" href="assets/bsu-sarmiento-logo.png?v=1.1" />
 
   <!-- Google Fonts -->
@@ -35,6 +29,8 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- HTML5 QR Code Scanner -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <link rel="stylesheet" href="css/components/modals.css" />
 
   <style>
@@ -60,443 +56,6 @@
       --radius-card: 24px;
     }
 
-    /* Accessibility: High Contrast Dark Mode */
-    html.high-contrast {
-      --primary-teal: #00A3C4;
-      --primary-teal-light: #1A2E35;
-      --primary-teal-hover: #008EA6;
-      --text-dark: #F8FAFC;
-      --text-mid: #CBD5E1;
-      --text-muted: #64748B;
-      --bg-page: #0B0F19;
-      --border-light: #374151;
-      --bg-card: #111827;
-    }
-
-    html.high-contrast body,
-    html.dark-mode body,
-    body.dark-mode,
-    [data-theme="dark"] body {
-      background: radial-gradient(circle at 0% 0%, rgba(30, 187, 215, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 100% 100%, rgba(14, 165, 201, 0.05) 0%, transparent 50%),
-        #0B0F19 !important;
-      color: #F8FAFC !important;
-    }
-
-    html.high-contrast .form-card {
-      background: #111827 !important;
-      border-color: #374151 !important;
-    }
-
-    html.high-contrast .equipment-card {
-      background: #111827 !important;
-      border-color: #374151 !important;
-      color: #F8FAFC !important;
-    }
-
-    html.high-contrast .equipment-card.status-working {
-      background: #111827 !important;
-    }
-
-    html.high-contrast .equipment-card.status-issue {
-      background: #1f1212 !important;
-      border-color: rgba(239, 68, 68, 0.4) !important;
-    }
-
-    html.dark-mode .form-card,
-    body.dark-mode .form-card,
-    [data-theme="dark"] .form-card,
-    html.high-contrast .form-card {
-      background: var(--bg-card, #0F172A) !important;
-      border-color: var(--border-light, rgba(255, 255, 255, 0.12)) !important;
-    }
-
-    html.dark-mode .equipment-card,
-    body.dark-mode .equipment-card,
-    [data-theme="dark"] .equipment-card,
-    html.high-contrast .equipment-card {
-      background: rgba(30, 41, 59, 0.6) !important;
-      border-color: rgba(255, 255, 255, 0.12) !important;
-      color: #F8FAFC !important;
-    }
-
-    html.dark-mode .equipment-card.status-working,
-    body.dark-mode .equipment-card.status-working,
-    [data-theme="dark"] .equipment-card.status-working,
-    html.high-contrast .equipment-card.status-working {
-      background: rgba(30, 41, 59, 0.6) !important;
-      border-color: rgba(255, 255, 255, 0.12) !important;
-    }
-
-    html.dark-mode .equipment-card.status-issue,
-    body.dark-mode .equipment-card.status-issue,
-    [data-theme="dark"] .equipment-card.status-issue,
-    html.high-contrast .equipment-card.status-issue {
-      background: rgba(239, 68, 68, 0.1) !important;
-      border-color: rgba(239, 68, 68, 0.35) !important;
-    }
-
-    html.dark-mode .eq-controls,
-    body.dark-mode .eq-controls,
-    [data-theme="dark"] .eq-controls,
-    html.high-contrast .eq-controls {
-      background: rgba(15, 23, 42, 0.7) !important;
-    }
-
-    html.dark-mode .status-btn:not(.active),
-    body.dark-mode .status-btn:not(.active),
-    [data-theme="dark"] .status-btn:not(.active),
-    html.high-contrast .status-btn:not(.active) {
-      color: #94A3B8 !important;
-    }
-
-    html.dark-mode .status-btn:not(.active):hover,
-    body.dark-mode .status-btn:not(.active):hover,
-    [data-theme="dark"] .status-btn:not(.active):hover,
-    html.high-contrast .status-btn:not(.active):hover {
-      background: rgba(255, 255, 255, 0.1) !important;
-      color: #F8FAFC !important;
-    }
-
-    html.dark-mode .input-group .input-wrapper input.input-field,
-    body.dark-mode .input-group .input-wrapper input.input-field,
-    [data-theme="dark"] .input-group .input-wrapper input.input-field,
-    html.high-contrast .input-group .input-wrapper input.input-field,
-    html.dark-mode .input-wrapper input.input-field,
-    body.dark-mode .input-wrapper input.input-field,
-    [data-theme="dark"] .input-wrapper input.input-field,
-    html.high-contrast .input-wrapper input.input-field,
-    html.dark-mode .input-field,
-    body.dark-mode .input-field,
-    [data-theme="dark"] .input-field,
-    html.high-contrast .input-field,
-    html.dark-mode .remarks-textarea,
-    body.dark-mode .remarks-textarea,
-    [data-theme="dark"] .remarks-textarea,
-    html.high-contrast .remarks-textarea {
-      background: rgba(30, 41, 59, 0.85) !important;
-      border-color: rgba(255, 255, 255, 0.18) !important;
-      color: #F8FAFC !important;
-    }
-
-    html.dark-mode .input-group .input-wrapper input.input-field:focus,
-    body.dark-mode .input-group .input-wrapper input.input-field:focus,
-    [data-theme="dark"] .input-group .input-wrapper input.input-field:focus,
-    html.high-contrast .input-group .input-wrapper input.input-field:focus,
-    html.dark-mode .input-wrapper input.input-field:focus,
-    body.dark-mode .input-wrapper input.input-field:focus,
-    [data-theme="dark"] .input-wrapper input.input-field:focus,
-    html.high-contrast .input-wrapper input.input-field:focus,
-    html.dark-mode .input-field:focus,
-    body.dark-mode .input-field:focus,
-    [data-theme="dark"] .input-field:focus,
-    html.high-contrast .input-field:focus,
-    html.dark-mode .remarks-textarea:focus,
-    body.dark-mode .remarks-textarea:focus,
-    [data-theme="dark"] .remarks-textarea:focus,
-    html.high-contrast .remarks-textarea:focus {
-      background: #0F172A !important;
-      border-color: #38BDF8 !important;
-      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.25) !important;
-      color: #FFFFFF !important;
-    }
-
-    html.dark-mode .input-field::placeholder,
-    body.dark-mode .input-field::placeholder,
-    [data-theme="dark"] .input-field::placeholder,
-    html.dark-mode .remarks-textarea::placeholder,
-    body.dark-mode .remarks-textarea::placeholder,
-    [data-theme="dark"] .remarks-textarea::placeholder {
-      color: #64748B !important;
-    }
-
-    html.dark-mode .checkbox-custom,
-    body.dark-mode .checkbox-custom,
-    [data-theme="dark"] .checkbox-custom,
-    html.high-contrast .checkbox-custom {
-      background: rgba(30, 41, 59, 0.7) !important;
-      border-color: rgba(255, 255, 255, 0.25) !important;
-    }
-
-    html.dark-mode .confirm-row.checked .checkbox-custom,
-    body.dark-mode .confirm-row.checked .checkbox-custom,
-    [data-theme="dark"] .confirm-row.checked .checkbox-custom,
-    html.high-contrast .confirm-row.checked .checkbox-custom {
-      background: #1EBBD7 !important;
-      border-color: #1EBBD7 !important;
-      color: #FFFFFF !important;
-    }
-
-    html.dark-mode .confirm-text,
-    body.dark-mode .confirm-text,
-    [data-theme="dark"] .confirm-text,
-    html.high-contrast .confirm-text {
-      color: #CBD5E1 !important;
-    }
-
-    html.dark-mode .submit-btn:disabled,
-    body.dark-mode .submit-btn:disabled,
-    [data-theme="dark"] .submit-btn:disabled,
-    html.high-contrast .submit-btn:disabled,
-    html.dark-mode .submit-btn.btn-disabled,
-    body.dark-mode .submit-btn.btn-disabled,
-    [data-theme="dark"] .submit-btn.btn-disabled {
-      background: rgba(255, 255, 255, 0.08) !important;
-      color: #64748B !important;
-      box-shadow: none !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      opacity: 0.7 !important;
-    }
-
-    html.dark-mode .submit-btn:not(:disabled):not(.btn-disabled),
-    body.dark-mode .submit-btn:not(:disabled):not(.btn-disabled),
-    [data-theme="dark"] .submit-btn:not(:disabled):not(.btn-disabled),
-    html.high-contrast .submit-btn:not(:disabled):not(.btn-disabled) {
-      background: linear-gradient(135deg, #1EBBD7, #0EA5C9) !important;
-      color: #FFFFFF !important;
-      box-shadow: 0 4px 16px rgba(30, 187, 215, 0.35) !important;
-      cursor: pointer !important;
-    }
-
-    html.dark-mode .info-header-box,
-    body.dark-mode .info-header-box,
-    [data-theme="dark"] .info-header-box,
-    html.high-contrast .info-header-box {
-      background: rgba(14, 165, 233, 0.12) !important;
-      border-color: rgba(56, 189, 248, 0.25) !important;
-    }
-
-    html.dark-mode .info-item,
-    body.dark-mode .info-item,
-    [data-theme="dark"] .info-item,
-    html.high-contrast .info-item {
-      color: #38BDF8 !important;
-    }
-
-    html.dark-mode .success-card,
-    body.dark-mode .success-card,
-    [data-theme="dark"] .success-card,
-    html.high-contrast .success-card {
-      background: #0F172A !important;
-      color: #F8FAFC !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    }
-
-    html.dark-mode .form-title,
-    body.dark-mode .form-title,
-    [data-theme="dark"] .form-title,
-    html.high-contrast .form-title {
-      background: linear-gradient(135deg, #F8FAFC, #CBD5E1) !important;
-      -webkit-background-clip: text !important;
-      background-clip: text !important;
-      -webkit-text-fill-color: transparent !important;
-      color: #F8FAFC !important;
-    }
-
-    html.dark-mode .logo-divider,
-    body.dark-mode .logo-divider,
-    [data-theme="dark"] .logo-divider,
-    html.high-contrast .logo-divider {
-      background: rgba(255, 255, 255, 0.2) !important;
-    }
-
-    html.dark-mode .section-title,
-    body.dark-mode .section-title,
-    [data-theme="dark"] .section-title,
-    html.high-contrast .section-title {
-      color: #F8FAFC !important;
-    }
-
-    html.dark-mode .eq-name,
-    body.dark-mode .eq-name,
-    [data-theme="dark"] .eq-name,
-    html.high-contrast .eq-name {
-      color: #F8FAFC !important;
-    }
-
-    html.dark-mode .equipment-card.status-working .eq-icon-wrapper,
-    body.dark-mode .equipment-card.status-working .eq-icon-wrapper,
-    [data-theme="dark"] .equipment-card.status-working .eq-icon-wrapper,
-    html.high-contrast .equipment-card.status-working .eq-icon-wrapper {
-      background: rgba(30, 187, 215, 0.15) !important;
-      color: #38BDF8 !important;
-    }
-
-    html.dark-mode .success-text,
-    body.dark-mode .success-text,
-    [data-theme="dark"] .success-text,
-    html.high-contrast .success-text {
-      color: #CBD5E1 !important;
-    }
-
-    /* ─── GLITCH-FREE INSTANT LOGO DISPLAY ───────────────────────────── */
-    .brand-logos .labsync-brand-logo {
-      content: normal !important;
-    }
-
-    .bsu-logo,
-    .brand-logos img.bsu-logo,
-    img.bsu-logo,
-    img[src*="bsu-sarmiento-logo"] {
-      height: 54px !important;
-      width: auto !important;
-      object-fit: contain !important;
-      filter: none !important;
-      -webkit-filter: none !important;
-      image-rendering: auto !important;
-    }
-
-    html.dark-mode .brand-logos img.bsu-logo,
-    body.dark-mode .brand-logos img.bsu-logo,
-    [data-theme="dark"] .brand-logos img.bsu-logo,
-    html.high-contrast .brand-logos img.bsu-logo,
-    html.high-contrast img[src*="bsu-sarmiento-logo"],
-    html.high-contrast img.bsu-logo,
-    body.dark-mode img[src*="bsu-sarmiento-logo"],
-    html.dark-mode img[src*="bsu-sarmiento-logo"] {
-      filter: none !important;
-      -webkit-filter: none !important;
-      image-rendering: auto !important;
-    }
-
-    /* ─── THEME TOGGLE BUTTON (Light/Dark Mode) ─────────────────────── */
-    .theme-toggle-btn {
-      position: fixed;
-      top: 18px;
-      right: 20px;
-      z-index: 1000;
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      border: 1px solid rgba(226, 232, 240, 0.85);
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
-      color: #475569;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      outline: none;
-      -webkit-tap-highlight-color: transparent;
-      padding: 0;
-    }
-
-    .theme-toggle-btn:hover {
-      transform: translateY(-2px);
-      border-color: rgba(30, 187, 215, 0.5);
-      color: var(--primary-teal);
-      box-shadow: 0 6px 20px rgba(30, 187, 215, 0.22);
-    }
-
-    .theme-toggle-btn:active {
-      transform: translateY(0) scale(0.96);
-    }
-
-    .theme-toggle-btn:focus-visible {
-      outline: 2px solid var(--primary-teal);
-      outline-offset: 2px;
-    }
-
-    .theme-toggle-btn .theme-toggle-icon {
-      width: 20px;
-      height: 20px;
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .theme-toggle-btn:hover .theme-toggle-icon {
-      transform: rotate(15deg);
-    }
-
-    /* Icon visibility: Light Mode (default) shows Moon */
-    .theme-toggle-btn .theme-icon-moon {
-      display: block;
-    }
-    .theme-toggle-btn .theme-icon-sun {
-      display: none;
-    }
-
-    /* Icon visibility: Dark Mode shows Sun */
-    html.dark-mode .theme-toggle-btn,
-    body.dark-mode .theme-toggle-btn,
-    [data-theme="dark"] .theme-toggle-btn,
-    html.high-contrast .theme-toggle-btn {
-      background: rgba(30, 41, 59, 0.85) !important;
-      border-color: rgba(255, 255, 255, 0.15) !important;
-      color: #F8FAFC !important;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 12px rgba(30, 187, 215, 0.2) !important;
-    }
-
-    html.dark-mode .theme-toggle-btn:hover,
-    body.dark-mode .theme-toggle-btn:hover,
-    [data-theme="dark"] .theme-toggle-btn:hover,
-    html.high-contrast .theme-toggle-btn:hover {
-      background: rgba(51, 65, 85, 0.95) !important;
-      border-color: rgba(56, 189, 248, 0.5) !important;
-      color: #38BDF8 !important;
-      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.25) !important;
-    }
-
-    html.dark-mode .theme-toggle-btn .theme-icon-moon,
-    body.dark-mode .theme-toggle-btn .theme-icon-moon,
-    [data-theme="dark"] .theme-toggle-btn .theme-icon-moon,
-    html.high-contrast .theme-toggle-btn .theme-icon-moon {
-      display: none !important;
-    }
-
-    html.dark-mode .theme-toggle-btn .theme-icon-sun,
-    body.dark-mode .theme-toggle-btn .theme-icon-sun,
-    [data-theme="dark"] .theme-toggle-btn .theme-icon-sun,
-    html.high-contrast .theme-toggle-btn .theme-icon-sun {
-      display: block !important;
-    }
-
-    @keyframes themeToggleSpin {
-      0% {
-        transform: rotate(0deg) scale(0.7);
-        opacity: 0;
-      }
-      60% {
-        transform: rotate(200deg) scale(1.1);
-      }
-      100% {
-        transform: rotate(360deg) scale(1);
-        opacity: 1;
-      }
-    }
-
-    .theme-icon-animating {
-      animation: themeToggleSpin 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    @media (max-width: 480px) {
-      .theme-toggle-btn {
-        top: 14px;
-        right: 14px;
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-      }
-      .theme-toggle-btn .theme-toggle-icon {
-        width: 18px;
-        height: 18px;
-      }
-    }
-
-    /* Smooth theme transitions */
-    body,
-    .form-card,
-    .equipment-card,
-    .info-header-box,
-    .input-field,
-    .remarks-textarea,
-    .theme-toggle-btn {
-      transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
-    }
-
-
     /* ─── RESET ──────────────────────────────────────────────────────── */
     *,
     *::before,
@@ -506,10 +65,6 @@
       padding: 0;
       scrollbar-width: thin;
       scrollbar-color: #CBD5E1 transparent;
-    }
-
-    html.high-contrast * {
-      scrollbar-color: #374151 transparent;
     }
 
     /* Custom WebKit Scrollbars */
@@ -533,14 +88,6 @@
       background: #94A3B8;
       border: 2px solid transparent;
       background-clip: padding-box;
-    }
-
-    html.high-contrast ::-webkit-scrollbar-thumb {
-      background: #374151;
-    }
-
-    html.high-contrast ::-webkit-scrollbar-thumb:hover {
-      background: #4B5563;
     }
 
     body {
@@ -619,28 +166,6 @@
 
     .brand-logos .labsync-brand-logo {
       content: normal !important;
-    }
-
-    .brand-logos img.labsync-logo-light {
-      display: block !important;
-    }
-
-    .brand-logos img.labsync-logo-dark {
-      display: none !important;
-    }
-
-    html.dark-mode .brand-logos img.labsync-logo-light,
-    body.dark-mode .brand-logos img.labsync-logo-light,
-    [data-theme="dark"] .brand-logos img.labsync-logo-light,
-    html.high-contrast .brand-logos img.labsync-logo-light {
-      display: none !important;
-    }
-
-    html.dark-mode .brand-logos img.labsync-logo-dark,
-    body.dark-mode .brand-logos img.labsync-logo-dark,
-    [data-theme="dark"] .brand-logos img.labsync-logo-dark,
-    html.high-contrast .brand-logos img.labsync-logo-dark {
-      display: block !important;
     }
 
     .logo-divider {
@@ -743,9 +268,9 @@
       align-items: center;
     }
 
-    .input-wrapper svg,
-    .input-wrapper .lucide,
-    .input-wrapper i {
+    .input-wrapper > svg,
+    .input-wrapper > .lucide,
+    .input-wrapper > i {
       position: absolute !important;
       left: 16px !important;
       top: 50% !important;
@@ -755,7 +280,7 @@
       height: 18px !important;
       transition: color var(--transition);
       pointer-events: none !important;
-      z-index: 10 !important;
+      z-index: 2 !important;
     }
 
     .input-group .input-wrapper input.input-field,
@@ -1393,10 +918,15 @@
         gap: 28px;
       }
 
-      /* Make inputs row side by side */
+      /* On Tablet, use 2-column grid with Program & Section spanning full width */
       .input-group {
-        flex-direction: row;
-        gap: 16px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+
+      .input-group .input-wrapper:last-child {
+        grid-column: 1 / -1;
       }
 
       .input-field {
@@ -1725,24 +1255,691 @@
       .equipment-list {
         grid-template-columns: 1fr;
       }
+
+      /* On Desktop, 3-column input group */
+      .input-group {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+
+      .input-group .input-wrapper:last-child {
+        grid-column: auto;
+      }
     }
+
+    /* Tablet equipment card optimization */
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .equipment-card {
+        padding: 12px 14px;
+        gap: 10px;
+      }
+
+      .eq-controls {
+        flex-shrink: 0;
+      }
+
+      .status-btn {
+        padding: 6px 10px;
+        font-size: 11.5px;
+      }
+
+      .equipment-name {
+        font-size: 13px;
+        line-height: 1.25;
+      }
+    }
+
     @media (max-width: 768px) {
       .input-wrapper input.input-field,
       .remarks-textarea {
         font-size: 16px !important;
       }
     }
+    /* ─── STUDENT ID QR SCANNER & VERIFICATION ────────────────────────── */
+    .student-verification-card {
+      background: var(--bg-card, #FFFFFF);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+      transition: all var(--transition);
+    }
+
+    .verification-header {
+      margin-bottom: 14px;
+    }
+
+    .verification-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: rgba(30, 187, 215, 0.12);
+      color: var(--primary-teal);
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .verification-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0 0 4px 0;
+      font-family: var(--font-display);
+    }
+
+    .verification-desc {
+      font-size: 13px;
+      color: var(--text-mid);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .scanner-viewport-container {
+      position: relative;
+      width: 100%;
+      min-height: 220px;
+      background: #0B0F19;
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .qr-reader-viewport {
+      width: 100% !important;
+      max-width: 440px !important;
+      border: none !important;
+    }
+
+    .qr-reader-viewport video {
+      border-radius: 12px;
+      object-fit: contain !important;
+      width: 100% !important;
+      max-height: 360px !important;
+      background: #0B0F19;
+    }
+
+    .scanner-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 28px 16px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .scanner-icon-bubble {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(30, 187, 215, 0.15);
+      color: var(--primary-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scanner-icon-bubble svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .scanner-placeholder-text {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .scanner-placeholder-text strong {
+      font-size: 14px;
+      color: #F8FAFC;
+    }
+
+    .scanner-placeholder-text span {
+      font-size: 12.5px;
+      color: #94A3B8;
+    }
+
+    .scanner-action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: var(--font-body);
+    }
+
+    .primary-scan-btn {
+      background: var(--primary-teal);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);
+    }
+
+    .primary-scan-btn:hover {
+      background: var(--primary-teal-hover);
+      transform: translateY(-1px);
+    }
+
+    .scanner-active-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border: 2px solid rgba(30, 187, 215, 0.4);
+      border-radius: 14px;
+    }
+
+    .scan-laser-line {
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      height: 2px;
+      background: #22C55E;
+      box-shadow: 0 0 10px #22C55E;
+      animation: scanLaser 2s ease-in-out infinite;
+    }
+
+    @keyframes scanLaser {
+      0% { top: 12%; opacity: 0.6; }
+      50% { top: 88%; opacity: 1; }
+      100% { top: 12%; opacity: 0.6; }
+    }
+
+    .scanner-controls-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .scanner-control-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 14px;
+      background: var(--bg-page);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    html.dark-mode .scanner-control-btn,
+    body.dark-mode .scanner-control-btn,
+    [data-theme="dark"] .scanner-control-btn,
+    html.high-contrast .scanner-control-btn {
+      background: rgba(15, 23, 42, 0.7) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      color: #F8FAFC !important;
+    }
+
+    .scanner-control-btn:hover {
+      background: var(--border-light);
+    }
+
+    .scanner-fallback-section {
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .fallback-toggle-link {
+      background: none;
+      border: none;
+      color: var(--primary-teal);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 6px;
+      text-decoration: underline;
+    }
+
+    .fallback-input-box {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 10px;
+      background: var(--bg-page);
+      border: 1px dashed var(--border-light);
+      text-align: left;
+    }
+
+    html.dark-mode .fallback-input-box,
+    body.dark-mode .fallback-input-box,
+    [data-theme="dark"] .fallback-input-box,
+    html.high-contrast .fallback-input-box {
+      background: rgba(15, 23, 42, 0.5) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    .fallback-file-row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+
+    .file-upload-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--bg-card, #FFFFFF);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    html.dark-mode .file-upload-btn,
+    body.dark-mode .file-upload-btn,
+    [data-theme="dark"] .file-upload-btn,
+    html.high-contrast .file-upload-btn {
+      background: rgba(30, 41, 59, 0.8) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      color: #F8FAFC !important;
+    }
+
+    .fallback-divider {
+      text-align: center;
+      position: relative;
+      margin: 10px 0;
+    }
+
+    .fallback-divider::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background: var(--border-light);
+    }
+
+    .fallback-divider span {
+      position: relative;
+      background: var(--bg-page);
+      padding: 0 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    html.dark-mode .fallback-divider span,
+    body.dark-mode .fallback-divider span,
+    [data-theme="dark"] .fallback-divider span,
+    html.high-contrast .fallback-divider span {
+      background: #0F172A !important;
+    }
+
+    .fallback-text-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .fallback-input-field {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      font-size: 13px;
+      background: var(--bg-card, #FFFFFF);
+      color: var(--text-dark);
+    }
+
+    html.dark-mode .fallback-input-field,
+    body.dark-mode .fallback-input-field,
+    [data-theme="dark"] .fallback-input-field,
+    html.high-contrast .fallback-input-field {
+      background: rgba(30, 41, 59, 0.9) !important;
+      border-color: rgba(255, 255, 255, 0.18) !important;
+      color: #F8FAFC !important;
+    }
+
+    .fallback-verify-btn {
+      padding: 8px 14px;
+      background: var(--primary-teal);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ─── STEP PROGRESS INDICATOR ────────────────────────────────────── */
+    .step-indicator-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 0 4px 6px;
+    }
+
+    .step-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 30px;
+      padding: 0 12px;
+      box-sizing: border-box;
+      border-radius: 99px;
+      font-size: 11.5px;
+      font-weight: 700;
+      font-family: var(--font-body);
+      letter-spacing: 0.2px;
+      line-height: 1;
+      transition: all var(--transition);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .step-pill.active {
+      background: rgba(30, 187, 215, 0.12);
+      color: var(--primary-teal);
+      border: 1px solid rgba(30, 187, 215, 0.35);
+    }
+
+    .step-pill.completed {
+      background: rgba(34, 197, 94, 0.12);
+      color: #16A34A;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .step-pill.disabled {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px dashed var(--border-light);
+      opacity: 0.75;
+    }
+
+    .step-pill .step-label {
+      display: inline-flex;
+      align-items: center;
+      line-height: 1;
+      vertical-align: middle;
+    }
+
+    .step-pill svg {
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .step-num {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      text-align: center;
+      padding-bottom: 1.5px;
+      background: var(--primary-teal);
+      color: #FFFFFF;
+      flex-shrink: 0;
+      box-sizing: border-box;
+    }
+
+    .step-pill.completed .step-num {
+      background: #16A34A;
+    }
+
+    .step-arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+      .step-pill {
+        height: 28px;
+        padding: 0 10px;
+        font-size: 11px;
+        gap: 6px;
+      }
+    }
+
+    @media (max-width: 440px) {
+      .step-pill {
+        height: 28px;
+        padding: 0 9px;
+        font-size: 10.5px;
+        gap: 5px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .step-pill {
+        height: 26px;
+        padding: 0 7px;
+        font-size: 10px;
+        gap: 4px;
+      }
+
+      .step-pill .step-num {
+        width: 15px;
+        height: 15px;
+        min-width: 15px;
+        font-size: 9.5px;
+      }
+
+      .step-arrow {
+        width: 10px;
+        height: 10px;
+      }
+
+      .step-arrow svg {
+        width: 10px;
+        height: 10px;
+      }
+
+      .info-header-box {
+        padding: 6px 8px !important;
+        gap: 4px 6px !important;
+      }
+
+      .info-item {
+        font-size: 10.5px !important;
+        gap: 3px !important;
+      }
+
+      .info-item svg,
+      .info-item .lucide {
+        width: 12px !important;
+        height: 12px !important;
+      }
+    }
+
+    @media (max-height: 550px) {
+      body {
+        padding-top: 12px;
+        padding-bottom: 12px;
+      }
+
+      .brand-header {
+        margin-bottom: 14px;
+        gap: 8px;
+      }
+
+      .brand-logos img,
+      .brand-logos .logo-img {
+        height: 36px !important;
+      }
+
+      .form-card {
+        gap: 16px;
+        padding-top: 18px;
+        padding-bottom: 18px;
+      }
+    }
+
+    /* ─── VERIFIED IDENTITY BANNER ───────────────────────────────────── */
+    .verified-identity-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 14px;
+      margin-bottom: 18px;
+    }
+
+    .verified-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .verified-banner-icon {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 0.18);
+      color: #16A34A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .verified-banner-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .verified-banner-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .verified-status-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #16A34A;
+      line-height: 1.2;
+    }
+
+    .verified-student-summary {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-dark);
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .rescan-id-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 11px;
+      background: var(--bg-card, #FFFFFF);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-mid);
+      cursor: pointer;
+      transition: all var(--transition);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .rescan-id-btn:hover {
+      background: var(--border-light);
+      color: var(--text-dark);
+    }
+
+    /* ─── VERIFIED INPUT FIELD INDICATORS ────────────────────────────── */
+    .verified-input-wrapper {
+      position: relative;
+    }
+
+    .verified-field[readonly] {
+      background: rgba(34, 197, 94, 0.04) !important;
+      border-color: rgba(34, 197, 94, 0.35) !important;
+      cursor: default;
+      padding-right: 76px !important;
+      text-overflow: ellipsis;
+    }
+
+    .field-verified-tag {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2.5px 6.5px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #16A34A;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      pointer-events: none;
+      z-index: 5;
+      white-space: nowrap;
+    }
+
+    .field-verified-tag svg,
+    .field-verified-tag .lucide,
+    .field-verified-tag i {
+      position: static !important;
+      transform: none !important;
+      left: auto !important;
+      top: auto !important;
+      width: 12px !important;
+      height: 12px !important;
+      color: #16A34A !important;
+      stroke-width: 2.5 !important;
+      margin: 0 !important;
+      flex-shrink: 0 !important;
+    }
   </style>
   <link rel="stylesheet" href="style.css?v=1.0.3" />
 </head>
 
 <body>
-
-  <!-- Theme Toggle Button (Light & Dark Mode) -->
-  <button type="button" id="theme-toggle-btn" class="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle theme (Light / Dark)">
-    <i data-lucide="moon" class="theme-toggle-icon theme-icon-moon"></i>
-    <i data-lucide="sun" class="theme-toggle-icon theme-icon-sun"></i>
-  </button>
 
   <div class="app-container">
 
@@ -1751,8 +1948,7 @@
       <div class="brand-logos">
         <img src="assets/bsu-sarmiento-logo.png?v=1.1" alt="BSU Sarmiento Logo" class="logo-img bsu-logo" />
         <div class="logo-divider"></div>
-        <img src="assets/labsync-logo.png" alt="LabSync Logo" class="logo-img labsync-brand-logo labsync-logo-light" />
-        <img src="assets/labsync-logo - dark mode.png" alt="LabSync Logo" class="logo-img labsync-brand-logo labsync-logo-dark" />
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" class="logo-img labsync-brand-logo" />
       </div>
       <h1 class="form-title">Computer Laboratory Monitoring Form</h1>
     </header>
@@ -1777,12 +1973,54 @@
           <span id="pc-display">Loading...</span>
         </div>
       </section>
+
+      <!-- Step Progress Indicator -->
+      <div class="step-indicator-bar" aria-label="Process steps">
+        <div class="step-pill completed" title="Step 1: Student ID Verified">
+          <i data-lucide="check" style="width:13px;height:13px;stroke-width:3;"></i>
+          <span class="step-label">Student ID Verified</span>
+        </div>
+        <i data-lucide="chevron-right" class="step-arrow"></i>
+        <div class="step-pill active" title="Current Step: Submit PC Report">
+          <span class="step-num">2</span>
+          <span class="step-label">Submit PC Report</span>
+        </div>
+      </div>
+
+      <!-- Verified Identity Banner (Shown when verified) -->
+      <section class="verified-identity-banner" id="verified-identity-banner" style="display:none;">
+        <div class="verified-banner-left">
+          <div class="verified-banner-icon">
+            <i data-lucide="check-circle-2"></i>
+          </div>
+          <div class="verified-banner-info">
+            <div class="verified-status-title">Verified Student</div>
+            <div class="verified-student-summary" id="verified-student-summary">--</div>
+          </div>
+        </div>
+        <button type="button" class="rescan-id-btn" id="rescan-id-btn" onclick="reScanStudentID()" title="Re-scan with different ID">
+          <i data-lucide="refresh-cw" style="width:12px;height:12px;"></i>
+          <span>Re-scan ID</span>
+        </button>
+      </section>
+
       <!-- Student Credentials -->
       <section class="input-group">
-        <div class="input-wrapper">
-          <input type="text" id="student-name" class="input-field" placeholder="Student Full Name (LN, FN, MI)"
-            required />
+        <div class="input-wrapper verified-input-wrapper">
+          <input type="text" id="student-name" class="input-field verified-field" placeholder="Student Name"
+            readonly required />
           <i data-lucide="user"></i>
+          <span class="field-verified-tag" id="name-verified-tag" style="display:none;">
+            <i data-lucide="check"></i> Verified
+          </span>
+        </div>
+        <div class="input-wrapper verified-input-wrapper">
+          <input type="text" id="student-number" class="input-field verified-field" placeholder="Student Number"
+            readonly required />
+          <i data-lucide="credit-card"></i>
+          <span class="field-verified-tag" id="number-verified-tag" style="display:none;">
+            <i data-lucide="check"></i> Verified
+          </span>
         </div>
         <div class="input-wrapper">
           <input type="text" id="student-section" class="input-field" placeholder="Program & Section (e.g., BSIT 3A)"

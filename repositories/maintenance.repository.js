@@ -27,10 +27,10 @@ async function updateIssuePriority(issueId, priority, executor = db) {
     );
 }
 
-async function insertStudentReport({ issueId, pcId, studentName, desc, status, priority }, executor = db) {
+async function insertStudentReport({ issueId, pcId, studentName, studentNumber = null, desc, status, priority }, executor = db) {
     return executor.query(
-        'INSERT INTO maintenance (Maintenance_Issue_ID, PC_ID, Student_Name, Issue_Description, Date_Reported, Status, Priority_Level) VALUES (?, ?, ?, ?, NOW(), ?, ?)',
-        [issueId, pcId, studentName, desc, status, priority]
+        'INSERT INTO maintenance (Maintenance_Issue_ID, PC_ID, Student_Name, Student_Number, Issue_Description, Date_Reported, Status, Priority_Level) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)',
+        [issueId, pcId, studentName, studentNumber, desc, status, priority]
     );
 }
 
@@ -58,7 +58,7 @@ async function findAllMaintenanceIssues(executor = db) {
 
     const issueIds = issues.map(i => i.Issue_ID);
     const [reports] = await executor.query(`
-        SELECT Report_ID, Maintenance_Issue_ID, Student_Name, Issue_Description, Date_Reported, Status, Priority_Level
+        SELECT Report_ID, Maintenance_Issue_ID, Student_Name, Student_Number, Issue_Description, Date_Reported, Status, Priority_Level
         FROM maintenance
         WHERE Maintenance_Issue_ID IN (?)
         ORDER BY Date_Reported ASC
@@ -93,6 +93,7 @@ async function findAllMaintenanceIssues(executor = db) {
             Resolved_By_Name: issue.Resolved_By_Name,
             Resolved_By_Role: issue.Resolved_By_Role,
             Student_Name: latestReport ? latestReport.Student_Name : 'Student',
+            Student_Number: latestReport ? latestReport.Student_Number : null,
             Issue_Description: latestReport ? latestReport.Issue_Description : `[Issues: ${issue.Issue_Type}]`,
             Report_Count: linkedReports.length,
             reports: linkedReports
@@ -136,10 +137,10 @@ async function deleteMaintenanceIssue(issueId, executor = db) {
 }
 
 // Preserve existing report functions for compatibility
-async function insertReport({ pcId, studentName, desc, status, priority }, executor = db) {
+async function insertReport({ pcId, studentName, studentNumber = null, desc, status, priority }, executor = db) {
     return executor.query(
-        'INSERT INTO maintenance (PC_ID, Student_Name, Issue_Description, Date_Reported, Status, Priority_Level) VALUES (?, ?, ?, NOW(), ?, ?)',
-        [pcId, studentName, desc, status, priority]
+        'INSERT INTO maintenance (PC_ID, Student_Name, Student_Number, Issue_Description, Date_Reported, Status, Priority_Level) VALUES (?, ?, ?, ?, NOW(), ?, ?)',
+        [pcId, studentName, studentNumber, desc, status, priority]
     );
 }
 

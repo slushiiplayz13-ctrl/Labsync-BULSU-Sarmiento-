@@ -2,6 +2,49 @@
 
 const maintenanceService = require('../services/maintenanceService');
 const auditService = require('../services/auditService');
+const studentVerificationService = require('../services/studentVerificationService');
+
+async function verifyStudentID(req, res, next) {
+    try {
+        const { qrData, roomNumber, pcNumber } = req.body || {};
+        const result = await studentVerificationService.verifyStudentIDPayload({
+            qrData,
+            roomNumber,
+            pcNumber
+        });
+        if (result.error) {
+            await auditService.logSecurityEvent({
+                req,
+                action: 'STUDENT_ID_QR_CAPTURE',
+                resourceType: 'PC',
+                resourceId: pcNumber ? `${roomNumber || 'Unknown'}-PC-${pcNumber}` : null,
+                actorRole: 'Student',
+                details: { roomNumber, pcNumber, error: result.error },
+                result: 'FAILURE'
+            });
+            return res.status(result.status).json({ error: result.error });
+        }
+
+        await auditService.logSecurityEvent({
+            req,
+            action: 'STUDENT_ID_QR_CAPTURE',
+            resourceType: 'PC',
+            resourceId: `${roomNumber}-PC-${pcNumber}`,
+            actorRole: 'Student',
+            details: {
+                studentNumber: result.data.studentNumber,
+                studentName: result.data.studentName,
+                roomNumber,
+                pcNumber
+            },
+            result: 'SUCCESS'
+        });
+
+        return res.status(result.status).json(result.data);
+    } catch (err) {
+        next(err);
+    }
+}
 
 async function submitReport(req, res, next) {
     try {
@@ -9,6 +52,24 @@ async function submitReport(req, res, next) {
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
+
+        await auditService.logSecurityEvent({
+            req,
+            action: 'SUBMIT_PC_REPORT',
+            resourceType: 'MAINTENANCE',
+            resourceId: result.data?.reportId || result.data?.ticketId || null,
+            actorRole: 'Student',
+            details: {
+                studentName: req.body?.studentName,
+                studentNumber: req.body?.studentNumber,
+                roomNumber: req.body?.roomNumber,
+                pcNumber: req.body?.pcNumber,
+                section: req.body?.studentSection,
+                ticketId: result.data?.ticketId
+            },
+            result: 'SUCCESS'
+        });
+
         return res.status(result.status).json(result.data);
     } catch (err) {
         next(err);
@@ -104,6 +165,7 @@ async function getPCInfo(req, res, next) {
 
 module.exports = {
     submitReport,
+    verifyStudentID,
     getAllReports,
     updateReportStatus,
     deleteReport,

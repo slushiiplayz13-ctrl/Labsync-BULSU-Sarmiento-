@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    (function enforceLightMode() {
+      try {
+        document.documentElement.classList.remove('dark-mode', 'high-contrast');
+        document.documentElement.setAttribute('data-theme', 'light');
+        if (document.body) {
+          document.body.classList.remove('dark-mode', 'high-contrast');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabSync – Verify Student ID · Step 1</title>
+  <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
+  <link rel="preload" as="image" href="assets/labsync-logo.png" />
+  <link rel="preload" as="image" href="assets/bsu-sarmiento-logo.png?v=1.1" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- HTML5 QR Code Scanner -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=1.0.3" />
+
+  <style>
+    /* ─── CSS VARIABLES & THEMES (1:1 with submit-pc-report.html) ─────── */
+    :root {
+      --primary-teal: #1EBBD7;
+      --primary-teal-light: #EBF8FA;
+      --primary-teal-hover: #17a2bc;
+      --text-dark: #0F172A;
+      --text-mid: #475569;
+      --text-muted: #94A3B8;
+      --bg-page: #F8FAFC;
+      --bg-card: #FFFFFF;
+      --border-light: #E2E8F0;
+
+      --status-working: #22C55E;
+      --status-working-fade: #DCFCE7;
+      --status-issue: #EF4444;
+      --status-issue-fade: #FEE2E2;
+
+      --font-display: 'Poppins', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      --radius-card: 24px;
+    }
+
+    /* ─── RESET ──────────────────────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: radial-gradient(circle at 0% 0%, rgba(30, 187, 215, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 100% 100%, rgba(14, 165, 201, 0.06) 0%, transparent 45%),
+        #F8FAFC;
+      background-attachment: fixed;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 12px;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color var(--transition), color var(--transition);
+    }
+
+    /* ─── MAIN APP CONTAINER ─────────────────────────────────────────── */
+    .app-container {
+      width: 100%;
+      max-width: 580px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ─── HEADER ─────────────────────────────────────────────────────── */
+    .brand-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+      text-align: center;
+    }
+
+    .brand-logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    .brand-logos img,
+    .brand-logos .logo-img {
+      height: 54px !important;
+      width: auto !important;
+      max-width: none !important;
+      border-radius: 0 !important;
+      object-fit: contain !important;
+      image-rendering: auto !important;
+    }
+
+    .brand-logos img.bsu-logo {
+      height: 54px !important;
+    }
+
+    .brand-logos img.labsync-brand-logo {
+      height: 58px !important;
+      max-width: 200px !important;
+    }
+
+    .brand-logos .labsync-brand-logo {
+      content: normal !important;
+    }
+
+    .logo-divider {
+      width: 2px !important;
+      height: 42px !important;
+      background: rgba(148, 163, 184, 0.4) !important;
+      border-radius: 99px !important;
+    }
+
+    .form-title {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 700;
+      color: #0F172A;
+      letter-spacing: -0.3px;
+      background: linear-gradient(135deg, #0F172A, #1E293B);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    html.dark-mode .form-title,
+    body.dark-mode .form-title,
+    [data-theme="dark"] .form-title,
+    html.high-contrast .form-title {
+      background: linear-gradient(135deg, #F8FAFC, #CBD5E1) !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+
+    /* ─── FORM CARD (Matches submit-pc-report.html exactly) ───────────── */
+    .form-card {
+      background: var(--bg-card, #FFFFFF);
+      border-radius: var(--radius-card);
+      width: 100%;
+      padding: 24px 16px 24px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.01);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      position: relative;
+      overflow: hidden;
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .form-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #1EBBD7, #0EA5C9);
+    }
+
+    /* ─── INFO HEADER BOX (Matches submit-pc-report.html exactly) ─────── */
+    .info-header-box {
+      border: 1px solid rgba(30, 187, 215, 0.25);
+      border-radius: 99px;
+      background: rgba(30, 187, 215, 0.04);
+      padding: 12px 20px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) auto minmax(0, 1fr);
+      align-items: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: #0E7490;
+      font-size: 13.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .info-item svg,
+    .info-item .lucide {
+      color: var(--primary-teal);
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .info-divider {
+      width: 1px;
+      height: 18px;
+      background: rgba(30, 187, 215, 0.25);
+      flex-shrink: 0;
+      margin: 0 4px;
+    }
+
+    html.dark-mode .info-item,
+    body.dark-mode .info-item,
+    [data-theme="dark"] .info-item,
+    html.high-contrast .info-item {
+      color: #FFFFFF !important;
+      background: transparent !important;
+    }
+
+    html.dark-mode .info-item span,
+    body.dark-mode .info-item span,
+    [data-theme="dark"] .info-item span,
+    html.high-contrast .info-item span {
+      color: #FFFFFF !important;
+    }
+
+    html.dark-mode .info-item svg,
+    html.dark-mode .info-item .lucide,
+    body.dark-mode .info-item svg,
+    body.dark-mode .info-item .lucide,
+    [data-theme="dark"] .info-item svg,
+    [data-theme="dark"] .info-item .lucide,
+    html.high-contrast .info-item svg,
+    html.high-contrast .info-item .lucide {
+      color: #38BDF8 !important;
+    }
+
+    /* ─── STEP PROGRESS INDICATOR ────────────────────────────────────── */
+    .step-indicator-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 2px 4px 6px;
+    }
+
+    .step-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 30px;
+      padding: 0 12px;
+      box-sizing: border-box;
+      border-radius: 99px;
+      font-size: 11.5px;
+      font-weight: 700;
+      font-family: var(--font-body);
+      letter-spacing: 0.2px;
+      line-height: 1;
+      transition: all var(--transition);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .step-pill.active {
+      background: rgba(30, 187, 215, 0.12);
+      color: var(--primary-teal);
+      border: 1px solid rgba(30, 187, 215, 0.35);
+    }
+
+    .step-pill.completed {
+      background: rgba(34, 197, 94, 0.12);
+      color: #16A34A;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .step-pill.disabled {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px dashed var(--border-light);
+      opacity: 0.75;
+    }
+
+    .step-pill .step-label {
+      display: inline-flex;
+      align-items: center;
+      line-height: 1;
+      vertical-align: middle;
+    }
+
+    .step-pill svg {
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .step-num {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      text-align: center;
+      padding-bottom: 1.5px;
+      background: var(--primary-teal);
+      color: #FFFFFF;
+      flex-shrink: 0;
+      box-sizing: border-box;
+    }
+
+    .step-pill.completed .step-num {
+      background: #16A34A;
+    }
+
+    .step-pill.disabled .step-num {
+      background: var(--text-muted);
+      color: #FFFFFF;
+      opacity: 0.6;
+    }
+
+    .step-arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    html.dark-mode .step-pill.disabled,
+    body.dark-mode .step-pill.disabled,
+    [data-theme="dark"] .step-pill.disabled,
+    html.high-contrast .step-pill.disabled {
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      color: #64748B !important;
+    }
+
+    /* ─── SECTION TITLE (Matches submit-pc-report.html exactly) ──────── */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: var(--primary-teal);
+      border-radius: 4px;
+    }
+
+    html.dark-mode .section-title,
+    body.dark-mode .section-title,
+    [data-theme="dark"] .section-title,
+    html.high-contrast .section-title {
+      color: #F8FAFC !important;
+    }
+
+    .verification-heading-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .verification-instruction {
+      font-size: 13px;
+      color: var(--text-mid);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    html.dark-mode .verification-instruction,
+    body.dark-mode .verification-instruction,
+    [data-theme="dark"] .verification-instruction,
+    html.high-contrast .verification-instruction {
+      color: #94A3B8 !important;
+    }
+
+    /* ─── SCANNER VIEWPORT (Clean Light Mode) ────────────────────────── */
+    .scanner-viewport-container {
+      position: relative;
+      width: 100%;
+      min-height: 230px;
+      background: #F8FAFC;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px dashed rgba(30, 187, 215, 0.4);
+      margin: 10px 0 14px;
+      box-sizing: border-box;
+      transition: all var(--transition);
+    }
+
+    .scanner-viewport-container.scanner-active {
+      background: #000000;
+      border-style: solid;
+      border-color: rgba(30, 187, 215, 0.5);
+    }
+
+    .qr-reader-viewport {
+      width: 100% !important;
+      max-width: 440px !important;
+      border: none !important;
+    }
+
+    .qr-reader-viewport video {
+      border-radius: 12px;
+      object-fit: contain !important;
+      width: 100% !important;
+      max-height: 360px !important;
+      background: #000000;
+    }
+
+    .scanner-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 32px 18px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .scanner-icon-bubble {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(30, 187, 215, 0.12);
+      color: var(--primary-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(30, 187, 215, 0.15);
+    }
+
+    .scanner-icon-bubble svg,
+    .scanner-icon-bubble .lucide {
+      width: 28px;
+      height: 28px;
+      stroke-width: 2.2;
+    }
+
+    .scanner-placeholder-text {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-width: 280px;
+    }
+
+    .scanner-placeholder-text strong {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-dark, #0F172A);
+      letter-spacing: -0.2px;
+    }
+
+    .scanner-placeholder-text span {
+      font-size: 13px;
+      color: var(--text-mid, #64748B);
+      line-height: 1.45;
+    }
+
+    .scanner-action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: var(--font-body);
+    }
+
+    .primary-scan-btn {
+      background: var(--primary-teal);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(30, 187, 215, 0.3);
+    }
+
+    .primary-scan-btn:hover {
+      background: var(--primary-teal-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(30, 187, 215, 0.4);
+    }
+
+    .scanner-active-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border: 2px solid rgba(30, 187, 215, 0.4);
+      border-radius: 14px;
+    }
+
+    .scan-laser-line {
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      height: 2px;
+      background: #22C55E;
+      box-shadow: 0 0 10px #22C55E;
+      animation: scanLaser 2s ease-in-out infinite;
+    }
+
+    @keyframes scanLaser {
+      0% { top: 12%; opacity: 0.6; }
+      50% { top: 88%; opacity: 1; }
+      100% { top: 12%; opacity: 0.6; }
+    }
+
+    .scanner-controls-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      width: 100%;
+    }
+
+    .scanner-control-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 14px;
+      background: var(--bg-card, #FFFFFF);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: var(--font-body);
+    }
+
+    .scanner-control-btn:hover {
+      background: var(--border-light);
+    }
+
+    /* ─── FALLBACK PHOTO UPLOAD ──────────────────────────────────────── */
+    .scanner-fallback-section {
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .fallback-toggle-link {
+      background: none;
+      border: none;
+      color: var(--primary-teal);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 6px;
+      text-decoration: underline;
+      font-family: var(--font-body);
+    }
+
+    .fallback-input-box {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 10px;
+      background: var(--bg-page);
+      border: 1px dashed var(--border-light);
+      text-align: left;
+    }
+
+    html.dark-mode .fallback-input-box,
+    body.dark-mode .fallback-input-box,
+    [data-theme="dark"] .fallback-input-box,
+    html.high-contrast .fallback-input-box {
+      background: rgba(15, 23, 42, 0.5) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    .file-upload-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--bg-card, #FFFFFF);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: all var(--transition);
+      width: 100%;
+      font-family: var(--font-body);
+    }
+
+    html.dark-mode .file-upload-btn,
+    body.dark-mode .file-upload-btn,
+    [data-theme="dark"] .file-upload-btn,
+    html.high-contrast .file-upload-btn {
+      background: rgba(30, 41, 59, 0.8) !important;
+      border-color: rgba(255, 255, 255, 0.15) !important;
+      color: #F8FAFC !important;
+    }
+
+    .file-upload-btn:hover {
+      border-color: var(--primary-teal);
+      color: var(--primary-teal);
+    }
+
+    /* ─── CONFIRMATION CARD (Matches verified-identity-banner & success) ─ */
+    .confirmation-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 16px;
+      padding: 24px 18px;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 16px;
+      animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes modalScale {
+      from {
+        transform: scale(0.95) translateY(8px);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .confirmation-icon-bubble {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--status-working-fade);
+      color: var(--status-working);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+    }
+
+    .confirmation-icon-bubble svg,
+    .confirmation-icon-bubble .lucide {
+      width: 32px;
+      height: 32px;
+      stroke-width: 3px;
+    }
+
+    .confirmation-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: #16A34A;
+      margin: 0 0 4px 0;
+    }
+
+    .confirmation-desc {
+      font-size: 13px;
+      color: var(--text-mid);
+      margin: 0;
+    }
+
+    .verified-details-box {
+      width: 100%;
+      background: var(--bg-card, #FFFFFF);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      text-align: left;
+    }
+
+    html.dark-mode .verified-details-box,
+    body.dark-mode .verified-details-box,
+    [data-theme="dark"] .verified-details-box,
+    html.high-contrast .verified-details-box {
+      background: rgba(15, 23, 42, 0.7) !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .detail-value {
+      color: var(--text-dark);
+      font-weight: 700;
+    }
+
+    html.dark-mode .detail-value,
+    body.dark-mode .detail-value,
+    [data-theme="dark"] .detail-value,
+    html.high-contrast .detail-value {
+      color: #F8FAFC !important;
+    }
+
+    .redirect-status-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary-teal);
+      margin-top: 4px;
+    }
+
+    .spinner-icon {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* ─── TOAST NOTIFICATIONS (1:1 with submit-pc-report.html) ───────── */
+    #labsync-toast-container {
+      position: fixed !important;
+      top: 76px !important;
+      right: 20px !important;
+      z-index: 999999 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      pointer-events: none !important;
+      max-width: calc(100vw - 40px) !important;
+    }
+
+    @media (max-width: 640px) {
+      #labsync-toast-container {
+        top: 66px !important;
+        right: 14px !important;
+        left: 14px !important;
+        align-items: center !important;
+        max-width: none !important;
+      }
+
+      .labsync-toast-card {
+        width: 100% !important;
+        max-width: 440px !important;
+      }
+    }
+
+    .labsync-toast-card {
+      pointer-events: auto;
+      background: var(--bg-card, #FFFFFF);
+      border-left: 4px solid var(--primary-teal);
+      border-radius: 10px;
+      padding: 12px 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      animation: toastSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      border-top: 1px solid var(--border-light);
+      border-right: 1px solid var(--border-light);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    @keyframes toastSlideDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast-content strong {
+      display: block;
+      font-size: 13.5px;
+      color: var(--text-dark);
+      margin-bottom: 2px;
+    }
+
+    .toast-content span {
+      font-size: 12.5px;
+      color: var(--text-mid);
+      line-height: 1.4;
+    }
+
+    /* ─── RESPONSIVE BREAKPOINTS (1:1 with submit-pc-report.html) ─────── */
+    @media (max-width: 640px) {
+      body {
+        padding: 16px 10px;
+      }
+
+      .brand-header {
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .brand-logos {
+        gap: 12px;
+      }
+
+      .brand-logos img,
+      .brand-logos .logo-img {
+        height: 42px !important;
+      }
+
+      .brand-logos img.bsu-logo {
+        height: 44px !important;
+      }
+
+      .brand-logos img.labsync-brand-logo {
+        height: 46px !important;
+        max-width: 160px !important;
+      }
+
+      .logo-divider {
+        height: 30px !important;
+      }
+
+      .form-title {
+        font-size: 15.5px;
+        line-height: 1.3;
+      }
+
+      .form-card {
+        padding: 20px 14px 20px;
+        gap: 18px;
+        border-radius: 20px;
+      }
+
+      .info-header-box {
+        padding: 10px 14px !important;
+        border-radius: 14px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 8px 16px !important;
+      }
+
+      .info-divider {
+        display: none !important;
+      }
+
+      .info-item {
+        font-size: 12.5px !important;
+        gap: 5px !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        background: transparent !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        box-sizing: border-box !important;
+      }
+
+      .info-item svg,
+      .info-item .lucide {
+        width: 14px !important;
+        height: 14px !important;
+      }
+
+      .step-pill {
+        height: 28px;
+        padding: 0 10px;
+        font-size: 11px;
+        gap: 6px;
+      }
+    }
+
+    @media (max-width: 440px) {
+      .info-header-box {
+        padding: 8px 10px !important;
+        gap: 6px 12px !important;
+      }
+
+      .info-item {
+        font-size: 11.5px !important;
+        gap: 4px !important;
+      }
+
+      .info-item svg,
+      .info-item .lucide {
+        width: 13px !important;
+        height: 13px !important;
+      }
+
+      .step-pill {
+        height: 28px;
+        padding: 0 9px;
+        font-size: 10.5px;
+        gap: 5px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .step-pill {
+        height: 26px;
+        padding: 0 7px;
+        font-size: 10px;
+        gap: 4px;
+      }
+
+      .step-num {
+        width: 15px;
+        height: 15px;
+        min-width: 15px;
+        font-size: 9.5px;
+      }
+
+      .step-arrow {
+        width: 10px;
+        height: 10px;
+      }
+
+      .step-arrow svg {
+        width: 10px;
+        height: 10px;
+      }
+
+      .info-header-box {
+        padding: 6px 8px !important;
+        gap: 4px 6px !important;
+      }
+
+      .info-item {
+        font-size: 10.5px !important;
+        gap: 3px !important;
+      }
+
+      .info-item svg,
+      .info-item .lucide {
+        width: 12px !important;
+        height: 12px !important;
+      }
+
+      .scanner-placeholder {
+        padding: 22px 14px;
+        gap: 10px;
+      }
+
+      .primary-scan-btn {
+        padding: 10px 18px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-height: 550px) {
+      body {
+        padding-top: 12px;
+        padding-bottom: 12px;
+      }
+
+      .brand-header {
+        margin-bottom: 14px;
+        gap: 8px;
+      }
+
+      .brand-logos img,
+      .brand-logos .logo-img {
+        height: 36px !important;
+      }
+
+      .form-card {
+        gap: 16px;
+        padding-top: 18px;
+        padding-bottom: 18px;
+      }
+
+      .scanner-viewport-container {
+        min-height: 180px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding: 48px;
+      }
+
+      .app-container {
+        max-width: 720px;
+      }
+
+      .brand-header {
+        margin-bottom: 36px;
+      }
+
+      .form-card {
+        padding: 36px 32px 30px;
+        gap: 24px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .app-container {
+        max-width: 720px; /* Kept focused for single-task verification */
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <!-- Brand Header (1:1 with submit-pc-report.html) -->
+    <header class="brand-header">
+      <div class="brand-logos">
+        <img src="assets/bsu-sarmiento-logo.png?v=1.1" alt="BSU Sarmiento Logo" class="logo-img bsu-logo" />
+        <div class="logo-divider"></div>
+        <img src="assets/labsync-logo.png" alt="LabSync Logo" class="logo-img labsync-brand-logo" />
+      </div>
+      <h1 class="form-title">Computer Laboratory Monitoring Form</h1>
+    </header>
+
+    <!-- Main Gateway Card (Using .form-card with cyan gradient stripe) -->
+    <main class="form-card" id="verification-card">
+
+      <!-- Dynamic Info Header Box (Placed INSIDE card like submit-pc-report.html) -->
+      <section class="info-header-box" id="workstation-strip">
+        <div class="info-item">
+          <i data-lucide="home"></i>
+          <span id="room-display">Loading...</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-item">
+          <i data-lucide="calendar"></i>
+          <span id="current-date">-- --, ----</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-item">
+          <i data-lucide="monitor"></i>
+          <span id="pc-display">Loading...</span>
+        </div>
+      </section>
+
+      <!-- Step Progress Indicator -->
+      <div class="step-indicator-bar" aria-label="Process steps">
+        <div class="step-pill active" title="Current Step: Verify Student ID">
+          <span class="step-num">1</span>
+          <span class="step-label">Verify Student ID</span>
+        </div>
+        <i data-lucide="chevron-right" class="step-arrow"></i>
+        <div class="step-pill disabled" title="Next Step: Submit PC Report">
+          <span class="step-num">2</span>
+          <span class="step-label">Submit PC Report</span>
+        </div>
+      </div>
+
+      <!-- Active Scanning State -->
+      <div id="scanning-state-container">
+        <!-- Section Header (Using LabSync .section-title with teal vertical bar) -->
+        <div class="verification-heading-group">
+          <h2 class="section-title">Verify Your Student ID</h2>
+          <p class="verification-instruction">
+            Scan the QR code on the back of your Student ID to continue.
+          </p>
+        </div>
+
+        <!-- Scanner Viewport Container -->
+        <div class="scanner-viewport-container" id="scanner-viewport-container">
+          <div id="qr-reader" class="qr-reader-viewport"></div>
+
+          <div class="scanner-placeholder" id="scanner-placeholder">
+            <div class="scanner-icon-bubble">
+              <i data-lucide="qr-code"></i>
+            </div>
+            <div class="scanner-placeholder-text">
+              <strong>Camera Scanner Ready</strong>
+              <span>Position your Student ID QR code in front of the camera</span>
+            </div>
+            <button type="button" class="scanner-action-btn primary-scan-btn" id="start-scanner-btn" onclick="startCameraScanner()">
+              <i data-lucide="camera"></i>
+              <span>Activate Camera Scanner</span>
+            </button>
+          </div>
+
+          <div class="scanner-active-overlay" id="scanner-active-overlay" style="display:none;">
+            <div class="scan-laser-line"></div>
+          </div>
+        </div>
+
+        <!-- Active Scanner Controls -->
+        <div class="scanner-controls-row" id="scanner-controls-row" style="display:none;">
+          <button type="button" class="scanner-control-btn" id="stop-scanner-btn" onclick="stopCameraScanner()">
+            <i data-lucide="camera-off"></i>
+            <span>Stop Camera</span>
+          </button>
+          <button type="button" class="scanner-control-btn" id="flip-camera-btn" onclick="switchCamera()">
+            <i data-lucide="refresh-cw"></i>
+            <span>Flip Camera</span>
+          </button>
+        </div>
+
+        <!-- Fallback ID Photo Upload -->
+        <div class="scanner-fallback-section">
+          <button type="button" class="fallback-toggle-link" id="fallback-toggle-btn" onclick="toggleFallbackInput()">
+            <i data-lucide="help-circle" style="width:14px;height:14px;"></i>
+            <span>Camera issues? Upload ID photo</span>
+          </button>
+
+          <div class="fallback-input-box" id="fallback-input-box" style="display:none;">
+            <label for="qr-file-input" class="file-upload-btn">
+              <i data-lucide="upload"></i>
+              <span>Choose ID QR Photo</span>
+            </label>
+            <input type="file" id="qr-file-input" accept="image/*" style="display:none;" onchange="handleQRFileUpload(this)" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Identity Confirmed Success State (Revealed after successful scan) -->
+      <div id="confirmed-state-container" class="confirmation-card" style="display: none;">
+        <div class="confirmation-icon-bubble">
+          <i data-lucide="check-circle-2"></i>
+        </div>
+        <div>
+          <h3 class="confirmation-title">Identity Confirmed</h3>
+          <p class="confirmation-desc">Your Student ID has been verified for this workstation.</p>
+        </div>
+
+        <div class="verified-details-box">
+          <div class="detail-row">
+            <span class="detail-label">Student Name:</span>
+            <span class="detail-value" id="confirmed-student-name">--</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Student Number:</span>
+            <span class="detail-value" id="confirmed-student-number">--</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Workstation:</span>
+            <span class="detail-value" id="confirmed-workstation">--</span>
+          </div>
+        </div>
+
+        <div class="redirect-status-row">
+          <i data-lucide="loader-2" class="spinner-icon"></i>
+          <span>Proceeding to PC Issue Report Form...</span>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Footer Note with Policies Link (1:1 with submit-pc-report.html) -->
+    <footer class="form-footer-note" style="margin-top: 18px; text-align: center; font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+      <span>By continuing, you agree to the</span>
+      <a href="terms.html?from=report" target="_blank" rel="noopener" class="policy-link" style="color: var(--primary-teal); text-decoration: underline; font-weight: 600; margin-left: 3px;">
+        Lab Policies &amp; Data Privacy Terms
+      </a>
+    </footer>
+
+  </div>
+
+  <div id="labsync-toast-container"></div>
+
+  <!-- Page Controller -->
+  <script src="js/pages/student-id-verification.js"></script>
+</body>
+
+</html>

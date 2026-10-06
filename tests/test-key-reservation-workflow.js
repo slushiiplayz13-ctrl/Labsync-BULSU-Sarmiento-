@@ -167,8 +167,8 @@ async function runTests() {
         const now = new Date();
         const startH = String(now.getHours()).padStart(2, '0');
         const startM = String(Math.max(0, now.getMinutes() - 5)).padStart(2, '0');
-        const endH = String(Math.min(23, now.getHours() + 1)).padStart(2, '0');
-        const endM = String(now.getMinutes()).padStart(2, '0');
+        const endH = '23';
+        const endM = '59';
 
         await db.query(
             `UPDATE key_authorization_requests

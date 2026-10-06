@@ -103,6 +103,7 @@ const APPROVED_HTML_PAGES = new Set([
     'reset-password.html',
     'room-schedule-editor.html',
     'room-status.html',
+    'student-id-verification.html',
     'submit-pc-report.html',
     'terms.html'
 ]);

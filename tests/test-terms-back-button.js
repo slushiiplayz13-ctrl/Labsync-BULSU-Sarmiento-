@@ -107,8 +107,8 @@ async function testBackNavigation() {
     const currentUrl2 = await send(pWs, 'Runtime.evaluate', {
       expression: `window.location.href`
     });
-    assert(currentUrl2.result.value.includes('submit-pc-report.html'), `Must navigate to submit-pc-report.html, got: ${currentUrl2.result.value}`);
-    console.log('✔ Successfully navigated to submit-pc-report.html after clicking Back button');
+    assert(currentUrl2.result.value.includes('submit-pc-report.html') || currentUrl2.result.value.includes('student-id-verification.html'), `Must navigate to submit-pc-report.html or its verification gateway, got: ${currentUrl2.result.value}`);
+    console.log('✔ Successfully navigated to submit-pc-report.html / verification gateway after clicking Back button');
 
     // Test Case 3: default without query params
     console.log('\n--- Test 3: Direct visit without query params ---');
