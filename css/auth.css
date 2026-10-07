@@ -75,6 +75,11 @@ html.high-contrast ::-webkit-scrollbar-thumb:hover {
   background: #4B5563;
 }
 
+html,
+body {
+  cursor: default;
+}
+
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   background-color: var(--bg-page);
@@ -84,6 +89,39 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   position: relative;
+  cursor: default;
+}
+
+button,
+a,
+select,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+label[for],
+[role="button"],
+.btn,
+.clickable {
+  cursor: pointer;
+}
+
+input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="image"]),
+textarea,
+[contenteditable="true"] {
+  cursor: text;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+.btn:disabled,
+.disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
 }
 
 /* Background Gradients */

@@ -13,13 +13,30 @@
     try {
       let rooms = [];
       const labService = global.laboratoryService;
-      if (labService && typeof labService.fetchLaboratories === 'function') {
-        rooms = await labService.fetchLaboratories();
-      } else {
-        const res = await fetch('/api/laboratories', { credentials: 'include' });
-        if (res.ok) rooms = await res.json();
+
+      // 1. Fetch laboratories and room schedule statuses in parallel
+      const labPromise = (labService && typeof labService.fetchLaboratories === 'function')
+        ? labService.fetchLaboratories()
+        : fetch('/api/laboratories', { credentials: 'include' }).then(r => r.ok ? r.json() : []).catch(() => []);
+
+      const statusPromise = fetch('/api/schedules/status', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null);
+
+      const [rawRooms, statusData] = await Promise.all([labPromise, statusPromise]);
+      rooms = Array.isArray(rawRooms) ? rawRooms : [];
+
+      if (statusData && Array.isArray(statusData.rooms)) {
+        const statusMap = new Map();
+        statusData.rooms.forEach(r => statusMap.set(String(r.Room_Number), r.Status));
+        rooms.forEach(r => {
+          if (statusMap.has(String(r.Room_Number))) {
+            r.Status = statusMap.get(String(r.Room_Number));
+          }
+        });
       }
 
+      // 2. Cache rooms WITH resolved statuses for instant, glitch-free pre-hydration
       if (Array.isArray(rooms) && rooms.length) {
         try {
           sessionStorage.setItem('labsync_cached_labs', JSON.stringify(rooms));
@@ -40,7 +57,7 @@
       const newRoomNums = rooms.map(r => String(r.Room_Number).trim());
 
       if (currentRoomNums.length === newRoomNums.length && currentRoomNums.every((val, index) => val === newRoomNums[index])) {
-        // Room cards match pre-hydrated DOM perfectly, preserve existing nodes without reflow
+        // Room cards match pre-hydrated DOM perfectly, update in-place without reflow or layout jumps
         existingCards.forEach((c, idx) => {
           const room = rooms[idx];
           c.dataset.roomId = room.Room_ID || '';
@@ -48,14 +65,32 @@
           c.dataset.building = room.Building || 'Bldg. B';
 
           const titleEl = c.querySelector('.rsc-title');
-          if (titleEl) {
+          if (titleEl && titleEl.textContent !== `Room ${room.Room_Number}`) {
             titleEl.textContent = `Room ${room.Room_Number}`;
           }
 
           const subtitleEl = c.querySelector('.rsc-subtitle');
-          if (subtitleEl) {
+          if (subtitleEl && subtitleEl.textContent !== (room.Building || 'Bldg. B')) {
             subtitleEl.textContent = room.Building || 'Bldg. B';
           }
+
+          const isFinalized = (room.Status === 'Finalized');
+          const statusText = isFinalized ? 'OFFICIAL' : 'DRAFT';
+          const badgeClass = isFinalized ? 'badge-finalized' : 'badge-draft';
+
+          let badge = c.querySelector('.rsc-status-badge');
+          if (!badge) {
+            badge = document.createElement('div');
+            badge.className = 'rsc-status-badge ' + badgeClass;
+            c.appendChild(badge);
+          } else {
+            badge.className = 'rsc-status-badge ' + badgeClass;
+          }
+          if (badge.textContent.trim() !== statusText) {
+            badge.textContent = statusText;
+          }
+          badge.style.cssText = 'display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 8px; border-radius: 9999px; margin-top: 6px; ' + 
+            (isFinalized ? 'background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;' : 'background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;');
 
           c.onclick = () => {
             window.location.href = `room-schedule-editor.html?room=${encodeURIComponent(room.Room_Number)}&bldg=${encodeURIComponent(room.Building || 'Bldg. B')}`;

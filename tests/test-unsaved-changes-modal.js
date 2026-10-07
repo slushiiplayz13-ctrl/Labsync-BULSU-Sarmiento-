@@ -51,6 +51,7 @@ assert(
 
 // 1.3 Updated prompt text
 assert(
+  editorHtml.includes('You have unsaved draft changes. What would you like to do before leaving?') ||
   editorHtml.includes('You have unsaved schedule changes. What would you like to do before leaving?'),
   '#unsavedChangesModal contains agreed amber warning prompt text'
 );

@@ -25,7 +25,9 @@
      * @returns {boolean}
      */
     isFacultyHead(role) {
-      return Boolean(role && String(role).toLowerCase().includes('head'));
+      if (!role) return false;
+      const r = String(role).toLowerCase();
+      return r.includes('head') || r === 'program coordinator';
     },
 
     /**
@@ -36,7 +38,7 @@
     normalizeFacultyRole(role) {
       if (!role) return 'faculty';
       const r = String(role).toLowerCase();
-      if (r.includes('head')) return 'head';
+      if (r.includes('head') || r === 'program coordinator') return 'head';
       if (r.includes('mis')) return 'mis';
       return 'faculty';
     },
@@ -77,11 +79,16 @@
      */
     sortFaculty(facultyList) {
       if (!Array.isArray(facultyList)) return [];
+      const getRoleRank = (role) => {
+        const r = String(role || '').toLowerCase();
+        if (r.includes('head')) return 1;
+        if (r === 'program coordinator') return 2;
+        return 3;
+      };
       return [...facultyList].sort((a, b) => {
-        const aIsBoss = facultyUtils.isFacultyHead(a.Role);
-        const bIsBoss = facultyUtils.isFacultyHead(b.Role);
-        if (aIsBoss && !bIsBoss) return -1;
-        if (!aIsBoss && bIsBoss) return 1;
+        const rankA = getRoleRank(a.Role);
+        const rankB = getRoleRank(b.Role);
+        if (rankA !== rankB) return rankA - rankB;
         return (a.Name || '').localeCompare(b.Name || '');
       });
     },
@@ -149,14 +156,17 @@
     matchesRoleFilter(memberRole, activeFilter) {
       if (!activeFilter || activeFilter === 'all') return true;
       const r = String(memberRole || '').toLowerCase();
-      if (activeFilter === 'head') return r.includes('head');
-      if (activeFilter === 'faculty') return r === 'faculty' || (!r.includes('head') && !r.includes('mis'));
+      if (activeFilter === 'head') return r.includes('head') || r === 'program coordinator';
+      if (activeFilter === 'faculty') return r === 'faculty' || (!r.includes('head') && !r.includes('mis') && r !== 'program coordinator');
       if (activeFilter === 'mis') return r.includes('mis');
       return false;
     }
   };
 
-  // Expose globally
+  // Expose globally & CommonJS
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = facultyUtils;
+  }
   if (typeof global !== 'undefined' && global) {
     global.facultyUtils = facultyUtils;
   }

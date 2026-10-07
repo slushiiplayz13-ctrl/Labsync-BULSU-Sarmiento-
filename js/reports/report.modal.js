@@ -501,6 +501,18 @@
       headerSubtitle = `Reported on ${formattedDate}`;
     }
 
+    function isITDeptHeadUser() {
+      try {
+        const rawUser = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || 'null');
+        const user = (rawUser && (rawUser.user || rawUser)) || null;
+        const role = String((user && (user.role || user.Role)) || '').trim();
+        const itHeadAliases = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head'];
+        return itHeadAliases.includes(role);
+      } catch (e) {
+        return false;
+      }
+    }
+
     let actionBtnHtml = '';
     const currentPage = document.body ? document.body.dataset.page : '';
     if (currentPage === 'mis-pc-reports' || currentPage === 'mis-maintenance' || currentPage === 'mis-dashboard') {
@@ -511,6 +523,89 @@
           </button>
         `;
       }
+    } else if (!isResolved && isITDeptHeadUser()) {
+      const isTodayFollowUp = Boolean(
+        report.Followed_Up_Today === true ||
+        report.Followed_Up_Today === 1 ||
+        (report.Followed_Up_At && (() => {
+          try {
+            const fuDate = new Date(report.Followed_Up_At);
+            const nowDate = new Date();
+            return !isNaN(fuDate.getTime()) &&
+              fuDate.getFullYear() === nowDate.getFullYear() &&
+              fuDate.getMonth() === nowDate.getMonth() &&
+              fuDate.getDate() === nowDate.getDate();
+          } catch (e) {
+            return false;
+          }
+        })())
+      );
+
+      if (isTodayFollowUp) {
+        actionBtnHtml = `
+          <button type="button" class="btn-followup-ticket disabled" disabled style="padding:9px 18px;font-size:13px;background:#F1F5F9;color:#94A3B8;border:1px solid #CBD5E1;border-radius:99px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:not-allowed;" title="Follow-up already made today. Next follow-up available tomorrow.">
+            <i data-lucide="check" style="width:14px;height:14px;"></i> Followed Up Today
+          </button>
+        `;
+      } else {
+        actionBtnHtml = `
+          <button type="button" class="btn-followup-ticket" data-action="followup-ticket-modal" data-report-id="${report.Report_ID}" style="padding:9px 18px;font-size:13px;background:linear-gradient(135deg, #F59E0B 0%, #D97706 100%);color:#fff;border:none;border-radius:99px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 6px rgba(217,119,6,0.3);transition:transform 0.15s ease, box-shadow 0.15s ease;">
+            <i data-lucide="bell-ring" style="width:14px;height:14px;"></i> Follow Up Report
+          </button>
+        `;
+      }
+    }
+
+    const isTodayFollowUp = Boolean(
+      report.Followed_Up_Today === true ||
+      report.Followed_Up_Today === 1 ||
+      (report.Followed_Up_At && (() => {
+        try {
+          const fuDate = new Date(report.Followed_Up_At);
+          const nowDate = new Date();
+          return !isNaN(fuDate.getTime()) &&
+            fuDate.getFullYear() === nowDate.getFullYear() &&
+            fuDate.getMonth() === nowDate.getMonth() &&
+            fuDate.getDate() === nowDate.getDate();
+        } catch (e) {
+          return false;
+        }
+      })())
+    );
+
+    let followUpStripHtml = '';
+    if (report.Follow_Up_Count > 0) {
+      let followUpDateFormatted = 'Recently';
+      if (report.Followed_Up_At) {
+        const fuDateObj = new Date(report.Followed_Up_At);
+        if (!isNaN(fuDateObj.getTime())) {
+          followUpDateFormatted = fuDateObj.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          }) + ' • ' + fuDateObj.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+        }
+      }
+      followUpStripHtml = `
+        <div class="ticket-modal-followup-row" style="background:#FFFBEB; border:1px solid #FDE68A; border-radius:12px; padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; gap:12px;">
+          <div style="width:34px; height:34px; border-radius:8px; background:#FEF3C7; color:#D97706; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i data-lucide="bell-ring" style="width:18px; height:18px;"></i>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:2px; font-size:13px;">
+            <div style="font-weight:700; color:#92400E; display:flex; align-items:center; gap:6px;">
+              <span>Admin Follow-Up • ${report.Follow_Up_Count}x</span>
+              ${isTodayFollowUp ? '<span style="font-size:11px; font-weight:600; background:#FEF3C7; color:#B45309; padding:1px 7px; border-radius:99px; border:1px solid #FDE68A;">Followed Up Today</span>' : ''}
+            </div>
+            <div style="font-size:12px; color:#B45309;">
+              Followed up by ${escapeFn(report.Followed_Up_By_Name || 'IT Dept. Head')}${report.Followed_Up_By_Role ? ` (${escapeFn(report.Followed_Up_By_Role)})` : ''} • ${followUpDateFormatted}${isTodayFollowUp ? ' • Next follow-up available tomorrow.' : ''}
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     modal.innerHTML = `
@@ -519,9 +614,9 @@
         <div class="ticket-modal-header" style="margin-bottom:16px;">
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <div>
-              <div style="display:flex; align-items:center; gap:8px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <h3 id="fullReportModalTitle" style="font-size:18px; font-weight:800; color:var(--text-dark); margin:0;">Ticket #${escapeFn(String(report.Report_ID || reportId))}</h3>
-                <span class="status-badge ${isResolved ? 'resolved' : 'pending'}" style="font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; text-transform:uppercase; letter-spacing:0.5px; background:${isResolved ? '#DCFCE7' : '#FEF3C7'}; color:${isResolved ? '#15803D' : '#D97706'}; display:inline-flex; align-items:center; justify-content:center; line-height:1.2;">${isResolved ? 'RESOLVED' : 'PENDING'}</span>
+                <span class="status-badge ${isResolved ? 'resolved' : 'pending'}" style="font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; text-transform:uppercase; letter-spacing:0.5px; background:${isResolved ? '#DCFCE7' : '#FEF3C7'}; color:${isResolved ? '#15803D' : '#D97706'}; display:inline-flex; align-items:center; justify-content:center; line-height:1.2;">${isResolved ? 'RESOLVED' : escapeFn((report.Status || 'PENDING').toUpperCase())}</span>
               </div>
               <div style="font-size:12.5px; color:var(--text-muted); margin-top:4px; font-weight:500;">
                 ${headerSubtitle}
@@ -532,6 +627,9 @@
             </button>
           </div>
         </div>
+
+        <!-- Follow-Up Summary Strip (when followed up) -->
+        ${followUpStripHtml}
 
         <!-- Body Info -->
         ${bodyContentHtml}
@@ -603,6 +701,19 @@
         closeTicketModal();
         if (reportId && typeof global.updateReportStatus === 'function') {
           global.updateReportStatus(reportId, 'Resolved');
+        }
+        return;
+      }
+
+      // Follow Up action (from report card quick button or inside details modal)
+      const followupBtn = e.target.closest('[data-action="followup-ticket"], [data-action="followup-ticket-modal"]');
+      if (followupBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const reportId = followupBtn.getAttribute('data-report-id');
+        const followUpFn = global.followUpReport || (global.reportActions && global.reportActions.followUpReport);
+        if (reportId && typeof followUpFn === 'function') {
+          followUpFn(reportId);
         }
         return;
       }

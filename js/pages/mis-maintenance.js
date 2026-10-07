@@ -115,6 +115,15 @@
       return true;
     });
 
+    filtered.sort((a, b) => {
+      const timeA = new Date(a.Date_Reported || a.Created_At || 0).getTime();
+      const timeB = new Date(b.Date_Reported || b.Created_At || 0).getTime();
+      if (timeB !== timeA) return timeB - timeA;
+      const idA = Number(String(a.Report_ID || a.Issue_ID || 0).replace(/\D/g, '')) || 0;
+      const idB = Number(String(b.Report_ID || b.Issue_ID || 0).replace(/\D/g, '')) || 0;
+      return idB - idA;
+    });
+
     if (global.maintenanceRenderer && typeof global.maintenanceRenderer.renderTableRows === 'function') {
       global.maintenanceRenderer.renderTableRows(filtered);
     }
@@ -140,6 +149,14 @@
       }
 
       if (Array.isArray(maintenanceReports)) {
+        maintenanceReports.sort((a, b) => {
+          const timeA = new Date(a.Date_Reported || a.Created_At || 0).getTime();
+          const timeB = new Date(b.Date_Reported || b.Created_At || 0).getTime();
+          if (timeB !== timeA) return timeB - timeA;
+          const idA = Number(String(a.Report_ID || a.Issue_ID || 0).replace(/\D/g, '')) || 0;
+          const idB = Number(String(b.Report_ID || b.Issue_ID || 0).replace(/\D/g, '')) || 0;
+          return idB - idA;
+        });
         calculateStats(maintenanceReports);
         applyFiltersAndRender();
         processDeepLinkTicket();

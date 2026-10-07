@@ -467,7 +467,7 @@
         hideLoginError();
 
         const role = (data.user && data.user.role) || '';
-        const isItHead = role.toLowerCase().includes('head');
+        const isItHead = role.toLowerCase().includes('head') || role === 'Program Coordinator';
         const isMis = role === 'MIS Staff';
         const isOjt = role === 'OJT';
 

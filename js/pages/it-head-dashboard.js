@@ -319,6 +319,16 @@
    * Delegates to dept-head-key-authorizations.js controller.
    */
   async function loadPendingKeyAuthorizations() {
+    let user = null;
+    try {
+      const rawUser = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || 'null');
+      user = (rawUser && (rawUser.user || rawUser)) || null;
+    } catch (e) {}
+    const role = user ? (user.role || user.Role || '') : '';
+    const itHeadAliases = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head'];
+    const isAuthorized = itHeadAliases.includes(role) || (role.toLowerCase().includes('head') && !role.toLowerCase().includes('coordinator'));
+    if (!isAuthorized) return;
+
     if (typeof global.loadPendingKeyAuthorizations === 'function' && global.loadPendingKeyAuthorizations !== loadPendingKeyAuthorizations) {
       return await global.loadPendingKeyAuthorizations();
     }

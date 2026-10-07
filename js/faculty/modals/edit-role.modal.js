@@ -10,6 +10,22 @@
     const existing = document.getElementById('role-edit-modal');
     if (existing) existing.remove();
 
+    let isActorDeptHead = false;
+    try {
+      const curUser = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || '{}');
+      const curRole = (curUser.user || curUser).role || (curUser.user || curUser).Role || '';
+      const itHeadAliases = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head'];
+      isActorDeptHead = itHeadAliases.includes(curRole) || (curRole.toLowerCase().includes('head') && !curRole.toLowerCase().includes('coordinator'));
+    } catch (e) {}
+
+    const deptHeadOption = isActorDeptHead
+      ? `<div class="custom-select-option ${String(currentRole).includes('Head') ? 'selected' : ''}" data-value="IT Dept. Head">IT Dept. Head (Administrator)</div>`
+      : '';
+
+    const alertInfoText = isActorDeptHead
+      ? 'Upgrading a user to Department Head or Program Coordinator grants them access to master schedule overrides and faculty roster updates.'
+      : 'Upgrading a user to Program Coordinator grants them access to master schedule overrides and faculty roster updates.';
+
     const modal = document.createElement('div');
     modal.id = 'role-edit-modal';
     modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2500 !important;opacity:0;transition:opacity 0.25s ease;';
@@ -30,21 +46,22 @@
         <form id="change-role-form" style="display:flex;flex-direction:column;gap:18px;font-family:var(--font-body);">
           <div>
             <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Select Role</label>
-            <div class="custom-select-wrapper" id="role-select-wrapper" style="width: 100%;">
+            <div class="custom-select-wrapper" id="role-select-wrapper" style="width: 100%;" data-value="${currentRole === 'Program Coordinator' ? 'Program Coordinator' : (String(currentRole).includes('Head') ? 'IT Dept. Head' : 'Faculty')}">
               <div class="custom-select-trigger" style="width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-light); border-radius: 8px; font-family: var(--font-body); font-size: 14px; background: var(--bg-white); color: var(--text-dark); cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
-                <span>${currentRole === 'Faculty' ? 'Faculty (Regular Lecturer)' : 'IT Dept. Head (Administrator)'}</span>
+                <span>${currentRole === 'Program Coordinator' ? 'Program Coordinator (Backup Administrator)' : (String(currentRole).includes('Head') ? 'IT Dept. Head (Administrator)' : 'Faculty (Regular Lecturer)')}</span>
                 <i data-lucide="chevron-down" style="width: 18px; height: 18px; color: var(--text-light);"></i>
               </div>
               <div class="custom-select-dropdown" style="color: var(--text-dark);">
                 <div class="custom-select-option ${currentRole === 'Faculty' ? 'selected' : ''}" data-value="Faculty">Faculty (Regular Lecturer)</div>
-                <div class="custom-select-option ${String(currentRole).includes('Head') ? 'selected' : ''}" data-value="IT Dept. Head">IT Dept. Head (Administrator)</div>
+                <div class="custom-select-option ${currentRole === 'Program Coordinator' ? 'selected' : ''}" data-value="Program Coordinator">Program Coordinator (Backup Administrator)</div>
+                ${deptHeadOption}
               </div>
             </div>
           </div>
           
           <div class="alert-info-box">
             <i data-lucide="info"></i>
-            <p>Upgrading a user to Department Head grants them access to master schedule overrides and faculty roster updates.</p>
+            <p>${alertInfoText}</p>
           </div>
           
           <div style="display:flex;gap:12px;margin-top:8px;">
@@ -171,16 +188,23 @@
                 window.location.replace('index.html');
               }
             } else {
-              // Check if user edited their own account
+              // Check if user edited their own account or handed off Program Coordinator role
               try {
                 const curUser = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || '{}');
                 const curUserId = (curUser.user || curUser).User_ID || (curUser.user || curUser).userId;
+                const curUserRole = (curUser.user || curUser).role || (curUser.user || curUser).Role;
                 if (curUserId && String(curUserId) === String(userId)) {
                   (curUser.user || curUser).role = newRole;
                   localStorage.setItem('user', JSON.stringify(curUser));
                   sessionStorage.setItem('labsync_user', JSON.stringify(curUser));
                   const profileRoleEl = document.querySelector('.profile-role');
                   if (profileRoleEl) profileRoleEl.textContent = newRole;
+                } else if (newRole === 'Program Coordinator' && curUserRole === 'Program Coordinator') {
+                  (curUser.user || curUser).role = 'Faculty';
+                  localStorage.setItem('user', JSON.stringify(curUser));
+                  sessionStorage.setItem('labsync_user', JSON.stringify(curUser));
+                  window.location.replace('index.html');
+                  return;
                 }
               } catch (e) {}
 
@@ -190,11 +214,31 @@
             }
           } catch (err) {
             console.error('[EditRoleModal] Error updating role:', err);
-            alert('Error updating role: ' + (err.message || 'Please try again.'));
+            const isForbidden = err.status === 403 ||
+              (err.message && (
+                err.message.toLowerCase().includes('forbidden') ||
+                err.message.toLowerCase().includes('permission') ||
+                err.message.toLowerCase().includes('not authorized')
+              ));
+            const msg = isForbidden ? 'You do not have permission to perform this role update.' : (err.message || 'Please try again.');
+            if (typeof global.showToast === 'function') {
+              global.showToast(msg, 'error', isForbidden ? 'Permission Denied' : 'Update Failed');
+            } else {
+              alert('Error updating role: ' + msg);
+            }
           }
         };
 
-        if (newRole === 'IT Dept. Head' && !String(currentRole).includes('Head')) {
+        if (newRole === 'IT Dept. Head' && !isActorDeptHead) {
+          if (typeof global.showToast === 'function') {
+            global.showToast('Only the IT Department Head can transfer department leadership.', 'error', 'Permission Denied');
+          } else {
+            alert('Only the IT Department Head can transfer department leadership.');
+          }
+          return;
+        }
+
+        if (newRole === 'IT Dept. Head' && isActorDeptHead && !String(currentRole).includes('Head')) {
           modal.style.display = 'none';
 
           const transferModal = global.transferLeadershipModal;

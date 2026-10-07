@@ -58,7 +58,7 @@
   function createReportSignature(reports, query) {
     if (!Array.isArray(reports)) return '__EMPTY__';
     const q = (query || '').trim().toLowerCase();
-    const rows = reports.map(r => `${r.Report_ID || ''}_${r.Status || ''}_${r.Room_Number || ''}_${r.PC_Number || ''}_${r.Student_Name || ''}_${r.Priority_Level || ''}_${r.Date_Reported || ''}`);
+    const rows = reports.map(r => `${r.Report_ID || ''}_${r.Status || ''}_${r.Follow_Up_Count || 0}_${r.Room_Number || ''}_${r.PC_Number || ''}_${r.Student_Name || ''}_${r.Priority_Level || ''}_${r.Date_Reported || ''}`);
     return `sig_${rows.join('|')}__q_${q}`;
   }
 
@@ -76,9 +76,18 @@
     const searchInput = document.getElementById('reportSearchInput');
     const query = searchInput ? searchInput.value.trim() : '';
 
-    const reports = customReports || ((global.reportStore && typeof global.reportStore.getReports === 'function')
+    const rawReports = customReports || ((global.reportStore && typeof global.reportStore.getReports === 'function')
       ? global.reportStore.getReports()
       : (global.allReports || []));
+
+    const reports = Array.isArray(rawReports) ? [...rawReports].sort((a, b) => {
+      const timeA = new Date(a.Date_Reported || a.Created_At || 0).getTime();
+      const timeB = new Date(b.Date_Reported || b.Created_At || 0).getTime();
+      if (timeB !== timeA) return timeB - timeA;
+      const idA = Number(String(a.Report_ID || a.Issue_ID || 0).replace(/\D/g, '')) || 0;
+      const idB = Number(String(b.Report_ID || b.Issue_ID || 0).replace(/\D/g, '')) || 0;
+      return idB - idA;
+    }) : [];
 
     const matchFn = (global.reportFilters && typeof global.reportFilters.matchesReportQuery === 'function')
       ? global.reportFilters.matchesReportQuery

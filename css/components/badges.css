@@ -251,6 +251,72 @@ html.high-contrast .section-chip {
   border: 1px solid rgba(125, 211, 252, 0.3) !important;
 }
 
+/* ─── Admin Follow-Up Chip Component Styles (Balanced with Section Chip) ─── */
+.admin-followup-chip {
+  font-size: 13px;
+  font-weight: 700;
+  color: #B45309;
+  background: #FEF3C7;
+  border: 1.5px solid #FCD34D;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.admin-followup-chip i,
+.admin-followup-chip svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+/* Admin Follow-Up Chips in Dark Mode */
+html.dark-mode .admin-followup-chip,
+body.dark-mode .admin-followup-chip,
+[data-theme="dark"] .admin-followup-chip,
+html.high-contrast .admin-followup-chip {
+  background: rgba(245, 158, 11, 0.2) !important;
+  color: #fde68a !important;
+  border: 1.5px solid rgba(245, 158, 11, 0.4) !important;
+}
+
+/* ─── Interactive Issue Tag (.issue-tag.bad.interactive) ─── */
+.issue-tag.bad.interactive {
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.issue-tag.bad.interactive:hover {
+  background: #FEE2E2;
+  border-color: #EF4444;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
+}
+
+.issue-tag.bad.interactive:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.issue-tag.bad.interactive:focus-visible {
+  outline: 2px solid #EF4444;
+  outline-offset: 2px;
+}
+
+/* Dark Mode Overrides for Interactive Issue Tag */
+html.dark-mode .issue-tag.bad.interactive:hover,
+body.dark-mode .issue-tag.bad.interactive:hover,
+[data-theme="dark"] .issue-tag.bad.interactive:hover,
+html.high-contrast .issue-tag.bad.interactive:hover {
+  background: rgba(239, 68, 68, 0.3) !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3) !important;
+}
+
 /* ─── PC Reports Badge Tag Component Styles ─── */
 .pc-badge-tag {
   background: rgba(234, 88, 12, 0.08);

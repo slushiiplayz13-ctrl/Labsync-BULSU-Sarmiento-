@@ -138,13 +138,20 @@ async function initPrintAllSchedulesPage() {
         if (schedRes.ok) rawSchedules = await schedRes.json();
       }
 
+      // Extract status and schedules
+      let roomStatus = 'Draft';
+      if (rawSchedules && !Array.isArray(rawSchedules) && (rawSchedules.status || rawSchedules.scheduleStatus)) {
+        roomStatus = rawSchedules.status || rawSchedules.scheduleStatus;
+      }
+      const scheduleItems = Array.isArray(rawSchedules) ? rawSchedules : (rawSchedules && rawSchedules.schedules ? rawSchedules.schedules : []);
+
       // Normalize schedules
-      const scheduleData = (rawSchedules || []).map(s => ({
+      const scheduleData = (scheduleItems || []).map(s => ({
         day: s.day || s.Day_of_Week,
         startTime: (s.startTime || s.Start_Time || '').substring(0, 5),
         endTime: (s.endTime || s.End_Time || '').substring(0, 5),
         subject: s.subject || s.Subject_Name || '',
-        professor: s.professor || s.ProfessorName || '',
+        professor: s.professor || s.ProfessorName || s.Professor_Name || '',
         section: s.section || s.Section || ''
       }));
 
@@ -214,6 +221,7 @@ async function initPrintAllSchedulesPage() {
             <p style="font-size: 11px; margin: 2px 0; color: black;">City of Malolos</p>
             <p style="font-weight: bold; margin-top: 8px; font-size: 13px; color: black; letter-spacing: 0.5px;">ROOM ASSIGNMENT</p>
             <p style="font-size: 11px; margin: 2px 0; color: black; margin-top: 4px;">Academic Year: ${escapeHtml(academicYear)} ${escapeHtml(semester.toUpperCase())}</p>
+            <p style="font-size: 11px; font-weight: bold; margin: 2px 0; color: ${roomStatus === 'Finalized' ? '#047857' : '#b45309'}; letter-spacing: 0.5px;">${roomStatus === 'Finalized' ? 'OFFICIAL SCHEDULE' : 'WORKING DRAFT – FOR REVIEW ONLY'}</p>
           </div>
           <div style="position: absolute; right: 120px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 10px;">
             <img src="assets/bsu-sarmiento-logo.png" alt="BSU Sarmiento Campus Logo" style="height: 65px; width: auto; object-fit: contain;">

@@ -37,7 +37,7 @@
     if (clean === 'ojt' || clean.startsWith('ojt')) {
       return false;
     }
-    return clean.includes('head') || clean.includes('faculty') || clean.includes('mis');
+    return clean.includes('head') || clean.includes('coordinator') || clean.includes('faculty') || clean.includes('mis');
   }
 
   /**

@@ -8,7 +8,7 @@ const pool = require('../database/connection');
 const studentVerificationService = require('./studentVerificationService');
 const studentVerificationRepository = require('../repositories/student-verification.repository');
 const auditService = require('./auditService');
-const { IT_HEAD_ROLES, MIS_STAFF_ROLES, OJT_ROLES } = require('../middleware/auth');
+const { IT_HEAD_ROLES, IT_DEPT_HEAD_EXCLUSIVE_ROLES, MIS_STAFF_ROLES, OJT_ROLES } = require('../middleware/auth');
 
 /**
  * Extracts primary issue component category for grouping maintenance issues.
@@ -358,6 +358,74 @@ async function updateReportStatus(reportId, status, actor = {}) {
     return txResult;
 }
 
+async function followUpReport(reportId, actor = {}) {
+    const parsedId = Number(reportId);
+    if (!Number.isInteger(parsedId) || parsedId <= 0) {
+        return { status: 400, error: 'Invalid report ID. Must be a positive integer.' };
+    }
+
+    const userId = actor && actor.userId ? actor.userId : null;
+    if (!userId) {
+        return { status: 401, error: 'Authentication required to follow up report.' };
+    }
+
+    const txResult = await maintenanceRepository.withTransaction(async (connection) => {
+        // 1. Identify and lock the maintenance issue
+        let [issues] = await maintenanceRepository.findIssueForUpdate(parsedId, connection);
+        let actualIssueId = parsedId;
+
+        if (issues.length === 0) {
+            // Check if parsedId is a student Report_ID mapping to Maintenance_Issue_ID
+            const [studentReports] = await maintenanceRepository.findIssueIdByStudentReportId(parsedId, connection);
+            if (studentReports.length > 0 && studentReports[0].Maintenance_Issue_ID) {
+                actualIssueId = studentReports[0].Maintenance_Issue_ID;
+                [issues] = await maintenanceRepository.findIssueForUpdate(actualIssueId, connection);
+            }
+        }
+
+        if (issues.length === 0) {
+            return { status: 404, error: 'Maintenance ticket not found.' };
+        }
+
+        const currentIssue = issues[0];
+
+        // 2. Verify Status !== 'Resolved'
+        if (currentIssue.Status === 'Resolved') {
+            return { status: 400, error: 'Cannot follow up on a resolved ticket.' };
+        }
+
+        // 3. Enforce once-per-calendar-day cooldown
+        if (currentIssue.Followed_Up_Today === 1) {
+            return {
+                status: 409,
+                error: 'Follow-up already made today. You can follow up this report again tomorrow.'
+            };
+        }
+
+        // 4. Increment Follow_Up_Count and update Followed_Up_At, Followed_Up_By_User_ID
+        const [updateResult] = await maintenanceRepository.followUpMaintenanceIssue(actualIssueId, userId, connection);
+        if (updateResult && updateResult.affectedRows === 0) {
+            return {
+                status: 409,
+                error: 'Follow-up already made today. You can follow up this report again tomorrow.'
+            };
+        }
+
+        const newCount = (currentIssue.Follow_Up_Count || 0) + 1;
+
+        return {
+            status: 200,
+            message: 'PC report followed up successfully.',
+            issueId: actualIssueId,
+            currentStatus: currentIssue.Status,
+            previousCount: currentIssue.Follow_Up_Count || 0,
+            followUpCount: newCount
+        };
+    });
+
+    return txResult;
+}
+
 async function deleteReport(reportId) {
     const parsedId = Number(reportId);
     if (!Number.isInteger(parsedId) || parsedId <= 0) {
@@ -402,13 +470,20 @@ async function getNotifications(sessionUserId, sessionUserRole, queryParams = {}
         (Array.isArray(MIS_STAFF_ROLES) && MIS_STAFF_ROLES.includes(role)) ||
         (Array.isArray(OJT_ROLES) && OJT_ROLES.includes(role));
     const isItHead = Array.isArray(IT_HEAD_ROLES) ? IT_HEAD_ROLES.includes(role) : (role === 'IT Dept. Head' || role === 'Department Head');
+    const isExclusiveDeptHead = Array.isArray(IT_DEPT_HEAD_EXCLUSIVE_ROLES)
+        ? IT_DEPT_HEAD_EXCLUSIVE_ROLES.includes(role)
+        : (role === 'IT Dept. Head' || role === 'Department Head');
 
     if (isMisStaffOrOjt) {
         const [notifications] = await maintenanceRepository.findReportNotifications();
         return { status: 200, data: notifications };
     } else if (isItHead) {
         const [notifications] = await maintenanceRepository.findDeptHeadNotifications(userId);
-        return { status: 200, data: notifications };
+        // Exclude pending Key Authorization requests for Program Coordinator (Super Admin-only)
+        const filteredNotifications = isExclusiveDeptHead
+            ? notifications
+            : (notifications || []).filter(n => n.type !== 'key_auth');
+        return { status: 200, data: filteredNotifications };
     } else {
         const [notifications] = await maintenanceRepository.findFacultyNotifications(userId);
         return { status: 200, data: notifications };
@@ -476,6 +551,7 @@ module.exports = {
     submitReport,
     getAllReports,
     updateReportStatus,
+    followUpReport,
     deleteReport,
     getNotifications,
     getPCInfo

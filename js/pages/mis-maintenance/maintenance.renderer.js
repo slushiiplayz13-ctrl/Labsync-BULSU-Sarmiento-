@@ -65,12 +65,16 @@
    * Formats issue tag HTML elements with Lucide icons.
    * @param {string} issuesStr
    * @param {string} remarksStr
-   * @param {boolean} isModal
+   * @param {boolean} [isModal=false]
+   * @param {Object} [options={}]
    * @returns {string} HTML string
    */
-  function formatIssueBadges(issuesStr, remarksStr, isModal = false) {
-    const iconSize = isModal ? '13px' : '12px';
-    const extraStyle = isModal ? ' style="font-size:12.5px;padding:5px 12px;"' : '';
+  function formatIssueBadges(issuesStr, remarksStr, isModal = false, options = {}) {
+    const isCompact = Boolean(options && options.isCompact);
+    const iconSize = isCompact ? '11px' : (isModal ? '13px' : '12px');
+    const extraStyle = isCompact
+      ? ' style="font-size:11.5px;padding:3px 9px;border-radius:6px;gap:4px;"'
+      : (isModal ? ' style="font-size:12.5px;padding:5px 12px;"' : '');
     const issues = (issuesStr || '').split(',').map(s => s.trim()).filter(Boolean);
     const remarks = (remarksStr || '').trim();
     const hasRemarks = remarks.length > 0 &&
@@ -85,19 +89,35 @@
       return `<span class="issue-tag ok"${extraStyle}><i data-lucide="check-square" style="width:${iconSize};height:${iconSize};"></i> None</span>`;
     }
 
-    return issues.map(item => {
+    const validIssues = issues.filter(item => {
       const lower = item.toLowerCase();
-      if (lower === 'none' || lower === 'n/a') {
-        if (hasRemarks) {
-          return `<span class="issue-tag other"${extraStyle}><i data-lucide="alert-circle" style="width:${iconSize};height:${iconSize};"></i> Other</span>`;
-        }
-        return `<span class="issue-tag ok"${extraStyle}><i data-lucide="check-square" style="width:${iconSize};height:${iconSize};"></i> None</span>`;
+      return lower !== 'none' && lower !== 'n/a';
+    });
+
+    if (validIssues.length === 0) {
+      if (hasRemarks) {
+        return `<span class="issue-tag other"${extraStyle}><i data-lucide="alert-circle" style="width:${iconSize};height:${iconSize};"></i> Other</span>`;
       }
+      return `<span class="issue-tag ok"${extraStyle}><i data-lucide="check-square" style="width:${iconSize};height:${iconSize};"></i> None</span>`;
+    }
+
+    function renderItem(item) {
+      const lower = item.toLowerCase();
       if (lower === 'others' || lower === 'other') {
         return `<span class="issue-tag other"${extraStyle}><i data-lucide="alert-circle" style="width:${iconSize};height:${iconSize};"></i> Other</span>`;
       }
       return `<span class="issue-tag bad"${extraStyle}><i data-lucide="alert-triangle" style="width:${iconSize};height:${iconSize};"></i> ${escapeText(item)}</span>`;
-    }).join(' ');
+    }
+
+    // In the table view (!isModal), summarize multiple issues into a single clean interactive badge
+    if (!isModal && validIssues.length > 1) {
+      const repId = (options && options.reportId != null) ? options.reportId : '';
+      const actionAttr = repId ? ` data-action="view-ticket-details" data-report-id="${repId}" role="button" tabindex="0"` : '';
+      const interactiveClass = repId ? ' interactive' : '';
+      return `<span class="issue-tag bad${interactiveClass}"${actionAttr}><i data-lucide="alert-triangle" style="width:${iconSize};height:${iconSize};"></i> Multiple Issues (${validIssues.length})</span>`;
+    }
+
+    return validIssues.map(renderItem).join(' ');
   }
 
   /**
@@ -108,7 +128,7 @@
   function computeMaintenanceSignature(reports) {
     if (!Array.isArray(reports) || reports.length === 0) return 'empty';
     return reports.map(r =>
-      `${r.Report_ID}_${r.Status}_${r.Room_Number}_${r.PC_Number}_${r.Priority_Level || ''}_${r.Date_Reported || ''}_${r.Issue_Description || ''}_${r.Resolved_By_Name || ''}_${r.Resolved_By_Role || ''}`
+      `${r.Report_ID}_${r.Status}_${r.Follow_Up_Count || 0}_${r.Room_Number}_${r.PC_Number}_${r.Priority_Level || ''}_${r.Date_Reported || ''}_${r.Issue_Description || ''}_${r.Resolved_By_Name || ''}_${r.Resolved_By_Role || ''}`
     ).join('|');
   }
 
@@ -228,11 +248,43 @@
         `;
       }
 
-      const sectionChip = parsed.section && parsed.section !== 'N/A'
-        ? `<span class="section-chip">${escapeText(parsed.section)}</span>`
-        : '';
+      // Extract all unique issues across report description and any linked reports
+      const allIssueNames = [];
+      const addIssues = (str) => {
+        if (!str) return;
+        str.split(',').map(s => s.trim()).filter(Boolean).forEach(comp => {
+          const lower = comp.toLowerCase();
+          if (lower !== 'none' && lower !== 'n/a' && lower !== 'hardware issue' && !allIssueNames.some(existing => existing.toLowerCase() === lower)) {
+            allIssueNames.push(comp);
+          }
+        });
+      };
 
-      const issueBadges = formatIssueBadges(parsed.issues, parsed.remarks, false);
+      if (parsed.issues && parsed.issues.toLowerCase() !== 'none' && parsed.issues.toLowerCase() !== 'hardware issue') {
+        addIssues(parsed.issues);
+      }
+      if (Array.isArray(report.reports)) {
+        report.reports.forEach(r => {
+          if (r && r.Issue_Description) {
+            const p = parseIssueDesc(r.Issue_Description);
+            if (p && p.issues && p.issues.toLowerCase() !== 'none' && p.issues.toLowerCase() !== 'hardware issue') {
+              addIssues(p.issues);
+            }
+          }
+          if (r && r.Issue_Type && r.Issue_Type.toLowerCase() !== 'hardware issue' && r.Issue_Type.toLowerCase() !== 'none') {
+            addIssues(r.Issue_Type);
+          }
+        });
+      }
+      if (allIssueNames.length === 0 && report.Issue_Type && report.Issue_Type.toLowerCase() !== 'hardware issue' && report.Issue_Type.toLowerCase() !== 'none') {
+        addIssues(report.Issue_Type);
+      }
+      if (allIssueNames.length === 0) {
+        allIssueNames.push('None');
+      }
+
+      const issuesStr = allIssueNames.join(', ');
+      const issueBadges = formatIssueBadges(issuesStr, parsed.remarks, false, { reportId: report.Report_ID });
 
       const rawRemarks = (parsed.remarks || '').trim();
       const lowerRemarks = rawRemarks.toLowerCase();
@@ -288,7 +340,11 @@
           <td class="col-issues">
             <div class="ticket-badge-group">
               ${issueBadges}
-              ${sectionChip}
+              ${report.Follow_Up_Count > 0 && report.Status !== 'Resolved' ? `
+                <span class="admin-followup-chip" style="background:#FEF3C7; color:#B45309; border:1.5px solid #FCD34D; font-size:13px; font-weight:700; padding:5px 12px; border-radius:9999px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;" title="Followed up by IT Dept. Head (${report.Follow_Up_Count}x)">
+                  <i data-lucide="bell-ring" style="width:13px;height:13px;"></i> Admin Follow-Up${report.Follow_Up_Count > 1 ? ` • ${report.Follow_Up_Count}x` : ''}
+                </span>
+              ` : ''}
             </div>
             ${remarksHtml}
           </td>

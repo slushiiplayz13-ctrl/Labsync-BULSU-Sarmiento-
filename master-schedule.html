@@ -262,17 +262,26 @@
                   }
                 }
               }
-              var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
-              var pendingKeyCount = parseInt(sessionStorage.getItem("labsync_dept_head_pending_key_count") || "0", 10);
+              var uRole = (u && (u.role || u.Role)) || "";
+              var itHeadAliases = ["IT Dept. Head", "IT Head", "IT Dept Head", "Department Head"];
+              var isItHead = itHeadAliases.indexOf(uRole) !== -1 || (uRole.toLowerCase().indexOf("head") !== -1 && uRole.toLowerCase().indexOf("coordinator") === -1);
               var keyBtn = hr ? hr.querySelector("#btnHeaderKeyRequests") : null;
-              var keyBadge = hr ? hr.querySelector("#headerKeyRequestsBadge") : null;
-              if (pendingKeyCount > 0) {
-                if (keyBtn) keyBtn.classList.add("has-pending");
-                if (keyBadge) {
-                  keyBadge.style.display = "inline-flex";
-                  keyBadge.textContent = String(pendingKeyCount);
+              var keyMenu = hr ? hr.querySelector("#key-requests-menu") : null;
+              if (!isItHead) {
+                if (keyBtn) keyBtn.remove();
+                if (keyMenu) keyMenu.remove();
+              } else {
+                var pendingKeyCount = parseInt(sessionStorage.getItem("labsync_dept_head_pending_key_count") || "0", 10);
+                var keyBadge = hr ? hr.querySelector("#headerKeyRequestsBadge") : null;
+                if (pendingKeyCount > 0) {
+                  if (keyBtn) keyBtn.classList.add("has-pending");
+                  if (keyBadge) {
+                    keyBadge.style.display = "inline-flex";
+                    keyBadge.textContent = String(pendingKeyCount);
+                  }
                 }
               }
+              var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
               var d = hr ? hr.querySelector(".notif-dot") : null;
               if (d) d.style.display = hasUnread ? "block" : "none";
             } catch (e) { }
@@ -371,6 +380,7 @@
                     '</div>' +
                     '<div class="rsc-title">Room ' + r.Room_Number + '</div>' +
                     '<div class="rsc-subtitle">' + (r.Building || 'Bldg. B') + '</div>' +
+                    '<div class="rsc-status-badge ' + ((r.Status === 'Finalized' || r.scheduleStatus === 'Finalized') ? 'badge-finalized' : 'badge-draft') + '">' + ((r.Status === 'Finalized' || r.scheduleStatus === 'Finalized') ? 'OFFICIAL' : 'DRAFT') + '</div>' +
                     '</div>';
                 });
                 html += '<div class="room-select-card" id="addRoomCardBtn" style="border: 2px dashed var(--border-light); background: transparent; box-shadow: none; cursor: pointer;">' +
@@ -619,10 +629,10 @@
           onblur="this.style.borderColor='var(--border-light)'; this.style.boxShadow='none';">
       </div>
 
-      <button type="button" id="saveSignatureBtn"
-        style="width: 100%; padding: 14px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 14.5px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);"
-        onmouseover="this.style.background='#17a3bc'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(30, 187, 215, 0.45)';"
-        onmouseout="this.style.background='var(--primary-teal)'; this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(30, 187, 215, 0.35)';">
+      <button type="button" id="saveSignatureBtn" disabled aria-disabled="true"
+        style="width: 100%; padding: 14px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 14.5px; cursor: not-allowed; opacity: 0.5; pointer-events: none; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: none;"
+        onmouseover="if (!this.disabled) { this.style.background='#17a3bc'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 18px rgba(30, 187, 215, 0.45)'; }"
+        onmouseout="if (!this.disabled) { this.style.background='var(--primary-teal)'; this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(30, 187, 215, 0.35)'; }">
         <i data-lucide="check" style="width: 18px; height: 18px;"></i>
         Save Settings
       </button>

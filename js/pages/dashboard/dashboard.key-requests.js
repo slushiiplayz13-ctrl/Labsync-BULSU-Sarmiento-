@@ -12,6 +12,23 @@
   let _cachedLabs = null;
   let _lastFacultyReqData = null;
 
+  function getCurrentUserRole() {
+    try {
+      const rawUser = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || 'null');
+      const user = (rawUser && (rawUser.user || rawUser)) || null;
+      return user ? (user.role || user.Role || '') : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function isApproverOnlyRole(role) {
+    if (!role) return false;
+    const cleanRole = String(role).trim();
+    const itHeadAliases = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head'];
+    return itHeadAliases.includes(cleanRole) || (cleanRole.toLowerCase().includes('head') && !cleanRole.toLowerCase().includes('coordinator'));
+  }
+
   function escapeText(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -144,6 +161,17 @@
    * and renders the real-time status banner on the dashboard or room status page.
    */
   async function loadFacultyKeyRequestStatus() {
+    const role = getCurrentUserRole();
+    if (isApproverOnlyRole(role)) {
+      const banner = document.getElementById('facultyKeyStatusBanner');
+      if (banner) {
+        banner.style.display = 'none';
+        banner.innerHTML = '';
+      }
+      initHeaderReserveButton();
+      return;
+    }
+
     initHeaderReserveButton();
     const banner = document.getElementById('facultyKeyStatusBanner');
 
@@ -1403,8 +1431,18 @@
   }
 
   function initHeaderReserveButton() {
+    const role = getCurrentUserRole();
     const btns = document.querySelectorAll('.btn-reserve-key-header, #btnHeaderReserveKey');
+
+    if (isApproverOnlyRole(role)) {
+      btns.forEach(btn => {
+        btn.style.display = 'none';
+      });
+      return;
+    }
+
     btns.forEach(btn => {
+      btn.style.display = 'inline-flex';
       if (btn.dataset.bound) return;
       btn.dataset.bound = 'true';
       btn.addEventListener('click', () => {
@@ -1429,6 +1467,17 @@
     if (_keyRequestsInitialized) return;
     _keyRequestsInitialized = true;
 
+    const role = getCurrentUserRole();
+    if (isApproverOnlyRole(role)) {
+      initHeaderReserveButton();
+      const banner = document.getElementById('facultyKeyStatusBanner');
+      if (banner) {
+        banner.style.display = 'none';
+        banner.innerHTML = '';
+      }
+      return;
+    }
+
     initHeaderReserveButton();
     loadFacultyKeyRequestStatus();
 
@@ -1442,7 +1491,9 @@
     openAdvanceKeyRequestModal,
     initFacultyKeyRequests,
     generateReservationDateOptions,
-    generateTimeOptions
+    generateTimeOptions,
+    getCurrentUserRole,
+    isApproverOnlyRole
   };
 
   if (document.readyState === 'loading') {

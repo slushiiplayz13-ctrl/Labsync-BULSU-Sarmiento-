@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 const keysController = require('../controllers/keys.controller');
 const keyAuthController = require('../controllers/key-authorization.controller');
-const { requireAuth, requireRole, MIS_STAFF_ROLES, KEY_TRANSFER_ROLES } = require('../middleware/auth');
+const { requireAuth, requireRole, MIS_STAFF_ROLES, KEY_TRANSFER_ROLES, IT_HEAD_ROLES, IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
 
 // ─── 1. KEY TRANSFER & ROOM CLAIM ENDPOINTS ──────────────────────────────────
 // GET /api/keys/transfer-info/:keyCode — Lookup key, room, and current holder for confirmation
@@ -25,14 +25,14 @@ router.post('/request-additional', requireAuth, requireRole(KEY_TRANSFER_ROLES),
 // GET /api/keys/my-request-status — Faculty checks status of their key request
 router.get('/my-request-status', requireAuth, requireRole(KEY_TRANSFER_ROLES), keyAuthController.getFacultyRequestStatus);
 
-// GET /api/keys/pending-requests — IT Dept Head views all pending key requests
-router.get('/pending-requests', requireAuth, requireRole(['IT Dept. Head']), keyAuthController.getPendingRequestsForDeptHead);
+// GET /api/keys/pending-requests — IT Dept Head views all pending key requests (Super Admin only)
+router.get('/pending-requests', requireAuth, requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES), keyAuthController.getPendingRequestsForDeptHead);
 
-// POST /api/keys/requests/:requestId/approve — IT Dept Head approves multi-key request
-router.post('/requests/:requestId/approve', requireAuth, requireRole(['IT Dept. Head']), keyAuthController.approveRequest);
+// POST /api/keys/requests/:requestId/approve — IT Dept Head approves multi-key request (Super Admin only)
+router.post('/requests/:requestId/approve', requireAuth, requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES), keyAuthController.approveRequest);
 
-// POST /api/keys/requests/:requestId/reject — IT Dept Head declines multi-key request
-router.post('/requests/:requestId/reject', requireAuth, requireRole(['IT Dept. Head']), keyAuthController.rejectRequest);
+// POST /api/keys/requests/:requestId/reject — IT Dept Head declines multi-key request (Super Admin only)
+router.post('/requests/:requestId/reject', requireAuth, requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES), keyAuthController.rejectRequest);
 
 // POST /api/keys/requests/:requestId/cancel — Faculty or Dept Head cancels a key reservation
 router.post('/requests/:requestId/cancel', requireAuth, requireRole(KEY_TRANSFER_ROLES), keyAuthController.cancelRequest);

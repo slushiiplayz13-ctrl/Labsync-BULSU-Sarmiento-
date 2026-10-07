@@ -118,6 +118,45 @@ async function updateReportStatus(req, res, next) {
     }
 }
 
+async function followUpReport(req, res, next) {
+    try {
+        const { reportId } = req.params;
+
+        const actor = {
+            userId: req.session ? req.session.userId : null,
+            userRole: req.session ? req.session.userRole : null,
+            userEmail: req.session ? req.session.userEmail : null
+        };
+
+        const result = await maintenanceService.followUpReport(reportId, actor);
+        if (result.error) {
+            return res.status(result.status).json({ error: result.error });
+        }
+
+        await auditService.logSecurityEvent({
+            req,
+            action: 'TICKET_FOLLOW_UP',
+            resourceType: 'MAINTENANCE',
+            resourceId: result.issueId || reportId,
+            details: {
+                status: result.currentStatus,
+                previousFollowUpCount: result.previousCount,
+                followUpCount: result.followUpCount
+            },
+            result: 'SUCCESS'
+        });
+
+        return res.status(result.status).json({
+            message: result.message,
+            issueId: result.issueId,
+            status: result.currentStatus,
+            followUpCount: result.followUpCount
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 async function deleteReport(req, res, next) {
     try {
         const { reportId } = req.params;
@@ -168,6 +207,7 @@ module.exports = {
     verifyStudentID,
     getAllReports,
     updateReportStatus,
+    followUpReport,
     deleteReport,
     getNotifications,
     getPCInfo

@@ -48,28 +48,111 @@
     return data;
   }
 
+  async function saveRoomSchedule(roomNum, schedules, academicYear, semester, version) {
+    const payload = {
+      roomNumber: roomNum,
+      schedules: schedules,
+      academicYear: academicYear,
+      semester: semester
+    };
+    if (version !== undefined && version !== null) {
+      payload.version = version;
+    }
+    const res = await fetch('/api/schedules/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.error || 'Failed to save draft');
+      err.status = res.status;
+      err.response = data;
+      throw err;
+    }
+    return data;
+  }
+
   /**
-   * Saves or updates a room's weekly schedule.
-   * @param {string|number} roomNum - Room number
-   * @param {Array} schedules - Array of schedule objects
-   * @param {string} academicYear - Academic year
-   * @param {string} semester - Semester
+   * Finalizes official room schedule (IT Dept. Head only).
+   * @param {string|number} roomNum
+   * @param {string} academicYear
+   * @param {string} semester
    * @returns {Promise<object>}
    */
-  async function saveRoomSchedule(roomNum, schedules, academicYear, semester) {
-    const res = await fetch('/api/schedules/save', {
+  async function finalizeSchedule(roomNum, academicYear = '', semester = '') {
+    const res = await fetch('/api/schedules/finalize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({
         roomNumber: roomNum,
-        schedules: schedules,
-        academicYear: academicYear,
-        semester: semester
+        academicYear,
+        semester
       })
     });
-    if (!res.ok) throw new Error('Failed to save schedule');
-    return await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.error || 'Failed to finalize schedule');
+      err.status = res.status;
+      err.response = data;
+      throw err;
+    }
+    return data;
+  }
+
+  /**
+   * Reopens a finalized schedule for editing (IT Dept. Head only).
+   * @param {string|number} roomNum
+   * @param {string} academicYear
+   * @param {string} semester
+   * @returns {Promise<object>}
+   */
+  async function reopenSchedule(roomNum, academicYear = '', semester = '') {
+    const res = await fetch('/api/schedules/reopen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        roomNumber: roomNum,
+        academicYear,
+        semester
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.error || 'Failed to reopen schedule');
+      err.status = res.status;
+      err.response = data;
+      throw err;
+    }
+    return data;
+  }
+
+  /**
+   * Gets schedule lifecycle status and metadata for a room or term.
+   * @param {string|number} [roomNum]
+   * @param {string} [academicYear]
+   * @param {string} [semester]
+   * @returns {Promise<object|null>}
+   */
+  async function getScheduleStatus(roomNum = '', academicYear = '', semester = '') {
+    let url = '/api/schedules/status';
+    const params = [];
+    if (roomNum) params.push(`roomNumber=${encodeURIComponent(roomNum)}`);
+    if (academicYear) params.push(`academicYear=${encodeURIComponent(academicYear)}`);
+    if (semester) params.push(`semester=${encodeURIComponent(semester)}`);
+    if (params.length > 0) url += `?${params.join('&')}`;
+
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (err) {
+      console.error('Error fetching schedule status:', err);
+      return null;
+    }
   }
 
   /**
@@ -177,6 +260,9 @@
     getRoomSchedule,
     getUserSchedule,
     saveRoomSchedule,
+    finalizeSchedule,
+    reopenSchedule,
+    getScheduleStatus,
     checkProfessorConflict,
     getProfessorSchedule,
     getFaculty,
@@ -187,6 +273,9 @@
   global.getRoomSchedule = getRoomSchedule;
   global.getUserSchedule = getUserSchedule;
   global.saveRoomSchedule = saveRoomSchedule;
+  global.finalizeSchedule = finalizeSchedule;
+  global.reopenSchedule = reopenSchedule;
+  global.getScheduleStatus = getScheduleStatus;
   global.checkProfessorConflict = checkProfessorConflict;
   global.getProfessorSchedule = getProfessorSchedule;
   global.getFaculty = getFaculty;

@@ -190,9 +190,9 @@
     .confirm-modal-container {
       background: #ffffff;
       border-radius: 20px;
-      padding: 32px;
+      padding: 30px;
       width: 100%;
-      max-width: 480px;
+      max-width: 530px;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--border-light);
       transform: scale(0.9) translateY(20px);
@@ -260,11 +260,12 @@
     .confirm-modal-footer {
       display: flex;
       justify-content: flex-end;
-      gap: 12px;
+      align-items: center;
+      gap: 10px;
     }
 
     .confirm-btn {
-      padding: 10px 20px;
+      padding: 10px 18px;
       border-radius: 12px;
       font-family: var(--font-body);
       font-weight: 600;
@@ -273,7 +274,10 @@
       transition: all 0.2s ease;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
+      white-space: nowrap !important;
+      flex-shrink: 0;
     }
 
     .confirm-btn-cancel {
@@ -308,6 +312,25 @@
     .confirm-btn-save:hover {
       background: #17a3bc;
       box-shadow: 0 6px 16px rgba(30, 187, 215, 0.4);
+    }
+
+    @media (max-width: 480px) {
+      .confirm-modal-container {
+        padding: 24px 16px !important;
+        max-width: calc(100vw - 32px) !important;
+      }
+
+      .confirm-modal-footer {
+        flex-direction: column-reverse;
+        gap: 8px;
+        width: 100%;
+      }
+
+      .confirm-btn {
+        width: 100%;
+        justify-content: center;
+        white-space: nowrap !important;
+      }
     }
 
     @keyframes spin {
@@ -1902,6 +1925,27 @@
       pointer-events: none !important;
       box-shadow: none !important;
     }
+
+    /* Print Schedule Button Disabled State (Draft mode) */
+    #print-schedule-btn:disabled,
+    #print-schedule-btn[disabled] {
+      opacity: 0.45 !important;
+      cursor: not-allowed !important;
+      box-shadow: none !important;
+      border-color: #CBD5E1 !important;
+      color: #94A3B8 !important;
+    }
+
+    html.dark-mode #print-schedule-btn:disabled,
+    body.dark-mode #print-schedule-btn:disabled,
+    [data-theme="dark"] #print-schedule-btn:disabled,
+    html.high-contrast #print-schedule-btn:disabled {
+      opacity: 0.4 !important;
+      cursor: not-allowed !important;
+      box-shadow: none !important;
+      border-color: #475569 !important;
+      color: #64748B !important;
+    }
   </style>
 
 </head>
@@ -2123,38 +2167,38 @@
             <i data-lucide="chevron-left" style="width: 22px; height: 22px;"></i>
           </button>
           <div style="cursor: default; user-select: none;">
-            <h1
-              style="font-size: 24px; font-weight: 800; color: var(--text-dark); margin: 0; font-family: var(--font-display); letter-spacing: -0.5px; line-height: 1.2; cursor: default; user-select: none;">
-              Room 204 Schedule</h1>
-            <p style="font-size: 13.5px; color: #94A3B8; font-weight: 500; margin: 3px 0 0 0; cursor: default; user-select: none;">Building B &bull; Master
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <h1 id="editor-room-title"
+                style="font-size: 24px; font-weight: 800; color: var(--text-dark); margin: 0; font-family: var(--font-display); letter-spacing: -0.5px; line-height: 1.2; cursor: default; user-select: none;">
+                Room 204 Schedule</h1>
+              <span id="schedule-status-badge" class="schedule-status-badge badge-draft"
+                style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; font-family: var(--font-body); background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A;">
+                <span class="status-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #D97706;"></span>
+                <span id="schedule-status-text">WORKING DRAFT</span>
+              </span>
+            </div>
+            <p id="editor-room-subtitle" style="font-size: 13.5px; color: #94A3B8; font-weight: 500; margin: 3px 0 0 0; cursor: default; user-select: none;">Building B &bull; Master
               Schedule Editor</p>
           </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 24px;">
-          <!-- Compact Real-time Clock -->
-          <div class="clock-block" style="text-align: right;">
-            <div class="clock-time" id="clockTime"
-              style="font-size: 24px; font-weight: 800; color: var(--primary-teal); line-height: 1.1;"></div>
-            <div class="clock-date" id="clockDate"
-              style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px; font-weight: 500;"></div>
-            <script>
-              (function () {
-                try {
-                  var d = new Date(), DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                  var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds(), ampm = h >= 12 ? 'PM' : 'AM', fh = h % 12 || 12;
-                  var p = function (n) { return String(n).padStart(2, '0'); };
-                  var t = document.getElementById('clockTime'), dt = document.getElementById('clockDate');
-                  if (t) t.textContent = p(fh) + ':' + p(m) + ':' + p(s) + ' ' + ampm;
-                  if (dt) dt.textContent = DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
-                } catch (e) { }
-              })();
-            </script>
-          </div>
-
           <!-- Actions -->
-          <div class="seh-actions" style="display: flex; align-items: center; gap: 12px;">
-            <button id="print-schedule-btn" onclick="preparePrint()"
+          <div class="seh-actions" style="display: flex; align-items: center; gap: 10px;">
+            <button id="finalize-schedule-btn" type="button"
+              style="display: none; align-items: center; gap: 7px; background: #059669; color: #ffffff; border: none; padding: 9px 18px; border-radius: 20px; font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);"
+              onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
+              <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+              Finalize Official Schedule
+            </button>
+            <button id="reopen-schedule-btn" type="button"
+              style="display: none; align-items: center; gap: 7px; background: #D97706; color: #ffffff; border: none; padding: 9px 18px; border-radius: 20px; font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);"
+              onmouseover="this.style.background='#B45309'" onmouseout="this.style.background='#D97706'">
+              <i data-lucide="lock-open" style="width: 16px; height: 16px;"></i>
+              Reopen for Editing
+            </button>
+            <button id="print-schedule-btn" onclick="preparePrint()" disabled aria-disabled="true"
+              title="Print Schedule is available after the schedule is finalized."
               style="display: flex; align-items: center; gap: 7px; background: transparent; color: var(--primary-teal); border: 1.5px solid var(--primary-teal); padding: 9px 18px; border-radius: 20px; font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s;">
               <i data-lucide="printer" style="width: 17px; height: 17px;"></i>
               Print Schedule
@@ -2162,7 +2206,7 @@
             <button id="save-schedule-btn" class="btn-primary" disabled
               style="display: flex; align-items: center; gap: 7px; background: var(--primary-teal); color: #fff; border: none; padding: 9px 20px; border-radius: 20px; font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(30, 187, 215, 0.3); transition: all 0.2s;">
               <i data-lucide="save" style="width: 17px; height: 17px;"></i>
-              Save Schedule
+              Save Draft
             </button>
           </div>
         </div>
@@ -2260,9 +2304,26 @@
           <!-- Header -->
           <div class="schedule-header">
             <div class="schedule-header-title-row">
-              <div class="schedule-header-title">
-                <i data-lucide="calendar"></i> Weekly Schedule – Room 204
+              <div class="schedule-header-title" id="weekly-schedule-title">
+                <i data-lucide="calendar"></i> Weekly Schedule – Room <span id="weekly-schedule-room-num">204</span>
               </div>
+              <script>
+                (function () {
+                  try {
+                    var p = new URLSearchParams(window.location.search);
+                    var r = p.get('room');
+                    var b = p.get('bldg');
+                    if (r) {
+                      var titleNum = document.getElementById('weekly-schedule-room-num');
+                      if (titleNum) titleNum.textContent = r;
+                      var h1 = document.getElementById('editor-room-title');
+                      if (h1) h1.textContent = 'Room ' + r + ' Schedule';
+                      var sub = document.getElementById('editor-room-subtitle');
+                      if (sub && b) sub.textContent = b + ' \u2022 Master Schedule Editor';
+                    }
+                  } catch (e) { }
+                })();
+              </script>
             </div>
 
             <!-- In-Header Selector Panel -->
@@ -2390,12 +2451,12 @@
         <h3>Unsaved Changes</h3>
       </div>
       <div class="confirm-modal-body">
-        <p>You have unsaved schedule changes. What would you like to do before leaving?</p>
+        <p>You have unsaved draft changes. What would you like to do before leaving?</p>
       </div>
       <div class="confirm-modal-footer">
         <button id="confirm-cancel-btn" class="confirm-btn confirm-btn-cancel">Cancel</button>
         <button id="confirm-discard-btn" class="confirm-btn confirm-btn-discard">Discard Changes</button>
-        <button id="confirm-save-btn" class="confirm-btn confirm-btn-save">Save & Leave</button>
+        <button id="confirm-save-btn" class="confirm-btn confirm-btn-save">Save Draft & Leave</button>
       </div>
     </div>
   </div>
@@ -2458,6 +2519,50 @@
           style="background: var(--primary-teal); color: #fff; border: none; padding: 10px 24px; border-radius: 12px; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; font-family: var(--font-body);">
           Done
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Finalize / Reopen Confirmation Modal -->
+  <div id="schedule-status-confirm-modal" class="confirm-modal-overlay" style="display: none;">
+    <div class="confirm-modal-container" style="max-width: 440px;">
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+        <div id="status-modal-icon-wrap" style="width: 44px; height: 44px; border-radius: 12px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i id="status-modal-icon" data-lucide="check-circle" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div>
+          <h3 id="status-modal-title" style="font-size: 17px; font-weight: 700; color: var(--text-dark); margin: 0; font-family: var(--font-display);">Finalize Official Schedule</h3>
+          <p id="status-modal-subtitle" style="font-size: 12px; color: #94A3B8; margin: 2px 0 0 0; font-weight: 500;">Department Head Action</p>
+        </div>
+      </div>
+      <p id="status-modal-desc" style="font-size: 13.5px; color: var(--text-mid); line-height: 1.5; margin: 0 0 24px 0; font-family: var(--font-body);">
+        Finalize this schedule as the official schedule? Further edits will require the IT Department Head to reopen it.
+      </p>
+      <div class="confirm-modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-light); padding-top: 18px;">
+        <button id="status-modal-cancel-btn" type="button" class="confirm-btn confirm-btn-discard" style="padding: 10px 18px; font-size: 13px;">Cancel</button>
+        <button id="status-modal-confirm-btn" type="button" class="confirm-btn confirm-btn-save" style="padding: 10px 22px; font-size: 13px; background: #059669;">Confirm Finalization</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stale Schedule Conflict (HTTP 409) Modal -->
+  <div id="stale-schedule-modal" class="confirm-modal-overlay" style="display: none;">
+    <div class="confirm-modal-container" style="max-width: 440px;">
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i data-lucide="alert-triangle" style="width: 24px; height: 24px;"></i>
+        </div>
+        <div>
+          <h3 style="font-size: 17px; font-weight: 700; color: var(--text-dark); margin: 0; font-family: var(--font-display);">Schedule Out of Sync</h3>
+          <p style="font-size: 12px; color: #94A3B8; margin: 2px 0 0 0; font-weight: 500;">Concurrency Protection</p>
+        </div>
+      </div>
+      <p id="stale-modal-desc" style="font-size: 13.5px; color: var(--text-mid); line-height: 1.5; margin: 0 0 24px 0; font-family: var(--font-body);">
+        This schedule was modified by another administrator while you were editing. To prevent accidentally overwriting their changes, please reload the latest schedule.
+      </p>
+      <div class="confirm-modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-light); padding-top: 18px;">
+        <button id="stale-keep-btn" type="button" class="confirm-btn confirm-btn-discard" style="padding: 10px 18px; font-size: 13px;">Keep Current View</button>
+        <button id="stale-reload-btn" type="button" class="confirm-btn confirm-btn-save" style="padding: 10px 22px; font-size: 13px;">Reload Latest Schedule</button>
       </div>
     </div>
   </div>

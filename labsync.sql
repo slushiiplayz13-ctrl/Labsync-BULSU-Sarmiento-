@@ -264,11 +264,15 @@ CREATE TABLE `maintenance_issues` (
   `Created_At` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `Resolved_At` datetime DEFAULT NULL,
   `Resolved_By_User_ID` int(11) DEFAULT NULL,
+  `Follow_Up_Count` int(11) NOT NULL DEFAULT 0,
+  `Followed_Up_At` datetime DEFAULT NULL,
+  `Followed_Up_By_User_ID` int(11) DEFAULT NULL,
   `Active_Issue_Key` varchar(80) GENERATED ALWAYS AS (IF(`Status` != 'Resolved', CONCAT(`PC_ID`, ':', `Issue_Type`), NULL)) STORED,
   PRIMARY KEY (`Issue_ID`),
   UNIQUE KEY `uq_active_pc_issue` (`Active_Issue_Key`),
   KEY `idx_pc_issue_status` (`PC_ID`, `Status`, `Issue_Type`),
-  KEY `idx_maintenance_resolved_by` (`Resolved_By_User_ID`)
+  KEY `idx_maintenance_resolved_by` (`Resolved_By_User_ID`),
+  KEY `idx_maintenance_followed_up_by` (`Followed_Up_By_User_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -322,7 +326,8 @@ ALTER TABLE `maintenance`
 
 ALTER TABLE `maintenance_issues`
   ADD CONSTRAINT `maintenance_issues_ibfk_1` FOREIGN KEY (`PC_ID`) REFERENCES `lab_units` (`PC_ID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_maintenance_issues_resolved_by` FOREIGN KEY (`Resolved_By_User_ID`) REFERENCES `users` (`User_ID`) ON DELETE SET NULL;
+  ADD CONSTRAINT `fk_maintenance_issues_resolved_by` FOREIGN KEY (`Resolved_By_User_ID`) REFERENCES `users` (`User_ID`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_maintenance_issues_followed_up_by` FOREIGN KEY (`Followed_Up_By_User_ID`) REFERENCES `users` (`User_ID`) ON DELETE SET NULL;
 
 -- --------------------------------------------------------
 -- Seed Data

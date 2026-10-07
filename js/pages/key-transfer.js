@@ -470,9 +470,10 @@
   }
 
   function navigateToDashboard() {
-    if (keyData && keyData.currentUser && keyData.currentUser.role === 'IT Dept. Head') {
+    const role = (keyData && keyData.currentUser && keyData.currentUser.role) || '';
+    if (role === 'IT Dept. Head' || role === 'IT Head' || role === 'Program Coordinator' || role.toLowerCase().includes('head')) {
       window.location.href = 'it-head-dashboard.html';
-    } else if (keyData && keyData.currentUser && keyData.currentUser.role === 'MIS Staff') {
+    } else if (role === 'MIS Staff') {
       window.location.href = 'mis-staff-dashboard.html';
     } else {
       window.location.href = 'faculty-dashboard.html';

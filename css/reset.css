@@ -13,6 +13,7 @@
 html {
   background: var(--bg-page, #F8FAFC);
   background-color: var(--bg-page, #F8FAFC);
+  cursor: default;
 }
 
 body {
@@ -23,6 +24,55 @@ body {
   height: 100vh;
   overflow: hidden;
   width: 100%;
+  cursor: default;
+}
+
+/* ─── GLOBAL CURSOR SYSTEM ─────────────────────────────────────── */
+/* Ensure all non-editable static text across the system displays the default arrow cursor instead of text I-beam */
+html,
+body {
+  cursor: default;
+}
+
+/* Ensure interactive elements and clickable controls display pointer cursor */
+button,
+a,
+select,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+label[for],
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+[role="option"],
+.btn,
+.sidebar-btn,
+.menu-item,
+.dropdown-item,
+.clickable {
+  cursor: pointer;
+}
+
+/* Ensure text inputs and editable controls display text typing cursor */
+input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="image"]),
+textarea,
+[contenteditable="true"] {
+  cursor: text;
+}
+
+/* Disabled controls */
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+.btn:disabled,
+.disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
 }
 
 /* ─── SCROLLBAR ──────────────────────────────────────────────────── */

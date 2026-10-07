@@ -5,7 +5,8 @@
  * Session authentication & role authorization middleware.
  */
 
-const IT_HEAD_ROLES = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head'];
+const IT_HEAD_ROLES = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head', 'Program Coordinator'];
+const IT_DEPT_HEAD_EXCLUSIVE_ROLES = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head'];
 const ADMIN_ROLES = [...IT_HEAD_ROLES, 'MIS Staff'];
 const MIS_STAFF_ROLES = ['MIS Staff'];
 const OJT_ROLES = ['OJT'];
@@ -135,6 +136,7 @@ module.exports = {
     requireRole,
     ADMIN_ROLES,
     IT_HEAD_ROLES,
+    IT_DEPT_HEAD_EXCLUSIVE_ROLES,
     MIS_STAFF_ROLES,
     OJT_ROLES,
     TICKET_UPDATE_ROLES,

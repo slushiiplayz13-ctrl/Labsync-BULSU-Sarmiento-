@@ -39,14 +39,27 @@ async function updateFacultyRole(req, res, next) {
         const { userId } = req.params;
         const { role } = req.body;
         const currentSessionUserId = req.session ? req.session.userId : null;
+        const actingRole = req.session ? req.session.userRole : null;
 
-        const result = await facultyService.updateFacultyRole(userId, role, currentSessionUserId, req.session);
+        const result = await facultyService.updateFacultyRole(userId, role, currentSessionUserId, req.session, actingRole);
         if (result.error) {
+            if (result.status === 403) {
+                await auditService.logSecurityEvent({
+                    req,
+                    actorRole: actingRole,
+                    action: 'FACULTY_ROLE_UPDATE_DENIED',
+                    resourceType: 'FACULTY',
+                    resourceId: userId,
+                    details: { attemptedRole: role, reason: result.error },
+                    result: 'DENIED'
+                });
+            }
             return res.status(result.status).json({ error: result.error });
         }
 
         await auditService.logSecurityEvent({
             req,
+            actorRole: actingRole,
             action: 'FACULTY_ROLE_UPDATE',
             resourceType: 'FACULTY',
             resourceId: userId,
@@ -74,13 +87,26 @@ async function updateFacultyRole(req, res, next) {
 async function deleteFaculty(req, res, next) {
     try {
         const { userId } = req.params;
-        const result = await facultyService.deleteFaculty(userId);
+        const actingRole = req.session ? req.session.userRole : null;
+        const result = await facultyService.deleteFaculty(userId, actingRole);
         if (result.error) {
+            if (result.status === 403) {
+                await auditService.logSecurityEvent({
+                    req,
+                    actorRole: actingRole,
+                    action: 'FACULTY_DELETE_DENIED',
+                    resourceType: 'FACULTY',
+                    resourceId: userId,
+                    details: { reason: result.error },
+                    result: 'DENIED'
+                });
+            }
             return res.status(result.status).json({ error: result.error });
         }
 
         await auditService.logSecurityEvent({
             req,
+            actorRole: actingRole,
             action: 'FACULTY_DELETE',
             resourceType: 'FACULTY',
             resourceId: userId,

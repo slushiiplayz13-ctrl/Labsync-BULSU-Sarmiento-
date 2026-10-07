@@ -65,9 +65,6 @@
       ? global.maintenanceRenderer.formatIssueBadges
       : (typeof global.formatIssueBadges === 'function' ? global.formatIssueBadges : () => '');
 
-    const displayIssues = report.Issue_Type || parsed.issues;
-    const issueBadges = badgeFormatter(displayIssues, parsed.remarks, true);
-
     closeTicketModal();
 
     const linkedReports = Array.isArray(report.reports) && report.reports.length > 0
@@ -77,6 +74,48 @@
           Issue_Description: report.Issue_Description,
           Date_Reported: report.Date_Reported || report.Created_At
         }];
+
+    // Comprehensive Issue Extraction (collect and deduplicate all flagged components across report and linked submissions)
+    const allIssueNames = [];
+    const addIssues = (str) => {
+      if (!str) return;
+      str.split(',').map(s => s.trim()).filter(Boolean).forEach(comp => {
+        const lower = comp.toLowerCase();
+        if (lower !== 'none' && lower !== 'n/a' && lower !== 'hardware issue' && !allIssueNames.some(existing => existing.toLowerCase() === lower)) {
+          allIssueNames.push(comp);
+        }
+      });
+    };
+
+    if (parsed.issues && parsed.issues.toLowerCase() !== 'none' && parsed.issues.toLowerCase() !== 'hardware issue') {
+      addIssues(parsed.issues);
+    }
+    if (Array.isArray(report.reports)) {
+      report.reports.forEach(r => {
+        if (r && r.Issue_Description) {
+          const p = typeof parserFn === 'function' ? parserFn(r.Issue_Description) : null;
+          if (p && p.issues && p.issues.toLowerCase() !== 'none' && p.issues.toLowerCase() !== 'hardware issue') {
+            addIssues(p.issues);
+          }
+        }
+        if (r && r.Issue_Type && r.Issue_Type.toLowerCase() !== 'hardware issue' && r.Issue_Type.toLowerCase() !== 'none') {
+          addIssues(r.Issue_Type);
+        }
+      });
+    }
+    if (allIssueNames.length === 0 && report.Issue_Type && report.Issue_Type.toLowerCase() !== 'hardware issue' && report.Issue_Type.toLowerCase() !== 'none') {
+      addIssues(report.Issue_Type);
+    }
+    if (allIssueNames.length === 0) {
+      allIssueNames.push('None');
+    }
+
+    const issuesJoined = allIssueNames.join(', ');
+    const issueBadges = badgeFormatter(issuesJoined, parsed.remarks, true);
+
+    const displayCategory = allIssueNames.length > 1
+      ? `Multiple Issues (${allIssueNames.length})`
+      : (allIssueNames[0] || report.Issue_Type || 'Hardware');
 
     let bodyContentHtml = '';
 
@@ -202,9 +241,13 @@
       const studentReportsHtml = linkedReports.map((rep) => {
         const repDate = rep.Date_Reported ? new Date(rep.Date_Reported) : new Date();
         const repTimeStr = repDate.toLocaleTimeString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        const repParsed = typeof parserFn === 'function' ? parserFn(rep.Issue_Description) : { section: 'N/A', remarks: rep.Issue_Description || 'None' };
+        const repParsed = typeof parserFn === 'function' ? parserFn(rep.Issue_Description) : { section: 'N/A', issues: 'None', remarks: rep.Issue_Description || 'None' };
         const repRemarks = (repParsed.remarks || '').trim();
         const isRepEmpty = !repRemarks || repRemarks.toLowerCase() === 'none' || repRemarks.toLowerCase() === 'n/a';
+        const repIssues = (repParsed.issues && repParsed.issues.toLowerCase() !== 'none' && repParsed.issues.toLowerCase() !== 'hardware issue')
+          ? repParsed.issues
+          : (rep.Issue_Type && rep.Issue_Type.toLowerCase() !== 'hardware issue' ? rep.Issue_Type : '');
+        const repBadgesHtml = repIssues ? badgeFormatter(repIssues, '', true, { isCompact: true }) : '';
 
         return `
           <div class="ticket-modal-report-item">
@@ -215,6 +258,11 @@
               </div>
               <span style="font-size:11.5px; color:var(--text-muted); font-weight:500;">${repTimeStr}</span>
             </div>
+            ${repBadgesHtml ? `
+              <div style="display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 2px 0;">
+                ${repBadgesHtml}
+              </div>
+            ` : ''}
             <div style="display:flex; align-items:flex-start; gap:8px; margin-top:4px;">
               <i data-lucide="message-square" style="width:15px; height:15px; color:var(--primary-teal, #0891B2); flex-shrink:0; margin-top:2px;"></i>
               <span style="font-size:13px; color:${isRepEmpty ? 'var(--text-muted)' : 'var(--text-dark)'}; ${isRepEmpty ? 'font-style:italic;' : ''} line-height:1.45; font-weight:500; word-break:break-word; flex:1;">
@@ -242,18 +290,11 @@
             <div class="ticket-modal-meta-cell">
               <div class="ticket-modal-meta-label">
                 <i data-lucide="layers" style="width:13px;height:13px;color:var(--primary-teal);flex-shrink:0;"></i>
-                <span>Issue Category</span>
+                <span>Submissions Summary</span>
               </div>
               <div class="ticket-modal-meta-val">
-                <span>${escapeText(displayIssues)}</span>
+                <span>${linkedReports.length} Student Reports <span style="opacity:0.4; margin:0 4px;">•</span> ${allIssueNames.length} Issues</span>
               </div>
-            </div>
-          </div>
-
-          <div>
-            <div class="ticket-modal-section-title">Flagged Component Issues</div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-              ${issueBadges}
             </div>
           </div>
 
@@ -262,7 +303,7 @@
               <span>Student Reports (${linkedReports.length})</span>
               <span style="font-size:11px; background:rgba(30,187,215,0.12); color:var(--primary-teal); padding:2px 8px; border-radius:99px; font-weight:600;">Linked Submissions</span>
             </div>
-            <div style="display:flex; flex-direction:column; gap:10px; max-height:220px; overflow-y:auto; padding-right:4px;">
+            <div style="display:flex; flex-direction:column; gap:10px; max-height:360px; overflow-y:auto; padding-right:4px;">
               ${studentReportsHtml}
             </div>
           </div>

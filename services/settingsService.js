@@ -2,6 +2,7 @@
 
 const settingsRepository = require('../repositories/settings.repository');
 const userRepository = require('../repositories/user.repository');
+const { ADMIN_ROLES } = require('../middleware/auth');
 
 async function getSettings() {
     const [rows] = await settingsRepository.findAllSettings();
@@ -21,7 +22,7 @@ async function updateSettings(settings, sessionUserId, sessionUserRole) {
         }
     }
 
-    const isAuthorized = role && (role.toLowerCase().includes('head') || role === 'MIS Staff');
+    const isAuthorized = role && ADMIN_ROLES.includes(role);
     if (!isAuthorized) {
         return { status: 403, error: 'Privilege required: Only administrators can modify system settings.' };
     }

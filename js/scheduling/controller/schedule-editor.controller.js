@@ -12,6 +12,20 @@
    * Prepares draft print payload and opens single room print preview in a new tab.
    */
   function preparePrint() {
+    const status = (global.schedulePersistence && typeof global.schedulePersistence.getCurrentStatus === 'function')
+      ? global.schedulePersistence.getCurrentStatus()
+      : ((global.scheduleState && global.scheduleState.status) || 'Draft');
+
+    if (status !== 'Finalized') {
+      const msg = 'Print Schedule is available after the schedule is finalized.';
+      if (global.showToast) {
+        global.showToast(msg, 'warning', 'Print Disabled');
+      } else {
+        alert(msg);
+      }
+      return;
+    }
+
     const context = global.slotMath ? global.slotMath.getScheduleContext() : {};
     const urlParams = new URLSearchParams(window.location.search);
     const roomNum = context.roomNumber || '204';
@@ -423,9 +437,9 @@
             global.lucide.createIcons({ root: saveConfirmBtn });
           }
           if (global.showToast) {
-            global.showToast('Failed to save schedule. Please try again.', 'error');
+            global.showToast('Failed to save draft. Please try again.', 'error');
           } else {
-            alert('Failed to save schedule.');
+            alert('Failed to save draft.');
           }
         }
       });
@@ -461,6 +475,19 @@
     const printRoomTitle = document.getElementById('print-room-title');
     if (printRoomTitle) {
       printRoomTitle.textContent = `${bldgName.toUpperCase()} RM ${roomNum}`;
+    }
+
+    const weeklyTitleNum = document.getElementById('weekly-schedule-room-num');
+    if (weeklyTitleNum) {
+      weeklyTitleNum.textContent = roomNum;
+    } else {
+      const weeklyScheduleTitle = document.querySelector('.schedule-header-title');
+      if (weeklyScheduleTitle) {
+        weeklyScheduleTitle.innerHTML = `<i data-lucide="calendar"></i> Weekly Schedule \u2013 Room ${roomNum}`;
+        if (global.lucide && typeof global.lucide.createIcons === 'function') {
+          global.lucide.createIcons({ root: weeklyScheduleTitle });
+        }
+      }
     }
 
     const persistence = global.schedulePersistence;
@@ -724,7 +751,7 @@
       });
     }
 
-    // Save schedule button
+    // Save draft button
     const saveBtn = document.getElementById('save-schedule-btn');
     if (saveBtn) {
       saveBtn.addEventListener('click', async () => {
@@ -735,7 +762,7 @@
 
         try {
           saveBtn.disabled = true;
-          saveBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width: 17px; height: 17px;"></i> Saving...';
+          saveBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width: 17px; height: 17px;"></i> Saving Draft...';
           if (global.lucide && typeof global.lucide.createIcons === 'function') {
             global.lucide.createIcons({ root: saveBtn });
           }
@@ -744,18 +771,60 @@
             ? await persistence.saveCurrentSchedule()
             : true;
           if (!saved) return;
+
+          let isProgCoord = false;
+          try {
+            const cachedUserStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
+            if (cachedUserStr) {
+              const rawUser = JSON.parse(cachedUserStr);
+              const u = rawUser && (rawUser.user || rawUser);
+              const role = String((u && (u.role || u.Role)) || '').trim().toLowerCase();
+              isProgCoord = role.includes('coordinator');
+            }
+          } catch (e) {}
+
           if (global.showToast) {
-            global.showToast('Schedule saved successfully!', 'success');
+            if (isProgCoord) {
+              global.showToast(
+                'Draft saved successfully. The schedule is not yet official. Please wait for the IT Dept. Head to review and finalize this draft.',
+                'info',
+                'Draft Saved'
+              );
+            } else {
+              global.showToast(
+                'Draft saved successfully. Review the draft and finalize it when it is ready to become the official schedule.',
+                'success',
+                'Draft Saved'
+              );
+            }
           }
         } catch (err) {
-          console.error('Error saving schedule:', err);
-          if (global.showToast) {
-            global.showToast('Failed to save schedule. Please try again.', 'error');
+          console.error('Error saving schedule draft:', err);
+          const isStale = (err && (err.status === 409 || (err.message && err.message.includes('modified by another administrator'))));
+          const isFinalized = (err && (err.status === 403 || (err.message && err.message.includes('finalized'))));
+
+          if (isStale) {
+            showStaleScheduleModal(err.message);
+          } else if (isFinalized) {
+            const msg = err.message || 'Cannot modify a finalized schedule. It must be reopened first.';
+            if (global.showToast) {
+              global.showToast(msg, 'error');
+            } else {
+              alert(msg);
+            }
+          } else if (err && err.message && err.message.includes('conflict')) {
+            if (global.showToast) {
+              global.showToast(err.message, 'error');
+            } else {
+              alert(err.message);
+            }
+          } else if (global.showToast) {
+            global.showToast(err.message || 'Failed to save draft. Please try again.', 'error');
           } else {
-            alert('Failed to save schedule.');
+            alert('Failed to save draft.');
           }
         } finally {
-          saveBtn.innerHTML = '<i data-lucide="save" style="width: 17px; height: 17px;"></i> Save Schedule';
+          saveBtn.innerHTML = '<i data-lucide="save" style="width: 17px; height: 17px;"></i> Save Draft';
           if (global.lucide && typeof global.lucide.createIcons === 'function') {
             global.lucide.createIcons({ root: saveBtn });
           }
@@ -768,10 +837,185 @@
       });
     }
 
+    // Modal Helper: Finalize & Reopen Official Schedule
+    function openStatusConfirmModal(type) {
+      const modal = document.getElementById('schedule-status-confirm-modal');
+      if (!modal) return;
+
+      const titleEl = document.getElementById('status-modal-title');
+      const descEl = document.getElementById('status-modal-desc');
+      const confirmBtn = document.getElementById('status-modal-confirm-btn');
+      const cancelBtn = document.getElementById('status-modal-cancel-btn');
+      const iconWrap = document.getElementById('status-modal-icon-wrap');
+      const iconEl = document.getElementById('status-modal-icon');
+
+      const context = global.slotMath ? global.slotMath.getScheduleContext() : {};
+      const roomNum = context.roomNumber || '204';
+      const academicYear = context.academicYear;
+      const semester = context.semester;
+
+      if (type === 'finalize') {
+        if (titleEl) titleEl.textContent = 'Finalize Official Schedule';
+        if (descEl) descEl.textContent = 'Finalize this schedule as the official schedule? Further edits will require the IT Department Head to reopen it.';
+        if (confirmBtn) {
+          confirmBtn.textContent = 'Confirm Finalization';
+          confirmBtn.style.background = '#059669';
+        }
+        if (iconWrap) {
+          iconWrap.style.background = '#ECFDF5';
+          iconWrap.style.color = '#059669';
+        }
+        if (iconEl) iconEl.setAttribute('data-lucide', 'check-circle');
+      } else {
+        if (titleEl) titleEl.textContent = 'Reopen Schedule for Editing';
+        if (descEl) descEl.textContent = 'Reopen this schedule for editing? The schedule will return to Working Draft status.';
+        if (confirmBtn) {
+          confirmBtn.textContent = 'Reopen for Editing';
+          confirmBtn.style.background = '#D97706';
+        }
+        if (iconWrap) {
+          iconWrap.style.background = '#FEF3C7';
+          iconWrap.style.color = '#D97706';
+        }
+        if (iconEl) iconEl.setAttribute('data-lucide', 'lock-open');
+      }
+
+      if (global.lucide && typeof global.lucide.createIcons === 'function') {
+        global.lucide.createIcons({ root: modal });
+      }
+
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('active'), 10);
+
+      const closeModal = () => {
+        modal.classList.remove('active');
+        setTimeout(() => modal.style.display = 'none', 200);
+      };
+
+      if (cancelBtn) {
+        cancelBtn.onclick = closeModal;
+      }
+
+      if (confirmBtn) {
+        confirmBtn.onclick = async () => {
+          try {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Processing...';
+
+            if (type === 'finalize') {
+              if (global.scheduleService && typeof global.scheduleService.finalizeSchedule === 'function') {
+                await global.scheduleService.finalizeSchedule(roomNum, academicYear, semester);
+              }
+              if (global.showToast) {
+                global.showToast(`Room ${roomNum} schedule finalized as official!`, 'success');
+              }
+            } else {
+              if (global.scheduleService && typeof global.scheduleService.reopenSchedule === 'function') {
+                await global.scheduleService.reopenSchedule(roomNum, academicYear, semester);
+              }
+              if (global.showToast) {
+                global.showToast(`Room ${roomNum} schedule reopened for editing.`, 'success');
+              }
+            }
+
+            closeModal();
+            if (persistence && typeof persistence.loadRoomSchedule === 'function') {
+              await persistence.loadRoomSchedule();
+            }
+          } catch (err) {
+            console.error('Error changing schedule status:', err);
+            if (global.showToast) {
+              global.showToast(err.message || 'Operation failed. Please try again.', 'error');
+            } else {
+              alert(err.message || 'Operation failed.');
+            }
+          } finally {
+            confirmBtn.disabled = false;
+          }
+        };
+      }
+    }
+
+    // Modal Helper: Stale Schedule (HTTP 409) Out-of-Sync Modal
+    function showStaleScheduleModal(msg) {
+      const modal = document.getElementById('stale-schedule-modal');
+      if (!modal) {
+        if (global.showToast) {
+          global.showToast('This schedule was modified by another administrator. Please reload before saving.', 'error');
+        } else {
+          alert('This schedule was modified by another administrator. Please reload the latest schedule before saving your changes.');
+        }
+        return;
+      }
+
+      const descEl = document.getElementById('stale-modal-desc');
+      if (descEl && msg) {
+        descEl.textContent = msg;
+      }
+
+      const keepBtn = document.getElementById('stale-keep-btn');
+      const reloadBtn = document.getElementById('stale-reload-btn');
+
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('active'), 10);
+
+      const closeModal = () => {
+        modal.classList.remove('active');
+        setTimeout(() => modal.style.display = 'none', 200);
+      };
+
+      if (keepBtn) {
+        keepBtn.onclick = closeModal;
+      }
+
+      if (reloadBtn) {
+        reloadBtn.onclick = async () => {
+          closeModal();
+          if (persistence && typeof persistence.loadRoomSchedule === 'function') {
+            await persistence.loadRoomSchedule();
+            if (global.showToast) {
+              global.showToast('Reloaded latest schedule from server.', 'info');
+            }
+          }
+        };
+      }
+
+      if (global.lucide && typeof global.lucide.createIcons === 'function') {
+        global.lucide.createIcons({ root: modal });
+      }
+    }
+
+    global.showStaleScheduleModal = showStaleScheduleModal;
+
+    // Finalize schedule button binding
+    const finalizeBtn = document.getElementById('finalize-schedule-btn');
+    if (finalizeBtn) {
+      finalizeBtn.addEventListener('click', () => {
+        openStatusConfirmModal('finalize');
+      });
+    }
+
+    // Reopen schedule button binding
+    const reopenBtn = document.getElementById('reopen-schedule-btn');
+    if (reopenBtn) {
+      reopenBtn.addEventListener('click', () => {
+        openStatusConfirmModal('reopen');
+      });
+    }
+
     // Print Button
     const printBtn = document.getElementById('print-schedule-btn');
     if (printBtn) {
-      printBtn.addEventListener('click', preparePrint);
+      printBtn.addEventListener('click', (e) => {
+        if (printBtn.disabled || printBtn.getAttribute('aria-disabled') === 'true') {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          return;
+        }
+        preparePrint();
+      });
     }
 
     // Set up MutationObserver on grid body to monitor any card additions, removals, moves, or attribute modifications

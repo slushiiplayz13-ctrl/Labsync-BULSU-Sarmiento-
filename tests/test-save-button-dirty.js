@@ -461,7 +461,7 @@ async function runRuntimeTests() {
   assert(saveSuccessState.savedCount === 0, 'POST /api/schedules/save was called with updated empty grid');
   assert(saveSuccessState.disabled === true, 'Save Schedule button DISABLED after successful save');
   assert(saveSuccessState.hasChanges === false, 'scheduleState.hasChanges() is false after save (baseline updated)');
-  assert(saveSuccessState.text.includes('Save Schedule'), `Button text remains "Save Schedule" (was: "${saveSuccessState.text}")`);
+  assert(saveSuccessState.text.includes('Save Draft'), `Button text remains "Save Draft" (was: "${saveSuccessState.text}")`);
 
   // TEST 9: Confirm the saved changes remain after refresh
   console.log('\nScenario 9: Confirm the saved changes remain after refresh');

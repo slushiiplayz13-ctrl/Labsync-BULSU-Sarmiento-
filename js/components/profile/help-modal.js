@@ -38,7 +38,7 @@
 
     const normRole = (userRole || '').trim().toLowerCase();
     const isOjt = normRole === 'ojt' || normRole.includes('ojt');
-    const isItHead = !isOjt && (normRole.includes('head') || page.startsWith('it-head-') || page === 'master-schedule.html' || page === 'faculty-management.html' || page === 'room-schedule-editor.html');
+    const isItHead = !isOjt && (normRole.includes('head') || normRole === 'program coordinator' || page.startsWith('it-head-') || page === 'master-schedule.html' || page === 'faculty-management.html' || page === 'room-schedule-editor.html');
     const isMis = !isOjt && (userRole === 'MIS Staff' || normRole.includes('mis') || page.startsWith('mis-'));
 
     const existing = document.getElementById('help-modal');

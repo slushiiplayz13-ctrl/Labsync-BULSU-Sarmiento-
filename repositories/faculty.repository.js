@@ -24,13 +24,19 @@ async function insertFaculty({ name, email, role, password, qrString }, executor
 
 async function findAllFaculty(executor = db) {
     return executor.query(
-        'SELECT User_ID, Name, Email, Role, Profile_Photo, Phone FROM users WHERE Role IN ("Faculty", "IT Head", "IT Dept. Head", "IT Dept Head") ORDER BY Name'
+        'SELECT User_ID, Name, Email, Role, Profile_Photo, Phone FROM users WHERE Role IN ("Faculty", "IT Head", "IT Dept. Head", "IT Dept Head", "Program Coordinator") ORDER BY Name'
     );
 }
 
 async function demoteAllHeadsToFaculty(executor = db) {
     return executor.query(
         'UPDATE users SET Role = "Faculty" WHERE Role IN ("IT Head", "IT Dept. Head", "IT Dept Head")'
+    );
+}
+
+async function demoteAllCoordinatorsToFaculty(executor = db) {
+    return executor.query(
+        'UPDATE users SET Role = "Faculty" WHERE Role = "Program Coordinator"'
     );
 }
 
@@ -91,6 +97,7 @@ module.exports = {
     insertFaculty,
     findAllFaculty,
     demoteAllHeadsToFaculty,
+    demoteAllCoordinatorsToFaculty,
     updateUserRole,
     findRoleById,
     deleteById,

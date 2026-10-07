@@ -19,6 +19,29 @@
   flex-direction: column;
   gap: 16px;
   transition: box-shadow 0.2s, transform 0.2s;
+  cursor: default;
+}
+
+/* Ensure all static card details and text display the default arrow cursor instead of a text I-beam */
+.faculty-card,
+.faculty-card *:not(button):not(.faculty-menu-btn):not(.menu-item):not(.fc-menu-btn):not(a):not(input):not(select):not(textarea):not([role="button"]) {
+  cursor: default !important;
+}
+
+/* Ensure interactive controls maintain pointer cursor */
+.faculty-card button,
+.faculty-card button *,
+.faculty-card .faculty-menu-btn,
+.faculty-card .faculty-menu-btn *,
+.faculty-card .menu-item,
+.faculty-card .menu-item *,
+.faculty-card .fc-menu-btn,
+.faculty-card .fc-menu-btn *,
+.faculty-card a,
+.faculty-card a *,
+.faculty-card [role="button"],
+.faculty-card [role="button"] * {
+  cursor: pointer !important;
 }
 
 .faculty-card:hover {
@@ -60,6 +83,17 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--accent-blue);
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.coordinator-role {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4F46E5;
   line-height: 1.4;
   display: flex;
   align-items: center;
@@ -123,12 +157,14 @@
   gap: 8px;
   font-size: 13px;
   color: #64748B;
+  cursor: default;
 }
 
 .fc-contact-row {
   display: flex;
   align-items: center;
   gap: 8px;
+  cursor: default;
 }
 
 .fc-divider {
@@ -269,9 +305,34 @@
   gap: 12px;
 }
 
-/* ─── Faculty Cards, Actions & Tribute High-Contrast Theme Overrides ─── */
-html.high-contrast .boss-role {
+/* ─── Faculty Cards, Actions & Tribute Dark Mode / High-Contrast Theme Overrides ─── */
+html.dark-mode .faculty-card,
+body.dark-mode .faculty-card,
+[data-theme="dark"] .faculty-card,
+html.high-contrast .faculty-card {
+  background: var(--bg-card, #1F2937) !important;
+  border-color: var(--border-light, #374151) !important;
+}
+
+html.dark-mode .faculty-card .fc-name,
+body.dark-mode .faculty-card .fc-name,
+[data-theme="dark"] .faculty-card .fc-name,
+html.high-contrast .faculty-card .fc-name {
+  color: var(--text-dark, #F8FAFC) !important;
+}
+
+html.high-contrast .boss-role,
+html.dark-mode .boss-role,
+body.dark-mode .boss-role,
+[data-theme="dark"] .boss-role {
   color: var(--primary-teal) !important;
+}
+
+html.high-contrast .coordinator-role,
+html.dark-mode .coordinator-role,
+body.dark-mode .coordinator-role,
+[data-theme="dark"] .coordinator-role {
+  color: #818CF8 !important;
 }
 
 html.high-contrast .faculty-card div[style*="color:#1F2937"] {
@@ -429,7 +490,8 @@ html.high-contrast .successor-card * {
   }
 
   /* Role Badge / Tag */
-  .faculty-card .boss-role {
+  .faculty-card .boss-role,
+  .faculty-card .coordinator-role {
     font-size: 11px !important;
     line-height: 1.2 !important;
     gap: 3px !important;
@@ -606,6 +668,7 @@ html.high-contrast .successor-card * {
   .faculty-card div[style*="font-size: 16px"] {
     font-size: 14px !important;
   }
+
 
   /* Ultra-narrow toolbar adjustments */
   .fm-toolbar {

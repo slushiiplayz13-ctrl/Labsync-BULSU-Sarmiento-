@@ -360,13 +360,60 @@
   border: 1px solid var(--border-light);
   border-radius: 16px;
   padding: 24px 18px;
+  min-height: 180px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.rsc-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  margin-top: 6px;
+  line-height: 1.4;
+  min-height: 18px;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.rsc-status-badge.badge-draft {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.rsc-status-badge.badge-finalized {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+html.dark-mode .rsc-status-badge.badge-draft,
+body.dark-mode .rsc-status-badge.badge-draft,
+[data-theme="dark"] .rsc-status-badge.badge-draft {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+}
+
+html.dark-mode .rsc-status-badge.badge-finalized,
+body.dark-mode .rsc-status-badge.badge-finalized,
+[data-theme="dark"] .rsc-status-badge.badge-finalized {
+  background: rgba(5, 150, 105, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(5, 150, 105, 0.3);
 }
 
 .room-select-card:hover {

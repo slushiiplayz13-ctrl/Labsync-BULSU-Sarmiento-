@@ -18,6 +18,11 @@
     const chairCharCount = document.getElementById('chairCharCount');
     const deanCharCount = document.getElementById('deanCharCount');
 
+    let originalSignatures = {
+      program_chair: '',
+      campus_dean: ''
+    };
+
     function updateCharCount(input, countEl, max = 50) {
       if (!input) return;
       if (input.value.length > max) {
@@ -35,19 +40,70 @@
       }
     }
 
+    function checkHasChanges() {
+      const curChair = programChairInput ? programChairInput.value.trim() : '';
+      const curDean = campusDeanInput ? campusDeanInput.value.trim() : '';
+      return (curChair !== originalSignatures.program_chair) || (curDean !== originalSignatures.campus_dean);
+    }
+
+    function updateSaveButtonState() {
+      if (!saveSignatureBtn) return;
+      const curChair = programChairInput ? programChairInput.value.trim() : '';
+      const curDean = campusDeanInput ? campusDeanInput.value.trim() : '';
+
+      const hasChanges = checkHasChanges();
+      const isValid = curChair.length > 0 && curDean.length > 0 && curChair.length <= 50 && curDean.length <= 50;
+
+      if (hasChanges && isValid) {
+        saveSignatureBtn.disabled = false;
+        saveSignatureBtn.removeAttribute('aria-disabled');
+        saveSignatureBtn.style.opacity = '1';
+        saveSignatureBtn.style.cursor = 'pointer';
+        saveSignatureBtn.style.pointerEvents = 'auto';
+        saveSignatureBtn.style.boxShadow = '0 4px 14px rgba(30, 187, 215, 0.35)';
+      } else {
+        saveSignatureBtn.disabled = true;
+        saveSignatureBtn.setAttribute('aria-disabled', 'true');
+        saveSignatureBtn.style.opacity = '0.5';
+        saveSignatureBtn.style.cursor = 'not-allowed';
+        saveSignatureBtn.style.pointerEvents = 'none';
+        saveSignatureBtn.style.boxShadow = 'none';
+        saveSignatureBtn.style.transform = 'none';
+      }
+    }
+
+    ['input', 'change', 'keyup', 'cut'].forEach(evt => {
+      if (programChairInput) {
+        programChairInput.addEventListener(evt, () => {
+          updateCharCount(programChairInput, chairCharCount, 50);
+          updateSaveButtonState();
+        });
+      }
+      if (campusDeanInput) {
+        campusDeanInput.addEventListener(evt, () => {
+          updateCharCount(campusDeanInput, deanCharCount, 50);
+          updateSaveButtonState();
+        });
+      }
+    });
+
     if (programChairInput) {
       programChairInput.setAttribute('maxlength', '50');
-      programChairInput.addEventListener('input', () => updateCharCount(programChairInput, chairCharCount, 50));
       programChairInput.addEventListener('paste', () => {
-        setTimeout(() => updateCharCount(programChairInput, chairCharCount, 50), 0);
+        setTimeout(() => {
+          updateCharCount(programChairInput, chairCharCount, 50);
+          updateSaveButtonState();
+        }, 0);
       });
     }
 
     if (campusDeanInput) {
       campusDeanInput.setAttribute('maxlength', '50');
-      campusDeanInput.addEventListener('input', () => updateCharCount(campusDeanInput, deanCharCount, 50));
       campusDeanInput.addEventListener('paste', () => {
-        setTimeout(() => updateCharCount(campusDeanInput, deanCharCount, 50), 0);
+        setTimeout(() => {
+          updateCharCount(campusDeanInput, deanCharCount, 50);
+          updateSaveButtonState();
+        }, 0);
       });
     }
 
@@ -61,17 +117,31 @@
           const res = await fetch('/api/settings', { credentials: 'include' });
           if (res.ok) settings = await res.json();
         }
+
+        const chairVal = (settings.program_chair || '').trim();
+        const deanVal = (settings.campus_dean || '').trim();
+        originalSignatures = {
+          program_chair: chairVal,
+          campus_dean: deanVal
+        };
+
         if (programChairInput) {
-          programChairInput.value = settings.program_chair || '';
+          programChairInput.value = chairVal;
           updateCharCount(programChairInput, chairCharCount, 50);
         }
         if (campusDeanInput) {
-          campusDeanInput.value = settings.campus_dean || '';
+          campusDeanInput.value = deanVal;
           updateCharCount(campusDeanInput, deanCharCount, 50);
         }
       } catch (err) {
         console.error('[SignatureSettingsModal] Failed to fetch signature settings:', err);
+        originalSignatures = {
+          program_chair: programChairInput ? programChairInput.value.trim() : '',
+          campus_dean: campusDeanInput ? campusDeanInput.value.trim() : ''
+        };
       }
+
+      updateSaveButtonState();
 
       signatureSettingsModal.scrollTop = 0;
       const wasAlreadyOpen = signatureSettingsModal.style.display === 'flex' && !signatureSettingsModal.classList.contains('closing');
@@ -121,13 +191,11 @@
           global.setModalOpenState(null);
         }
         if (saveSignatureBtn) {
-          saveSignatureBtn.disabled = false;
-          saveSignatureBtn.style.pointerEvents = 'auto';
-          saveSignatureBtn.style.opacity = '1';
           saveSignatureBtn.innerHTML = '<i data-lucide="check" style="width: 18px; height: 18px;"></i>Save Settings';
           if (global.lucide && typeof global.lucide.createIcons === 'function') {
             global.lucide.createIcons({ root: saveSignatureBtn });
           }
+          updateSaveButtonState();
         }
         if (typeof onClosed === 'function') {
           onClosed();
@@ -147,6 +215,10 @@
 
     if (saveSignatureBtn) {
       saveSignatureBtn.addEventListener('click', async () => {
+        if (saveSignatureBtn.disabled || saveSignatureBtn.getAttribute('aria-disabled') === 'true') {
+          return;
+        }
+
         const chair = programChairInput ? programChairInput.value.trim() : '';
         const dean = campusDeanInput ? campusDeanInput.value.trim() : '';
 
@@ -156,6 +228,7 @@
           } else {
             alert('Both signature fields are required.');
           }
+          updateSaveButtonState();
           return;
         }
 
@@ -165,11 +238,14 @@
           } else {
             alert('Signatory names cannot exceed 50 characters.');
           }
+          updateSaveButtonState();
           return;
         }
 
+        saveSignatureBtn.disabled = true;
+        saveSignatureBtn.setAttribute('aria-disabled', 'true');
         saveSignatureBtn.style.pointerEvents = 'none';
-        saveSignatureBtn.style.opacity = '0.8';
+        saveSignatureBtn.style.opacity = '0.7';
         saveSignatureBtn.textContent = 'Saving...';
 
         try {
@@ -188,6 +264,13 @@
               throw new Error(data.error || 'Failed to save settings');
             }
           }
+
+          originalSignatures = {
+            program_chair: chair,
+            campus_dean: dean
+          };
+          updateSaveButtonState();
+
           closeSignatureModal(() => {
             if (global.showToast) {
               global.showToast('Signature settings saved successfully!', 'success');
@@ -195,16 +278,16 @@
           });
         } catch (err) {
           alert(err.message || 'An error occurred while saving.');
-          saveSignatureBtn.style.pointerEvents = 'auto';
-          saveSignatureBtn.style.opacity = '1';
-          saveSignatureBtn.disabled = false;
           saveSignatureBtn.innerHTML = '<i data-lucide="check" style="width: 18px; height: 18px;"></i>Save Settings';
           if (global.lucide && typeof global.lucide.createIcons === 'function') {
             global.lucide.createIcons({ root: saveSignatureBtn });
           }
+          updateSaveButtonState();
         }
       });
     }
+
+    updateSaveButtonState();
   }
 
   const signatureSettingsModal = {

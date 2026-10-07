@@ -983,6 +983,23 @@ body.modal-open #toast-container {
   box-shadow: none !important;
 }
 
+/* ─── Signature Settings Save Button Disabled State ─── */
+#saveSignatureBtn:disabled,
+#saveSignatureBtn[disabled] {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+#saveSignatureBtn:disabled:hover,
+#saveSignatureBtn[disabled]:hover {
+  background: var(--primary-teal) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
 /* ─── Import Subjects Save Button Disabled State ─── */
 #saveImportCurriculumBtn:disabled,
 #saveImportCurriculumBtn[disabled],

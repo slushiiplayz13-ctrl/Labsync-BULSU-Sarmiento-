@@ -35,23 +35,45 @@ async function insertStudentReport({ issueId, pcId, studentName, studentNumber =
 }
 
 async function findIssueForUpdate(issueId, executor = db) {
-    return executor.query('SELECT Issue_ID, PC_ID, Status FROM maintenance_issues WHERE Issue_ID = ? FOR UPDATE', [issueId]);
+    return executor.query(`
+        SELECT Issue_ID, PC_ID, Status, Follow_Up_Count, Followed_Up_At,
+               (CASE WHEN Followed_Up_At IS NOT NULL AND DATE(Followed_Up_At) = CURDATE() THEN 1 ELSE 0 END) AS Followed_Up_Today
+        FROM maintenance_issues
+        WHERE Issue_ID = ?
+        FOR UPDATE
+    `, [issueId]);
 }
 
 async function findIssueIdByStudentReportId(reportId, executor = db) {
     return executor.query('SELECT Maintenance_Issue_ID FROM maintenance WHERE Report_ID = ?', [reportId]);
 }
 
+async function followUpMaintenanceIssue(issueId, userId, executor = db) {
+    return executor.query(`
+        UPDATE maintenance_issues
+        SET Follow_Up_Count = Follow_Up_Count + 1,
+            Followed_Up_At = NOW(),
+            Followed_Up_By_User_ID = ?
+        WHERE Issue_ID = ?
+          AND (Followed_Up_At IS NULL OR DATE(Followed_Up_At) < CURDATE())
+    `, [userId, issueId]);
+}
+
 async function findAllMaintenanceIssues(executor = db) {
     const [issues] = await executor.query(`
         SELECT i.Issue_ID, i.PC_ID, i.Issue_Type, i.Status, i.Priority_Level, i.Created_At, i.Resolved_At,
                i.Resolved_By_User_ID, res_u.Name AS Resolved_By_Name, res_u.Role AS Resolved_By_Role,
-               p.PC_Number, r.Room_Number, r.Building
+               i.Follow_Up_Count, i.Followed_Up_At, i.Followed_Up_By_User_ID,
+               (CASE WHEN i.Followed_Up_At IS NOT NULL AND DATE(i.Followed_Up_At) = CURDATE() THEN 1 ELSE 0 END) AS Followed_Up_Today,
+               fu_u.Name AS Followed_Up_By_Name, fu_u.Role AS Followed_Up_By_Role,
+               p.PC_Number, r.Room_Number, r.Building,
+               COALESCE((SELECT MAX(m.Date_Reported) FROM maintenance m WHERE m.Maintenance_Issue_ID = i.Issue_ID), i.Created_At) AS Latest_Reported_At
         FROM maintenance_issues i
         JOIN lab_units p ON i.PC_ID = p.PC_ID
         JOIN laboratories r ON p.Room_ID = r.Room_ID
         LEFT JOIN users res_u ON i.Resolved_By_User_ID = res_u.User_ID
-        ORDER BY i.Created_At DESC
+        LEFT JOIN users fu_u ON i.Followed_Up_By_User_ID = fu_u.User_ID
+        ORDER BY Latest_Reported_At DESC, i.Issue_ID DESC
     `);
 
     if (issues.length === 0) return [[]];
@@ -92,12 +114,25 @@ async function findAllMaintenanceIssues(executor = db) {
             Resolved_By_User_ID: issue.Resolved_By_User_ID,
             Resolved_By_Name: issue.Resolved_By_Name,
             Resolved_By_Role: issue.Resolved_By_Role,
+            Follow_Up_Count: issue.Follow_Up_Count || 0,
+            Followed_Up_At: issue.Followed_Up_At || null,
+            Followed_Up_Today: issue.Followed_Up_Today === 1,
+            Followed_Up_By_User_ID: issue.Followed_Up_By_User_ID || null,
+            Followed_Up_By_Name: issue.Followed_Up_By_Name || null,
+            Followed_Up_By_Role: issue.Followed_Up_By_Role || null,
             Student_Name: latestReport ? latestReport.Student_Name : 'Student',
             Student_Number: latestReport ? latestReport.Student_Number : null,
             Issue_Description: latestReport ? latestReport.Issue_Description : `[Issues: ${issue.Issue_Type}]`,
             Report_Count: linkedReports.length,
             reports: linkedReports
         };
+    });
+
+    result.sort((a, b) => {
+        const timeA = new Date(a.Date_Reported || a.Created_At || 0).getTime();
+        const timeB = new Date(b.Date_Reported || b.Created_At || 0).getTime();
+        if (timeB !== timeA) return timeB - timeA;
+        return (b.Issue_ID || 0) - (a.Issue_ID || 0);
     });
 
     return [result];
@@ -181,13 +216,43 @@ async function deleteReport(reportId, executor = db) {
 
 async function findReportNotifications(executor = db) {
     return executor.query(`
-        SELECT 'report' AS type, i.Issue_ID AS id, i.Created_At AS time, i.Status AS status, 
-               p.PC_Number AS pc_number, r.Room_Number AS room_number, 
-               CONCAT('[Issues: ', i.Issue_Type, ']') AS description, 
-               'Student Report' AS detail, i.Priority_Level AS priority, NULL AS session_type
-        FROM maintenance_issues i
-        JOIN lab_units p ON i.PC_ID = p.PC_ID
-        JOIN laboratories r ON p.Room_ID = r.Room_ID
+        SELECT 'report' AS type,
+               t.id,
+               (CASE 
+                   WHEN t.Followed_Up_At IS NOT NULL AND t.Followed_Up_At >= t.latest_student_time 
+                   THEN t.Followed_Up_At 
+                   ELSE t.latest_student_time 
+                END) AS time,
+               t.status,
+               t.pc_number,
+               t.room_number,
+               (CASE 
+                   WHEN t.Followed_Up_At IS NOT NULL AND t.Followed_Up_At >= t.latest_student_time 
+                   THEN CONCAT('PC ', LPAD(t.pc_number, 2, '0'), ' – Room ', t.room_number, ' has been followed up by the IT Dept. Head.')
+                   ELSE CONCAT('[Issues: ', t.issue_type, ']')
+                END) AS description,
+               (CASE 
+                   WHEN t.Followed_Up_At IS NOT NULL AND t.Followed_Up_At >= t.latest_student_time 
+                   THEN 'IT Dept. Head Follow-Up' 
+                   ELSE 'Student Report' 
+                END) AS detail,
+               t.priority,
+               NULL AS session_type,
+               t.follow_up_count
+        FROM (
+            SELECT i.Issue_ID AS id,
+                   i.Status AS status,
+                   i.Issue_Type AS issue_type,
+                   i.Priority_Level AS priority,
+                   i.Followed_Up_At,
+                   COALESCE(i.Follow_Up_Count, 0) AS follow_up_count,
+                   p.PC_Number AS pc_number,
+                   r.Room_Number AS room_number,
+                   COALESCE((SELECT MAX(m.Date_Reported) FROM maintenance m WHERE m.Maintenance_Issue_ID = i.Issue_ID), i.Created_At) AS latest_student_time
+            FROM maintenance_issues i
+            JOIN lab_units p ON i.PC_ID = p.PC_ID
+            JOIN laboratories r ON p.Room_ID = r.Room_ID
+        ) t
         ORDER BY time DESC
         LIMIT 20
     `);
@@ -195,13 +260,43 @@ async function findReportNotifications(executor = db) {
 
 async function findAllNotifications(executor = db) {
     return executor.query(`
-        (SELECT 'report' AS type, i.Issue_ID AS id, i.Created_At AS time, i.Status AS status, 
-               p.PC_Number AS pc_number, r.Room_Number AS room_number, 
-               CONCAT('[Issues: ', i.Issue_Type, ']') AS description, 
-               'Student Report' AS detail, i.Priority_Level AS priority, NULL AS session_type
-        FROM maintenance_issues i
-        JOIN lab_units p ON i.PC_ID = p.PC_ID
-        JOIN laboratories r ON p.Room_ID = r.Room_ID)
+        (SELECT 'report' AS type,
+                t.id,
+                (CASE 
+                    WHEN t.Followed_Up_At IS NOT NULL AND t.Followed_Up_At >= t.latest_student_time 
+                    THEN t.Followed_Up_At 
+                    ELSE t.latest_student_time 
+                 END) AS time,
+                t.status,
+                t.pc_number,
+                t.room_number,
+                (CASE 
+                    WHEN t.Followed_Up_At IS NOT NULL AND t.Followed_Up_At >= t.latest_student_time 
+                    THEN CONCAT('PC ', LPAD(t.pc_number, 2, '0'), ' – Room ', t.room_number, ' has been followed up by the IT Dept. Head.')
+                    ELSE CONCAT('[Issues: ', t.issue_type, ']')
+                 END) AS description,
+                (CASE 
+                    WHEN t.Followed_Up_At IS NOT NULL AND t.Followed_Up_At >= t.latest_student_time 
+                    THEN 'IT Dept. Head Follow-Up' 
+                    ELSE 'Student Report' 
+                 END) AS detail,
+                t.priority,
+                NULL AS session_type,
+                t.follow_up_count
+         FROM (
+             SELECT i.Issue_ID AS id,
+                    i.Status AS status,
+                    i.Issue_Type AS issue_type,
+                    i.Priority_Level AS priority,
+                    i.Followed_Up_At,
+                    COALESCE(i.Follow_Up_Count, 0) AS follow_up_count,
+                    p.PC_Number AS pc_number,
+                    r.Room_Number AS room_number,
+                    COALESCE((SELECT MAX(m.Date_Reported) FROM maintenance m WHERE m.Maintenance_Issue_ID = i.Issue_ID), i.Created_At) AS latest_student_time
+             FROM maintenance_issues i
+             JOIN lab_units p ON i.PC_ID = p.PC_ID
+             JOIN laboratories r ON p.Room_ID = r.Room_ID
+         ) t)
         UNION ALL
         (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
                NULL AS pc_number, r.Room_Number AS room_number,
@@ -229,7 +324,8 @@ async function findAllNotifications(executor = db) {
                    ) THEN 'In Session'
                    WHEN o.Auth_Method = 'Key Taken' THEN 'Borrowed'
                    ELSE NULL
-                END) AS session_type
+                END) AS session_type,
+                0 AS follow_up_count
         FROM occupancy_log o
         LEFT JOIN users u ON o.User_ID = u.User_ID
         JOIN laboratories r ON o.Room_ID = r.Room_ID)
@@ -455,6 +551,7 @@ module.exports = {
     findPCIdAndStatusByIssueId,
     findIssueForUpdate,
     findIssueIdByStudentReportId,
+    followUpMaintenanceIssue,
     deleteMaintenanceIssue,
     insertReport,
     findAllReports,

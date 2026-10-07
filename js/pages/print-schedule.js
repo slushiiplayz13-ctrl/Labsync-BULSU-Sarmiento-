@@ -107,13 +107,31 @@ async function initPrintSchedulePage() {
     }
   }
 
-  // 4. Normalize the schedules
-  const scheduleData = (rawSchedules || []).map(s => ({
+  // 4. Extract lifecycle status and normalize the schedules
+  let scheduleStatus = 'Draft';
+  if (rawSchedules && !Array.isArray(rawSchedules) && (rawSchedules.status || rawSchedules.scheduleStatus)) {
+    scheduleStatus = rawSchedules.status || rawSchedules.scheduleStatus;
+  }
+  const scheduleItems = Array.isArray(rawSchedules) ? rawSchedules : (rawSchedules && rawSchedules.schedules ? rawSchedules.schedules : []);
+
+  const isFinalized = (scheduleStatus === 'Finalized');
+  const statusIndicatorEl = document.getElementById('print-status-indicator');
+  if (statusIndicatorEl) {
+    statusIndicatorEl.textContent = isFinalized ? 'OFFICIAL SCHEDULE' : 'WORKING DRAFT – FOR REVIEW ONLY';
+    statusIndicatorEl.style.color = isFinalized ? '#047857' : '#b45309';
+  }
+  if (actionsSubEl) {
+    actionsSubEl.textContent = isFinalized 
+      ? 'Official Schedule – ready for printing' 
+      : 'Working Draft (Unfinalized) – for review only';
+  }
+
+  const scheduleData = (scheduleItems || []).map(s => ({
     day: s.day || s.Day_of_Week,
     startTime: (s.startTime || s.Start_Time || '').substring(0, 5),
     endTime: (s.endTime || s.End_Time || '').substring(0, 5),
     subject: s.subject || s.Subject_Name || '',
-    professor: s.professor || s.ProfessorName || '',
+    professor: s.professor || s.ProfessorName || s.Professor_Name || '',
     section: s.section || s.Section || ''
   }));
 

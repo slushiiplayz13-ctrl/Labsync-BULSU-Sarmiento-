@@ -120,13 +120,67 @@
     }
   }
 
+  /**
+   * Follows up on an unresolved report with confirmation dialog and toast feedback.
+   * @param {number|string} reportId
+   */
+  async function followUpReport(reportId) {
+    const confirmFn = window.showConfirmModal || global.showConfirmModal;
+    let confirmed = false;
+    if (typeof confirmFn === 'function') {
+      confirmed = await confirmFn({
+        title: 'Follow Up Report',
+        message: 'Follow up this unresolved PC report?',
+        confirmText: 'Follow Up',
+        cancelText: 'Cancel',
+        isDestructive: false
+      });
+    } else {
+      confirmed = confirm('Follow up this unresolved PC report?');
+    }
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/reports/${encodeURIComponent(reportId)}/follow-up`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to follow up report');
+      }
+
+      if (window.showToast) window.showToast('PC report followed up successfully.', 'success');
+
+      if (typeof global.loadReports === 'function') {
+        await global.loadReports();
+      }
+
+      const existingModal = document.getElementById('ticket-details-modal');
+      if (existingModal && typeof global.viewTicketModal === 'function') {
+        global.viewTicketModal(reportId);
+      }
+    } catch (error) {
+      console.error('[ReportActions] Error following up report:', error);
+      if (window.showToast) {
+        window.showToast(error.message || 'Failed to follow up report.', 'error');
+      } else {
+        alert(error.message || 'Failed to follow up report.');
+      }
+    }
+  }
+
   const reportActions = {
     updateReportStatus,
-    deleteReport
+    deleteReport,
+    followUpReport
   };
 
   global.reportActions = reportActions;
   global.updateReportStatus = updateReportStatus;
   global.deleteReport = deleteReport;
+  global.followUpReport = followUpReport;
 
 })(typeof window !== 'undefined' ? window : this);
+

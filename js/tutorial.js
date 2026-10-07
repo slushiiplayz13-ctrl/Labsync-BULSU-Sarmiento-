@@ -225,7 +225,7 @@
     function classifyRole(norm) {
         if (!norm) return null;
         if (norm === 'ojt' || norm.includes('ojt')) return 'ojt';
-        if (norm.includes('head')) return 'head';
+        if (norm.includes('head') || norm.includes('coordinator')) return 'head';
         if (norm.includes('mis') || norm.includes('staff')) return 'mis';
         if (norm.includes('faculty') || norm.includes('prof') || norm.includes('instructor')) return 'faculty';
         return null;

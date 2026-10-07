@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const { isValidEmailFormat, BCRYPT_SALT_ROUNDS } = require('./authService');
 const { sendWelcomeEmail } = require('./emailService');
 const facultyRepository = require('../repositories/faculty.repository');
+const { IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
 
 async function addFaculty(reqBody) {
     const { name, email, role } = reqBody;
@@ -94,20 +95,57 @@ async function getAllFaculty() {
     return { status: 200, data: faculty };
 }
 
-async function updateFacultyRole(userId, role, currentSessionUserId, session) {
+async function updateFacultyRole(userId, role, currentSessionUserId, session, actingRole = null) {
     const parsedUserId = Number(userId);
     if (!Number.isInteger(parsedUserId) || parsedUserId <= 0) {
         return { status: 400, error: 'Invalid user ID. Must be a positive integer.' };
     }
 
-    const ALLOWED_ROLES = ['IT Dept. Head', 'IT Head', 'MIS Staff', 'Faculty'];
+    const ALLOWED_ROLES = ['IT Dept. Head', 'IT Head', 'Program Coordinator', 'MIS Staff', 'Faculty'];
     if (!role || typeof role !== 'string' || !ALLOWED_ROLES.includes(role)) {
         return { status: 400, error: `Invalid role: '${role}'. Allowed roles: ${ALLOWED_ROLES.join(', ')}.` };
     }
 
-    if (role.toLowerCase().includes('head')) {
+    // Determine acting role from argument or session
+    const effectiveActingRole = actingRole || (session && session.userRole) || null;
+
+    // 1. Super Admin protection: Non-Dept Head (e.g. Program Coordinator) cannot assign IT Dept. Head / transfer leadership
+    const isTargetRoleHead = role.toLowerCase().includes('head');
+    if (isTargetRoleHead && effectiveActingRole && !IT_DEPT_HEAD_EXCLUSIVE_ROLES.includes(effectiveActingRole)) {
+        return {
+            status: 403,
+            error: 'Forbidden: Only the IT Department Head can assign the IT Dept. Head role or transfer department leadership.'
+        };
+    }
+
+    // 2. Super Admin protection: Non-Dept Head cannot demote or modify the active IT Dept. Head
+    const [targetRows] = await facultyRepository.findRoleById(parsedUserId);
+    if (targetRows.length > 0) {
+        const currentTargetRole = targetRows[0].Role || '';
+        const isCurrentTargetHead = currentTargetRole.toLowerCase().includes('head');
+        if (isCurrentTargetHead && !isTargetRoleHead && effectiveActingRole && !IT_DEPT_HEAD_EXCLUSIVE_ROLES.includes(effectiveActingRole)) {
+            return {
+                status: 403,
+                error: 'Forbidden: Only the IT Department Head can modify the IT Department Head role.'
+            };
+        }
+    }
+
+    if (isTargetRoleHead) {
         await facultyRepository.withTransaction(async (connection) => {
             await facultyRepository.demoteAllHeadsToFaculty(connection);
+            await facultyRepository.updateUserRole(parsedUserId, role, connection);
+
+            if (currentSessionUserId && session) {
+                const [currentRows] = await facultyRepository.findRoleById(currentSessionUserId, connection);
+                if (currentRows.length > 0) {
+                    session.userRole = currentRows[0].Role;
+                }
+            }
+        });
+    } else if (role === 'Program Coordinator') {
+        await facultyRepository.withTransaction(async (connection) => {
+            await facultyRepository.demoteAllCoordinatorsToFaculty(connection);
             await facultyRepository.updateUserRole(parsedUserId, role, connection);
 
             if (currentSessionUserId && session) {
@@ -128,10 +166,20 @@ async function updateFacultyRole(userId, role, currentSessionUserId, session) {
     return { status: 200, message: 'Role updated successfully', currentRole };
 }
 
-async function deleteFaculty(userId) {
+async function deleteFaculty(userId, actingRole = null) {
     const parsedUserId = Number(userId);
     if (!Number.isInteger(parsedUserId) || parsedUserId <= 0) {
         return { status: 400, error: 'Invalid user ID. Must be a positive integer.' };
+    }
+
+    const [targetRows] = await facultyRepository.findRoleById(parsedUserId);
+    if (targetRows.length === 0) {
+        return { status: 404, error: 'Faculty member not found.' };
+    }
+
+    const targetRole = targetRows[0].Role || '';
+    if (targetRole.toLowerCase().includes('head')) {
+        return { status: 403, error: 'Forbidden: The active IT Department Head account cannot be deleted.' };
     }
 
     await facultyRepository.deleteFacultyCascade(parsedUserId);

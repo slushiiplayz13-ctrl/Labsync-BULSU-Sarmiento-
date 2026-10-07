@@ -1776,9 +1776,21 @@
     align-items: center !important;
     gap: 6px !important;
     margin-top: 2px !important;
+    flex-wrap: wrap !important;
   }
 
   .rc-action-block .btn-view-full-report {
+    width: 100% !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    justify-content: center !important;
+    font-size: 12px !important;
+    padding: 0 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .rc-action-block .btn-card-followup {
     width: 100% !important;
     height: 32px !important;
     min-height: 32px !important;

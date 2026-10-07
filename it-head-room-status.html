@@ -19,6 +19,7 @@
 
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css?v=1.1.5" />
+  <link rel="stylesheet" href="css/components/key-authorization.css" />
   <script src="js/auth-check.js"></script>
   <script src="js/utils/core-utils.js"></script>
   <script src="js/utils/dom-utils.js"></script>
@@ -255,17 +256,26 @@
                   }
                 }
               }
-              var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
-              var pendingKeyCount = parseInt(sessionStorage.getItem("labsync_dept_head_pending_key_count") || "0", 10);
+              var uRole = (u && (u.role || u.Role)) || "";
+              var itHeadAliases = ["IT Dept. Head", "IT Head", "IT Dept Head", "Department Head"];
+              var isItHead = itHeadAliases.indexOf(uRole) !== -1 || (uRole.toLowerCase().indexOf("head") !== -1 && uRole.toLowerCase().indexOf("coordinator") === -1);
               var keyBtn = hr ? hr.querySelector("#btnHeaderKeyRequests") : null;
-              var keyBadge = hr ? hr.querySelector("#headerKeyRequestsBadge") : null;
-              if (pendingKeyCount > 0) {
-                if (keyBtn) keyBtn.classList.add("has-pending");
-                if (keyBadge) {
-                  keyBadge.style.display = "inline-flex";
-                  keyBadge.textContent = String(pendingKeyCount);
+              var keyMenu = hr ? hr.querySelector("#key-requests-menu") : null;
+              if (!isItHead) {
+                if (keyBtn) keyBtn.remove();
+                if (keyMenu) keyMenu.remove();
+              } else {
+                var pendingKeyCount = parseInt(sessionStorage.getItem("labsync_dept_head_pending_key_count") || "0", 10);
+                var keyBadge = hr ? hr.querySelector("#headerKeyRequestsBadge") : null;
+                if (pendingKeyCount > 0) {
+                  if (keyBtn) keyBtn.classList.add("has-pending");
+                  if (keyBadge) {
+                    keyBadge.style.display = "inline-flex";
+                    keyBadge.textContent = String(pendingKeyCount);
+                  }
                 }
               }
+              var hasUnread = sessionStorage.getItem("labsync_has_unread_notifs") === "true";
               var d = hr ? hr.querySelector(".notif-dot") : null;
               if (d) d.style.display = hasUnread ? "block" : "none";
             } catch (e) { }
@@ -305,6 +315,9 @@
       <!-- Main Content Card -->
       <div class="dashboard-card">
 
+        <!-- Program Coordinator Key Request Status Banner (Live Approved / Pending / Declined feedback) -->
+        <div id="facultyKeyStatusBanner" class="faculty-key-status-banner" style="display: none;"></div>
+
         <!-- Mobile/Tablet Workspace Tabs (<= 1024px) -->
         <div class="roomstatus-mobile-tabs" id="roomStatusMobileTabs" role="tablist" aria-label="Room Status views">
           <button
@@ -343,15 +356,21 @@
                   <h3>Room Status</h3>
                 </div>
               </div>
-              <div class="sh-legend">
-                <div class="legend-item">
-                  <div class="dot green"></div> Available
-                </div>
-                <div class="legend-item">
-                  <div class="dot orange"></div> Borrowed
-                </div>
-                <div class="legend-item">
-                  <div class="dot red"></div> In Session
+              <div class="sh-right" style="display: flex; align-items: center; gap: 12px;">
+                <button type="button" class="btn-reserve-key-header" id="btnHeaderReserveKey" title="Reserve a second laboratory key in advance" style="display: none;">
+                  <i data-lucide="calendar-plus" style="width: 14px; height: 14px;"></i>
+                  <span>Reserve 2nd Key</span>
+                </button>
+                <div class="sh-legend">
+                  <div class="legend-item">
+                    <div class="dot green"></div> Available
+                  </div>
+                  <div class="legend-item">
+                    <div class="dot orange"></div> Borrowed
+                  </div>
+                  <div class="legend-item">
+                    <div class="dot red"></div> In Session
+                  </div>
                 </div>
               </div>
             </div>
@@ -627,6 +646,7 @@
   <script src="js/components/dept-head-key-authorizations.js?v=1.0.0"></script>
   <script src="js/components/datepicker.js"></script>
   <script src="js/components/custom-select.js"></script>
+  <script src="js/pages/dashboard/dashboard.key-requests.js"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>
   <script src="js/tutorial.js?v=1.1.0"></script>

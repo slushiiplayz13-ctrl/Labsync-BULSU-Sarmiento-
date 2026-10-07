@@ -47,10 +47,15 @@
         faculty = global.facultyUtils.sortFaculty(faculty);
       } else {
         faculty.sort((a, b) => {
-          const aIsBoss = a.Role && a.Role.toLowerCase().includes('head');
-          const bIsBoss = b.Role && b.Role.toLowerCase().includes('head');
-          if (aIsBoss && !bIsBoss) return -1;
-          if (!aIsBoss && bIsBoss) return 1;
+          const getRank = (role) => {
+            const r = String(role || '').toLowerCase();
+            if (r.includes('head')) return 1;
+            if (r === 'program coordinator') return 2;
+            return 3;
+          };
+          const rankA = getRank(a.Role);
+          const rankB = getRank(b.Role);
+          if (rankA !== rankB) return rankA - rankB;
           return (a.Name || '').localeCompare(b.Name || '');
         });
       }
@@ -124,9 +129,9 @@
         if (filter === 'all') {
           matchesFilter = true;
         } else if (filter === 'head') {
-          matchesFilter = role.includes('head');
+          matchesFilter = role.includes('head') || role === 'program coordinator';
         } else if (filter === 'faculty') {
-          matchesFilter = role === 'faculty' || (!role.includes('head') && !role.includes('mis'));
+          matchesFilter = role === 'faculty' || (!role.includes('head') && !role.includes('mis') && role !== 'program coordinator');
         } else if (filter === 'mis') {
           matchesFilter = role.includes('mis');
         }

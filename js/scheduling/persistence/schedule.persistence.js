@@ -53,6 +53,95 @@
     if (updateCountFn) updateCountFn();
   }
 
+  let _currentScheduleVersion = 1;
+  let _currentScheduleStatus = 'Draft';
+  let _finalizedBy = null;
+  let _finalizedAt = null;
+
+  function updateStatusUI(status = 'Draft', version = 1, finalizedBy = null, finalizedAt = null) {
+    const badge = document.getElementById('schedule-status-badge');
+    const badgeText = document.getElementById('schedule-status-text');
+    const finalizeBtn = document.getElementById('finalize-schedule-btn');
+    const reopenBtn = document.getElementById('reopen-schedule-btn');
+    const saveBtn = document.getElementById('save-schedule-btn');
+    const printBtn = document.getElementById('print-schedule-btn');
+
+    let isITDeptHead = false;
+    try {
+      const cached = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
+      if (cached) {
+        const u = JSON.parse(cached);
+        const user = u.user || u;
+        const role = String(user.role || user.Role || '').trim().toLowerCase();
+        isITDeptHead = role.includes('head');
+      }
+    } catch (e) {}
+
+    const isFinalized = (status === 'Finalized');
+
+    if (badge && badgeText) {
+      if (isFinalized) {
+        badge.className = 'schedule-status-badge badge-finalized';
+        badge.style.background = '#D1FAE5';
+        badge.style.color = '#047857';
+        badge.style.borderColor = '#A7F3D0';
+        const dot = badge.querySelector('.status-dot');
+        if (dot) dot.style.background = '#047857';
+        badgeText.textContent = 'OFFICIAL / FINALIZED';
+      } else {
+        badge.className = 'schedule-status-badge badge-draft';
+        badge.style.background = '#FEF3C7';
+        badge.style.color = '#D97706';
+        badge.style.borderColor = '#FDE68A';
+        const dot = badge.querySelector('.status-dot');
+        if (dot) dot.style.background = '#D97706';
+        badgeText.textContent = 'WORKING DRAFT';
+      }
+    }
+
+    if (isITDeptHead) {
+      if (finalizeBtn) finalizeBtn.style.display = isFinalized ? 'none' : 'inline-flex';
+      if (reopenBtn) reopenBtn.style.display = isFinalized ? 'inline-flex' : 'none';
+    } else {
+      if (finalizeBtn) finalizeBtn.style.display = 'none';
+      if (reopenBtn) reopenBtn.style.display = 'none';
+    }
+
+    // Toggle view mode / editing controls & Print availability
+    if (isFinalized) {
+      document.body.classList.add('view-mode');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.style.opacity = '0.5';
+        saveBtn.style.cursor = 'not-allowed';
+        saveBtn.title = 'Schedule is finalized and locked against edits';
+      }
+      if (printBtn) {
+        printBtn.disabled = false;
+        printBtn.removeAttribute('disabled');
+        printBtn.removeAttribute('aria-disabled');
+        printBtn.title = 'Print Official Schedule';
+      }
+    } else {
+      document.body.classList.remove('view-mode');
+      if (saveBtn) {
+        saveBtn.style.opacity = '1';
+        saveBtn.style.cursor = 'pointer';
+        saveBtn.title = 'Save Draft';
+      }
+      if (printBtn) {
+        printBtn.disabled = true;
+        printBtn.setAttribute('disabled', 'disabled');
+        printBtn.setAttribute('aria-disabled', 'true');
+        printBtn.title = 'Print Schedule is available after the schedule is finalized.';
+      }
+    }
+
+    if (global.lucide && typeof global.lucide.createIcons === 'function') {
+      global.lucide.createIcons();
+    }
+  }
+
   /**
    * Fetches and loads existing saved schedule cards for the current room into the grid.
    */
@@ -63,13 +152,28 @@
     const semester = context.semester;
 
     try {
-      let schedules = [];
+      let rawData = [];
       if (global.scheduleService && typeof global.scheduleService.getRoomSchedule === 'function') {
-        schedules = await global.scheduleService.getRoomSchedule(roomNum, academicYear, semester);
+        rawData = await global.scheduleService.getRoomSchedule(roomNum, academicYear, semester);
       } else {
         const res = await fetch(`/api/schedules/room/${encodeURIComponent(roomNum)}?academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}`, { credentials: 'include' });
-        if (res.ok) schedules = await res.json();
+        if (res.ok) rawData = await res.json();
       }
+
+      const schedules = Array.isArray(rawData) ? rawData : (rawData.schedules || []);
+      _currentScheduleVersion = (!Array.isArray(rawData) && rawData.version) ? Number(rawData.version) : 1;
+      _currentScheduleStatus = (!Array.isArray(rawData) && (rawData.status || rawData.scheduleStatus)) ? (rawData.status || rawData.scheduleStatus) : 'Draft';
+      _finalizedBy = (!Array.isArray(rawData) && rawData.finalizedBy) ? rawData.finalizedBy : null;
+      _finalizedAt = (!Array.isArray(rawData) && rawData.finalizedAt) ? rawData.finalizedAt : null;
+
+      if (global.scheduleState) {
+        global.scheduleState.version = _currentScheduleVersion;
+        global.scheduleState.status = _currentScheduleStatus;
+        global.scheduleState.finalizedBy = _finalizedBy;
+        global.scheduleState.finalizedAt = _finalizedAt;
+      }
+
+      updateStatusUI(_currentScheduleStatus, _currentScheduleVersion, _finalizedBy, _finalizedAt);
 
       resetTableToDefault();
 
@@ -130,6 +234,18 @@
    * @returns {Promise<boolean>}
    */
   async function saveCurrentSchedule() {
+    if (_currentScheduleStatus === 'Finalized') {
+      const msg = 'Cannot modify a finalized schedule. The IT Department Head must reopen it for editing first.';
+      if (global.showToast) {
+        global.showToast(msg, 'error');
+      } else {
+        alert(msg);
+      }
+      const err = new Error(msg);
+      err.status = 403;
+      throw err;
+    }
+
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const scheduleData = [];
     const context = global.slotMath ? global.slotMath.getScheduleContext() : {};
@@ -168,10 +284,11 @@
     const academicYear = context.academicYear;
     const semester = context.semester;
 
+    let res = null;
     if (global.scheduleService && typeof global.scheduleService.saveRoomSchedule === 'function') {
-      await global.scheduleService.saveRoomSchedule(roomNum, scheduleData, academicYear, semester);
+      res = await global.scheduleService.saveRoomSchedule(roomNum, scheduleData, academicYear, semester, _currentScheduleVersion);
     } else {
-      const res = await fetch('/api/schedules/save', {
+      const fetchRes = await fetch('/api/schedules/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -179,10 +296,23 @@
           roomNumber: roomNum,
           schedules: scheduleData,
           academicYear,
-          semester
+          semester,
+          version: _currentScheduleVersion
         })
       });
-      if (!res.ok) throw new Error('Save API response not OK');
+      const data = await fetchRes.json().catch(() => ({}));
+      if (!fetchRes.ok) {
+        const err = new Error(data.error || 'Save API response not OK');
+        err.status = fetchRes.status;
+        err.response = data;
+        throw err;
+      }
+      res = data;
+    }
+
+    if (res && res.version) {
+      _currentScheduleVersion = Number(res.version);
+      if (global.scheduleState) global.scheduleState.version = _currentScheduleVersion;
     }
 
     if (global.scheduleState && typeof global.scheduleState.setBaseline === 'function') {
@@ -303,7 +433,10 @@
     loadRoomSchedule,
     saveCurrentSchedule,
     loadProfessors,
-    loadCurriculumSubjects
+    loadCurriculumSubjects,
+    updateStatusUI,
+    getCurrentVersion: () => _currentScheduleVersion,
+    getCurrentStatus: () => _currentScheduleStatus
   };
 
   global.schedulePersistence = schedulePersistence;
@@ -311,5 +444,6 @@
   global.saveCurrentSchedule = saveCurrentSchedule;
   global.resetTableToDefault = resetTableToDefault;
   global.deleteGridCardRef = deleteGridCardRef;
+  global.updateStatusUI = updateStatusUI;
 
 })(typeof window !== 'undefined' ? window : this);

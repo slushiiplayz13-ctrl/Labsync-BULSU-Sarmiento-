@@ -40,12 +40,25 @@ assert.strictEqual(isPageAuthorized('IT Dept. Head', 'it-head-room-status.html')
 assert.strictEqual(isPageAuthorized('IT Dept. Head', 'it-head-pc-reports.html'), true, 'IT Dept Head must be authorized on it-head-pc-reports.html');
 assert.strictEqual(isPageAuthorized('IT Dept. Head', 'it-head-my-schedule.html'), true, 'IT Dept Head must be authorized on it-head-my-schedule.html');
 
-// IT Dept Head MUST NOT be authorized on standard faculty pages (because faculty pages lack admin privilege menus!)
+// Program Coordinator authorizations (parity with IT Dept Head)
+assert.strictEqual(isPageAuthorized('Program Coordinator', 'it-head-dashboard.html'), true, 'Program Coordinator must be authorized on it-head-dashboard.html');
+assert.strictEqual(isPageAuthorized('Program Coordinator', 'master-schedule.html'), true, 'Program Coordinator must be authorized on master-schedule.html');
+assert.strictEqual(isPageAuthorized('Program Coordinator', 'faculty-management.html'), true, 'Program Coordinator must be authorized on faculty-management.html');
+assert.strictEqual(isPageAuthorized('Program Coordinator', 'room-schedule-editor.html'), true, 'Program Coordinator must be authorized on room-schedule-editor.html');
+assert.strictEqual(isPageAuthorized('Program Coordinator', 'it-head-room-status.html'), true, 'Program Coordinator must be authorized on it-head-room-status.html');
+assert.strictEqual(isPageAuthorized('Program Coordinator', 'it-head-pc-reports.html'), true, 'Program Coordinator must be authorized on it-head-pc-reports.html');
+assert.strictEqual(isPageAuthorized('Program Coordinator', 'it-head-my-schedule.html'), true, 'Program Coordinator must be authorized on it-head-my-schedule.html');
+
+// IT Dept Head & Program Coordinator MUST NOT be authorized on standard faculty pages
 assert.strictEqual(isPageAuthorized('IT Dept. Head', 'index.html'), false, 'IT Dept Head must NOT be authorized on index.html (redirect required)');
 assert.strictEqual(isPageAuthorized('IT Dept. Head', 'room-status.html'), false, 'IT Dept Head must NOT be authorized on room-status.html (redirect required)');
 assert.strictEqual(isPageAuthorized('IT Dept. Head', 'faculty-pc-reports.html'), false, 'IT Dept Head must NOT be authorized on faculty-pc-reports.html (redirect required)');
 assert.strictEqual(isPageAuthorized('IT Dept. Head', 'my-schedule.html'), false, 'IT Dept Head must NOT be authorized on my-schedule.html (redirect required)');
-console.log('✔ PASS: IT Dept Head page authorization & faculty page guard verified.');
+assert.strictEqual(isPageAuthorized('Program Coordinator', 'index.html'), false, 'Program Coordinator must NOT be authorized on index.html (redirect required)');
+assert.strictEqual(isPageAuthorized('Program Coordinator', 'room-status.html'), false, 'Program Coordinator must NOT be authorized on room-status.html (redirect required)');
+assert.strictEqual(isPageAuthorized('Program Coordinator', 'faculty-pc-reports.html'), false, 'Program Coordinator must NOT be authorized on faculty-pc-reports.html (redirect required)');
+assert.strictEqual(isPageAuthorized('Program Coordinator', 'my-schedule.html'), false, 'Program Coordinator must NOT be authorized on my-schedule.html (redirect required)');
+console.log('✔ PASS: IT Dept Head & Program Coordinator page authorization & faculty page guard verified.');
 
 // Faculty authorizations
 assert.strictEqual(isPageAuthorized('Faculty', 'index.html'), true, 'Faculty must be authorized on index.html');
@@ -74,7 +87,13 @@ assert.strictEqual(getAuthorizedRedirect('IT Dept. Head', 'index.html'), '/it-he
 assert.strictEqual(getAuthorizedRedirect('IT Dept. Head', 'room-status.html'), '/it-head-room-status.html');
 assert.strictEqual(getAuthorizedRedirect('IT Dept. Head', 'faculty-pc-reports.html'), '/it-head-pc-reports.html');
 assert.strictEqual(getAuthorizedRedirect('IT Dept. Head', 'my-schedule.html'), '/it-head-my-schedule.html');
-console.log('✔ PASS: Role promotion automatically routes to corresponding IT Head pages.');
+
+// Promotion from Faculty -> Program Coordinator redirects (identical parity)
+assert.strictEqual(getAuthorizedRedirect('Program Coordinator', 'index.html'), '/it-head-dashboard.html');
+assert.strictEqual(getAuthorizedRedirect('Program Coordinator', 'room-status.html'), '/it-head-room-status.html');
+assert.strictEqual(getAuthorizedRedirect('Program Coordinator', 'faculty-pc-reports.html'), '/it-head-pc-reports.html');
+assert.strictEqual(getAuthorizedRedirect('Program Coordinator', 'my-schedule.html'), '/it-head-my-schedule.html');
+console.log('✔ PASS: Role promotion automatically routes to corresponding IT Head pages for both IT Dept Head and Program Coordinator.');
 
 // Demotion from IT Dept Head -> Faculty redirects
 assert.strictEqual(getAuthorizedRedirect('Faculty', 'it-head-dashboard.html'), '/index.html');

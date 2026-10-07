@@ -59,7 +59,8 @@
               window.location.replace(targetRedirect);
               return;
             }
-            if (user.role.toLowerCase().includes('head')) {
+            const r = (user.role || '').toLowerCase();
+            if (r.includes('head') || r === 'program coordinator') {
               window.location.replace('it-head-dashboard.html');
               return;
             } else if (user.role === 'MIS Staff') {

@@ -188,7 +188,8 @@ function renderLabCards(labs, targetContainer) {
     const pcIssues = Array.isArray(room.pc_issues) ? room.pc_issues : [];
     const totalPcIssues = room.total_pc_issues || 0;
 
-    const isItHead = window.location.pathname.includes('it-head') || (window.currentUser && window.currentUser.Role === 'IT Dept. Head');
+    const userRole = (window.currentUser && (window.currentUser.Role || window.currentUser.role)) || '';
+    const isItHead = window.location.pathname.includes('it-head') || userRole === 'IT Dept. Head' || userRole === 'IT Head' || userRole === 'Program Coordinator' || userRole.toLowerCase().includes('head');
     const reportsPage = isItHead ? 'it-head-pc-reports.html' : 'faculty-pc-reports.html';
     const targetUrl = `${reportsPage}?room=${encodeURIComponent(room.Room_Number)}`;
 

@@ -12,7 +12,7 @@ const labRepo = require('../repositories/laboratory.repository');
 const auditService = require('./auditService');
 const emailService = require('./email/email.service');
 const appConfig = require('../config/app.config');
-const { KEY_TRANSFER_ROLES } = require('../middleware/auth');
+const { KEY_TRANSFER_ROLES, IT_HEAD_ROLES, IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
 
 /**
  * Computes maximum allowed reservation date (Saturday of next week).
@@ -227,7 +227,7 @@ async function requestAdditionalKey(userId, userRole, userName, roomId, reason, 
     setImmediate(async () => {
         try {
             const [deptHeads] = await db.query(
-                "SELECT User_ID, Name, Email FROM users WHERE Role IN ('IT Dept. Head', 'IT Head')"
+                "SELECT User_ID, Name, Email FROM users WHERE Role IN ('IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head')"
             );
             if (deptHeads && deptHeads.length > 0) {
                 const heldStr = (activeKeys && activeKeys.length > 0)
@@ -360,8 +360,8 @@ async function getPendingRequestsForDeptHead(userId, userRole) {
         return { status: 401, error: 'Authentication required' };
     }
 
-    if (userRole !== 'IT Dept. Head') {
-        return { status: 403, error: 'Forbidden: Only the IT Department Head can review key requests.' };
+    if (!IT_DEPT_HEAD_EXCLUSIVE_ROLES.includes(userRole)) {
+        return { status: 403, error: 'Forbidden: Only authorized department administrators can review key requests.' };
     }
 
     try {
@@ -386,8 +386,8 @@ async function approveRequest(requestId, approvedBy, userRole, durationMinutes =
         return { status: 401, error: 'Authentication required' };
     }
 
-    if (userRole !== 'IT Dept. Head') {
-        return { status: 403, error: 'Forbidden: Only the IT Department Head can approve key requests.' };
+    if (!IT_DEPT_HEAD_EXCLUSIVE_ROLES.includes(userRole)) {
+        return { status: 403, error: 'Forbidden: Only authorized department administrators can approve key requests.' };
     }
 
     const parsedRequestId = Number(requestId);
@@ -508,8 +508,8 @@ async function rejectRequest(requestId, approvedBy, userRole, rejectionReason = 
         return { status: 401, error: 'Authentication required' };
     }
 
-    if (userRole !== 'IT Dept. Head') {
-        return { status: 403, error: 'Forbidden: Only the IT Department Head can decline key requests.' };
+    if (!IT_DEPT_HEAD_EXCLUSIVE_ROLES.includes(userRole)) {
+        return { status: 403, error: 'Forbidden: Only authorized department administrators can decline key requests.' };
     }
 
     const parsedRequestId = Number(requestId);
@@ -618,7 +618,7 @@ async function cancelRequest(requestId, userId, userRole, req = null) {
     }
 
     const requestInfo = rows[0];
-    if (requestInfo.User_ID !== userId && userRole !== 'IT Dept. Head') {
+    if (requestInfo.User_ID !== userId && !IT_DEPT_HEAD_EXCLUSIVE_ROLES.includes(userRole)) {
         return { status: 403, error: 'You are not authorized to cancel this reservation.' };
     }
 

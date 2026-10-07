@@ -27,6 +27,7 @@
     createCardHtml(member) {
       if (!member) return '';
       const isBoss = member.Role && member.Role.toLowerCase().includes('head');
+      const isPC = member.Role === 'Program Coordinator';
 
       const borderStyle = isBoss 
         ? '' 
@@ -40,7 +41,9 @@
 
       const roleTag = isBoss 
         ? `<div class="boss-role"><i data-lucide="shield-check" style="width:13px;height:13px;"></i> ${escapeHtml(member.Role)}</div>`
-        : `<div style="font-size:12px;color:#6B7280;line-height:1.4;">${escapeHtml(member.Role || 'Faculty')}</div>`;
+        : isPC
+          ? `<div class="coordinator-role"><i data-lucide="award" style="width:13px;height:13px;"></i> Program Coordinator</div>`
+          : `<div style="font-size:12px;color:#6B7280;line-height:1.4;">${escapeHtml(member.Role || 'Faculty')}</div>`;
 
       const initials = (global.facultyUtils && typeof global.facultyUtils.getFacultyInitials === 'function')
         ? global.facultyUtils.getFacultyInitials(member.Name)
@@ -97,10 +100,12 @@
                 <div class="menu-item" data-action="role" data-user-id="${member.User_ID}" data-prof="${escapedProfName}" data-role="${escapedRole}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Change Role
                 </div>
+                ${isPC ? '' : `
                 <div class="menu-divider"></div>
                 <div class="menu-item" data-action="delete" data-user-id="${member.User_ID}" data-prof="${escapedProfName}" style="color: #EF4444;">
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-x" style="color:#EF4444;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><line x1="17" x2="22" y1="8" y2="13"/><line x1="22" x2="17" y1="8" y2="13"/></svg> Remove Faculty
                 </div>
+                `}
                 `}
               </div>
             </div>
@@ -108,14 +113,14 @@
         </div>
         
         <!-- Contact Info -->
-        <div style="display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#6B7280;">
+        <div style="display:flex;flex-direction:column;gap:7px;cursor:default;">
+          <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#6B7280;cursor:default;">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail" style="color:var(--primary-teal);flex-shrink:0;"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-            <span>${escapeHtml(member.Email || 'No email')}</span>
+            <span style="cursor:default;">${escapeHtml(member.Email || 'No email')}</span>
           </div>
-          <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#6B7280;">
+          <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#6B7280;cursor:default;">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone" style="color:var(--primary-teal);flex-shrink:0;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            <span>${escapeHtml(member.Phone || 'Not specified')}</span>
+            <span style="cursor:default;">${escapeHtml(member.Phone || 'Not specified')}</span>
           </div>
         </div>
         
@@ -177,5 +182,10 @@
   };
 
   // Expose globally
-  global.facultyCard = facultyCard;
-})(typeof window !== 'undefined' ? window : this);
+  if (typeof global !== 'undefined') {
+    global.facultyCard = facultyCard;
+  }
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = facultyCard;
+  }
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));

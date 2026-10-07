@@ -45,9 +45,10 @@
       user = (rawUser && (rawUser.user || rawUser)) || null;
     } catch (e) {}
 
-    // Only mount for IT Dept Head or Admin
+    // Only mount for IT Dept Head (Super Admin) - Program Coordinator is excluded
     const role = user ? (user.role || user.Role || '') : '';
-    const isAuthorized = role === 'IT Dept. Head' || role === 'Admin';
+    const itHeadAliases = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head'];
+    const isAuthorized = itHeadAliases.includes(role) || (role.toLowerCase().includes('head') && !role.toLowerCase().includes('coordinator'));
     if (!isAuthorized) {
       const existingBtn = document.getElementById('btnHeaderKeyRequests');
       if (existingBtn) existingBtn.remove();
@@ -205,7 +206,7 @@
    * Fetches and renders pending multi-key authorization requests for Dept Head.
    */
   async function loadPendingKeyAuthorizations() {
-    ensureHeaderElementsMounted();
+    if (!ensureHeaderElementsMounted()) return;
 
     const btn = document.getElementById('btnHeaderKeyRequests');
     const badge = document.getElementById('headerKeyRequestsBadge');
@@ -596,7 +597,7 @@
   }
 
   function initDeptHeadKeyAuthorizations() {
-    ensureHeaderElementsMounted();
+    if (!ensureHeaderElementsMounted()) return;
 
     // Close on outside click (capture phase ensures it runs even when other elements call stopPropagation)
     document.addEventListener('click', (e) => {

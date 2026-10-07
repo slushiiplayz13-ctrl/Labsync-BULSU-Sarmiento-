@@ -44,6 +44,7 @@ const OJT_ALLOWED_PAGES = new Set([
 function isPageAuthorized(role, page) {
     if (!role) return false;
     const cleanRole = String(role).trim();
+    const isDeptAdmin = cleanRole.toLowerCase().includes('head') || cleanRole === 'Program Coordinator';
     const isMisPage = page.startsWith('mis-');
     const isItHeadPage = page.startsWith('it-head-') ||
         page === 'master-schedule.html' ||
@@ -56,7 +57,7 @@ function isPageAuthorized(role, page) {
         page === 'faculty-pc-reports.html' ||
         page === 'my-schedule.html';
 
-    if (cleanRole.toLowerCase().includes('head')) {
+    if (isDeptAdmin) {
         return isItHeadPage;
     } else if (cleanRole === 'MIS Staff') {
         return isMisPage;
@@ -75,7 +76,8 @@ function isPageAuthorized(role, page) {
  */
 function getAuthorizedRedirect(role, page) {
     const normRole = String(role || '').trim().toLowerCase();
-    if (normRole.includes('head')) {
+    const isDeptAdmin = normRole.includes('head') || normRole === 'program coordinator';
+    if (isDeptAdmin) {
         if (page === 'room-status.html') return '/it-head-room-status.html';
         if (page === 'faculty-pc-reports.html') return '/it-head-pc-reports.html';
         if (page === 'my-schedule.html') return '/it-head-my-schedule.html';

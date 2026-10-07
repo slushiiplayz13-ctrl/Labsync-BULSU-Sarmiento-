@@ -17,6 +17,19 @@
   }
 
   function confirmDeleteFaculty(userId, name, onSuccess) {
+    const target = Array.isArray(global.allFacultyMembers)
+      ? global.allFacultyMembers.find(f => String(f.User_ID) === String(userId))
+      : null;
+    const targetRole = target ? (target.Role || '') : '';
+    if (targetRole.toLowerCase().includes('head')) {
+      if (typeof global.showToast === 'function') {
+        global.showToast('The active IT Department Head account cannot be removed.', 'error', 'Action Blocked');
+      } else {
+        alert('The active IT Department Head account cannot be removed.');
+      }
+      return;
+    }
+
     const existing = document.getElementById('delete-confirm-modal');
     if (existing) existing.remove();
 

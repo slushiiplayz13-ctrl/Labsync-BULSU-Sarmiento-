@@ -100,7 +100,17 @@
       return;
     }
 
-    const filtered = reports.filter(r => {
+    // Ensure reports are sorted chronologically with the most recent reports first
+    const sorted = [...reports].sort((a, b) => {
+      const timeA = new Date(a.Date_Reported || a.Created_At || 0).getTime();
+      const timeB = new Date(b.Date_Reported || b.Created_At || 0).getTime();
+      if (timeB !== timeA) return timeB - timeA;
+      const idA = Number(String(a.Report_ID || a.Issue_ID || 0).replace(/\D/g, '')) || 0;
+      const idB = Number(String(b.Report_ID || b.Issue_ID || 0).replace(/\D/g, '')) || 0;
+      return idB - idA;
+    });
+
+    const filtered = sorted.filter(r => {
       if (!query) return true;
       const tkt = `ls-tkt-${r.Report_ID}`.toLowerCase();
       const room = `room ${r.Room_Number}`.toLowerCase();

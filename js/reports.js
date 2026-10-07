@@ -55,6 +55,12 @@
     }
   };
 
+  global.followUpReport = (id) => {
+    if (global.reportActions && typeof global.reportActions.followUpReport === 'function') {
+      return global.reportActions.followUpReport(id);
+    }
+  };
+
   global.openCompletedModal = () => {
     if (global.reportModal && typeof global.reportModal.openCompletedModal === 'function') {
       return global.reportModal.openCompletedModal();

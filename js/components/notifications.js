@@ -31,6 +31,13 @@
         iconClass = 'notif-icon-resolved';
         title = 'PC Report Resolved';
         text = `PC #${notif.pc_number} in Room ${notif.room_number} is now functional.`;
+      } else if (notif.detail === 'IT Dept. Head Follow-Up' || (typeof notif.description === 'string' && notif.description.includes('followed up by the IT Dept. Head'))) {
+        iconName = 'bell-ring';
+        iconClass = 'notif-icon-warning';
+        title = 'PC Report Follow-Up';
+        const pcFormatted = String(notif.pc_number || '').padStart(2, '0');
+        const roomFormatted = String(notif.room_number || '').replace(/^Room\s*/i, '');
+        text = notif.description || `PC ${pcFormatted} – Room ${roomFormatted} has been followed up by the IT Dept. Head.`;
       } else {
         iconName = 'alert-triangle';
         iconClass = 'notif-icon-warning';
@@ -133,6 +140,47 @@
   }
 
   /**
+   * Helper to compute toast deduplication key. Incorporates Follow_Up_Count
+   * when the notification represents a follow-up, ensuring each successful follow-up
+   * generates a new toast while suppressing duplicate toasts during polling.
+   */
+  function computeNotificationToastKey(notif) {
+    if (!notif) return '';
+    const isFollowUpNotif = notif.detail === 'IT Dept. Head Follow-Up' || (typeof notif.description === 'string' && notif.description.includes('followed up by the IT Dept. Head'));
+    const fuCount = Number(notif.follow_up_count || notif.Follow_Up_Count || 0);
+    const fuSuffix = (isFollowUpNotif && fuCount > 0) ? `-fu${fuCount}` : '';
+    return `${notif.type}-${notif.id}-${notif.status}${fuSuffix}`;
+  }
+
+  // Helper to handle navigation clicking
+  function handleNotificationClick(notif) {
+    const roleText = (typeof document !== 'undefined' && document.querySelector('.profile-role')?.textContent || '').trim();
+    const roleLower = roleText.toLowerCase();
+    const isMis = roleText === 'MIS Staff' || roleText === 'OJT' || roleLower.includes('mis');
+    const isHead = roleLower.includes('head') || roleText === 'Program Coordinator';
+    if (notif.type === 'report') {
+      if (isMis) {
+        if (typeof window !== 'undefined') {
+          window.location.href = notif.id ? `mis-maintenance.html?ticket=${encodeURIComponent(notif.id)}` : 'mis-maintenance.html';
+        }
+        return notif.id ? `mis-maintenance.html?ticket=${encodeURIComponent(notif.id)}` : 'mis-maintenance.html';
+      } else if (isHead) {
+        if (typeof window !== 'undefined') window.location.href = 'it-head-pc-reports.html';
+        return 'it-head-pc-reports.html';
+      } else {
+        if (typeof window !== 'undefined') window.location.href = 'faculty-pc-reports.html';
+        return 'faculty-pc-reports.html';
+      }
+    } else if (notif.type === 'key_auth') {
+      if (typeof window !== 'undefined') window.location.href = isHead ? 'it-head-dashboard.html' : 'room-status.html';
+      return isHead ? 'it-head-dashboard.html' : 'room-status.html';
+    } else {
+      if (typeof window !== 'undefined') window.location.href = isHead ? 'it-head-room-status.html' : 'room-status.html';
+      return isHead ? 'it-head-room-status.html' : 'room-status.html';
+    }
+  }
+
+  /**
    * Initializes real-time notifications dropdown, badges, toasts, and background polling.
    */
   function initNotifications() {
@@ -198,27 +246,6 @@
       return `${diffDays} days ago`;
     }
 
-    // Helper to handle navigation clicking
-    function handleNotificationClick(notif) {
-      if (notif.type === 'report') {
-        const isMis = document.querySelector('.profile-role')?.textContent.trim() === 'MIS Staff';
-        const isHead = document.querySelector('.profile-role')?.textContent.trim().toLowerCase().includes('head');
-        if (isMis) {
-          window.location.href = 'mis-maintenance.html';
-        } else if (isHead) {
-          window.location.href = 'it-head-pc-reports.html';
-        } else {
-          window.location.href = 'faculty-pc-reports.html';
-        }
-      } else if (notif.type === 'key_auth') {
-        const isHead = document.querySelector('.profile-role')?.textContent.trim().toLowerCase().includes('head');
-        window.location.href = isHead ? 'it-head-dashboard.html' : 'room-status.html';
-      } else {
-        const isHead = document.querySelector('.profile-role')?.textContent.trim().toLowerCase().includes('head');
-        window.location.href = isHead ? 'it-head-room-status.html' : 'room-status.html';
-      }
-    }
-
     // Helper to map type to styled UI element
     function createNotificationItem(notif, isUnread) {
       const { iconName, iconClass, title, text } = getNotificationDetails(notif);
@@ -277,9 +304,9 @@
           </div>
           <p class="notif-toast-message">${escapeHtml(text)}</p>
           <div class="notif-toast-footer-row">
-            <div class="notif-toast-tags">
               ${roomNum ? `<span class="notif-toast-tag room"><i data-lucide="map-pin"></i> RM ${escapeHtml(roomNum)}</span>` : ''}
-              ${!isReport && notif.session_type && notif.session_type !== 'Borrowed' && notif.session_type !== 'None' && notif.session_type !== 'In Session' ? `<span class="notif-toast-tag session">${escapeHtml(notif.session_type)}</span>` : (!isReport && notif.status && !['Key Taken', 'Key Borrowed', 'Key Returned'].includes(notif.status) ? `<span class="notif-toast-tag status">${escapeHtml(notif.status)}</span>` : '')}
+              ${notif.status && !['Key Taken', 'Key Borrowed', 'Key Returned'].includes(notif.status) ? `<span class="notif-toast-tag status">${escapeHtml(notif.status)}</span>` : ''}
+              ${!isReport && notif.session_type && notif.session_type !== 'Borrowed' && notif.session_type !== 'None' && notif.session_type !== 'In Session' ? `<span class="notif-toast-tag session">${escapeHtml(notif.session_type)}</span>` : ''}
             </div>
             <span class="notif-toast-cta">View details <i data-lucide="chevron-right"></i></span>
           </div>
@@ -400,7 +427,7 @@
           if (notifList) notifList.appendChild(item);
 
           // Check if notification is new/unread and has not been toasted yet
-          const key = `${notif.type}-${notif.id}-${notif.status}`;
+          const key = computeNotificationToastKey(notif);
 
           if (isUnread && !toastedKeys.includes(key)) {
             if (!isInitialLoad) {
@@ -433,7 +460,7 @@
 
         // Build notification state signature including all fields that affect UI display
         const currentSignature = notifications.map(n =>
-          `${n.id || ''}:${n.type || ''}:${n.status || ''}:${n.priority || ''}:${n.pc_number || ''}:${n.room_number || ''}:${n.description || ''}:${n.time || ''}`
+          `${n.id || ''}:${n.type || ''}:${n.status || ''}:${n.priority || ''}:${n.pc_number || ''}:${n.room_number || ''}:${n.description || ''}:${n.time || ''}:${n.follow_up_count || ''}`
         ).join('|');
 
         const notifStateChanged = lastNotifSignature !== null && lastNotifSignature !== currentSignature;
@@ -578,5 +605,7 @@
   // Preserve global contracts for legacy scripts and HTML callers
   global.initNotifications = initNotifications;
   global.getNotificationDetails = getNotificationDetails;
+  global.computeNotificationToastKey = computeNotificationToastKey;
+  global.handleNotificationClick = handleNotificationClick;
 
 })(typeof window !== 'undefined' ? window : this);
