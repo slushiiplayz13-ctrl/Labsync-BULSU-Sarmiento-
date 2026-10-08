@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoJson.h>
@@ -20,8 +21,8 @@ const char* ssid = "BLK 26 LT POGI - 2.4Ghz";
 const char* password = "POOHLIEPOGI";
 
 // Server Configuration
-const char* serverUrl = "http://192.168.100.59:3000/api/occupancy/log";
-const char* heartbeatUrl = "http://192.168.100.59:3000/api/occupancy/heartbeat";
+const char* serverUrl = "https://playmate-ninth-uncover.ngrok-free.dev/api/occupancy/log";
+const char* heartbeatUrl = "https://playmate-ninth-uncover.ngrok-free.dev/api/occupancy/heartbeat";
 const char* defaultScanRoom = "203"; 
 
 // Device Authentication Credential
@@ -234,7 +235,9 @@ volatile bool slotTargetState204 = true;
 bool sendKeyStatusHttp(const char* room, bool present) {
   if (WiFi.status() != WL_CONNECTED) return false;
 
-  WiFiClient client;
+  WiFiClientSecure client;
+  client.setInsecure();
+
   HTTPClient http;
   http.begin(client, serverUrl);
   http.setReuse(false);
@@ -251,9 +254,11 @@ bool sendKeyStatusHttp(const char* room, bool present) {
   Serial.printf("[NetWorker HTTP] %s for Room %s: Status %d\n", statusStr.c_str(), room, code);
 
   if (code > 0) {
-    WiFiClient* stream = http.getStreamPtr();
+    NetworkClient* stream = http.getStreamPtr();
     if (stream) {
-      while (stream->available() > 0) stream->read();
+      while (stream->available() > 0) {
+        stream->read();
+      }
     }
   }
   http.end();
@@ -265,7 +270,9 @@ bool sendKeyStatusHttp(const char* room, bool present) {
 bool sendSecurityAlertHttp(const char* room, const char* alertType) {
   if (WiFi.status() != WL_CONNECTED) return false;
 
-  WiFiClient client;
+  WiFiClientSecure client;
+  client.setInsecure();
+
   HTTPClient http;
   http.begin(client, serverUrl);
   http.setReuse(false);
@@ -286,7 +293,7 @@ bool sendSecurityAlertHttp(const char* room, const char* alertType) {
   Serial.printf("[NetWorker Alert] %s for Room %s: Status %d\n", alertType, room, code);
 
   if (code > 0) {
-    WiFiClient* stream = http.getStreamPtr();
+    NetworkClient* stream = http.getStreamPtr();
     if (stream) {
       while (stream->available() > 0) stream->read();
     }
@@ -299,7 +306,9 @@ bool sendSecurityAlertHttp(const char* room, const char* alertType) {
 // Direct HTTP dispatch for telemetry heartbeat
 void sendHeartbeatHttp() {
   if (WiFi.status() == WL_CONNECTED) {
-    WiFiClient client;
+    WiFiClientSecure client;
+    client.setInsecure();
+
     HTTPClient http;
     http.begin(client, heartbeatUrl);
     http.setReuse(false);
@@ -317,8 +326,8 @@ void sendHeartbeatHttp() {
     portEXIT_CRITICAL(&stateMux);
 
     String jsonPayload = "{\"deviceId\":\"ESP32-KeyBox\",\"rooms\":[\"203\",\"204\"],\"slots\":{\"203\":" +
-                         String(key203Present ? "true" : "false") + ",\"204\":" +
-                         String(key204Present ? "true" : "false") + "}}";
+                        String(key203Present ? "true" : "false") + ",\"204\":" +
+                        String(key204Present ? "true" : "false") + "}}";
     int code = http.POST(jsonPayload);
     if (code > 0) {
       Serial.printf("[NetWorker Heartbeat] Sent (203: %s, 204: %s). Code: %d, FreeHeap: %u, MinHeap: %u\n",
@@ -327,7 +336,7 @@ void sendHeartbeatHttp() {
                     code,
                     ESP.getFreeHeap(),
                     ESP.getMinFreeHeap());
-      WiFiClient* stream = http.getStreamPtr();
+      NetworkClient* stream = http.getStreamPtr();
       if (stream) {
         while (stream->available() > 0) stream->read();
       }
@@ -343,7 +352,9 @@ void processQrScanHttp(const char* scannedToken, const char* room) {
   String line2 = "Please Wait...";
 
   if (WiFi.status() == WL_CONNECTED) {
-    WiFiClient client;
+    WiFiClientSecure client;
+    client.setInsecure();
+
     HTTPClient http;
     http.begin(client, serverUrl);
     http.setReuse(false);
@@ -470,6 +481,7 @@ void networkWorkerTask(void* pvParameters) {
           portEXIT_CRITICAL(&stateMux);
         }
       }
+
       if (need204) {
         if (sendKeyStatusHttp("204", target204)) {
           portENTER_CRITICAL(&stateMux);
@@ -560,8 +572,8 @@ void sendSecurityAlertToServer(String room, String alertType) {
 
 // Non-blocking Key slot transition monitor (Runs on Core 1 in loop())
 void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expectedKey,
-                   bool &isUnauth, bool &isWrong,
-                   unsigned long &unauthAlarmStarted, unsigned long &wrongAlarmStarted) {
+                  bool &isUnauth, bool &isWrong,
+                  unsigned long &unauthAlarmStarted, unsigned long &wrongAlarmStarted) {
   KeyType candidateState = detectKeyType(pin);
   
   if (candidateState != lastState) {
@@ -633,7 +645,7 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
         } else {
           // UNAUTHORIZED KEY REMOVAL!
           isUnauth = true;
-          unauthAlarmStarted = millis(); // Start audible timer for unauthorized removal
+          unauthAlarmStarted = millis(); // Start audible alarm timer
           Serial.printf("🚨 UNAUTHORIZED KEY REMOVAL! Key %s removed without scanning QR!\n", slotRoom.c_str());
           dispatchSecurityAlertAsync(slotRoom.c_str(), "Unauthorized Removal");
           dispatchKeyStatusAsync(slotRoom.c_str(), false);
