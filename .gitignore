@@ -11,6 +11,7 @@ node_modules/
 scratch/
 tests/temp-*
 tests/*.png
+*temp-chrome*
 
 # IDEs and editors
 .vscode/
