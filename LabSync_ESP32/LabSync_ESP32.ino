@@ -21,12 +21,12 @@ const char* ssid = "BLK 26 LT POGI - 2.4Ghz";
 const char* password = "POOHLIEPOGI";
 
 // Server Configuration
-const char* serverUrl = "https://playmate-ninth-uncover.ngrok-free.dev/api/occupancy/log";
-const char* heartbeatUrl = "https://playmate-ninth-uncover.ngrok-free.dev/api/occupancy/heartbeat";
+const char* serverUrl = "https://labsync-bulsu-sarmiento-production.up.railway.app/api/occupancy/log";
+const char* heartbeatUrl = "https://labsync-bulsu-sarmiento-production.up.railway.app/api/occupancy/heartbeat";
 const char* defaultScanRoom = "203"; 
 
 // Device Authentication Credential
-const char* deviceToken = "labsync-esp32-keybox-token-2026"; 
+const char* deviceToken = "3976c739793c74dc3a9772fb7b1734b9e6208e6aa0a2329ea1bc699c7ebd99be"; 
 
 // Key Slots Configuration
 #define KEY_PIN_203 32 // D32 -> Slot 203 (Expects Key 203: ~1800 ADC)
