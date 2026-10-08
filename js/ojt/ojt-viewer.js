@@ -159,7 +159,7 @@
           </div>
           <p style="margin:0 0 4px 0;font-weight:600;color:var(--text-dark);">No OJT Interns Found</p>
           <p style="margin:0;font-size:12.5px;color:var(--text-mid);">
-            ${_searchQuery ? 'No records match your search criteria.' : 'No student assistants are currently registered in this category.'}
+            ${_searchQuery ? 'No records match your search criteria.' : 'No OJT interns are currently registered in this category.'}
           </p>
         </div>
       `;
@@ -249,7 +249,7 @@
                   ${escapeHtml(name)}
                 </div>
                 <div style="font-size:11.5px;color:var(--text-light);display:flex;align-items:center;gap:4px;margin-top:2px;">
-                  <i data-lucide="graduation-cap" style="width:12px;height:12px;color:var(--primary-teal);"></i> Student Assistant
+                  <i data-lucide="graduation-cap" style="width:12px;height:12px;color:var(--primary-teal);"></i> OJT Intern
                 </div>
               </div>
             </div>
@@ -347,7 +347,7 @@
               <h2 style="font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--text-dark);margin:0;">OJT Intern Profile</h2>
               <span class="ojt-badge-readonly">Read-Only</span>
             </div>
-            <p style="font-size:12.5px;color:var(--text-light);margin:0;">Student Assistant technical operations account</p>
+            <p style="font-size:12.5px;color:var(--text-light);margin:0;">OJT Intern technical operations account</p>
           </div>
           <button id="close-ojt-details" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;">
             <i data-lucide="x" style="width:20px;height:20px;color:var(--text-mid);"></i>
@@ -365,7 +365,7 @@
               ${statusPill}
             </div>
             <div style="font-size:12px;color:var(--primary-teal);font-weight:600;display:flex;align-items:center;gap:4px;">
-              <i data-lucide="graduation-cap" style="width:13px;height:13px;"></i> Student Assistant (OJT)
+              <i data-lucide="graduation-cap" style="width:13px;height:13px;"></i> OJT Intern
             </div>
           </div>
         </div>

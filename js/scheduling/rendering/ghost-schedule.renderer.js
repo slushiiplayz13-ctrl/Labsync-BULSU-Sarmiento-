@@ -181,6 +181,57 @@
   }
 
   /**
+   * Refreshes side-by-side 50/50 collision split classes for existing cards and ghost blocks in a column.
+   * @param {HTMLElement} [col] - Optional specific day column; if omitted, checks all day columns.
+   */
+  function refreshSplits(col) {
+    const slotHeight = getSlotHeight();
+    const columns = col ? [col] : document.querySelectorAll('.grid-day-column');
+
+    columns.forEach(c => {
+      const existingCards = c.querySelectorAll('.grid-card:not(.grid-card-ghost)');
+      const ghostCards = c.querySelectorAll('.grid-card-ghost');
+
+      existingCards.forEach(card => {
+        card.classList.remove('is-split-left', 'is-clash-conflict');
+      });
+      ghostCards.forEach(ghost => {
+        ghost.classList.remove('is-split-right', 'is-clash-conflict');
+      });
+
+      ghostCards.forEach(ghost => {
+        const topPx = parseFloat(ghost.style.top) || 0;
+        const heightPx = parseFloat(ghost.style.height) || (slotHeight * 2);
+        const gStart = Math.round(topPx / slotHeight);
+        const gEnd = gStart + Math.round(heightPx / slotHeight);
+
+        let hasConflict = false;
+
+        existingCards.forEach(card => {
+          let cStart = card.dataset.start !== undefined ? parseInt(card.dataset.start, 10) : NaN;
+          let cEnd = card.dataset.end !== undefined ? parseInt(card.dataset.end, 10) : NaN;
+
+          if (isNaN(cStart) || isNaN(cEnd)) {
+            const cTopPx = parseFloat(card.style.top) || 0;
+            const cHeightPx = parseFloat(card.style.height) || (slotHeight * 2);
+            cStart = Math.round(cTopPx / slotHeight);
+            cEnd = cStart + Math.round(cHeightPx / slotHeight);
+          }
+
+          if (gStart < cEnd && gEnd > cStart) {
+            hasConflict = true;
+            card.classList.add('is-split-left', 'is-clash-conflict');
+          }
+        });
+
+        if (hasConflict) {
+          ghost.classList.add('is-split-right', 'is-clash-conflict');
+        }
+      });
+    });
+  }
+
+  /**
    * Restores default selected professor ghost blocks or clears ghost blocks.
    */
   function restoreDefaultOrClearGhost() {
@@ -197,7 +248,8 @@
     clearGhostBlocks,
     loadProfessorGhostSchedule,
     getBlockProfessorName,
-    restoreDefaultOrClearGhost
+    restoreDefaultOrClearGhost,
+    refreshSplits
   };
 
   global.ghostScheduleRenderer = ghostScheduleRenderer;
@@ -205,5 +257,6 @@
   global.loadProfessorGhostSchedule = loadProfessorGhostSchedule;
   global.getBlockProfessorName = getBlockProfessorName;
   global.restoreDefaultOrClearGhost = restoreDefaultOrClearGhost;
+  global.refreshGhostSplits = refreshSplits;
 
 })(typeof window !== 'undefined' ? window : this);

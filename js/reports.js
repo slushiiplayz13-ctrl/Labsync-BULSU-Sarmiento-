@@ -91,4 +91,10 @@
     }
   };
 
+  global.updateRoleGreetingDescription = () => {
+    if (global.reportController && typeof global.reportController.updateRoleGreetingDescription === 'function') {
+      return global.reportController.updateRoleGreetingDescription();
+    }
+  };
+
 })(typeof window !== 'undefined' ? window : this);

@@ -58,7 +58,7 @@
 | **Single-key hoarding & multi-room conflicts** | Strict single-key borrowing ceiling enforced system-wide. Instructors requiring a second room or advance booking must submit formal requests via the Multi-Key Authorization & Reservation Workflow ([services/keyAuthorizationService.js](file:///c:/Users/andre/Downloads/LabSync/services/keyAuthorizationService.js)), approved directly by the IT Department Head. |
 | **Overdue keys & unreturned locks** | Automated Key Return Reminder Service ([services/keyReminderService.js](file:///c:/Users/andre/Downloads/LabSync/services/keyReminderService.js)) checks every minute in `Asia/Manila` time. If a class slot ends and 15 minutes elapse without key dock insertion, an urgent return reminder email is automatically dispatched to the active key holder. |
 | **Administrative audit report generation** | Built-in PDF Report Generator ([services/roomStatusReportService.js](file:///c:/Users/andre/Downloads/LabSync/services/roomStatusReportService.js)) enables Department Heads to export publication-grade, official BulSU-branded activity audit logs filtered by date presets or custom ranges. |
-| **Student Assistant / OJT accountability** | Dedicated OJT role with bounded lifecycle dates ([mis-ojt.html](file:///c:/Users/andre/Downloads/LabSync/mis-ojt.html)). Interns can resolve tickets, but accounts soft-deactivate upon contract conclusion without deleting records, preserving repair attribution (`Resolved_By_User_ID`). |
+| **OJT Accountability** | Dedicated OJT role with bounded lifecycle dates ([mis-ojt.html](file:///c:/Users/andre/Downloads/LabSync/mis-ojt.html)). Interns can resolve tickets, but accounts soft-deactivate upon contract conclusion without deleting records, preserving repair attribution (`Resolved_By_User_ID`). |
 | **Database bloating from sensor logs** | Automated 1-Year Retention Pruner ([services/activityRetentionService.js](file:///c:/Users/andre/Downloads/LabSync/services/activityRetentionService.js)) cleans up historical `occupancy_log` entries older than 365 days using an indexed access time column. |
 
 ---
@@ -126,7 +126,7 @@ LabSync/
 │   ├── keys.controller.js                      # Physical key inventory, QR tag issuance, mobile transfers
 │   ├── labs.controller.js                      # Room CRUD, workstation units, batch PC QR generator
 │   ├── maintenance.controller.js               # Maintenance tickets, status transitions, notifications
-│   ├── ojt.controller.js                       # Student assistant account lifecycle & credentials
+│   ├── ojt.controller.js                       # OJT intern account lifecycle & credentials
 │   ├── reports.controller.js                   # Room Status Activity Log PDF report generation
 │   ├── schedules.controller.js                 # Course scheduling, conflict detection, summaries
 │   ├── settings.controller.js                  # Institutional signatories & server health check
@@ -210,7 +210,7 @@ LabSync/
 │   ├── keysService.js                          # Key registration, QR tags & atomic transfers
 │   ├── laboratoryService.js                    # Room management, PC units & QR generation
 │   ├── maintenanceService.js                   # Concurrency locking & ticket deduplication
-│   ├── ojtService.js                           # Student assistant lifecycle, credentials & dates
+│   ├── ojtService.js                           # OJT intern lifecycle, credentials & dates
 │   ├── roomStatusReportService.js              # Publication-grade PDF report engine via PDFKit
 │   ├── scheduleService.js                      # Timetable CRUD & cross-room collision math
 │   ├── settingsService.js                      # University signatories and system health
@@ -342,8 +342,8 @@ LabSync enforces strict server-side role-based access control (RBAC) across **4 
 | Role Identity | Primary Landing Page | Key Capabilities & Authorization Bounds |
 |---|---|---|
 | **IT Department Head** | [it-head-dashboard.html](file:///c:/Users/andre/Downloads/LabSync/it-head-dashboard.html) | **Supreme Administrative Authority**: Master schedule management, Schedule Studio, faculty CRUD, role modifications, leadership delegation, curriculum imports, institutional signatory settings, Multi-Key Request approval queue, and publication-grade Room Status PDF report generation. |
-| **MIS Staff** | [mis-staff-dashboard.html](file:///c:/Users/andre/Downloads/LabSync/mis-staff-dashboard.html) | **Technical & Custodial Administration**: Maintenance ticket tracker, ticket status resolution, PC workstation QR generation, physical key cataloging ([mis-keys.html](file:///c:/Users/andre/Downloads/LabSync/mis-keys.html)), dual-sided keychain insert printing, and Student Assistant / OJT account lifecycle management ([mis-ojt.html](file:///c:/Users/andre/Downloads/LabSync/mis-ojt.html)). |
-| **OJT / Student Assistant** | [mis-maintenance.html](file:///c:/Users/andre/Downloads/LabSync/mis-maintenance.html) | **Restricted Technical Support**: Can inspect maintenance queue, participate in hardware repairs, and mark tickets *Resolved* (attributing their user ID via `Resolved_By_User_ID`). Strictly prevented from modifying faculty, keys, OJT accounts, schedules, or system settings. Accounts auto-deactivate after `OJT_End_Date`. |
+| **MIS Staff** | [mis-staff-dashboard.html](file:///c:/Users/andre/Downloads/LabSync/mis-staff-dashboard.html) | **Technical & Custodial Administration**: Maintenance ticket tracker, ticket status resolution, PC workstation QR generation, physical key cataloging ([mis-keys.html](file:///c:/Users/andre/Downloads/LabSync/mis-keys.html)), dual-sided keychain insert printing, and OJT Intern account lifecycle management ([mis-ojt.html](file:///c:/Users/andre/Downloads/LabSync/mis-ojt.html)). |
+| **OJT Intern** | [mis-maintenance.html](file:///c:/Users/andre/Downloads/LabSync/mis-maintenance.html) | **Restricted Technical Support**: Can inspect maintenance queue, participate in hardware repairs, and mark tickets *Resolved* (attributing their user ID via `Resolved_By_User_ID`). Strictly prevented from modifying faculty, keys, OJT accounts, schedules, or system settings. Accounts auto-deactivate after `OJT_End_Date`. |
 | **Faculty / Professor** | [index.html](file:///c:/Users/andre/Downloads/LabSync/index.html) | **Instructional Access**: Live room availability monitor ([room-status.html](file:///c:/Users/andre/Downloads/LabSync/room-status.html)), personal weekly timetable ([my-schedule.html](file:///c:/Users/andre/Downloads/LabSync/my-schedule.html)), PC fault reporting status, mobile Key Transfer & Room Claim ([key-transfer.html](file:///c:/Users/andre/Downloads/LabSync/key-transfer.html)), and Multi-Key / Room Advance Reservation submissions. |
 | **Student / Public** *(No Auth)* | [submit-pc-report.html](file:///c:/Users/andre/Downloads/LabSync/submit-pc-report.html) | **Unauthenticated Workstation Access**: Students scan physical QR stickers affixed to laboratory workstations to submit hardware/software fault reports directly into the deduplicated queue. Can also view terms ([terms.html](file:///c:/Users/andre/Downloads/LabSync/terms.html)) and report found keys ([key-found.html](file:///c:/Users/andre/Downloads/LabSync/key-found.html)). |
 
@@ -445,7 +445,7 @@ The web application is structured across **24 approved HTML pages** allowlisted 
 - **Dual-Sided Keychain Insert Generator:** Renders calibrated 1.14" x 1.84" acrylic keychain cards with QR codes and BulSU branding.
 
 #### `mis-ojt.html` — OJT Intern Lifecycle Management
-- Dedicated administration suite for Student Assistants and Interns ([js/pages/mis-ojt.js](file:///c:/Users/andre/Downloads/LabSync/js/pages/mis-ojt.js)).
+- Dedicated administration suite for OJT Interns ([js/pages/mis-ojt.js](file:///c:/Users/andre/Downloads/LabSync/js/pages/mis-ojt.js)).
 - Manages internship start and end dates (`OJT_Start_Date`, `OJT_End_Date`).
 - Creates temporary credentials dispatched via welcome email.
 - **Soft Deactivation:** Enables/disables accounts (`ACTIVE` / `INACTIVE` / `DEACTIVATED`) without deleting database records, preserving historical repair audit trails.
@@ -698,7 +698,7 @@ All endpoints are mounted under `/api`.
 - `PUT /api/reports/:reportId/status`: Updates issue status (*Pending* → *Resolved*) with resolver attribution.
 - `DELETE /api/reports/:reportId`: Deletes a resolved maintenance ticket (Admin only).
 
-### Student Assistant / OJT Management (`/api/ojt`)
+### OJT Intern Management (`/api/ojt`)
 - `GET /api/ojt`: Lists all OJT accounts filterable by status (MIS Staff only).
 - `POST /api/ojt`: Creates new OJT account with temporary credentials (MIS Staff only).
 - `GET /api/ojt/:userId`: Fetches single OJT intern details (MIS Staff only).

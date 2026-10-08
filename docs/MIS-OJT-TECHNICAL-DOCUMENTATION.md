@@ -56,7 +56,7 @@ The **MIS Staff** represents the permanent institutional technical administrator
 
 The **OJT Intern** represents an enrolled college student rendering required internship hours in the MIS office.
 
-* **Who is it?** A temporary student assistant undergoing practical training under MIS supervision.
+* **Who is it?** A temporary student intern undergoing practical training under MIS supervision.
 * **What do they do?** They conduct daily room inspections, review computer problems reported by teachers and students, and perform hardware or software troubleshooting.
 * **What happens next?** When an intern repairs a workstation, they mark the issue as resolved in the system.
 * **What is the result?** The computer returns to working condition, and the system records the intern's name, role, and time of completion.

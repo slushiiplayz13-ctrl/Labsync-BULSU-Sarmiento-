@@ -71,7 +71,41 @@ async function findUserSchedulesForConflict(userId, day, ay, sem, excludeRoomNum
 }
 
 async function findProfessorSchedules(userId, ay, sem, excludeRoomNumber, executor = db) {
+    const rawExclude = String(excludeRoomNumber || '').trim();
+    const cleanExclude = rawExclude.replace(/^(room|rm|laboratory|lab)\s*[-:]?\s*/i, '').trim();
+    const withRoomExclude = `Room ${cleanExclude}`;
+
     let query = `
+        SELECT d.Draft_ID AS Schedule_ID, d.User_ID, d.Room_ID, d.Section, d.Day_of_Week, d.Start_Time, d.End_Time, d.Academic_Year, d.Semester, d.Color_Theme,
+               COALESCE(
+                   CASE 
+                       WHEN c.Subject_Name IS NOT NULL AND d.Subject_Name = c.Subject_Code THEN CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
+                       WHEN c.Subject_Code IS NOT NULL AND d.Subject_Name = c.Subject_Name THEN CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
+                       ELSE d.Subject_Name
+                   END,
+                   d.Subject_Name
+               ) AS Subject_Name,
+               c.Subject_Code, c.Subject_Name AS Curriculum_Subject_Name,
+               l.Room_Number, l.Building, u.Name as ProfessorName, u.Name as Professor_Name
+        FROM schedule_drafts d
+        JOIN laboratories l ON d.Room_ID = l.Room_ID
+        JOIN users u ON d.User_ID = u.User_ID
+        LEFT JOIN curriculum c ON (
+            d.Subject_Name = c.Subject_Code 
+            OR d.Subject_Name = c.Subject_Name 
+            OR d.Subject_Name = CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
+        )
+        WHERE d.User_ID = ? AND d.Academic_Year = ? AND d.Semester = ?
+    `;
+    const queryParams = [userId, ay, sem];
+
+    if (cleanExclude) {
+        query += ` AND l.Room_Number != ? AND l.Room_Number != ? AND l.Room_Number != ?`;
+        queryParams.push(rawExclude, cleanExclude, withRoomExclude);
+    }
+
+    query += `
+        UNION ALL
         SELECT s.Schedule_ID, s.User_ID, s.Room_ID, s.Section, s.Day_of_Week, s.Start_Time, s.End_Time, s.Academic_Year, s.Semester, s.Color_Theme,
                COALESCE(
                    CASE 
@@ -93,14 +127,20 @@ async function findProfessorSchedules(userId, ay, sem, excludeRoomNumber, execut
         )
         WHERE s.User_ID = ? AND s.Academic_Year = ? AND s.Semester = ?
     `;
-    const queryParams = [userId, ay, sem];
+    queryParams.push(userId, ay, sem);
 
-    if (excludeRoomNumber) {
-        query += ` AND l.Room_Number != ?`;
-        queryParams.push(excludeRoomNumber);
+    if (cleanExclude) {
+        query += ` AND l.Room_Number != ? AND l.Room_Number != ? AND l.Room_Number != ?`;
+        queryParams.push(rawExclude, cleanExclude, withRoomExclude);
     }
 
-    query += ` ORDER BY FIELD(s.Day_of_Week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), s.Start_Time`;
+    query += `
+        AND NOT EXISTS (
+            SELECT 1 FROM schedule_drafts sd
+            WHERE sd.Room_ID = s.Room_ID AND sd.Academic_Year = s.Academic_Year AND sd.Semester = s.Semester
+        )
+        ORDER BY FIELD(Day_of_Week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), Start_Time
+    `;
 
     return executor.query(query, queryParams);
 }

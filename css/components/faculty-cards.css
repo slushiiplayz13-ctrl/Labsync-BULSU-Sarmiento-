@@ -447,9 +447,9 @@ html.high-contrast .successor-card * {
 }
 
 .um-tab-btn:hover:not(.active) {
-  background: var(--bg-hover, #f8fafc);
-  color: var(--text-dark, #0f172a);
-  border-color: var(--border-dark, #cbd5e1);
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
 }
 
 .um-tab-btn.active {
@@ -459,6 +459,11 @@ html.high-contrast .successor-card * {
   box-shadow: 0 2px 6px rgba(30, 187, 215, 0.22);
 }
 
+.um-tab-btn.active:hover {
+  background: #0ea5e9 !important;
+  color: #ffffff !important;
+}
+
 .um-tab-btn svg,
 .um-tab-btn i {
   width: 15px;
@@ -466,16 +471,44 @@ html.high-contrast .successor-card * {
   flex-shrink: 0;
 }
 
-body.dark-mode .um-tab-btn:not(.active) {
-  background: var(--bg-card, #1e293b);
-  border-color: var(--border-dark, #334155);
-  color: var(--text-light, #94a3b8);
+/* Dark Mode & High Contrast Theme Support */
+html.dark-mode .um-tab-btn:not(.active),
+body.dark-mode .um-tab-btn:not(.active),
+[data-theme="dark"] .um-tab-btn:not(.active),
+html.high-contrast .um-tab-btn:not(.active) {
+  background: var(--bg-card, #1F2937) !important;
+  border-color: var(--border-light, #374151) !important;
+  color: var(--text-muted, #94a3b8) !important;
 }
 
-body.dark-mode .um-tab-btn:not(.active):hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-white, #f8fafc);
-  border-color: var(--border-mid, #475569);
+html.dark-mode .um-tab-btn:not(.active):hover,
+body.dark-mode .um-tab-btn:not(.active):hover,
+[data-theme="dark"] .um-tab-btn:not(.active):hover,
+html.high-contrast .um-tab-btn:not(.active):hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border-color: rgba(30, 187, 215, 0.45) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+html.dark-mode .um-tab-btn.active,
+body.dark-mode .um-tab-btn.active,
+[data-theme="dark"] .um-tab-btn.active,
+html.high-contrast .um-tab-btn.active {
+  background: var(--primary-teal, #00A3C4) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 2px 8px rgba(0, 163, 196, 0.35);
+}
+
+html.dark-mode .um-tab-btn.active:hover,
+body.dark-mode .um-tab-btn.active:hover,
+[data-theme="dark"] .um-tab-btn.active:hover,
+html.high-contrast .um-tab-btn.active:hover {
+  background: #0284C7 !important;
+  filter: brightness(1.08);
+  color: #ffffff !important;
+  box-shadow: 0 3px 10px rgba(0, 163, 196, 0.45);
 }
 
 /* ================================================================

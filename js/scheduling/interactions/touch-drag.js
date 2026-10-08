@@ -254,6 +254,9 @@
             if (createCardFn) {
               const card = createCardFn(null, subject, professor, section, startTime, endTime, 'Default');
               col.appendChild(card);
+              if (global.ghostScheduleRenderer && typeof global.ghostScheduleRenderer.refreshSplits === 'function') {
+                global.ghostScheduleRenderer.refreshSplits(col);
+              }
             }
 
             block.remove();
@@ -313,6 +316,10 @@
             const subject = block.querySelector('.grid-card-title')?.textContent.trim() || '';
             const section = (block.querySelector('.grid-card-section')?.textContent || '').replace(/^Sec:\s*/, '').trim();
             block.title = `${subject} (Sec: ${section || 'N/A'}) • ${professor || 'No Prof'} • ${fStart} - ${fEnd}`;
+
+            if (global.ghostScheduleRenderer && typeof global.ghostScheduleRenderer.refreshSplits === 'function') {
+              global.ghostScheduleRenderer.refreshSplits();
+            }
 
             if (global.scheduleState) {
               global.scheduleState.isDirty = true;

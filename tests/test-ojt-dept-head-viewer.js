@@ -249,7 +249,7 @@ async function runTests() {
 
     // Screenshot Desktop Light Mode
     const snapLight = await send(pWs, 'Page.captureScreenshot', { format: 'png' });
-    const artifactsDir = 'C:\\Users\\andre\\.gemini\\antigravity-ide\\brain\\2b27495d-42c6-4a17-804b-ab69c9a5174c';
+    const artifactsDir = 'C:\\Users\\andre\\.gemini\\antigravity-ide\\brain\\30944a82-d643-49d4-8166-933354fafed3';
     fs.writeFileSync(path.join(artifactsDir, 'ojt-directory-desktop-light.png'), Buffer.from(snapLight.data, 'base64'));
     console.log('✔ Saved ojt-directory-desktop-light.png');
 

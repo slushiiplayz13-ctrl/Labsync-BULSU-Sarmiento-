@@ -145,6 +145,10 @@
           }
         }
 
+        if (global.ghostScheduleRenderer && typeof global.ghostScheduleRenderer.refreshSplits === 'function') {
+          global.ghostScheduleRenderer.refreshSplits();
+        }
+
         if (global.scheduleState) global.scheduleState.isDirty = true;
         global.isDirty = true;
       }

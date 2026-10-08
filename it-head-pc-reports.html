@@ -543,8 +543,24 @@
       <div class="greeting-row">
         <div class="greeting-left">
           <h1 class="greeting-title" id="greetingText">PC Issue Reports</h1>
-          <p class="greeting-sub" id="greetingSub">Track and manage computer issues and maintenance requests across IT
-            labs.</p>
+          <p class="greeting-sub" id="greetingSub">Review reported computer issues and follow up on unresolved maintenance concerns across IT labs.</p>
+          <script>
+            (function () {
+              try {
+                var u = JSON.parse(sessionStorage.getItem('labsync_user') || 'null');
+                var r = String((u && (u.role || u.Role)) || '').trim().toLowerCase();
+                var sub = document.getElementById('greetingSub');
+                if (sub) {
+                  var isHead = (r.indexOf('head') !== -1 && r.indexOf('coordinator') === -1);
+                  if (isHead) {
+                    sub.textContent = 'Review reported computer issues and follow up on unresolved maintenance concerns across IT labs.';
+                  } else {
+                    sub.textContent = 'View and monitor reported computer issues and maintenance requests across IT labs.';
+                  }
+                }
+              } catch (e) { }
+            })();
+          </script>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime"></div>

@@ -276,6 +276,35 @@ global.ghostScheduleRenderer = mockWindow.ghostScheduleRenderer || global.ghostS
   assert(!existingCard.classList.contains('is-split-left'), 'clearGhostBlocks(): Existing card loses .is-split-left');
   assert(!existingCard.classList.contains('is-clash-conflict'), 'clearGhostBlocks(): Existing card loses .is-clash-conflict');
 
+  // ─── 4. Test Dynamic refreshSplits() ───
+  console.log('\n--- 4. Testing Dynamic refreshSplits() ---');
+  // Re-load ghost blocks
+  await global.ghostScheduleRenderer.loadProfessorGhostSchedule('Andrei Gabito', '2026-2027', '1st Semester', '204');
+  
+  // Move existingCard away to slots 10-13 (12:00 - 13:30)
+  existingCard.dataset.start = 10;
+  existingCard.dataset.end = 13;
+  existingCard.style.top = '360px';
+  global.ghostScheduleRenderer.refreshSplits(tuesdayCol);
+
+  assert(!existingCard.classList.contains('is-split-left'), 'Moved existing card loses .is-split-left after refreshSplits');
+  const ghostsAfterMove = tuesdayCol.querySelectorAll('.grid-card-ghost');
+  assert(!ghostsAfterMove[1].classList.contains('is-split-right'), 'Ghost card loses .is-split-right after non-overlapping move');
+
+  // Add a new card overlapping Ghost 1 (07:00-09:00, slots 0 to 4)
+  const newCard = new MockElement('div', 'grid-card');
+  newCard.dataset.start = 1; // 07:30
+  newCard.dataset.end = 3;   // 08:30
+  newCard.style.top = '36px';
+  tuesdayCol.appendChild(newCard);
+  global.ghostScheduleRenderer.refreshSplits(tuesdayCol);
+
+  assert(newCard.classList.contains('is-split-left'), 'New card overlapping ghost gets .is-split-left');
+  assert(ghostsAfterMove[0].classList.contains('is-split-right'), 'Ghost 1 now gets .is-split-right');
+
+  // Final cleanup
+  mockWindow.ghostScheduleRenderer.clearGhostBlocks();
+
   console.log('\n================================================================');
   console.log(`Test Results: ${passed} Passed, ${failed} Failed`);
   console.log('================================================================\n');

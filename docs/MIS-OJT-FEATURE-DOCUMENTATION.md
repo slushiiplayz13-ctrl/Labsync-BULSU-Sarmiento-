@@ -322,7 +322,7 @@ LabSync features a digital **Personal Profile QR Code** used as an electronic pa
 | **IT Department Head** | **YES** ✅ | Used for electronic room access, faculty oversight, and room occupancy verification. |
 | **Faculty / Instructor** | **YES** ✅ | Used to scan into laboratory classrooms for scheduled teaching sessions. |
 | **MIS Staff** | **NO** ❌ | Operational technical role; does not use personal classroom door access passes. |
-| **OJT Intern** | **NO** ❌ | Supervised student assistant role; excluded from electronic door access passes. |
+| **OJT Intern** | **NO** ❌ | Supervised OJT intern role; excluded from electronic door access passes. |
 
 For MIS Staff and OJT Interns, the "My QR Code" tab is hidden entirely from the Account Settings window to maintain an uncluttered, relevant interface.
 

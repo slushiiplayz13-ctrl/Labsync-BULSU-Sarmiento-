@@ -234,7 +234,35 @@
       }
     });
 
+    updateRoleGreetingDescription();
     loadReports();
+  }
+
+  /**
+   * Updates page greeting description based on authenticated role permissions.
+   * - Department Head: Review reported computer issues and follow up on unresolved maintenance concerns across IT labs.
+   * - Program Coordinator / Faculty: View and monitor reported computer issues and maintenance requests across IT labs.
+   */
+  function updateRoleGreetingDescription() {
+    const subEl = document.getElementById('greetingSub');
+    if (!subEl) return;
+    try {
+      const rawUser = (typeof global !== 'undefined' && global.currentUser) ||
+        JSON.parse(
+          (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('labsync_user')) ||
+          (typeof localStorage !== 'undefined' && localStorage.getItem('user')) ||
+          'null'
+        );
+      const user = (rawUser && (rawUser.user || rawUser)) || null;
+      const role = String((user && (user.role || user.Role)) || '').trim().toLowerCase();
+      const isDeptHead = (role.includes('head') && !role.includes('coordinator'));
+
+      if (isDeptHead) {
+        subEl.textContent = 'Review reported computer issues and follow up on unresolved maintenance concerns across IT labs.';
+      } else {
+        subEl.textContent = 'View and monitor reported computer issues and maintenance requests across IT labs.';
+      }
+    } catch (e) { }
   }
 
   if (document.readyState === 'loading') {
@@ -246,7 +274,8 @@
   const reportController = {
     loadReports,
     renderReports,
-    initReportPage
+    initReportPage,
+    updateRoleGreetingDescription
   };
 
   global.reportController = reportController;

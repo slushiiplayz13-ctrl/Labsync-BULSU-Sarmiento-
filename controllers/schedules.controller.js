@@ -2,11 +2,35 @@
 
 const scheduleService = require('../services/scheduleService');
 const auditService = require('../services/auditService');
+const roomLockService = require('../services/roomLockService');
 
 async function saveSchedule(req, res, next) {
     try {
-        const { roomNumber, schedules, academicYear, semester, version } = req.body;
+        const { roomNumber, schedules, academicYear, semester, version, editSessionToken } = req.body;
         const userId = req.session ? req.session.userId : null;
+
+        const activeLock = roomLockService.getLock(roomNumber, academicYear, semester);
+        if (activeLock) {
+            const hasValidLock = roomLockService.verifyLock({
+                roomNumber,
+                academicYear,
+                semester,
+                editSessionToken,
+                userId
+            });
+            if (!hasValidLock) {
+                return res.status(423).json({
+                    error: `Room ${roomNumber} is currently being edited by ${activeLock.userName} (${activeLock.userRole}).`,
+                    code: 'LOCKED',
+                    lockedBy: {
+                        userId: activeLock.userId,
+                        userName: activeLock.userName,
+                        userRole: activeLock.userRole
+                    }
+                });
+            }
+        }
+
         const result = await scheduleService.saveRoomSchedule(roomNumber, schedules, academicYear, semester, version, userId);
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
@@ -129,12 +153,37 @@ async function finalizeSchedule(req, res, next) {
             return res.status(403).json({ error: 'Only the IT Department Head can finalize the official schedule.' });
         }
 
-        const { roomNumber, academicYear, semester } = req.body;
+        const { roomNumber, academicYear, semester, editSessionToken } = req.body;
         const userId = req.session ? req.session.userId : null;
+
+        const activeLock = roomLockService.getLock(roomNumber, academicYear, semester);
+        if (activeLock) {
+            const hasValidLock = roomLockService.verifyLock({
+                roomNumber,
+                academicYear,
+                semester,
+                editSessionToken,
+                userId
+            });
+            if (!hasValidLock) {
+                return res.status(423).json({
+                    error: `Room ${roomNumber} is currently being edited by ${activeLock.userName} (${activeLock.userRole}).`,
+                    code: 'LOCKED',
+                    lockedBy: {
+                        userId: activeLock.userId,
+                        userName: activeLock.userName,
+                        userRole: activeLock.userRole
+                    }
+                });
+            }
+        }
+
         const result = await scheduleService.finalizeSchedule({ roomNumber, academicYear, semester, userId });
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
+
+        roomLockService.releaseLock({ roomNumber, academicYear, semester, editSessionToken });
 
         await auditService.logSecurityEvent({
             req,
@@ -175,11 +224,26 @@ async function reopenSchedule(req, res, next) {
             return res.status(403).json({ error: 'Only the IT Department Head can reopen a finalized schedule.' });
         }
 
-        const { roomNumber, academicYear, semester } = req.body;
+        const { roomNumber, academicYear, semester, editSessionToken } = req.body;
         const userId = req.session ? req.session.userId : null;
+        const userName = req.session ? (req.session.userName || req.session.name) : 'IT Dept. Head';
+        const userRoleName = req.session ? (req.session.userRole || req.session.role) : 'IT Dept. Head';
+
         const result = await scheduleService.reopenSchedule({ roomNumber, academicYear, semester, userId });
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
+        }
+
+        if (editSessionToken) {
+            roomLockService.forceAcquireLock({
+                roomNumber,
+                academicYear,
+                semester,
+                userId,
+                userName,
+                userRole: userRoleName,
+                editSessionToken
+            });
         }
 
         await auditService.logSecurityEvent({
