@@ -45,80 +45,21 @@ async function runMisKeyBoxAccessTests() {
   console.log('🧪 MIS STAFF QR ACCESS TO IOT KEY BOX TEST SUITE');
   console.log('================================================================\n');
 
-  // 1. Ensure test laboratories 203 and 204 exist
-  const [lab203Rows] = await db.query("SELECT Room_ID, Room_Number FROM laboratories WHERE Room_Number = '203' LIMIT 1");
-  assert.ok(lab203Rows.length > 0, "Room 203 must exist");
-  const room203Id = lab203Rows[0].Room_ID;
-
-  const [lab204Rows] = await db.query("SELECT Room_ID, Room_Number FROM laboratories WHERE Room_Number = '204' LIMIT 1");
-  assert.ok(lab204Rows.length > 0, "Room 204 must exist");
-  const room204Id = lab204Rows[0].Room_ID;
-
-  // 2. Setup Test Accounts (Active MIS Staff, Inactive MIS Staff, OJT, Student, Faculty)
+  let room203Id = null;
+  let room204Id = null;
   let misActive = null;
   let misInactive = null;
   let ojtUser = null;
   let studentUser = null;
 
-  // Find or create active MIS Staff
-  const [misRows] = await db.query("SELECT User_ID, Name, Email, Role, Status, ID_QR_String FROM users WHERE Role = 'MIS Staff' AND Status = 'ACTIVE' LIMIT 1");
-  if (misRows.length > 0) {
-    misActive = misRows[0];
-    if (!misActive.ID_QR_String) {
-      misActive.ID_QR_String = 'LABSYNC-USER-MIS-TEST-ACTIVE';
-      await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [misActive.ID_QR_String, misActive.User_ID]);
-    }
-  } else {
-    const [ins] = await db.query(
-      "INSERT INTO users (Name, Email, Role, Status, ID_QR_String) VALUES ('Engr. Mark MIS', 'mark.mis@bulsu.edu.ph', 'MIS Staff', 'ACTIVE', 'LABSYNC-USER-MIS-TEST-ACTIVE')"
-    );
-    misActive = { User_ID: ins.insertId, Name: 'Engr. Mark MIS', Role: 'MIS Staff', Status: 'ACTIVE', ID_QR_String: 'LABSYNC-USER-MIS-TEST-ACTIVE' };
-  }
+  let originalActiveQr = null;
+  let originalInactiveQr = null;
+  let originalOjtQr = null;
+  let originalStudentQr = null;
+  const createdUserIds = [];
 
-  // Find or create inactive/deactivated MIS Staff
-  const [inactRows] = await db.query("SELECT User_ID, Name, Email, Role, Status, ID_QR_String FROM users WHERE Role = 'MIS Staff' AND Status = 'DEACTIVATED' LIMIT 1");
-  if (inactRows.length > 0) {
-    misInactive = inactRows[0];
-    if (!misInactive.ID_QR_String) {
-      misInactive.ID_QR_String = 'LABSYNC-USER-MIS-TEST-INACT';
-      await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [misInactive.ID_QR_String, misInactive.User_ID]);
-    }
-  } else {
-    const [insInact] = await db.query(
-      "INSERT INTO users (Name, Email, Role, Status, ID_QR_String) VALUES ('Deactivated MIS Tech', 'deact.mis@bulsu.edu.ph', 'MIS Staff', 'DEACTIVATED', 'LABSYNC-USER-MIS-TEST-INACT')"
-    );
-    misInactive = { User_ID: insInact.insertId, Name: 'Deactivated MIS Tech', Role: 'MIS Staff', Status: 'DEACTIVATED', ID_QR_String: 'LABSYNC-USER-MIS-TEST-INACT' };
-  }
-
-  // Find or create OJT user with OJT QR
-  const [ojtRows] = await db.query("SELECT User_ID, Name, Email, Role, Status, ID_QR_String FROM users WHERE Role = 'OJT' LIMIT 1");
-  if (ojtRows.length > 0) {
-    ojtUser = ojtRows[0];
-    if (!ojtUser.ID_QR_String) {
-      ojtUser.ID_QR_String = 'LABSYNC-OJT-TEST-QR-999';
-      await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [ojtUser.ID_QR_String, ojtUser.User_ID]);
-    }
-  } else {
-    const [insOjt] = await db.query(
-      "INSERT INTO users (Name, Email, Role, Status, ID_QR_String) VALUES ('Juan OJT Trainee', 'juan.ojt@bulsu.edu.ph', 'OJT', 'ACTIVE', 'LABSYNC-OJT-TEST-QR-999')"
-    );
-    ojtUser = { User_ID: insOjt.insertId, Name: 'Juan OJT Trainee', Role: 'OJT', Status: 'ACTIVE', ID_QR_String: 'LABSYNC-OJT-TEST-QR-999' };
-  }
-
-  // Find or create Student/Public user
-  const [studRows] = await db.query("SELECT User_ID, Name, Email, Role, Status, ID_QR_String FROM users WHERE Role = 'Student' LIMIT 1");
-  if (studRows.length > 0) {
-    studentUser = studRows[0];
-    if (!studentUser.ID_QR_String) {
-      studentUser.ID_QR_String = 'LABSYNC-USER-STUDENT-TEST';
-      await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [studentUser.ID_QR_String, studentUser.User_ID]);
-    }
-  } else {
-    const [insStud] = await db.query(
-      "INSERT INTO users (Name, Email, Role, Status, ID_QR_String) VALUES ('Student Juan', 'student@bulsu.edu.ph', 'Student', 'ACTIVE', 'LABSYNC-USER-STUDENT-TEST')"
-    );
-    studentUser = { User_ID: insStud.insertId, Name: 'Student Juan', Role: 'Student', Status: 'ACTIVE', ID_QR_String: 'LABSYNC-USER-STUDENT-TEST' };
-  }
+  let baselineOccLogId = null;
+  let baselineAuditLogId = null;
 
   // Helper to reset labs to Present & NULL holder
   async function resetLabs() {
@@ -127,6 +68,99 @@ async function runMisKeyBoxAccessTests() {
   }
 
   try {
+    // 1. Ensure test laboratories 203 and 204 exist
+    const [lab203Rows] = await db.query("SELECT Room_ID, Room_Number FROM laboratories WHERE Room_Number = '203' LIMIT 1");
+    assert.ok(lab203Rows.length > 0, "Room 203 must exist");
+    room203Id = lab203Rows[0].Room_ID;
+
+    const [lab204Rows] = await db.query("SELECT Room_ID, Room_Number FROM laboratories WHERE Room_Number = '204' LIMIT 1");
+    assert.ok(lab204Rows.length > 0, "Room 204 must exist");
+    room204Id = lab204Rows[0].Room_ID;
+
+    // Record baseline log IDs to clean up occupancy_log and audit_logs created during this test
+    const [maxOccRows] = await db.query('SELECT COALESCE(MAX(Log_ID), 0) AS maxId FROM occupancy_log');
+    baselineOccLogId = maxOccRows[0].maxId;
+
+    const [maxAuditRows] = await db.query('SELECT COALESCE(MAX(Log_ID), 0) AS maxId FROM audit_logs');
+    baselineAuditLogId = maxAuditRows[0].maxId;
+
+    // Neutralize any legacy static test QR strings leftover in DB from older unisolated runs
+    await db.query(
+      "UPDATE users SET ID_QR_String = NULL WHERE ID_QR_String IN ('LABSYNC-USER-MIS-TEST-ACTIVE', 'LABSYNC-USER-MIS-TEST-INACT', 'LABSYNC-OJT-TEST-QR-999', 'LABSYNC-USER-STUDENT-TEST')"
+    );
+
+    // Generate unique dynamic QR strings for this test run
+    const testRunId = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const testQrActive = `LABSYNC-USER-MIS-ACT-${testRunId}`;
+    const testQrInactive = `LABSYNC-USER-MIS-INA-${testRunId}`;
+    const testQrOjt = `LABSYNC-USER-OJT-${testRunId}`;
+    const testQrStudent = `LABSYNC-USER-STUDENT-${testRunId}`;
+
+    // 2. Setup Test Accounts (Active MIS Staff, Inactive MIS Staff, OJT, Student)
+    // Find or create active MIS Staff
+    const [misRows] = await db.query("SELECT User_ID, Name, Email, Role, Status, ID_QR_String FROM users WHERE Role = 'MIS Staff' AND Status = 'ACTIVE' LIMIT 1");
+    if (misRows.length > 0) {
+      misActive = misRows[0];
+      originalActiveQr = misActive.ID_QR_String;
+      misActive.ID_QR_String = testQrActive;
+      await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [testQrActive, misActive.User_ID]);
+    } else {
+      const [ins] = await db.query(
+        "INSERT INTO users (Name, Email, Role, Status, ID_QR_String) VALUES ('Engr. Mark MIS', ?, 'MIS Staff', 'ACTIVE', ?)",
+        [`mark.mis.${testRunId}@bulsu.edu.ph`, testQrActive]
+      );
+      misActive = { User_ID: ins.insertId, Name: 'Engr. Mark MIS', Role: 'MIS Staff', Status: 'ACTIVE', ID_QR_String: testQrActive };
+      createdUserIds.push(ins.insertId);
+    }
+
+    // Find or create inactive/deactivated MIS Staff
+    const [inactRows] = await db.query("SELECT User_ID, Name, Email, Role, Status, ID_QR_String FROM users WHERE Role = 'MIS Staff' AND Status = 'DEACTIVATED' LIMIT 1");
+    if (inactRows.length > 0) {
+      misInactive = inactRows[0];
+      originalInactiveQr = misInactive.ID_QR_String;
+      misInactive.ID_QR_String = testQrInactive;
+      await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [testQrInactive, misInactive.User_ID]);
+    } else {
+      const [insInact] = await db.query(
+        "INSERT INTO users (Name, Email, Role, Status, ID_QR_String) VALUES ('Deactivated MIS Tech', ?, 'MIS Staff', 'DEACTIVATED', ?)",
+        [`deact.mis.${testRunId}@bulsu.edu.ph`, testQrInactive]
+      );
+      misInactive = { User_ID: insInact.insertId, Name: 'Deactivated MIS Tech', Role: 'MIS Staff', Status: 'DEACTIVATED', ID_QR_String: testQrInactive };
+      createdUserIds.push(insInact.insertId);
+    }
+
+    // Find or create OJT user with OJT QR
+    const [ojtRows] = await db.query("SELECT User_ID, Name, Email, Role, Status, ID_QR_String FROM users WHERE Role = 'OJT' AND Status = 'ACTIVE' LIMIT 1");
+    if (ojtRows.length > 0) {
+      ojtUser = ojtRows[0];
+      originalOjtQr = ojtUser.ID_QR_String;
+      ojtUser.ID_QR_String = testQrOjt;
+      await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [testQrOjt, ojtUser.User_ID]);
+    } else {
+      const [insOjt] = await db.query(
+        "INSERT INTO users (Name, Email, Role, Status, ID_QR_String) VALUES ('Juan OJT Trainee', ?, 'OJT', 'ACTIVE', ?)",
+        [`juan.ojt.${testRunId}@bulsu.edu.ph`, testQrOjt]
+      );
+      ojtUser = { User_ID: insOjt.insertId, Name: 'Juan OJT Trainee', Role: 'OJT', Status: 'ACTIVE', ID_QR_String: testQrOjt };
+      createdUserIds.push(insOjt.insertId);
+    }
+
+    // Find or create Student/Public user
+    const [studRows] = await db.query("SELECT User_ID, Name, Email, Role, Status, ID_QR_String FROM users WHERE Role = 'Student' AND Status = 'ACTIVE' LIMIT 1");
+    if (studRows.length > 0) {
+      studentUser = studRows[0];
+      originalStudentQr = studentUser.ID_QR_String;
+      studentUser.ID_QR_String = testQrStudent;
+      await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [testQrStudent, studentUser.User_ID]);
+    } else {
+      const [insStud] = await db.query(
+        "INSERT INTO users (Name, Email, Role, Status, ID_QR_String) VALUES ('Student Juan', ?, 'Student', 'ACTIVE', ?)",
+        [`student.${testRunId}@bulsu.edu.ph`, testQrStudent]
+      );
+      studentUser = { User_ID: insStud.insertId, Name: 'Student Juan', Role: 'Student', Status: 'ACTIVE', ID_QR_String: testQrStudent };
+      createdUserIds.push(insStud.insertId);
+    }
+
     await resetLabs();
 
     // -------------------------------------------------------------------------
@@ -478,7 +512,76 @@ async function runMisKeyBoxAccessTests() {
     console.log('================================================================\n');
 
   } finally {
-    await resetLabs();
+    try {
+      await resetLabs();
+    } catch (e) {
+      console.error('Error resetting labs in teardown:', e.message);
+    }
+
+    try {
+      if (baselineOccLogId !== null && room203Id && room204Id) {
+        await db.query(
+          'DELETE FROM occupancy_log WHERE Log_ID > ? AND Room_ID IN (?, ?)',
+          [baselineOccLogId, room203Id, room204Id]
+        );
+      }
+    } catch (e) {
+      console.error('Error cleaning occupancy_log in teardown:', e.message);
+    }
+
+    try {
+      if (baselineAuditLogId !== null && room203Id && room204Id) {
+        await db.query(
+          'DELETE FROM audit_logs WHERE Log_ID > ? AND Resource_ID IN (?, ?)',
+          [baselineAuditLogId, String(room203Id), String(room204Id)]
+        );
+      }
+    } catch (e) {
+      console.error('Error cleaning audit_logs in teardown:', e.message);
+    }
+
+    try {
+      if (createdUserIds.length > 0) {
+        await db.query('DELETE FROM users WHERE User_ID IN (' + createdUserIds.map(() => '?').join(',') + ')', createdUserIds);
+      }
+    } catch (e) {
+      console.error('Error cleaning created users in teardown:', e.message);
+    }
+
+    const legacyHardcodedQrs = [
+      'LABSYNC-USER-MIS-TEST-ACTIVE',
+      'LABSYNC-USER-MIS-TEST-INACT',
+      'LABSYNC-OJT-TEST-QR-999',
+      'LABSYNC-USER-STUDENT-TEST'
+    ];
+
+    try {
+      if (misActive && misActive.User_ID && !createdUserIds.includes(misActive.User_ID)) {
+        const restoreQr = (originalActiveQr && !legacyHardcodedQrs.includes(originalActiveQr)) ? originalActiveQr : null;
+        await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [restoreQr, misActive.User_ID]);
+      }
+    } catch (e) {}
+
+    try {
+      if (misInactive && misInactive.User_ID && !createdUserIds.includes(misInactive.User_ID)) {
+        const restoreQr = (originalInactiveQr && !legacyHardcodedQrs.includes(originalInactiveQr)) ? originalInactiveQr : null;
+        await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [restoreQr, misInactive.User_ID]);
+      }
+    } catch (e) {}
+
+    try {
+      if (ojtUser && ojtUser.User_ID && !createdUserIds.includes(ojtUser.User_ID)) {
+        const restoreQr = (originalOjtQr && !legacyHardcodedQrs.includes(originalOjtQr)) ? originalOjtQr : null;
+        await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [restoreQr, ojtUser.User_ID]);
+      }
+    } catch (e) {}
+
+    try {
+      if (studentUser && studentUser.User_ID && !createdUserIds.includes(studentUser.User_ID)) {
+        const restoreQr = (originalStudentQr && !legacyHardcodedQrs.includes(originalStudentQr)) ? originalStudentQr : null;
+        await db.query('UPDATE users SET ID_QR_String = ? WHERE User_ID = ?', [restoreQr, studentUser.User_ID]);
+      }
+    } catch (e) {}
   }
 }
 
