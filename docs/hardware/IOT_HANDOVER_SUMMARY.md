@@ -49,7 +49,7 @@ To distinguish between physical keys placed in slots (e.g., preventing Key 203 f
 
 ## 3. Web Server & Backend Integration
 
-- **Primary API Base URL**: `http://<server-ip>:3000/api/occupancy`
+- **Primary API Base URL**: `http://<server-ip>:3000/api/occupancy` (Local development) or `https://<domain-or-railway-url>/api/occupancy` (Production over HTTPS with TLS 1.3 / Port 443)
 - **Endpoints**:
   - `POST /api/occupancy/log`: Submits QR scan events or key removal/return state transitions.
   - `POST /api/occupancy/heartbeat`: 5-second periodic connectivity ping from the ESP32.
@@ -92,7 +92,23 @@ To distinguish between physical keys placed in slots (e.g., preventing Key 203 f
 
 ---
 
-## 4. Room Availability Engine
+## 4. Key Box Access Authorization Rules
+
+When an optical badge scan (`POST /api/occupancy/log`) is received by the backend, the user's QR string (`LABSYNC-USER-*`) is validated against active accounts in the `users` table:
+
+| User Role | Key Box QR Scan Permitted? | Authorization Behavior & Operational Rationale |
+|---|:---:|---|
+| **IT Department Head** | ✅ **Authorized** | Department administrator; full physical key withdrawal and return access. |
+| **Program Coordinator** | ✅ **Authorized** | Academic administrator; legitimate laboratory key access for teaching and department oversight. |
+| **Faculty / Instructor** | ✅ **Authorized** | Instructional key access for assigned schedule slots and authorized reservations. |
+| **MIS Staff** | ✅ **Authorized** | Institutional technical custodian; authorized to withdraw keys for physical maintenance and hardware inspection. |
+| **OJT Intern** | ❌ **Rejected** | Restricted support role; prohibited from withdrawing physical keys from dock. Profile QR modal is hidden in UI. |
+| **Student / Public** | ❌ **Rejected** | Unauthenticated; cannot trigger key dock unlock. |
+| **Deactivated Account** | ❌ **Rejected** | Immediate rejection (`ACCOUNT_DEACTIVATED`). Resigned or deactivated MIS Staff credentials instantly fail. |
+
+---
+
+## 5. Room Availability Engine
 
 The backend dynamically calculates room status (`GET /api/laboratories`) using schedule and key state:
 
@@ -104,7 +120,7 @@ The backend dynamically calculates room status (`GET /api/laboratories`) using s
 
 ---
 
-## 5. ESP32 Arduino Sketch Reference
+## 6. ESP32 Arduino Sketch Reference
 
 The full, verified firmware sketch is located at [`LabSync_ESP32.ino`](../../LabSync_ESP32.ino).
 
@@ -125,7 +141,7 @@ The full, verified firmware sketch is located at [`LabSync_ESP32.ino`](../../Lab
 
 ---
 
-## 6. Hardware Limitations & Operational Notes
+## 7. Hardware Limitations & Operational Notes
 
 - **Occupancy Inference**: Room availability is inferred from the physical key dock state. It does not detect human body presence or count occupants inside the laboratory.
 - **Physical Contact Cleanliness**: Ensure 6.35mm jack solder tabs and socket leaves are clean and unoxidized to prevent fluctuating ADC voltage readings.

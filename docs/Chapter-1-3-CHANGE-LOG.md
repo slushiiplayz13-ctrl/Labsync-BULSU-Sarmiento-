@@ -12,9 +12,9 @@
 | Classification | Count | Description |
 | :--- | :---: | :--- |
 | **MUST UPDATE** | 9 | Factually inaccurate, conflicting, or obsolete technical descriptions requiring mandatory correction (e.g., PHP references, obsolete reed switch/LED pin mapping, analog ADC sensing mode). |
-| **SHOULD UPDATE** | 26 | Verified current system capabilities added or modified since baseline approval (e.g., Maintenance Issue Deduplication behavior, Resolver Attribution, MIS OJT Intern Management, Hallway Key Transfer Protocol, Audit Logging, Activity Log Retention). |
+| **SHOULD UPDATE** | 35 | Verified current system capabilities added or modified since baseline approval (e.g., Maintenance Issue Deduplication behavior, Resolver Attribution, MIS OJT Intern Management, Hallway Key Transfer Protocol, Audit Logging, Activity Log Retention, Program Coordinator role, User Management, Collaborative Scheduling, PC Report Follow-Up, Student ID QR verification). |
 | **OPTIONAL** | 0 | Purely stylistic alterations were strictly avoided to preserve adviser-approved academic integrity. |
-| **TOTAL CHANGES** | **35** | Fully documented below. |
+| **TOTAL CHANGES** | **44** | Fully documented below. |
 
 ---
 
@@ -33,7 +33,7 @@
 3. **Key Transfer & Scanning Protocol:**
    - Physical laboratory keys feature acrylic keychain tags with QR codes linking to `/key-transfer.html?key=KEY_CODE`.
    - `key-found.html` is an alias that immediately redirects to `key-transfer.html`.
-   - **QR-Based Key Transfer & Custody Workflow Requiring Authenticated Authorized Personnel:** When a physical key QR code is scanned, the page calls `GET /api/keys/transfer-info/:keyCode`. An unauthenticated request receives a `401 Unauthorized` response, prompting the UI to display an authentication requirement notice and redirect the user to login. Only authenticated, authorized personnel (Faculty or IT Department Head via `KEY_TRANSFER_ROLES`) can proceed with the key custody transfer.
+   - **QR-Based Key Transfer & Custody Workflow Requiring Authenticated Authorized Personnel:** When a physical key QR code is scanned, the page calls `GET /api/keys/transfer-info/:keyCode`. An unauthenticated request receives a `401 Unauthorized` response, prompting the UI to display an authentication requirement notice and redirect the user to login. Only authenticated, authorized personnel (Faculty, Program Coordinator, or IT Department Head via `KEY_TRANSFER_ROLES`) can proceed with the key custody transfer.
    - An earlier draft proposal for a standalone unauthenticated "lost key reporting form with location details" (proposed as FR-10) was **removed** because it was not supported by the codebase. Key custody handoffs are governed strictly by the authenticated unified transfer workflow.
 
 4. **OJT Permissions & Authorization Boundaries:**
@@ -77,6 +77,35 @@
 
 9. **Backend Database Connection Architecture:**
    - The Node.js / Express backend connects to MariaDB/MySQL via the centralized connection pool module `database/connection.js` (`server.js` imports `pool = require('./database/connection')`).
+
+10. **Program Coordinator Authority Boundaries:**
+    - The **Program Coordinator** role is an academic leadership position (`IT_HEAD_ROLES` in `middleware/auth.js`) introduced to assist the IT Department Head in class scheduling and syllabus management.
+    - **Allowed Privileges:** Collaborative draft timetable editing in Schedule Studio (`schedule_drafts`), saving working drafts (`POST /api/schedules/save`), testing cross-room instructor overlap conflicts, managing regular Faculty accounts (`POST /api/faculty/add`, edit, delete non-head faculty), and requesting personal second keys.
+    - **Strict Restrictions (HTTP 403 Forbidden):** Cannot finalize drafts into official schedules (`POST /api/schedules/finalize`), cannot reopen official schedules (`POST /api/schedules/reopen`), cannot approve or reject other faculty members' key requests (`POST /api/keys/requests/:id/approve`), cannot manage MIS Staff accounts, cannot manage OJT Intern accounts, and cannot assign or demote the IT Dept. Head.
+
+11. **Draft vs. Official Schedule Isolation & OCC:**
+    - Working drafts are persisted in `schedule_drafts` (Migration 021) and completely decoupled from active live production timetables in `schedules`.
+    - Optimistic Concurrency Control (OCC) is enforced via `schedule_metadata(Version)`.
+    - Collaborative room locking (`services/roomLockService.js`) enforces a 30-second in-memory lease with client heartbeat renewals (`editSessionToken`). Same-room concurrent editing is locked with HTTP `423 Locked`, while different-room parallel drafting is permitted.
+    - Timetable printing is disabled while in `Draft` state; print layouts apply an amber watermark `"WORKING DRAFT – FOR REVIEW ONLY"`, whereas finalized timetables display a green `"OFFICIAL SCHEDULE"` badge.
+
+12. **MIS Staff Lifecycle & Advisory Concurrency Lock:**
+    - Governed exclusively by the IT Department Head under unified User Management (`faculty-management.html`).
+    - Enforces a single active institutional MIS Staff member via MariaDB named advisory locks: `GET_LOCK('labsync_active_mis_lifecycle_lock', 10)`.
+    - Resignations are handled via soft deactivation (`Status = 'DEACTIVATED'`), setting the position state to `Vacant`. Deactivated accounts are blocked immediately from authenticating (401 `ACCOUNT_DEACTIVATED`) and from scanning at the IoT key dock.
+    - Work order resolver history in `maintenance_issues.Resolved_By_User_ID` is permanently preserved. The IT Dept. Head provisions the replacement MIS Staff member, transitioning the position back to `Active`.
+    - **OJT Intern Supervision Boundary:** Permanent MIS Staff exclusively manages OJT Intern accounts (`/api/ojt`). The IT Department Head inspects the intern directory in read-only mode.
+
+13. **Student ID QR Verification & Nonces:**
+    - Workstation issue reporting enforces physical Student ID QR scanning via `student-id-verification.html`.
+    - The backend (`POST /api/reports/verify-student-id`) validates the student ID payload and creates an ephemeral 15-minute verification session token in `student_verification_sessions` (Migration 022).
+    - Automatically obtains and locks **Student Name** and **Student Number** on `submit-pc-report.html`. The reporting student manually enters their current **Section**.
+    - Final submission atomically consumes the verification token (`Is_Used = 1`), preventing token reuse, spam, or falsification.
+
+14. **PC Maintenance Report Follow-Up Escalation:**
+    - Restricted exclusively to the IT Department Head (`POST /api/reports/:reportId/follow-up`).
+    - Throttled atomically in SQL to a maximum of once per calendar day per report: `(Followed_Up_At IS NULL OR DATE(Followed_Up_At) < CURDATE())`.
+    - Increments `Follow_Up_Count` and updates `Followed_Up_At` and `Followed_Up_By_User_ID` in `maintenance_issues` (Migration 023), logging a `PC_REPORT_FOLLOW_UP` security audit event.
 
 ---
 
@@ -687,6 +716,164 @@
 - **Evidence from Current System:** `mis-ojt.html`, `js/pages/mis-ojt.js`, `services/ojtService.js`, `routes/ojt.routes.js`.
 - **Repository File Path:** `mis-ojt.html`, `services/ojtService.js`
 - **Relevant Reference:** `createOjt`, `updateOjt`, `updateStatus`, `resetPassword`.
+
+---
+
+#### 36. Introduction, Objectives & Scope — Program Coordinator & Academic Collaboration
+- **Chapter:** Chapter 1 & Chapter 3
+- **Section / Topic:** Chapter 1 (Objectives, System Scope) & Chapter 3 (User Roles, Use Cases)
+- **Table / Figure:** P42, P58, P72, and Chapter 3 Role Specifications
+- **Original Content:**
+  > "The system defines four primary user roles: IT Department Head, Faculty Member, MIS Staff, and OJT Intern..."
+- **Updated Content:**
+  > "**The system defines five primary authenticated user roles: IT Department Head, Program Coordinator, Faculty Member, MIS Staff, and OJT Intern, alongside unauthenticated Student / Public visitors.** The **Program Coordinator** serves as an academic administrative role assisting the IT Department Head in class scheduling, syllabus management, and instructional coordination. The Program Coordinator can edit and save working schedule drafts in Schedule Studio, validate cross-room professor collisions, manage regular faculty accounts, and request personal second keys for instruction. To preserve institutional authority, the Program Coordinator is strictly prohibited from finalizing or reopening official timetables (HTTP 403), approving or rejecting other instructors' key requests (HTTP 403), managing MIS Staff accounts (HTTP 403), managing OJT Intern accounts (HTTP 403), or altering the IT Department Head account."
+- **Reason for Change:** Accurately reflects the newly implemented Program Coordinator role (`IT_HEAD_ROLES` in `middleware/auth.js`) and its exact capabilities and boundaries.
+- **Classification:** `SHOULD UPDATE`
+- **Change Type:** `NEW FEATURE` & `ROLE EXPANSION`
+- **Evidence from Current System:** `middleware/auth.js`, `controllers/schedules.controller.js`, `controllers/faculty.controller.js`, `tests/test-program-coordinator-permissions.js`.
+- **Repository File Path:** `middleware/auth.js`, `routes/schedules.routes.js`, `routes/faculty.routes.js`
+- **Relevant Reference:** `IT_HEAD_ROLES = [...IT_DEPT_HEAD_EXCLUSIVE_ROLES, 'Program Coordinator']`, `requireExactRole`.
+
+---
+
+#### 37. Scope & User Management — Unified User Management & MIS Replacement Lifecycle
+- **Chapter:** Chapter 1 & Chapter 3
+- **Section / Topic:** Chapter 1 (Scope and Delimitation) & Chapter 3 (System Modules, User Management)
+- **Table / Figure:** P74, P188, and Module Specifications
+- **Original Content:**
+  > "Faculty Management allows the IT Department Head to register instructors, update accounts, and assign credentials."
+- **Updated Content:**
+  > "**Unified User Management (`faculty-management.html`) serves as the centralized departmental directory, structured conceptually across three role categories: Faculty, MIS Staff, and OJT Interns.** The IT Department Head exercises exclusive governance over the permanent **MIS Staff account lifecycle** (`/api/mis-staff`), including account provisioning, profile updates, soft deactivation, and successor replacement. The backend enforces a strict single active MIS staff rule atomically via MariaDB named advisory locks (`GET_LOCK('labsync_active_mis_lifecycle_lock', 10)`). When an MIS staff member resigns or departs, the IT Dept. Head deactivates the account (`POST /api/mis-staff/:userId/deactivate`), transitioning the position to `Vacant` and immediately revoking authentication and key dock access while permanently preserving repair attribution in `maintenance_issues.Resolved_By_User_ID`. The IT Dept. Head then provisions the replacement technician, restoring the position to `Active`. Permanent MIS Staff retains exclusive operational supervision over OJT Intern accounts (`/api/ojt`), preserving established institutional boundaries."
+- **Reason for Change:** Modernizes "Faculty Management" terminology to unified User Management and documents the atomic MIS Staff succession and replacement lifecycle.
+- **Classification:** `SHOULD UPDATE`
+- **Change Type:** `MODIFIED FEATURE` & `LIFECYCLE ENHANCEMENT`
+- **Evidence from Current System:** `services/misService.js`, `repositories/mis.repository.js`, `routes/mis.routes.js`, `controllers/mis.controller.js`, `tests/test-mis-lifecycle.js`, `tests/test-mis-concurrency.js`.
+- **Repository File Path:** `services/misService.js`, `faculty-management.html`, `js/pages/faculty-management.js`
+- **Relevant Reference:** Advisory named locks, vacancy handling, `ACCOUNT_DEACTIVATED`.
+
+---
+
+#### 38. System Architecture & Design — Collaborative Master Scheduling & Draft Isolation
+- **Chapter:** Chapter 3
+- **Section / Topic:** System Architecture, Process Descriptions, Schedule Studio
+- **Table / Figure:** Process 3.0 & Schedule Studio Specifications
+- **Original Content:**
+  > "The IT Department Head uses the drag-and-drop Schedule Studio to place course blocks into room grids, automatically checking for time conflicts before saving the timetable directly to the database."
+- **Updated Content:**
+  > "**The Master Schedule Studio employs an isolated draft architecture that separates working timetables (`schedule_drafts`) from official live production schedules (`schedules`).** Both the IT Department Head and the Program Coordinator can collaboratively draft and modify course schedules (`POST /api/schedules/save`), with Optimistic Concurrency Control (OCC) tracking version increments in `schedule_metadata(Version)`. Concurrent multi-user drafting is governed by an in-memory **Room Lease Locking Service (`services/roomLockService.js`)** providing 30-second leases with client heartbeat renewals (`editSessionToken`). Users can edit different laboratory rooms in parallel, but simultaneous edits to the same room return HTTP `423 Locked`. To prevent premature distribution, timetable printing is strictly disabled while in `Draft` state; physical print layouts apply an amber `"WORKING DRAFT – FOR REVIEW ONLY"` watermark, whereas finalized timetables display a green `"OFFICIAL SCHEDULE"` banner. **Only the IT Department Head possesses administrative authority to finalize drafts into official schedules (`POST /api/schedules/finalize`) or reopen finalized schedules back to draft mode (`POST /api/schedules/reopen`).**"
+- **Reason for Change:** Documents the complete collaborative scheduling architecture, draft/official database isolation, OCC, and room lease locking.
+- **Classification:** `SHOULD UPDATE`
+- **Change Type:** `NEW ARCHITECTURE` & `PROCESS EXPANSION`
+- **Evidence from Current System:** `database/migrations/024_create_schedule_metadata.sql`, `database/migrations/025_create_schedule_drafts.sql`, `services/scheduleService.js`, `services/roomLockService.js`, `routes/schedules.routes.js`, `tests/test-schedule-draft-isolation.js`, `tests/test-schedule-room-locking.js`.
+- **Repository File Path:** `services/scheduleService.js`, `services/roomLockService.js`, `room-schedule-editor.html`
+- **Relevant Reference:** Draft isolation, OCC `Version`, room lease lock, HTTP 423.
+
+---
+
+#### 39. Maintenance Workflow — PC Maintenance Report Follow-Up Escalation
+- **Chapter:** Chapter 1 & Chapter 3
+- **Section / Topic:** Chapter 1 (Objectives) & Chapter 3 (Maintenance Process Flow, Use Cases)
+- **Table / Figure:** Maintenance Flowchart & Use Case Specifications
+- **Original Content:**
+  > "Maintenance tickets remain in the queue until addressed by technical personnel."
+- **Updated Content:**
+  > "**To prevent unresolved hardware defects from languishing indefinitely, LabSync incorporates an administrative PC Maintenance Report Follow-Up escalation workflow (`POST /api/reports/:reportId/follow-up`) restricted exclusively to the IT Department Head.** Department Heads can review open tickets and trigger a formal follow-up, which alerts assigned technicians and escalates ticket visibility in the MIS Maintenance Tracker. To prevent spam and maintain realistic remediation windows, the backend enforces an atomic once-per-calendar-day throttle in SQL (`Followed_Up_At IS NULL OR DATE(Followed_Up_At) < CURDATE()`), updating `Follow_Up_Count`, `Followed_Up_At`, and `Followed_Up_By_User_ID` in `maintenance_issues` (Migration 023) and recording an immutable `PC_REPORT_FOLLOW_UP` event in `audit_logs`."
+- **Reason for Change:** Documents the Department Head maintenance follow-up escalation feature.
+- **Classification:** `SHOULD UPDATE`
+- **Change Type:** `NEW FEATURE`
+- **Evidence from Current System:** `database/migrations/023_add_maintenance_issue_follow_up.sql`, `services/maintenanceService.js`, `routes/maintenance.routes.js`, `tests/test-pc-report-follow-up.js`.
+- **Repository File Path:** `services/maintenanceService.js`, `controllers/maintenance.controller.js`
+- **Relevant Reference:** Once-per-day cooldown, `Follow_Up_Count`, `Followed_Up_At`.
+
+---
+
+#### 40. Key Custody & Reservations — Second-Key Advance Reservation Workflow
+- **Chapter:** Chapter 1 & Chapter 3
+- **Section / Topic:** Chapter 1 (Scope) & Chapter 3 (Key Authorization Workflow, Use Cases)
+- **Table / Figure:** Multi-Key Request Flowchart & Use Case Specifications
+- **Original Content:**
+  > "Faculty members are limited to borrowing one room key at a time."
+- **Updated Content:**
+  > "**While the default institutional policy strictly enforces a single-key borrowing ceiling, instructors and the Program Coordinator requiring an additional room for concurrent laboratory sessions or advance scheduling can submit formal requests through the Multi-Key Authorization & Advance Reservation Workflow (`/api/keys/request-additional`).** Users can reserve keys for dates up to the Saturday of the following week (Monday through Saturday horizon). The backend collision engine validates the requested window against active timetables and existing reservations, enforcing an absolute ceiling of **maximum 2 keys simultaneously** per instructor. The request is placed into the IT Department Head's approval queue; **the IT Department Head holds exclusive authority to approve or reject requests** (`/api/keys/requests/:id/approve|reject`), which triggers automated transactional email notifications to the requesting faculty member. Approved reservations transition to `CLAIMED` upon physical key withdrawal and `COMPLETED` upon dock return."
+- **Reason for Change:** Documents the multi-key reservation window, 2-key ceiling, Program Coordinator request ability, and Dept. Head approval exclusivity.
+- **Classification:** `SHOULD UPDATE`
+- **Change Type:** `MODIFIED FEATURE`
+- **Evidence from Current System:** `database/migrations/014_create_key_authorization_requests.sql`, `database/migrations/018_add_reservation_fields_to_key_authorization.sql`, `services/keyAuthorizationService.js`, `tests/test-multi-key-approval-workflow.js`.
+- **Repository File Path:** `services/keyAuthorizationService.js`, `controllers/key-authorization.controller.js`
+- **Relevant Reference:** 2-key ceiling, advance reservation horizon, status lifecycle.
+
+---
+
+#### 41. Workstation Fault Reporting — Student ID QR Verification
+- **Chapter:** Chapter 1 & Chapter 3
+- **Section / Topic:** Chapter 1 (Problem Statement, Objectives, Scope) & Chapter 3 (Workstation Reporting Process)
+- **Table / Figure:** Reporting Flowchart & Use Case Specifications
+- **Original Content:**
+  > "Students scan the workstation QR code, fill out the reporting form with their name and section, and submit the defect directly to the maintenance queue."
+- **Updated Content:**
+  > "**To address student reporting accountability and eliminate anonymous or falsified defect submissions, LabSync enforces a two-step Student ID QR Verification workflow (`student-id-verification.html`).** When a student scans a computer's workstation QR sticker, they are routed to the verification portal to scan the QR barcode on the back of their physical BulSU Student ID (with camera video capture or photo upload fallback). The backend (`POST /api/reports/verify-student-id`) parses the student identity and provisions an ephemeral, single-use 15-minute verification session token stored in `student_verification_sessions` (Migration 022). The student is then redirected to `submit-pc-report.html`, where their **Student Name** and **Student Number** are automatically pre-filled and locked as verified badges. The student manually inputs their current academic section (e.g., `BSIT 3A`) and selects affected components or remarks. Upon submission (`POST /api/reports/submit`), the session nonce is atomically marked consumed (`Used_At = NOW()`), preventing token replay while creating verified tickets in `maintenance` (Migration 021) and `maintenance_issues`."
+- **Reason for Change:** Documents the Student ID QR verification workflow, cryptographic session nonces, and verified field pre-filling.
+- **Classification:** `SHOULD UPDATE`
+- **Change Type:** `NEW SECURITY FEATURE` & `WORKFLOW ENHANCEMENT`
+- **Evidence from Current System:** `database/migrations/022_create_student_verification_sessions.sql`, `student-id-verification.html`, `js/pages/student-id-verification.js`, `repositories/student-verification.repository.js`, `tests/test-student-id-verification.js`.
+- **Repository File Path:** `student-id-verification.html`, `submit-pc-report.html`, `controllers/maintenance.controller.js`
+- **Relevant Reference:** Session nonce, 15-minute TTL, single-use guard, locked name/number.
+
+---
+
+#### 42. Access Control & IoT Key Box Integration — Role Access Matrix Alignment
+- **Chapter:** Chapter 3
+- **Section / Topic:** Chapter 3 (Access Control Matrix, Hardware Key Box Integration)
+- **Table / Figure:** Table 5 (Role-Based Access Control Matrix) & Hardware Interface
+- **Original Content:**
+  > "Only Faculty members and the Department Head can scan badges at the IoT key dock."
+- **Updated Content:**
+  > "**Physical IoT key dock badge scanning (`POST /api/occupancy/log`) is authorized for four roles: Faculty Members, IT Department Head, Program Coordinator, and permanent MIS Staff (`KEY_BOX_ACCESS_ROLES`).** While Faculty, Department Heads, and Program Coordinators access keys for instructional laboratory sessions, permanent MIS Staff receive authorized key dock access specifically to withdraw physical keys for routine workstation maintenance and physical facility inspections. In contrast, **supervised OJT Interns and public visitors are strictly prohibited from key dock badge access**, and personal profile QR badges are hidden from the OJT user interface to maintain strict physical laboratory custody boundaries. Furthermore, deactivated accounts (including former MIS staff) are rejected immediately upon badge scan (`ACCOUNT_DEACTIVATED`)."
+- **Reason for Change:** Corrects the key dock access rule: MIS Staff is authorized for maintenance access; OJT Interns are excluded.
+- **Classification:** `SHOULD UPDATE`
+- **Change Type:** `CORRECTED SPECIFICATION`
+- **Evidence from Current System:** `middleware/auth.js` (`KEY_BOX_ACCESS_ROLES`), `controllers/iot.controller.js`, `js/components/profile/account-modal.js`, `tests/test-mis-key-box-access.js`.
+- **Repository File Path:** `middleware/auth.js`, `controllers/iot.controller.js`
+- **Relevant Reference:** `KEY_BOX_ACCESS_ROLES = ['Faculty', ...IT_HEAD_ROLES, ...MIS_STAFF_ROLES]`.
+
+---
+
+#### 43. Requirements Specification — Updated Functional Requirements Inventory (FR-1 to FR-20)
+- **Chapter:** Chapter 3
+- **Section / Topic:** Chapter 3 — Functional Requirements Specification
+- **Table / Figure:** Section 3.4 (Functional Requirements List)
+- **Original Content:** Lists FR-1 through FR-16.
+- **Updated Content:**
+  > "**The functional requirements inventory is expanded to include all verified active capabilities:**  
+  > • **FR-17 (Program Coordinator Collaborative Scheduling & Directory Management):** The system shall permit the Program Coordinator to draft, edit, and save working timetables, validate cross-room professor collisions, and manage regular faculty accounts, while strictly restricting schedule finalization, schedule reopening, and key request approvals to the IT Department Head.  
+  > • **FR-18 (Unified User Management & MIS Succession):** The system shall provide a unified User Management interface enabling the IT Department Head to provision, update, soft-deactivate, and replace permanent MIS Staff accounts under atomic concurrency locks, permanently preserving historical repair attribution.  
+  > • **FR-19 (Student ID QR Verification & Session Nonce Management):** The system shall require students reporting computer defects to scan physical BulSU Student ID QR barcodes, generating single-use 15-minute verification session nonces that automatically lock student name and student number on the defect reporting form.  
+  > • **FR-20 (PC Maintenance Report Follow-Up Escalation):** The system shall enable the IT Department Head to trigger a formal follow-up escalation on unresolved maintenance reports, throttled to a maximum of once per calendar day per report with full audit logging."
+- **Reason for Change:** Formally documents newly implemented functional requirements in Chapter 3.
+- **Classification:** `SHOULD UPDATE`
+- **Change Type:** `REQUIREMENTS EXPANSION`
+- **Evidence from Current System:** Implemented routes, controllers, middleware, and database tables.
+- **Repository File Path:** `routes/`, `services/`, `database/migrations/`
+- **Relevant Reference:** FR-17, FR-18, FR-19, FR-20.
+
+---
+
+#### 44. System Modeling & Architecture — Updated Context DFD, Level 1 DFD, and ERD
+- **Chapter:** Chapter 3
+- **Section / Topic:** Chapter 3 — System Architecture & Data Flow Diagrams
+- **Table / Figure:** Figure 6 (Context DFD), Figure 7 (Level 1 DFD), Figure 8 (Entity-Relationship Diagram)
+- **Original Content:** Baseline diagrams depicting 4 roles and 14 tables without collaborative draft scheduling or student verification nonces.
+- **Updated Content:**
+  > "**The system modeling diagrams are updated to reflect the complete active architecture:**  
+  > • **Context DFD (Level 0):** Accurately depicts interactions among 6 external human entities (IT Department Head, Program Coordinator, Faculty Member, MIS Staff, OJT Intern, Student / Public Visitor), the IoT Key Box microcontroller dock, the Transactional Email Service, and the Central Database.  
+  > • **Level 1 DFD:** Decomposes the platform into 8 core processes: **1.0 User Management & Succession Lifecycle**, **2.0 Collaborative Schedule Management & Draft Isolation**, **3.0 IoT Key Dock & Physical Key Custody**, **4.0 Mobile Peer-to-Peer Key Transfer**, **5.0 Multi-Key Authorization & Advance Reservations**, **6.0 Verified PC Fault Reporting & Follow-Up**, **7.0 Maintenance Work Order Servicing & Attribution**, and **8.0 Security Audit Logging & PDF Report Generation**.  
+  > • **Entity-Relationship Diagram (ERD):** Fully incorporates all 18 database entities, including `schedule_drafts`, `schedule_metadata`, `student_verification_sessions`, and the escalation tracking fields on `maintenance_issues` (`Follow_Up_Count`, `Followed_Up_At`, `Followed_Up_By_User_ID`)."
+- **Reason for Change:** Synchronizes all DFD and ERD documentation in Chapter 3 with the implemented system.
+- **Classification:** `SHOULD UPDATE`
+- **Change Type:** `DIAGRAM SYNCHRONIZATION`
+- **Evidence from Current System:** Full codebase architecture, `docs/NEW-IMPLEMENTATION-UPDATES.md`.
+- **Repository File Path:** `docs/NEW-IMPLEMENTATION-UPDATES.md`, `database/migrations/`
+- **Relevant Reference:** 18 database tables, Level 0 & Level 1 DFD specifications.
 
 ---
 

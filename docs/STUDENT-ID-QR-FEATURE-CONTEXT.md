@@ -56,3 +56,33 @@ Scan PC QR → Scan Student ID QR → Student information is detected → Procee
 * **Accountability**: Reports are directly tied to verified student IDs, preventing anonymous, fake, or falsified issue submissions.
 * **Ease of Use & Faster Reporting**: Students no longer need to manually type their full name and student number on mobile devices.
 * **Clear Two-Step Progression**: Separating ID verification into its own focused initial step keeps the reporting experience simple, structured, and intuitive.
+
+---
+
+## Technical Architecture & Database Persistence
+
+### Database Table: `student_verification_sessions` (Migration 022)
+
+To securely pass verified student identities between `student-id-verification.html` and `submit-pc-report.html` without exposing tampered query strings or trusting client-side manipulation, LabSync introduces session nonce verification in the database (`database/migrations/022_create_student_verification_sessions.sql`):
+
+| Column | Data Type | Constraints | Description |
+|---|---|---|---|
+| `Session_ID` | `INT` | `AUTO_INCREMENT`, `PRIMARY KEY` | Unique numeric identifier for the verification session. |
+| `Verification_ID` | `VARCHAR(64)` | `NOT NULL`, `INDEX` | Cryptographic identifier for tracking verification batches. |
+| `Nonce` | `VARCHAR(64)` | `NOT NULL`, `UNIQUE INDEX` | Cryptographically random 64-character hexadecimal session nonce (`crypto.randomBytes(32)`). |
+| `Student_Name` | `VARCHAR(100)` | `NOT NULL` | Full student name parsed from the physical Student ID QR code. |
+| `Student_Number` | `VARCHAR(50)` | `NOT NULL` | BulSU student number parsed from the physical Student ID QR code. |
+| `Room_Number` | `VARCHAR(50)` | `NOT NULL` | Laboratory room scanned from the workstation QR sticker. |
+| `PC_Number` | `VARCHAR(50)` | `NOT NULL` | Workstation unit number scanned from the workstation QR sticker. |
+| `Issued_At` | `DATETIME` | `NOT NULL` | Timestamp of successful ID verification. |
+| `Expires_At` | `DATETIME` | `NOT NULL`, `INDEX` | Session expiry deadline enforced at **15 minutes** from creation. |
+| `Used_At` | `DATETIME` | `DEFAULT NULL`, `INDEX` | Timestamp when session was consumed upon final report submission (NULL while active). |
+
+### API Endpoints
+
+1. **`POST /api/reports/verify-student-id`** (Public / Unauthenticated with `studentVerifyLimiter`):
+   - **Payload**: `{ qrData: "STUDENT-ID-QR-PAYLOAD", roomNumber: "203", pcNumber: "01" }`
+   - **Action**: Validates the student ID QR code structure, extracts student name and student number, creates an ephemeral record in `student_verification_sessions` with 15-minute expiration deadline, and returns verified details along with `verificationId` and `nonce`.
+2. **`POST /api/reports/submit`** (Public / Unauthenticated with `publicPCReportLimiter`, `pcDuplicateReportLimiter`):
+   - **Payload**: Includes `{ verificationId, nonce, studentName, studentNumber, studentSection, roomNumber, pcNumber, issueType, issueDescription }`.
+   - **Action**: Validates cryptographic session nonce (`studentVerificationService.verifySessionNonce`), verifies that the session is not expired and `Used_At IS NULL`, validates that `Section` is provided, inserts incident record into `maintenance` (Migration 021) and deduplicates in `maintenance_issues`, and atomically marks the session consumed (`Used_At = NOW()`).

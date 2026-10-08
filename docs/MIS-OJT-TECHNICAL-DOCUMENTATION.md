@@ -28,9 +28,10 @@ LabSync introduces individual accounts for permanent MIS Staff and temporary acc
 The **MIS Staff** represents the permanent institutional technical administrator.
 
 * **Who is it?** A permanent university employee responsible for the technical operation of IT computer laboratories.
+* **Account Lifecycle Governance:** MIS Staff accounts are created, managed, deactivated, and replaced exclusively by the IT Department Head via `/api/mis-staff`. The system enforces a single active MIS technician policy using MariaDB named advisory locks (`GET_LOCK('labsync_active_mis_lifecycle_lock', 10)`).
 * **What do they do?** They supervise laboratory facilities, register student interns, monitor active repair work orders, manage laboratory keys, and generate equipment QR labels.
 * **What happens next?** The staff member assigns repair tasks to student interns or resolves complex technical issues directly.
-* **What is the result?** Laboratory equipment remains operational, and all technical activities are tracked under the staff member's real name.
+* **What is the result?** Laboratory equipment remains operational, and all technical activities are tracked under the staff member's real name. Deactivated staff accounts are retained for historical attribution.
 
 ```text
 ┌──────────────────────────────────────────────┐
@@ -358,7 +359,8 @@ LabSync uses a simple connection between the user accounts and the maintenance t
 1. **`Status` in Users:** Stores whether an account is operational (`ACTIVE`) or temporarily suspended (`DEACTIVATED`).
 2. **`OJT_Start_Date` in Users:** Records the calendar date when the student intern officially starts their internship duty.
 3. **`OJT_End_Date` in Users:** Records the final calendar date of the internship period. The intern can use the system through the end of this date.
-4. **`Resolved_By_User_ID` in Maintenance Issues:** Connects the maintenance ticket directly to the user who marked it resolved. When LabSync displays the ticket, it looks up this ID to show the technician's real name and role.
+4. **`Resolved_By_User_ID` in Maintenance Issues (Migration 017):** Connects the maintenance ticket directly to the user who marked it resolved. When LabSync displays the ticket, it looks up this ID to show the technician's real name and role.
+5. **`Follow_Up_Count`, `Followed_Up_At`, `Followed_Up_By_User_ID` in Maintenance Issues (Migration 023):** Tracks administrative follow-up actions by the IT Department Head on unresolved tickets, limited to once per calendar day per report.
 
 ---
 
@@ -400,9 +402,9 @@ The system separates administrative powers from daily repair tasks.
 | **Add or Delete Computer Workstations** | ✓ Available | ✗ Not Available |
 | **Print Computer QR Code Stickers** | ✓ Available | ✗ Not Available |
 | **Delete Maintenance Records** | ✓ Available | ✗ Not Available |
-| **Personal Profile Door QR Pass** | ✗ Not Available | ✗ Not Available |
+| **Personal Profile QR Code (Key Dock Access)** | ✓ Available (Key Dock Only) | ✗ Not Available |
 
-> **Note on Personal Door QR:** Personal Profile QR passes are reserved strictly for academic instructors and the Department Head for classroom door scanning. Technical personnel (MIS Staff and OJT) do not receive personal door QR passes.
+> **Note on Personal QR Access:** Academic instructors and the Department Head receive personal QR passes for classroom door scanning and key dock authorization. Permanent MIS Staff receives a personal QR pass specifically authorized for the IoT key dock to withdraw physical keys for laboratory maintenance. OJT Interns and public visitors are strictly excluded from key dock and electronic door QR passes.
 
 ---
 

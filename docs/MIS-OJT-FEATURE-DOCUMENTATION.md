@@ -80,6 +80,18 @@ Performs or oversees hardware and software servicing
 System logs all administrative and repair actions under the staff member's name
 ```
 
+### MIS Staff Lifecycle & Institutional Governance
+
+Unlike student intern accounts which are provisioned by technical staff, the **MIS Staff account is strictly governed by the IT Department Head** under the unified User Management suite (`faculty-management.html`):
+
+1. **IT Department Head Creation Authority:** The IT Department Head provisions the official MIS Staff account (`POST /api/mis-staff`), specifying their institutional email, full legal name, contact phone, and temporary credentials.
+2. **Single Active Staff Guard:** Institutional policy dictates a single primary active MIS technician. The backend enforces this rule atomically via MariaDB named advisory locks (`GET_LOCK('labsync_active_mis_lifecycle_lock', 10)`).
+3. **Soft Deactivation & Position Vacancy:** When an MIS Staff member resigns or completes their tenure, the IT Department Head deactivates the account (`POST /api/mis-staff/:userId/deactivate`). The status shifts to `DEACTIVATED`, setting the institutional MIS position to `Vacant`.
+4. **Immediate Revocation:** The moment an MIS account is deactivated, any active session is immediately terminated with HTTP `401 Unauthorized` (`ACCOUNT_DEACTIVATED`), and the account's personal QR badge is immediately rejected at the IoT key dock.
+5. **Historical Repair Preservation:** The system never deletes past MIS records. Historical work orders and workstation resolutions permanently retain the former technician's identity via `maintenance_issues.Resolved_By_User_ID`.
+6. **Replacement Onboarding:** When a successor is hired, the IT Department Head provisions the new MIS Staff account. The newly active staff member assumes operational duties while historical records remain tied to their respective original resolvers.
+7. **OJT Supervision Delegation:** While the IT Department Head manages the MIS Staff lifecycle, **MIS Staff exclusively manages OJT Intern accounts** (`/api/ojt`). The IT Department Head inspects the intern directory in read-only mode, preserving clear division of labor.
+
 ---
 
 ## 3. OJT Intern Account Model
@@ -315,40 +327,54 @@ All authenticated users can manage their personal profiles through the **Account
 
 ### Institutional Rule: Personal Profile QR Access
 
-LabSync features a digital **Personal Profile QR Code** used as an electronic pass for laboratory door scanners. Because academic faculty and department heads require door access, while technical staff utilize operational keys and physical maintenance workflows, the system enforces a strict role policy:
+LabSync features a digital **Personal Profile QR Code** used as an electronic pass for laboratory door scanners and IoT key dock access. Because academic instructors, department heads, and technical custodians require physical room or key dock access, while student interns perform supervised tasks, the system enforces a strict role policy:
 
 | System Role | Personal Profile QR Code Available? | Purpose & Institutional Rationale |
 | :--- | :---: | :--- |
-| **IT Department Head** | **YES** ✅ | Used for electronic room access, faculty oversight, and room occupancy verification. |
-| **Faculty / Instructor** | **YES** ✅ | Used to scan into laboratory classrooms for scheduled teaching sessions. |
-| **MIS Staff** | **NO** ❌ | Operational technical role; does not use personal classroom door access passes. |
-| **OJT Intern** | **NO** ❌ | Supervised OJT intern role; excluded from electronic door access passes. |
+| **IT Department Head** | **YES** ✅ | Full electronic door access, IoT key dock withdrawal, and department-wide administrative access. |
+| **Program Coordinator** | **YES** ✅ | Electronic door access and IoT key dock withdrawal for instructional and academic duties. |
+| **Faculty / Instructor** | **YES** ✅ | Used to scan into laboratory classrooms and withdraw assigned keys for scheduled teaching sessions. |
+| **MIS Staff** | **YES** ✅ | Electronic credential scanned at the IoT key dock to withdraw physical keys for laboratory maintenance. |
+| **OJT Intern** | **NO** ❌ | Supervised intern role; strictly excluded from key dock badge scans. "My QR Code" tab hidden in Account Settings. |
+| **Student / Public** | **NO** ❌ | Unauthenticated public users; no profile QR code or key dock access. |
 
-For MIS Staff and OJT Interns, the "My QR Code" tab is hidden entirely from the Account Settings window to maintain an uncluttered, relevant interface.
+For OJT Interns, the "My QR Code" tab is hidden entirely from the Account Settings window to maintain an uncluttered, relevant interface and enforce security boundaries.
 
 ---
 
 ## 14. Role Permissions Summary Matrix
 
-The table below provides a quick, authoritative comparison of what each role in the LabSync ecosystem can and cannot perform:
+The table below provides a comprehensive, authoritative comparison of what each role in the LabSync ecosystem can and cannot perform:
 
-| System Capability / Feature | IT Department Head | Faculty Member | Permanent MIS Staff | OJT Intern |
-| :--- | :---: | :---: | :---: | :---: |
-| **Access Main Dashboard** | ✅ (Head Dashboard) | ✅ (Faculty View) | ✅ (MIS Dashboard) | ✅ (OJT Dashboard) |
-| **View Laboratory Health & PC Status** | ✅ | ✅ | ✅ | ✅ |
-| **Submit PC Issue Report** | ✅ | ✅ | ✅ | ✅ |
-| **Update Maintenance Ticket Status** | ✅ | ❌ | ✅ | ✅ |
-| **Resolve Maintenance Work Order** | ✅ | ❌ | ✅ | ✅ |
-| **Delete Maintenance Tickets** | ✅ | ❌ | ✅ | ❌ |
-| **Manage OJT Intern Accounts** | ❌ | ❌ | ✅ | ❌ |
-| **Manage Physical Laboratory Keys** | ✅ | ❌ | ✅ | ❌ |
-| **Transfer / Accept Key Custody** | ✅ | ✅ | ❌ | ❌ |
-| **Add / Delete Workstation Units** | ✅ | ❌ | ✅ | ❌ |
-| **Print Equipment QR Stickers** | ✅ | ❌ | ✅ | ❌ |
-| **Manage Master Class Schedules** | ✅ | ❌ | ❌ | ❌ |
-| **Manage Faculty Accounts** | ✅ | ❌ | ❌ | ❌ |
-| **Personal Profile QR Code Access** | ✅ | ✅ | ❌ | ❌ |
-| **Self-Service Password & Profile Edit** | ✅ | ✅ | ✅ | ✅ |
+| System Capability / Feature | IT Dept. Head | Program Coordinator | MIS Staff | OJT Intern | Faculty Member |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Access Main Dashboard** | ✅ (Head) | ✅ (Faculty/Coord) | ✅ (MIS) | ✅ (OJT) | ✅ (Faculty) |
+| **View Laboratory Health & PC Status** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Submit PC Issue Report** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Update Maintenance Ticket Status** | ✅ | ❌ | ✅ | ✅ | ❌ |
+| **Resolve Maintenance Work Order** | ✅ | ❌ | ✅ | ✅ | ❌ |
+| **Delete Maintenance Tickets** | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **Follow Up on Unresolved PC Report** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Manage MIS Staff Accounts** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Manage OJT Intern Accounts** | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **View OJT Intern Directory (Read-Only)** | ✅ (View-Only) | ✅ (View-Only) | ✅ (Full Roster) | ❌ | ❌ |
+| **Manage Faculty Accounts** | ✅ | ⚠️ (Regular faculty only) | ❌ | ❌ | ❌ |
+| **Transfer Leadership Role** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Manage Physical Laboratory Keys** | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **Transfer / Accept Key Custody** | ✅ | ✅ | ❌ | ❌ | ✅ |
+| **Request Own Second Key / Reservation** | ✅ | ✅ | ❌ | ❌ | ✅ |
+| **Approve / Reject Second Key Requests** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Collaborative Draft Schedule Editing** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Finalize / Reopen Master Schedule** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Print Schedule with Draft/Official Watermark** | ✅ | ✅ | ❌ | ❌ | ✅ (Official only) |
+| **Add / Delete Workstation Units** | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **Print Equipment QR Stickers** | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **Personal Profile QR Code (Key Box / Door)** | ✅ | ✅ | ✅ (Key Box) | ❌ | ✅ |
+| **Self-Service Password & Profile Edit** | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+*Legend: ✅ Allowed | ❌ Not Allowed | ⚠️ Conditional / Limited*
+
+> **OJT Account Governance:** MIS Staff holds exclusive operational authority to create, update, toggle active/inactive status, and reset passwords for OJT Interns (`MIS_STAFF_ROLES`). The IT Department Head and Program Coordinator have view-only directory visibility (`GET /api/ojt` via `OJT_READ_ROLES`) inside the User Management interface (`faculty-management.html` -> OJT Interns tab). Neither administrative role can modify OJT accounts; all creation and edit endpoints return HTTP 403 Forbidden.
 
 ---
 
