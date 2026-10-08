@@ -248,8 +248,8 @@
             <i data-lucide="users"></i>
           </div>
           <div class="help-qs-body">
-            <div class="help-qs-title">Faculty Management & Delegation</div>
-            <p class="help-qs-text">Add faculty members, generate credentials, inspect individual teaching schedules, and securely delegate Department Head leadership.</p>
+            <div class="help-qs-title">User Management &amp; Delegation</div>
+            <p class="help-qs-text">Add faculty members and MIS Staff, generate credentials, inspect individual teaching schedules, and securely delegate Department Head leadership.</p>
           </div>
         </div>`;
 

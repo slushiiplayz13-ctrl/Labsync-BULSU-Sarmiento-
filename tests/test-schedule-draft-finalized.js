@@ -5,6 +5,7 @@ const db = require('../database/connection');
 const scheduleService = require('../services/scheduleService');
 const scheduleRepository = require('../repositories/schedule.repository');
 const schedulesController = require('../controllers/schedules.controller');
+const roomLockService = require('../services/roomLockService');
 
 function createMockReqRes({ session, body = {}, query = {}, params = {} }) {
     const req = {
@@ -41,6 +42,7 @@ async function runTests() {
     const testRoom = '203';
 
     // 0. Setup test users and clean test state
+    roomLockService.clearAllLocks();
     const [itHeadRows] = await db.query("SELECT User_ID, Email, Role FROM users WHERE Role = 'IT Dept. Head' LIMIT 1");
     const [progCoordRows] = await db.query("SELECT User_ID, Email, Role FROM users WHERE Role = 'Program Coordinator' LIMIT 1");
 
@@ -109,9 +111,20 @@ async function runTests() {
     console.log('✓ Program Coordinator forbidden from reopening schedule (HTTP 403)');
 
     // 4. IT Dept. Head FINALIZE schedule -> MUST SUCCEED (200 OK)
+    const itToken = 'est_it_finalize_' + Date.now();
+    roomLockService.acquireLock({
+        roomNumber: testRoom,
+        academicYear: testAY,
+        semester: testSem,
+        userId: itHeadSession.userId,
+        userName: itHeadSession.userName || 'IT Dept. Head',
+        userRole: itHeadSession.userRole,
+        editSessionToken: itToken
+    });
+
     const itFinalizeReq = createMockReqRes({
         session: itHeadSession,
-        body: { roomNumber: testRoom, academicYear: testAY, semester: testSem }
+        body: { roomNumber: testRoom, academicYear: testAY, semester: testSem, editSessionToken: itToken }
     });
     await schedulesController.finalizeSchedule(itFinalizeReq.req, itFinalizeReq.res, (err) => { throw err; });
     assert.strictEqual(itFinalizeReq.getStatus(), 200, 'IT Dept. Head finalize MUST succeed with 200 OK');
@@ -173,6 +186,7 @@ async function runTests() {
     console.log('✓ Audit log confirmed: SCHEDULE_REOPEN correctly attributed to IT Dept. Head');
 
     // Cleanup test data
+    roomLockService.clearAllLocks();
     await db.query('DELETE FROM schedules WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?', [roomId, testAY, testSem]);
     await db.query('DELETE FROM schedule_metadata WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?', [roomId, testAY, testSem]);
 

@@ -473,9 +473,14 @@ async function copyOfficialToDraft(roomId, ay, sem, executor = db) {
     );
     return executor.query(`
         INSERT INTO schedule_drafts (User_ID, Room_ID, Subject_Name, Section, Day_of_Week, Start_Time, End_Time, Academic_Year, Semester, Color_Theme)
-        SELECT User_ID, Room_ID, Subject_Name, Section, Day_of_Week, Start_Time, End_Time, Academic_Year, Semester, Color_Theme
-        FROM schedules
-        WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?
+        SELECT s.User_ID, s.Room_ID, s.Subject_Name, s.Section, s.Day_of_Week, s.Start_Time, s.End_Time, s.Academic_Year, s.Semester, s.Color_Theme
+        FROM schedules s
+        INNER JOIN (
+            SELECT MIN(Schedule_ID) AS Min_ID
+            FROM schedules
+            WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?
+            GROUP BY Day_of_Week, Start_Time, End_Time
+        ) dedup ON s.Schedule_ID = dedup.Min_ID
     `, [roomId, ay, sem]);
 }
 
@@ -486,9 +491,14 @@ async function publishDraftToOfficial(roomId, ay, sem, executor = db) {
     );
     return executor.query(`
         INSERT INTO schedules (User_ID, Room_ID, Subject_Name, Section, Day_of_Week, Start_Time, End_Time, Academic_Year, Semester, Color_Theme)
-        SELECT User_ID, Room_ID, Subject_Name, Section, Day_of_Week, Start_Time, End_Time, Academic_Year, Semester, Color_Theme
-        FROM schedule_drafts
-        WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?
+        SELECT d.User_ID, d.Room_ID, d.Subject_Name, d.Section, d.Day_of_Week, d.Start_Time, d.End_Time, d.Academic_Year, d.Semester, d.Color_Theme
+        FROM schedule_drafts d
+        INNER JOIN (
+            SELECT MIN(Draft_ID) AS Min_ID
+            FROM schedule_drafts
+            WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?
+            GROUP BY Day_of_Week, Start_Time, End_Time
+        ) dedup ON d.Draft_ID = dedup.Min_ID
     `, [roomId, ay, sem]);
 }
 

@@ -99,10 +99,10 @@
             position: 'right'
         },
         {
-            selector: '.sidebar-nav .sidebar-btn[data-tooltip="Faculty Management"], .sidebar .sidebar-btn[title="Faculty Management"], .sidebar .sidebar-btn[data-tooltip="Admin Panel"], .sidebar .sidebar-btn[title="Admin Panel"]',
-            title: '👥 Faculty Management',
-            badge: 'Menu 6: Faculty Management',
-            description: 'Oversee department faculty accounts, register new instructors, view individual faculty teaching timetables, and manage administrative roles.',
+            selector: '.sidebar-nav .sidebar-btn[data-tooltip="User Management"], .sidebar .sidebar-btn[title="User Management"], .sidebar-nav .sidebar-btn[data-tooltip="Faculty Management"], .sidebar .sidebar-btn[title="Faculty Management"], .sidebar .sidebar-btn[data-tooltip="Admin Panel"], .sidebar .sidebar-btn[title="Admin Panel"]',
+            title: '👥 User Management',
+            badge: 'Menu 6: User Management',
+            description: 'Oversee department accounts across Faculty, MIS Staff, and OJT roles, register new members, view timetables, and manage administrative credentials.',
             position: 'right'
         },
         {

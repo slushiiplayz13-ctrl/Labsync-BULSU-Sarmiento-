@@ -172,7 +172,7 @@
               if (addBtn) addBtn.remove();
 
               // Remove restricted IT Head sidebar buttons from active navigation
-              document.querySelectorAll('.sidebar-btn[title="Master Schedule"], .sidebar-btn[title="Faculty Management"], .sidebar-btn[data-tooltip="Master Schedule"], .sidebar-btn[data-tooltip="Faculty Management"]').forEach(b => {
+              document.querySelectorAll('.sidebar-btn[title="Master Schedule"], .sidebar-btn[title="User Management"], .sidebar-btn[title="Faculty Management"], .sidebar-btn[data-tooltip="Master Schedule"], .sidebar-btn[data-tooltip="User Management"], .sidebar-btn[data-tooltip="Faculty Management"]').forEach(b => {
                 b.remove();
               });
 

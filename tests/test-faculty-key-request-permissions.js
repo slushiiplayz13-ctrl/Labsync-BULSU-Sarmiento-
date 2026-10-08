@@ -259,6 +259,10 @@ test('Faculty Key Request Permission & Super Admin Exclusivity Suite', async (t)
             assert.strictEqual(rows[0].User_ID, progCoordUserId, 'Request must belong to Program Coordinator');
             assert.strictEqual(rows[0].Status, 'PENDING', 'Request status must be PENDING');
 
+            // Ensure immediate multi-key authorization is time-window independent (Reservation_Date = NULL)
+            // so the test remains deterministic regardless of execution time relative to 9:00 PM laboratory closing hours.
+            await db.query("UPDATE key_authorization_requests SET Reservation_Date = NULL, Start_Time = NULL, End_Time = NULL WHERE Request_ID = ?", [pcRequestId]);
+
             // IT Dept. Head views pending requests - must include Program Coordinator's request
             const pendingRes = await keyAuthService.getPendingRequestsForDeptHead(deptHeadUserId, 'IT Dept. Head');
             assert.strictEqual(pendingRes.status, 200, 'IT Dept. Head pending review must return 200');

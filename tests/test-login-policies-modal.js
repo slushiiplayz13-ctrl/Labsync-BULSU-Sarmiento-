@@ -61,6 +61,15 @@ class MockElement {
   focus() {
     this.focused = true;
   }
+  setAttribute(name, val) {
+    this[name] = val;
+  }
+  removeAttribute(name) {
+    delete this[name];
+  }
+  getAttribute(name) {
+    return this[name];
+  }
   querySelector() {
     return new MockElement('inner', 'div');
   }

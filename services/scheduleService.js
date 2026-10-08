@@ -16,6 +16,24 @@ function isTimeOverlap(startTime1, endTime1, startTime2, endTime2) {
     return maxStart < minEnd;
 }
 
+function deduplicateScheduleList(list) {
+    if (!Array.isArray(list)) return [];
+    const seen = new Set();
+    const result = [];
+    for (const item of list) {
+        if (!item) continue;
+        const day = item.Day_of_Week || item.day || '';
+        const start = (item.Start_Time || item.startTime || '').substring(0, 5);
+        const end = (item.End_Time || item.endTime || '').substring(0, 5);
+        const key = `${day}_${start}_${end}`;
+        if (!seen.has(key)) {
+            seen.add(key);
+            result.push(item);
+        }
+    }
+    return result;
+}
+
 async function saveRoomSchedule(roomNumber, schedules, academicYear, semester, version, userId = null) {
     if (!roomNumber || (typeof roomNumber !== 'string' && typeof roomNumber !== 'number')) {
         return { status: 400, error: 'Valid roomNumber is required.' };
@@ -36,6 +54,7 @@ async function saveRoomSchedule(roomNumber, schedules, academicYear, semester, v
 
     // Validate individual schedule items if present
     if (Array.isArray(schedules)) {
+        schedules = deduplicateScheduleList(schedules);
         for (let i = 0; i < schedules.length; i++) {
             const sched = schedules[i];
             if (!sched) continue;
@@ -250,7 +269,7 @@ async function getRoomSchedule(roomNumber, academicYear, semester, options = {})
                 scheduleStatus: status,
                 finalizedBy: metadata ? metadata.Finalized_By_Name : null,
                 finalizedAt: metadata ? metadata.Finalized_At : null,
-                schedules
+                schedules: deduplicateScheduleList(schedules)
             }
         };
     }
@@ -270,7 +289,7 @@ async function getRoomSchedule(roomNumber, academicYear, semester, options = {})
                 scheduleStatus: 'Finalized',
                 finalizedBy: metadata.Finalized_By_Name,
                 finalizedAt: metadata.Finalized_At,
-                schedules
+                schedules: deduplicateScheduleList(schedules)
             }
         };
     }
@@ -289,7 +308,7 @@ async function getRoomSchedule(roomNumber, academicYear, semester, options = {})
                 scheduleStatus: 'Draft',
                 finalizedBy: null,
                 finalizedAt: null,
-                schedules: drafts
+                schedules: deduplicateScheduleList(drafts)
             }
         };
     }
@@ -321,7 +340,7 @@ async function getRoomSchedule(roomNumber, academicYear, semester, options = {})
                 scheduleStatus: 'Draft',
                 finalizedBy: null,
                 finalizedAt: null,
-                schedules: initializedDrafts
+                schedules: deduplicateScheduleList(initializedDrafts)
             }
         };
     }

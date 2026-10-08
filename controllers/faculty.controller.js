@@ -5,8 +5,19 @@ const auditService = require('../services/auditService');
 
 async function addFaculty(req, res, next) {
     try {
-        const result = await facultyService.addFaculty(req.body);
+        const actingRole = req.session ? req.session.userRole : null;
+        const result = await facultyService.addFaculty(req.body, actingRole);
         if (result.error) {
+            if (result.status === 403) {
+                await auditService.logSecurityEvent({
+                    req,
+                    actorRole: actingRole,
+                    action: 'FACULTY_CREATE_DENIED',
+                    resourceType: 'FACULTY',
+                    details: { attemptedRole: req.body.role, reason: result.error },
+                    result: 'DENIED'
+                });
+            }
             return res.status(result.status).json({ error: result.error });
         }
 

@@ -11,9 +11,14 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
+const db = require('../database/connection');
 const maintenanceRepo = require('../repositories/maintenance.repository');
 
 test('Recent PC Reports Chronological Sorting Suite', async (t) => {
+    t.after(async () => {
+        await db.end();
+    });
+
     await t.test('1. Backend findAllMaintenanceIssues orders issues by latest report date descending', async () => {
         const [reports] = await maintenanceRepo.findAllMaintenanceIssues();
         assert.ok(Array.isArray(reports), 'Must return an array of reports');

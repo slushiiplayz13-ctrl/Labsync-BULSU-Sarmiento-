@@ -310,7 +310,16 @@
             const timeEl = block.querySelector('.grid-card-time-text');
             if (timeEl) timeEl.textContent = `${fStart} - ${fEnd}`;
 
-            if (global.scheduleState) global.scheduleState.isDirty = true;
+            const subject = block.querySelector('.grid-card-title')?.textContent.trim() || '';
+            const section = (block.querySelector('.grid-card-section')?.textContent || '').replace(/^Sec:\s*/, '').trim();
+            block.title = `${subject} (Sec: ${section || 'N/A'}) • ${professor || 'No Prof'} • ${fStart} - ${fEnd}`;
+
+            if (global.scheduleState) {
+              global.scheduleState.isDirty = true;
+              if (typeof global.scheduleState.updateSaveButtonState === 'function') {
+                global.scheduleState.updateSaveButtonState();
+              }
+            }
             global.isDirty = true;
           }
         }

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LabSync – Faculty Management</title>
+  <title>LabSync – User Management</title>
   <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -104,7 +104,7 @@
           <path d="M3 10h18" />
         </svg>
       </button>
-      <button class="sidebar-btn desktop-only-btn active" data-tooltip="Faculty Management" title="Faculty Management"
+      <button class="sidebar-btn desktop-only-btn active" data-tooltip="User Management" title="User Management"
         onclick="window.location.href='faculty-management.html'">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -288,8 +288,8 @@
 
       <div class="greeting-row">
         <div class="greeting-left">
-          <h1 class="greeting-title" id="greetingText">Faculty Management</h1>
-          <p class="greeting-sub" id="greetingSub">Manage faculty members, assignments, and departmental information.
+          <h1 class="greeting-title" id="greetingText">User Management</h1>
+          <p class="greeting-sub" id="greetingSub">Manage Faculty, MIS Staff, and OJT accounts.
           </p>
         </div>
         <div class="clock-block">
@@ -310,19 +310,40 @@
         </div>
       </div>
 
-      <!-- Toolbar -->
-      <div class="fm-toolbar" style="margin-bottom:20px;">
-        <div class="fm-search-row">
+      <!-- User Management Unified Toolbar -->
+      <div class="fm-toolbar um-toolbar" id="umToolbar" style="margin-bottom:20px;">
+        <!-- Left: Category Tabs placed on current search bar position -->
+        <div class="um-tabs-container" id="umTabsContainer">
+          <button type="button" class="um-tab-btn active" id="umTabFaculty" data-tab="faculty">
+            <i data-lucide="users"></i>
+            Faculty
+          </button>
+          <button type="button" class="um-tab-btn" id="umTabMis" data-tab="mis" style="display:none;">
+            <i data-lucide="shield-alert"></i>
+            MIS Staff
+          </button>
+          <button type="button" class="um-tab-btn" id="umTabOjt" data-tab="ojt">
+            <i data-lucide="graduation-cap"></i>
+            OJT Interns
+          </button>
+        </div>
+
+        <!-- Right: Search bar adjusted beside Add Faculty button -->
+        <div class="fm-search-row" id="facultyToolbarActions">
           <div class="fm-search">
             <i data-lucide="search" style="width:15px;height:15px;color:#94A3B8;flex-shrink:0;"></i>
             <input id="faculty-search" type="text" placeholder="Search faculty by name, email, or department..." />
           </div>
+          <button class="fm-add-btn" id="add-faculty-btn">
+            <i data-lucide="user-plus" style="width:16px;height:16px;"></i>
+            Add Faculty
+          </button>
         </div>
-        <button class="fm-add-btn" id="add-faculty-btn">
-          <i data-lucide="user-plus" style="width:16px;height:16px;"></i>
-          Add Faculty
-        </button>
       </div>
+
+      <!-- 1. FACULTY VIEW -->
+      <div id="faculty-view" class="um-tab-view">
+        <!-- Faculty Grid -->
 
       <!-- Faculty Grid -->
       <div class="faculty-grid" id="faculty-grid">
@@ -415,6 +436,109 @@
           })();
         </script>
       </div><!-- /faculty-grid -->
+      </div><!-- /faculty-view -->
+
+      <!-- 2. MIS STAFF VIEW (IT Dept Head Exclusive) -->
+      <div id="mis-view" class="um-tab-view" style="display:none;">
+        <div style="margin-bottom:28px;">
+          <h2 style="font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">Current Technical &amp; Custodial Lead</h2>
+          <p style="font-size:13px;color:var(--text-light);margin:0 0 16px 0;">The active MIS Staff member responsible for PC maintenance, QR generation, key cataloging, and OJT supervision.</p>
+          <div id="mis-active-container"></div>
+        </div>
+
+        <div style="margin-top:32px;">
+          <h2 style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text-dark);margin:0 0 4px 0;">Historical &amp; Deactivated MIS Accounts</h2>
+          <p style="font-size:13px;color:var(--text-light);margin:0 0 14px 0;">Preserved accounts retain all historical repair tickets, resolution timestamps, and audit log associations.</p>
+          <div id="mis-history-container"></div>
+        </div>
+      </div><!-- /mis-view -->
+
+      <!-- 3. OJT INTERNS VIEW -->
+      <div id="ojt-view" class="um-tab-view" style="display:none;">
+        <div class="ojt-roster-header">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+              <h2 class="mis-lead-name" style="font-size:18px;">OJT Intern Directory</h2>
+              <span class="ojt-badge-readonly">
+                <i data-lucide="eye" style="width:12px;height:12px;"></i> View-Only Roster
+              </span>
+            </div>
+            <p style="font-size:13px;color:var(--text-light);margin:0;">
+              Student Assistants and OJT Interns active in laboratory operations. Account lifecycle and onboarding are administered by MIS Staff.
+            </p>
+          </div>
+        </div>
+
+        <!-- OJT Directory Toolbar -->
+        <div class="ojt-directory-toolbar">
+          <div class="ojt-filter-group" id="ojtFilterGroup">
+            <button type="button" class="ojt-filter-btn active" data-ojt-filter="ALL">All Interns</button>
+            <button type="button" class="ojt-filter-btn" data-ojt-filter="ACTIVE">Active</button>
+            <button type="button" class="ojt-filter-btn" data-ojt-filter="INACTIVE">Concluded</button>
+          </div>
+          <div class="ojt-directory-search">
+            <i data-lucide="search" style="width:14px;height:14px;color:var(--text-muted);flex-shrink:0;"></i>
+            <input type="text" id="ojt-directory-search-input" placeholder="Search interns by name, email, or phone...">
+          </div>
+        </div>
+
+        <!-- OJT Directory Container -->
+        <div id="ojt-directory-container"></div>
+      </div><!-- /ojt-view -->
+
+      <script>
+        (function initUserManagementTabs() {
+          try {
+            var u = JSON.parse(sessionStorage.getItem("labsync_user") || localStorage.getItem("user") || "null");
+            var role = (u && (u.role || (u.user && u.user.role) || u.Role)) || "";
+            var itHeadAliases = ["IT Dept. Head", "IT Head", "IT Dept Head", "Department Head"];
+            var isItHead = itHeadAliases.indexOf(role) !== -1 || (role.toLowerCase().indexOf("head") !== -1 && role.toLowerCase().indexOf("coordinator") === -1);
+
+            var misTabBtn = document.getElementById("umTabMis");
+            if (misTabBtn && isItHead) {
+              misTabBtn.style.display = "inline-flex";
+            }
+
+            var tabBtns = document.querySelectorAll(".um-tab-btn");
+            var views = {
+              faculty: document.getElementById("faculty-view"),
+              mis: document.getElementById("mis-view"),
+              ojt: document.getElementById("ojt-view")
+            };
+
+            tabBtns.forEach(function(btn) {
+              btn.addEventListener("click", function() {
+                var targetTab = btn.getAttribute("data-tab");
+                tabBtns.forEach(function(b) {
+                  b.classList.remove("active");
+                });
+                btn.classList.add("active");
+
+                Object.keys(views).forEach(function(k) {
+                  if (views[k]) views[k].style.display = (k === targetTab) ? "block" : "none";
+                });
+
+                var facultyActions = document.getElementById("facultyToolbarActions");
+                if (facultyActions) {
+                  facultyActions.style.display = (targetTab === "faculty") ? "flex" : "none";
+                }
+
+                if (targetTab === "mis" && window.misManagement && typeof window.misManagement.loadMisStaff === "function") {
+                  window.misManagement.loadMisStaff();
+                }
+
+                if (targetTab === "ojt" && window.ojtViewer && typeof window.ojtViewer.loadOjts === "function") {
+                  window.ojtViewer.loadOjts();
+                }
+
+                if (window.lucide && typeof window.lucide.createIcons === "function") {
+                  window.lucide.createIcons();
+                }
+              });
+            });
+          } catch(e) {}
+        })();
+      </script>
     </main>
   </div>
 
@@ -447,6 +571,9 @@
   <script src="js/components/faculty-modal.js"></script>
   <script src="js/components/faculty-schedule-modal.js"></script>
   <script src="js/pages/faculty-management.js"></script>
+  <script src="js/services/mis.service.js"></script>
+  <script src="js/mis/mis-management.js"></script>
+  <script src="js/ojt/ojt-viewer.js"></script>
   <script src="js/components/dept-head-key-authorizations.js?v=1.0.0"></script>
   <script src="js/core/app.js"></script>
   <script src="js/script.js?v=1.0.5"></script>

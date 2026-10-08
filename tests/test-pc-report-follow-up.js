@@ -646,6 +646,10 @@ test('PC Report Follow-Up Feature Verification Suite', async (t) => {
         if (progCoordUser && progCoordUser.Email === 'coord_test_fu@bulsu.edu.ph') {
             await db.query("DELETE FROM users WHERE User_ID = ?", [progCoordUser.User_ID]);
         }
+        if (typeof server.closeAllConnections === 'function') {
+            server.closeAllConnections();
+        }
         await new Promise((resolve) => server.close(resolve));
+        await db.end();
     });
 });

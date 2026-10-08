@@ -81,30 +81,39 @@ async function run() {
     await send(pWs, 'Page.navigate', { url: 'http://localhost:3000/mis-staff-dashboard.html' });
     await new Promise(r => setTimeout(r, 2000));
 
-    // Inspect visible sidebar buttons
-    const navButtons = await send(pWs, 'Runtime.evaluate', {
-      expression: `
-        (() => {
-          const buttons = Array.from(document.querySelectorAll('.sidebar-nav .sidebar-btn'));
-          return buttons.map(b => {
-            const style = window.getComputedStyle(b);
-            const tooltip = b.getAttribute('data-tooltip') || b.getAttribute('title') || b.getAttribute('aria-label') || '';
-            const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && b.offsetWidth > 0 && b.offsetHeight > 0;
-            return {
-              tooltip,
-              display: style.display,
-              isVisible,
-              rect: { width: b.offsetWidth, height: b.offsetHeight }
-            };
-          });
-        })()
-      `,
-      returnByValue: true
-    });
+    // Poll until navigation loads and sidebar buttons render
+    let navButtons = null;
+    for (let attempt = 0; attempt < 20; attempt++) {
+      navButtons = await send(pWs, 'Runtime.evaluate', {
+        expression: `
+          (() => {
+            const buttons = Array.from(document.querySelectorAll('.sidebar-nav .sidebar-btn'));
+            if (buttons.length === 0) return null;
+            return buttons.map(b => {
+              const style = window.getComputedStyle(b);
+              const tooltip = b.getAttribute('data-tooltip') || b.getAttribute('title') || b.getAttribute('aria-label') || '';
+              const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && b.offsetWidth > 0 && b.offsetHeight > 0;
+              return {
+                tooltip,
+                display: style.display,
+                isVisible,
+                rect: { width: b.offsetWidth, height: b.offsetHeight }
+              };
+            });
+          })()
+        `,
+        returnByValue: true
+      });
+      if (navButtons && navButtons.result && navButtons.result.value) {
+        break;
+      }
+      await new Promise(r => setTimeout(r, 250));
+    }
 
-    console.log('Regular Staff Nav Buttons Evaluation:', JSON.stringify(navButtons.result.value, null, 2));
+    const evalResult = (navButtons && navButtons.result && navButtons.result.value) || [];
+    console.log('Regular Staff Nav Buttons Evaluation:', JSON.stringify(evalResult, null, 2));
 
-    const visibleCount = navButtons.result.value.filter(b => b.isVisible).length;
+    const visibleCount = evalResult.filter(b => b.isVisible).length;
     console.log(`Visible buttons count for Staff: ${visibleCount} (expected 5)`);
     assert.strictEqual(visibleCount, 5, 'Staff should see all 5 buttons');
 

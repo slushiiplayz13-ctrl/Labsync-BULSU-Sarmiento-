@@ -177,7 +177,7 @@
         box-sizing: border-box;
       ">
         <i data-lucide="users" style="width:14px;height:14px;flex-shrink:0;color:${isFacultyActive ? 'var(--primary-teal)' : '#64748B'};"></i>
-        <span>Faculty Management</span>
+        <span>User Management</span>
       </button>
     `;
 

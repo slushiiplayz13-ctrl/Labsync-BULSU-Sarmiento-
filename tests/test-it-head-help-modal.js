@@ -148,14 +148,19 @@ function createMockEnvironment(userRole, pathname) {
     'Master Schedule Overview',
     'Room Schedule Studio',
     'PC Issue Reports',
-    'My Teaching Schedule',
-    'Faculty Management & Delegation'
+    'My Teaching Schedule'
   ];
 
   for (const title of expectedQuickStartTitles) {
     assert.ok(itHeadHTML.includes(title), `IT Head modal should include Quick Start "${title}"`);
     console.log(`✓ IT Head Quick Start: ${title}`);
   }
+
+  assert.ok(
+    itHeadHTML.includes('User Management &amp; Delegation') || itHeadHTML.includes('User Management & Delegation') || itHeadHTML.includes('Faculty Management &amp; Delegation') || itHeadHTML.includes('Faculty Management & Delegation'),
+    'IT Head modal should include Quick Start for User Management & Delegation'
+  );
+  console.log('✓ IT Head Quick Start: User Management & Delegation');
 
   const expectedFeatureTitles = [
     'Clash Prevention & Ghost Overlays',

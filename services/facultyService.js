@@ -6,8 +6,17 @@ const { sendWelcomeEmail } = require('./emailService');
 const facultyRepository = require('../repositories/faculty.repository');
 const { IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
 
-async function addFaculty(reqBody) {
+async function addFaculty(reqBody, actingRole = null) {
     const { name, email, role } = reqBody;
+
+    // Boundary Protection: MIS Staff cannot be created via Faculty endpoints
+    const requestedRole = (role || 'Faculty').trim();
+    if (requestedRole === 'MIS Staff' || requestedRole.toLowerCase().includes('mis')) {
+        return {
+            status: 403,
+            error: 'Forbidden: MIS Staff accounts cannot be created via Faculty Management. Please use the dedicated MIS Staff management section.'
+        };
+    }
 
     // Validate Name Format
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
@@ -106,6 +115,14 @@ async function updateFacultyRole(userId, role, currentSessionUserId, session, ac
         return { status: 400, error: `Invalid role: '${role}'. Allowed roles: ${ALLOWED_ROLES.join(', ')}.` };
     }
 
+    // Boundary Protection: MIS Staff cannot be assigned via Faculty Management
+    if (role === 'MIS Staff' || role.toLowerCase().includes('mis')) {
+        return {
+            status: 403,
+            error: 'Forbidden: The MIS Staff role cannot be assigned via Faculty Management. Please use the dedicated MIS Staff management section.'
+        };
+    }
+
     // Determine acting role from argument or session
     const effectiveActingRole = actingRole || (session && session.userRole) || null;
 
@@ -118,10 +135,18 @@ async function updateFacultyRole(userId, role, currentSessionUserId, session, ac
         };
     }
 
-    // 2. Super Admin protection: Non-Dept Head cannot demote or modify the active IT Dept. Head
+    // 2. Boundary Protection: Existing MIS Staff cannot be modified via Faculty Management
     const [targetRows] = await facultyRepository.findRoleById(parsedUserId);
     if (targetRows.length > 0) {
         const currentTargetRole = targetRows[0].Role || '';
+        if (currentTargetRole === 'MIS Staff') {
+            return {
+                status: 403,
+                error: 'Forbidden: MIS Staff accounts cannot be modified via Faculty Management. Please use the dedicated MIS Staff management section.'
+            };
+        }
+
+        // Super Admin protection: Non-Dept Head cannot demote or modify the active IT Dept. Head
         const isCurrentTargetHead = currentTargetRole.toLowerCase().includes('head');
         if (isCurrentTargetHead && !isTargetRoleHead && effectiveActingRole && !IT_DEPT_HEAD_EXCLUSIVE_ROLES.includes(effectiveActingRole)) {
             return {
@@ -180,6 +205,13 @@ async function deleteFaculty(userId, actingRole = null) {
     const targetRole = targetRows[0].Role || '';
     if (targetRole.toLowerCase().includes('head')) {
         return { status: 403, error: 'Forbidden: The active IT Department Head account cannot be deleted.' };
+    }
+
+    if (targetRole === 'MIS Staff') {
+        return {
+            status: 403,
+            error: 'Forbidden: MIS Staff accounts cannot be deleted to preserve historical maintenance, resolver, and audit records. Please deactivate the account instead.'
+        };
     }
 
     await facultyRepository.deleteFacultyCascade(parsedUserId);

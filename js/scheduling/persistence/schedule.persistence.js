@@ -176,6 +176,9 @@
       updateStatusUI(_currentScheduleStatus, _currentScheduleVersion, _finalizedBy, _finalizedAt);
 
       resetTableToDefault();
+      if (global.ghostScheduleRenderer && typeof global.ghostScheduleRenderer.clearGhostBlocks === 'function') {
+        global.ghostScheduleRenderer.clearGhostBlocks();
+      }
 
       const selectedProf = document.getElementById('professor-wrapper')?.dataset.value;
       if (!Array.isArray(schedules) || schedules.length === 0) {
@@ -193,9 +196,26 @@
         return;
       }
 
+      // Deduplicate schedules by slot (day + startTime + endTime) to ensure no duplicate cards are rendered
+      const seenSlots = new Set();
+      const uniqueSchedules = [];
+      for (const s of schedules) {
+        if (!s) continue;
+        const day = s.Day_of_Week || s.day || '';
+        const start = (s.Start_Time || s.startTime || '').substring(0, 5);
+        const end = (s.End_Time || s.endTime || '').substring(0, 5);
+        const slotKey = `${day}_${start}_${end}`;
+        if (!seenSlots.has(slotKey)) {
+          seenSlots.add(slotKey);
+          uniqueSchedules.push(s);
+        } else {
+          console.warn(`[SchedulePersistence] Ignored duplicate schedule for slot ${slotKey}`);
+        }
+      }
+
       const createCardFn = (global.scheduleCardRenderer && global.scheduleCardRenderer.createGridCard) || global.createGridCard;
 
-      schedules.forEach(s => {
+      uniqueSchedules.forEach(s => {
         const day = s.Day_of_Week;
         const col = document.querySelector(`.grid-day-column[data-day="${day}"]`);
         if (!col) return;
@@ -257,13 +277,20 @@
       if (!col) continue;
 
       const cards = col.querySelectorAll('.grid-card');
+      const seenSlots = new Set();
       for (let card of cards) {
+        const startSlot = parseFloat(card.dataset.start);
+        const endSlot = parseFloat(card.dataset.end);
+        const slotKey = `${startSlot}_${endSlot}`;
+        if (seenSlots.has(slotKey)) {
+          console.warn(`[SchedulePersistence] Skipping duplicate DOM card during save for slot: ${day} ${slotKey}`);
+          continue;
+        }
+        seenSlots.add(slotKey);
+
         const subject = card.querySelector('.grid-card-title')?.textContent.trim() || '';
         const section = (card.querySelector('.grid-card-section')?.textContent || '').replace(/^Sec:\s*/, '').trim();
         const professor = card.querySelector('.grid-card-prof')?.textContent.trim() || '';
-
-        const startSlot = parseFloat(card.dataset.start);
-        const endSlot = parseFloat(card.dataset.end);
 
         const startTime = typeof timeUtils.slotsToTime === 'function' ? timeUtils.slotsToTime(startSlot) : '08:00';
         const endTime = typeof timeUtils.slotsToTime === 'function' ? timeUtils.slotsToTime(endSlot) : '10:00';

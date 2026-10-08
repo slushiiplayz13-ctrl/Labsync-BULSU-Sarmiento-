@@ -65,7 +65,9 @@
       const duration = endSlot - startSlot;
 
       // Exclude schedules in the current room (already rendered as regular cards)
-      if (String(s.Room_Number) === String(excludeRoomNumber)) return;
+      const cleanS = String(s.Room_Number || '').replace(/\D/g, '') || String(s.Room_Number || '').trim().toLowerCase();
+      const cleanEx = String(excludeRoomNumber || '').replace(/\D/g, '') || String(excludeRoomNumber || '').trim().toLowerCase();
+      if ((cleanS && cleanEx && cleanS === cleanEx) || String(s.Room_Number) === String(excludeRoomNumber)) return;
 
       const ghostEl = document.createElement('div');
       ghostEl.className = 'grid-card-ghost';
