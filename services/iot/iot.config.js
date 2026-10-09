@@ -3,7 +3,9 @@
 /**
  * IoT System Configuration & Constants
  */
-const OFFLINE_THRESHOLD_MS = 25 * 1000; // Device considered offline after 25 seconds without heartbeat
+// Device considered offline after 60 seconds without heartbeat
+// (tolerates transient WAN network delays and retries while reliably marking a genuinely unreachable device Offline)
+const OFFLINE_THRESHOLD_MS = 60 * 1000;
 const CLAIM_EXPIRATION_MS = 15 * 60 * 1000; // 15 minutes claim validity window
 const DEFAULT_HARDWARE_ROOMS = ['203', '204']; // Default physical key box slots
 

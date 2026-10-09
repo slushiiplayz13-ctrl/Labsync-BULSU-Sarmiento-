@@ -71,7 +71,7 @@ const unsigned long AUTH_WINDOW_MS = 15000; // 15-second key retrieval countdown
 int lastDisplayedCountdown = -1;
 
 // Periodic Heartbeat Interval
-const unsigned long HEARTBEAT_INTERVAL = 5000; // 5 seconds (rapid freshness against network jitter)
+const unsigned long HEARTBEAT_INTERVAL = 15000; // 15 seconds (reduced connection frequency to prevent socket backlog)
 
 // Non-blocking LCD Reversion Timer
 unsigned long lcdRevertAt = 0;
@@ -319,8 +319,8 @@ void sendHeartbeatHttp() {
     HTTPClient http;
     http.begin(client, heartbeatUrl);
     http.setReuse(false);
-    http.setConnectTimeout(1500);
-    http.setTimeout(2000);
+    http.setConnectTimeout(4000);
+    http.setTimeout(5000);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", String("Bearer ") + deviceToken);
     http.addHeader("Connection", "close");
@@ -347,6 +347,13 @@ void sendHeartbeatHttp() {
       if (stream) {
         while (stream->available() > 0) stream->read();
       }
+    } else {
+      Serial.printf("[NetWorker Heartbeat] Failed (203: %s, 204: %s). Code: %d (%s), FreeHeap: %u\n",
+                    key203Present ? "Present" : "Absent",
+                    key204Present ? "Present" : "Absent",
+                    code,
+                    http.errorToString(code).c_str(),
+                    ESP.getFreeHeap());
     }
     http.end();
     client.stop();
