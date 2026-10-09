@@ -190,6 +190,7 @@
 
     let isInitialLoad = true;
     let lastNotifSignature = null;
+    let lastTimelinePoll = 0;
 
     // 1. Create notifications dropdown element if it doesn't exist
     let notifMenu = document.getElementById('notif-menu');
@@ -470,6 +471,7 @@
 
         // Real-time cards and timeline refresh
         if (notifStateChanged) {
+          lastTimelinePoll = Date.now();
           if (currentPage === 'dashboard') {
             if (typeof global.loadDashboardStatsAndLabs === 'function') global.loadDashboardStatsAndLabs();
           } else if (currentPage === 'room-status') {
@@ -490,6 +492,11 @@
           // Continuous live refresh for room status cards to detect IoT Offline & Reconnect state changes
           if (currentPage === 'room-status') {
             if (typeof global.loadAllRoomStatusLabs === 'function') global.loadAllRoomStatusLabs();
+            const now = Date.now();
+            if (now - lastTimelinePoll >= 5000) {
+              lastTimelinePoll = now;
+              if (typeof global.loadRoomStatusActivityLog === 'function') global.loadRoomStatusActivityLog();
+            }
           } else if (currentPage === 'it-head-room-status') {
             if (typeof global.loadITHeadRoomStatus === 'function') {
               global.loadITHeadRoomStatus();

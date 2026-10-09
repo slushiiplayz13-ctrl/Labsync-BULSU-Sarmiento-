@@ -26,6 +26,7 @@ async function fetchLaboratories() {
   const data = await res.json();
   try {
     sessionStorage.setItem('labsync_cached_labs', JSON.stringify(data));
+    sessionStorage.setItem('labsync_cached_labs_ts', String(Date.now()));
   } catch (e) { }
   return data;
 }

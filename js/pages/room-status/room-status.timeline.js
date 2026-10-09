@@ -21,6 +21,7 @@
   let _activityLogFirstLoad = true;
   let _activityLogLastDataKey = '';
   let _timelineRequestId = 0;
+  let _isTimelineFetching = false;
 
   /**
    * Formats a date string into human-readable relative time.
@@ -346,75 +347,82 @@
     const timelineList = document.querySelector('.timeline-list');
     if (!timelineList) return;
 
-    // Instant SWR pre-render from cache ONLY on initial load
-    if (_activityLogFirstLoad) {
-      try {
-        const cached = JSON.parse(sessionStorage.getItem('labsync_cached_activities') || 'null');
-        if (Array.isArray(cached) && cached.length > 0) {
-          renderTimelineItems(cached, timelineList);
-        }
-      } catch (e) {}
-    }
-
-    // Only show the loading spinner if there is no cache and first load
-    if (_activityLogFirstLoad && (!timelineList.children || timelineList.children.length === 0 || timelineList.querySelector('.ui-empty-state'))) {
-      timelineList.innerHTML = `
-        <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
-          <div class="ui-empty-icon">
-            <i data-lucide="loader-2" class="animate-spin" style="width:24px;height:24px;"></i>
-          </div>
-          <p>Loading recent activities...</p>
-        </div>
-      `;
-      if (global.lucide && typeof global.lucide.createIcons === 'function') {
-        global.lucide.createIcons({ root: timelineList });
-      }
-    }
-
-    const currentReqId = ++_timelineRequestId;
+    if (_isTimelineFetching) return;
+    _isTimelineFetching = true;
 
     try {
-      const fetchTimelineFn = (global.notificationService && typeof global.notificationService.fetchTimelineActivities === 'function')
-        ? global.notificationService.fetchTimelineActivities
-        : (typeof global.fetchTimelineActivities === 'function' ? global.fetchTimelineActivities : null);
-
-      const activities = typeof fetchTimelineFn === 'function'
-        ? await fetchTimelineFn()
-        : ((global.notificationService && typeof global.notificationService.fetchNotifications === 'function')
-          ? await global.notificationService.fetchNotifications({ scope: 'timeline' })
-          : (typeof global.fetchNotifications === 'function' ? await global.fetchNotifications({ scope: 'timeline' }) : null));
-
-      // Discard stale out-of-order response if another request completed
-      if (currentReqId !== _timelineRequestId) return;
-
-      if (!activities || !Array.isArray(activities)) throw new Error('Failed to load activities');
-
-      // Cache fresh activity array for future SWR pre-render
-      try {
-        sessionStorage.setItem('labsync_cached_activities', JSON.stringify(activities));
-      } catch (e) {}
-
-      const savedScrollTop = timelineList.scrollTop;
-      renderTimelineItems(activities, timelineList);
-      timelineList.scrollTop = savedScrollTop;
-
-      _activityLogFirstLoad = false;
-    } catch (err) {
-      if (currentReqId !== _timelineRequestId) return;
-      console.error('[RoomStatusTimeline] Error loading room status activities:', err);
+      // Instant SWR pre-render from cache ONLY on initial load
       if (_activityLogFirstLoad) {
+        try {
+          const cached = JSON.parse(sessionStorage.getItem('labsync_cached_activities') || 'null');
+          if (Array.isArray(cached) && cached.length > 0) {
+            renderTimelineItems(cached, timelineList);
+          }
+        } catch (e) {}
+      }
+
+      // Only show the loading spinner if there is no cache and first load
+      if (_activityLogFirstLoad && (!timelineList.children || timelineList.children.length === 0 || timelineList.querySelector('.ui-empty-state'))) {
         timelineList.innerHTML = `
           <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
-            <div class="ui-empty-icon" style="background:#FEE2E2;color:#EF4444;">
-              <i data-lucide="alert-circle"></i>
+            <div class="ui-empty-icon">
+              <i data-lucide="loader-2" class="animate-spin" style="width:24px;height:24px;"></i>
             </div>
-            <p>Failed to load activity logs.</p>
+            <p>Loading recent activities...</p>
           </div>
         `;
         if (global.lucide && typeof global.lucide.createIcons === 'function') {
           global.lucide.createIcons({ root: timelineList });
         }
       }
+
+      const currentReqId = ++_timelineRequestId;
+
+      try {
+        const fetchTimelineFn = (global.notificationService && typeof global.notificationService.fetchTimelineActivities === 'function')
+          ? global.notificationService.fetchTimelineActivities
+          : (typeof global.fetchTimelineActivities === 'function' ? global.fetchTimelineActivities : null);
+
+        const activities = typeof fetchTimelineFn === 'function'
+          ? await fetchTimelineFn()
+          : ((global.notificationService && typeof global.notificationService.fetchNotifications === 'function')
+            ? await global.notificationService.fetchNotifications({ scope: 'timeline' })
+            : (typeof global.fetchNotifications === 'function' ? await global.fetchNotifications({ scope: 'timeline' }) : null));
+
+        // Discard stale out-of-order response if another request completed
+        if (currentReqId !== _timelineRequestId) return;
+
+        if (!activities || !Array.isArray(activities)) throw new Error('Failed to load activities');
+
+        // Cache fresh activity array for future SWR pre-render
+        try {
+          sessionStorage.setItem('labsync_cached_activities', JSON.stringify(activities));
+        } catch (e) {}
+
+        const savedScrollTop = timelineList.scrollTop;
+        renderTimelineItems(activities, timelineList);
+        timelineList.scrollTop = savedScrollTop;
+
+        _activityLogFirstLoad = false;
+      } catch (err) {
+        if (currentReqId !== _timelineRequestId) return;
+        console.error('[RoomStatusTimeline] Error loading room status activities:', err);
+        if (_activityLogFirstLoad) {
+          timelineList.innerHTML = `
+            <div class="ui-empty-state" style="grid-column:unset;width:100%;min-height:200px;">
+              <div class="ui-empty-icon" style="background:#FEE2E2;color:#EF4444;">
+                <i data-lucide="alert-circle"></i>
+              </div>
+              <p>Failed to load activity logs.</p>
+            </div>
+          `;
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons({ root: timelineList });
+          }
+        }
+      }
+    } finally {
+      _isTimelineFetching = false;
     }
   }
 

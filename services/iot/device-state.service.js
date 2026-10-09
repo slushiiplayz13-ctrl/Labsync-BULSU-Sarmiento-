@@ -9,6 +9,18 @@ const { OFFLINE_THRESHOLD_MS, normalizeRoomNumber } = require('./iot.config');
 const deviceLastSeen = {};
 
 /**
+ * In-memory store for latest physical slot events and sequence tracking
+ * Map<cleanRoom, { seq: number, status: string, userId: number|null, timestamp: number }>
+ */
+const slotPhysicalEvents = {};
+
+/**
+ * In-memory store for deduplicating transport retry security alerts
+ * Map<key, timestampMs>
+ */
+const recentSecurityAlerts = {};
+
+/**
  * Record a heartbeat / activity timestamp for one or more room identifiers.
  * Updates both clean (normalized) and raw string keys.
  *
@@ -68,6 +80,62 @@ function getLastSeen(roomNumber, dbLastSeen) {
 }
 
 /**
+ * Record the latest physical key event and monotonic sequence for a room slot.
+ *
+ * @param {string|number} roomNumber
+ * @param {object} eventData
+ * @param {number|null} [eventData.seq]
+ * @param {string} eventData.status - 'Present' or 'Absent'
+ * @param {number|null} [eventData.userId]
+ * @param {number} [eventData.timestamp]
+ */
+function recordSlotPhysicalEvent(roomNumber, { seq = null, status, userId = null, timestamp = Date.now() }) {
+    const clean = normalizeRoomNumber(roomNumber);
+    const existing = slotPhysicalEvents[clean] || {};
+    const parsedSeq = (seq !== null && seq !== undefined && !isNaN(Number(seq)))
+        ? Number(seq)
+        : (existing.seq !== undefined ? existing.seq + 1 : 1);
+
+    slotPhysicalEvents[clean] = {
+        seq: parsedSeq,
+        status,
+        userId: userId !== undefined ? userId : (existing.userId || null),
+        timestamp
+    };
+}
+
+/**
+ * Get the last recorded physical event details for a room.
+ *
+ * @param {string|number} roomNumber
+ * @returns {object|null}
+ */
+function getSlotPhysicalEvent(roomNumber) {
+    const clean = normalizeRoomNumber(roomNumber);
+    return slotPhysicalEvents[clean] || null;
+}
+
+/**
+ * Check if a security alert is a duplicate retry within a given time window.
+ *
+ * @param {string|number} roomNumber
+ * @param {string} alertType
+ * @param {number} [windowMs=5000]
+ * @returns {boolean}
+ */
+function isDuplicateSecurityAlert(roomNumber, alertType, windowMs = 5000) {
+    const clean = normalizeRoomNumber(roomNumber);
+    const key = `${clean}:${alertType}`;
+    const now = Date.now();
+    const lastAlert = recentSecurityAlerts[key];
+    if (lastAlert && (now - lastAlert) < windowMs) {
+        return true;
+    }
+    recentSecurityAlerts[key] = now;
+    return false;
+}
+
+/**
  * Direct access to in-memory state dictionary (primarily for testing/debugging)
  */
 function getDeviceLastSeenMap() {
@@ -81,6 +149,12 @@ function clearDeviceLastSeen() {
     for (const key of Object.keys(deviceLastSeen)) {
         delete deviceLastSeen[key];
     }
+    for (const key of Object.keys(slotPhysicalEvents)) {
+        delete slotPhysicalEvents[key];
+    }
+    for (const key of Object.keys(recentSecurityAlerts)) {
+        delete recentSecurityAlerts[key];
+    }
 }
 
 module.exports = {
@@ -88,6 +162,9 @@ module.exports = {
     getLatestSeenTimestamp,
     isDeviceOnline,
     getLastSeen,
+    recordSlotPhysicalEvent,
+    getSlotPhysicalEvent,
+    isDuplicateSecurityAlert,
     getDeviceLastSeenMap,
     clearDeviceLastSeen
 };

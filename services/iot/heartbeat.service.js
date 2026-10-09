@@ -57,6 +57,7 @@ async function recordHeartbeat(reqBody = {}, device = null) {
 
     // Reconcile physical key slot presence if telemetry reports slot states
     const slots = (reqBody && typeof reqBody === 'object') ? (reqBody.slots || reqBody.keyStates) : null;
+    const slotSeqs = (reqBody && typeof reqBody === 'object' && reqBody.slotSeqs && typeof reqBody.slotSeqs === 'object') ? reqBody.slotSeqs : null;
     if (slots && typeof slots === 'object') {
         try {
             const slotEntries = Array.isArray(slots)
@@ -70,9 +71,27 @@ async function recordHeartbeat(reqBody = {}, device = null) {
                     ? 'Present'
                     : 'Absent';
 
+                // Discard stale telemetry if heartbeat sequence is older than known physical event
+                const lastPhysical = deviceStateService.getSlotPhysicalEvent(clean);
+                if (slotSeqs && slotSeqs[clean] !== undefined && lastPhysical && lastPhysical.seq !== undefined) {
+                    const incomingSeq = Number(slotSeqs[clean]);
+                    const knownSeq = Number(lastPhysical.seq);
+                    if (incomingSeq < knownSeq) {
+                        continue; // Skip stale telemetry
+                    }
+                }
+
                 const [roomsFound] = await labRepository.findByRoomNumber(clean);
                 if (roomsFound && roomsFound.length > 0) {
                     const currentRoom = roomsFound[0];
+
+                    // Custody Protection: If key is borrowed by an authorized user (Current_User_ID != null),
+                    // telemetry reporting 'Present' must NEVER overwrite Key_Status or erase Current_User_ID.
+                    // A borrowed key can only be checked back in via an explicit Key Returned physical event.
+                    if (expectedStatus === 'Present' && currentRoom.Current_User_ID !== null) {
+                        continue;
+                    }
+
                     if (currentRoom.Key_Status !== expectedStatus) {
                         const userId = (expectedStatus === 'Present') ? null : currentRoom.Current_User_ID;
                         await labRepository.updateKeyStatus(currentRoom.Room_ID, expectedStatus, userId);
