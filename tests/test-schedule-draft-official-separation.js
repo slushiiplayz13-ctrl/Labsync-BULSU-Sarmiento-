@@ -5,6 +5,7 @@ const db = require('../database/connection');
 const scheduleService = require('../services/scheduleService');
 const scheduleRepository = require('../repositories/schedule.repository');
 const schedulesController = require('../controllers/schedules.controller');
+const roomLockService = require('../services/roomLockService');
 const keyReminderRepository = require('../repositories/key-reminder.repository');
 const maintenanceRepository = require('../repositories/maintenance.repository');
 
@@ -194,9 +195,19 @@ async function runSeparationTests() {
 
     // ─── TEST SCENARIO D: IT Dept Head Finalizes Schedule ───
     console.log('\n--- 6. IT Dept Head Finalizes Official Schedule ---');
+    const itToken = 'sep_test_finalize_' + Date.now();
+    roomLockService.acquireLock({
+        roomNumber: testRoom,
+        academicYear: testAY,
+        semester: testSem,
+        userId: itHeadSession.userId,
+        userName: itHeadSession.userName || 'IT Dept. Head',
+        userRole: itHeadSession.userRole,
+        editSessionToken: itToken
+    });
     const itFinalizeReq = createMockReqRes({
         session: itHeadSession,
-        body: { roomNumber: testRoom, academicYear: testAY, semester: testSem }
+        body: { roomNumber: testRoom, academicYear: testAY, semester: testSem, editSessionToken: itToken }
     });
     await schedulesController.finalizeSchedule(itFinalizeReq.req, itFinalizeReq.res, (e) => { throw e; });
     assert.strictEqual(itFinalizeReq.getStatus(), 200, 'IT Dept Head finalize must succeed');

@@ -18,6 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
+const db = require('../database/connection');
 
 let passed = 0;
 let failed = 0;
@@ -72,6 +73,78 @@ assert(!controllerJs.includes("saveBtn.innerHTML = '<i data-lucide=\"edit-2\"") 
 async function runRuntimeTests() {
   console.log('\n--- 2. Runtime Browser Verification via Chrome CDP ---');
 
+  const baseUrl = 'http://localhost:3000';
+  const TEST_ROOM = '204';
+  const TEST_AY = '2098-2099';
+  const TEST_SEM = 'Summer';
+
+  let sessionCookieVal = null;
+  let activeLockToken = null;
+
+  // 1. Resolve actual Room_ID for Room 204 from existing database
+  const [roomRows] = await db.query(
+    'SELECT Room_ID, Room_Number FROM laboratories WHERE Room_Number = ?',
+    [TEST_ROOM]
+  );
+  if (!roomRows || roomRows.length === 0) {
+    throw new Error(`ABORT: Cannot resolve Room_ID for test room ${TEST_ROOM}`);
+  }
+  const testRoomId = roomRows[0].Room_ID;
+
+  // 2. Validate proposed disposable term across all rooms.
+  // If ANY records exist, abort with a clear error without deleting or overwriting anything.
+  const [existingTermSchedules] = await db.query(
+    'SELECT Schedule_ID, Room_ID, Academic_Year, Semester FROM schedules WHERE Academic_Year = ? AND Semester = ?',
+    [TEST_AY, TEST_SEM]
+  );
+  const [existingTermDrafts] = await db.query(
+    'SELECT Draft_ID, Room_ID, Academic_Year, Semester FROM schedule_drafts WHERE Academic_Year = ? AND Semester = ?',
+    [TEST_AY, TEST_SEM]
+  );
+  const [existingTermMetadata] = await db.query(
+    'SELECT Metadata_ID, Room_ID, Academic_Year, Semester, Status FROM schedule_metadata WHERE Academic_Year = ? AND Semester = ?',
+    [TEST_AY, TEST_SEM]
+  );
+
+  if (existingTermSchedules.length > 0 || existingTermDrafts.length > 0 || existingTermMetadata.length > 0) {
+    throw new Error(
+      `ABORT: Proposed disposable test term (${TEST_AY}, ${TEST_SEM}) is not empty! ` +
+      `Existing records found: schedules=${existingTermSchedules.length}, drafts=${existingTermDrafts.length}, metadata=${existingTermMetadata.length}. ` +
+      `Aborting test without modifying any data.`
+    );
+  }
+  console.log(`  🔒 Initial term validation passed: AY ${TEST_AY}, ${TEST_SEM} has zero records across all rooms.`);
+
+  // 3. Snapshot existing real records outside test term for identity-level comparison
+  const [initialRealSchedules] = await db.query(
+    'SELECT Schedule_ID, User_ID, Room_ID, Subject_Name, Section, Day_of_Week, Start_Time, End_Time, Academic_Year, Semester, Color_Theme FROM schedules WHERE Academic_Year != ? OR Semester != ? ORDER BY Schedule_ID ASC',
+    [TEST_AY, TEST_SEM]
+  );
+  const [initialRealMetadata] = await db.query(
+    'SELECT Metadata_ID, Room_ID, Academic_Year, Semester, Version, Status, Finalized_By, Updated_By FROM schedule_metadata WHERE Academic_Year != ? OR Semester != ? ORDER BY Metadata_ID ASC',
+    [TEST_AY, TEST_SEM]
+  );
+  const [initialRealDrafts] = await db.query(
+    'SELECT Draft_ID, User_ID, Room_ID, Subject_Name, Section, Day_of_Week, Start_Time, End_Time, Academic_Year, Semester, Color_Theme FROM schedule_drafts WHERE Academic_Year != ? OR Semester != ? ORDER BY Draft_ID ASC',
+    [TEST_AY, TEST_SEM]
+  );
+
+  try {
+    const loginRes = await fetch(`${baseUrl}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'head@labsync.com', password: 'Password123!' })
+    });
+    if (loginRes.ok) {
+      const setCookieHeader = loginRes.headers.get('set-cookie');
+      const match = setCookieHeader && setCookieHeader.match(/connect\.sid=([^;]+)/);
+      sessionCookieVal = match ? match[1] : null;
+      console.log('  🔒 Authenticated as IT Dept. Head for collaborative room-lock session.');
+    }
+  } catch (authErr) {
+    console.warn('  ⚠️ Could not authenticate with server:', authErr.message);
+  }
+
   const chromePaths = [
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
@@ -81,7 +154,7 @@ async function runRuntimeTests() {
   let chromePath = chromePaths.find(p => fs.existsSync(p));
   if (!chromePath) {
     console.log('  ⚠️ Chrome binary not found in standard paths, skipping browser headless tests.');
-    finish();
+    await finish();
     return;
   }
 
@@ -98,7 +171,80 @@ async function runRuntimeTests() {
     'about:blank'
   ], { stdio: 'ignore' });
 
+  let cleanupDone = false;
   async function cleanup() {
+    if (cleanupDone) return;
+    cleanupDone = true;
+
+    let latestToken = activeLockToken;
+    try {
+      if (typeof evaluate === 'function') {
+        latestToken = await evaluate(`(() => {
+          const tok = window.schedulePersistence ? window.schedulePersistence.getEditSessionToken() : null;
+          if (window.schedulePersistence && typeof window.schedulePersistence.releaseCurrentLock === 'function') {
+            window.schedulePersistence.releaseCurrentLock();
+          }
+          return tok;
+        })()`).catch(() => activeLockToken);
+      }
+    } catch (e) {}
+
+    const tokenToRelease = latestToken || activeLockToken;
+
+    if (sessionCookieVal) {
+      try {
+        const relRes = await fetch(`${baseUrl}/api/schedules/room-locks/release`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': `connect.sid=${sessionCookieVal}`,
+            ...(tokenToRelease ? { 'X-Edit-Session-Token': tokenToRelease } : {})
+          },
+          body: JSON.stringify({
+            roomNumber: TEST_ROOM,
+            academicYear: TEST_AY,
+            semester: TEST_SEM,
+            editSessionToken: tokenToRelease
+          })
+        });
+        if (relRes.ok) {
+          const relData = await relRes.json();
+          if (relData.released) {
+            console.log(`  🔒 Lock release confirmed for ${TEST_ROOM}|${TEST_AY}|${TEST_SEM}`);
+          }
+        }
+      } catch (e) {}
+
+      // Explicit verification: check server lock status to ensure lock is no longer held
+      try {
+        const statusRes = await fetch(`${baseUrl}/api/schedules/room-locks/status?roomNumber=${TEST_ROOM}&academicYear=${encodeURIComponent(TEST_AY)}&semester=${encodeURIComponent(TEST_SEM)}`, {
+          headers: { 'Cookie': `connect.sid=${sessionCookieVal}` }
+        });
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          if (statusData.locked === false) {
+            console.log(`  🔒 Lock status verified: unlocked (${TEST_ROOM}|${TEST_AY}|${TEST_SEM})`);
+          } else {
+            console.warn(`  ⚠️ Lock still reported active:`, statusData.lock);
+          }
+        }
+      } catch (e) {}
+    }
+
+    try {
+      await db.query(
+        'DELETE FROM schedule_drafts WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?',
+        [testRoomId, TEST_AY, TEST_SEM]
+      );
+      await db.query(
+        'DELETE FROM schedule_metadata WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?',
+        [testRoomId, TEST_AY, TEST_SEM]
+      );
+      console.log(`  🧹 Scoped cleanup: purged test-owned draft & metadata rows for Room ${TEST_ROOM} (ID: ${testRoomId}) | ${TEST_AY} | ${TEST_SEM}`);
+    } catch (dbErr) {
+      console.warn('  ⚠️ Database scoped cleanup error:', dbErr.message);
+    }
+
     try { chromeProc.kill(); } catch (e) {}
     try {
       await new Promise(r => setTimeout(r, 500));
@@ -109,24 +255,23 @@ async function runRuntimeTests() {
   process.on('exit', () => cleanup());
   process.on('SIGINT', () => { cleanup(); process.exit(); });
 
-  let versionData = null;
-  for (let i = 0; i < 30; i++) {
-    await new Promise(r => setTimeout(r, 300));
-    try {
-      const res = await fetch(`http://127.0.0.1:${port}/json/version`);
-      if (res.ok) {
-        versionData = await res.json();
-        break;
-      }
-    } catch (e) {}
-  }
+  try {
+    let versionData = null;
+    for (let i = 0; i < 30; i++) {
+      await new Promise(r => setTimeout(r, 300));
+      try {
+        const res = await fetch(`http://127.0.0.1:${port}/json/version`);
+        if (res.ok) {
+          versionData = await res.json();
+          break;
+        }
+      } catch (e) {}
+    }
 
-  if (!versionData) {
-    console.error('  ❌ Could not connect to headless Chrome CDP.');
-    await cleanup();
-    finish();
-    return;
-  }
+    if (!versionData) {
+      console.error('  ❌ Could not connect to headless Chrome CDP.');
+      return;
+    }
 
   const ws = new WebSocket(versionData.webSocketDebuggerUrl);
   await new Promise(r => ws.onopen = r);
@@ -177,14 +322,23 @@ async function runRuntimeTests() {
     });
   }
 
+  await pageSend('Network.enable');
   await pageSend('Page.enable');
   await pageSend('DOM.enable');
   await pageSend('CSS.enable');
 
+  if (sessionCookieVal) {
+    await pageSend('Network.setCookie', {
+      name: 'connect.sid',
+      value: decodeURIComponent(sessionCookieVal),
+      url: baseUrl
+    });
+  }
+
   await pageSend('Page.addScriptToEvaluateOnNewDocument', {
     source: `
       try {
-        const userObj = { role: 'IT Department Head', name: 'Admin Test', email: 'ithead@test.com' };
+        const userObj = { role: 'IT Dept. Head', name: 'Andrei Gabito', email: 'head@labsync.com' };
         localStorage.setItem('user', JSON.stringify(userObj));
         localStorage.setItem('labsync_last_activity', Date.now().toString());
         sessionStorage.setItem('labsync_user', JSON.stringify(userObj));
@@ -225,6 +379,7 @@ async function runRuntimeTests() {
             if (url.includes('/api/schedules/save') && options.method === 'POST') {
               const body = JSON.parse(options.body || '{}');
               window.__lastSavedPayload = body;
+              const saveRes = await origFetch.apply(this, [url, options]);
               // Update mock data to match saved schedule
               window.__mockedRoomSchedules = (body.schedules || []).map((s, idx) => ({
                 Schedule_ID: 200 + idx,
@@ -239,7 +394,7 @@ async function runRuntimeTests() {
               try {
                 sessionStorage.setItem('__test_mocked_schedules', JSON.stringify(window.__mockedRoomSchedules));
               } catch (e) {}
-              return new Response(JSON.stringify({ success: true, message: 'Saved successfully' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+              return saveRes;
             }
             if (url.includes('/api/faculty')) {
               return new Response(JSON.stringify([{ Name: 'Dr. Alan Turing' }]), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -266,9 +421,24 @@ async function runRuntimeTests() {
     return res.result.value;
   }
 
-  // Navigate to editor
-  await pageSend('Page.navigate', { url: 'http://localhost:3000/room-schedule-editor.html?room=204' });
-  await new Promise(r => setTimeout(r, 1200));
+    // Navigate to editor with dedicated disposable term
+    const editorUrl = `http://localhost:3000/room-schedule-editor.html?room=${TEST_ROOM}&academicYear=${encodeURIComponent(TEST_AY)}&semester=${encodeURIComponent(TEST_SEM)}`;
+    await pageSend('Page.navigate', { url: editorUrl });
+    await new Promise(r => setTimeout(r, 1200));
+
+    const initialLockStatus = await evaluate(`
+      (() => ({
+        hasToken: !!(window.schedulePersistence && window.schedulePersistence.getEditSessionToken()),
+        token: window.schedulePersistence ? window.schedulePersistence.getEditSessionToken() : null,
+        isLockedByOther: !!(window.schedulePersistence && window.schedulePersistence.isLockedByOther()),
+        isRoomLocked: document.body.classList.contains('room-locked')
+      }))()
+    `);
+    if (initialLockStatus.token) {
+      activeLockToken = initialLockStatus.token;
+    }
+    assert(initialLockStatus.hasToken === true && initialLockStatus.isRoomLocked === false,
+      `Collaborative room edit lock acquired successfully on disposable term (${TEST_ROOM} | ${TEST_AY} | ${TEST_SEM})`);
 
   // TEST 1: Open Master Schedule → Save disabled
   console.log('\nScenario 1: Open Master Schedule → Save disabled');
@@ -447,26 +617,44 @@ async function runRuntimeTests() {
       const btn = document.getElementById('save-schedule-btn');
       btn.click();
       // Allow async save to complete
-      await new Promise(r => setTimeout(r, 600));
+      await new Promise(r => setTimeout(r, 1000));
 
       return {
         disabled: btn.disabled,
         hasAttr: btn.hasAttribute('disabled'),
         text: btn.textContent.trim(),
         hasChanges: window.scheduleState.hasChanges(),
-        savedCount: window.__lastSavedPayload ? window.__lastSavedPayload.schedules.length : null
+        savedCount: window.__lastSavedPayload ? window.__lastSavedPayload.schedules.length : null,
+        savedToken: window.__lastSavedPayload ? window.__lastSavedPayload.editSessionToken : null
       };
     })()
   `);
+  if (saveSuccessState.savedToken) {
+    activeLockToken = saveSuccessState.savedToken;
+  }
   assert(saveSuccessState.savedCount === 0, 'POST /api/schedules/save was called with updated empty grid');
+  assert(!!saveSuccessState.savedToken, 'POST /api/schedules/save included valid editSessionToken from room lock');
   assert(saveSuccessState.disabled === true, 'Save Schedule button DISABLED after successful save');
   assert(saveSuccessState.hasChanges === false, 'scheduleState.hasChanges() is false after save (baseline updated)');
   assert(saveSuccessState.text.includes('Save Draft'), `Button text remains "Save Draft" (was: "${saveSuccessState.text}")`);
+
+  // Verify that the browser test successfully created and saved its temporary draft in the database
+  const [createdMetadata] = await db.query(
+    'SELECT Metadata_ID, Room_ID, Academic_Year, Semester, Status FROM schedule_metadata WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?',
+    [testRoomId, TEST_AY, TEST_SEM]
+  );
+  assert(createdMetadata.length > 0 && createdMetadata[0].Status === 'Draft',
+    `Browser test successfully persisted temporary draft metadata in database for Room ${TEST_ROOM} (ID: ${testRoomId})`);
 
   // TEST 9: Confirm the saved changes remain after refresh
   console.log('\nScenario 9: Confirm the saved changes remain after refresh');
   await pageSend('Page.reload');
   await new Promise(r => setTimeout(r, 1200));
+
+  const reloadedToken = await evaluate(`window.schedulePersistence ? window.schedulePersistence.getEditSessionToken() : null`);
+  if (reloadedToken) {
+    activeLockToken = reloadedToken;
+  }
 
   const afterReloadState = await evaluate(`
     (() => {
@@ -515,14 +703,86 @@ async function runRuntimeTests() {
   assert(existingFeaturesState.printBtnExists === true, 'Print Schedule button remains available');
   assert(existingFeaturesState.backBtnExists === true, 'Back button remains available');
 
-  await cleanup();
-  finish();
+  } finally {
+    await cleanup();
+  }
+
+  // --- 3. Post-Cleanup Verification & Data Integrity ---
+  console.log('\n--- 3. Post-Cleanup Verification & Data Integrity ---');
+
+  // 1. Verify server reports lock as unlocked
+  let lockIsUnlocked = false;
+  try {
+    const statusRes = await fetch(
+      `${baseUrl}/api/schedules/room-locks/status?roomNumber=${TEST_ROOM}&academicYear=${encodeURIComponent(TEST_AY)}&semester=${encodeURIComponent(TEST_SEM)}`,
+      { headers: sessionCookieVal ? { 'Cookie': `connect.sid=${sessionCookieVal}` } : {} }
+    );
+    if (statusRes.ok) {
+      const statusData = await statusRes.json();
+      lockIsUnlocked = (statusData.locked === false);
+    }
+  } catch (e) {}
+  assert(lockIsUnlocked === true, `Server reports lock unlocked for Room ${TEST_ROOM} (${TEST_AY} | ${TEST_SEM})`);
+
+  // 2. Verify test-created draft and metadata rows are removed
+  const [remainingTestDrafts] = await db.query(
+    'SELECT Draft_ID FROM schedule_drafts WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?',
+    [testRoomId, TEST_AY, TEST_SEM]
+  );
+  const [remainingTestMetadata] = await db.query(
+    'SELECT Metadata_ID FROM schedule_metadata WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?',
+    [testRoomId, TEST_AY, TEST_SEM]
+  );
+  assert(remainingTestDrafts.length === 0,
+    `Test-created draft rows for Room ${TEST_ROOM} purged successfully (count: ${remainingTestDrafts.length})`);
+  assert(remainingTestMetadata.length === 0,
+    `Test-created metadata rows for Room ${TEST_ROOM} purged successfully (count: ${remainingTestMetadata.length})`);
+
+  // 3. Verify official schedules table remained completely untouched for test term
+  const [termOfficialSchedules] = await db.query(
+    'SELECT Schedule_ID FROM schedules WHERE Academic_Year = ? AND Semester = ?',
+    [TEST_AY, TEST_SEM]
+  );
+  assert(termOfficialSchedules.length === 0,
+    `Official schedules table remained untouched for test term ${TEST_AY} ${TEST_SEM}`);
+
+  // 4. Identity-level comparison of existing official schedules, metadata, and drafts outside test term
+  const [finalRealSchedules] = await db.query(
+    'SELECT Schedule_ID, User_ID, Room_ID, Subject_Name, Section, Day_of_Week, Start_Time, End_Time, Academic_Year, Semester, Color_Theme FROM schedules WHERE Academic_Year != ? OR Semester != ? ORDER BY Schedule_ID ASC',
+    [TEST_AY, TEST_SEM]
+  );
+  const [finalRealMetadata] = await db.query(
+    'SELECT Metadata_ID, Room_ID, Academic_Year, Semester, Version, Status, Finalized_By, Updated_By FROM schedule_metadata WHERE Academic_Year != ? OR Semester != ? ORDER BY Metadata_ID ASC',
+    [TEST_AY, TEST_SEM]
+  );
+  const [finalRealDrafts] = await db.query(
+    'SELECT Draft_ID, User_ID, Room_ID, Subject_Name, Section, Day_of_Week, Start_Time, End_Time, Academic_Year, Semester, Color_Theme FROM schedule_drafts WHERE Academic_Year != ? OR Semester != ? ORDER BY Draft_ID ASC',
+    [TEST_AY, TEST_SEM]
+  );
+
+  assert(
+    JSON.stringify(finalRealSchedules) === JSON.stringify(initialRealSchedules),
+    `Existing official schedules outside test term are completely identical (identity-level match: ${initialRealSchedules.length} records)`
+  );
+  assert(
+    JSON.stringify(finalRealMetadata) === JSON.stringify(initialRealMetadata),
+    `Existing schedule metadata outside test term is completely identical (identity-level match: ${initialRealMetadata.length} records)`
+  );
+  assert(
+    JSON.stringify(finalRealDrafts) === JSON.stringify(initialRealDrafts),
+    `Existing schedule drafts outside test term are completely identical (identity-level match: ${initialRealDrafts.length} records)`
+  );
+
+  await finish();
 }
 
-function finish() {
+async function finish() {
   console.log('\n================================================================');
   console.log(`📊 Test Summary: ${passed} Passed, ${failed} Failed`);
   console.log('================================================================');
+  try {
+    await db.end();
+  } catch (e) {}
   if (failed > 0) {
     process.exit(1);
   } else {

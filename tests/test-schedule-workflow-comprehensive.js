@@ -14,11 +14,26 @@ const db = require('../database/connection');
 const scheduleService = require('../services/scheduleService');
 const scheduleRepository = require('../repositories/schedule.repository');
 const schedulesController = require('../controllers/schedules.controller');
+const roomLockService = require('../services/roomLockService');
 const { IT_HEAD_ROLES, ADMIN_ROLES, IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
 
-function createMockReqRes({ session, body = {}, query = {}, params = {} }) {
+function createMockReqRes({ session, body = {}, query = {}, params = {}, autoLock = true }) {
     let statusCode = 200;
     let responseData = null;
+
+    if (autoLock && body && body.roomNumber && body.academicYear && body.semester && session && session.userId && !body.editSessionToken) {
+        const token = 'comp_test_lock_' + session.userId + '_' + body.roomNumber + '_' + Date.now();
+        roomLockService.forceAcquireLock({
+            roomNumber: body.roomNumber,
+            academicYear: body.academicYear,
+            semester: body.semester,
+            userId: session.userId,
+            userName: session.userRole || 'Admin',
+            userRole: session.userRole || 'Admin',
+            editSessionToken: token
+        });
+        body.editSessionToken = token;
+    }
 
     const req = {
         session,

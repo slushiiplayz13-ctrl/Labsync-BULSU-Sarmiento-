@@ -58,6 +58,85 @@
   let _finalizedBy = null;
   let _finalizedAt = null;
 
+  let _currentEditSessionToken = null;
+  let _isLockedByOther = false;
+  let _lockDetails = null;
+  let _heartbeatTimer = null;
+  let _currentLockContext = null;
+
+  function showLockBanner(message, badgeText = 'READ-ONLY') {
+    const banner = document.getElementById('room-lock-banner');
+    const textEl = document.getElementById('room-lock-banner-text');
+    const badgeEl = banner ? banner.querySelector('.room-lock-badge') : null;
+    if (banner && textEl) {
+      textEl.textContent = message;
+      if (badgeEl && badgeText) badgeEl.textContent = badgeText;
+      banner.style.display = 'flex';
+      if (global.lucide && typeof global.lucide.createIcons === 'function') {
+        global.lucide.createIcons({ root: banner });
+      }
+    }
+  }
+
+  function hideLockBanner() {
+    const banner = document.getElementById('room-lock-banner');
+    if (banner) {
+      banner.style.display = 'none';
+    }
+  }
+
+  function startLockHeartbeat(roomNum, academicYear, semester, token) {
+    stopLockHeartbeat();
+    if (!token) return;
+    _heartbeatTimer = setInterval(async () => {
+      try {
+        if (!global.scheduleService || typeof global.scheduleService.renewRoomLockHeartbeat !== 'function') return;
+        const res = await global.scheduleService.renewRoomLockHeartbeat(roomNum, academicYear, semester, token);
+        if (!res || !res.renewed) {
+          console.warn('[SchedulePersistence] Heartbeat lost for room:', roomNum, res);
+          stopLockHeartbeat();
+          _currentEditSessionToken = null;
+          _isLockedByOther = true;
+          document.body.classList.add('view-mode', 'room-locked');
+          const holderMsg = res && res.lockedBy ? ` (now held by ${res.lockedBy.userName})` : '';
+          const msg = `Editing lease expired for Room ${roomNum}${holderMsg}. You are now viewing this schedule in read-only mode.`;
+          showLockBanner(msg, 'LEASE EXPIRED');
+          if (global.showToast) {
+            global.showToast(msg, 'error', 'Lease Expired');
+          }
+        }
+      } catch (err) {
+        console.error('[SchedulePersistence] Heartbeat network error:', err);
+      }
+    }, 10000); // 10-second renewal for 30-second lease
+  }
+
+  function stopLockHeartbeat() {
+    if (_heartbeatTimer) {
+      clearInterval(_heartbeatTimer);
+      _heartbeatTimer = null;
+    }
+  }
+
+  async function releaseCurrentLock() {
+    stopLockHeartbeat();
+    if (_currentEditSessionToken && _currentLockContext) {
+      const roomNum = _currentLockContext.room;
+      const ay = _currentLockContext.ay;
+      const sem = _currentLockContext.sem;
+      const token = _currentEditSessionToken;
+      _currentEditSessionToken = null;
+      _currentLockContext = null;
+      if (global.scheduleService && typeof global.scheduleService.releaseRoomLock === 'function') {
+        try {
+          await global.scheduleService.releaseRoomLock(roomNum, ay, sem, token);
+        } catch (e) {
+          console.warn('[SchedulePersistence] Failed to release lock cleanly:', e);
+        }
+      }
+    }
+  }
+
   function updateStatusUI(status = 'Draft', version = 1, finalizedBy = null, finalizedAt = null) {
     const badge = document.getElementById('schedule-status-badge');
     const badgeText = document.getElementById('schedule-status-text');
@@ -78,6 +157,7 @@
     } catch (e) {}
 
     const isFinalized = (status === 'Finalized');
+    const isReadOnly = (isFinalized || _isLockedByOther || !_currentEditSessionToken);
 
     if (badge && badgeText) {
       if (isFinalized) {
@@ -99,7 +179,7 @@
       }
     }
 
-    if (isITDeptHead) {
+    if (isITDeptHead && !_isLockedByOther) {
       if (finalizeBtn) finalizeBtn.style.display = isFinalized ? 'none' : 'inline-flex';
       if (reopenBtn) reopenBtn.style.display = isFinalized ? 'inline-flex' : 'none';
     } else {
@@ -108,22 +188,35 @@
     }
 
     // Toggle view mode / editing controls & Print availability
-    if (isFinalized) {
+    if (isReadOnly) {
       document.body.classList.add('view-mode');
+      if (_isLockedByOther || !_currentEditSessionToken) {
+        document.body.classList.add('room-locked');
+      }
       if (saveBtn) {
         saveBtn.disabled = true;
         saveBtn.style.opacity = '0.5';
         saveBtn.style.cursor = 'not-allowed';
-        saveBtn.title = 'Schedule is finalized and locked against edits';
+        saveBtn.title = _isLockedByOther ? 'Room is currently locked by another administrator' : 'Schedule is finalized and locked against edits';
       }
-      if (printBtn) {
-        printBtn.disabled = false;
-        printBtn.removeAttribute('disabled');
-        printBtn.removeAttribute('aria-disabled');
-        printBtn.title = 'Print Official Schedule';
+      if (isFinalized) {
+        if (printBtn) {
+          printBtn.disabled = false;
+          printBtn.removeAttribute('disabled');
+          printBtn.removeAttribute('aria-disabled');
+          printBtn.title = 'Print Official Schedule';
+        }
+      } else {
+        if (printBtn) {
+          printBtn.disabled = true;
+          printBtn.setAttribute('disabled', 'disabled');
+          printBtn.setAttribute('aria-disabled', 'true');
+          printBtn.title = 'Print Schedule is available after the schedule is finalized.';
+        }
       }
     } else {
       document.body.classList.remove('view-mode');
+      document.body.classList.remove('room-locked');
       if (saveBtn) {
         saveBtn.style.opacity = '1';
         saveBtn.style.cursor = 'pointer';
@@ -150,6 +243,53 @@
     const roomNum = context.roomNumber || '204';
     const academicYear = context.academicYear;
     const semester = context.semester;
+
+    // 1. Release previous lock if switching room or term
+    if (_currentLockContext && (_currentLockContext.room !== roomNum || _currentLockContext.ay !== academicYear || _currentLockContext.sem !== semester)) {
+      await releaseCurrentLock();
+    }
+
+    // 2. Collaborative Lock Acquisition
+    let lockRes = null;
+    try {
+      if (global.scheduleService && typeof global.scheduleService.acquireRoomLock === 'function') {
+        lockRes = await global.scheduleService.acquireRoomLock(roomNum, academicYear, semester, _currentEditSessionToken);
+      }
+    } catch (acquireErr) {
+      console.error('[SchedulePersistence] Lock acquisition network/server failure:', acquireErr);
+      lockRes = { acquired: false, code: 'NETWORK_ERROR', error: acquireErr.message };
+    }
+
+    if (lockRes && lockRes.acquired) {
+      _currentEditSessionToken = lockRes.editSessionToken;
+      _isLockedByOther = false;
+      _lockDetails = lockRes.lock;
+      _currentLockContext = { room: roomNum, ay: academicYear, sem: semester };
+      hideLockBanner();
+      document.body.classList.remove('room-locked');
+      startLockHeartbeat(roomNum, academicYear, semester, _currentEditSessionToken);
+    } else if (lockRes && lockRes.code === 'LOCKED') {
+      _currentEditSessionToken = null;
+      _isLockedByOther = true;
+      _lockDetails = lockRes.lockedBy || null;
+      _currentLockContext = { room: roomNum, ay: academicYear, sem: semester };
+      stopLockHeartbeat();
+      const ownerName = (_lockDetails && _lockDetails.userName) || 'another administrator';
+      const ownerRole = (_lockDetails && _lockDetails.userRole) || 'Administrator';
+      const bannerMsg = `Room ${roomNum} is currently being edited by ${ownerName} (${ownerRole}). You are viewing this schedule in read-only mode.`;
+      showLockBanner(bannerMsg, 'READ-ONLY');
+      document.body.classList.add('view-mode', 'room-locked');
+    } else {
+      // Fail closed on network/server error
+      _currentEditSessionToken = null;
+      _isLockedByOther = true;
+      _lockDetails = null;
+      _currentLockContext = { room: roomNum, ay: academicYear, sem: semester };
+      stopLockHeartbeat();
+      const bannerMsg = `Unable to acquire editing lock for Room ${roomNum} due to a connection or server error. You are viewing this schedule in read-only mode.`;
+      showLockBanner(bannerMsg, 'LOCK ERROR');
+      document.body.classList.add('view-mode', 'room-locked');
+    }
 
     try {
       let rawData = [];
@@ -266,10 +406,24 @@
       throw err;
     }
 
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const scheduleData = [];
     const context = global.slotMath ? global.slotMath.getScheduleContext() : {};
     const roomNum = context.roomNumber || '204';
+
+    if (_isLockedByOther || !_currentEditSessionToken) {
+      const lockHolder = _lockDetails && _lockDetails.userName ? `${_lockDetails.userName} (${_lockDetails.userRole || 'Admin'})` : 'another administrator';
+      const msg = `Cannot save changes: Room ${roomNum} is currently locked by ${lockHolder}. You are viewing this schedule in read-only mode.`;
+      if (global.showToast) {
+        global.showToast(msg, 'error', 'Room Locked');
+      } else {
+        alert(msg);
+      }
+      const err = new Error(msg);
+      err.status = 423;
+      throw err;
+    }
+
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const scheduleData = [];
     const timeUtils = global.timeUtils || global.scheduleTimeUtils || {};
 
     for (let day of days) {
@@ -312,29 +466,44 @@
     const semester = context.semester;
 
     let res = null;
-    if (global.scheduleService && typeof global.scheduleService.saveRoomSchedule === 'function') {
-      res = await global.scheduleService.saveRoomSchedule(roomNum, scheduleData, academicYear, semester, _currentScheduleVersion);
-    } else {
-      const fetchRes = await fetch('/api/schedules/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          roomNumber: roomNum,
-          schedules: scheduleData,
-          academicYear,
-          semester,
-          version: _currentScheduleVersion
-        })
-      });
-      const data = await fetchRes.json().catch(() => ({}));
-      if (!fetchRes.ok) {
-        const err = new Error(data.error || 'Save API response not OK');
-        err.status = fetchRes.status;
-        err.response = data;
-        throw err;
+    try {
+      if (global.scheduleService && typeof global.scheduleService.saveRoomSchedule === 'function') {
+        res = await global.scheduleService.saveRoomSchedule(roomNum, scheduleData, academicYear, semester, _currentScheduleVersion, _currentEditSessionToken);
+      } else {
+        const fetchRes = await fetch('/api/schedules/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Edit-Session-Token': _currentEditSessionToken || ''
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            roomNumber: roomNum,
+            schedules: scheduleData,
+            academicYear,
+            semester,
+            version: _currentScheduleVersion,
+            editSessionToken: _currentEditSessionToken
+          })
+        });
+        const data = await fetchRes.json().catch(() => ({}));
+        if (!fetchRes.ok) {
+          const err = new Error(data.error || 'Save API response not OK');
+          err.status = fetchRes.status;
+          err.response = data;
+          throw err;
+        }
+        res = data;
       }
-      res = data;
+    } catch (saveErr) {
+      if (saveErr && saveErr.status === 423) {
+        _isLockedByOther = true;
+        _currentEditSessionToken = null;
+        stopLockHeartbeat();
+        document.body.classList.add('view-mode', 'room-locked');
+        showLockBanner(saveErr.message || `Room ${roomNum} is locked by another administrator.`);
+      }
+      throw saveErr;
     }
 
     if (res && res.version) {
@@ -454,6 +623,31 @@
     }
   }
 
+  if (typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', () => {
+      if (_currentEditSessionToken && _currentLockContext) {
+        const payload = JSON.stringify({
+          roomNumber: _currentLockContext.room,
+          academicYear: _currentLockContext.ay,
+          semester: _currentLockContext.sem,
+          editSessionToken: _currentEditSessionToken
+        });
+        if (navigator.sendBeacon) {
+          const blob = new Blob([payload], { type: 'application/json' });
+          navigator.sendBeacon('/api/schedules/room-locks/release', blob);
+        } else {
+          fetch('/api/schedules/room-locks/release', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: payload,
+            keepalive: true
+          });
+        }
+      }
+    });
+  }
+
   const schedulePersistence = {
     resetTableToDefault,
     deleteGridCardRef,
@@ -463,7 +657,15 @@
     loadCurriculumSubjects,
     updateStatusUI,
     getCurrentVersion: () => _currentScheduleVersion,
-    getCurrentStatus: () => _currentScheduleStatus
+    getCurrentStatus: () => _currentScheduleStatus,
+    getEditSessionToken: () => _currentEditSessionToken,
+    setEditSessionToken: (tok) => { _currentEditSessionToken = tok; },
+    isLockedByOther: () => _isLockedByOther,
+    releaseCurrentLock,
+    startLockHeartbeat,
+    stopLockHeartbeat,
+    showLockBanner,
+    hideLockBanner
   };
 
   global.schedulePersistence = schedulePersistence;
@@ -472,5 +674,6 @@
   global.resetTableToDefault = resetTableToDefault;
   global.deleteGridCardRef = deleteGridCardRef;
   global.updateStatusUI = updateStatusUI;
+  global.releaseRoomLock = releaseCurrentLock;
 
 })(typeof window !== 'undefined' ? window : this);

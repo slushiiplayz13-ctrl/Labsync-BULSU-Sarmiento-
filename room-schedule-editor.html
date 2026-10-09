@@ -1952,7 +1952,100 @@
       cursor: not-allowed !important;
       box-shadow: none !important;
       border-color: #475569 !important;
-      color: #64748B !important;
+    /* Collaborative Room Lock Banner */
+    .room-lock-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 18px;
+      background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+      border: 1.5px solid #F59E0B;
+      border-radius: 10px;
+      margin: 10px 20px 6px 20px;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
+      z-index: 25;
+      animation: fadeInBanner 0.25s ease-out;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
+    @keyframes fadeInBanner {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .room-lock-banner-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #92400E;
+      font-family: var(--font-body);
+      line-height: 1.4;
+    }
+    .room-lock-banner-icon {
+      width: 18px;
+      height: 18px;
+      stroke: #B45309;
+      flex-shrink: 0;
+    }
+    .room-lock-badge {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: #B45309;
+      color: #FFFFFF;
+      flex-shrink: 0;
+    }
+    /* Dark mode overrides for lock banner */
+    html.dark-mode .room-lock-banner,
+    body.dark-mode .room-lock-banner,
+    [data-theme="dark"] .room-lock-banner,
+    html.high-contrast .room-lock-banner {
+      background: linear-gradient(135deg, rgba(120, 53, 15, 0.4), rgba(180, 83, 9, 0.3)) !important;
+      border-color: rgba(245, 158, 11, 0.6) !important;
+    }
+    html.dark-mode .room-lock-banner-content,
+    body.dark-mode .room-lock-banner-content,
+    [data-theme="dark"] .room-lock-banner-content,
+    html.high-contrast .room-lock-banner-content {
+      color: #FDE68A !important;
+    }
+    html.dark-mode .room-lock-banner-icon,
+    body.dark-mode .room-lock-banner-icon,
+    [data-theme="dark"] .room-lock-banner-icon,
+    html.high-contrast .room-lock-banner-icon {
+      stroke: #FCD34D !important;
+    }
+
+    /* Disable mutation controls when room-locked */
+    body.room-locked .grid-card-delete-btn,
+    body.room-locked .grid-card-color-btn,
+    body.room-locked .grid-card-resize-handle,
+    body.room-locked .delete-block-btn,
+    body.room-locked #finalize-schedule-btn,
+    body.room-locked #reopen-schedule-btn {
+      display: none !important;
+    }
+    body.room-locked #save-schedule-btn,
+    body.room-locked #save-schedule-btn:disabled {
+      opacity: 0.4 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+    }
+    body.room-locked #create-block-panel {
+      opacity: 0.6 !important;
+      pointer-events: none !important;
+    }
+    body.room-locked .schedule-block {
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+    }
+    body.room-locked .grid-card {
+      cursor: default !important;
     }
   </style>
 
@@ -2356,6 +2449,15 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Collaborative Room Editing Lock Banner -->
+          <div id="room-lock-banner" class="room-lock-banner" style="display: none;" role="alert">
+            <div class="room-lock-banner-content">
+              <i data-lucide="lock" class="room-lock-banner-icon"></i>
+              <span id="room-lock-banner-text">Room is currently locked. You are viewing this schedule in read-only mode.</span>
+            </div>
+            <span class="room-lock-badge">READ-ONLY</span>
           </div>
 
           <div class="calendar-grid-container">

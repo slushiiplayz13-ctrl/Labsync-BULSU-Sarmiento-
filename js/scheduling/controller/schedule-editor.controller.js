@@ -800,10 +800,18 @@
           }
         } catch (err) {
           console.error('Error saving schedule draft:', err);
+          const isLocked = (err && (err.status === 423 || err.code === 'LOCKED' || (err.message && err.message.includes('currently being edited'))));
           const isStale = (err && (err.status === 409 || (err.message && err.message.includes('modified by another administrator'))));
           const isFinalized = (err && (err.status === 403 || (err.message && err.message.includes('finalized'))));
 
-          if (isStale) {
+          if (isLocked) {
+            const msg = err.message || 'Room is currently locked by another administrator.';
+            if (global.showToast) {
+              global.showToast(msg, 'error', 'Room Locked');
+            } else {
+              alert(msg);
+            }
+          } else if (isStale) {
             showStaleScheduleModal(err.message);
           } else if (isFinalized) {
             const msg = err.message || 'Cannot modify a finalized schedule. It must be reopened first.';
@@ -902,16 +910,26 @@
             confirmBtn.disabled = true;
             confirmBtn.textContent = 'Processing...';
 
+            const editToken = (persistence && typeof persistence.getEditSessionToken === 'function')
+              ? persistence.getEditSessionToken()
+              : null;
+
             if (type === 'finalize') {
               if (global.scheduleService && typeof global.scheduleService.finalizeSchedule === 'function') {
-                await global.scheduleService.finalizeSchedule(roomNum, academicYear, semester);
+                await global.scheduleService.finalizeSchedule(roomNum, academicYear, semester, editToken);
+              }
+              if (persistence && typeof persistence.releaseCurrentLock === 'function') {
+                await persistence.releaseCurrentLock();
               }
               if (global.showToast) {
                 global.showToast(`Room ${roomNum} schedule finalized as official!`, 'success');
               }
             } else {
               if (global.scheduleService && typeof global.scheduleService.reopenSchedule === 'function') {
-                await global.scheduleService.reopenSchedule(roomNum, academicYear, semester);
+                const reopenRes = await global.scheduleService.reopenSchedule(roomNum, academicYear, semester, editToken);
+                if (reopenRes && reopenRes.editSessionToken && persistence && typeof persistence.setEditSessionToken === 'function') {
+                  persistence.setEditSessionToken(reopenRes.editSessionToken);
+                }
               }
               if (global.showToast) {
                 global.showToast(`Room ${roomNum} schedule reopened for editing.`, 'success');

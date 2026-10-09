@@ -402,6 +402,15 @@ async function getScheduleMetadataForUpdate(roomId, ay, sem, executor) {
     return rows.length > 0 ? rows[0] : null;
 }
 
+async function lockUserForUpdate(userId, executor = db) {
+    if (!userId) return null;
+    const [rows] = await executor.query(
+        'SELECT User_ID FROM users WHERE User_ID = ? FOR UPDATE',
+        [userId]
+    );
+    return rows.length > 0 ? rows[0] : null;
+}
+
 async function upsertScheduleMetadata({ roomId, ay, sem, version, status, finalizedBy, finalizedAt, updatedBy }, executor = db) {
     return executor.query(`
         INSERT INTO schedule_metadata 
@@ -459,6 +468,13 @@ async function getAllRoomsScheduleMetadata(ay, sem, executor = db) {
 }
 
 async function deleteRoomScheduleDraft(roomId, ay, sem, executor = db) {
+    const [existing] = await executor.query(
+        'SELECT Draft_ID FROM schedule_drafts WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ? LIMIT 1',
+        [roomId, ay, sem]
+    );
+    if (existing.length === 0) {
+        return [{ affectedRows: 0 }];
+    }
     return executor.query(
         'DELETE FROM schedule_drafts WHERE Room_ID = ? AND Academic_Year = ? AND Semester = ?',
         [roomId, ay, sem]
@@ -617,6 +633,7 @@ module.exports = {
     publishDraftToOfficial,
     clearRoomScheduleDraft,
     findUserSchedulesForConflictAll,
+    lockUserForUpdate,
     getConnection,
     withTransaction
 };

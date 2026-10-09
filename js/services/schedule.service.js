@@ -48,7 +48,7 @@
     return data;
   }
 
-  async function saveRoomSchedule(roomNum, schedules, academicYear, semester, version) {
+  async function saveRoomSchedule(roomNum, schedules, academicYear, semester, version, editSessionToken) {
     const payload = {
       roomNumber: roomNum,
       schedules: schedules,
@@ -58,9 +58,16 @@
     if (version !== undefined && version !== null) {
       payload.version = version;
     }
+    if (editSessionToken) {
+      payload.editSessionToken = editSessionToken;
+    }
+    const headers = { 'Content-Type': 'application/json' };
+    if (editSessionToken) {
+      headers['X-Edit-Session-Token'] = editSessionToken;
+    }
     const res = await fetch('/api/schedules/save', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       credentials: 'include',
       body: JSON.stringify(payload)
     });
@@ -69,6 +76,7 @@
       const err = new Error(data.error || 'Failed to save draft');
       err.status = res.status;
       err.response = data;
+      err.code = data.code;
       throw err;
     }
     return data;
@@ -79,24 +87,34 @@
    * @param {string|number} roomNum
    * @param {string} academicYear
    * @param {string} semester
+   * @param {string} [editSessionToken]
    * @returns {Promise<object>}
    */
-  async function finalizeSchedule(roomNum, academicYear = '', semester = '') {
+  async function finalizeSchedule(roomNum, academicYear = '', semester = '', editSessionToken = '') {
+    const payload = {
+      roomNumber: roomNum,
+      academicYear,
+      semester
+    };
+    if (editSessionToken) {
+      payload.editSessionToken = editSessionToken;
+    }
+    const headers = { 'Content-Type': 'application/json' };
+    if (editSessionToken) {
+      headers['X-Edit-Session-Token'] = editSessionToken;
+    }
     const res = await fetch('/api/schedules/finalize', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       credentials: 'include',
-      body: JSON.stringify({
-        roomNumber: roomNum,
-        academicYear,
-        semester
-      })
+      body: JSON.stringify(payload)
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       const err = new Error(data.error || 'Failed to finalize schedule');
       err.status = res.status;
       err.response = data;
+      err.code = data.code;
       throw err;
     }
     return data;
@@ -107,27 +125,155 @@
    * @param {string|number} roomNum
    * @param {string} academicYear
    * @param {string} semester
+   * @param {string} [editSessionToken]
    * @returns {Promise<object>}
    */
-  async function reopenSchedule(roomNum, academicYear = '', semester = '') {
+  async function reopenSchedule(roomNum, academicYear = '', semester = '', editSessionToken = '') {
+    const payload = {
+      roomNumber: roomNum,
+      academicYear,
+      semester
+    };
+    if (editSessionToken) {
+      payload.editSessionToken = editSessionToken;
+    }
+    const headers = { 'Content-Type': 'application/json' };
+    if (editSessionToken) {
+      headers['X-Edit-Session-Token'] = editSessionToken;
+    }
     const res = await fetch('/api/schedules/reopen', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       credentials: 'include',
-      body: JSON.stringify({
-        roomNumber: roomNum,
-        academicYear,
-        semester
-      })
+      body: JSON.stringify(payload)
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       const err = new Error(data.error || 'Failed to reopen schedule');
       err.status = res.status;
       err.response = data;
+      err.code = data.code;
       throw err;
     }
     return data;
+  }
+
+  /**
+   * Acquires collaborative edit lock for a room and term.
+   * @param {string|number} roomNum
+   * @param {string} academicYear
+   * @param {string} semester
+   * @param {string} [editSessionToken]
+   * @returns {Promise<object>}
+   */
+  async function acquireRoomLock(roomNum, academicYear = '', semester = '', editSessionToken = '') {
+    const payload = {
+      roomNumber: roomNum,
+      academicYear,
+      semester
+    };
+    if (editSessionToken) payload.editSessionToken = editSessionToken;
+    const headers = { 'Content-Type': 'application/json' };
+    if (editSessionToken) headers['X-Edit-Session-Token'] = editSessionToken;
+
+    const res = await fetch('/api/schedules/room-locks/acquire', {
+      method: 'POST',
+      headers,
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 423) {
+      return {
+        acquired: false,
+        code: data.code || 'LOCKED',
+        error: data.error || `Room ${roomNum} is currently locked by another administrator.`,
+        lockedBy: data.lockedBy,
+        remainingSeconds: data.remainingSeconds
+      };
+    }
+    if (!res.ok) {
+      const err = new Error(data.error || 'Failed to acquire room lock');
+      err.status = res.status;
+      err.response = data;
+      throw err;
+    }
+    return data;
+  }
+
+  /**
+   * Renews heartbeat for active edit lock.
+   * @param {string|number} roomNum
+   * @param {string} academicYear
+   * @param {string} semester
+   * @param {string} editSessionToken
+   * @returns {Promise<object>}
+   */
+  async function renewRoomLockHeartbeat(roomNum, academicYear = '', semester = '', editSessionToken = '') {
+    if (!editSessionToken) return { renewed: false, code: 'NO_TOKEN' };
+    const payload = { roomNumber: roomNum, academicYear, semester, editSessionToken };
+    const res = await fetch('/api/schedules/room-locks/heartbeat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Edit-Session-Token': editSessionToken
+      },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 423) {
+      return {
+        renewed: false,
+        code: data.code || 'LOCK_LOST',
+        error: data.error || 'Editing lease expired or lost.',
+        lockedBy: data.lockedBy
+      };
+    }
+    if (!res.ok) {
+      const err = new Error(data.error || 'Heartbeat failed');
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  }
+
+  /**
+   * Releases an active room edit lock.
+   * @param {string|number} roomNum
+   * @param {string} academicYear
+   * @param {string} semester
+   * @param {string} editSessionToken
+   * @returns {Promise<object>}
+   */
+  async function releaseRoomLock(roomNum, academicYear = '', semester = '', editSessionToken = '') {
+    if (!editSessionToken) return { released: true };
+    const payload = JSON.stringify({ roomNumber: roomNum, academicYear, semester, editSessionToken });
+    try {
+      const res = await fetch('/api/schedules/room-locks/release', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Edit-Session-Token': editSessionToken
+        },
+        credentials: 'include',
+        body: payload,
+        keepalive: true
+      });
+      return await res.json().catch(() => ({ released: true }));
+    } catch (e) {
+      return { released: false };
+    }
+  }
+
+  /**
+   * Gets lock status for a room and term.
+   */
+  async function getRoomLockStatus(roomNum = '', academicYear = '', semester = '') {
+    let url = `/api/schedules/room-locks/status?roomNumber=${encodeURIComponent(roomNum)}&academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}`;
+    const res = await fetch(url, { credentials: 'include' });
+    if (!res.ok) return null;
+    return await res.json();
   }
 
   /**
@@ -267,7 +413,11 @@
     getProfessorSchedule,
     getFaculty,
     getITHeadSummary,
-    getFacultyScheduleByName
+    getFacultyScheduleByName,
+    acquireRoomLock,
+    renewRoomLockHeartbeat,
+    releaseRoomLock,
+    getRoomLockStatus
   };
 
   global.getRoomSchedule = getRoomSchedule;
@@ -281,6 +431,10 @@
   global.getFaculty = getFaculty;
   global.getITHeadSummary = getITHeadSummary;
   global.getFacultyScheduleByName = getFacultyScheduleByName;
+  global.acquireRoomLock = acquireRoomLock;
+  global.renewRoomLockHeartbeat = renewRoomLockHeartbeat;
+  global.releaseRoomLock = releaseRoomLock;
+  global.getRoomLockStatus = getRoomLockStatus;
   global.scheduleService = scheduleService;
 
 })(typeof window !== 'undefined' ? window : this);

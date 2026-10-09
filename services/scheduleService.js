@@ -86,9 +86,48 @@ async function saveRoomSchedule(roomNumber, schedules, academicYear, semester, v
         }
     }
 
+    // Identify and resolve distinct professor identities before starting transaction.
+    // This ensures no plain non-locking SELECT runs inside the transaction before locks are acquired,
+    // preventing premature InnoDB REPEATABLE READ snapshot creation.
+    const profNameToId = new Map();
+    const profUserIdsToLock = new Set();
+
+    if (Array.isArray(schedules) && schedules.length > 0) {
+        for (const sched of schedules) {
+            if (sched && sched.professor && sched.professor !== 'Not specified') {
+                const profName = String(sched.professor).trim();
+                if (!profNameToId.has(profName)) {
+                    const [users] = await scheduleRepository.findUserIdByName(profName);
+                    const profUserId = users.length > 0 ? users[0].User_ID : null;
+                    profNameToId.set(profName, profUserId);
+                    if (profUserId) {
+                        profUserIdsToLock.add(profUserId);
+                    }
+                }
+            }
+        }
+    }
+
+    const sortedProfUserIds = Array.from(profUserIdsToLock).sort((a, b) => Number(a) - Number(b));
+
     return await scheduleRepository.withTransaction(async (connection) => {
-        // Concurrency & Status lock
-        const metadata = await scheduleRepository.getScheduleMetadataForUpdate(roomId, ay, sem, connection);
+        // 1. Deterministically acquire exclusive row locks on all assigned faculty members in users table.
+        // Serializes concurrent saves for the same faculty member across different rooms before
+        // any room-specific locks or gap locks are acquired.
+        // Individual primary key point queries in ascending numerical order eliminate deadlock cycles.
+        // Because no plain non-locking SELECT has executed yet, InnoDB will establish its consistent
+        // read snapshot only when findUserSchedulesForConflictAll executes (after lock acquisition).
+        for (const profUserId of sortedProfUserIds) {
+            await scheduleRepository.lockUserForUpdate(profUserId, connection);
+        }
+
+        // 2. Concurrency & Status lock for the room
+        // If metadata exists, acquire exclusive row lock on it.
+        // If not, avoid FOR UPDATE on non-existent keys to prevent MariaDB InnoDB gap locks on schedule_metadata.
+        let metadata = await scheduleRepository.getScheduleMetadata(roomId, ay, sem, connection);
+        if (metadata) {
+            metadata = await scheduleRepository.getScheduleMetadataForUpdate(roomId, ay, sem, connection);
+        }
 
         if (metadata) {
             if (metadata.Status === 'Finalized') {
@@ -110,9 +149,9 @@ async function saveRoomSchedule(roomNumber, schedules, academicYear, semester, v
         if (Array.isArray(schedules) && schedules.length > 0) {
             for (const sched of schedules) {
                 if (sched.professor && sched.professor !== 'Not specified') {
-                    const [users] = await scheduleRepository.findUserIdByName(sched.professor, connection);
-                    if (users.length > 0) {
-                        const profUserId = users[0].User_ID;
+                    const profName = String(sched.professor).trim();
+                    const profUserId = profNameToId.get(profName);
+                    if (profUserId) {
                         const [conflicts] = await scheduleRepository.findUserSchedulesForConflictAll(
                             profUserId, sched.day || 'Monday', ay, sem, cleanRoomNumber, connection
                         );
@@ -135,8 +174,8 @@ async function saveRoomSchedule(roomNumber, schedules, academicYear, semester, v
 
         if (Array.isArray(schedules) && schedules.length > 0) {
             for (const sched of schedules) {
-                const [users] = await scheduleRepository.findUserIdByName(sched.professor, connection);
-                const profUserId = users.length > 0 ? users[0].User_ID : null;
+                const profName = String(sched.professor || '').trim();
+                const profUserId = profNameToId.has(profName) ? profNameToId.get(profName) : null;
 
                 await scheduleRepository.insertScheduleDraft({
                     userId: profUserId,
