@@ -19,7 +19,14 @@ function escapeHtml(str) {
  * @returns {Promise<Array>} Array of laboratory room objects.
  */
 async function fetchLaboratories() {
-  const res = await fetch('/api/laboratories', { credentials: 'include' });
+  const res = await fetch(`/api/laboratories?_=${Date.now()}`, {
+    credentials: 'include',
+    cache: 'no-store',
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
+    }
+  });
   if (!res.ok) {
     throw new Error('Failed to load laboratories');
   }

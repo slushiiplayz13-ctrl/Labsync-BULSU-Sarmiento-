@@ -6,6 +6,7 @@ const auditService = require('../services/auditService');
 async function getAllLaboratories(req, res, next) {
     try {
         const result = await laboratoryService.getAllLaboratories();
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         return res.status(result.status).json(result.data);
     } catch (err) {
         next(err);

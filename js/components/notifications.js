@@ -371,7 +371,10 @@
       }, 300);
     }
 
+    let isFetchingNotifs = false;
     async function loadNotifications() {
+      if (isFetchingNotifs) return;
+      isFetchingNotifs = true;
       try {
         const fetchNotifsFn = global.fetchNotifications || (global.notificationService && global.notificationService.fetchNotifications);
         const notifications = typeof fetchNotifsFn === 'function' ? await fetchNotifsFn() : null;
@@ -380,16 +383,6 @@
 
         const lastRead = localStorage.getItem('last_read_notifications');
         let unreadCount = 0;
-
-        // Load already toasted keys from localStorage
-        let toastedKeys = [];
-        try {
-          toastedKeys = JSON.parse(localStorage.getItem('shown_notification_toasts') || '[]');
-          if (!Array.isArray(toastedKeys)) toastedKeys = [];
-        } catch (e) {
-          toastedKeys = [];
-        }
-        const newToastedKeys = [...toastedKeys];
 
         if (notifList) notifList.innerHTML = '';
 
@@ -402,60 +395,72 @@
               </div>
             `;
           }
-          if (notifDot) notifDot.style.display = 'none';
+          if (notifDot) {
+            notifDot.style.display = 'none';
+            try { sessionStorage.setItem('labsync_has_unread_notifs', 'false'); } catch (e) { }
+          }
           if (global.lucide && typeof global.lucide.createIcons === 'function') {
             global.lucide.createIcons({ root: notifList });
           }
-          return;
-        }
-
-        notifications.forEach(notif => {
-          // Safeguard: MIS Staff only receives PC hardware report notifications
-          if (window.location.pathname.includes('mis-') && notif.type !== 'report') {
-            return;
+        } else {
+          // Load already toasted keys from localStorage
+          let toastedKeys = [];
+          try {
+            toastedKeys = JSON.parse(localStorage.getItem('shown_notification_toasts') || '[]');
+            if (!Array.isArray(toastedKeys)) toastedKeys = [];
+          } catch (e) {
+            toastedKeys = [];
           }
+          const newToastedKeys = [...toastedKeys];
 
-          // Exclude intermediate QR scan events (keep feeds focused on actual key custody events)
-          const notifStatus = String(notif.status || '').trim().toLowerCase();
-          if (notifStatus === 'qr code' || notifStatus === 'qr verified' || notifStatus === 'qr' || notifStatus.includes('qr verified')) {
-            return;
-          }
-
-          const isUnread = !lastRead || new Date(notif.time) > new Date(lastRead);
-          if (isUnread) unreadCount++;
-          const item = createNotificationItem(notif, isUnread);
-          if (notifList) notifList.appendChild(item);
-
-          // Check if notification is new/unread and has not been toasted yet
-          const key = computeNotificationToastKey(notif);
-
-          if (isUnread && !toastedKeys.includes(key)) {
-            if (!isInitialLoad) {
-              showNotificationToast(notif);
+          notifications.forEach(notif => {
+            // Safeguard: MIS Staff only receives PC hardware report notifications
+            if (window.location.pathname.includes('mis-') && notif.type !== 'report') {
+              return;
             }
-            newToastedKeys.push(key);
-          } else if (!toastedKeys.includes(key)) {
-            // Track it so we don't try to show it in the future
-            newToastedKeys.push(key);
+
+            // Exclude intermediate QR scan events (keep feeds focused on actual key custody events)
+            const notifStatus = String(notif.status || '').trim().toLowerCase();
+            if (notifStatus === 'qr code' || notifStatus === 'qr verified' || notifStatus === 'qr' || notifStatus.includes('qr verified')) {
+              return;
+            }
+
+            const isUnread = !lastRead || new Date(notif.time) > new Date(lastRead);
+            if (isUnread) unreadCount++;
+            const item = createNotificationItem(notif, isUnread);
+            if (notifList) notifList.appendChild(item);
+
+            // Check if notification is new/unread and has not been toasted yet
+            const key = computeNotificationToastKey(notif);
+
+            if (isUnread && !toastedKeys.includes(key)) {
+              if (!isInitialLoad) {
+                showNotificationToast(notif);
+              }
+              newToastedKeys.push(key);
+            } else if (!toastedKeys.includes(key)) {
+              // Track it so we don't try to show it in the future
+              newToastedKeys.push(key);
+            }
+          });
+
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons({ root: notifList });
           }
-        });
 
-        if (global.lucide && typeof global.lucide.createIcons === 'function') {
-          global.lucide.createIcons({ root: notifList });
-        }
+          // Keep only last 50 keys to prevent localStorage bloat
+          if (newToastedKeys.length > 50) {
+            newToastedKeys.splice(0, newToastedKeys.length - 50);
+          }
+          try {
+            localStorage.setItem('shown_notification_toasts', JSON.stringify(newToastedKeys));
+          } catch (e) { }
 
-        // Keep only last 50 keys to prevent localStorage bloat
-        if (newToastedKeys.length > 50) {
-          newToastedKeys.splice(0, newToastedKeys.length - 50);
-        }
-        try {
-          localStorage.setItem('shown_notification_toasts', JSON.stringify(newToastedKeys));
-        } catch (e) { }
-
-        if (notifDot) {
-          const hasUnread = unreadCount > 0;
-          notifDot.style.display = hasUnread ? 'block' : 'none';
-          try { sessionStorage.setItem('labsync_has_unread_notifs', String(hasUnread)); } catch (e) { }
+          if (notifDot) {
+            const hasUnread = unreadCount > 0;
+            notifDot.style.display = hasUnread ? 'block' : 'none';
+            try { sessionStorage.setItem('labsync_has_unread_notifs', String(hasUnread)); } catch (e) { }
+          }
         }
 
         // Build notification state signature including all fields that affect UI display
@@ -510,6 +515,7 @@
       } catch (err) {
         console.error('[Notifications] Error loading notifications:', err);
       } finally {
+        isFetchingNotifs = false;
         isInitialLoad = false;
       }
     }
@@ -598,8 +604,22 @@
       }
     });
 
+    if (global._notifPollInterval) {
+      clearInterval(global._notifPollInterval);
+      global._notifPollInterval = null;
+    }
     loadNotifications();
-    setInterval(loadNotifications, 2000); // Snappy 2s background polling
+    global._notifPollInterval = setInterval(loadNotifications, 2000); // Snappy 2s background polling
+
+    if (!global._notifUnloadAttached && typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', () => {
+        if (global._notifPollInterval) {
+          clearInterval(global._notifPollInterval);
+          global._notifPollInterval = null;
+        }
+      });
+      global._notifUnloadAttached = true;
+    }
   }
 
   // Preserve global contracts for legacy scripts and HTML callers

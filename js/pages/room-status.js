@@ -7,12 +7,16 @@
 'use strict';
 
 (function (global) {
+  let _isLoadingRoomStatusLabs = false;
+
   /**
    * Loads and renders all laboratory room status cards with instant SWR pre-rendering.
    */
   async function loadAllRoomStatusLabs() {
     const labsGrid = document.querySelector('.labs-grid');
     if (!labsGrid) return;
+    if (_isLoadingRoomStatusLabs) return;
+    _isLoadingRoomStatusLabs = true;
 
     // Instant SWR pre-render from session cache (0ms delay!)
     try {
@@ -64,6 +68,8 @@
           global.lucide.createIcons({ root: labsGrid });
         }
       }
+    } finally {
+      _isLoadingRoomStatusLabs = false;
     }
   }
 

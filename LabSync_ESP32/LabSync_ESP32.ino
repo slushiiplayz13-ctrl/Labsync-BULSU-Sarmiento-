@@ -248,8 +248,8 @@ bool sendKeyStatusHttp(const char* room, bool present) {
   HTTPClient http;
   http.begin(client, serverUrl);
   http.setReuse(false);
-  http.setConnectTimeout(1500); // 1.5s connection timeout
-  http.setTimeout(2000);        // 2.0s socket timeout
+  http.setConnectTimeout(4000); // 4.0s connection timeout
+  http.setTimeout(5000);        // 5.0s socket timeout
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", String("Bearer ") + deviceToken);
   http.addHeader("Connection", "close");
@@ -258,15 +258,17 @@ bool sendKeyStatusHttp(const char* room, bool present) {
   String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + String(room) + "\"}";
 
   int code = http.POST(jsonPayload);
-  Serial.printf("[NetWorker HTTP] %s for Room %s: Status %d\n", statusStr.c_str(), room, code);
-
   if (code > 0) {
+    Serial.printf("[NetWorker HTTP] %s for Room %s: Status %d\n", statusStr.c_str(), room, code);
     NetworkClient* stream = http.getStreamPtr();
     if (stream) {
       while (stream->available() > 0) {
         stream->read();
       }
     }
+  } else {
+    Serial.printf("[NetWorker HTTP] %s for Room %s Failed: Status %d (%s)\n",
+                  statusStr.c_str(), room, code, http.errorToString(code).c_str());
   }
   http.end();
   client.stop();
@@ -283,8 +285,8 @@ bool sendSecurityAlertHttp(const char* room, const char* alertType) {
   HTTPClient http;
   http.begin(client, serverUrl);
   http.setReuse(false);
-  http.setConnectTimeout(1500);
-  http.setTimeout(2000);
+  http.setConnectTimeout(4000); // 4.0s connection timeout
+  http.setTimeout(5000);        // 5.0s socket timeout
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", String("Bearer ") + deviceToken);
   http.addHeader("Connection", "close");
@@ -297,13 +299,15 @@ bool sendSecurityAlertHttp(const char* room, const char* alertType) {
   serializeJson(reqDoc, jsonPayload);
 
   int code = http.POST(jsonPayload);
-  Serial.printf("[NetWorker Alert] %s for Room %s: Status %d\n", alertType, room, code);
-
   if (code > 0) {
+    Serial.printf("[NetWorker Alert] %s for Room %s: Status %d\n", alertType, room, code);
     NetworkClient* stream = http.getStreamPtr();
     if (stream) {
       while (stream->available() > 0) stream->read();
     }
+  } else {
+    Serial.printf("[NetWorker Alert] %s for Room %s Failed: Status %d (%s)\n",
+                  alertType, room, code, http.errorToString(code).c_str());
   }
   http.end();
   client.stop();
@@ -372,8 +376,8 @@ void processQrScanHttp(const char* scannedToken, const char* room) {
     HTTPClient http;
     http.begin(client, serverUrl);
     http.setReuse(false);
-    http.setConnectTimeout(1500);
-    http.setTimeout(3500);
+    http.setConnectTimeout(4000); // 4.0s connection timeout
+    http.setTimeout(5000);        // 5.0s socket timeout
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", String("Bearer ") + deviceToken);
     http.addHeader("Connection", "close");
@@ -388,7 +392,12 @@ void processQrScanHttp(const char* scannedToken, const char* room) {
 
     int httpResponseCode = http.POST(jsonPayload);
     String response = http.getString();
-    Serial.printf("[NetWorker Scan] POST status: %d, response: %s\n", httpResponseCode, response.c_str());
+    if (httpResponseCode > 0) {
+      Serial.printf("[NetWorker Scan] POST status: %d, response: %s\n", httpResponseCode, response.c_str());
+    } else {
+      Serial.printf("[NetWorker Scan] POST failed: Status %d (%s)\n",
+                    httpResponseCode, http.errorToString(httpResponseCode).c_str());
+    }
 
     StaticJsonDocument<1024> resDoc;
     DeserializationError error = deserializeJson(resDoc, response);
