@@ -8,14 +8,37 @@ const { APP_URL } = require('../../../config/app.config');
 const { wrapEmailHtml, warningBox, ctaButton } = require('./shell');
 
 /**
- * Renders HTML body and subject for the welcome email to a new faculty member.
+ * Resolves account type description for welcome message.
+ *
+ * @param {string|object} [roleOrOptions='Faculty']
+ * @returns {string}
+ */
+function getAccountDescription(roleOrOptions = 'Faculty') {
+    const rawRole = (roleOrOptions && typeof roleOrOptions === 'object')
+        ? (roleOrOptions.role || roleOrOptions.accountType || 'Faculty')
+        : (roleOrOptions || 'Faculty');
+    const roleStr = String(rawRole).trim();
+
+    if (!roleStr || roleStr.toLowerCase() === 'faculty') {
+        return 'faculty account';
+    }
+    if (roleStr.toLowerCase() === 'mis staff' || roleStr.toLowerCase() === 'mis') {
+        return 'MIS Staff account';
+    }
+    return `${roleStr} account`;
+}
+
+/**
+ * Renders HTML body and subject for the welcome email to a new user account.
  *
  * @param {string} recipientEmail
  * @param {string} recipientName
  * @param {string} password — the plain-text generated password (temporary)
+ * @param {string|object} [roleOrOptions='Faculty'] — the user role or options object
  * @returns {{ subject: string, html: string }}
  */
-function renderWelcomeEmail(recipientEmail, recipientName, password) {
+function renderWelcomeEmail(recipientEmail, recipientName, password, roleOrOptions = 'Faculty') {
+    const accountDescription = getAccountDescription(roleOrOptions);
     const bodyHtml = `
         <h2 class="text-title" style="margin-top: 0; margin-bottom: 18px; font-size: 22px; font-weight: 800; color: #0F172A; text-align: center; letter-spacing: -0.4px;">
             Welcome to LabSync!
@@ -25,7 +48,7 @@ function renderWelcomeEmail(recipientEmail, recipientName, password) {
             Hello <strong>${recipientName}</strong>,
         </p>
         <p class="text-secondary" style="margin-top: 0; margin-bottom: 24px; font-size: 14.5px; color: #475569; line-height: 1.6;">
-            Your faculty account has been created successfully. Below are your temporary login credentials:
+            Your ${accountDescription} has been created successfully. Below are your temporary login credentials:
         </p>
 
         <!-- Credentials Block -->
@@ -73,4 +96,4 @@ function renderWelcomeEmail(recipientEmail, recipientName, password) {
     };
 }
 
-module.exports = { renderWelcomeEmail };
+module.exports = { renderWelcomeEmail, getAccountDescription };

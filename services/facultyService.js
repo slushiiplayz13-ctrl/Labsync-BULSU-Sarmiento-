@@ -76,7 +76,7 @@ async function addFaculty(reqBody, actingRole = null) {
     console.timeEnd('[Faculty] insertFaculty');
 
     // Dispatch welcome email asynchronously so HTTP response is not blocked by SMTP networking
-    sendWelcomeEmail(email, trimmedName, generatedPassword)
+    sendWelcomeEmail(email, trimmedName, generatedPassword, role || 'Faculty')
         .then(emailSent => {
             if (!emailSent) {
                 console.warn(`[Faculty] Welcome email failed for ${email}; manual credential delivery required.`);

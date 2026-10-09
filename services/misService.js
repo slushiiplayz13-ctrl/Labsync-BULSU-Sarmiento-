@@ -226,7 +226,7 @@ async function createMisStaff(reqBody) {
     const createdUser = createdRows && createdRows.length > 0 ? createdRows[0] : null;
 
     // 5. Asynchronously dispatch welcome email with credentials
-    sendWelcomeEmail(emailResult.value, nameResult.value, temporaryPassword)
+    sendWelcomeEmail(emailResult.value, nameResult.value, temporaryPassword, 'MIS Staff')
         .then(sent => {
             if (!sent) {
                 console.warn(`[misService] Welcome email failed for ${emailResult.value}; manual credential delivery required.`);

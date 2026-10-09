@@ -11,15 +11,16 @@ const {
 const { renderKeyReturnReminderEmail } = require('./templates/key-reminder');
 
 /**
- * Sends a welcome email containing generated login credentials to a new faculty member.
+ * Sends a welcome email containing generated login credentials to a new user account.
  *
  * @param {string} recipientEmail
  * @param {string} recipientName
  * @param {string} password — the plain-text generated password (temporary)
+ * @param {string|object} [role='Faculty'] — the user account role or options
  * @returns {Promise<boolean>}
  */
-async function sendWelcomeEmail(recipientEmail, recipientName, password) {
-    const { subject, html } = renderWelcomeEmail(recipientEmail, recipientName, password);
+async function sendWelcomeEmail(recipientEmail, recipientName, password, role = 'Faculty') {
+    const { subject, html } = renderWelcomeEmail(recipientEmail, recipientName, password, role);
     try {
         await sendMailWithTimeout({
             from: getSenderAddress(),

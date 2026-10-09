@@ -381,6 +381,9 @@ async function runWebhookTransportTests() {
         const welcomeResult = await emailService.sendWelcomeEmail('prof@bulsu.edu.ph', 'Prof. Smith', 'TempPass123!');
         assert.strictEqual(welcomeResult, true, 'sendWelcomeEmail must return true on success');
 
+        const misWelcomeResult = await emailService.sendWelcomeEmail('mis@bulsu.edu.ph', 'MIS Tech', 'TempPass456!', 'MIS Staff');
+        assert.strictEqual(misWelcomeResult, true, 'sendWelcomeEmail for MIS Staff must return true on success');
+
         const resetResult = await emailService.sendResetPasswordEmail('prof@bulsu.edu.ph', 'Prof. Smith', 'https://labsync.edu.ph/reset-password.html?token=abc');
         assert.strictEqual(resetResult, true, 'sendResetPasswordEmail must return true on success');
 
