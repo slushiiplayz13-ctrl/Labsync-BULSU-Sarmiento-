@@ -16,17 +16,15 @@
 
     // Instant SWR pre-render from session cache (0ms delay!)
     try {
-      const cachedTs = parseInt(sessionStorage.getItem('labsync_cached_labs_ts') || '0', 10);
-      const isCacheFresh = cachedTs > 0 && (Date.now() - cachedTs < 30000); // 30s TTL minimizes misleading Offline flash
       const cached = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
       const renderFn = (global.laboratoryService && typeof global.laboratoryService.renderLabCards === 'function')
         ? global.laboratoryService.renderLabCards
         : (typeof global.renderLabCards === 'function' ? global.renderLabCards : null);
 
-      if (isCacheFresh && Array.isArray(cached) && cached.length > 0 && typeof renderFn === 'function') {
+      if (Array.isArray(cached) && cached.length > 0 && typeof renderFn === 'function') {
         renderFn(cached, labsGrid);
       }
-    } catch (e) {}
+    } catch (e) { }
 
     try {
       const fetchFn = (global.laboratoryService && typeof global.laboratoryService.fetchLaboratories === 'function')

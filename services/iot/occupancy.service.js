@@ -105,20 +105,6 @@ async function logOccupancy(reqBody = {}, device = null) {
 
     // 2. Security Alerts (Unauthorized Key Removal or Wrong Slot Insertion)
     if (isSecurityAlertEvent) {
-        // Protect against duplicate logging caused by client timeouts and retries
-        const isDuplicate = deviceStateService.isDuplicateSecurityAlert(roomNumber, keyEvent, 5000);
-        if (isDuplicate) {
-            return {
-                status: 200,
-                data: {
-                    message: `Security alert '${keyEvent}' already recorded for Room ${roomNumber}.`,
-                    room: roomNumber,
-                    lcdLine1: 'Security Alert!',
-                    lcdLine2: keyEvent.substring(0, 16)
-                }
-            };
-        }
-
         const auditService = require('../auditService');
         const actionType = (keyEvent.includes('Unauthorized'))
             ? 'IOT_UNAUTHORIZED_KEY_REMOVAL'
@@ -147,12 +133,6 @@ async function logOccupancy(reqBody = {}, device = null) {
         if (keyEvent.includes('Unauthorized')) {
             try {
                 await labRepository.updateKeyStatus(room.Room_ID, 'Absent', null);
-                deviceStateService.recordSlotPhysicalEvent(roomNumber, {
-                    seq: reqBody.seq,
-                    status: 'Absent',
-                    userId: null,
-                    timestamp: now
-                });
             } catch (e) {
                 console.error('[IoT Service] Failed to update Key_Status on unauthorized removal:', e.message);
             }
@@ -282,13 +262,6 @@ async function logOccupancy(reqBody = {}, device = null) {
             }
         });
 
-        deviceStateService.recordSlotPhysicalEvent(roomNumber, {
-            seq: reqBody.seq,
-            status,
-            userId: (status === 'Present') ? null : (claimUserId || room.Current_User_ID),
-            timestamp: now
-        });
-
         if (misCustodyEvent) {
             const auditService = require('../auditService');
             try {
@@ -405,7 +378,7 @@ async function logOccupancy(reqBody = {}, device = null) {
 
             if (upcomingRows && upcomingRows.length > 0) {
                 const up = upcomingRows[0];
-                const upDate = up.Reservation_Date instanceof Date 
+                const upDate = up.Reservation_Date instanceof Date
                     ? up.Reservation_Date.toISOString().split('T')[0]
                     : String(up.Reservation_Date).split('T')[0];
                 const timeStr = String(up.Start_Time).slice(0, 5);

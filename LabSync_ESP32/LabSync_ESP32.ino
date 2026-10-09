@@ -223,7 +223,6 @@ struct NetMessage {
   NetMsgType type;
   char room[8];
   bool keyPresent;
-  uint32_t seq;
   char strPayload[64]; // alertType or qrString
 };
 
@@ -235,14 +234,12 @@ TaskHandle_t netTaskHandle = NULL;
 portMUX_TYPE stateMux = portMUX_INITIALIZER_UNLOCKED;
 volatile bool slotNeedsSync203 = false;
 volatile bool slotTargetState203 = true; // true = Present, false = Absent
-volatile uint32_t slotStateSeq203 = 0;
 
 volatile bool slotNeedsSync204 = false;
 volatile bool slotTargetState204 = true;
-volatile uint32_t slotStateSeq204 = 0;
 
 // Direct HTTP dispatch for key status transitions
-bool sendKeyStatusHttp(const char* room, bool present, uint32_t seq = 0) {
+bool sendKeyStatusHttp(const char* room, bool present) {
   if (WiFi.status() != WL_CONNECTED) return false;
 
   WiFiClientSecure client;
@@ -251,31 +248,25 @@ bool sendKeyStatusHttp(const char* room, bool present, uint32_t seq = 0) {
   HTTPClient http;
   http.begin(client, serverUrl);
   http.setReuse(false);
-  http.setConnectTimeout(4000); // 4.0s connection timeout
-  http.setTimeout(5000);        // 5.0s socket timeout
+  http.setConnectTimeout(1500); // 1.5s connection timeout
+  http.setTimeout(2000);        // 2.0s socket timeout
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", String("Bearer ") + deviceToken);
   http.addHeader("Connection", "close");
 
   String statusStr = present ? "Key Returned" : "Key Taken";
-  String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + String(room) + "\"";
-  if (seq > 0) {
-    jsonPayload += ",\"seq\":" + String(seq);
-  }
-  jsonPayload += "}";
+  String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + String(room) + "\"}";
 
   int code = http.POST(jsonPayload);
+  Serial.printf("[NetWorker HTTP] %s for Room %s: Status %d\n", statusStr.c_str(), room, code);
+
   if (code > 0) {
-    Serial.printf("[NetWorker HTTP] %s for Room %s: Status %d\n", statusStr.c_str(), room, code);
     NetworkClient* stream = http.getStreamPtr();
     if (stream) {
       while (stream->available() > 0) {
         stream->read();
       }
     }
-  } else {
-    Serial.printf("[NetWorker HTTP] %s for Room %s: Failed with code %d (%s)\n",
-                  statusStr.c_str(), room, code, http.errorToString(code).c_str());
   }
   http.end();
   client.stop();
@@ -292,8 +283,8 @@ bool sendSecurityAlertHttp(const char* room, const char* alertType) {
   HTTPClient http;
   http.begin(client, serverUrl);
   http.setReuse(false);
-  http.setConnectTimeout(4000); // 4.0s connection timeout
-  http.setTimeout(5000);        // 5.0s socket timeout
+  http.setConnectTimeout(1500);
+  http.setTimeout(2000);
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", String("Bearer ") + deviceToken);
   http.addHeader("Connection", "close");
@@ -306,15 +297,13 @@ bool sendSecurityAlertHttp(const char* room, const char* alertType) {
   serializeJson(reqDoc, jsonPayload);
 
   int code = http.POST(jsonPayload);
+  Serial.printf("[NetWorker Alert] %s for Room %s: Status %d\n", alertType, room, code);
+
   if (code > 0) {
-    Serial.printf("[NetWorker Alert] %s for Room %s: Status %d\n", alertType, room, code);
     NetworkClient* stream = http.getStreamPtr();
     if (stream) {
       while (stream->available() > 0) stream->read();
     }
-  } else {
-    Serial.printf("[NetWorker Alert] %s for Room %s: Failed with code %d (%s)\n",
-                  alertType, room, code, http.errorToString(code).c_str());
   }
   http.end();
   client.stop();
@@ -338,19 +327,14 @@ void sendHeartbeatHttp() {
 
     bool key203Present = false;
     bool key204Present = false;
-    uint32_t seq203 = 0;
-    uint32_t seq204 = 0;
     portENTER_CRITICAL(&stateMux);
     key203Present = slotTargetState203;
     key204Present = slotTargetState204;
-    seq203 = slotStateSeq203;
-    seq204 = slotStateSeq204;
     portEXIT_CRITICAL(&stateMux);
 
     String jsonPayload = "{\"deviceId\":\"ESP32-KeyBox\",\"rooms\":[\"203\",\"204\"],\"slots\":{\"203\":" +
                         String(key203Present ? "true" : "false") + ",\"204\":" +
-                        String(key204Present ? "true" : "false") + "},\"slotSeqs\":{\"203\":" +
-                        String(seq203) + ",\"204\":" + String(seq204) + "}}";
+                        String(key204Present ? "true" : "false") + "}}";
     int code = http.POST(jsonPayload);
     if (code > 0) {
       Serial.printf("[NetWorker Heartbeat] Sent (203: %s, 204: %s). Code: %d, FreeHeap: %u, MinHeap: %u\n",
@@ -388,8 +372,8 @@ void processQrScanHttp(const char* scannedToken, const char* room) {
     HTTPClient http;
     http.begin(client, serverUrl);
     http.setReuse(false);
-    http.setConnectTimeout(4000); // 4.0s connection timeout
-    http.setTimeout(5000);        // 5.0s socket timeout
+    http.setConnectTimeout(1500);
+    http.setTimeout(3500);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", String("Bearer ") + deviceToken);
     http.addHeader("Connection", "close");
@@ -419,8 +403,6 @@ void processQrScanHttp(const char* scannedToken, const char* room) {
         line1 = "Access Denied!";
         line2 = "Invalid QR Code";
       } else if (httpResponseCode < 0) {
-        Serial.printf("[NetWorker Scan] POST failed with code %d (%s)\n",
-                      httpResponseCode, http.errorToString(httpResponseCode).c_str());
         line1 = "System Busy";
         line2 = "Please Retry";
       }
@@ -464,16 +446,10 @@ void networkWorkerTask(void* pvParameters) {
     if (gotMsg == pdPASS) {
       if (WiFi.status() == WL_CONNECTED) {
         if (msg.type == MSG_KEY_STATUS) {
-          if (sendKeyStatusHttp(msg.room, msg.keyPresent, msg.seq)) {
+          if (sendKeyStatusHttp(msg.room, msg.keyPresent)) {
             portENTER_CRITICAL(&stateMux);
             if (strcmp(msg.room, "203") == 0 && slotTargetState203 == msg.keyPresent) slotNeedsSync203 = false;
             if (strcmp(msg.room, "204") == 0 && slotTargetState204 == msg.keyPresent) slotNeedsSync204 = false;
-            portEXIT_CRITICAL(&stateMux);
-          } else {
-            // HTTP failed: mark for retry via coalesced background sync
-            portENTER_CRITICAL(&stateMux);
-            if (strcmp(msg.room, "203") == 0 && slotTargetState203 == msg.keyPresent) slotNeedsSync203 = true;
-            if (strcmp(msg.room, "204") == 0 && slotTargetState204 == msg.keyPresent) slotNeedsSync204 = true;
             portEXIT_CRITICAL(&stateMux);
           }
         } else if (msg.type == MSG_SECURITY_ALERT) {
@@ -482,7 +458,7 @@ void networkWorkerTask(void* pvParameters) {
           processQrScanHttp(msg.strPayload, msg.room);
         }
       } else {
-        // Wi-Fi offline: guarantee coalesced state retention for retry
+        // Wi-Fi offline: guarantee coalesced state retention
         if (msg.type == MSG_KEY_STATUS) {
           portENTER_CRITICAL(&stateMux);
           if (strcmp(msg.room, "203") == 0) slotNeedsSync203 = true;
@@ -504,36 +480,31 @@ void networkWorkerTask(void* pvParameters) {
         sendHeartbeatHttp();
       }
 
-      // Only run coalesced fallback synchronization when queue has no pending messages
-      if (uxQueueMessagesWaiting(netQueue) == 0) {
-        bool need203 = false, target203 = true;
-        uint32_t seq203 = 0;
-        bool need204 = false, target204 = true;
-        uint32_t seq204 = 0;
+      bool need203 = false, target203 = true;
+      bool need204 = false, target204 = true;
 
-        portENTER_CRITICAL(&stateMux);
-        need203 = slotNeedsSync203; target203 = slotTargetState203; seq203 = slotStateSeq203;
-        need204 = slotNeedsSync204; target204 = slotTargetState204; seq204 = slotStateSeq204;
-        portEXIT_CRITICAL(&stateMux);
+      portENTER_CRITICAL(&stateMux);
+      need203 = slotNeedsSync203; target203 = slotTargetState203;
+      need204 = slotNeedsSync204; target204 = slotTargetState204;
+      portEXIT_CRITICAL(&stateMux);
 
-        if (need203) {
-          if (sendKeyStatusHttp("203", target203, seq203)) {
-            portENTER_CRITICAL(&stateMux);
-            if (slotTargetState203 == target203) slotNeedsSync203 = false;
-            portEXIT_CRITICAL(&stateMux);
-          }
-        }
-
-        if (need204) {
-          if (sendKeyStatusHttp("204", target204, seq204)) {
-            portENTER_CRITICAL(&stateMux);
-            if (slotTargetState204 == target204) slotNeedsSync204 = false;
-            portEXIT_CRITICAL(&stateMux);
-          }
+      if (need203) {
+        if (sendKeyStatusHttp("203", target203)) {
+          portENTER_CRITICAL(&stateMux);
+          if (slotTargetState203 == target203) slotNeedsSync203 = false;
+          portEXIT_CRITICAL(&stateMux);
         }
       }
 
-      // Periodic heartbeat
+      if (need204) {
+        if (sendKeyStatusHttp("204", target204)) {
+          portENTER_CRITICAL(&stateMux);
+          if (slotTargetState204 == target204) slotNeedsSync204 = false;
+          portEXIT_CRITICAL(&stateMux);
+        }
+      }
+
+      // Periodic 5-second heartbeat
       if (millis() - lastWorkerHeartbeat >= HEARTBEAT_INTERVAL) {
         lastWorkerHeartbeat = millis();
         sendHeartbeatHttp();
@@ -557,39 +528,24 @@ void networkWorkerTask(void* pvParameters) {
 
 // Helpers to push into FreeRTOS queue non-blockingly
 void dispatchKeyStatusAsync(const char* room, bool present) {
-  uint32_t currentSeq = 0;
   portENTER_CRITICAL(&stateMux);
   if (strcmp(room, "203") == 0) {
     slotTargetState203 = present;
-    slotStateSeq203++;
-    currentSeq = slotStateSeq203;
+    slotNeedsSync203 = true;
   } else if (strcmp(room, "204") == 0) {
     slotTargetState204 = present;
-    slotStateSeq204++;
-    currentSeq = slotStateSeq204;
+    slotNeedsSync204 = true;
   }
   portEXIT_CRITICAL(&stateMux);
 
-  bool queued = false;
   if (netQueue != NULL) {
     NetMessage msg;
     msg.type = MSG_KEY_STATUS;
     strncpy(msg.room, room, sizeof(msg.room) - 1);
     msg.room[sizeof(msg.room) - 1] = '\0';
     msg.keyPresent = present;
-    msg.seq = currentSeq;
     msg.strPayload[0] = '\0';
-    if (xQueueSend(netQueue, &msg, 0) == pdPASS) {
-      queued = true;
-    }
-  }
-
-  // Only mark for coalesced sync fallback if queue was unavailable or full
-  if (!queued) {
-    portENTER_CRITICAL(&stateMux);
-    if (strcmp(room, "203") == 0) slotNeedsSync203 = true;
-    else if (strcmp(room, "204") == 0) slotNeedsSync204 = true;
-    portEXIT_CRITICAL(&stateMux);
+    xQueueSend(netQueue, &msg, 0); // 0 timeout: non-blocking immediate return
   }
 }
 
@@ -637,20 +593,6 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
   if (candidateState != lastState) {
     delay(40); // 40ms fast debounce (rejects contact friction while responding instantly)
     KeyType verifyState = detectKeyType(pin);
-
-    // Withdrawal transition guard:
-    // When withdrawing Key 204 (0 ohm), contact separation sweeps intermediate ADC
-    // readings through the Key 203 range before reaching open circuit (KEY_NONE).
-    // If the slot currently holds the expected key and detects an intermediate state,
-    // allow a 60ms settling window to confirm KEY_NONE without false alarm.
-    if (lastState == expectedKey && verifyState != KEY_NONE && verifyState != expectedKey) {
-      delay(60);
-      KeyType settledState = detectKeyType(pin);
-      if (settledState == KEY_NONE) {
-        verifyState = KEY_NONE;
-        candidateState = KEY_NONE;
-      }
-    }
     
     if (candidateState == verifyState) {
       KeyType oldState = lastState;
@@ -660,12 +602,6 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
 
       // 1. Wrong Key Inserted
       if (verifyState != KEY_NONE && verifyState != expectedKey) {
-        // If the slot previously held the expected key, intermediate scraping must not
-        // be treated as wrong key insertion. Revert lastState and wait for settling.
-        if (oldState == expectedKey) {
-          lastState = oldState;
-          return;
-        }
         isWrong = true;
         wrongAlarmStarted = millis(); // Start audible timer for wrong key
         String insertedKeyName = (verifyState == KEY_203) ? "203" : "204";

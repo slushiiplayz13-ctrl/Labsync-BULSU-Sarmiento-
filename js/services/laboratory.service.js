@@ -26,7 +26,6 @@ async function fetchLaboratories() {
   const data = await res.json();
   try {
     sessionStorage.setItem('labsync_cached_labs', JSON.stringify(data));
-    sessionStorage.setItem('labsync_cached_labs_ts', String(Date.now()));
   } catch (e) { }
   return data;
 }
@@ -44,7 +43,7 @@ async function getUserAssignedRooms() {
 
     try {
       sessionStorage.setItem('labsync_cached_user_schedule', JSON.stringify(schedules));
-    } catch (e) {}
+    } catch (e) { }
 
     const assignedRooms = new Set();
     schedules.forEach(s => {
@@ -57,7 +56,7 @@ async function getUserAssignedRooms() {
 
     try {
       sessionStorage.setItem('labsync_cached_assigned_rooms', JSON.stringify(Array.from(assignedRooms)));
-    } catch (e) {}
+    } catch (e) { }
 
     return assignedRooms;
   } catch (err) {
@@ -355,7 +354,7 @@ async function updateLaboratory(roomId, roomNumber, building) {
         sessionStorage.setItem('labsync_cached_labs', JSON.stringify(cached));
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   return data;
 }
