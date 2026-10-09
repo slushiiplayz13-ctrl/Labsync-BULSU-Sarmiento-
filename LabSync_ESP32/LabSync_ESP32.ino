@@ -68,6 +68,7 @@ portMUX_TYPE authMux = portMUX_INITIALIZER_UNLOCKED;
 bool isAuthorized = false;
 unsigned long authExpiresAt = 0;
 const unsigned long AUTH_WINDOW_MS = 15000; // 15-second key retrieval countdown
+const unsigned long QR_AUTH_DISPLAY_MS = 3500; // ~3.5-second readable display for authorization result and user name
 int lastDisplayedCountdown = -1;
 
 // Periodic Heartbeat Interval
@@ -426,7 +427,7 @@ void processQrScanHttp(const char* scannedToken, const char* room) {
 
       triggerBuzzer(80, 2);
       safeLcdPrint(line1, line2);
-      lcdRevertAt = millis() + 800; // Countdown display takes over after 800ms
+      lcdRevertAt = millis() + QR_AUTH_DISPLAY_MS; // Keep "ACCESS GRANTED" and user name visible for ~3.5s before countdown display takes over
     } else {
       triggerBuzzer(250, 1);
       safeLcdPrint(line1, line2);
@@ -864,14 +865,7 @@ void loop() {
 
   // 5. Live Countdown Window Handling (when authorized and no alarm active)
   if (!alarmActive && isAuthorized) {
-    if (millis() < authExpiresAt) {
-      int secLeft = (int)((authExpiresAt - millis() + 999) / 1000);
-      if (secLeft != lastDisplayedCountdown) {
-        lastDisplayedCountdown = secLeft;
-        String cdText = "Take Key: " + String(secLeft) + "s   ";
-        safeLcdPrint("Access Granted! ", cdText);
-      }
-    } else {
+    if (millis() >= authExpiresAt) {
       // Authorization window expired without key withdrawal
       portENTER_CRITICAL(&authMux);
       isAuthorized = false;
@@ -881,6 +875,15 @@ void loop() {
       triggerBuzzer(180, 1);
       safeLcdPrint("Session Expired ", "Scan QR Again   ");
       lcdRevertAt = millis() + 1500;
+    } else if (lcdRevertAt > 0 && millis() < lcdRevertAt) {
+      // Hold authorization result screen ("ACCESS GRANTED" + user name) until display timer expires
+    } else {
+      int secLeft = (int)((authExpiresAt - millis() + 999) / 1000);
+      if (secLeft != lastDisplayedCountdown) {
+        lastDisplayedCountdown = secLeft;
+        String cdText = "Take Key: " + String(secLeft) + "s   ";
+        safeLcdPrint("Access Granted! ", cdText);
+      }
     }
   }
 
