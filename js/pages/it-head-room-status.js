@@ -377,6 +377,26 @@
     const modalContent = modal.querySelector('.modal-content');
     const openBtn = document.getElementById('btnOpenReportModal');
 
+    // Role-based UI visibility: Room Status PDF report is IT Dept Head exclusive
+    try {
+      const rawUser = JSON.parse(
+        (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('labsync_user')) ||
+        (typeof localStorage !== 'undefined' && localStorage.getItem('user')) ||
+        'null'
+      );
+      const user = (rawUser && (rawUser.user || rawUser)) || null;
+      const role = String((user && (user.role || user.Role)) || '').trim();
+      const itHeadAliases = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head'];
+      const isExclusiveDeptHead = itHeadAliases.includes(role) ||
+        (role.toLowerCase().includes('head') && !role.toLowerCase().includes('coordinator'));
+
+      if (openBtn && !isExclusiveDeptHead) {
+        openBtn.style.display = 'none';
+      }
+    } catch (e) {
+      // In case of storage parsing error, continue modal initialization
+    }
+
     const closeBtn = document.getElementById('closeReportModalBtn');
     const cancelBtn = document.getElementById('cancelReportModalBtn');
     const submitBtn = document.getElementById('btnSubmitGenerateReport');

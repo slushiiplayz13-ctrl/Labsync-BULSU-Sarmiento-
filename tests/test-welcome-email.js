@@ -194,8 +194,12 @@ async function runWelcomeEmailTests() {
 
     const facultyServiceCode = fs.readFileSync(path.join(__dirname, '../services/facultyService.js'), 'utf8');
     assert.ok(
-        facultyServiceCode.includes("sendWelcomeEmail(email, trimmedName, generatedPassword, role || 'Faculty')"),
-        'facultyService.js must pass faculty role context to sendWelcomeEmail'
+        facultyServiceCode.includes("sendWelcomeEmail(email, trimmedName, generatedPassword, requestedRole)"),
+        'facultyService.js must pass validated requestedRole to sendWelcomeEmail'
+    );
+    assert.ok(
+        facultyServiceCode.includes("if (requestedRole !== 'Faculty')"),
+        'facultyService.js must enforce that requestedRole is strictly Faculty'
     );
 
     console.log('✔ PASS: misService.js and facultyService.js callers correctly pass explicit role context.');

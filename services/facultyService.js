@@ -9,12 +9,23 @@ const { IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
 async function addFaculty(reqBody, actingRole = null) {
     const { name, email, role } = reqBody;
 
+    // Handle omitted or blank role values consistently (default to 'Faculty')
+    const rawRole = (role !== undefined && role !== null) ? String(role).trim() : '';
+    const requestedRole = rawRole === '' ? 'Faculty' : rawRole;
+
     // Boundary Protection: MIS Staff cannot be created via Faculty endpoints
-    const requestedRole = (role || 'Faculty').trim();
     if (requestedRole === 'MIS Staff' || requestedRole.toLowerCase().includes('mis')) {
         return {
             status: 403,
             error: 'Forbidden: MIS Staff accounts cannot be created via Faculty Management. Please use the dedicated MIS Staff management section.'
+        };
+    }
+
+    // Role Boundary: Initial account creation is strictly restricted to regular Faculty
+    if (requestedRole !== 'Faculty') {
+        return {
+            status: 403,
+            error: 'Forbidden: Only regular Faculty accounts can be created directly. Use role assignment for administrative promotions.'
         };
     }
 
@@ -69,14 +80,14 @@ async function addFaculty(reqBody, actingRole = null) {
     const [result] = await facultyRepository.insertFaculty({
         name: trimmedName,
         email,
-        role,
+        role: requestedRole,
         password: hashedPassword,
         qrString
     });
     console.timeEnd('[Faculty] insertFaculty');
 
     // Dispatch welcome email asynchronously so HTTP response is not blocked by SMTP networking
-    sendWelcomeEmail(email, trimmedName, generatedPassword, role || 'Faculty')
+    sendWelcomeEmail(email, trimmedName, generatedPassword, requestedRole)
         .then(emailSent => {
             if (!emailSent) {
                 console.warn(`[Faculty] Welcome email failed for ${email}; manual credential delivery required.`);

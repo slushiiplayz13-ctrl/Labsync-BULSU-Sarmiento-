@@ -159,6 +159,66 @@ async function runFacultyPermissionTests() {
         assert.strictEqual(createdUserRows[0].Status, 'ACTIVE', 'Newly created faculty status must be immediately ACTIVE');
         console.log('✔ PASS: Program Coordinator created faculty account immediately with Status = ACTIVE (no pending/approval queue).');
 
+        // ─── TEST 2B: FACULTY CREATION ROLE BOUNDARY ENFORCEMENT ─────────────────
+        console.log('\n--- 2B. Testing Faculty Creation Role Boundary Enforcement ---');
+
+        // A. Omitted role defaults safely to 'Faculty'
+        const omittedRoleEmail = `test.omitted.${Date.now()}@bulsu.edu.ph`;
+        const { req: addOmittedReq, res: addOmittedRes } = createMockReqRes({
+            session: pcSession,
+            body: {
+                name: 'Prof Omitted Role Tester',
+                email: omittedRoleEmail
+            }
+        });
+        await facultyController.addFaculty(addOmittedReq, addOmittedRes, (err) => { if (err) throw err; });
+        assert.strictEqual(addOmittedRes.statusCode, 200, 'Omitted role must default to Faculty and succeed');
+        const omittedUserId = addOmittedRes.jsonData.userId;
+        const [omittedRows] = await db.query("SELECT Role FROM users WHERE User_ID = ?", [omittedUserId]);
+        assert.strictEqual(omittedRows[0].Role, 'Faculty', 'Omitted role account must have Role = Faculty');
+        await db.query("DELETE FROM users WHERE User_ID = ?", [omittedUserId]);
+        console.log('✔ PASS: Omitted role correctly defaults to "Faculty" without error.');
+
+        // B. Blank role string defaults safely to 'Faculty'
+        const blankRoleEmail = `test.blank.${Date.now()}@bulsu.edu.ph`;
+        const { req: addBlankReq, res: addBlankRes } = createMockReqRes({
+            session: pcSession,
+            body: {
+                name: 'Prof Blank Role Tester',
+                email: blankRoleEmail,
+                role: '   '
+            }
+        });
+        await facultyController.addFaculty(addBlankReq, addBlankRes, (err) => { if (err) throw err; });
+        assert.strictEqual(addBlankRes.statusCode, 200, 'Blank role must default to Faculty and succeed');
+        const blankUserId = addBlankRes.jsonData.userId;
+        const [blankRows] = await db.query("SELECT Role FROM users WHERE User_ID = ?", [blankUserId]);
+        assert.strictEqual(blankRows[0].Role, 'Faculty', 'Blank role account must have Role = Faculty');
+        await db.query("DELETE FROM users WHERE User_ID = ?", [blankUserId]);
+        console.log('✔ PASS: Blank role string correctly defaults to "Faculty".');
+
+        // C. Rejection of privileged and non-Faculty roles without inserting any account
+        const forbiddenRoles = ['IT Dept. Head', 'IT Head', 'Program Coordinator', 'MIS Staff', 'SuperAdmin'];
+        for (const badRole of forbiddenRoles) {
+            const badRoleEmail = `bad.role.${Date.now()}.${Math.random().toString(36).slice(-4)}@bulsu.edu.ph`;
+            const { req: badReq, res: badRes } = createMockReqRes({
+                session: pcSession,
+                body: {
+                    name: `Rogue ${badRole.replace(/[^a-zA-Z]/g, '')} Tester`,
+                    email: badRoleEmail,
+                    role: badRole
+                }
+            });
+            await facultyController.addFaculty(badReq, badRes, (err) => { if (err) throw err; });
+            assert.strictEqual(badRes.statusCode, 403, `Creating user with role "${badRole}" must return 403 Forbidden`);
+            assert.ok(badRes.jsonData.error.includes('Forbidden'), `Error for "${badRole}" must contain "Forbidden"`);
+
+            // Verify no account was inserted into database
+            const [badRows] = await db.query("SELECT User_ID FROM users WHERE Email = ?", [badRoleEmail]);
+            assert.strictEqual(badRows.length, 0, `No user record must be inserted when role "${badRole}" is rejected`);
+        }
+        console.log('✔ PASS: Attempts to create IT Dept. Head, IT Head, Program Coordinator, MIS Staff, or arbitrary roles are rejected with 403 and zero DB insertions.');
+
         // ─── TEST 3: PROGRAM COORDINATOR CAN ASSIGN NORMAL ROLES (Program Coordinator) ─
         console.log('\n--- 3. Testing Program Coordinator Assigning Normal Role (PC) ---');
         const { req: editReqPC, res: editResPC } = createMockReqRes({
@@ -323,7 +383,7 @@ async function runFacultyPermissionTests() {
         // ─── TEST 10: AUDIT LOGS CORRECTLY ATTRIBUTE ACTIONS & DENIALS ─────────────
         console.log('\n--- 10. Testing Audit Logs for Program Coordinator Actions & Denials ---');
         const [recentLogs] = await db.query(
-            "SELECT Action, Actor_Role, Result, Details FROM audit_logs WHERE Actor_Role = 'Program Coordinator' ORDER BY Log_ID DESC LIMIT 10"
+            "SELECT Action, Actor_Role, Result, Details FROM audit_logs WHERE Actor_Role = 'Program Coordinator' ORDER BY Log_ID DESC LIMIT 30"
         );
         assert.ok(recentLogs.length > 0, 'Audit logs must contain events for Program Coordinator');
 

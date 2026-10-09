@@ -49,7 +49,7 @@ function createTestApp() {
 test('Room Status Activity Log Report Suite', async (t) => {
     let server;
     let baseUrl;
-    let deptHeadUser, facultyUser, misUser, ojtUser;
+    let deptHeadUser, facultyUser, misUser, ojtUser, programCoordinatorUser;
 
     await t.test('Setup test users and server', async () => {
         // Query real users from database
@@ -65,15 +65,20 @@ test('Room Status Activity Log Report Suite', async (t) => {
         const [ojtRows] = await db.query(
             "SELECT User_ID, Role, Status FROM users WHERE Role = 'OJT' AND Status = 'ACTIVE' LIMIT 1"
         );
+        const [coordRows] = await db.query(
+            "SELECT User_ID, Role, Status FROM users WHERE Role = 'Program Coordinator' AND Status = 'ACTIVE' LIMIT 1"
+        );
 
         deptHeadUser = deptHeadRows[0];
         facultyUser = facultyRows[0];
         misUser = misRows[0];
         ojtUser = ojtRows[0];
+        programCoordinatorUser = coordRows[0];
 
         assert.ok(deptHeadUser, 'A Department Head test user must exist in the database');
         assert.ok(facultyUser, 'A Faculty test user must exist in the database');
         assert.ok(misUser, 'A MIS Staff test user must exist in the database');
+        assert.ok(programCoordinatorUser, 'A Program Coordinator test user must exist in the database');
 
         const app = createTestApp();
         server = http.createServer(app);
@@ -124,14 +129,22 @@ test('Room Status Activity Log Report Suite', async (t) => {
         await t.test('MIS Staff request is rejected with 403', async () => {
             const res = await makeRequest('/api/reports/room-status', misUser);
             assert.strictEqual(res.status, 403, 'MIS Staff request must return 403');
+            assert.strictEqual(res.body.code, 'ROLE_REVOKED');
         });
 
         if (ojtUser) {
             await t.test('OJT request is rejected with 403', async () => {
                 const res = await makeRequest('/api/reports/room-status', ojtUser);
                 assert.strictEqual(res.status, 403, 'OJT request must return 403');
+                assert.strictEqual(res.body.code, 'ROLE_REVOKED');
             });
         }
+
+        await t.test('Program Coordinator request is rejected with 403', async () => {
+            const res = await makeRequest('/api/reports/room-status', programCoordinatorUser);
+            assert.strictEqual(res.status, 403, 'Program Coordinator request must return 403 Forbidden');
+            assert.strictEqual(res.body.code, 'ROLE_REVOKED');
+        });
 
         await t.test('Department Head request is authorized with 200 and PDF', async () => {
             const res = await makeRequest('/api/reports/room-status?period=today', deptHeadUser);
