@@ -7,6 +7,9 @@ node_modules/
 .env.development
 .env.local
 
+# Firmware secrets (local-only device credentials)
+LabSync_ESP32/secrets.h
+
 # Temporary/scratch scripts & test caches
 scratch/
 tests/temp-*
