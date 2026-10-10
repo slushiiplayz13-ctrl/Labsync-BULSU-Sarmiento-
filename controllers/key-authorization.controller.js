@@ -54,7 +54,22 @@ async function getPendingRequestsForDeptHead(req, res, next) {
     try {
         const userId = req.session.userId;
         const userRole = req.session.userRole;
-        const result = await keyAuthService.getPendingRequestsForDeptHead(userId, userRole);
+        const filter = req.query.status || req.query.filter || 'pending';
+        const result = await keyAuthService.getPendingRequestsForDeptHead(userId, userRole, filter);
+        if (result.error) {
+            return res.status(result.status).json({ error: result.error });
+        }
+        return res.status(result.status).json(result.data);
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function getApprovedRequestsForDeptHead(req, res, next) {
+    try {
+        const userId = req.session.userId;
+        const userRole = req.session.userRole;
+        const result = await keyAuthService.getApprovedRequestsForDeptHead(userId, userRole);
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
@@ -136,6 +151,7 @@ module.exports = {
     requestAdditionalKey,
     getFacultyRequestStatus,
     getPendingRequestsForDeptHead,
+    getApprovedRequestsForDeptHead,
     approveRequest,
     rejectRequest,
     cancelRequest,

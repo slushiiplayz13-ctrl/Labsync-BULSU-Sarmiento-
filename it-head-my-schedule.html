@@ -369,6 +369,25 @@
             </div>
             <span class="key-requests-count-pill" id="keyRequestsDropdownCount">0 Pending</span>
           </div>
+          <div class="key-requests-filter-bar" id="keyRequestsFilterBar">
+            <div class="key-requests-filter-group" id="keyRequestsFilterGroup" role="tablist" aria-label="Key Request Filters">
+              <button type="button" class="key-filter-btn active" data-filter="pending" id="keyFilterPendingBtn" role="tab" aria-selected="true" aria-label="Pending key requests">
+                <i data-lucide="clock" class="filter-tab-icon"></i>
+                <span>Pending</span>
+                <span class="key-filter-count" id="keyFilterPendingCount" style="display: none;">0</span>
+              </button>
+              <button type="button" class="key-filter-btn" data-filter="approved" id="keyFilterApprovedBtn" role="tab" aria-selected="false" aria-label="Approved key requests">
+                <i data-lucide="check-circle-2" class="filter-tab-icon"></i>
+                <span>Approved</span>
+                <span class="key-filter-count" id="keyFilterApprovedCount" style="display: none;">0</span>
+              </button>
+              <button type="button" class="key-filter-btn" data-filter="all" id="keyFilterAllBtn" role="tab" aria-selected="false" aria-label="All key requests">
+                <i data-lucide="layers" class="filter-tab-icon"></i>
+                <span>All</span>
+                <span class="key-filter-count" id="keyFilterAllCount" style="display: none;">0</span>
+              </button>
+            </div>
+          </div>
           <div class="key-requests-dropdown-list" id="keyRequestsDropdownList">
             <div class="key-requests-empty-state">
               <i data-lucide="check-check"></i>

@@ -354,8 +354,9 @@ async function getFacultyRequestStatus(userId) {
 
 /**
  * Get all pending key authorization requests for the Department Head dashboard.
+ * Supports optional filtering by status ('pending', 'approved', 'all').
  */
-async function getPendingRequestsForDeptHead(userId, userRole) {
+async function getPendingRequestsForDeptHead(userId, userRole, filter = 'pending') {
     if (!userId) {
         return { status: 401, error: 'Authentication required' };
     }
@@ -370,12 +371,36 @@ async function getPendingRequestsForDeptHead(userId, userRole) {
         console.error('[KeyAuthService] Expiration cleanup failed:', e.message);
     }
 
+    const cleanFilter = String(filter || 'pending').trim().toLowerCase();
+    if (cleanFilter === 'approved') {
+        const [approved] = await keyAuthRepo.findAllApprovedForDeptHead();
+        return {
+            status: 200,
+            data: approved
+        };
+    }
+
+    if (cleanFilter === 'all') {
+        const [allReqs] = await keyAuthRepo.findAllForDeptHead();
+        return {
+            status: 200,
+            data: allReqs
+        };
+    }
+
     const [pending] = await keyAuthRepo.findAllPendingForDeptHead();
 
     return {
         status: 200,
         data: pending
     };
+}
+
+/**
+ * Get approved key authorization requests for the Department Head dashboard.
+ */
+async function getApprovedRequestsForDeptHead(userId, userRole) {
+    return getPendingRequestsForDeptHead(userId, userRole, 'approved');
 }
 
 /**
@@ -724,6 +749,7 @@ module.exports = {
     requestAdditionalKey,
     getFacultyRequestStatus,
     getPendingRequestsForDeptHead,
+    getApprovedRequestsForDeptHead,
     approveRequest,
     rejectRequest,
     cancelRequest,

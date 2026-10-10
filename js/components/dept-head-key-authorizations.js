@@ -8,7 +8,9 @@
 
 (function (global) {
   let _isPollingInitialized = false;
+  let _currentFilter = 'pending';
   let _currentPendingRequests = [];
+  let _currentApprovedRequests = [];
 
   function escapeText(str) {
     if (str === null || str === undefined) return '';
@@ -32,6 +34,23 @@
     } catch (e) {
       return timeStr;
     }
+  }
+
+  /**
+   * Sets the active key request filter ('pending', 'approved', 'all').
+   */
+  function setKeyRequestsFilter(filter) {
+    _currentFilter = (filter || 'pending').toLowerCase();
+    const group = document.getElementById('keyRequestsFilterGroup');
+    if (group) {
+      const btns = group.querySelectorAll('.key-filter-btn');
+      btns.forEach(btn => {
+        const isMatch = (btn.getAttribute('data-filter') || '').toLowerCase() === _currentFilter;
+        btn.classList.toggle('active', isMatch);
+        btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+      });
+    }
+    renderDropdownContent();
   }
 
   /**
@@ -153,6 +172,25 @@
           </div>
           <span class="key-requests-count-pill" id="keyRequestsDropdownCount">0 Pending</span>
         </div>
+        <div class="key-requests-filter-bar" id="keyRequestsFilterBar">
+          <div class="key-requests-filter-group" id="keyRequestsFilterGroup" role="tablist" aria-label="Key Request Filters">
+            <button type="button" class="key-filter-btn active" data-filter="pending" id="keyFilterPendingBtn" role="tab" aria-selected="true" aria-label="Pending key requests">
+              <i data-lucide="clock" class="filter-tab-icon"></i>
+              <span>Pending</span>
+              <span class="key-filter-count" id="keyFilterPendingCount" style="display: none;">0</span>
+            </button>
+            <button type="button" class="key-filter-btn" data-filter="approved" id="keyFilterApprovedBtn" role="tab" aria-selected="false" aria-label="Approved key requests">
+              <i data-lucide="check-circle-2" class="filter-tab-icon"></i>
+              <span>Approved</span>
+              <span class="key-filter-count" id="keyFilterApprovedCount" style="display: none;">0</span>
+            </button>
+            <button type="button" class="key-filter-btn" data-filter="all" id="keyFilterAllBtn" role="tab" aria-selected="false" aria-label="All key requests">
+              <i data-lucide="layers" class="filter-tab-icon"></i>
+              <span>All</span>
+              <span class="key-filter-count" id="keyFilterAllCount" style="display: none;">0</span>
+            </button>
+          </div>
+        </div>
         <div class="key-requests-dropdown-list" id="keyRequestsDropdownList">
           <div class="key-requests-empty-state">
             <i data-lucide="check-check"></i>
@@ -161,6 +199,53 @@
         </div>
       `;
       headerRight.appendChild(menu);
+    } else {
+      // Ensure filter bar exists inside existing static menu
+      if (!menu.querySelector('#keyRequestsFilterBar') && !menu.querySelector('.key-requests-filter-bar')) {
+        const filterBar = document.createElement('div');
+        filterBar.className = 'key-requests-filter-bar';
+        filterBar.id = 'keyRequestsFilterBar';
+        filterBar.innerHTML = `
+          <div class="key-requests-filter-group" id="keyRequestsFilterGroup" role="tablist" aria-label="Key Request Filters">
+            <button type="button" class="key-filter-btn active" data-filter="pending" id="keyFilterPendingBtn" role="tab" aria-selected="true" aria-label="Pending key requests">
+              <i data-lucide="clock" class="filter-tab-icon"></i>
+              <span>Pending</span>
+              <span class="key-filter-count" id="keyFilterPendingCount" style="display: none;">0</span>
+            </button>
+            <button type="button" class="key-filter-btn" data-filter="approved" id="keyFilterApprovedBtn" role="tab" aria-selected="false" aria-label="Approved key requests">
+              <i data-lucide="check-circle-2" class="filter-tab-icon"></i>
+              <span>Approved</span>
+              <span class="key-filter-count" id="keyFilterApprovedCount" style="display: none;">0</span>
+            </button>
+            <button type="button" class="key-filter-btn" data-filter="all" id="keyFilterAllBtn" role="tab" aria-selected="false" aria-label="All key requests">
+              <i data-lucide="layers" class="filter-tab-icon"></i>
+              <span>All</span>
+              <span class="key-filter-count" id="keyFilterAllCount" style="display: none;">0</span>
+            </button>
+          </div>
+        `;
+        const listEl = menu.querySelector('#keyRequestsDropdownList');
+        if (listEl) {
+          menu.insertBefore(filterBar, listEl);
+        } else {
+          menu.appendChild(filterBar);
+        }
+      }
+    }
+
+    // Attach click listeners to filter buttons
+    const filterGroup = menu.querySelector('#keyRequestsFilterGroup');
+    if (filterGroup && !filterGroup.dataset.hasFilterListener) {
+      filterGroup.dataset.hasFilterListener = 'true';
+      filterGroup.addEventListener('click', (e) => {
+        const filterBtn = e.target.closest('.key-filter-btn');
+        if (!filterBtn) return;
+        e.stopPropagation();
+        const targetFilter = filterBtn.getAttribute('data-filter');
+        if (targetFilter) {
+          setKeyRequestsFilter(targetFilter);
+        }
+      });
     }
 
     return { btn, menu };
@@ -197,13 +282,258 @@
       if (window.lucide && typeof window.lucide.createIcons === 'function') {
         window.lucide.createIcons({ root: menu });
       }
+
+      // Immediately refresh records when dropdown opens
+      if (typeof loadPendingKeyAuthorizations === 'function') {
+        loadPendingKeyAuthorizations().catch(() => {});
+      }
     } else {
       menu.style.display = 'none';
     }
   }
 
   /**
-   * Fetches and renders pending multi-key authorization requests for Dept Head.
+   * Attaches approve and decline handlers to pending cards in the list.
+   */
+  function attachPendingCardHandlers(list) {
+    if (!list) return;
+
+    // Attach Approve Handlers
+    list.querySelectorAll('.btn-pending-approve').forEach(btnApprove => {
+      btnApprove.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const reqId = btnApprove.getAttribute('data-id');
+        btnApprove.disabled = true;
+        btnApprove.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width:13px;height:13px;"></i> Approving...';
+        try {
+          const resp = await fetch(`/api/keys/requests/${reqId}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({})
+          });
+          const resJson = await resp.json().catch(() => ({}));
+          if (!resp.ok) throw new Error(resJson.error || 'Failed to approve');
+
+          if (typeof window.showToast === 'function') {
+            window.showToast('Reservation approved successfully!', 'success');
+          }
+          await loadPendingKeyAuthorizations();
+        } catch (err) {
+          if (typeof window.showToast === 'function') {
+            window.showToast(err.message || 'Approval failed', 'error');
+          } else {
+            alert(err.message || 'Approval failed');
+          }
+          btnApprove.disabled = false;
+          btnApprove.innerHTML = '<i data-lucide="check" style="width:13px;height:13px;"></i> Approve';
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons({ root: btnApprove });
+          }
+        }
+      });
+    });
+
+    // Attach Decline Handlers
+    list.querySelectorAll('.btn-pending-decline').forEach(btnDecline => {
+      btnDecline.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const reqId = Number(btnDecline.getAttribute('data-id'));
+        const req = _currentPendingRequests.find(r => Number(r.Request_ID) === reqId) || {
+          Request_ID: reqId,
+          Requested_Room_Number: btnDecline.getAttribute('data-room') || 'Unknown',
+          Requester_Name: btnDecline.getAttribute('data-requester') || 'Faculty',
+          Requester_Role: btnDecline.getAttribute('data-role') || 'Faculty'
+        };
+        toggleKeyRequestsDropdown(false);
+        openDeclineKeyRequestModal(req);
+      });
+    });
+  }
+
+  /**
+   * Renders the request list according to the active filter ('pending', 'approved', 'all').
+   */
+  function renderDropdownContent() {
+    const list = document.getElementById('keyRequestsDropdownList');
+    if (!list) return;
+
+    const countPill = document.getElementById('keyRequestsDropdownCount');
+    const pendingCount = _currentPendingRequests.length;
+    const approvedCount = _currentApprovedRequests.length;
+    const totalCount = pendingCount + approvedCount;
+
+    if (countPill) {
+      let targetText = `${pendingCount} Pending`;
+      if (_currentFilter === 'approved') {
+        targetText = `${approvedCount} Approved`;
+      } else if (_currentFilter === 'all') {
+        targetText = `${totalCount} Total`;
+      }
+      if (countPill.textContent !== targetText) {
+        countPill.textContent = targetText;
+      }
+    }
+
+    let itemsToRender = [];
+    if (_currentFilter === 'approved') {
+      itemsToRender = _currentApprovedRequests;
+    } else if (_currentFilter === 'all') {
+      itemsToRender = [..._currentPendingRequests, ..._currentApprovedRequests];
+    } else {
+      itemsToRender = _currentPendingRequests;
+    }
+
+    const currentSignature = `${_currentFilter}:` + itemsToRender.map(r => `${r.Request_ID}:${r.Status}:${r.Updated_At || ''}:${r.Approved_At || ''}`).join('|');
+    if (list.dataset.renderedSignature === currentSignature) {
+      return;
+    }
+    list.dataset.renderedSignature = currentSignature;
+
+    if (itemsToRender.length === 0) {
+      if (_currentFilter === 'approved') {
+        list.innerHTML = `
+          <div class="key-requests-empty-state">
+            <i data-lucide="badge-check" style="width: 26px; height: 26px; color: #10B981; margin-bottom: 6px;"></i>
+            <p style="font-weight: 500; font-size: 13px;">No approved key requests</p>
+            <span style="font-size: 11.5px; color: var(--text-muted, #94A3B8);">No active approved key authorizations at this time.</span>
+          </div>
+        `;
+      } else if (_currentFilter === 'all') {
+        list.innerHTML = `
+          <div class="key-requests-empty-state">
+            <i data-lucide="layers" style="width: 26px; height: 26px; color: #94A3B8; margin-bottom: 6px;"></i>
+            <p style="font-weight: 500; font-size: 13px;">No key authorization requests</p>
+            <span style="font-size: 11.5px; color: var(--text-muted, #94A3B8);">No key requests found.</span>
+          </div>
+        `;
+      } else {
+        list.innerHTML = `
+          <div class="key-requests-empty-state">
+            <i data-lucide="check-check" style="width: 26px; height: 26px; color: #10B981; margin-bottom: 6px;"></i>
+            <p style="font-weight: 500; font-size: 13px;">No pending key requests</p>
+            <span style="font-size: 11.5px; color: var(--text-muted, #94A3B8);">All faculty custody requests are resolved.</span>
+          </div>
+        `;
+      }
+
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ root: list });
+      }
+      return;
+    }
+
+    list.innerHTML = itemsToRender.map(req => {
+      const isApproved = String(req.Status).toUpperCase() === 'APPROVED';
+      const initials = req.Requester_Name
+        ? req.Requester_Name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+        : 'U';
+      const photoHtml = req.Requester_Profile_Photo
+        ? `<img src="${escapeText(req.Requester_Profile_Photo)}" alt="${escapeText(req.Requester_Name)}">`
+        : initials;
+
+      const timeStr = req.Requested_At ? new Date(req.Requested_At).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
+      const heldRooms = req.Currently_Held_Rooms ? `Holding RM ${escapeText(req.Currently_Held_Rooms)}` : 'No other key held';
+
+      let resBadgeHtml = '';
+      if (req.Reservation_Date && req.Start_Time && req.End_Time) {
+        const resDateParts = String(req.Reservation_Date).split('T')[0].split('-');
+        const dObj = new Date(parseInt(resDateParts[0], 10), parseInt(resDateParts[1], 10) - 1, parseInt(resDateParts[2], 10));
+        const dateFriendly = dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const sTime = formatTime12h(req.Start_Time);
+        const eTime = formatTime12h(req.End_Time);
+        resBadgeHtml = `
+          <div class="pending-reservation-badge" style="margin-top: 4px;">
+            <i data-lucide="calendar" style="width:12px;height:12px;"></i>
+            <span>${escapeText(dateFriendly)} • ${escapeText(sTime)} – ${escapeText(eTime)}</span>
+          </div>
+        `;
+      }
+
+      if (isApproved) {
+        let approverAttribution = '';
+        let approvedDateStr = '';
+        if (req.Approved_At) {
+          try {
+            const appDate = new Date(req.Approved_At);
+            approvedDateStr = appDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' +
+              appDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+          } catch (e) {}
+        }
+
+        if (req.Approver_Name) {
+          approverAttribution = `Approved by ${escapeText(req.Approver_Name)}${approvedDateStr ? ` on ${escapeText(approvedDateStr)}` : ''}`;
+        } else if (approvedDateStr) {
+          approverAttribution = `Approved on ${escapeText(approvedDateStr)}`;
+        } else {
+          approverAttribution = 'Authorized by Department Head';
+        }
+
+        return `
+          <div class="pending-req-card approved-req-card" data-request-id="${req.Request_ID}">
+            <div class="pending-req-top">
+              <div class="pending-req-avatar" style="background: linear-gradient(135deg, #10B981, #059669);">${photoHtml}</div>
+              <div class="pending-req-user-info">
+                <h4 class="pending-req-name">${escapeText(req.Requester_Name)}</h4>
+                <p class="pending-req-role">${escapeText(req.Requester_Role || 'Faculty')}</p>
+              </div>
+              <span class="status-chip approved">
+                <i data-lucide="check-circle" style="width:11px;height:11px;"></i> Approved
+              </span>
+            </div>
+            ${resBadgeHtml}
+            <div class="pending-req-rooms">
+              <span class="pending-room-tag held">${escapeText(heldRooms)}</span>
+              <span>➔</span>
+              <span class="pending-room-tag requested" style="background:#ECFDF5; border-color:#A7F3D0; color:#065F46;">Authorized RM ${escapeText(req.Requested_Room_Number)}</span>
+            </div>
+            <div class="pending-req-reason">"${escapeText(req.Reason)}"</div>
+            <div class="approved-attribution-row">
+              <i data-lucide="shield-check" style="width:13px;height:13px;color:#10B981;flex-shrink:0;"></i>
+              <span>${approverAttribution}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="pending-req-card" data-request-id="${req.Request_ID}">
+          <div class="pending-req-top">
+            <div class="pending-req-avatar">${photoHtml}</div>
+            <div class="pending-req-user-info">
+              <h4 class="pending-req-name">${escapeText(req.Requester_Name)}</h4>
+              <p class="pending-req-role">${escapeText(req.Requester_Role || 'Faculty')}</p>
+            </div>
+            <span class="pending-req-time">${timeStr}</span>
+          </div>
+          ${resBadgeHtml}
+          <div class="pending-req-rooms">
+            <span class="pending-room-tag held">${escapeText(heldRooms)}</span>
+            <span>➔</span>
+            <span class="pending-room-tag requested">Requesting RM ${escapeText(req.Requested_Room_Number)}</span>
+          </div>
+          <div class="pending-req-reason">"${escapeText(req.Reason)}"</div>
+          <div class="pending-req-actions">
+            <button type="button" class="btn-pending-approve" data-id="${req.Request_ID}" data-room="${escapeText(req.Requested_Room_Number)}">
+              <i data-lucide="check" style="width:13px;height:13px;"></i> Approve
+            </button>
+            <button type="button" class="btn-pending-decline" data-id="${req.Request_ID}" data-room="${escapeText(req.Requested_Room_Number)}" data-requester="${escapeText(req.Requester_Name)}" data-role="${escapeText(req.Requester_Role || 'Faculty')}">
+              <i data-lucide="x" style="width:13px;height:13px;"></i> Decline
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons({ root: list });
+    }
+
+    attachPendingCardHandlers(list);
+  }
+
+  /**
+   * Fetches and renders pending and approved multi-key authorization requests for Dept Head.
    */
   async function loadPendingKeyAuthorizations() {
     if (!ensureHeaderElementsMounted()) return;
@@ -211,14 +541,29 @@
     const btn = document.getElementById('btnHeaderKeyRequests');
     const badge = document.getElementById('headerKeyRequestsBadge');
     const countPill = document.getElementById('keyRequestsDropdownCount');
-    const list = document.getElementById('keyRequestsDropdownList');
+    const pendingFilterCount = document.getElementById('keyFilterPendingCount');
+    const approvedFilterCount = document.getElementById('keyFilterApprovedCount');
+    const allFilterCount = document.getElementById('keyFilterAllCount');
 
     try {
-      const response = await fetch('/api/keys/pending-requests', { credentials: 'include' });
-      if (!response.ok) return;
-      const requests = await response.json();
-      _currentPendingRequests = Array.isArray(requests) ? requests : [];
+      const [pendingRes, approvedRes] = await Promise.all([
+        fetch('/api/keys/pending-requests', { credentials: 'include' }).catch(() => null),
+        fetch('/api/keys/approved-requests', { credentials: 'include' }).catch(() => null)
+      ]);
+
+      if (pendingRes && pendingRes.ok) {
+        const pRequests = await pendingRes.json().catch(() => []);
+        _currentPendingRequests = Array.isArray(pRequests) ? pRequests : [];
+      }
+
+      if (approvedRes && approvedRes.ok) {
+        const aRequests = await approvedRes.json().catch(() => []);
+        _currentApprovedRequests = Array.isArray(aRequests) ? aRequests : [];
+      }
+
       const count = _currentPendingRequests.length;
+      const approvedCount = _currentApprovedRequests.length;
+      const totalCount = count + approvedCount;
 
       // Persist count to sessionStorage cache so subsequent navigations/refreshes render instantly without flashing
       try {
@@ -246,149 +591,38 @@
         }
       }
 
-      // 2. Update Dropdown Header Pill without redundant mutation
+      // 2. Update Filter Count Badges
+      if (pendingFilterCount) {
+        pendingFilterCount.textContent = String(count);
+        pendingFilterCount.style.display = count > 0 ? 'inline-flex' : 'none';
+      }
+      if (approvedFilterCount) {
+        approvedFilterCount.textContent = String(approvedCount);
+        approvedFilterCount.style.display = approvedCount > 0 ? 'inline-flex' : 'none';
+      }
+      if (allFilterCount) {
+        allFilterCount.textContent = String(totalCount);
+        allFilterCount.style.display = totalCount > 0 ? 'inline-flex' : 'none';
+      }
+
+      // 3. Update Dropdown Header Pill based on active filter
       if (countPill) {
-        const targetCountPill = `${count} Pending`;
+        let targetCountPill = `${count} Pending`;
+        if (_currentFilter === 'approved') {
+          targetCountPill = `${approvedCount} Approved`;
+        } else if (_currentFilter === 'all') {
+          targetCountPill = `${totalCount} Total`;
+        }
         if (countPill.textContent !== targetCountPill) {
           countPill.textContent = targetCountPill;
         }
       }
 
-      // 3. Render Dropdown Content only when data actually changes
-      const currentSignature = _currentPendingRequests.map(r => `${r.Request_ID}:${r.Status}:${r.Updated_At || ''}`).join('|');
-      if (list && list.dataset.renderedSignature === currentSignature) {
-        return; // Content is identical; avoid destroying DOM and resetting scroll or animations
-      }
-      if (list) {
-        list.dataset.renderedSignature = currentSignature;
-        if (count === 0) {
-          list.innerHTML = `
-            <div class="key-requests-empty-state">
-              <i data-lucide="check-check" style="width: 26px; height: 26px; color: #10B981; margin-bottom: 6px;"></i>
-              <p style="font-weight: 500; font-size: 13px;">No pending key requests</p>
-              <span style="font-size: 11.5px; color: var(--text-muted, #94A3B8);">All faculty custody requests are resolved.</span>
-            </div>
-          `;
-          if (window.lucide && typeof window.lucide.createIcons === 'function') {
-            window.lucide.createIcons({ root: list });
-          }
-          return;
-        }
-
-        list.innerHTML = requests.map(req => {
-          const initials = req.Requester_Name
-            ? req.Requester_Name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-            : 'U';
-          const photoHtml = req.Requester_Profile_Photo
-            ? `<img src="${escapeText(req.Requester_Profile_Photo)}" alt="${escapeText(req.Requester_Name)}">`
-            : initials;
-
-          const timeStr = req.Requested_At ? new Date(req.Requested_At).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
-          const heldRooms = req.Currently_Held_Rooms ? `Holding RM ${escapeText(req.Currently_Held_Rooms)}` : 'No other key held';
-
-          let resBadgeHtml = '';
-          if (req.Reservation_Date && req.Start_Time && req.End_Time) {
-            const resDateParts = String(req.Reservation_Date).split('T')[0].split('-');
-            const dObj = new Date(parseInt(resDateParts[0], 10), parseInt(resDateParts[1], 10) - 1, parseInt(resDateParts[2], 10));
-            const dateFriendly = dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-            const sTime = formatTime12h(req.Start_Time);
-            const eTime = formatTime12h(req.End_Time);
-            resBadgeHtml = `
-              <div class="pending-reservation-badge" style="margin-top: 4px;">
-                <i data-lucide="calendar" style="width:12px;height:12px;"></i>
-                <span>${escapeText(dateFriendly)} • ${escapeText(sTime)} – ${escapeText(eTime)}</span>
-              </div>
-            `;
-          }
-
-          return `
-            <div class="pending-req-card" data-request-id="${req.Request_ID}">
-              <div class="pending-req-top">
-                <div class="pending-req-avatar">${photoHtml}</div>
-                <div class="pending-req-user-info">
-                  <h4 class="pending-req-name">${escapeText(req.Requester_Name)}</h4>
-                  <p class="pending-req-role">${escapeText(req.Requester_Role || 'Faculty')}</p>
-                </div>
-                <span class="pending-req-time">${timeStr}</span>
-              </div>
-              ${resBadgeHtml}
-              <div class="pending-req-rooms">
-                <span class="pending-room-tag held">${escapeText(heldRooms)}</span>
-                <span>➔</span>
-                <span class="pending-room-tag requested">Requesting RM ${escapeText(req.Requested_Room_Number)}</span>
-              </div>
-              <div class="pending-req-reason">"${escapeText(req.Reason)}"</div>
-              <div class="pending-req-actions">
-                <button type="button" class="btn-pending-approve" data-id="${req.Request_ID}" data-room="${escapeText(req.Requested_Room_Number)}">
-                  <i data-lucide="check" style="width:13px;height:13px;"></i> Approve
-                </button>
-                <button type="button" class="btn-pending-decline" data-id="${req.Request_ID}" data-room="${escapeText(req.Requested_Room_Number)}" data-requester="${escapeText(req.Requester_Name)}" data-role="${escapeText(req.Requester_Role || 'Faculty')}">
-                  <i data-lucide="x" style="width:13px;height:13px;"></i> Decline
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        if (window.lucide && typeof window.lucide.createIcons === 'function') {
-          window.lucide.createIcons({ root: list });
-        }
-
-        // Attach Approve Handlers
-        list.querySelectorAll('.btn-pending-approve').forEach(btnApprove => {
-          btnApprove.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const reqId = btnApprove.getAttribute('data-id');
-            btnApprove.disabled = true;
-            btnApprove.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width:13px;height:13px;"></i> Approving...';
-            try {
-              const resp = await fetch(`/api/keys/requests/${reqId}/approve`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({})
-              });
-              const resJson = await resp.json().catch(() => ({}));
-              if (!resp.ok) throw new Error(resJson.error || 'Failed to approve');
-
-              if (typeof window.showToast === 'function') {
-                window.showToast('Reservation approved successfully!', 'success');
-              }
-              await loadPendingKeyAuthorizations();
-            } catch (err) {
-              if (typeof window.showToast === 'function') {
-                window.showToast(err.message || 'Approval failed', 'error');
-              } else {
-                alert(err.message || 'Approval failed');
-              }
-              btnApprove.disabled = false;
-              btnApprove.innerHTML = '<i data-lucide="check" style="width:13px;height:13px;"></i> Approve';
-              if (window.lucide && typeof window.lucide.createIcons === 'function') {
-                window.lucide.createIcons({ root: btnApprove });
-              }
-            }
-          });
-        });
-
-        // Attach Decline Handlers
-        list.querySelectorAll('.btn-pending-decline').forEach(btnDecline => {
-          btnDecline.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const reqId = Number(btnDecline.getAttribute('data-id'));
-            const req = _currentPendingRequests.find(r => Number(r.Request_ID) === reqId) || {
-              Request_ID: reqId,
-              Requested_Room_Number: btnDecline.getAttribute('data-room') || 'Unknown',
-              Requester_Name: btnDecline.getAttribute('data-requester') || 'Faculty',
-              Requester_Role: btnDecline.getAttribute('data-role') || 'Faculty'
-            };
-            toggleKeyRequestsDropdown(false);
-            openDeclineKeyRequestModal(req);
-          });
-        });
-      }
+      // 4. Render Dropdown Content
+      renderDropdownContent();
 
     } catch (e) {
-      console.error('[DeptHeadKeyAuth] Error loading pending key authorizations:', e);
+      console.error('[DeptHeadKeyAuth] Error loading key authorizations:', e);
     }
   }
 
@@ -634,6 +868,8 @@
 
   // Expose globally
   global.loadPendingKeyAuthorizations = loadPendingKeyAuthorizations;
+  global.loadKeyAuthorizations = loadPendingKeyAuthorizations;
+  global.setKeyRequestsFilter = setKeyRequestsFilter;
   global.toggleKeyRequestsDropdown = toggleKeyRequestsDropdown;
   global.initDeptHeadKeyAuthorizations = initDeptHeadKeyAuthorizations;
 

@@ -167,6 +167,50 @@ async function findAllPendingForDeptHead(executor = db) {
     );
 }
 
+async function findAllApprovedForDeptHead(executor = db) {
+    return executor.query(
+        `SELECT r.Request_ID, r.User_ID, r.Room_ID, r.Reservation_Date, r.Start_Time, r.End_Time,
+                r.Duration_Minutes, r.Reason, r.Status, r.Requested_At,
+                r.Approved_By, r.Approved_At, r.Expires_At,
+                u.Name AS Requester_Name, u.Email AS Requester_Email, u.Role AS Requester_Role,
+                u.Profile_Photo AS Requester_Profile_Photo,
+                lab.Room_Number AS Requested_Room_Number, lab.Building AS Requested_Building,
+                approver.Name AS Approver_Name, approver.Email AS Approver_Email,
+                (SELECT GROUP_CONCAT(hl.Room_Number SEPARATOR ', ')
+                 FROM laboratories hl
+                 WHERE hl.Current_User_ID = r.User_ID AND hl.Key_Status = 'Absent') AS Currently_Held_Rooms
+         FROM key_authorization_requests r
+         JOIN users u ON r.User_ID = u.User_ID
+         JOIN laboratories lab ON r.Room_ID = lab.Room_ID
+         LEFT JOIN users approver ON r.Approved_By = approver.User_ID
+         WHERE r.Status = 'APPROVED'
+         ORDER BY r.Approved_At DESC, r.Requested_At DESC`
+    );
+}
+
+async function findAllForDeptHead(executor = db) {
+    return executor.query(
+        `SELECT r.Request_ID, r.User_ID, r.Room_ID, r.Reservation_Date, r.Start_Time, r.End_Time,
+                r.Duration_Minutes, r.Reason, r.Status, r.Requested_At,
+                r.Approved_By, r.Approved_At, r.Expires_At,
+                u.Name AS Requester_Name, u.Email AS Requester_Email, u.Role AS Requester_Role,
+                u.Profile_Photo AS Requester_Profile_Photo,
+                lab.Room_Number AS Requested_Room_Number, lab.Building AS Requested_Building,
+                approver.Name AS Approver_Name, approver.Email AS Approver_Email,
+                (SELECT GROUP_CONCAT(hl.Room_Number SEPARATOR ', ')
+                 FROM laboratories hl
+                 WHERE hl.Current_User_ID = r.User_ID AND hl.Key_Status = 'Absent') AS Currently_Held_Rooms
+         FROM key_authorization_requests r
+         JOIN users u ON r.User_ID = u.User_ID
+         JOIN laboratories lab ON r.Room_ID = lab.Room_ID
+         LEFT JOIN users approver ON r.Approved_By = approver.User_ID
+         WHERE r.Status IN ('PENDING', 'APPROVED')
+         ORDER BY 
+           CASE r.Status WHEN 'PENDING' THEN 1 WHEN 'APPROVED' THEN 2 ELSE 3 END ASC,
+           COALESCE(r.Approved_At, r.Requested_At) DESC`
+    );
+}
+
 async function findById(requestId, executor = db) {
     return executor.query(
         `SELECT r.*, lab.Room_Number, lab.Building, u.Name AS Requester_Name, u.Email AS Requester_Email
@@ -263,6 +307,8 @@ module.exports = {
     findAnyActiveAuthorizationByUserId,
     findLatestRequestForFaculty,
     findAllPendingForDeptHead,
+    findAllApprovedForDeptHead,
+    findAllForDeptHead,
     findById,
     findByIdForUpdate,
     approveRequest,

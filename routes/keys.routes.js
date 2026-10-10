@@ -28,6 +28,12 @@ router.get('/my-request-status', requireAuth, requireRole(KEY_TRANSFER_ROLES), k
 // GET /api/keys/pending-requests — IT Dept Head views all pending key requests (Super Admin only)
 router.get('/pending-requests', requireAuth, requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES), keyAuthController.getPendingRequestsForDeptHead);
 
+// GET /api/keys/approved-requests — IT Dept Head views all approved key requests (Super Admin only)
+router.get('/approved-requests', requireAuth, requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES), keyAuthController.getApprovedRequestsForDeptHead);
+
+// GET /api/keys/requests — IT Dept Head views filtered key requests (Super Admin only)
+router.get('/requests', requireAuth, requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES), keyAuthController.getPendingRequestsForDeptHead);
+
 // POST /api/keys/requests/:requestId/approve — IT Dept Head approves multi-key request (Super Admin only)
 router.post('/requests/:requestId/approve', requireAuth, requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES), keyAuthController.approveRequest);
 
