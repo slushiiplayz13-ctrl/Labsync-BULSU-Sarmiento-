@@ -29,6 +29,14 @@
     return itHeadAliases.includes(cleanRole) || (cleanRole.toLowerCase().includes('head') && !cleanRole.toLowerCase().includes('coordinator'));
   }
 
+  function isKeyRequesterRole(role) {
+    if (!role) return true;
+    if (isApproverOnlyRole(role)) return false;
+    const cleanRole = String(role).trim().toLowerCase();
+    const unrelatedRoles = ['mis staff', 'mis', 'ojt', 'student', 'guest', 'admin'];
+    return !unrelatedRoles.includes(cleanRole);
+  }
+
   function escapeText(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -1434,7 +1442,7 @@
     const role = getCurrentUserRole();
     const btns = document.querySelectorAll('.btn-reserve-key-header, #btnHeaderReserveKey');
 
-    if (isApproverOnlyRole(role)) {
+    if (isApproverOnlyRole(role) || !isKeyRequesterRole(role)) {
       btns.forEach(btn => {
         btn.style.display = 'none';
       });
@@ -1468,7 +1476,7 @@
     _keyRequestsInitialized = true;
 
     const role = getCurrentUserRole();
-    if (isApproverOnlyRole(role)) {
+    if (isApproverOnlyRole(role) || !isKeyRequesterRole(role)) {
       initHeaderReserveButton();
       const banner = document.getElementById('facultyKeyStatusBanner');
       if (banner) {
@@ -1493,7 +1501,8 @@
     generateReservationDateOptions,
     generateTimeOptions,
     getCurrentUserRole,
-    isApproverOnlyRole
+    isApproverOnlyRole,
+    isKeyRequesterRole
   };
 
   if (document.readyState === 'loading') {
