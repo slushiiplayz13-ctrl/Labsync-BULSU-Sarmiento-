@@ -2,9 +2,17 @@
 
 const db = require('../database/connection');
 
-async function findAllLaboratoriesWithSchedule(today, nowTime, executor = db) {
-    return executor.query(
-        `SELECT r.Room_ID, r.Room_Number, r.Building, r.Current_Status AS DB_Status, r.Key_Status, r.Current_User_ID, r.Last_Seen,
+async function findAllLaboratoriesWithSchedule(today, nowTime, ay = null, sem = null, executor = db) {
+    if (ay && (typeof ay.query === 'function' || typeof ay.getConnection === 'function')) {
+        executor = ay;
+        ay = null;
+        sem = null;
+    } else if (sem && (typeof sem.query === 'function' || typeof sem.getConnection === 'function')) {
+        executor = sem;
+        sem = null;
+    }
+    const hasTerm = !!(ay && sem);
+    const sql = `SELECT r.Room_ID, r.Room_Number, r.Building, r.Current_Status AS DB_Status, r.Key_Status, r.Current_User_ID, r.Last_Seen,
                 s.Section, s.User_ID AS Scheduled_User_ID, s.Start_Time, s.End_Time,
                 COALESCE(
                     CASE 
@@ -21,7 +29,8 @@ async function findAllLaboratoriesWithSchedule(today, nowTime, executor = db) {
          FROM laboratories r
          LEFT JOIN schedules s ON r.Room_ID = s.Room_ID 
              AND s.Day_of_Week = ? 
-             AND ? BETWEEN s.Start_Time AND s.End_Time
+             AND ? >= s.Start_Time AND ? < s.End_Time
+             ${hasTerm ? 'AND s.Academic_Year = ? AND s.Semester = ?' : ''}
          LEFT JOIN curriculum c ON (
              s.Subject_Name = c.Subject_Code 
              OR s.Subject_Name = c.Subject_Name 
@@ -29,9 +38,9 @@ async function findAllLaboratoriesWithSchedule(today, nowTime, executor = db) {
          )
          LEFT JOIN users u_sched ON s.User_ID = u_sched.User_ID
          LEFT JOIN users u_curr ON r.Current_User_ID = u_curr.User_ID
-         ORDER BY CAST(r.Room_Number AS UNSIGNED)`,
-        [today, nowTime]
-    );
+         ORDER BY CAST(r.Room_Number AS UNSIGNED)`;
+    const params = hasTerm ? [today, nowTime, nowTime, ay, sem] : [today, nowTime, nowTime];
+    return executor.query(sql, params);
 }
 
 async function findByRoomNumber(roomNumber, executor = db) {

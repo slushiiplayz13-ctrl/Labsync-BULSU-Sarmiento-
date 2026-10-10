@@ -682,6 +682,14 @@
     stopLockHeartbeat();
     _currentEditSessionToken = null;
 
+    // Invalidate cached laboratory and schedule data across session storage and other open tabs
+    try {
+      sessionStorage.removeItem('labsync_cached_labs');
+      sessionStorage.removeItem('labsync_cached_user_schedule');
+      sessionStorage.removeItem('labsync_cached_assigned_rooms');
+      localStorage.setItem('labsync_schedule_updated', Date.now().toString());
+    } catch (e) { }
+
     if (res && res.version) {
       _currentScheduleVersion = Number(res.version);
       if (global.scheduleState) global.scheduleState.version = _currentScheduleVersion;

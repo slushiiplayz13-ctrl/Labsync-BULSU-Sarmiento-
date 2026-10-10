@@ -119,8 +119,12 @@ async function getUserSchedule(req, res, next) {
 async function getITHeadSummary(req, res, next) {
     try {
         const userId = req.session ? req.session.userId : null;
-        const { academicYear, semester } = req.query;
-        const result = await scheduleService.getITHeadSummary(userId, academicYear, semester);
+        const { academicYear, semester, targetDate, targetTime } = req.query;
+        const options = {};
+        if (targetDate || targetTime) {
+            options.targetDate = targetDate || targetTime;
+        }
+        const result = await scheduleService.getITHeadSummary(userId, academicYear, semester, options);
         return res.status(result.status).json(result.data);
     } catch (err) {
         next(err);

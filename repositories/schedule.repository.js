@@ -22,12 +22,16 @@ async function deleteRoomSchedule(roomId, ay, sem, executor = db) {
 async function findUserIdByName(professorName, executor = db) {
     if (!professorName || typeof professorName !== 'string') return [[]];
     const cleanName = professorName.trim().replace(/\s+/g, ' ');
+    const strippedName = cleanName.replace(/^(prof|professor|dr|engr)\.?\s+/i, '').trim();
     return executor.query(
-        `SELECT User_ID, Name FROM users 
-         WHERE LOWER(TRIM(REPLACE(Name, '  ', ' '))) = LOWER(?) 
+        `SELECT User_ID, Name FROM users
+         WHERE LOWER(TRIM(REPLACE(Name, '  ', ' '))) = LOWER(?)
             OR LOWER(TRIM(Name)) = LOWER(?)
+            OR LOWER(TRIM(REPLACE(Name, '  ', ' '))) = LOWER(?)
+            OR LOWER(TRIM(Name)) = LOWER(?)
+            OR Name = ?
             OR Name = ?`,
-        [cleanName, cleanName, professorName]
+        [cleanName, cleanName, strippedName, strippedName, professorName, strippedName]
     );
 }
 
@@ -212,7 +216,7 @@ async function findSummaryRoomsStatus(today, nowTime, ay, sem, executor = db) {
             FROM laboratories r
             LEFT JOIN schedules s ON r.Room_ID = s.Room_ID 
                 AND s.Day_of_Week = ? 
-                AND ? BETWEEN s.Start_Time AND s.End_Time
+                AND ? >= s.Start_Time AND ? < s.End_Time
                 AND s.Academic_Year = ?
                 AND s.Semester = ?
             LEFT JOIN curriculum c ON (
@@ -220,7 +224,7 @@ async function findSummaryRoomsStatus(today, nowTime, ay, sem, executor = db) {
                 OR s.Subject_Name = c.Subject_Name 
                 OR s.Subject_Name = CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
             )
-        `, [today, nowTime, ay, sem]);
+        `, [today, nowTime, nowTime, ay, sem]);
     }
     return executor.query(`
         SELECT 
@@ -237,13 +241,13 @@ async function findSummaryRoomsStatus(today, nowTime, ay, sem, executor = db) {
         FROM laboratories r
         LEFT JOIN schedules s ON r.Room_ID = s.Room_ID 
             AND s.Day_of_Week = ? 
-            AND ? BETWEEN s.Start_Time AND s.End_Time
+            AND ? >= s.Start_Time AND ? < s.End_Time
         LEFT JOIN curriculum c ON (
             s.Subject_Name = c.Subject_Code 
             OR s.Subject_Name = c.Subject_Name 
             OR s.Subject_Name = CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
         )
-    `, [today, nowTime]);
+    `, [today, nowTime, nowTime]);
 }
 
 async function countTotalPCs(executor = db) {
@@ -312,6 +316,7 @@ async function findUserClassesToday(userId, today, ay, sem, executor = db) {
 
 async function findFacultySchedulesByName(professorName, ay, sem, executor = db) {
     const trimmedName = (professorName || '').trim();
+    const strippedName = trimmedName.replace(/^(prof|professor|dr|engr)\.?\s+/i, '').trim();
     const query = `
         SELECT 
             s.Schedule_ID, s.User_ID, s.Room_ID, s.Section, s.Day_of_Week, s.Start_Time, s.End_Time, s.Academic_Year, s.Semester, s.Color_Theme,
@@ -348,11 +353,16 @@ async function findFacultySchedulesByName(professorName, ay, sem, executor = db)
             OR s.Subject_Name = c.Subject_Name 
             OR s.Subject_Name = CONCAT(c.Subject_Code, ' - ', c.Subject_Name)
         )
-        WHERE (LOWER(TRIM(u.Name)) = LOWER(?) OR LOWER(TRIM(u.Name)) LIKE LOWER(CONCAT('%', ?, '%')))
+        WHERE (
+            LOWER(TRIM(u.Name)) = LOWER(?)
+            OR LOWER(TRIM(u.Name)) = LOWER(?)
+            OR LOWER(TRIM(u.Name)) LIKE LOWER(CONCAT('%', ?, '%'))
+            OR LOWER(TRIM(u.Name)) LIKE LOWER(CONCAT('%', ?, '%'))
+        )
           AND s.Academic_Year = ? AND s.Semester = ?
         ORDER BY FIELD(s.Day_of_Week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), s.Start_Time
     `;
-    return executor.query(query, [trimmedName, trimmedName, ay, sem]);
+    return executor.query(query, [trimmedName, strippedName, trimmedName, strippedName, ay, sem]);
 }
 
 async function findDistinctRoomIdsByUserId(userId, executor = db) {

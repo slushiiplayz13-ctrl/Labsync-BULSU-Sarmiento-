@@ -314,7 +314,15 @@ async function runTests() {
             roomNumber: Room203,
             academicYear: AY1,
             semester: Sem1,
-            editSessionToken: deptHeadToken
+            editSessionToken: deptHeadToken,
+            schedules: [{
+                day: 'Monday',
+                startTime: '08:00',
+                endTime: '09:00',
+                subject: 'Lock Release Test Subject',
+                section: 'BSIT-1A',
+                professor: 'Engr. IT Head'
+            }]
         }
     });
     await schedulesController.finalizeSchedule(goodFinReq, goodFinRes, (err) => { if (err) throw err; });

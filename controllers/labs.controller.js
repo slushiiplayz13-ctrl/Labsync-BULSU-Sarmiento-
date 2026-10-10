@@ -5,7 +5,12 @@ const auditService = require('../services/auditService');
 
 async function getAllLaboratories(req, res, next) {
     try {
-        const result = await laboratoryService.getAllLaboratories();
+        const { academicYear, semester, targetDate, targetTime } = req.query || {};
+        const options = {};
+        if (targetDate || targetTime) {
+            options.targetDate = targetDate || targetTime;
+        }
+        const result = await laboratoryService.getAllLaboratories(academicYear, semester, options);
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         return res.status(result.status).json(result.data);
     } catch (err) {

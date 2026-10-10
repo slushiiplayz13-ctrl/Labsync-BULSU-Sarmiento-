@@ -18,8 +18,12 @@ function escapeHtml(str) {
  * Fetches all registered laboratory rooms from backend.
  * @returns {Promise<Array>} Array of laboratory room objects.
  */
-async function fetchLaboratories() {
-  const res = await fetch(`/api/laboratories?_=${Date.now()}`, {
+async function fetchLaboratories(academicYear = '', semester = '') {
+  let url = `/api/laboratories?_=${Date.now()}`;
+  if (academicYear && semester) {
+    url += `&academicYear=${encodeURIComponent(academicYear)}&semester=${encodeURIComponent(semester)}`;
+  }
+  const res = await fetch(url, {
     credentials: 'include',
     cache: 'no-store',
     headers: {
@@ -419,6 +423,50 @@ window.updateLaboratory = updateLaboratory;
 window.deleteLaboratory = deleteLaboratory;
 window.fetchRoomPCs = fetchRoomPCs;
 window.laboratoryService = laboratoryService;
+
+// Multi-tab cache synchronization: invalidate caches and refresh rooms when schedule is updated in another tab
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  function handleCrossTabScheduleUpdate() {
+    try {
+      sessionStorage.removeItem('labsync_cached_labs');
+      sessionStorage.removeItem('labsync_cached_user_schedule');
+      sessionStorage.removeItem('labsync_cached_assigned_rooms');
+    } catch (e) { }
+
+    if (typeof window.loadAllRoomStatusLabs === 'function') {
+      window.loadAllRoomStatusLabs();
+    } else if (typeof window.loadITHeadRoomStatus === 'function') {
+      window.loadITHeadRoomStatus();
+    } else if (typeof window.loadDashboardStatsAndLabs === 'function') {
+      window.loadDashboardStatsAndLabs();
+    } else if (typeof window.loadITHeadDashboardData === 'function') {
+      window.loadITHeadDashboardData();
+    }
+  }
+
+  window.addEventListener('storage', (e) => {
+    if (e && e.key === 'labsync_schedule_updated') {
+      handleCrossTabScheduleUpdate();
+    }
+  });
+
+  let _lastHandledScheduleUpdate = null;
+  try {
+    _lastHandledScheduleUpdate = localStorage.getItem('labsync_schedule_updated') || null;
+  } catch (e) { }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      try {
+        const currentUpdate = localStorage.getItem('labsync_schedule_updated') || null;
+        if (currentUpdate && currentUpdate !== _lastHandledScheduleUpdate) {
+          _lastHandledScheduleUpdate = currentUpdate;
+          handleCrossTabScheduleUpdate();
+        }
+      } catch (e) { }
+    }
+  });
+}
 
 
 

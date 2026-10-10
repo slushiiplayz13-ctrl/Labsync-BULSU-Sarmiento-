@@ -2,6 +2,23 @@
 
 const scheduleRepository = require('../repositories/schedule.repository');
 const iotService = require('./iotService');
+const AcademicTerm = require('../js/utils/academic-term');
+
+function getPhilippineTimeContext(target = null) {
+    const d = target ? new Date(target) : new Date();
+    const day = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Manila',
+        weekday: 'long'
+    }).format(d);
+    const time = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Manila',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h23'
+    }).format(d);
+    return { day, time, date: d };
+}
 
 const ALLOWED_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const PLACEHOLDER_SUBJECTS = ['tba', 'not specified', 'untitled', 'placeholder', 'no subject', 'none'];
@@ -433,15 +450,19 @@ async function getUserSchedule(userIdParam, academicYear, semester) {
     return { status: 200, data: schedules };
 }
 
-async function getITHeadSummary(sessionUserId, academicYear, semester) {
+async function getITHeadSummary(sessionUserId, academicYear, semester, options = {}) {
     const userId = sessionUserId || null;
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const today = days[new Date().getDay()];
-    const nowTime = new Date().toTimeString().split(' ')[0];
+    let target = null;
+    if (options instanceof Date || typeof options === 'string') {
+        target = options;
+    } else if (options && (options.targetDate || options.now)) {
+        target = options.targetDate || options.now;
+    }
+    const { day: today, time: nowTime, date: phDate } = getPhilippineTimeContext(target);
 
-    const currentYear = new Date().getFullYear();
-    const ay = academicYear || `${currentYear}-${currentYear + 1}`;
-    const sem = semester || '1st Semester';
+    const activeTerm = AcademicTerm.getActiveTerm(phDate);
+    const ay = (academicYear && typeof academicYear === 'string') ? academicYear.trim() : activeTerm.academicYear;
+    const sem = (semester && typeof semester === 'string') ? semester.trim() : activeTerm.semester;
 
     const [rooms] = await scheduleRepository.findSummaryRoomsStatus(today, nowTime, ay, sem);
 
@@ -884,6 +905,7 @@ module.exports = {
     getITHeadSummary,
     finalizeSchedule,
     reopenSchedule,
-    getScheduleStatus
+    getScheduleStatus,
+    getPhilippineTimeContext
 };
 

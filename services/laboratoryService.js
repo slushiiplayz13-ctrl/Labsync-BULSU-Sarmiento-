@@ -8,12 +8,38 @@ const keysRepository = require('../repositories/keys.repository');
 const iotService = require('./iotService');
 const auditService = require('./auditService');
 
-async function getAllLaboratories() {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const today = days[new Date().getDay()];
-    const nowTime = new Date().toTimeString().split(' ')[0];
+const AcademicTerm = require('../js/utils/academic-term');
 
-    const [rooms] = await labRepository.findAllLaboratoriesWithSchedule(today, nowTime);
+function getPhilippineTimeContext(target = null) {
+    const d = target ? new Date(target) : new Date();
+    const day = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Manila',
+        weekday: 'long'
+    }).format(d);
+    const time = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Manila',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h23'
+    }).format(d);
+    return { day, time, date: d };
+}
+
+async function getAllLaboratories(academicYear = null, semester = null, options = {}) {
+    let target = null;
+    if (options instanceof Date || typeof options === 'string') {
+        target = options;
+    } else if (options && (options.targetDate || options.now)) {
+        target = options.targetDate || options.now;
+    }
+    const { day: today, time: nowTime, date: phDate } = getPhilippineTimeContext(target);
+
+    const hasExplicitTerm = !!(academicYear && semester);
+    const ay = hasExplicitTerm ? String(academicYear).trim() : null;
+    const sem = hasExplicitTerm ? String(semester).trim() : null;
+
+    const [rooms] = await labRepository.findAllLaboratoriesWithSchedule(today, nowTime, ay, sem);
     const [activeIssues] = await labRepository.findActivePCIssuesGroupedByRoom();
 
     const roomIssuesMap = {};
@@ -32,8 +58,24 @@ async function getAllLaboratories() {
         });
     }
 
-    const result = rooms.map(room => {
-        const hasScheduledClass = !!room.Subject_Name;
+    // Deduplicate rooms by Room_ID: if a room appears multiple times, prioritize row with an active schedule
+    const seenRoomIds = new Set();
+    const sortedRooms = [...rooms].sort((a, b) => {
+        const aHasSched = (a.Subject_Name || a.Scheduled_User_ID || a.Start_Time) ? 1 : 0;
+        const bHasSched = (b.Subject_Name || b.Scheduled_User_ID || b.Start_Time) ? 1 : 0;
+        return bHasSched - aHasSched;
+    });
+    const dedupedRooms = [];
+    for (const r of sortedRooms) {
+        if (!seenRoomIds.has(r.Room_ID)) {
+            seenRoomIds.add(r.Room_ID);
+            dedupedRooms.push(r);
+        }
+    }
+    dedupedRooms.sort((a, b) => (parseInt(a.Room_Number, 10) || 0) - (parseInt(b.Room_Number, 10) || 0));
+
+    const result = dedupedRooms.map(room => {
+        const hasScheduledClass = !!(room.Subject_Name || room.Scheduled_User_ID || room.Start_Time);
         const keyAbsent = room.Key_Status === 'Absent';
 
         const scheduledProfName = room.Scheduled_Professor_Name || null;
@@ -381,5 +423,6 @@ module.exports = {
     deletePC,
     deletePCsBulk,
     getPCQRCode,
-    getBatchQRCodes
+    getBatchQRCodes,
+    getPhilippineTimeContext
 };
