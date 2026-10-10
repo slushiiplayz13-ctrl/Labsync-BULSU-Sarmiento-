@@ -160,7 +160,7 @@ async function finalizeSchedule(req, res, next) {
             return res.status(403).json({ error: 'Only the IT Department Head can finalize the official schedule.' });
         }
 
-        const { roomNumber, academicYear, semester } = req.body;
+        const { roomNumber, academicYear, semester, schedules, version } = req.body;
         const editSessionToken = req.body.editSessionToken || (req.headers && req.headers['x-edit-session-token']);
         const userId = req.session ? req.session.userId : null;
 
@@ -191,7 +191,7 @@ async function finalizeSchedule(req, res, next) {
             }
         }
 
-        const result = await scheduleService.finalizeSchedule({ roomNumber, academicYear, semester, userId });
+        const result = await scheduleService.finalizeSchedule({ roomNumber, academicYear, semester, userId, schedules, version });
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }

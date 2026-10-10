@@ -905,8 +905,11 @@
       }
 
       if (confirmBtn) {
+        let isSubmitting = false;
         confirmBtn.onclick = async () => {
+          if (isSubmitting) return;
           try {
+            isSubmitting = true;
             confirmBtn.disabled = true;
             confirmBtn.textContent = 'Processing...';
 
@@ -915,11 +918,19 @@
               : null;
 
             if (type === 'finalize') {
-              if (global.scheduleService && typeof global.scheduleService.finalizeSchedule === 'function') {
-                await global.scheduleService.finalizeSchedule(roomNum, academicYear, semester, editToken);
-              }
-              if (persistence && typeof persistence.releaseCurrentLock === 'function') {
-                await persistence.releaseCurrentLock();
+              if (persistence && typeof persistence.finalizeCurrentSchedule === 'function') {
+                await persistence.finalizeCurrentSchedule();
+              } else if (global.scheduleService && typeof global.scheduleService.finalizeSchedule === 'function') {
+                const scheduleData = (persistence && typeof persistence.getCurrentScheduleData === 'function')
+                  ? persistence.getCurrentScheduleData()
+                  : null;
+                const version = (persistence && typeof persistence.getCurrentVersion === 'function')
+                  ? persistence.getCurrentVersion()
+                  : null;
+                await global.scheduleService.finalizeSchedule(roomNum, academicYear, semester, editToken, scheduleData, version);
+                if (persistence && typeof persistence.releaseCurrentLock === 'function') {
+                  await persistence.releaseCurrentLock();
+                }
               }
               if (global.showToast) {
                 global.showToast(`Room ${roomNum} schedule finalized as official!`, 'success');
@@ -941,14 +952,21 @@
               await persistence.loadRoomSchedule();
             }
           } catch (err) {
+            closeModal();
             console.error('Error changing schedule status:', err);
-            if (global.showToast) {
-              global.showToast(err.message || 'Operation failed. Please try again.', 'error');
+            if (err && err.status === 409 && typeof showStaleScheduleModal === 'function') {
+              showStaleScheduleModal(err.message);
+            } else if (global.showToast) {
+              const toastType = (err && (err.status === 400 || (err.message && err.message.toLowerCase().includes('conflict')))) ? 'warning' : 'error';
+              const toastTitle = toastType === 'warning' ? 'Schedule Conflict' : 'Operation Failed';
+              global.showToast(err.message || 'Operation failed. Please try again.', toastType, toastTitle);
             } else {
               alert(err.message || 'Operation failed.');
             }
           } finally {
+            isSubmitting = false;
             confirmBtn.disabled = false;
+            confirmBtn.textContent = (type === 'finalize') ? 'Confirm Finalization' : 'Reopen for Editing';
           }
         };
       }

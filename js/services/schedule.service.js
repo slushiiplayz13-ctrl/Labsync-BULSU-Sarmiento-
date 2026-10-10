@@ -88,9 +88,11 @@
    * @param {string} academicYear
    * @param {string} semester
    * @param {string} [editSessionToken]
+   * @param {Array} [schedules]
+   * @param {number|string} [version]
    * @returns {Promise<object>}
    */
-  async function finalizeSchedule(roomNum, academicYear = '', semester = '', editSessionToken = '') {
+  async function finalizeSchedule(roomNum, academicYear = '', semester = '', editSessionToken = '', schedules = null, version = null) {
     const payload = {
       roomNumber: roomNum,
       academicYear,
@@ -98,6 +100,12 @@
     };
     if (editSessionToken) {
       payload.editSessionToken = editSessionToken;
+    }
+    if (Array.isArray(schedules)) {
+      payload.schedules = schedules;
+    }
+    if (version !== undefined && version !== null) {
+      payload.version = version;
     }
     const headers = { 'Content-Type': 'application/json' };
     if (editSessionToken) {

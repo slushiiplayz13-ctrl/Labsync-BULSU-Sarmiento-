@@ -497,7 +497,7 @@ async function getFacultyScheduleByName(professorName, academicYear, semester) {
 }
 
 async function finalizeSchedule(params) {
-    const { roomNumber, academicYear, semester, userId } = params;
+    const { roomNumber, academicYear, semester, userId, schedules, version } = params;
     const currentYear = new Date().getFullYear();
     const ay = (academicYear && typeof academicYear === 'string') ? academicYear.trim() : `${currentYear}-${currentYear + 1}`;
     const sem = (semester && typeof semester === 'string') ? semester.trim() : '1st Semester';
@@ -507,13 +507,133 @@ async function finalizeSchedule(params) {
         const [rooms] = await scheduleRepository.findRoomIdByNumber(roomNumber);
         if (rooms.length === 0) return { status: 404, error: 'Room not found' };
         const roomId = rooms[0].Room_ID;
+        const cleanRoomNumber = rooms[0].Room_Number;
+
+        let scheduleList = null;
+        let sortedProfUserIds = [];
+        const profNameToId = new Map();
+
+        if (schedules !== undefined && schedules !== null) {
+            if (!Array.isArray(schedules)) {
+                return { status: 400, error: 'schedules must be an Array of schedule entries.' };
+            }
+            scheduleList = deduplicateScheduleList(schedules);
+
+            for (let i = 0; i < scheduleList.length; i++) {
+                const sched = scheduleList[i];
+                if (!sched) continue;
+                if (sched.day && !ALLOWED_DAYS.includes(sched.day)) {
+                    return { status: 400, error: `Invalid day: '${sched.day}'. Allowed days: ${ALLOWED_DAYS.join(', ')}.` };
+                }
+                if (sched.startTime && sched.endTime) {
+                    const s = String(sched.startTime).substring(0, 5);
+                    const e = String(sched.endTime).substring(0, 5);
+                    if (s >= e) {
+                        return { status: 400, error: `Invalid time range: '${s}' - '${e}'. Start time must be before end time.` };
+                    }
+                }
+            }
+
+            // Same-room overlap validation within submitted schedule entries
+            for (let i = 0; i < scheduleList.length; i++) {
+                for (let j = i + 1; j < scheduleList.length; j++) {
+                    const s1 = scheduleList[i];
+                    const s2 = scheduleList[j];
+                    if (!s1 || !s2) continue;
+                    if (s1.day === s2.day && isTimeOverlap(s1.startTime, s1.endTime, s2.startTime, s2.endTime)) {
+                        return {
+                            status: 400,
+                            error: `Schedule conflict: '${s1.subject || 'Class'}' (${(s1.startTime || '').substring(0, 5)}-${(s1.endTime || '').substring(0, 5)}) overlaps with '${s2.subject || 'Class'}' (${(s2.startTime || '').substring(0, 5)}-${(s2.endTime || '').substring(0, 5)}) on ${s1.day} in Room ${cleanRoomNumber}.`
+                        };
+                    }
+                }
+            }
+
+            const profUserIdsToLock = new Set();
+            for (const sched of scheduleList) {
+                if (sched && sched.professor && sched.professor !== 'Not specified') {
+                    const profName = String(sched.professor).trim();
+                    if (!profNameToId.has(profName)) {
+                        const [users] = await scheduleRepository.findUserIdByName(profName);
+                        const profUserId = users.length > 0 ? users[0].User_ID : null;
+                        profNameToId.set(profName, profUserId);
+                        if (profUserId) {
+                            profUserIdsToLock.add(profUserId);
+                        }
+                    }
+                }
+            }
+            sortedProfUserIds = Array.from(profUserIdsToLock).sort((a, b) => Number(a) - Number(b));
+        }
 
         return await scheduleRepository.withTransaction(async (connection) => {
-            const hasDraft = await scheduleRepository.hasRoomScheduleDraft(roomId, ay, sem, connection);
-            if (hasDraft) {
-                await scheduleRepository.publishDraftToOfficial(roomId, ay, sem, connection);
-                await scheduleRepository.clearRoomScheduleDraft(roomId, ay, sem, connection);
+            for (const profUserId of sortedProfUserIds) {
+                await scheduleRepository.lockUserForUpdate(profUserId, connection);
             }
+
+            let metadata = await scheduleRepository.getScheduleMetadata(roomId, ay, sem, connection);
+            if (metadata) {
+                metadata = await scheduleRepository.getScheduleMetadataForUpdate(roomId, ay, sem, connection);
+                if (version !== undefined && version !== null && Number(version) !== Number(metadata.Version)) {
+                    return {
+                        status: 409,
+                        error: 'This schedule was modified by another administrator. Please reload the latest schedule before saving your changes.'
+                    };
+                }
+            }
+
+            if (scheduleList !== null) {
+                // Cross-room professor double-booking validation across active drafts and official schedules
+                for (const sched of scheduleList) {
+                    if (sched.professor && sched.professor !== 'Not specified') {
+                        const profName = String(sched.professor).trim();
+                        const profUserId = profNameToId.get(profName);
+                        if (profUserId) {
+                            const [conflicts] = await scheduleRepository.findUserSchedulesForConflictAll(
+                                profUserId, sched.day || 'Monday', ay, sem, cleanRoomNumber, connection
+                            );
+
+                            const clash = conflicts.find(c => isTimeOverlap(sched.startTime, sched.endTime, c.Start_Time, c.End_Time));
+                            if (clash) {
+                                return {
+                                    status: 400,
+                                    error: `Schedule conflict: Professor ${sched.professor} is already scheduled in Room ${clash.Room_Number} from ${clash.Start_Time.substring(0, 5)} to ${clash.End_Time.substring(0, 5)} on ${sched.day || 'Monday'}.`
+                                };
+                            }
+                        }
+                    }
+                }
+
+                // Write directly to official schedules table
+                await scheduleRepository.deleteRoomSchedule(roomId, ay, sem, connection);
+                for (const sched of scheduleList) {
+                    const profName = String(sched.professor || '').trim();
+                    const profUserId = profNameToId.has(profName) ? profNameToId.get(profName) : null;
+
+                    await scheduleRepository.insertSchedule({
+                        userId: profUserId,
+                        roomId,
+                        subject: sched.subject || '',
+                        section: sched.section || '',
+                        day: sched.day || 'Monday',
+                        startTime: sched.startTime || '07:00:00',
+                        endTime: sched.endTime || '08:00:00',
+                        ay,
+                        sem,
+                        colorTheme: sched.colorTheme || 'blue'
+                    }, connection);
+                }
+
+                // Clear any working draft for this room/AY/sem
+                await scheduleRepository.clearRoomScheduleDraft(roomId, ay, sem, connection);
+            } else {
+                const hasDraft = await scheduleRepository.hasRoomScheduleDraft(roomId, ay, sem, connection);
+                if (hasDraft) {
+                    await scheduleRepository.publishDraftToOfficial(roomId, ay, sem, connection);
+                    await scheduleRepository.clearRoomScheduleDraft(roomId, ay, sem, connection);
+                }
+            }
+
             await scheduleRepository.setRoomScheduleStatus(roomId, ay, sem, 'Finalized', userId, now, userId, connection);
             return {
                 status: 200,
@@ -525,7 +645,8 @@ async function finalizeSchedule(params) {
                     status: 'Finalized',
                     scheduleStatus: 'Finalized',
                     finalizedBy: userId,
-                    finalizedAt: now.toISOString()
+                    finalizedAt: now.toISOString(),
+                    version: metadata ? Number(metadata.Version) : 1
                 }
             };
         });

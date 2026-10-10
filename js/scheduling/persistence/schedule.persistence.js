@@ -422,6 +422,11 @@
       throw err;
     }
 
+  /**
+   * Reads all current schedule cards from the DOM timetable grid.
+   * @returns {Array<object>}
+   */
+  function getCurrentScheduleData() {
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const scheduleData = [];
     const timeUtils = global.timeUtils || global.scheduleTimeUtils || {};
@@ -437,7 +442,7 @@
         const endSlot = parseFloat(card.dataset.end);
         const slotKey = `${startSlot}_${endSlot}`;
         if (seenSlots.has(slotKey)) {
-          console.warn(`[SchedulePersistence] Skipping duplicate DOM card during save for slot: ${day} ${slotKey}`);
+          console.warn(`[SchedulePersistence] Skipping duplicate DOM card during collection for slot: ${day} ${slotKey}`);
           continue;
         }
         seenSlots.add(slotKey);
@@ -461,6 +466,43 @@
         });
       }
     }
+    return scheduleData;
+  }
+
+  /**
+   * Saves current grid schedule to the backend database.
+   * @returns {Promise<boolean>}
+   */
+  async function saveCurrentSchedule() {
+    if (_currentScheduleStatus === 'Finalized') {
+      const msg = 'Cannot modify a finalized schedule. The IT Department Head must reopen it for editing first.';
+      if (global.showToast) {
+        global.showToast(msg, 'error');
+      } else {
+        alert(msg);
+      }
+      const err = new Error(msg);
+      err.status = 403;
+      throw err;
+    }
+
+    const context = global.slotMath ? global.slotMath.getScheduleContext() : {};
+    const roomNum = context.roomNumber || '204';
+
+    if (_isLockedByOther || !_currentEditSessionToken) {
+      const lockHolder = _lockDetails && _lockDetails.userName ? `${_lockDetails.userName} (${_lockDetails.userRole || 'Admin'})` : 'another administrator';
+      const msg = `Cannot save changes: Room ${roomNum} is currently locked by ${lockHolder}. You are viewing this schedule in read-only mode.`;
+      if (global.showToast) {
+        global.showToast(msg, 'error', 'Room Locked');
+      } else {
+        alert(msg);
+      }
+      const err = new Error(msg);
+      err.status = 423;
+      throw err;
+    }
+
+    const scheduleData = getCurrentScheduleData();
 
     const academicYear = context.academicYear;
     const semester = context.semester;
@@ -518,6 +560,129 @@
       global.isDirty = false;
     }
     return true;
+  }
+
+  /**
+   * Finalizes the current schedule directly without requiring a separate draft save first.
+   * Collects current editor cards, validates them, and sends them to the finalize API.
+   * @returns {Promise<object>}
+   */
+  async function finalizeCurrentSchedule() {
+    const context = global.slotMath ? global.slotMath.getScheduleContext() : {};
+    const roomNum = context.roomNumber || '204';
+    const academicYear = context.academicYear;
+    const semester = context.semester;
+
+    if (_isLockedByOther || !_currentEditSessionToken) {
+      const lockHolder = _lockDetails && _lockDetails.userName ? `${_lockDetails.userName} (${_lockDetails.userRole || 'Admin'})` : 'another administrator';
+      const msg = `Cannot finalize schedule: Room ${roomNum} is currently locked by ${lockHolder}. You are viewing this schedule in read-only mode.`;
+      if (global.showToast) {
+        global.showToast(msg, 'error', 'Room Locked');
+      } else {
+        alert(msg);
+      }
+      const err = new Error(msg);
+      err.status = 423;
+      throw err;
+    }
+
+    const scheduleData = getCurrentScheduleData();
+
+    // 1. Client-side entry validation: time range
+    for (let item of scheduleData) {
+      if (item.startTime && item.endTime && item.startTime >= item.endTime) {
+        const msg = `Invalid time range for '${item.subject || 'Class'}': Start time (${item.startTime}) must be before end time (${item.endTime}).`;
+        if (global.showToast) global.showToast(msg, 'warning', 'Invalid Entry');
+        const err = new Error(msg);
+        err.status = 400;
+        throw err;
+      }
+    }
+
+    // 2. Client-side validation: same-room overlaps
+    for (let i = 0; i < scheduleData.length; i++) {
+      for (let j = i + 1; j < scheduleData.length; j++) {
+        const s1 = scheduleData[i];
+        const s2 = scheduleData[j];
+        if (s1.day === s2.day) {
+          const maxStart = s1.startTime > s2.startTime ? s1.startTime : s2.startTime;
+          const minEnd = s1.endTime < s2.endTime ? s1.endTime : s2.endTime;
+          if (maxStart < minEnd) {
+            const msg = `Schedule conflict: '${s1.subject || 'Class'}' (${s1.startTime}-${s1.endTime}) overlaps with '${s2.subject || 'Class'}' (${s2.startTime}-${s2.endTime}) on ${s1.day}.`;
+            if (global.showToast) global.showToast(msg, 'warning', 'Schedule Overlap');
+            const err = new Error(msg);
+            err.status = 400;
+            throw err;
+          }
+        }
+      }
+    }
+
+    let res = null;
+    try {
+      if (global.scheduleService && typeof global.scheduleService.finalizeSchedule === 'function') {
+        res = await global.scheduleService.finalizeSchedule(
+          roomNum,
+          academicYear,
+          semester,
+          _currentEditSessionToken,
+          scheduleData,
+          _currentScheduleVersion
+        );
+      } else {
+        const fetchRes = await fetch('/api/schedules/finalize', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Edit-Session-Token': _currentEditSessionToken || ''
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            roomNumber: roomNum,
+            academicYear,
+            semester,
+            editSessionToken: _currentEditSessionToken,
+            schedules: scheduleData,
+            version: _currentScheduleVersion
+          })
+        });
+        const data = await fetchRes.json().catch(() => ({}));
+        if (!fetchRes.ok) {
+          const err = new Error(data.error || 'Finalize API response not OK');
+          err.status = fetchRes.status;
+          err.response = data;
+          throw err;
+        }
+        res = data;
+      }
+    } catch (finErr) {
+      if (finErr && finErr.status === 423) {
+        _isLockedByOther = true;
+        _currentEditSessionToken = null;
+        stopLockHeartbeat();
+        document.body.classList.add('view-mode', 'room-locked');
+        showLockBanner(finErr.message || `Room ${roomNum} is locked by another administrator.`);
+      }
+      throw finErr;
+    }
+
+    // Finalize automatically releases the collaborative editing lock
+    stopLockHeartbeat();
+    _currentEditSessionToken = null;
+
+    if (res && res.version) {
+      _currentScheduleVersion = Number(res.version);
+      if (global.scheduleState) global.scheduleState.version = _currentScheduleVersion;
+    }
+
+    if (global.scheduleState && typeof global.scheduleState.setBaseline === 'function') {
+      global.scheduleState.setBaseline();
+    } else {
+      if (global.scheduleState) global.scheduleState.isDirty = false;
+      global.isDirty = false;
+    }
+
+    return res;
   }
 
   /**
@@ -653,6 +818,8 @@
     deleteGridCardRef,
     loadRoomSchedule,
     saveCurrentSchedule,
+    finalizeCurrentSchedule,
+    getCurrentScheduleData,
     loadProfessors,
     loadCurriculumSubjects,
     updateStatusUI,
@@ -671,6 +838,8 @@
   global.schedulePersistence = schedulePersistence;
   global.loadRoomSchedule = loadRoomSchedule;
   global.saveCurrentSchedule = saveCurrentSchedule;
+  global.finalizeCurrentSchedule = finalizeCurrentSchedule;
+  global.getCurrentScheduleData = getCurrentScheduleData;
   global.resetTableToDefault = resetTableToDefault;
   global.deleteGridCardRef = deleteGridCardRef;
   global.updateStatusUI = updateStatusUI;
