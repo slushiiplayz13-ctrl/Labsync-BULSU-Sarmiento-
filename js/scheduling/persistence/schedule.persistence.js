@@ -390,39 +390,6 @@
   }
 
   /**
-   * Saves current grid schedule to the backend database.
-   * @returns {Promise<boolean>}
-   */
-  async function saveCurrentSchedule() {
-    if (_currentScheduleStatus === 'Finalized') {
-      const msg = 'Cannot modify a finalized schedule. The IT Department Head must reopen it for editing first.';
-      if (global.showToast) {
-        global.showToast(msg, 'error');
-      } else {
-        alert(msg);
-      }
-      const err = new Error(msg);
-      err.status = 403;
-      throw err;
-    }
-
-    const context = global.slotMath ? global.slotMath.getScheduleContext() : {};
-    const roomNum = context.roomNumber || '204';
-
-    if (_isLockedByOther || !_currentEditSessionToken) {
-      const lockHolder = _lockDetails && _lockDetails.userName ? `${_lockDetails.userName} (${_lockDetails.userRole || 'Admin'})` : 'another administrator';
-      const msg = `Cannot save changes: Room ${roomNum} is currently locked by ${lockHolder}. You are viewing this schedule in read-only mode.`;
-      if (global.showToast) {
-        global.showToast(msg, 'error', 'Room Locked');
-      } else {
-        alert(msg);
-      }
-      const err = new Error(msg);
-      err.status = 423;
-      throw err;
-    }
-
-  /**
    * Reads all current schedule cards from the DOM timetable grid.
    * @returns {Array<object>}
    */

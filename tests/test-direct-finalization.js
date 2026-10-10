@@ -531,7 +531,11 @@ async function runDirectFinalizationTests() {
     console.log('================================================================\n');
 }
 
-runDirectFinalizationTests().catch(err => {
-    console.error('❌ Test failure:', err);
-    process.exit(1);
-});
+runDirectFinalizationTests()
+    .then(() => {
+        process.exit(0);
+    })
+    .catch(err => {
+        console.error('❌ Test failure:', err);
+        process.exit(1);
+    });
