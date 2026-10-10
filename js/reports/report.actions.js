@@ -14,16 +14,21 @@
   async function updateReportStatus(reportId, newStatus) {
     const confirmFn = window.showConfirmModal || global.showConfirmModal;
     let confirmed = false;
+    const isResolved = newStatus === 'Resolved';
     if (typeof confirmFn === 'function') {
       confirmed = await confirmFn({
-        title: 'Update Ticket Status',
-        message: `Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`,
-        confirmText: 'Update Status',
+        title: isResolved ? 'Mark Issue Resolved' : 'Update Ticket Status',
+        message: isResolved
+          ? `Mark the reported issue for Ticket LS-TKT-${reportId} as resolved?`
+          : `Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`,
+        confirmText: isResolved ? 'Mark Resolved' : 'Update Status',
         cancelText: 'Cancel',
         isDestructive: false
       });
     } else {
-      confirmed = confirm(`Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`);
+      confirmed = confirm(isResolved
+        ? `Mark the reported issue for Ticket LS-TKT-${reportId} as resolved?`
+        : `Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`);
     }
     if (!confirmed) return;
 
@@ -44,7 +49,12 @@
         }
       }
 
-      if (window.showToast) window.showToast(`Ticket LS-TKT-${reportId} updated to ${newStatus}`, 'success');
+      if (window.showToast) {
+        const toastMsg = isResolved
+          ? `The reported issue for Ticket LS-TKT-${reportId} has been marked as resolved.`
+          : `Ticket LS-TKT-${reportId} updated to ${newStatus}`;
+        window.showToast(toastMsg, 'success');
+      }
 
       if (typeof global.loadReports === 'function') {
         await global.loadReports();

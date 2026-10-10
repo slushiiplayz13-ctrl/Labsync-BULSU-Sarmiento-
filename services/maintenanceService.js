@@ -328,6 +328,23 @@ async function updateReportStatus(reportId, status, actor = {}) {
 
         // 2. Read previous status and determine resolver ID
         const previousStatus = issues[0].Status;
+        const currentIssue = issues[0];
+
+        // Idempotency guard: Retrying or re-submitting an already-resolved issue without a genuine transition
+        if (previousStatus === 'Resolved' && status === 'Resolved') {
+            return {
+                status: 200,
+                message: `The reported issue "${currentIssue.Issue_Type}" is already marked as resolved.`,
+                issueId: actualIssueId,
+                previousStatus,
+                newStatus: status,
+                noTransition: true,
+                issueType: currentIssue.Issue_Type,
+                pcNumber: currentIssue.PC_Number,
+                roomNumber: currentIssue.Room_Number
+            };
+        }
+
         const resolverUserId = (status === 'Resolved') ? (actor && actor.userId ? actor.userId : null) : null;
 
         // 3. Update issue status and resolver
@@ -335,10 +352,11 @@ async function updateReportStatus(reportId, status, actor = {}) {
         await maintenanceRepository.updateLinkedStudentReportsStatus(actualIssueId, status, connection);
 
         // 4. Update PC condition if applicable
-        const pcId = issues[0].PC_ID;
+        const pcId = currentIssue.PC_ID;
         const [activeCount] = await maintenanceRepository.countActiveIssuesByPCId(pcId, connection);
+        const remainingActiveCount = (activeCount[0] ? activeCount[0].count : 0);
 
-        if (activeCount[0].count === 0) {
+        if (remainingActiveCount === 0) {
             // All active issues resolved -> restore workstation to Functional condition
             await labRepository.updateConditionStatus(pcId, 'Functional', connection);
         } else {
@@ -346,12 +364,21 @@ async function updateReportStatus(reportId, status, actor = {}) {
             await labRepository.updateConditionStatus(pcId, 'Under Maintenance', connection);
         }
 
+        const successMessage = (status === 'Resolved')
+            ? `The reported issue "${currentIssue.Issue_Type}" has been marked as resolved.`
+            : `Report status updated to ${status} successfully.`;
+
         return {
             status: 200,
-            message: `Report status updated to ${status} successfully.`,
+            message: successMessage,
             issueId: actualIssueId,
             previousStatus,
-            newStatus: status
+            newStatus: status,
+            issueType: currentIssue.Issue_Type,
+            pcNumber: currentIssue.PC_Number,
+            roomNumber: currentIssue.Room_Number,
+            remainingActiveCount,
+            resolverUserId
         };
     });
 

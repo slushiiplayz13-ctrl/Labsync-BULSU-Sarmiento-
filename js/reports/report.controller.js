@@ -235,7 +235,16 @@
     });
 
     updateRoleGreetingDescription();
-    loadReports();
+    loadReports().then(() => {
+      const ticketParam = urlParams.get('ticket') || urlParams.get('id');
+      if (ticketParam) {
+        const cleanTicketId = String(ticketParam).replace(/\D/g, '') || ticketParam;
+        const openModalFn = (global.reportModal && global.reportModal.viewTicketModal) || global.viewTicketModal;
+        if (typeof openModalFn === 'function') {
+          openModalFn(cleanTicketId);
+        }
+      }
+    });
   }
 
   /**

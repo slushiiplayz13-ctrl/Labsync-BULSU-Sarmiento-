@@ -92,7 +92,9 @@ async function updateReportStatus(req, res, next) {
 
         // Authoritatively derive actor from server session only (never trust client)
         const actor = {
-            userId: req.session ? req.session.userId : null
+            userId: req.session ? req.session.userId : null,
+            userRole: req.session ? req.session.userRole : null,
+            userName: req.session ? req.session.userName : null
         };
 
         const result = await maintenanceService.updateReportStatus(reportId, status, actor);
@@ -100,19 +102,41 @@ async function updateReportStatus(req, res, next) {
             return res.status(result.status).json({ error: result.error });
         }
 
-        await auditService.logSecurityEvent({
-            req,
-            action: 'TICKET_STATUS_UPDATE',
-            resourceType: 'MAINTENANCE',
-            resourceId: result.issueId || reportId,
-            details: {
-                previousStatus: result.previousStatus,
-                newStatus: status
-            },
-            result: 'SUCCESS'
-        });
+        if (!result.noTransition) {
+            const pcFormatted = String(result.pcNumber || '').padStart(2, '0');
+            const auditMsg = (status === 'Resolved')
+                ? `Resolved reported issue: ${result.issueType || 'Hardware Issue'} — PC-${pcFormatted}, Room ${result.roomNumber || 'N/A'}.`
+                : `Status changed from ${result.previousStatus} to ${status}`;
 
-        return res.status(result.status).json({ message: result.message });
+            await auditService.logSecurityEvent({
+                req,
+                action: 'TICKET_STATUS_UPDATE',
+                resourceType: 'MAINTENANCE',
+                resourceId: result.issueId || reportId,
+                details: {
+                    previousStatus: result.previousStatus,
+                    newStatus: status,
+                    issueType: result.issueType,
+                    pcNumber: result.pcNumber,
+                    roomNumber: result.roomNumber,
+                    resolverUserId: result.resolverUserId,
+                    message: auditMsg
+                },
+                result: 'SUCCESS'
+            });
+        }
+
+        return res.status(result.status).json({
+            message: result.message,
+            issueId: result.issueId,
+            previousStatus: result.previousStatus,
+            newStatus: result.newStatus,
+            issueType: result.issueType,
+            pcNumber: result.pcNumber,
+            roomNumber: result.roomNumber,
+            remainingActiveCount: result.remainingActiveCount,
+            noTransition: Boolean(result.noTransition)
+        });
     } catch (err) {
         next(err);
     }

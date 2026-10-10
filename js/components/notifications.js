@@ -29,8 +29,16 @@
       if (notif.status === 'Resolved') {
         iconName = 'check-circle';
         iconClass = 'notif-icon-resolved';
-        title = 'PC Report Resolved';
-        text = `PC #${notif.pc_number} in Room ${notif.room_number} is now functional.`;
+        title = 'PC Issue Marked Resolved';
+        if (notif.description && typeof notif.description === 'string' && notif.description.includes('was marked as resolved')) {
+          text = notif.description;
+        } else {
+          const pcFormatted = String(notif.pc_number || '').padStart(2, '0');
+          const roomFormatted = String(notif.room_number || '').replace(/^Room\s*/i, '');
+          const issueType = notif.issue_type || (notif.description && notif.description.match(/\[Issues:\s*([^\]]+)\]/) ? notif.description.match(/\[Issues:\s*([^\]]+)\]/)[1] : '') || 'Reported Issue';
+          const resolver = notif.resolver_name || notif.resolver_role || 'Maintenance Staff';
+          text = `The reported issue "${issueType}" for PC-${pcFormatted} in Room ${roomFormatted} was marked as resolved by ${resolver}.`;
+        }
       } else if (notif.detail === 'IT Dept. Head Follow-Up' || (typeof notif.description === 'string' && notif.description.includes('followed up by the IT Dept. Head'))) {
         iconName = 'bell-ring';
         iconClass = 'notif-icon-warning';
@@ -165,8 +173,13 @@
         }
         return notif.id ? `mis-maintenance.html?ticket=${encodeURIComponent(notif.id)}` : 'mis-maintenance.html';
       } else if (isHead) {
-        if (typeof window !== 'undefined') window.location.href = 'it-head-pc-reports.html';
-        return 'it-head-pc-reports.html';
+        const dest = (notif.status === 'Resolved' && notif.id)
+          ? `it-head-pc-reports.html?ticket=${encodeURIComponent(notif.id)}`
+          : 'it-head-pc-reports.html';
+        if (typeof window !== 'undefined') {
+          window.location.href = dest;
+        }
+        return dest;
       } else {
         if (typeof window !== 'undefined') window.location.href = 'faculty-pc-reports.html';
         return 'faculty-pc-reports.html';

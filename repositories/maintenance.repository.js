@@ -36,10 +36,13 @@ async function insertStudentReport({ issueId, pcId, studentName, studentNumber =
 
 async function findIssueForUpdate(issueId, executor = db) {
     return executor.query(`
-        SELECT Issue_ID, PC_ID, Status, Follow_Up_Count, Followed_Up_At,
-               (CASE WHEN Followed_Up_At IS NOT NULL AND DATE(Followed_Up_At) = CURDATE() THEN 1 ELSE 0 END) AS Followed_Up_Today
-        FROM maintenance_issues
-        WHERE Issue_ID = ?
+        SELECT i.Issue_ID, i.PC_ID, i.Issue_Type, i.Status, i.Follow_Up_Count, i.Followed_Up_At,
+               (CASE WHEN i.Followed_Up_At IS NOT NULL AND DATE(i.Followed_Up_At) = CURDATE() THEN 1 ELSE 0 END) AS Followed_Up_Today,
+               p.PC_Number, r.Room_Number
+        FROM maintenance_issues i
+        JOIN lab_units p ON i.PC_ID = p.PC_ID
+        JOIN laboratories r ON p.Room_ID = r.Room_ID
+        WHERE i.Issue_ID = ?
         FOR UPDATE
     `, [issueId]);
 }
@@ -456,14 +459,67 @@ async function findFacultyNotifications(userId, executor = db) {
 
 async function findDeptHeadNotifications(userId, executor = db) {
     return executor.query(`
-        (SELECT 'report' AS type, i.Issue_ID AS id, i.Created_At AS time, i.Status AS status,
-               p.PC_Number AS pc_number, r.Room_Number AS room_number,
-               CONCAT('[Issues: ', i.Issue_Type, ']') AS description,
-               'Student Report' AS detail, i.Priority_Level AS priority, NULL AS session_type
-        FROM maintenance_issues i
-        JOIN lab_units p ON i.PC_ID = p.PC_ID
-        JOIN laboratories r ON p.Room_ID = r.Room_ID)
+        -- 1. Unresolved PC reports (Pending / In Progress)
+        (SELECT 'report' AS type,
+                i.Issue_ID AS id,
+                (CASE 
+                    WHEN i.Followed_Up_At IS NOT NULL AND i.Followed_Up_At >= i.Created_At THEN i.Followed_Up_At
+                    ELSE i.Created_At
+                 END) AS time,
+                i.Status AS status,
+                p.PC_Number AS pc_number,
+                r.Room_Number AS room_number,
+                (CASE 
+                    WHEN i.Followed_Up_At IS NOT NULL AND i.Followed_Up_At >= i.Created_At THEN
+                        CONCAT('PC ', LPAD(p.PC_Number, 2, '0'), ' – Room ', r.Room_Number, ' has been followed up by the IT Dept. Head.')
+                    ELSE
+                        CONCAT('PC #', p.PC_Number, ' in Room ', r.Room_Number, ': [Issues: ', i.Issue_Type, ']')
+                 END) AS description,
+                (CASE 
+                    WHEN i.Followed_Up_At IS NOT NULL AND i.Followed_Up_At >= i.Created_At THEN 'IT Dept. Head Follow-Up'
+                    ELSE 'Student Report'
+                 END) AS detail,
+                i.Priority_Level AS priority,
+                NULL AS session_type,
+                NULL AS resolver_name,
+                NULL AS resolver_role,
+                i.Issue_Type AS issue_type,
+                NULL AS resolved_at,
+                COALESCE(i.Follow_Up_Count, 0) AS follow_up_count,
+                0 AS other_active_issues_count
+         FROM maintenance_issues i
+         JOIN lab_units p ON i.PC_ID = p.PC_ID
+         JOIN laboratories r ON p.Room_ID = r.Room_ID
+         WHERE i.Status != 'Resolved')
         UNION ALL
+        -- 2. Resolved PC reports (Resolution Events with authentic resolver attribution)
+        (SELECT 'report' AS type,
+                i.Issue_ID AS id,
+                COALESCE(i.Resolved_At, i.Created_At) AS time,
+                'Resolved' AS status,
+                p.PC_Number AS pc_number,
+                r.Room_Number AS room_number,
+                CONCAT('The reported issue "', i.Issue_Type, '" for PC-', LPAD(p.PC_Number, 2, '0'), ' in Room ', r.Room_Number, ' was marked as resolved by ', COALESCE(res_u.Name, 'Maintenance Staff'), '.') AS description,
+                (CASE 
+                    WHEN res_u.Role = 'OJT' THEN 'Resolved by OJT Intern'
+                    WHEN res_u.Role IS NOT NULL THEN CONCAT('Resolved by ', res_u.Role)
+                    ELSE 'Resolved by MIS Staff'
+                 END) AS detail,
+                i.Priority_Level AS priority,
+                NULL AS session_type,
+                res_u.Name AS resolver_name,
+                res_u.Role AS resolver_role,
+                i.Issue_Type AS issue_type,
+                i.Resolved_At AS resolved_at,
+                COALESCE(i.Follow_Up_Count, 0) AS follow_up_count,
+                (SELECT COUNT(*) FROM maintenance_issues active_i WHERE active_i.PC_ID = i.PC_ID AND active_i.Status != 'Resolved') AS other_active_issues_count
+         FROM maintenance_issues i
+         JOIN lab_units p ON i.PC_ID = p.PC_ID
+         JOIN laboratories r ON p.Room_ID = r.Room_ID
+         LEFT JOIN users res_u ON i.Resolved_By_User_ID = res_u.User_ID
+         WHERE i.Status = 'Resolved')
+        UNION ALL
+        -- 3. Security and occupancy alerts
         (SELECT 'occupancy' AS type, o.Log_ID AS id, o.Access_Time AS time, o.Auth_Method AS status,
                NULL AS pc_number, r.Room_Number AS room_number,
                (CASE
@@ -490,7 +546,13 @@ async function findDeptHeadNotifications(userId, executor = db) {
                    ) THEN 'In Session'
                    WHEN o.Auth_Method = 'Key Taken' THEN 'Borrowed'
                    ELSE NULL
-                END) AS session_type
+                END) AS session_type,
+               NULL AS resolver_name,
+               NULL AS resolver_role,
+               NULL AS issue_type,
+               NULL AS resolved_at,
+               0 AS follow_up_count,
+               0 AS other_active_issues_count
         FROM occupancy_log o
         LEFT JOIN users u ON o.User_ID = u.User_ID
         JOIN laboratories r ON o.Room_ID = r.Room_ID
@@ -505,10 +567,17 @@ async function findDeptHeadNotifications(userId, executor = db) {
                  AND TIME(o.Access_Time) <= s.End_Time
            ))
         UNION ALL
+        -- 4. Key Authorization requests
         (SELECT 'key_auth' AS type, r.Request_ID AS id, r.Requested_At AS time, r.Status AS status,
                NULL AS pc_number, lab.Room_Number AS room_number,
                CONCAT('Key Request from ', u.Name) AS description,
-               r.Reason AS detail, NULL AS priority, NULL AS session_type
+               r.Reason AS detail, NULL AS priority, NULL AS session_type,
+               NULL AS resolver_name,
+               NULL AS resolver_role,
+               NULL AS issue_type,
+               NULL AS resolved_at,
+               0 AS follow_up_count,
+               0 AS other_active_issues_count
         FROM key_authorization_requests r
         JOIN users u ON r.User_ID = u.User_ID
         JOIN laboratories lab ON r.Room_ID = lab.Room_ID

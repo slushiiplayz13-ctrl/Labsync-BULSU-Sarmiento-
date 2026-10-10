@@ -94,7 +94,7 @@
             <i data-lucide="check-circle-2"></i>
             1-Click Ticket Resolution
           </div>
-          <p class="help-feat-desc">Resolving a ticket updates the work order and restores the PC unit to Functional condition in the laboratory.</p>
+          <p class="help-feat-desc">Resolving a ticket marks the reported issue as resolved and restores PC condition to Functional if no other active issues remain.</p>
         </div>
         <div class="help-feature-card theme-indigo">
           <div class="help-feat-title">
@@ -178,7 +178,7 @@
             <i data-lucide="check-circle-2"></i>
             1-Click Repair & Fleet Sync
           </div>
-          <p class="help-feat-desc">Resolving a ticket updates the work order, records technician role attribution, and immediately restores PC condition to Functional.</p>
+          <p class="help-feat-desc">Resolving a ticket marks the reported issue as resolved, records technician role attribution, and restores PC condition to Functional if all active issues are cleared.</p>
         </div>
         <div class="help-feature-card theme-green">
           <div class="help-feat-title">

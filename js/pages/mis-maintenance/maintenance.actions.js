@@ -37,15 +37,21 @@
     let confirmed = false;
 
     if (typeof confirmFn === 'function') {
+      const isResolved = newStatus === 'Resolved';
       confirmed = await confirmFn({
-        title: 'Update Ticket Status',
-        message: `Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`,
-        confirmText: 'Update Status',
+        title: isResolved ? 'Mark Issue Resolved' : 'Update Ticket Status',
+        message: isResolved
+          ? `Mark the reported issue for Ticket LS-TKT-${reportId} as resolved?`
+          : `Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`,
+        confirmText: isResolved ? 'Mark Resolved' : 'Update Status',
         cancelText: 'Cancel',
         isDestructive: false
       });
     } else {
-      confirmed = confirm(`Set Ticket LS-TKT-${reportId} status to '${newStatus}'?`);
+      const isResolved = newStatus === 'Resolved';
+      confirmed = confirm(isResolved
+        ? `Mark the reported issue for Ticket LS-TKT-${reportId} as resolved?`
+        : `Set Ticket LS-TKT-${reportId} status to '${newStatus}'?`);
     }
 
     if (!confirmed) return;
@@ -74,7 +80,10 @@
 
       const toastFn = global.showToast || (typeof window !== 'undefined' ? window.showToast : null);
       if (typeof toastFn === 'function') {
-        toastFn(`Ticket LS-TKT-${reportId} status updated to ${newStatus}`, 'success');
+        const toastMsg = (newStatus === 'Resolved')
+          ? `The reported issue for Ticket LS-TKT-${reportId} has been marked as resolved.`
+          : `Ticket LS-TKT-${reportId} status updated to ${newStatus}`;
+        toastFn(toastMsg, 'success');
       }
 
       if (typeof onComplete === 'function') {
