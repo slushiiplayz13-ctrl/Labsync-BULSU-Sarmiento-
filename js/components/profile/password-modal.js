@@ -15,60 +15,60 @@
     modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2600 !important;padding:20px;';
 
     modal.innerHTML = `
-      <div style="background:var(--bg-white, #ffffff);border:1.5px solid var(--border-light, #374151);border-radius:20px;width:100%;max-width:440px;padding:28px;box-shadow:0 25px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;gap:20px;font-family:var(--font-body);color:var(--text-dark);">
+      <div style="background:var(--bg-white, #ffffff);border:1.5px solid var(--border-light, #374151);border-radius:20px;width:100%;max-width:480px;padding:32px 30px;box-shadow:0 25px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;gap:22px;font-family:var(--font-body);color:var(--text-dark);box-sizing:border-box;max-height:calc(100vh - 40px);overflow-y:auto;">
         <!-- Header -->
-        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-light);padding-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-light);padding-bottom:18px;">
           <div>
-            <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin:0 0 4px 0;color:var(--text-dark);">Change Password</h3>
-            <p style="font-size:13px;color:var(--text-mid);margin:0;">Update your login credentials securely</p>
+            <h3 style="font-family:var(--font-display);font-size:19.5px;font-weight:700;margin:0 0 5px 0;color:var(--text-dark);">Change Password</h3>
+            <p style="font-size:13.5px;color:var(--text-mid);margin:0;">Update your login credentials securely</p>
           </div>
-          <button id="close-password-modal-btn" type="button" style="background:var(--bg-card, #F1F5F9);border:1px solid var(--border-light);cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;color:var(--text-dark);">
-            <i data-lucide="x" style="width:18px;height:18px;"></i>
+          <button id="close-password-modal-btn" type="button" style="background:var(--bg-card, #F1F5F9);border:1px solid var(--border-light);cursor:pointer;padding:7px;border-radius:9px;display:flex;align-items:center;color:var(--text-dark);">
+            <i data-lucide="x" style="width:19px;height:19px;"></i>
           </button>
         </div>
 
         <!-- Form -->
-        <form id="change-password-form" style="display:flex;flex-direction:column;gap:16px;margin:0;">
+        <form id="change-password-form" style="display:flex;flex-direction:column;gap:18px;margin:0;">
           <div>
-            <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-dark);">Current Password *</label>
+            <label style="display:block;font-size:13.5px;font-weight:600;margin-bottom:7px;color:var(--text-dark);">Current Password *</label>
             <div style="position:relative;">
-              <input type="password" id="cp-current-password" required style="width:100%;box-sizing:border-box;padding:10px 42px 10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="Enter current password">
-              <button type="button" id="toggle-cp-current-password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;color:var(--text-mid);border-radius:6px;outline:none;transition:color 0.2s;" aria-label="Show current password">
-                <i data-lucide="eye" style="width:18px;height:18px;"></i>
+              <input type="password" id="cp-current-password" required style="width:100%;box-sizing:border-box;padding:11.5px 44px 11.5px 15px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14.5px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="Enter current password">
+              <button type="button" id="toggle-cp-current-password" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;color:var(--text-mid);border-radius:6px;outline:none;transition:color 0.2s;" aria-label="Show current password">
+                <i data-lucide="eye" style="width:19px;height:19px;"></i>
               </button>
             </div>
           </div>
           <div>
-            <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-dark);">New Password *</label>
+            <label style="display:block;font-size:13.5px;font-weight:600;margin-bottom:7px;color:var(--text-dark);">New Password *</label>
             <div style="position:relative;">
-              <input type="password" id="cp-new-password" required minlength="8" style="width:100%;box-sizing:border-box;padding:10px 42px 10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="At least 8 characters">
-              <button type="button" id="toggle-cp-new-password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;color:var(--text-mid);border-radius:6px;outline:none;transition:color 0.2s;" aria-label="Show new password">
-                <i data-lucide="eye" style="width:18px;height:18px;"></i>
+              <input type="password" id="cp-new-password" required minlength="8" style="width:100%;box-sizing:border-box;padding:11.5px 44px 11.5px 15px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14.5px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="At least 8 characters">
+              <button type="button" id="toggle-cp-new-password" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;color:var(--text-mid);border-radius:6px;outline:none;transition:color 0.2s;" aria-label="Show new password">
+                <i data-lucide="eye" style="width:19px;height:19px;"></i>
               </button>
             </div>
           </div>
           <div>
-            <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-dark);">Confirm New Password *</label>
+            <label style="display:block;font-size:13.5px;font-weight:600;margin-bottom:7px;color:var(--text-dark);">Confirm New Password *</label>
             <div style="position:relative;">
-              <input type="password" id="cp-confirm-password" required minlength="8" style="width:100%;box-sizing:border-box;padding:10px 42px 10px 14px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="Re-enter new password">
-              <button type="button" id="toggle-cp-confirm-password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;color:var(--text-mid);border-radius:6px;outline:none;transition:color 0.2s;" aria-label="Show confirm new password">
-                <i data-lucide="eye" style="width:18px;height:18px;"></i>
+              <input type="password" id="cp-confirm-password" required minlength="8" style="width:100%;box-sizing:border-box;padding:11.5px 44px 11.5px 15px;border:1.5px solid var(--border-light);border-radius:10px;font-size:14.5px;outline:none;background:var(--bg-card, #fff);color:var(--text-dark);" placeholder="Re-enter new password">
+              <button type="button" id="toggle-cp-confirm-password" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;color:var(--text-mid);border-radius:6px;outline:none;transition:color 0.2s;" aria-label="Show confirm new password">
+                <i data-lucide="eye" style="width:19px;height:19px;"></i>
               </button>
             </div>
           </div>
 
           <!-- Password Requirements Instruction Box -->
-          <div style="background:rgba(245,158,11,0.12);border:1.5px solid rgba(245,158,11,0.25);border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start;">
-            <i data-lucide="shield-check" style="width:18px;height:18px;color:#F59E0B;flex-shrink:0;margin-top:2px;"></i>
+          <div style="background:rgba(245,158,11,0.12);border:1.5px solid rgba(245,158,11,0.25);border-radius:10px;padding:12px 15px;display:flex;gap:11px;align-items:flex-start;">
+            <i data-lucide="shield-check" style="width:19px;height:19px;color:#F59E0B;flex-shrink:0;margin-top:2px;"></i>
             <div>
-              <p style="margin:0 0 2px 0;font-size:12.5px;font-weight:700;color:var(--text-dark);">Password Requirements</p>
-              <p style="margin:0;font-size:12px;color:var(--text-mid);line-height:1.4;">Must be at least 8 characters long with a combination of letters, numbers, or symbols.</p>
+              <p style="margin:0 0 3px 0;font-size:13px;font-weight:700;color:var(--text-dark);">Password Requirements</p>
+              <p style="margin:0;font-size:12.5px;color:var(--text-mid);line-height:1.45;">Must be at least 8 characters long with a combination of letters, numbers, or symbols.</p>
             </div>
           </div>
 
-          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
-            <button type="button" id="cancel-cp-btn" style="padding:10px 18px;border:1.5px solid var(--border-light);background:var(--bg-card, #fff);border-radius:10px;font-size:13.5px;font-weight:600;color:var(--text-dark);cursor:pointer;transition:all 0.2s;">Cancel</button>
-            <button type="submit" id="submit-cp-btn" style="padding:10px 22px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px var(--primary-teal-glow);transition:all 0.2s;">Update Password</button>
+          <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:6px;">
+            <button type="button" id="cancel-cp-btn" style="padding:11px 20px;border:1.5px solid var(--border-light);background:var(--bg-card, #fff);border-radius:10px;font-size:14px;font-weight:600;color:var(--text-dark);cursor:pointer;transition:all 0.2s;">Cancel</button>
+            <button type="submit" id="submit-cp-btn" style="padding:11px 24px;border:none;background:var(--primary-teal);color:#fff;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px var(--primary-teal-glow);transition:all 0.2s;">Update Password</button>
           </div>
         </form>
       </div>
@@ -90,7 +90,7 @@
         const isHidden = inputEl.type === 'password';
         inputEl.type = isHidden ? 'text' : 'password';
         btnEl.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-        btnEl.innerHTML = `<i data-lucide="${isHidden ? 'eye-off' : 'eye'}" style="width:18px;height:18px;"></i>`;
+        btnEl.innerHTML = `<i data-lucide="${isHidden ? 'eye-off' : 'eye'}" style="width:19px;height:19px;"></i>`;
         if (global.lucide && typeof global.lucide.createIcons === 'function') {
           global.lucide.createIcons({ root: btnEl });
         }
