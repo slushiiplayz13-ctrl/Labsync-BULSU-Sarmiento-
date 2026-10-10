@@ -436,6 +436,37 @@
     return scheduleData;
   }
 
+  const PLACEHOLDER_SUBJECTS = ['tba', 'not specified', 'untitled', 'placeholder', 'no subject', 'none'];
+
+  /**
+   * Checks whether a schedule entry is valid and complete.
+   * @param {object} item
+   * @returns {boolean}
+   */
+  function isEntryValidAndComplete(item) {
+    if (!item || typeof item !== 'object') return false;
+    const subj = String(item.subject || item.Subject_Name || '').trim();
+    if (!subj || PLACEHOLDER_SUBJECTS.includes(subj.toLowerCase())) return false;
+    const day = item.day || item.Day_of_Week;
+    const validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    if (!day || !validDays.includes(day)) return false;
+    const start = String(item.startTime || item.Start_Time || '').trim().substring(0, 5);
+    const end = String(item.endTime || item.End_Time || '').trim().substring(0, 5);
+    if (!start || !end) return false;
+    if (start >= end) return false;
+    return true;
+  }
+
+  /**
+   * Filters a list of schedule entries for only valid, complete entries.
+   * @param {Array<object>} scheduleData
+   * @returns {Array<object>}
+   */
+  function getValidScheduleEntries(scheduleData) {
+    if (!Array.isArray(scheduleData)) return [];
+    return scheduleData.filter(isEntryValidAndComplete);
+  }
+
   /**
    * Saves current grid schedule to the backend database.
    * @returns {Promise<boolean>}
@@ -554,6 +585,20 @@
     }
 
     const scheduleData = getCurrentScheduleData();
+
+    // 0. Verify schedule contains at least one valid, complete entry
+    const validEntries = getValidScheduleEntries(scheduleData);
+    if (validEntries.length === 0) {
+      const msg = 'Cannot finalize an empty schedule. Please add at least one valid schedule entry before finalizing.';
+      if (global.showToast) {
+        global.showToast(msg, 'warning', 'Empty Schedule');
+      } else {
+        alert(msg);
+      }
+      const err = new Error(msg);
+      err.status = 400;
+      throw err;
+    }
 
     // 1. Client-side entry validation: time range
     for (let item of scheduleData) {
@@ -799,7 +844,9 @@
     startLockHeartbeat,
     stopLockHeartbeat,
     showLockBanner,
-    hideLockBanner
+    hideLockBanner,
+    isEntryValidAndComplete,
+    getValidScheduleEntries
   };
 
   global.schedulePersistence = schedulePersistence;
@@ -807,6 +854,8 @@
   global.saveCurrentSchedule = saveCurrentSchedule;
   global.finalizeCurrentSchedule = finalizeCurrentSchedule;
   global.getCurrentScheduleData = getCurrentScheduleData;
+  global.isEntryValidAndComplete = isEntryValidAndComplete;
+  global.getValidScheduleEntries = getValidScheduleEntries;
   global.resetTableToDefault = resetTableToDefault;
   global.deleteGridCardRef = deleteGridCardRef;
   global.updateStatusUI = updateStatusUI;

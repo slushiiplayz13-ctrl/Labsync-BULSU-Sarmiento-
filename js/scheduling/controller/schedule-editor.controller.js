@@ -918,12 +918,36 @@
               : null;
 
             if (type === 'finalize') {
+              const scheduleData = (persistence && typeof persistence.getCurrentScheduleData === 'function')
+                ? persistence.getCurrentScheduleData()
+                : [];
+              const validEntries = (persistence && typeof persistence.getValidScheduleEntries === 'function')
+                ? persistence.getValidScheduleEntries(scheduleData)
+                : scheduleData.filter(s => {
+                    if (!s || typeof s !== 'object') return false;
+                    const subj = String(s.subject || s.Subject_Name || '').trim();
+                    if (!subj || ['tba', 'not specified', 'untitled', 'placeholder', 'no subject', 'none'].includes(subj.toLowerCase())) return false;
+                    const day = s.day || s.Day_of_Week;
+                    if (!day || !['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].includes(day)) return false;
+                    const start = String(s.startTime || s.Start_Time || '').substring(0, 5);
+                    const end = String(s.endTime || s.End_Time || '').substring(0, 5);
+                    return start && end && start < end;
+                  });
+
+              if (validEntries.length === 0) {
+                const msg = 'Cannot finalize an empty schedule. Please add at least one valid schedule entry before finalizing.';
+                if (global.showToast) {
+                  global.showToast(msg, 'warning', 'Empty Schedule');
+                } else {
+                  alert(msg);
+                }
+                closeModal();
+                return;
+              }
+
               if (persistence && typeof persistence.finalizeCurrentSchedule === 'function') {
                 await persistence.finalizeCurrentSchedule();
               } else if (global.scheduleService && typeof global.scheduleService.finalizeSchedule === 'function') {
-                const scheduleData = (persistence && typeof persistence.getCurrentScheduleData === 'function')
-                  ? persistence.getCurrentScheduleData()
-                  : null;
                 const version = (persistence && typeof persistence.getCurrentVersion === 'function')
                   ? persistence.getCurrentVersion()
                   : null;
@@ -1027,6 +1051,32 @@
     const finalizeBtn = document.getElementById('finalize-schedule-btn');
     if (finalizeBtn) {
       finalizeBtn.addEventListener('click', () => {
+        const scheduleData = (persistence && typeof persistence.getCurrentScheduleData === 'function')
+          ? persistence.getCurrentScheduleData()
+          : [];
+        const validEntries = (persistence && typeof persistence.getValidScheduleEntries === 'function')
+          ? persistence.getValidScheduleEntries(scheduleData)
+          : scheduleData.filter(s => {
+              if (!s || typeof s !== 'object') return false;
+              const subj = String(s.subject || s.Subject_Name || '').trim();
+              if (!subj || ['tba', 'not specified', 'untitled', 'placeholder', 'no subject', 'none'].includes(subj.toLowerCase())) return false;
+              const day = s.day || s.Day_of_Week;
+              if (!day || !['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].includes(day)) return false;
+              const start = String(s.startTime || s.Start_Time || '').substring(0, 5);
+              const end = String(s.endTime || s.End_Time || '').substring(0, 5);
+              return start && end && start < end;
+            });
+
+        if (validEntries.length === 0) {
+          const msg = 'Cannot finalize an empty schedule. Please add at least one valid schedule entry before finalizing.';
+          if (global.showToast) {
+            global.showToast(msg, 'warning', 'Empty Schedule');
+          } else {
+            alert(msg);
+          }
+          return;
+        }
+
         openStatusConfirmModal('finalize');
       });
     }

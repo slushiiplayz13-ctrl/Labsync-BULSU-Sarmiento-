@@ -4,6 +4,27 @@ const scheduleRepository = require('../repositories/schedule.repository');
 const iotService = require('./iotService');
 
 const ALLOWED_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const PLACEHOLDER_SUBJECTS = ['tba', 'not specified', 'untitled', 'placeholder', 'no subject', 'none'];
+
+function getScheduleSubject(entry) {
+    if (!entry || typeof entry !== 'object') return '';
+    return String(entry.subject || entry.Subject_Name || '').trim();
+}
+
+function isValidScheduleEntry(entry) {
+    if (!entry || typeof entry !== 'object') return false;
+    const subj = getScheduleSubject(entry);
+    if (!subj || PLACEHOLDER_SUBJECTS.includes(subj.toLowerCase())) return false;
+    const day = entry.day || entry.Day_of_Week;
+    if (!day || !ALLOWED_DAYS.includes(day)) return false;
+    const start = entry.startTime || entry.Start_Time;
+    const end = entry.endTime || entry.End_Time;
+    if (!start || !end) return false;
+    const sStr = String(start).substring(0, 5);
+    const eStr = String(end).substring(0, 5);
+    if (sStr >= eStr) return false;
+    return true;
+}
 
 function isTimeOverlap(startTime1, endTime1, startTime2, endTime2) {
     if (!startTime1 || !endTime1 || !startTime2 || !endTime2) return false;
@@ -513,24 +534,61 @@ async function finalizeSchedule(params) {
         let sortedProfUserIds = [];
         const profNameToId = new Map();
 
+        if (version !== undefined && version !== null) {
+            const metadata = await scheduleRepository.getScheduleMetadata(roomId, ay, sem);
+            if (metadata && Number(version) !== Number(metadata.Version)) {
+                return {
+                    status: 409,
+                    error: 'This schedule was modified by another administrator. Please reload the latest schedule before saving your changes.'
+                };
+            }
+        }
+
         if (schedules !== undefined && schedules !== null) {
             if (!Array.isArray(schedules)) {
                 return { status: 400, error: 'schedules must be an Array of schedule entries.' };
             }
             scheduleList = deduplicateScheduleList(schedules);
 
+            if (scheduleList.length === 0) {
+                return {
+                    status: 400,
+                    error: 'Cannot finalize an empty schedule. Please add at least one valid schedule entry before finalizing.'
+                };
+            }
+
+            const hasAnyRealSubject = scheduleList.some(s => {
+                const subj = getScheduleSubject(s);
+                return subj && !PLACEHOLDER_SUBJECTS.includes(subj.toLowerCase());
+            });
+
+            if (!hasAnyRealSubject) {
+                return {
+                    status: 400,
+                    error: 'Cannot finalize an empty schedule. Please add at least one valid schedule entry before finalizing.'
+                };
+            }
+
             for (let i = 0; i < scheduleList.length; i++) {
                 const sched = scheduleList[i];
                 if (!sched) continue;
-                if (sched.day && !ALLOWED_DAYS.includes(sched.day)) {
-                    return { status: 400, error: `Invalid day: '${sched.day}'. Allowed days: ${ALLOWED_DAYS.join(', ')}.` };
+                const subj = getScheduleSubject(sched);
+                if (!subj || PLACEHOLDER_SUBJECTS.includes(subj.toLowerCase())) {
+                    return { status: 400, error: 'Incomplete schedule entry: Valid subject is required.' };
                 }
-                if (sched.startTime && sched.endTime) {
-                    const s = String(sched.startTime).substring(0, 5);
-                    const e = String(sched.endTime).substring(0, 5);
-                    if (s >= e) {
-                        return { status: 400, error: `Invalid time range: '${s}' - '${e}'. Start time must be before end time.` };
-                    }
+                const day = sched.day || sched.Day_of_Week;
+                if (!day || !ALLOWED_DAYS.includes(day)) {
+                    return { status: 400, error: `Invalid day: '${day || ''}'. Allowed days: ${ALLOWED_DAYS.join(', ')}.` };
+                }
+                const start = sched.startTime || sched.Start_Time;
+                const end = sched.endTime || sched.End_Time;
+                if (!start || !end) {
+                    return { status: 400, error: 'Incomplete schedule entry: Start time and end time are required.' };
+                }
+                const s = String(start).substring(0, 5);
+                const e = String(end).substring(0, 5);
+                if (s >= e) {
+                    return { status: 400, error: `Invalid time range: '${s}' - '${e}'. Start time must be before end time.` };
                 }
             }
 
@@ -627,8 +685,23 @@ async function finalizeSchedule(params) {
                 // Clear any working draft for this room/AY/sem
                 await scheduleRepository.clearRoomScheduleDraft(roomId, ay, sem, connection);
             } else {
-                const hasDraft = await scheduleRepository.hasRoomScheduleDraft(roomId, ay, sem, connection);
-                if (hasDraft) {
+                const [draftRows] = await scheduleRepository.findRoomScheduleDrafts(roomId, ay, sem, connection);
+                if (draftRows.length === 0) {
+                    const [officialRows] = await scheduleRepository.findRoomSchedules(roomId, ay, sem, connection);
+                    if (officialRows.length === 0) {
+                        return {
+                            status: 400,
+                            error: 'Cannot finalize an empty schedule. Please add at least one valid schedule entry before finalizing.'
+                        };
+                    }
+                } else {
+                    const validDraftRows = draftRows.filter(r => isValidScheduleEntry(r));
+                    if (validDraftRows.length === 0) {
+                        return {
+                            status: 400,
+                            error: 'Cannot finalize an empty schedule. Please add at least one valid schedule entry before finalizing.'
+                        };
+                    }
                     await scheduleRepository.publishDraftToOfficial(roomId, ay, sem, connection);
                     await scheduleRepository.clearRoomScheduleDraft(roomId, ay, sem, connection);
                 }
@@ -656,10 +729,14 @@ async function finalizeSchedule(params) {
             for (const r of allRooms) {
                 const hasDraft = await scheduleRepository.hasRoomScheduleDraft(r.Room_ID, ay, sem, connection);
                 if (hasDraft) {
-                    await scheduleRepository.publishDraftToOfficial(r.Room_ID, ay, sem, connection);
-                    await scheduleRepository.clearRoomScheduleDraft(r.Room_ID, ay, sem, connection);
+                    const [draftRows] = await scheduleRepository.findRoomScheduleDrafts(r.Room_ID, ay, sem, connection);
+                    const validDraftRows = draftRows.filter(row => isValidScheduleEntry(row));
+                    if (validDraftRows.length > 0) {
+                        await scheduleRepository.publishDraftToOfficial(r.Room_ID, ay, sem, connection);
+                        await scheduleRepository.clearRoomScheduleDraft(r.Room_ID, ay, sem, connection);
+                        await scheduleRepository.setRoomScheduleStatus(r.Room_ID, ay, sem, 'Finalized', userId, now, userId, connection);
+                    }
                 }
-                await scheduleRepository.setRoomScheduleStatus(r.Room_ID, ay, sem, 'Finalized', userId, now, userId, connection);
             }
             return {
                 status: 200,
