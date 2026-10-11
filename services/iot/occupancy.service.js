@@ -520,7 +520,7 @@ async function logOccupancy(reqBody = {}, device = null) {
                  FROM key_authorization_requests r
                  JOIN laboratories lab ON r.Room_ID = lab.Room_ID
                  WHERE r.User_ID = ? AND r.Status = 'APPROVED'
-                   AND (r.Reservation_Date > CURDATE() OR (r.Reservation_Date = CURDATE() AND r.End_Time >= CURTIME()))
+                   AND (r.Reservation_Date > CURDATE() OR (r.Reservation_Date = CURDATE() AND r.End_Time > CURTIME()))
                  ORDER BY r.Reservation_Date ASC, r.Start_Time ASC LIMIT 1`,
                 [user.User_ID]
             );
@@ -533,7 +533,7 @@ async function logOccupancy(reqBody = {}, device = null) {
                 const timeStr = String(up.Start_Time).slice(0, 5);
                 return iotResponseService.createErrorResponse(
                     403,
-                    `Your reservation for Room ${up.Room_Number} is scheduled for ${upDate} at ${timeStr}. Key pickup opens 15 minutes before class.`,
+                    `Your reservation for Room ${up.Room_Number} is scheduled for ${upDate} at ${timeStr}. Key pickup opens at session start time.`,
                     'Pickup Not Yet',
                     `Res: ${upDate}`.substring(0, 16)
                 );

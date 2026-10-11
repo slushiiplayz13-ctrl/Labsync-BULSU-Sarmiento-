@@ -158,7 +158,7 @@ async function runTests() {
             authMethod: 'QR Code'
         });
         assert.strictEqual(scanEarlyResult.status, 403, 'Premature pickup must be rejected');
-        assert.ok(scanEarlyResult.error && (scanEarlyResult.error.includes('Key pickup opens 15 minutes before class') || scanEarlyResult.error.includes('scheduled for')),
+        assert.ok(scanEarlyResult.error && (scanEarlyResult.error.includes('Key pickup opens at session start time') || scanEarlyResult.error.includes('scheduled for')),
             'Rejection message must inform user when their pickup window opens');
         console.log('✔ PASS: IoT Key Box prevents premature key claim with informative scheduling notice.');
 

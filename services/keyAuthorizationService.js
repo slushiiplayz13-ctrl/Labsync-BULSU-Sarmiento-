@@ -420,14 +420,12 @@ async function getFacultyRequestStatus(userId, options = {}) {
             const [yr, mo, da] = resDateStr.split('-').map(Number);
 
             const pickupStart = new Date(yr, mo - 1, da, sh, sm, 0);
-            pickupStart.setMinutes(pickupStart.getMinutes() - 15); // 15-minute early pickup buffer
-
             const pickupEnd = new Date(yr, mo - 1, da, eh, em, 0);
 
             const now = new Date();
-            request.isPickupReady = (request.Status === 'APPROVED' && now >= pickupStart && now <= pickupEnd);
+            request.isPickupReady = (request.Status === 'APPROVED' && now >= pickupStart && now < pickupEnd);
             request.isFutureReservation = (request.Status === 'APPROVED' && now < pickupStart);
-            request.isExpired = (now > pickupEnd && request.Status !== 'CLAIMED' && request.Status !== 'COMPLETED');
+            request.isExpired = (now >= pickupEnd && request.Status !== 'CLAIMED' && request.Status !== 'COMPLETED');
             request.Pickup_Opens_At = pickupStart.toISOString();
         } else {
             request.isPickupReady = request.Status === 'APPROVED';

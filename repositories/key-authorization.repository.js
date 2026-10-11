@@ -71,7 +71,7 @@ async function findActiveApprovedByUserIdAndRoom(userId, roomId, executor = db) 
            AND (
              (r.Reservation_Date IS NULL AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
              OR
-             (r.Reservation_Date = CURDATE() AND SUBTIME(r.Start_Time, '00:15:00') <= CURTIME() AND r.End_Time >= CURTIME())
+             (r.Reservation_Date = CURDATE() AND r.Start_Time <= CURTIME() AND r.End_Time > CURTIME())
              OR
              (r.Status = 'CLAIMED' AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
            )
@@ -90,7 +90,7 @@ async function findActiveApprovedByUserIdAndRoomNumber(userId, roomNumber, execu
            AND (
              (r.Reservation_Date IS NULL AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
              OR
-             (r.Reservation_Date = CURDATE() AND SUBTIME(r.Start_Time, '00:15:00') <= CURTIME() AND r.End_Time >= CURTIME())
+             (r.Reservation_Date = CURDATE() AND r.Start_Time <= CURTIME() AND r.End_Time > CURTIME())
              OR
              (r.Status = 'CLAIMED' AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
            )
@@ -109,7 +109,7 @@ async function findAnyActiveAuthorizationByUserId(userId, executor = db) {
            AND (
              (r.Reservation_Date IS NULL AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
              OR
-             (r.Reservation_Date = CURDATE() AND SUBTIME(r.Start_Time, '00:15:00') <= CURTIME() AND r.End_Time >= CURTIME())
+             (r.Reservation_Date = CURDATE() AND r.Start_Time <= CURTIME() AND r.End_Time > CURTIME())
              OR
              (r.Status = 'CLAIMED' AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
            )

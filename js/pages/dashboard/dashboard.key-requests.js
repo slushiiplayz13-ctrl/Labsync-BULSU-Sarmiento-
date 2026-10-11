@@ -83,12 +83,7 @@
 
   function getEarlyPickupTime(timeStr) {
     if (!timeStr) return '';
-    const [h, m] = timeStr.split(':').map(Number);
-    let totalMin = h * 60 + m - 15;
-    if (totalMin < 0) totalMin = 0;
-    const earlyH = Math.floor(totalMin / 60);
-    const earlyM = totalMin % 60;
-    return formatTime12h(`${String(earlyH).padStart(2, '0')}:${String(earlyM).padStart(2, '0')}`);
+    return formatTime12h(timeStr);
   }
 
   /**
@@ -274,7 +269,7 @@
               </div>
               <div>
                 <h4 class="fks-title">Reservation Confirmed — Room ${escapeText(req.Room_Number)}</h4>
-                <p class="fks-desc">Approved for <strong>${escapeText(formatDateFriendly(req.Reservation_Date_Str))}</strong> at <strong>${escapeText(formatTime12h(req.Start_Time_Str))} – ${escapeText(formatTime12h(req.End_Time_Str))}</strong>. Pickup opens 15 mins before session.</p>
+                <p class="fks-desc">Approved for <strong>${escapeText(formatDateFriendly(req.Reservation_Date_Str))}</strong> at <strong>${escapeText(formatTime12h(req.Start_Time_Str))} – ${escapeText(formatTime12h(req.End_Time_Str))}</strong>. Pickup opens at session start time.</p>
               </div>
             </div>
             <div class="fks-actions">
