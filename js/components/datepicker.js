@@ -103,6 +103,10 @@
       const startVal = document.getElementById('reportStartDate')?.value;
       if (startVal && /^\d{4}-\d{2}-\d{2}$/.test(startVal)) return startVal;
     }
+    if (input.id === 'filterDateTo') {
+      const startVal = document.getElementById('filterDateFrom')?.value;
+      if (startVal && /^\d{4}-\d{2}-\d{2}$/.test(startVal)) return startVal;
+    }
 
     return null;
   }
@@ -124,6 +128,10 @@
     }
     if (input.id === 'reportStartDate') {
       const endVal = document.getElementById('reportEndDate')?.value;
+      if (endVal && /^\d{4}-\d{2}-\d{2}$/.test(endVal)) return endVal;
+    }
+    if (input.id === 'filterDateFrom') {
+      const endVal = document.getElementById('filterDateTo')?.value;
       if (endVal && /^\d{4}-\d{2}-\d{2}$/.test(endVal)) return endVal;
     }
 
@@ -535,7 +543,9 @@
       '#editOjtStartDate',
       '#editOjtEndDate',
       '#reportStartDate',
-      '#reportEndDate'
+      '#reportEndDate',
+      '#filterDateFrom',
+      '#filterDateTo'
     ];
 
     document.querySelectorAll(selectors.join(',')).forEach(attach);

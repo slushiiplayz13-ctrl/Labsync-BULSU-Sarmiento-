@@ -24,6 +24,8 @@
   <script src="js/auth-check.js"></script>
   <script src="js/utils/core-utils.js"></script>
   <script src="js/utils/dom-utils.js"></script>
+  <script src="js/components/datepicker.js"></script>
+  <script src="js/components/custom-select.js"></script>
   <script src="js/services/report.service.js"></script>
   <script src="js/state/report.store.js"></script>
   <script src="js/reports/report.parser.js"></script>
@@ -466,14 +468,134 @@
       <!-- Main Content Card -->
       <div class="dashboard-card" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; min-height: 0;">
         <div class="reports-controls"
-          style="display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+          style="display: flex; gap: 10px; align-items: center; justify-content: flex-start; flex-wrap: wrap;">
           <div class="search-box" style="max-width: 440px; width: 100%; position: relative;">
             <i data-lucide="search"
               style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
             <input type="text" id="reportSearchInput" class="search-input"
               placeholder="Search by room, PC number, issue details, or student name...">
           </div>
-          <div id="completedToggleContainer"></div>
+          <div class="reports-filter-container" id="reportsFilterContainer">
+            <button type="button" class="btn-reports-filter" id="btnReportsFilter" aria-label="Filter reports" aria-expanded="false" aria-haspopup="dialog" aria-controls="reportsFilterDropdown">
+              <i data-lucide="sliders-horizontal" style="width:16px;height:16px;flex-shrink:0;"></i>
+              <span class="btn-text-filter">Filter</span>
+              <span class="filter-count-badge" id="reportsFilterBadge" style="display:none;" aria-hidden="true">0</span>
+            </button>
+            <div class="reports-filter-dropdown" id="reportsFilterDropdown" role="dialog" aria-labelledby="filterDropdownTitle" style="display:none;">
+              <div class="filter-dropdown-header">
+                <div class="filter-header-left">
+                  <i data-lucide="sliders-horizontal" style="width:16px;height:16px;color:var(--primary-teal);"></i>
+                  <h4 id="filterDropdownTitle" class="filter-dropdown-title">Filter Reports</h4>
+                </div>
+                <button type="button" class="btn-filter-close" id="btnCloseReportsFilter" aria-label="Close filter panel">
+                  <i data-lucide="x" style="width:16px;height:16px;"></i>
+                </button>
+              </div>
+              <div class="filter-dropdown-body">
+                <div class="filter-field-group">
+                  <label for="filterIssueType" class="filter-field-label">Issue Type</label>
+                  <select id="filterIssueType" class="filter-field-select" style="display:none;" tabindex="-1" aria-hidden="true">
+                    <option value="">All Issue Types</option>
+                  </select>
+                  <div class="custom-select-wrapper filter-custom-select" id="customSelectIssueType">
+                    <div class="custom-select-trigger" role="combobox" aria-haspopup="listbox" aria-expanded="false" tabindex="0">
+                      <span class="custom-select-value">All Issue Types</span>
+                      <i data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="custom-select-dropdown" role="listbox"></div>
+                  </div>
+                </div>
+                <div class="filter-field-row">
+                  <div class="filter-field-group">
+                    <label for="filterRoomNumber" class="filter-field-label">Room Number</label>
+                    <select id="filterRoomNumber" class="filter-field-select" style="display:none;" tabindex="-1" aria-hidden="true">
+                      <option value="">All Rooms</option>
+                    </select>
+                    <div class="custom-select-wrapper filter-custom-select" id="customSelectRoomNumber">
+                      <div class="custom-select-trigger" role="combobox" aria-haspopup="listbox" aria-expanded="false" tabindex="0">
+                        <span class="custom-select-value">All Rooms</span>
+                        <i data-lucide="chevron-down"></i>
+                      </div>
+                      <div class="custom-select-dropdown" role="listbox"></div>
+                    </div>
+                  </div>
+                  <div class="filter-field-group">
+                    <label for="filterPCNumber" class="filter-field-label">PC Number</label>
+                    <select id="filterPCNumber" class="filter-field-select" style="display:none;" tabindex="-1" aria-hidden="true">
+                      <option value="">All PCs</option>
+                    </select>
+                    <div class="custom-select-wrapper filter-custom-select" id="customSelectPCNumber">
+                      <div class="custom-select-trigger" role="combobox" aria-haspopup="listbox" aria-expanded="false" tabindex="0">
+                        <span class="custom-select-value">All PCs</span>
+                        <i data-lucide="chevron-down"></i>
+                      </div>
+                      <div class="custom-select-dropdown" role="listbox"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="filter-field-group">
+                  <label for="filterStatus" class="filter-field-label">Issue Status</label>
+                  <select id="filterStatus" class="filter-field-select" style="display:none;" tabindex="-1" aria-hidden="true">
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                  </select>
+                  <div class="custom-select-wrapper filter-custom-select" id="customSelectStatus">
+                    <div class="custom-select-trigger" role="combobox" aria-haspopup="listbox" aria-expanded="false" tabindex="0">
+                      <span class="custom-select-value">All Statuses</span>
+                      <i data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="custom-select-dropdown" role="listbox"></div>
+                  </div>
+                </div>
+                <div class="filter-field-group">
+                  <label class="filter-field-label">Date Reported</label>
+                  <div class="filter-date-row">
+                    <div class="filter-date-col">
+                      <span class="filter-date-sublabel">From</span>
+                      <div class="labsync-date-input-container">
+                        <input type="text" id="filterDateFrom" class="filter-field-input custom-datepicker-input" placeholder="Start Date" readonly autocomplete="off" data-datepicker="true">
+                        <span class="labsync-date-icon"><i data-lucide="calendar"></i></span>
+                      </div>
+                    </div>
+                    <div class="filter-date-col">
+                      <span class="filter-date-sublabel">To</span>
+                      <div class="labsync-date-input-container">
+                        <input type="text" id="filterDateTo" class="filter-field-input custom-datepicker-input" placeholder="End Date" readonly autocomplete="off" data-datepicker="true">
+                        <span class="labsync-date-icon"><i data-lucide="calendar"></i></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="filterDateError" class="filter-validation-error" style="display:none;"></div>
+                </div>
+                <div class="filter-field-group">
+                  <label for="filterStudentSection" class="filter-field-label">Student Section</label>
+                  <select id="filterStudentSection" class="filter-field-select" style="display:none;" tabindex="-1" aria-hidden="true">
+                    <option value="">All Sections</option>
+                  </select>
+                  <div class="custom-select-wrapper filter-custom-select" id="customSelectStudentSection">
+                    <div class="custom-select-trigger" role="combobox" aria-haspopup="listbox" aria-expanded="false" tabindex="0">
+                      <span class="custom-select-value">All Sections</span>
+                      <i data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="custom-select-dropdown" role="listbox"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="filter-dropdown-footer">
+                <button type="button" class="btn-filter-reset" id="btnClearReportsFilter">Clear All</button>
+                <button type="button" class="btn-filter-apply" id="btnApplyReportsFilter">Apply Filters</button>
+              </div>
+            </div>
+          </div>
+          <div id="completedToggleContainer" style="margin-left: auto;"></div>
+        </div>
+
+        <div id="reportsActiveFilterBar" class="reports-active-filter-bar" style="display:none;">
+          <span class="active-filter-label"><i data-lucide="filter" style="width:12px;height:12px;"></i> Active:</span>
+          <div id="reportsActiveFilterChips" class="active-filter-chips"></div>
+          <button type="button" id="btnQuickClearFilters" class="btn-quick-clear-filters">Clear All</button>
         </div>
 
         <div id="dynamicReportsList">

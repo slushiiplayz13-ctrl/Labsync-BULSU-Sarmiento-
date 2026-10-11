@@ -31,10 +31,20 @@
       : (global.allReports || []);
 
     let resolved = allReports.filter(r => (r.Status || '').toLowerCase() === 'resolved');
+    const filters = global.reportFilters || {};
 
-    const filters = global.reportFilters;
     if (filters && typeof filters.filterByTimeRange === 'function') {
       resolved = filters.filterByTimeRange(resolved, _modalTimeFilter);
+    }
+
+    const activeFilters = (filters && typeof filters.getActiveFilters === 'function')
+      ? filters.getActiveFilters()
+      : {};
+    const modalFilters = Object.assign({}, activeFilters);
+    delete modalFilters.status;
+
+    if (filters && typeof filters.matchesReportFilters === 'function') {
+      resolved = resolved.filter(r => filters.matchesReportFilters(r, modalFilters));
     }
 
     if (query) {
