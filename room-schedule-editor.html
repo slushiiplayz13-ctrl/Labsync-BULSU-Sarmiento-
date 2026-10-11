@@ -28,6 +28,25 @@
     })();
   </script>
   <script src="js/auth-check.js"></script>
+  <script>
+    (function tagRoleCoordinator() {
+      try {
+        var rawUser = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || 'null');
+        var user = (rawUser && (rawUser.user || rawUser)) || null;
+        var role = String((user && (user.role || user.Role)) || '').trim().toLowerCase();
+        if (role && (!role.includes('head') || role.includes('coordinator'))) {
+          document.documentElement.classList.add('role-coordinator');
+          if (document.body) {
+            document.body.classList.add('role-coordinator');
+          } else {
+            document.addEventListener('DOMContentLoaded', function () {
+              if (document.body) document.body.classList.add('role-coordinator');
+            });
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
 
 
   <style>
@@ -2029,8 +2048,23 @@
     body.room-locked .grid-card-resize-handle,
     body.room-locked .delete-block-btn,
     body.room-locked #finalize-schedule-btn,
-    body.room-locked #reopen-schedule-btn {
+    body.room-locked #reopen-schedule-btn,
+    html.role-coordinator #finalize-schedule-btn,
+    html.role-coordinator #reopen-schedule-btn,
+    body.role-coordinator #finalize-schedule-btn,
+    body.role-coordinator #reopen-schedule-btn,
+    .seh-actions button[hidden],
+    .seh-actions button.hidden,
+    .seh-actions button.role-hidden {
       display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      width: 0 !important;
+      min-width: 0 !important;
+      max-width: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      flex: 0 0 0 !important;
     }
     body.room-locked #save-schedule-btn,
     body.room-locked #save-schedule-btn:disabled {
@@ -2289,12 +2323,14 @@
           <!-- Actions -->
           <div class="seh-actions" style="display: flex; align-items: center; gap: 10px;">
             <button id="finalize-schedule-btn" type="button"
+              hidden class="role-hidden" aria-hidden="true"
               style="display: none; align-items: center; gap: 7px; background: #059669; color: #ffffff; border: none; padding: 9px 18px; border-radius: 20px; font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);"
               onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
               <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
               Finalize Official Schedule
             </button>
             <button id="reopen-schedule-btn" type="button"
+              hidden class="role-hidden" aria-hidden="true"
               style="display: none; align-items: center; gap: 7px; background: #D97706; color: #ffffff; border: none; padding: 9px 18px; border-radius: 20px; font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);"
               onmouseover="this.style.background='#B45309'" onmouseout="this.style.background='#D97706'">
               <i data-lucide="lock-open" style="width: 16px; height: 16px;"></i>

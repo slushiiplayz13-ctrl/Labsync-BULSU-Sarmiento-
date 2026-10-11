@@ -137,6 +137,20 @@
     }
   }
 
+  function checkIsITDeptHead() {
+    try {
+      const cached = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('labsync_user')) ||
+        (typeof localStorage !== 'undefined' && localStorage.getItem('user'));
+      if (cached) {
+        const u = JSON.parse(cached);
+        const user = u.user || u;
+        const role = String(user.role || user.Role || '').trim().toLowerCase();
+        return (role.includes('head') && !role.includes('coordinator'));
+      }
+    } catch (e) {}
+    return false;
+  }
+
   function updateStatusUI(status = 'Draft', version = 1, finalizedBy = null, finalizedAt = null) {
     const badge = document.getElementById('schedule-status-badge');
     const badgeText = document.getElementById('schedule-status-text');
@@ -145,16 +159,15 @@
     const saveBtn = document.getElementById('save-schedule-btn');
     const printBtn = document.getElementById('print-schedule-btn');
 
-    let isITDeptHead = false;
-    try {
-      const cached = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
-      if (cached) {
-        const u = JSON.parse(cached);
-        const user = u.user || u;
-        const role = String(user.role || user.Role || '').trim().toLowerCase();
-        isITDeptHead = role.includes('head');
+    const isITDeptHead = checkIsITDeptHead();
+
+    if (typeof document !== 'undefined' && document.body && document.body.classList) {
+      if (!isITDeptHead) {
+        document.body.classList.add('role-coordinator');
+      } else {
+        document.body.classList.remove('role-coordinator');
       }
-    } catch (e) {}
+    }
 
     const isFinalized = (status === 'Finalized');
     const isReadOnly = (isFinalized || _isLockedByOther || !_currentEditSessionToken);
@@ -179,12 +192,36 @@
       }
     }
 
+    function setOfficialControlVisibility(btn, isVisible) {
+      if (!btn) return;
+      if (isVisible) {
+        btn.removeAttribute('hidden');
+        if (btn.classList && typeof btn.classList.remove === 'function') {
+          btn.classList.remove('hidden', 'role-hidden');
+        }
+        btn.disabled = false;
+        btn.removeAttribute('aria-hidden');
+        if (btn.style && typeof btn.style.removeProperty === 'function') {
+          btn.style.removeProperty('display');
+        }
+        btn.style.display = 'inline-flex';
+      } else {
+        btn.setAttribute('hidden', '');
+        if (btn.classList && typeof btn.classList.add === 'function') {
+          btn.classList.add('hidden', 'role-hidden');
+        }
+        btn.disabled = true;
+        btn.setAttribute('aria-hidden', 'true');
+        btn.style.display = 'none';
+      }
+    }
+
     if (isITDeptHead && !_isLockedByOther) {
-      if (finalizeBtn) finalizeBtn.style.display = isFinalized ? 'none' : 'inline-flex';
-      if (reopenBtn) reopenBtn.style.display = isFinalized ? 'inline-flex' : 'none';
+      setOfficialControlVisibility(finalizeBtn, !isFinalized);
+      setOfficialControlVisibility(reopenBtn, isFinalized);
     } else {
-      if (finalizeBtn) finalizeBtn.style.display = 'none';
-      if (reopenBtn) reopenBtn.style.display = 'none';
+      setOfficialControlVisibility(finalizeBtn, false);
+      setOfficialControlVisibility(reopenBtn, false);
     }
 
     // Toggle view mode / editing controls & Print availability
@@ -566,6 +603,18 @@
    * @returns {Promise<object>}
    */
   async function finalizeCurrentSchedule() {
+    if (!checkIsITDeptHead()) {
+      const msg = 'Only the IT Department Head can finalize the official schedule.';
+      if (global.showToast) {
+        global.showToast(msg, 'error', 'Permission Denied');
+      } else {
+        alert(msg);
+      }
+      const err = new Error(msg);
+      err.status = 403;
+      throw err;
+    }
+
     const context = global.slotMath ? global.slotMath.getScheduleContext() : {};
     const roomNum = context.roomNumber || '204';
     const academicYear = context.academicYear;

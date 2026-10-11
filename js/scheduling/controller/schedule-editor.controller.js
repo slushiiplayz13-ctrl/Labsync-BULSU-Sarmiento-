@@ -845,8 +845,36 @@
       });
     }
 
+    function isUserITDeptHead() {
+      try {
+        const rawUser = (typeof global !== 'undefined' && global.currentUser) ||
+          JSON.parse(
+            (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('labsync_user')) ||
+            (typeof localStorage !== 'undefined' && localStorage.getItem('user')) ||
+            'null'
+          );
+        const user = (rawUser && (rawUser.user || rawUser)) || null;
+        const role = String((user && (user.role || user.Role)) || '').trim().toLowerCase();
+        return (role.includes('head') && !role.includes('coordinator'));
+      } catch (e) {
+        return false;
+      }
+    }
+
     // Modal Helper: Finalize & Reopen Official Schedule
     function openStatusConfirmModal(type) {
+      if (!isUserITDeptHead()) {
+        const msg = (type === 'finalize')
+          ? 'Only the IT Department Head can finalize the official schedule.'
+          : 'Only the IT Department Head can reopen a finalized schedule.';
+        if (global.showToast) {
+          global.showToast(msg, 'error', 'Permission Denied');
+        } else {
+          alert(msg);
+        }
+        return;
+      }
+
       const modal = document.getElementById('schedule-status-confirm-modal');
       if (!modal) return;
 
@@ -1050,7 +1078,21 @@
     // Finalize schedule button binding
     const finalizeBtn = document.getElementById('finalize-schedule-btn');
     if (finalizeBtn) {
-      finalizeBtn.addEventListener('click', () => {
+      finalizeBtn.addEventListener('click', (e) => {
+        if (!isUserITDeptHead()) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          const msg = 'Only the IT Department Head can finalize the official schedule.';
+          if (global.showToast) {
+            global.showToast(msg, 'error', 'Permission Denied');
+          } else {
+            alert(msg);
+          }
+          return;
+        }
+
         const scheduleData = (persistence && typeof persistence.getCurrentScheduleData === 'function')
           ? persistence.getCurrentScheduleData()
           : [];
@@ -1084,7 +1126,20 @@
     // Reopen schedule button binding
     const reopenBtn = document.getElementById('reopen-schedule-btn');
     if (reopenBtn) {
-      reopenBtn.addEventListener('click', () => {
+      reopenBtn.addEventListener('click', (e) => {
+        if (!isUserITDeptHead()) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          const msg = 'Only the IT Department Head can reopen a finalized schedule.';
+          if (global.showToast) {
+            global.showToast(msg, 'error', 'Permission Denied');
+          } else {
+            alert(msg);
+          }
+          return;
+        }
         openStatusConfirmModal('reopen');
       });
     }

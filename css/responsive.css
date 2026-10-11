@@ -1116,9 +1116,9 @@
     width: 100% !important;
   }
 
-  body[data-page="schedule-editor"] .schedule-editor-header .seh-actions button,
-  body[data-page="schedule-editor"] #print-schedule-btn,
-  body[data-page="schedule-editor"] #save-schedule-btn {
+  body[data-page="schedule-editor"] .schedule-editor-header .seh-actions button:not([hidden]):not(.hidden):not(.role-hidden),
+  body[data-page="schedule-editor"] #print-schedule-btn:not([hidden]):not(.hidden):not(.role-hidden),
+  body[data-page="schedule-editor"] #save-schedule-btn:not([hidden]):not(.hidden):not(.role-hidden) {
     flex: 1 1 0 !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -1130,6 +1130,26 @@
     white-space: nowrap !important;
     height: 40px !important;
     min-width: 0 !important;
+  }
+
+  body[data-page="schedule-editor"] .schedule-editor-header .seh-actions button[hidden],
+  body[data-page="schedule-editor"] .schedule-editor-header .seh-actions button.hidden,
+  body[data-page="schedule-editor"] .schedule-editor-header .seh-actions button.role-hidden,
+  body[data-page="schedule-editor"].role-coordinator #finalize-schedule-btn,
+  body[data-page="schedule-editor"].role-coordinator #reopen-schedule-btn,
+  body.role-coordinator #finalize-schedule-btn,
+  body.role-coordinator #reopen-schedule-btn,
+  html.role-coordinator #finalize-schedule-btn,
+  html.role-coordinator #reopen-schedule-btn {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 0 !important;
   }
 
   /* ─── Mobile Schedule Day Tabs & Streamlined Controls (<= 1024px) ─── */

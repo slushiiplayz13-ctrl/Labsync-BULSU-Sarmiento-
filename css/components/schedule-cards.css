@@ -2384,9 +2384,9 @@ html.high-contrast .calendar-grid-body {
     width: 100% !important;
   }
 
-  .seh-actions button,
-  #print-schedule-btn,
-  #save-schedule-btn {
+  .seh-actions button:not([hidden]):not(.hidden):not(.role-hidden),
+  #print-schedule-btn:not([hidden]):not(.hidden):not(.role-hidden),
+  #save-schedule-btn:not([hidden]):not(.hidden):not(.role-hidden) {
     flex: 1 1 0 !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -2398,6 +2398,24 @@ html.high-contrast .calendar-grid-body {
     white-space: nowrap !important;
     height: 40px !important;
     min-width: 0 !important;
+  }
+
+  .seh-actions button[hidden],
+  .seh-actions button.hidden,
+  .seh-actions button.role-hidden,
+  body.role-coordinator #finalize-schedule-btn,
+  body.role-coordinator #reopen-schedule-btn,
+  html.role-coordinator #finalize-schedule-btn,
+  html.role-coordinator #reopen-schedule-btn {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 0 !important;
   }
 
   .editor-layout-container {
