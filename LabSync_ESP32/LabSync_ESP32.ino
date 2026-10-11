@@ -63,12 +63,23 @@ unsigned long unauthorizedAlarmStarted204 = 0;
 unsigned long wrongKeyAlarmStarted203 = 0;
 unsigned long wrongKeyAlarmStarted204 = 0;
 
+// QR Authorization State Machine
+enum QrAuthState {
+  QR_AUTH_IDLE = 0,
+  QR_AUTH_VERIFYING = 1,
+  QR_AUTH_GRANTED_AWAITING_TAKE = 2
+};
+
 // Authorization Window State (Thread-safe critical section)
 portMUX_TYPE authMux = portMUX_INITIALIZER_UNLOCKED;
+volatile QrAuthState qrAuthState = QR_AUTH_IDLE;
+volatile uint32_t activeScanId = 0;
+volatile unsigned long verifyingStartedMs = 0;
 bool isAuthorized = false;
 unsigned long authExpiresAt = 0;
 const unsigned long AUTH_WINDOW_MS = 15000; // 15-second key retrieval countdown
 const unsigned long QR_AUTH_DISPLAY_MS = 3500; // ~3.5-second readable display for authorization result and user name
+const unsigned long QR_VERIFY_TIMEOUT_MS = 12000; // 12-second safety timeout for in-flight verification
 int lastDisplayedCountdown = -1;
 
 // Periodic Heartbeat Interval
@@ -455,6 +466,7 @@ void processQrScanHttp(const char* scannedToken, const char* room, uint32_t scan
     reqDoc["qrString"] = scannedToken;
     reqDoc["roomNumber"] = room;
     reqDoc["authMethod"] = "QR Code";
+    reqDoc["authWindowMs"] = AUTH_WINDOW_MS;
     if (scanId > 0) {
       reqDoc["scanId"] = scanId;
     }
@@ -496,17 +508,48 @@ void processQrScanHttp(const char* scannedToken, const char* room, uint32_t scan
       }
     }
 
+    bool isStillActive = false;
+    portENTER_CRITICAL(&authMux);
+    if (scanId == activeScanId && qrAuthState == QR_AUTH_VERIFYING) {
+      isStillActive = true;
+    }
+    portEXIT_CRITICAL(&authMux);
+
+    if (!isStillActive) {
+      Serial.printf("[DIAG QR-Scan #%lu] Obsolete/stale response ignored (activeScanId=%lu, qrAuthState=%d)\n",
+                    (unsigned long)scanId, (unsigned long)activeScanId, (int)qrAuthState);
+      http.end();
+      client.stop();
+      lastCompletedNetOp = "QR_SCAN_STALE";
+      lastCompletedNetOpDurationMs = millis() - activeNetOpStartMs;
+      activeNetOp = "IDLE";
+      return;
+    }
+
     if (httpResponseCode == 200) {
       portENTER_CRITICAL(&authMux);
+      qrAuthState = QR_AUTH_GRANTED_AWAITING_TAKE;
       isAuthorized = true;
       authExpiresAt = millis() + AUTH_WINDOW_MS;
       lastDisplayedCountdown = -1;
       portEXIT_CRITICAL(&authMux);
 
       triggerBuzzer(80, 2);
-      safeLcdPrint(line1, line2);
-      lcdRevertAt = millis() + QR_AUTH_DISPLAY_MS; // Keep "ACCESS GRANTED" and user name visible for ~3.5s before countdown display takes over
+      safeLcdPrint("ACCESS GRANTED  ", "TAKE YOUR KEY   ");
+      lcdRevertAt = millis() + QR_AUTH_DISPLAY_MS; // Keep "ACCESS GRANTED" / "TAKE YOUR KEY" visible for ~3.5s before countdown display takes over
     } else {
+      portENTER_CRITICAL(&authMux);
+      qrAuthState = QR_AUTH_IDLE;
+      activeScanId = 0;
+      isAuthorized = false;
+      authExpiresAt = 0;
+      portEXIT_CRITICAL(&authMux);
+
+      if (httpResponseCode < 0) {
+        line1 = "NETWORK ERROR   ";
+        line2 = "PLEASE RETRY    ";
+      }
+
       triggerBuzzer(250, 1);
       safeLcdPrint(line1, line2);
       lcdRevertAt = millis() + 2500;
@@ -518,6 +561,15 @@ void processQrScanHttp(const char* scannedToken, const char* room, uint32_t scan
     lastCompletedNetOpDurationMs = millis() - activeNetOpStartMs;
     activeNetOp = "IDLE";
   } else {
+    portENTER_CRITICAL(&authMux);
+    if (scanId == activeScanId) {
+      qrAuthState = QR_AUTH_IDLE;
+      activeScanId = 0;
+      isAuthorized = false;
+      authExpiresAt = 0;
+    }
+    portEXIT_CRITICAL(&authMux);
+
     triggerBuzzer(250, 1);
     safeLcdPrint("Wi-Fi Error!", "Not Connected");
     lcdRevertAt = millis() + 2000;
@@ -568,7 +620,19 @@ void networkWorkerTask(void* pvParameters) {
             portEXIT_CRITICAL(&stateMux);
           }
         } else if (msg.type == MSG_QR_SCAN) {
-          processQrScanHttp(msg.strPayload, msg.room, msg.scanId, msg.scanReceivedMs, msg.enqueuedMs, msg.rssiAtScan);
+          bool shouldProcess = false;
+          portENTER_CRITICAL(&authMux);
+          if (msg.scanId == activeScanId && qrAuthState == QR_AUTH_VERIFYING) {
+            shouldProcess = true;
+          }
+          portEXIT_CRITICAL(&authMux);
+
+          if (shouldProcess) {
+            processQrScanHttp(msg.strPayload, msg.room, msg.scanId, msg.scanReceivedMs, msg.enqueuedMs, msg.rssiAtScan);
+          } else {
+            Serial.printf("[NetWorker] Dropped stale/superseded scan #%lu (activeScanId=%lu, qrAuthState=%d)\n",
+                          (unsigned long)msg.scanId, (unsigned long)activeScanId, (int)qrAuthState);
+          }
         }
       } else {
         // Wi-Fi offline: guarantee coalesced state retention
@@ -589,6 +653,17 @@ void networkWorkerTask(void* pvParameters) {
             strncpy(alertEventId204, msg.eventId, sizeof(alertEventId204) - 1);
           }
           portEXIT_CRITICAL(&stateMux);
+        } else if (msg.type == MSG_QR_SCAN) {
+          portENTER_CRITICAL(&authMux);
+          if (msg.scanId == activeScanId) {
+            qrAuthState = QR_AUTH_IDLE;
+            activeScanId = 0;
+            isAuthorized = false;
+          }
+          portEXIT_CRITICAL(&authMux);
+          triggerBuzzer(250, 1);
+          safeLcdPrint("Wi-Fi Error!", "Not Connected");
+          lcdRevertAt = millis() + 2000;
         }
       }
     }
@@ -725,9 +800,9 @@ void dispatchSecurityAlertAsync(const char* room, const char* alertType, const c
   }
 }
 
-void dispatchQrScanAsync(const String& scannedCode, unsigned long scanReceivedMs = 0) {
+void dispatchQrScanAsync(const String& scannedCode, unsigned long scanReceivedMs = 0, uint32_t scanId = 0) {
   if (netQueue != NULL) {
-    uint32_t scanId = ++globalScanCounter;
+    if (scanId == 0) scanId = ++globalScanCounter;
     unsigned long enqueuedMs = millis();
     if (scanReceivedMs == 0) scanReceivedMs = enqueuedMs;
 
@@ -757,6 +832,14 @@ void dispatchQrScanAsync(const String& scannedCode, unsigned long scanReceivedMs
       Serial.printf("[DIAG QR-Scan #%lu] ❌ Queue Full! Dropped scan | QueueDepth=%u/%d | RSSI=%d dBm | InFlightOp=%s (%lu ms)\n",
                     (unsigned long)scanId, (unsigned int)queueDepthBefore, NET_QUEUE_LEN, (int)rssi,
                     inFlightOp, inFlightDur);
+      portENTER_CRITICAL(&authMux);
+      if (activeScanId == scanId && qrAuthState == QR_AUTH_VERIFYING) {
+        qrAuthState = QR_AUTH_IDLE;
+        activeScanId = 0;
+      }
+      portEXIT_CRITICAL(&authMux);
+      safeLcdPrint("Queue Full!     ", "Please Retry    ");
+      lcdRevertAt = millis() + 2000;
     }
   }
 }
@@ -830,6 +913,8 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
         if (isAuthorized && millis() < authExpiresAt) {
           isAuthorized = false; // strictly single-use
           authExpiresAt = 0;
+          qrAuthState = QR_AUTH_IDLE;
+          activeScanId = 0;
           hasValidAuth = true;
         }
         portEXIT_CRITICAL(&authMux);
@@ -976,52 +1061,88 @@ void setup() {
 void loop() {
   bool alarmActive = (isUnauthorized203 || isUnauthorized204 || isWrongKey203 || isWrongKey204);
 
-  // 1. GM65 Scanner Detection with anti-spam cooldown
-  static unsigned long lastScanTime = 0;
+  // 1. GM65 Scanner Detection with state machine and lock
   String scannedCode = readScannedCode();
   if (scannedCode.length() > 0) {
     unsigned long scanCompleteMs = millis();
-    if (millis() - lastScanTime >= 1200) {
-      lastScanTime = millis();
-      buzzerOff();
 
-      // Immediate local verification screen
-      safeLcdPrint("Verifying QR...", "Please wait...");
+    QrAuthState curState;
+    uint32_t curScanId;
+    bool curAuth;
+    unsigned long curAuthExpires;
+    portENTER_CRITICAL(&authMux);
+    curState = qrAuthState;
+    curScanId = activeScanId;
+    curAuth = isAuthorized;
+    curAuthExpires = authExpiresAt;
+    portEXIT_CRITICAL(&authMux);
 
-      // Offload HTTP verification asynchronously to Core 0 network worker!
-      dispatchQrScanAsync(scannedCode, scanCompleteMs);
-      lastScanTime = millis();
+    if (curState == QR_AUTH_VERIFYING) {
+      // Discard repeated scan while first scan is verifying
+      Serial.printf("[GM65] Scan ignored: Verification already in progress (Scan #%lu)\n", (unsigned long)curScanId);
+      clearSerialBuffer();
+    } else if (curState == QR_AUTH_GRANTED_AWAITING_TAKE || curAuth) {
+      // Discard competing scan while authorization is awaiting physical key withdrawal
+      Serial.printf("[GM65] Scan ignored: Authorization active, awaiting physical key withdrawal (Expires in %lu ms)\n",
+                    (curAuthExpires > millis()) ? (curAuthExpires - millis()) : 0);
       clearSerialBuffer();
 
-      // Handle retroactive authorization if alarm was active
-      if (isUnauthorized203 || isUnauthorized204) {
-        if (isUnauthorized204 && !isUnauthorized203) {
-          isUnauthorized204 = false;
-          unauthorizedAlarmStarted204 = 0;
-          dispatchKeyStatusAsync("204", false);
-        } else if (isUnauthorized203 && !isUnauthorized204) {
-          isUnauthorized203 = false;
-          unauthorizedAlarmStarted203 = 0;
-          dispatchKeyStatusAsync("203", false);
-        } else if (isUnauthorized203 && isUnauthorized204) {
-          isUnauthorized204 = false;
-          isUnauthorized203 = false;
-          unauthorizedAlarmStarted204 = 0;
-          unauthorizedAlarmStarted203 = 0;
-          dispatchKeyStatusAsync("204", false);
-          dispatchKeyStatusAsync("203", false);
-        }
-        portENTER_CRITICAL(&authMux);
-        isAuthorized = false;
-        portEXIT_CRITICAL(&authMux);
-
-        buzzerOff();
-        triggerBuzzer(80, 2);
-        safeLcdPrint("Access Granted! ", "Key Authorized  ");
+      static unsigned long lastLockedMsgMs = 0;
+      if (millis() - lastLockedMsgMs >= 2000) {
+        lastLockedMsgMs = millis();
+        safeLcdPrint("TAKE YOUR KEY   ", "SCAN LOCKED     ");
         lcdRevertAt = millis() + 1500;
       }
     } else {
-      clearSerialBuffer();
+      // Idle: Atomically claim the authorization lock for this scan
+      uint32_t newScanId = 0;
+      portENTER_CRITICAL(&authMux);
+      if (qrAuthState == QR_AUTH_IDLE && !isAuthorized) {
+        newScanId = ++globalScanCounter;
+        activeScanId = newScanId;
+        qrAuthState = QR_AUTH_VERIFYING;
+        verifyingStartedMs = millis();
+      }
+      portEXIT_CRITICAL(&authMux);
+
+      if (newScanId > 0) {
+        buzzerOff();
+        safeLcdPrint("VERIFYING QR... ", "PLEASE WAIT...  ");
+        dispatchQrScanAsync(scannedCode, scanCompleteMs, newScanId);
+        clearSerialBuffer();
+
+        // Handle retroactive authorization if alarm was active
+        if (isUnauthorized203 || isUnauthorized204) {
+          if (isUnauthorized204 && !isUnauthorized203) {
+            isUnauthorized204 = false;
+            unauthorizedAlarmStarted204 = 0;
+            dispatchKeyStatusAsync("204", false);
+          } else if (isUnauthorized203 && !isUnauthorized204) {
+            isUnauthorized203 = false;
+            unauthorizedAlarmStarted203 = 0;
+            dispatchKeyStatusAsync("203", false);
+          } else if (isUnauthorized203 && isUnauthorized204) {
+            isUnauthorized204 = false;
+            isUnauthorized203 = false;
+            unauthorizedAlarmStarted204 = 0;
+            unauthorizedAlarmStarted203 = 0;
+            dispatchKeyStatusAsync("204", false);
+            dispatchKeyStatusAsync("203", false);
+          }
+          portENTER_CRITICAL(&authMux);
+          isAuthorized = false;
+          qrAuthState = QR_AUTH_IDLE;
+          activeScanId = 0;
+          portEXIT_CRITICAL(&authMux);
+
+          buzzerOff();
+          triggerBuzzer(80, 2);
+          safeLcdPrint("Access Granted! ", "Key Authorized  ");
+          lcdRevertAt = millis() + 1500;
+        }
+      } else {
+        clearSerialBuffer();
+      }
     }
   }
 
@@ -1052,18 +1173,33 @@ void loop() {
       showUnauthorizedScreen();
     } else if (isWrongKey203 || isWrongKey204) {
       showWrongKeyScreen();
-    } else if (!isAuthorized) {
+    } else if (!isAuthorized && qrAuthState == QR_AUTH_IDLE) {
       showReadyScreen();
     }
   }
 
-  // 5. Live Countdown Window Handling (when authorized and no alarm active)
-  if (!alarmActive && isAuthorized) {
+  // 5. Verification Watchdog Timeout (prevents permanent lock if network worker is blocked)
+  if (qrAuthState == QR_AUTH_VERIFYING && (millis() - verifyingStartedMs >= QR_VERIFY_TIMEOUT_MS)) {
+    portENTER_CRITICAL(&authMux);
+    qrAuthState = QR_AUTH_IDLE;
+    activeScanId = 0;
+    isAuthorized = false;
+    portEXIT_CRITICAL(&authMux);
+
+    triggerBuzzer(250, 1);
+    safeLcdPrint("Network Timeout ", "Please Retry    ");
+    lcdRevertAt = millis() + 2000;
+  }
+
+  // 6. Live Countdown Window Handling (when authorized and no alarm active)
+  if (!alarmActive && (isAuthorized || qrAuthState == QR_AUTH_GRANTED_AWAITING_TAKE)) {
     if (millis() >= authExpiresAt) {
       // Authorization window expired without key withdrawal
       portENTER_CRITICAL(&authMux);
       isAuthorized = false;
       authExpiresAt = 0;
+      qrAuthState = QR_AUTH_IDLE;
+      activeScanId = 0;
       portEXIT_CRITICAL(&authMux);
 
       triggerBuzzer(180, 1);

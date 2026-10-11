@@ -568,18 +568,42 @@ async function logOccupancy(reqBody = {}, device = null) {
         ? device.authorizedRooms
         : DEFAULT_HARDWARE_ROOMS;
 
-    const allTargetRooms = new Set([roomNumber, ...claimRooms]);
+    const allTargetRooms = Array.from(new Set([roomNumber, ...claimRooms]));
+
+    // 4c. Active Authorization Lock Guard:
+    // A second professor must NOT override an active unconsumed authorization on this keybox
+    const activeLock = claimService.checkActiveClaimLock(allTargetRooms, user.User_ID, now);
+    if (activeLock.isLocked) {
+        console.warn(`[IoT QR Scan] Conflicting scan blocked: Keybox currently locked for "${activeLock.activeUser.userName}" (${Math.ceil(activeLock.remainingMs / 1000)}s remaining)`);
+        return iotResponseService.createErrorResponse(
+            409,
+            `Keybox has an active authorization for ${activeLock.activeUser.userName} awaiting key withdrawal. Please wait.`,
+            'Take Your Key!',
+            'Scan Locked'
+        );
+    }
+
+    // Check if this is an idempotent repeat scan by the SAME faculty member
+    const isRepeatScan = claimService.isSameActiveClaim(allTargetRooms, user.User_ID, now);
+
+    const lockWindowMs = (reqBody && reqBody.authWindowMs) ? Number(reqBody.authWindowMs) : undefined;
+
     for (const r of allTargetRooms) {
         claimService.recordClaim(r, {
             userId: user.User_ID,
             userName: user.Name,
             role: user.Role
-        }, now);
+        }, now, reqBody.scanId, lockWindowMs);
     }
 
-    const tDbLogStart = performance.now();
-    await iotRepository.insertOccupancyLog(user.User_ID, room.Room_ID, authMethod || 'QR Code');
-    const dbLogMs = (performance.now() - tDbLogStart).toFixed(2);
+    let dbLogMs = '0.00';
+    if (!isRepeatScan) {
+        const tDbLogStart = performance.now();
+        await iotRepository.insertOccupancyLog(user.User_ID, room.Room_ID, authMethod || 'QR Code');
+        dbLogMs = (performance.now() - tDbLogStart).toFixed(2);
+    } else {
+        console.log(`[IoT QR Scan] Idempotent repeat scan for "${user.Name}". Preserved existing active claim without duplicate DB log.`);
+    }
 
     console.log(`[IoT Sub-Timing] ${scanTag}UserLookup: ${userLookupMs}ms | CustodyCheck: ${custodyCheckMs}ms | DbLog: ${dbLogMs}ms | User: "${user.Name}" (${user.Role})`);
 

@@ -7,6 +7,7 @@
 // (tolerates transient WAN network delays and retries while reliably marking a genuinely unreachable device Offline)
 const OFFLINE_THRESHOLD_MS = 60 * 1000;
 const CLAIM_EXPIRATION_MS = 15 * 60 * 1000; // 15 minutes claim validity window
+const CLAIM_LOCK_WINDOW_MS = 15 * 1000; // 15-second active physical key withdrawal lock window (aligned with ESP32 AUTH_WINDOW_MS)
 const DEFAULT_HARDWARE_ROOMS = ['203', '204']; // Default physical key box slots
 
 /**
@@ -47,6 +48,7 @@ function getRoomKeyVariations(roomInputs) {
 module.exports = {
     OFFLINE_THRESHOLD_MS,
     CLAIM_EXPIRATION_MS,
+    CLAIM_LOCK_WINDOW_MS,
     DEFAULT_HARDWARE_ROOMS,
     normalizeRoomNumber,
     getRoomKeyVariations
