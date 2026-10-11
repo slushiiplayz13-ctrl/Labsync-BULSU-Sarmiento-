@@ -225,6 +225,7 @@ struct NetMessage {
   char room[8];
   bool keyPresent;
   char strPayload[64]; // alertType or qrString
+  char eventId[32];
 };
 
 QueueHandle_t netQueue = NULL;
@@ -238,6 +239,14 @@ volatile bool slotTargetState203 = true; // true = Present, false = Absent
 
 volatile bool slotNeedsSync204 = false;
 volatile bool slotTargetState204 = true;
+
+volatile bool alertNeedsSync203 = false;
+char alertPayload203[32] = "";
+char alertEventId203[32] = "";
+
+volatile bool alertNeedsSync204 = false;
+char alertPayload204[32] = "";
+char alertEventId204[32] = "";
 
 // Direct HTTP dispatch for key status transitions
 bool sendKeyStatusHttp(const char* room, bool present) {
@@ -277,7 +286,7 @@ bool sendKeyStatusHttp(const char* room, bool present) {
 }
 
 // Direct HTTP dispatch for security alerts
-bool sendSecurityAlertHttp(const char* room, const char* alertType) {
+bool sendSecurityAlertHttp(const char* room, const char* alertType, const char* eventId = NULL) {
   if (WiFi.status() != WL_CONNECTED) return false;
 
   WiFiClientSecure client;
@@ -295,6 +304,9 @@ bool sendSecurityAlertHttp(const char* room, const char* alertType) {
   StaticJsonDocument<256> reqDoc;
   reqDoc["keyEvent"] = alertType;
   reqDoc["roomNumber"] = room;
+  if (eventId && eventId[0] != '\0') {
+    reqDoc["eventId"] = eventId;
+  }
 
   String jsonPayload;
   serializeJson(reqDoc, jsonPayload);
@@ -463,7 +475,24 @@ void networkWorkerTask(void* pvParameters) {
             portEXIT_CRITICAL(&stateMux);
           }
         } else if (msg.type == MSG_SECURITY_ALERT) {
-          sendSecurityAlertHttp(msg.room, msg.strPayload);
+          if (sendSecurityAlertHttp(msg.room, msg.strPayload, msg.eventId)) {
+            portENTER_CRITICAL(&stateMux);
+            if (strcmp(msg.room, "203") == 0) alertNeedsSync203 = false;
+            if (strcmp(msg.room, "204") == 0) alertNeedsSync204 = false;
+            portEXIT_CRITICAL(&stateMux);
+          } else {
+            portENTER_CRITICAL(&stateMux);
+            if (strcmp(msg.room, "203") == 0) {
+              alertNeedsSync203 = true;
+              strncpy(alertPayload203, msg.strPayload, sizeof(alertPayload203) - 1);
+              strncpy(alertEventId203, msg.eventId, sizeof(alertEventId203) - 1);
+            } else if (strcmp(msg.room, "204") == 0) {
+              alertNeedsSync204 = true;
+              strncpy(alertPayload204, msg.strPayload, sizeof(alertPayload204) - 1);
+              strncpy(alertEventId204, msg.eventId, sizeof(alertEventId204) - 1);
+            }
+            portEXIT_CRITICAL(&stateMux);
+          }
         } else if (msg.type == MSG_QR_SCAN) {
           processQrScanHttp(msg.strPayload, msg.room);
         }
@@ -474,6 +503,18 @@ void networkWorkerTask(void* pvParameters) {
           if (strcmp(msg.room, "203") == 0) slotNeedsSync203 = true;
           if (strcmp(msg.room, "204") == 0) slotNeedsSync204 = true;
           portEXIT_CRITICAL(&stateMux);
+        } else if (msg.type == MSG_SECURITY_ALERT) {
+          portENTER_CRITICAL(&stateMux);
+          if (strcmp(msg.room, "203") == 0) {
+            alertNeedsSync203 = true;
+            strncpy(alertPayload203, msg.strPayload, sizeof(alertPayload203) - 1);
+            strncpy(alertEventId203, msg.eventId, sizeof(alertEventId203) - 1);
+          } else if (strcmp(msg.room, "204") == 0) {
+            alertNeedsSync204 = true;
+            strncpy(alertPayload204, msg.strPayload, sizeof(alertPayload204) - 1);
+            strncpy(alertEventId204, msg.eventId, sizeof(alertEventId204) - 1);
+          }
+          portEXIT_CRITICAL(&stateMux);
         }
       }
     }
@@ -483,11 +524,36 @@ void networkWorkerTask(void* pvParameters) {
     static wl_status_t lastRecordedWifi = WL_IDLE_STATUS;
 
     if (currentWifiStatus == WL_CONNECTED) {
-      // If link was just restored, immediately announce presence!
-      if (lastRecordedWifi != WL_CONNECTED) {
-        Serial.println("[NetWorker] Wi-Fi link restored! Sending immediate presence heartbeat...");
-        lastWorkerHeartbeat = millis();
-        sendHeartbeatHttp();
+      bool needAlert203 = false;
+      char alert203[32] = "";
+      char eventId203[32] = "";
+      bool needAlert204 = false;
+      char alert204[32] = "";
+      char eventId204[32] = "";
+
+      portENTER_CRITICAL(&stateMux);
+      needAlert203 = alertNeedsSync203;
+      strncpy(alert203, alertPayload203, sizeof(alert203) - 1);
+      strncpy(eventId203, alertEventId203, sizeof(eventId203) - 1);
+      needAlert204 = alertNeedsSync204;
+      strncpy(alert204, alertPayload204, sizeof(alert204) - 1);
+      strncpy(eventId204, alertEventId204, sizeof(eventId204) - 1);
+      portEXIT_CRITICAL(&stateMux);
+
+      if (needAlert203) {
+        if (sendSecurityAlertHttp("203", alert203, eventId203)) {
+          portENTER_CRITICAL(&stateMux);
+          alertNeedsSync203 = false;
+          portEXIT_CRITICAL(&stateMux);
+        }
+      }
+
+      if (needAlert204) {
+        if (sendSecurityAlertHttp("204", alert204, eventId204)) {
+          portENTER_CRITICAL(&stateMux);
+          alertNeedsSync204 = false;
+          portEXIT_CRITICAL(&stateMux);
+        }
       }
 
       bool need203 = false, target203 = true;
@@ -514,7 +580,14 @@ void networkWorkerTask(void* pvParameters) {
         }
       }
 
-      // Periodic 5-second heartbeat
+      // If link was just restored, announce presence after pending transition reconciliation!
+      if (lastRecordedWifi != WL_CONNECTED) {
+        Serial.println("[NetWorker] Wi-Fi link restored! Sending presence heartbeat after pending event sync...");
+        lastWorkerHeartbeat = millis();
+        sendHeartbeatHttp();
+      }
+
+      // Periodic heartbeat
       if (millis() - lastWorkerHeartbeat >= HEARTBEAT_INTERVAL) {
         lastWorkerHeartbeat = millis();
         sendHeartbeatHttp();
@@ -559,7 +632,7 @@ void dispatchKeyStatusAsync(const char* room, bool present) {
   }
 }
 
-void dispatchSecurityAlertAsync(const char* room, const char* alertType) {
+void dispatchSecurityAlertAsync(const char* room, const char* alertType, const char* eventId = NULL) {
   if (netQueue != NULL) {
     NetMessage msg;
     msg.type = MSG_SECURITY_ALERT;
@@ -568,6 +641,12 @@ void dispatchSecurityAlertAsync(const char* room, const char* alertType) {
     msg.keyPresent = false;
     strncpy(msg.strPayload, alertType, sizeof(msg.strPayload) - 1);
     msg.strPayload[sizeof(msg.strPayload) - 1] = '\0';
+    if (eventId && eventId[0] != '\0') {
+      strncpy(msg.eventId, eventId, sizeof(msg.eventId) - 1);
+      msg.eventId[sizeof(msg.eventId) - 1] = '\0';
+    } else {
+      msg.eventId[0] = '\0';
+    }
     xQueueSend(netQueue, &msg, 0);
   }
 }
@@ -667,12 +746,29 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
           lcdRevertAt = millis() + 1500;
           return;
         } else {
-          // UNAUTHORIZED KEY REMOVAL!
+          Serial.printf("🚨 UNAUTHORIZED KEY REMOVAL! Key %s removed without scanning QR!\n", slotRoom.c_str());
           isUnauth = true;
           unauthAlarmStarted = millis(); // Start audible alarm timer
-          Serial.printf("🚨 UNAUTHORIZED KEY REMOVAL! Key %s removed without scanning QR!\n", slotRoom.c_str());
-          dispatchSecurityAlertAsync(slotRoom.c_str(), "Unauthorized Removal");
-          dispatchKeyStatusAsync(slotRoom.c_str(), false);
+
+          // Update local slot tracking for heartbeat telemetry without queuing redundant Key Taken
+          portENTER_CRITICAL(&stateMux);
+          if (slotRoom == "203") {
+            slotTargetState203 = false;
+            slotNeedsSync203 = false;
+            alertNeedsSync203 = true;
+            strncpy(alertPayload203, "Unauthorized Removal", sizeof(alertPayload203) - 1);
+            snprintf(alertEventId203, sizeof(alertEventId203), "203-%lu", millis());
+          } else if (slotRoom == "204") {
+            slotTargetState204 = false;
+            slotNeedsSync204 = false;
+            alertNeedsSync204 = true;
+            strncpy(alertPayload204, "Unauthorized Removal", sizeof(alertPayload204) - 1);
+            snprintf(alertEventId204, sizeof(alertEventId204), "204-%lu", millis());
+          }
+          portEXIT_CRITICAL(&stateMux);
+
+          const char* curEvtId = (slotRoom == "203") ? alertEventId203 : alertEventId204;
+          dispatchSecurityAlertAsync(slotRoom.c_str(), "Unauthorized Removal", curEvtId);
           showUnauthorizedScreen();
           buzzerOn(); // Immediate alarm tone without waiting for network!
           return;

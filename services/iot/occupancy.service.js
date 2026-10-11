@@ -12,6 +12,9 @@ const deviceStateService = require('./device-state.service');
 const claimService = require('./claim.service');
 const iotResponseService = require('./iot-response.service');
 
+// Module-scoped cache for reliable event identity deduplication (eventId -> { timestamp, roomId })
+const processedAlertIds = new Map();
+
 /**
  * Handle incoming IoT occupancy events (QR scans, Key Taken, Key Returned, or Heartbeat).
  *
@@ -110,29 +113,103 @@ async function logOccupancy(reqBody = {}, device = null) {
             ? 'IOT_UNAUTHORIZED_KEY_REMOVAL'
             : 'IOT_WRONG_KEY_SLOT';
 
-        try {
-            await auditService.logSecurityEvent({
-                action: actionType,
-                resourceType: 'LABORATORY',
-                resourceId: room.Room_ID,
-                details: { roomNumber, keyEvent, deviceId: device ? device.id : 'ESP32-KeyBox' },
-                result: 'WARNING'
-            });
-        } catch (e) {
-            console.error('[IoT Service] Security event log failed:', e.message);
-        }
-
         const logAuthMethod = (keyEvent.includes('Unauthorized')) ? 'UNAUTHORIZED' : 'WRONG_SLOT';
-        try {
-            await iotRepository.insertOccupancyLog(null, room.Room_ID, logAuthMethod);
-        } catch (e) {
-            console.error('[IoT Service] Occupancy log insert failed:', e.message);
+        const eventId = reqBody.eventId || reqBody.clientRequestId || null;
+
+        // Deduplication guard against repeated delivery (HTTP retries, socket timeouts, network queue chattering)
+        let isDuplicateAlert = false;
+
+        // 1. Reliable Event Identity Check (if eventId is provided by client/firmware)
+        if (eventId && processedAlertIds.has(eventId)) {
+            isDuplicateAlert = true;
+        } else if (eventId) {
+            processedAlertIds.set(eventId, { timestamp: Date.now(), roomId: room.Room_ID });
+            if (processedAlertIds.size > 100) {
+                const cutoff = Date.now() - 300000;
+                for (const [id, val] of processedAlertIds.entries()) {
+                    if (val.timestamp < cutoff) processedAlertIds.delete(id);
+                }
+            }
         }
 
-        // When a key is removed without authorization, immediately update Key_Status to Absent
-        if (keyEvent.includes('Unauthorized')) {
+        // 2. Database State Deduplication Guard (for chatter/duplicate requests without eventId)
+        if (!isDuplicateAlert) {
+            if (keyEvent.includes('Unauthorized')) {
+                const [recentLogs] = await db.query(
+                    `SELECT Log_ID, Auth_Method, User_ID, Access_Time FROM occupancy_log
+                     WHERE Room_ID = ?
+                       AND Auth_Method IN ('Key Taken', 'KEY_TAKEN', 'Key Returned', 'KEY_RETURN', 'UNAUTHORIZED', 'WRONG_SLOT')
+                     ORDER BY Access_Time DESC, Log_ID DESC LIMIT 1`,
+                    [room.Room_ID]
+                );
+
+                if (recentLogs && recentLogs.length > 0) {
+                    const latest = recentLogs[0];
+                    const elapsedSec = (Date.now() - new Date(latest.Access_Time).getTime()) / 1000;
+
+                    // Duplicate retry while key is still Absent
+                    if (latest.Auth_Method === 'UNAUTHORIZED' && room.Key_Status === 'Absent' && elapsedSec >= 0 && elapsedSec < 60) {
+                        isDuplicateAlert = true;
+                    }
+                }
+            } else if (keyEvent === 'Wrong Key Slot') {
+                const [recentWrong] = await db.query(
+                    `SELECT Log_ID, Auth_Method, Access_Time FROM occupancy_log
+                     WHERE Room_ID = ? AND Auth_Method = 'WRONG_SLOT'
+                     ORDER BY Access_Time DESC, Log_ID DESC LIMIT 1`,
+                    [room.Room_ID]
+                );
+                if (recentWrong && recentWrong.length > 0) {
+                    const elapsedSec = (Date.now() - new Date(recentWrong[0].Access_Time).getTime()) / 1000;
+                    if (elapsedSec >= 0 && elapsedSec < 60) {
+                        isDuplicateAlert = true;
+                    }
+                }
+            }
+        }
+
+        if (!isDuplicateAlert) {
             try {
-                await labRepository.updateKeyStatus(room.Room_ID, 'Absent', null);
+                await auditService.logSecurityEvent({
+                    action: actionType,
+                    resourceType: 'LABORATORY',
+                    resourceId: room.Room_ID,
+                    details: { roomNumber, keyEvent, deviceId: device ? device.id : 'ESP32-KeyBox' },
+                    result: 'WARNING'
+                });
+            } catch (e) {
+                console.error('[IoT Service] Security event log failed:', e.message);
+            }
+
+            try {
+                await iotRepository.insertOccupancyLog(null, room.Room_ID, logAuthMethod);
+            } catch (e) {
+                console.error('[IoT Service] Occupancy log insert failed:', e.message);
+            }
+        }
+
+        // When a key is removed without authorization, immediately update Key_Status to Absent (unless this is a duplicate retry)
+        if (keyEvent.includes('Unauthorized') && !isDuplicateAlert) {
+            try {
+                const [recentReturn] = await db.query(
+                    `SELECT Log_ID FROM occupancy_log
+                     WHERE Room_ID = ? AND Auth_Method IN ('Key Returned', 'KEY_RETURN')
+                     ORDER BY Access_Time DESC, Log_ID DESC LIMIT 1`,
+                    [room.Room_ID]
+                );
+                const [thisAlert] = await db.query(
+                    `SELECT Log_ID FROM occupancy_log
+                     WHERE Room_ID = ? AND Auth_Method = 'UNAUTHORIZED'
+                     ORDER BY Access_Time DESC, Log_ID DESC LIMIT 1`,
+                    [room.Room_ID]
+                );
+                const isAlreadyReturned = Boolean(recentReturn && recentReturn.length > 0 &&
+                    thisAlert && thisAlert.length > 0 &&
+                    recentReturn[0].Log_ID > thisAlert[0].Log_ID);
+
+                if (!isAlreadyReturned) {
+                    await labRepository.updateKeyStatus(room.Room_ID, 'Absent', null);
+                }
             } catch (e) {
                 console.error('[IoT Service] Failed to update Key_Status on unauthorized removal:', e.message);
             }
@@ -166,52 +243,124 @@ async function logOccupancy(reqBody = {}, device = null) {
                 claimUserName = claim.userName;
                 logUserId = claimUserId;
                 claimService.clearUserClaims(claimUserId);
-            } else if (isDuplicateState) {
-                // Duplicate Key Taken event while key is already Absent:
-                // Treat as duplicate / no-op for custody state.
-                // Preserve the existing authenticated holder so contact chatter or duplicate packets
-                // do not wipe out Current_User_ID to NULL.
-                claimUserId = room.Current_User_ID || null;
-                claimUserName = null;
-                logUserId = claimUserId;
             } else {
-                // Key removed without valid claim: strictly unidentified
-                claimUserId = null;
-                claimUserName = null;
-                logUserId = null;
+                // Check if key is already absent or if an unauthorized removal was recently recorded
+                const [recentLogs] = await db.query(
+                    `SELECT Auth_Method FROM occupancy_log
+                     WHERE Room_ID = ? ORDER BY Access_Time DESC, Log_ID DESC LIMIT 3`,
+                    [room.Room_ID]
+                );
+                const hasRecentUnauthorized = recentLogs && recentLogs.some(
+                    l => l.Auth_Method === 'UNAUTHORIZED' || l.Auth_Method === 'WRONG_SLOT'
+                );
+
+                if (isDuplicateState || hasRecentUnauthorized) {
+                    // Duplicate Key Taken event while key is already Absent, or companion of unauthorized removal:
+                    // Treat as duplicate / no-op for custody state to prevent bogus "Key Borrowed" logs.
+                    isDuplicateState = true;
+                    if (hasRecentUnauthorized) {
+                        claimUserId = null;
+                    } else {
+                        claimUserId = room.Current_User_ID || null;
+                    }
+                    claimUserName = null;
+                    logUserId = null;
+                } else {
+                    // Key removed physically without valid claim: strictly unidentified
+                    claimUserId = null;
+                    claimUserName = null;
+                    logUserId = null;
+                }
             }
         } else if (keyEvent === 'Key Returned') {
-            // Check if this key return is resolving an unauthorized key removal
-            const [lastLogs] = await db.query(
-                `SELECT Auth_Method, User_ID FROM occupancy_log 
-                 WHERE Room_ID = ? ORDER BY Access_Time DESC, Log_ID DESC LIMIT 1`,
+            // Retrieve recent key lifecycle events for this room to validate active key custody
+            const [recentKeyLogs] = await db.query(
+                `SELECT Log_ID, Auth_Method, User_ID, Access_Time
+                 FROM occupancy_log
+                 WHERE Room_ID = ?
+                   AND Auth_Method IN ('Key Taken', 'KEY_TAKEN', 'Key Transfer', 'KEY_TRANSFER', 'Key Returned', 'KEY_RETURN', 'UNAUTHORIZED', 'WRONG_SLOT')
+                 ORDER BY Access_Time DESC, Log_ID DESC
+                 LIMIT 5`,
                 [room.Room_ID]
             );
-            const isReturningAfterUnauthorized = (lastLogs && lastLogs.length > 0 && lastLogs[0].Auth_Method === 'UNAUTHORIZED');
 
-            if (isReturningAfterUnauthorized) {
-                // Key returned after unauthorized removal: actor is unidentified and log must not be skipped
-                isDuplicateState = false;
-                claimUserId = null;
-                logUserId = null;
-                claimService.clearClaim(roomNumber);
-            } else {
-                let returnUserId = room.Current_User_ID || null;
-                if (!returnUserId) {
-                    const [lastTaken] = await db.query(
-                        `SELECT User_ID FROM occupancy_log 
-                         WHERE Room_ID = ? AND Auth_Method = 'Key Taken' AND User_ID IS NOT NULL 
-                         ORDER BY Access_Time DESC LIMIT 1`,
-                        [room.Room_ID]
-                    );
-                    if (lastTaken && lastTaken.length > 0) {
-                        returnUserId = lastTaken[0].User_ID;
+            // Determine if the key removal was unauthenticated (unauthorized removal, wrong slot, or key taken without user)
+            let isUnauthenticatedRemoval = false;
+            let validatedHolderUserId = null;
+
+            if (recentKeyLogs && recentKeyLogs.length > 0) {
+                const latestEvent = recentKeyLogs[0];
+                const latestAuth = String(latestEvent.Auth_Method || '').trim();
+
+                if (latestAuth === 'UNAUTHORIZED' || latestAuth === 'WRONG_SLOT' ||
+                    ((latestAuth === 'Key Taken' || latestAuth === 'KEY_TAKEN') && !latestEvent.User_ID)) {
+                    isUnauthenticatedRemoval = true;
+                } else if (latestAuth === 'Key Taken' || latestAuth === 'KEY_TAKEN' || latestAuth === 'Key Transfer' || latestAuth === 'KEY_TRANSFER') {
+                    if (latestEvent.User_ID) {
+                        validatedHolderUserId = latestEvent.User_ID;
                     }
                 }
-                claimService.clearClaim(roomNumber);
-                claimUserId = null;
-                logUserId = returnUserId;
             }
+
+            // Also check if any UNAUTHORIZED / WRONG_SLOT event occurred after the last authorized borrow/transfer
+            if (!isUnauthenticatedRemoval && validatedHolderUserId) {
+                const [unauthCheck] = await db.query(
+                    `SELECT Log_ID FROM occupancy_log
+                     WHERE Room_ID = ?
+                       AND Auth_Method IN ('UNAUTHORIZED', 'WRONG_SLOT')
+                       AND Log_ID > (
+                           SELECT Log_ID FROM occupancy_log
+                           WHERE Room_ID = ? AND Auth_Method IN ('Key Taken', 'Key Transfer') AND User_ID = ?
+                           ORDER BY Access_Time DESC, Log_ID DESC LIMIT 1
+                       )
+                     LIMIT 1`,
+                    [room.Room_ID, room.Room_ID, validatedHolderUserId]
+                );
+                if (unauthCheck && unauthCheck.length > 0) {
+                    isUnauthenticatedRemoval = true;
+                    validatedHolderUserId = null;
+                }
+            }
+
+            // Only associate a faculty member with the return event if there is an active,
+            // validated authenticated custody session:
+            // 1. Not preceded by an unauthenticated removal
+            // 2. Room was Absent and Current_User_ID matches the validated holder
+            // 3. Never fallback to stale historical users or scheduled faculty
+            let returnUserId = null;
+            if (!isUnauthenticatedRemoval && validatedHolderUserId) {
+                if (room.Current_User_ID && Number(room.Current_User_ID) === Number(validatedHolderUserId)) {
+                    returnUserId = validatedHolderUserId;
+                } else if (!room.Current_User_ID) {
+                    // Check if the validatedHolderUserId's Key Taken has not been returned yet
+                    const [takenRow] = await db.query(
+                        `SELECT Log_ID FROM occupancy_log
+                         WHERE Room_ID = ? AND Auth_Method IN ('Key Taken', 'Key Transfer') AND User_ID = ?
+                         ORDER BY Access_Time DESC, Log_ID DESC LIMIT 1`,
+                        [room.Room_ID, validatedHolderUserId]
+                    );
+                    if (takenRow && takenRow.length > 0) {
+                        const [subsequentReturns] = await db.query(
+                            `SELECT Log_ID FROM occupancy_log
+                             WHERE Room_ID = ? AND Log_ID > ?
+                               AND Auth_Method IN ('Key Returned', 'KEY_RETURN')
+                             LIMIT 1`,
+                            [room.Room_ID, takenRow[0].Log_ID]
+                        );
+                        if (!subsequentReturns || subsequentReturns.length === 0) {
+                            returnUserId = validatedHolderUserId;
+                        }
+                    }
+                }
+            }
+
+            if (isUnauthenticatedRemoval || room.Key_Status === 'Absent') {
+                isDuplicateState = false;
+            }
+
+            claimService.clearClaim(roomNumber);
+            claimUserId = null;
+            logUserId = returnUserId;
         }
 
         let misCustodyEvent = null;
