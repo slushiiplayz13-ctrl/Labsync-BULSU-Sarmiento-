@@ -308,8 +308,24 @@
       <div class="greeting-row">
         <div class="greeting-left">
           <h1 class="greeting-title" id="greetingText">User Management</h1>
-          <p class="greeting-sub" id="greetingSub">Manage Faculty, MIS Staff, and OJT accounts.
-          </p>
+          <p class="greeting-sub" id="greetingSub">Manage Faculty and MIS Staff accounts and view OJT Intern accounts.</p>
+          <script>
+            (function () {
+              try {
+                var u = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || 'null');
+                var r = String((u && (u.role || (u.user && u.user.role) || u.Role)) || '').trim().toLowerCase();
+                var sub = document.getElementById('greetingSub');
+                if (sub) {
+                  var isHead = (r.indexOf('head') !== -1 && r.indexOf('coordinator') === -1);
+                  if (isHead) {
+                    sub.textContent = 'Manage Faculty and MIS Staff accounts and view OJT Intern accounts.';
+                  } else {
+                    sub.textContent = 'Add or remove Faculty accounts and view OJT Intern accounts.';
+                  }
+                }
+              } catch (e) { }
+            })();
+          </script>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime"></div>
@@ -516,6 +532,15 @@
             var misTabBtn = document.getElementById("umTabMis");
             if (misTabBtn && isItHead) {
               misTabBtn.style.display = "inline-flex";
+            }
+
+            var subEl = document.getElementById("greetingSub");
+            if (subEl) {
+              if (isItHead) {
+                subEl.textContent = "Manage Faculty and MIS Staff accounts and view OJT Intern accounts.";
+              } else {
+                subEl.textContent = "Add or remove Faculty accounts and view OJT Intern accounts.";
+              }
             }
 
             var tabBtns = document.querySelectorAll(".um-tab-btn");

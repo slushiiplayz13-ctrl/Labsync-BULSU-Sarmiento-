@@ -149,10 +149,38 @@
   }
 
   /**
+   * Updates page greeting description based on authenticated role permissions.
+   * - IT Department Head: Manage Faculty and MIS Staff accounts and view OJT Intern accounts.
+   * - Program Coordinator: Add or remove Faculty accounts and view OJT Intern accounts.
+   */
+  function updateRoleGreetingDescription() {
+    const subEl = document.getElementById('greetingSub');
+    if (!subEl) return;
+    try {
+      const rawUser = (typeof global !== 'undefined' && global.currentUser) ||
+        JSON.parse(
+          (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('labsync_user')) ||
+          (typeof localStorage !== 'undefined' && localStorage.getItem('user')) ||
+          'null'
+        );
+      const user = (rawUser && (rawUser.user || rawUser)) || null;
+      const role = String((user && (user.role || user.Role)) || '').trim().toLowerCase();
+      const isDeptHead = (role.includes('head') && !role.includes('coordinator'));
+
+      if (isDeptHead) {
+        subEl.textContent = 'Manage Faculty and MIS Staff accounts and view OJT Intern accounts.';
+      } else {
+        subEl.textContent = 'Add or remove Faculty accounts and view OJT Intern accounts.';
+      }
+    } catch (e) { }
+  }
+
+  /**
    * Initializes page DOM event bindings.
    */
   function initPage() {
     initSidebarScrollClue();
+    updateRoleGreetingDescription();
 
     // Close menus when clicking outside
     if (global.facultyMenu && typeof global.facultyMenu.initClickOutsideListener === 'function') {
@@ -199,6 +227,7 @@
   global.loadFacultyMembers = loadFacultyMembers;
   global.filterFaculty = filterFaculty;
   global.applySearchAndFilter = applySearchAndFilter;
+  global.updateRoleGreetingDescription = updateRoleGreetingDescription;
   global.initFacultyManagementPage = initPage;
 
   // Initialize on DOM ready or immediately if already loaded
