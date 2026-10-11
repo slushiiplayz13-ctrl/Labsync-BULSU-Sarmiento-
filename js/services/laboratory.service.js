@@ -162,32 +162,31 @@ function renderLabCards(labs, targetContainer) {
     let keyHolderColorClass = 'muted-text';
     let isMisHolder = false;
 
-    if (!isOnline) {
+    const isAbsent = room.Key_Status === 'Absent' ||
+      (room.Current_Status || '').toLowerCase() === 'borrowed' ||
+      (room.Current_Status || '').toLowerCase() === 'in session';
+
+    if (isAbsent) {
+      let rawHolder = room.Current_Key_Holder;
+      if (rawHolder) {
+        let cleanHolder = String(rawHolder).replace(/^Prof\.?\s*/i, '').trim();
+        const holderRole = String(room.Current_Key_Holder_Role || '').trim();
+        if (holderRole === 'MIS Staff' || /MIS/i.test(holderRole) || room.Borrow_Purpose === 'IT Maintenance') {
+          isMisHolder = true;
+          cleanHolder = cleanHolder.replace(/\s*\((MIS|MIS Staff|MIS Maintenance)\)$/i, '').trim();
+        }
+        keyHolderText = cleanHolder;
+        keyHolderColorClass = 'teal-text';
+      } else {
+        keyHolderText = 'Unregistered';
+        keyHolderColorClass = 'amber-text';
+      }
+    } else if (!isOnline) {
       keyHolderText = 'N/A';
       keyHolderColorClass = 'muted-text';
     } else {
-      const isAbsent = room.Key_Status === 'Absent' ||
-        (room.Current_Status || '').toLowerCase() === 'borrowed' ||
-        (room.Current_Status || '').toLowerCase() === 'in session';
-      if (isAbsent) {
-        let rawHolder = room.Current_Key_Holder;
-        if (rawHolder) {
-          let cleanHolder = String(rawHolder).replace(/^Prof\.?\s*/i, '').trim();
-          const holderRole = String(room.Current_Key_Holder_Role || '').trim();
-          if (holderRole === 'MIS Staff' || /MIS/i.test(holderRole) || room.Borrow_Purpose === 'IT Maintenance') {
-            isMisHolder = true;
-            cleanHolder = cleanHolder.replace(/\s*\((MIS|MIS Staff|MIS Maintenance)\)$/i, '').trim();
-          }
-          keyHolderText = cleanHolder;
-          keyHolderColorClass = 'teal-text';
-        } else {
-          keyHolderText = 'Unregistered';
-          keyHolderColorClass = 'amber-text';
-        }
-      } else {
-        keyHolderText = 'None';
-        keyHolderColorClass = 'muted-text';
-      }
+      keyHolderText = 'None';
+      keyHolderColorClass = 'muted-text';
     }
 
     let scheduledProfText = 'None';

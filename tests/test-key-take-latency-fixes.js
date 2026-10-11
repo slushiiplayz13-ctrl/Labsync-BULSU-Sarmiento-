@@ -93,7 +93,7 @@ runTest('processQrScanHttp uses 4,000ms connect and 5,000ms socket timeouts', ()
 });
 
 runTest('sendHeartbeatHttp maintains proven 4,000ms / 5,000ms timeout baseline', () => {
-  const fnMatch = inoContent.match(/void\s+sendHeartbeatHttp\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/);
+  const fnMatch = inoContent.match(/(?:void|bool)\s+sendHeartbeatHttp\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/);
   assert(fnMatch, 'sendHeartbeatHttp function definition not found in ino');
   const body = fnMatch[1];
   assert(body.includes('http.setConnectTimeout(4000);'), 'sendHeartbeatHttp must use 4000ms connect timeout');

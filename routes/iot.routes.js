@@ -15,6 +15,6 @@ router.use((req, res, next) => {
 router.post('/log', requireIoTAuth, iotController.logOccupancy);
 router.post('/heartbeat', requireIoTAuth, iotController.heartbeat);
 router.post('/ping', requireIoTAuth, iotController.heartbeat);
-router.get('/heartbeat', iotController.heartbeat);
+router.get('/heartbeat', iotController.getHeartbeatStatus);
 
 module.exports = router;

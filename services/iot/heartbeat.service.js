@@ -49,8 +49,10 @@ async function recordHeartbeat(reqBody = {}, device = null) {
     deviceStateService.recordDeviceSeen(allRoomKeys, now);
 
     // Synchronize Last_Seen in database
+    let dbPersisted = false;
     try {
         await labRepository.updateLastSeenByRoomNumbers(allRoomKeys);
+        dbPersisted = true;
     } catch (err) {
         console.error('[IoT Service] Failed to update Last_Seen in database:', err.message);
     }
@@ -84,7 +86,11 @@ async function recordHeartbeat(reqBody = {}, device = null) {
         }
     }
 
-    return iotResponseService.createHeartbeatResponse(targetRooms, now);
+    const response = iotResponseService.createHeartbeatResponse(targetRooms, now);
+    if (response && response.data) {
+        response.data.dbPersisted = dbPersisted;
+    }
+    return response;
 }
 
 module.exports = {

@@ -372,65 +372,75 @@ bool sendSecurityAlertHttp(const char* room, const char* alertType, const char* 
 }
 
 // Direct HTTP dispatch for telemetry heartbeat
-void sendHeartbeatHttp() {
-  if (WiFi.status() == WL_CONNECTED) {
-    activeNetOp = "HEARTBEAT";
-    activeNetOpStartMs = millis();
+bool sendHeartbeatHttp() {
+  if (WiFi.status() != WL_CONNECTED) return false;
 
-    WiFiClientSecure client;
-    client.setInsecure();
+  activeNetOp = "HEARTBEAT";
+  activeNetOpStartMs = millis();
 
-    HTTPClient http;
-    http.begin(client, heartbeatUrl);
-    http.setReuse(false);
-    http.setConnectTimeout(4000);
-    http.setTimeout(5000);
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", String("Bearer ") + deviceToken);
-    http.addHeader("Connection", "close");
+  WiFiClientSecure client;
+  client.setInsecure();
 
-    bool key203Present = false;
-    bool key204Present = false;
-    portENTER_CRITICAL(&stateMux);
-    key203Present = slotTargetState203;
-    key204Present = slotTargetState204;
-    portEXIT_CRITICAL(&stateMux);
+  HTTPClient http;
+  http.begin(client, heartbeatUrl);
+  http.setReuse(false);
+  http.setConnectTimeout(4000);
+  http.setTimeout(5000);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", String("Bearer ") + deviceToken);
+  http.addHeader("Connection", "close");
 
-    String jsonPayload = "{\"deviceId\":\"ESP32-KeyBox\",\"rooms\":[\"203\",\"204\"],\"slots\":{\"203\":" +
-                        String(key203Present ? "true" : "false") + ",\"204\":" +
-                        String(key204Present ? "true" : "false") + "}}";
+  bool key203Present = false;
+  bool key204Present = false;
+  portENTER_CRITICAL(&stateMux);
+  key203Present = slotTargetState203;
+  key204Present = slotTargetState204;
+  portEXIT_CRITICAL(&stateMux);
 
-    unsigned long httpStart = millis();
-    int code = http.POST(jsonPayload);
-    unsigned long httpDuration = millis() - httpStart;
+  String jsonPayload = "{\"deviceId\":\"ESP32-KeyBox\",\"rooms\":[\"203\",\"204\"],\"slots\":{\"203\":" +
+                      String(key203Present ? "true" : "false") + ",\"204\":" +
+                      String(key204Present ? "true" : "false") + "}}";
 
-    if (code > 0) {
-      Serial.printf("[NetWorker Heartbeat] Sent in %lu ms (203: %s, 204: %s). Code: %d, FreeHeap: %u\n",
-                    httpDuration,
-                    key203Present ? "Present" : "Absent",
-                    key204Present ? "Present" : "Absent",
-                    code,
-                    ESP.getFreeHeap());
-      NetworkClient* stream = http.getStreamPtr();
-      if (stream) {
-        while (stream->available() > 0) stream->read();
-      }
-    } else {
-      Serial.printf("[NetWorker Heartbeat] Failed in %lu ms (203: %s, 204: %s). Code: %d (%s), FreeHeap: %u\n",
-                    httpDuration,
-                    key203Present ? "Present" : "Absent",
-                    key204Present ? "Present" : "Absent",
-                    code,
-                    http.errorToString(code).c_str(),
-                    ESP.getFreeHeap());
+  unsigned long httpStart = millis();
+  int code = http.POST(jsonPayload);
+  unsigned long httpDuration = millis() - httpStart;
+
+  bool isSuccess = false;
+  if (code == 200) {
+    isSuccess = true;
+    Serial.printf("[NetWorker Heartbeat] ✔ Success: HTTP 200 in %lu ms (203: %s, 204: %s). FreeHeap: %u\n",
+                  httpDuration,
+                  key203Present ? "Present" : "Absent",
+                  key204Present ? "Present" : "Absent",
+                  ESP.getFreeHeap());
+    NetworkClient* stream = http.getStreamPtr();
+    if (stream) {
+      while (stream->available() > 0) stream->read();
     }
-    http.end();
-    client.stop();
-
-    lastCompletedNetOp = "HEARTBEAT";
-    lastCompletedNetOpDurationMs = millis() - activeNetOpStartMs;
-    activeNetOp = "IDLE";
+  } else if (code == 401 || code == 403) {
+    Serial.printf("[NetWorker Heartbeat] ❌ Auth Failure: HTTP %d in %lu ms. Invalid or rejected device token!\n",
+                  code, httpDuration);
+  } else if (code >= 500) {
+    Serial.printf("[NetWorker Heartbeat] ⚠️ Server Error: HTTP %d in %lu ms from Railway server\n",
+                  code, httpDuration);
+  } else if (code > 0) {
+    Serial.printf("[NetWorker Heartbeat] ⚠️ Unexpected Status: HTTP %d in %lu ms\n",
+                  code, httpDuration);
+  } else {
+    Serial.printf("[NetWorker Heartbeat] ❌ Transport Failure: Code %d (%s) in %lu ms\n",
+                  code,
+                  http.errorToString(code).c_str(),
+                  httpDuration);
   }
+
+  http.end();
+  client.stop();
+
+  lastCompletedNetOp = "HEARTBEAT";
+  lastCompletedNetOpDurationMs = millis() - activeNetOpStartMs;
+  activeNetOp = "IDLE";
+
+  return isSuccess;
 }
 
 // Direct HTTP dispatch for QR scan verification
@@ -493,11 +503,30 @@ void processQrScanHttp(const char* scannedToken, const char* room, uint32_t scan
     StaticJsonDocument<1024> resDoc;
     DeserializationError error = deserializeJson(resDoc, response);
 
+    String verifiedName = "";
     if (!error) {
       if (resDoc.containsKey("lcdLine1")) line1 = resDoc["lcdLine1"].as<String>();
       if (resDoc.containsKey("lcdLine2")) line2 = resDoc["lcdLine2"].as<String>();
-      else if (resDoc.containsKey("name")) line2 = resDoc["name"].as<String>();
-      else if (resDoc.containsKey("user") && resDoc["user"].containsKey("name")) line2 = resDoc["user"]["name"].as<String>();
+
+      // Extract verified user name strictly from successful server response
+      if (httpResponseCode == 200) {
+        if (resDoc.containsKey("name") && !resDoc["name"].isNull()) {
+          verifiedName = resDoc["name"].as<String>();
+        } else if (resDoc.containsKey("user") && resDoc["user"].is<JsonObject>() && resDoc["user"].containsKey("name") && !resDoc["user"]["name"].isNull()) {
+          verifiedName = resDoc["user"]["name"].as<String>();
+        } else if (resDoc.containsKey("userName") && !resDoc["userName"].isNull()) {
+          verifiedName = resDoc["userName"].as<String>();
+        } else if (resDoc.containsKey("lcdLine2") && !resDoc["lcdLine2"].isNull()) {
+          String candidate = resDoc["lcdLine2"].as<String>();
+          candidate.trim();
+          if (!candidate.equalsIgnoreCase("TAKE YOUR KEY") &&
+              !candidate.equalsIgnoreCase("PLEASE RETRY") &&
+              !candidate.equalsIgnoreCase("SCAN LOCKED")) {
+            verifiedName = candidate;
+          }
+        }
+        verifiedName.trim();
+      }
     } else {
       if (httpResponseCode == 404) {
         line1 = "Access Denied!";
@@ -535,8 +564,21 @@ void processQrScanHttp(const char* scannedToken, const char* room, uint32_t scan
       portEXIT_CRITICAL(&authMux);
 
       triggerBuzzer(80, 2);
-      safeLcdPrint("ACCESS GRANTED  ", "TAKE YOUR KEY   ");
-      lcdRevertAt = millis() + QR_AUTH_DISPLAY_MS; // Keep "ACCESS GRANTED" / "TAKE YOUR KEY" visible for ~3.5s before countdown display takes over
+
+      String grantLine1 = "ACCESS GRANTED  ";
+      String grantLine2 = "TAKE YOUR KEY   ";
+      if (verifiedName.length() > 0) {
+        grantLine1 = "TAKE YOUR KEY   ";
+        grantLine2 = (verifiedName.length() > 16) ? verifiedName.substring(0, 16) : verifiedName;
+        Serial.printf("[DIAG QR-Scan #%lu] ✔ Access Granted to '%s'. Awaiting key take.\n",
+                      (unsigned long)scanId, grantLine2.c_str());
+      } else {
+        Serial.printf("[DIAG QR-Scan #%lu] ✔ Access Granted (generic). Awaiting key take.\n",
+                      (unsigned long)scanId);
+      }
+
+      safeLcdPrint(grantLine1, grantLine2);
+      lcdRevertAt = millis() + QR_AUTH_DISPLAY_MS; // Keep "TAKE YOUR KEY" / verified user name visible for ~3.5s before countdown display takes over
     } else {
       portENTER_CRITICAL(&authMux);
       qrAuthState = QR_AUTH_IDLE;
@@ -584,7 +626,10 @@ void processQrScanHttp(const char* scannedToken, const char* room, uint32_t scan
 void networkWorkerTask(void* pvParameters) {
   Serial.printf("[NetWorker] Task active on Core %d\n", xPortGetCoreID());
 
-  unsigned long lastWorkerHeartbeat = millis();
+  unsigned long nextHeartbeatDueMs = millis();
+  uint8_t heartbeatRetryCount = 0;
+  const uint8_t MAX_HEARTBEAT_RETRIES = 3;
+  const unsigned long HEARTBEAT_RETRY_DELAYS[3] = { 3000, 5000, 8000 };
 
   while (true) {
     NetMessage msg;
@@ -732,14 +777,36 @@ void networkWorkerTask(void* pvParameters) {
       // If link was just restored, announce presence after pending transition reconciliation!
       if (lastRecordedWifi != WL_CONNECTED) {
         Serial.println("[NetWorker] Wi-Fi link restored! Sending presence heartbeat after pending event sync...");
-        lastWorkerHeartbeat = millis();
-        sendHeartbeatHttp();
+        heartbeatRetryCount = 0;
+        bool hbOk = sendHeartbeatHttp();
+        nextHeartbeatDueMs = millis() + (hbOk ? HEARTBEAT_INTERVAL : 3000);
       }
 
-      // Periodic heartbeat
-      if (millis() - lastWorkerHeartbeat >= HEARTBEAT_INTERVAL) {
-        lastWorkerHeartbeat = millis();
-        sendHeartbeatHttp();
+      // Check for higher priority network work before attempting periodic/retry heartbeats
+      bool hasHigherPriorityWork = (netQueue != NULL && uxQueueMessagesWaiting(netQueue) > 0) ||
+                                    alertNeedsSync203 || alertNeedsSync204 ||
+                                    slotNeedsSync203 || slotNeedsSync204;
+
+      // Periodic or bounded retry heartbeat dispatch (wraparound-safe 32-bit signed difference)
+      if (!hasHigherPriorityWork && ((int32_t)(millis() - nextHeartbeatDueMs) >= 0)) {
+        bool hbOk = sendHeartbeatHttp();
+        if (hbOk) {
+          heartbeatRetryCount = 0;
+          nextHeartbeatDueMs = millis() + HEARTBEAT_INTERVAL;
+        } else {
+          if (heartbeatRetryCount < MAX_HEARTBEAT_RETRIES) {
+            unsigned long delayMs = HEARTBEAT_RETRY_DELAYS[heartbeatRetryCount];
+            heartbeatRetryCount++;
+            nextHeartbeatDueMs = millis() + delayMs;
+            Serial.printf("[NetWorker Heartbeat] Retry #%u scheduled in %lu ms\n",
+                          (unsigned int)heartbeatRetryCount, delayMs);
+          } else {
+            Serial.printf("[NetWorker Heartbeat] Max retries (%u) reached. Resuming nominal %lu ms interval.\n",
+                          (unsigned int)MAX_HEARTBEAT_RETRIES, HEARTBEAT_INTERVAL);
+            heartbeatRetryCount = 0;
+            nextHeartbeatDueMs = millis() + HEARTBEAT_INTERVAL;
+          }
+        }
       }
     }
 

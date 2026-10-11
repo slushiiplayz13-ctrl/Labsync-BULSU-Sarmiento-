@@ -47,14 +47,50 @@ async function logOccupancy(req, res, next) {
 }
 
 async function heartbeat(req, res, next) {
+    const routeStart = performance.now();
+    const arrivalTime = new Date().toISOString();
+    const sanitizedDeviceId = (req.device && req.device.id)
+        ? req.device.id
+        : ((req.body && req.body.deviceId) ? String(req.body.deviceId).trim() : 'Unknown-Device');
+
     try {
         const result = await iotService.recordHeartbeat(req.body, req.device);
+        const durationMs = (performance.now() - routeStart).toFixed(2);
+        const status = result.error ? (result.status || 400) : (result.status || 200);
+        const dbPersisted = result.data ? Boolean(result.data.dbPersisted) : false;
+
+        console.log(`[IoT Heartbeat ${arrivalTime}] Device "${sanitizedDeviceId}" processed in ${durationMs}ms | Status: ${status} | DB Persisted: ${dbPersisted}`);
+
         if (result.error) {
-            return res.status(result.status || 400).json({
+            return res.status(status).json({
                 error: result.error
             });
         }
-        return res.status(result.status || 200).json(result.data || { ok: true });
+        return res.status(status).json(result.data || { ok: true });
+    } catch (err) {
+        const durationMs = (performance.now() - routeStart).toFixed(2);
+        console.error(`[IoT Heartbeat ${arrivalTime}] Device "${sanitizedDeviceId}" failed after ${durationMs}ms:`, err.message);
+        next(err);
+    }
+}
+
+async function getHeartbeatStatus(req, res, next) {
+    try {
+        const { DEFAULT_HARDWARE_ROOMS } = require('../services/iot/iot.config');
+        const rooms = DEFAULT_HARDWARE_ROOMS || ['203', '204'];
+        const roomStatuses = {};
+        for (const r of rooms) {
+            roomStatuses[r] = {
+                online: iotService.isDeviceOnline(r),
+                lastSeen: iotService.getLastSeen(r)
+            };
+        }
+        return res.status(200).json({
+            ok: true,
+            status: 'operational',
+            rooms: roomStatuses,
+            timestamp: new Date().toISOString()
+        });
     } catch (err) {
         next(err);
     }
@@ -62,5 +98,6 @@ async function heartbeat(req, res, next) {
 
 module.exports = {
     logOccupancy,
-    heartbeat
+    heartbeat,
+    getHeartbeatStatus
 };

@@ -7,6 +7,7 @@
 
 (function (global) {
   let _itHeadDashboardInitialized = false;
+  let _lastKnownLabs = null;
   /**
    * Safe text escaper.
    */
@@ -215,21 +216,45 @@
           : fetch(`/api/dashboard/it-head-summary?academicYear=${encodeURIComponent(ay)}&semester=${encodeURIComponent(sem)}`, { credentials: 'include' }).then(res => res.ok ? res.json() : null).catch(() => null)),
 
         ((global.fetchLaboratories || (global.laboratoryService && global.laboratoryService.fetchLaboratories))
-          ? (global.fetchLaboratories || global.laboratoryService.fetchLaboratories)().catch(() => [])
-          : Promise.resolve([]))
+          ? (global.fetchLaboratories || global.laboratoryService.fetchLaboratories)().catch(() => null)
+          : Promise.resolve(null))
       ]);
 
-      const allLabs = Array.isArray(allLabsData) ? allLabsData : [];
+      let allLabs = null;
+      let isStaleLabs = false;
+
+      if (Array.isArray(allLabsData) && allLabsData.length > 0) {
+        allLabs = allLabsData;
+        _lastKnownLabs = allLabsData;
+      } else if (_lastKnownLabs && Array.isArray(_lastKnownLabs) && _lastKnownLabs.length > 0) {
+        allLabs = _lastKnownLabs;
+        isStaleLabs = true;
+      } else {
+        try {
+          const cached = JSON.parse(sessionStorage.getItem('labsync_cached_labs') || 'null');
+          if (Array.isArray(cached) && cached.length > 0) {
+            allLabs = cached;
+            _lastKnownLabs = cached;
+            isStaleLabs = true;
+          }
+        } catch (e) { }
+      }
+
       const stats = summaryRes || {};
 
       // 2. Hardware and Laboratory Calculations
-      const totalRoomsCount = allLabs.length || stats.totalRooms || 0;
-      const onlineCount = allLabs.filter(r => r.deviceOnline === true || r.deviceOnline === 1 || r.deviceOnline === 'true').length;
+      const hasTrustworthyLabs = Array.isArray(allLabs) && allLabs.length > 0;
+      const totalRoomsCount = hasTrustworthyLabs ? allLabs.length : (stats.totalRooms || 0);
+      const onlineCount = hasTrustworthyLabs
+        ? allLabs.filter(r => r.deviceOnline === true || r.deviceOnline === 1 || r.deviceOnline === 'true').length
+        : 0;
       const offlineCount = totalRoomsCount - onlineCount;
-      const onlineAndAvailableCount = allLabs.filter(r =>
-        (r.deviceOnline === true || r.deviceOnline === 1 || r.deviceOnline === 'true') &&
-        String(r.Current_Status || '').toLowerCase() === 'available'
-      ).length;
+      const onlineAndAvailableCount = hasTrustworthyLabs
+        ? allLabs.filter(r =>
+            (r.deviceOnline === true || r.deviceOnline === 1 || r.deviceOnline === 'true') &&
+            String(r.Current_Status || '').toLowerCase() === 'available'
+          ).length
+        : 0;
 
       // 3. Update DOM Stat Cards ONCE (No intermediate flashing)
       // Stat Card 1: Total Lab Rooms
@@ -240,10 +265,16 @@
 
       // Stat Card 2: Available Labs (Hardware-Aware)
       const elAvail = document.getElementById('ithead-stat-available');
-      if (elAvail) elAvail.textContent = onlineAndAvailableCount;
       const elAvailMeta = document.getElementById('ithead-stat-avail-meta');
+      if (elAvail) {
+        elAvail.textContent = hasTrustworthyLabs ? onlineAndAvailableCount : '--';
+      }
       if (elAvailMeta) {
-        if (offlineCount === totalRoomsCount && totalRoomsCount > 0) {
+        if (!hasTrustworthyLabs) {
+          elAvailMeta.textContent = 'Unable to check status';
+        } else if (isStaleLabs) {
+          elAvailMeta.textContent = `${onlineCount} of ${totalRoomsCount} online (cached)`;
+        } else if (offlineCount === totalRoomsCount && totalRoomsCount > 0) {
           elAvailMeta.textContent = 'All devices offline';
         } else if (offlineCount > 0) {
           elAvailMeta.textContent = `${onlineCount} of ${totalRoomsCount} online`;
