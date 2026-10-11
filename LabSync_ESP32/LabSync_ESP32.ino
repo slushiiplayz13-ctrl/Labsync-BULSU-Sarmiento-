@@ -170,7 +170,7 @@ String readScannedCode() {
               else break;
             }
             scannedCode.trim();
-            Serial.println("[GM65] Scanned barcode: " + scannedCode);
+            Serial.printf("[GM65] Scanned QR payload received (length: %d) at %lu ms\n", scannedCode.length(), millis());
             return scannedCode;
           }
         } else if (c >= 32 && c <= 126) {
@@ -183,7 +183,7 @@ String readScannedCode() {
     
     scannedCode.trim();
     if (scannedCode.length() > 0) {
-      Serial.println("[GM65] Scanned barcode (idle): " + scannedCode);
+      Serial.printf("[GM65] Scanned QR payload received (idle, length: %d) at %lu ms\n", scannedCode.length(), millis());
     }
     return scannedCode;
   }
@@ -220,12 +220,23 @@ enum NetMsgType {
   MSG_QR_SCAN
 };
 
+// Diagnostic tracking of active network operations on Core 0
+const char* volatile activeNetOp = "IDLE";
+volatile unsigned long activeNetOpStartMs = 0;
+const char* volatile lastCompletedNetOp = "NONE";
+volatile unsigned long lastCompletedNetOpDurationMs = 0;
+static uint32_t globalScanCounter = 0;
+
 struct NetMessage {
   NetMsgType type;
   char room[8];
   bool keyPresent;
   char strPayload[64]; // alertType or qrString
   char eventId[32];
+  unsigned long scanReceivedMs;
+  unsigned long enqueuedMs;
+  uint32_t scanId;
+  int8_t rssiAtScan;
 };
 
 QueueHandle_t netQueue = NULL;
@@ -252,6 +263,9 @@ char alertEventId204[32] = "";
 bool sendKeyStatusHttp(const char* room, bool present) {
   if (WiFi.status() != WL_CONNECTED) return false;
 
+  activeNetOp = "KEY_STATUS";
+  activeNetOpStartMs = millis();
+
   WiFiClientSecure client;
   client.setInsecure();
 
@@ -267,9 +281,12 @@ bool sendKeyStatusHttp(const char* room, bool present) {
   String statusStr = present ? "Key Returned" : "Key Taken";
   String jsonPayload = "{\"keyEvent\":\"" + statusStr + "\",\"roomNumber\":\"" + String(room) + "\"}";
 
+  unsigned long httpStart = millis();
   int code = http.POST(jsonPayload);
+  unsigned long httpDuration = millis() - httpStart;
+
   if (code > 0) {
-    Serial.printf("[NetWorker HTTP] %s for Room %s: Status %d\n", statusStr.c_str(), room, code);
+    Serial.printf("[NetWorker HTTP] %s for Room %s: Status %d in %lu ms\n", statusStr.c_str(), room, code, httpDuration);
     NetworkClient* stream = http.getStreamPtr();
     if (stream) {
       while (stream->available() > 0) {
@@ -277,17 +294,25 @@ bool sendKeyStatusHttp(const char* room, bool present) {
       }
     }
   } else {
-    Serial.printf("[NetWorker HTTP] %s for Room %s Failed: Status %d (%s)\n",
-                  statusStr.c_str(), room, code, http.errorToString(code).c_str());
+    Serial.printf("[NetWorker HTTP] %s for Room %s Failed: Status %d (%s) in %lu ms\n",
+                  statusStr.c_str(), room, code, http.errorToString(code).c_str(), httpDuration);
   }
   http.end();
   client.stop();
+
+  lastCompletedNetOp = "KEY_STATUS";
+  lastCompletedNetOpDurationMs = millis() - activeNetOpStartMs;
+  activeNetOp = "IDLE";
+
   return (code > 0);
 }
 
 // Direct HTTP dispatch for security alerts
 bool sendSecurityAlertHttp(const char* room, const char* alertType, const char* eventId = NULL) {
   if (WiFi.status() != WL_CONNECTED) return false;
+
+  activeNetOp = "SECURITY_ALERT";
+  activeNetOpStartMs = millis();
 
   WiFiClientSecure client;
   client.setInsecure();
@@ -311,25 +336,36 @@ bool sendSecurityAlertHttp(const char* room, const char* alertType, const char* 
   String jsonPayload;
   serializeJson(reqDoc, jsonPayload);
 
+  unsigned long httpStart = millis();
   int code = http.POST(jsonPayload);
+  unsigned long httpDuration = millis() - httpStart;
+
   if (code > 0) {
-    Serial.printf("[NetWorker Alert] %s for Room %s: Status %d\n", alertType, room, code);
+    Serial.printf("[NetWorker Alert] %s for Room %s: Status %d in %lu ms\n", alertType, room, code, httpDuration);
     NetworkClient* stream = http.getStreamPtr();
     if (stream) {
       while (stream->available() > 0) stream->read();
     }
   } else {
-    Serial.printf("[NetWorker Alert] %s for Room %s Failed: Status %d (%s)\n",
-                  alertType, room, code, http.errorToString(code).c_str());
+    Serial.printf("[NetWorker Alert] %s for Room %s Failed: Status %d (%s) in %lu ms\n",
+                  alertType, room, code, http.errorToString(code).c_str(), httpDuration);
   }
   http.end();
   client.stop();
+
+  lastCompletedNetOp = "SECURITY_ALERT";
+  lastCompletedNetOpDurationMs = millis() - activeNetOpStartMs;
+  activeNetOp = "IDLE";
+
   return (code > 0);
 }
 
 // Direct HTTP dispatch for telemetry heartbeat
 void sendHeartbeatHttp() {
   if (WiFi.status() == WL_CONNECTED) {
+    activeNetOp = "HEARTBEAT";
+    activeNetOpStartMs = millis();
+
     WiFiClientSecure client;
     client.setInsecure();
 
@@ -352,20 +388,25 @@ void sendHeartbeatHttp() {
     String jsonPayload = "{\"deviceId\":\"ESP32-KeyBox\",\"rooms\":[\"203\",\"204\"],\"slots\":{\"203\":" +
                         String(key203Present ? "true" : "false") + ",\"204\":" +
                         String(key204Present ? "true" : "false") + "}}";
+
+    unsigned long httpStart = millis();
     int code = http.POST(jsonPayload);
+    unsigned long httpDuration = millis() - httpStart;
+
     if (code > 0) {
-      Serial.printf("[NetWorker Heartbeat] Sent (203: %s, 204: %s). Code: %d, FreeHeap: %u, MinHeap: %u\n",
+      Serial.printf("[NetWorker Heartbeat] Sent in %lu ms (203: %s, 204: %s). Code: %d, FreeHeap: %u\n",
+                    httpDuration,
                     key203Present ? "Present" : "Absent",
                     key204Present ? "Present" : "Absent",
                     code,
-                    ESP.getFreeHeap(),
-                    ESP.getMinFreeHeap());
+                    ESP.getFreeHeap());
       NetworkClient* stream = http.getStreamPtr();
       if (stream) {
         while (stream->available() > 0) stream->read();
       }
     } else {
-      Serial.printf("[NetWorker Heartbeat] Failed (203: %s, 204: %s). Code: %d (%s), FreeHeap: %u\n",
+      Serial.printf("[NetWorker Heartbeat] Failed in %lu ms (203: %s, 204: %s). Code: %d (%s), FreeHeap: %u\n",
+                    httpDuration,
                     key203Present ? "Present" : "Absent",
                     key204Present ? "Present" : "Absent",
                     code,
@@ -374,11 +415,26 @@ void sendHeartbeatHttp() {
     }
     http.end();
     client.stop();
+
+    lastCompletedNetOp = "HEARTBEAT";
+    lastCompletedNetOpDurationMs = millis() - activeNetOpStartMs;
+    activeNetOp = "IDLE";
   }
 }
 
 // Direct HTTP dispatch for QR scan verification
-void processQrScanHttp(const char* scannedToken, const char* room) {
+void processQrScanHttp(const char* scannedToken, const char* room, uint32_t scanId = 0, unsigned long scanReceivedMs = 0, unsigned long enqueuedMs = 0, int8_t rssiAtScan = 0) {
+  unsigned long workerStartMs = millis();
+  unsigned long queueWaitMs = (enqueuedMs > 0) ? (workerStartMs - enqueuedMs) : 0;
+  int8_t currentRssi = (WiFi.status() == WL_CONNECTED) ? WiFi.RSSI() : 0;
+
+  activeNetOp = "QR_SCAN";
+  activeNetOpStartMs = workerStartMs;
+
+  Serial.printf("[DIAG QR-Scan #%lu] Worker Dequeued: QueueWait=%lu ms | PrecedingOp=%s (%lu ms) | CurrentRSSI=%d dBm (ScanRSSI=%d dBm)\n",
+                (unsigned long)scanId, queueWaitMs, lastCompletedNetOp, lastCompletedNetOpDurationMs,
+                (int)currentRssi, (int)rssiAtScan);
+
   String line1 = "Scan Denied";
   String line2 = "Please Wait...";
 
@@ -399,17 +455,27 @@ void processQrScanHttp(const char* scannedToken, const char* room) {
     reqDoc["qrString"] = scannedToken;
     reqDoc["roomNumber"] = room;
     reqDoc["authMethod"] = "QR Code";
+    if (scanId > 0) {
+      reqDoc["scanId"] = scanId;
+    }
 
     String jsonPayload;
     serializeJson(reqDoc, jsonPayload);
 
+    unsigned long httpStartMs = millis();
     int httpResponseCode = http.POST(jsonPayload);
+    unsigned long httpEndMs = millis();
+    unsigned long httpDurationMs = httpEndMs - httpStartMs;
+    unsigned long totalElapsedMs = (scanReceivedMs > 0) ? (httpEndMs - scanReceivedMs) : (httpEndMs - workerStartMs);
+
     String response = http.getString();
     if (httpResponseCode > 0) {
-      Serial.printf("[NetWorker Scan] POST status: %d, response: %s\n", httpResponseCode, response.c_str());
+      Serial.printf("[DIAG QR-Scan #%lu] HTTP Result: Status=%d | HttpDuration=%lu ms | TotalElapsed=%lu ms (QueueWait=%lu ms)\n",
+                    (unsigned long)scanId, httpResponseCode, httpDurationMs, totalElapsedMs, queueWaitMs);
     } else {
-      Serial.printf("[NetWorker Scan] POST failed: Status %d (%s)\n",
-                    httpResponseCode, http.errorToString(httpResponseCode).c_str());
+      Serial.printf("[DIAG QR-Scan #%lu] ⚠️ Transport Failure: ErrorCode=%d (%s) | Connect/Socket Duration=%lu ms | TotalElapsed=%lu ms (QueueWait=%lu ms)\n",
+                    (unsigned long)scanId, httpResponseCode, http.errorToString(httpResponseCode).c_str(),
+                    httpDurationMs, totalElapsedMs, queueWaitMs);
     }
 
     StaticJsonDocument<1024> resDoc;
@@ -447,10 +513,18 @@ void processQrScanHttp(const char* scannedToken, const char* room) {
     }
     http.end();
     client.stop();
+
+    lastCompletedNetOp = "QR_SCAN";
+    lastCompletedNetOpDurationMs = millis() - activeNetOpStartMs;
+    activeNetOp = "IDLE";
   } else {
     triggerBuzzer(250, 1);
     safeLcdPrint("Wi-Fi Error!", "Not Connected");
     lcdRevertAt = millis() + 2000;
+
+    lastCompletedNetOp = "QR_SCAN_OFFLINE";
+    lastCompletedNetOpDurationMs = millis() - activeNetOpStartMs;
+    activeNetOp = "IDLE";
   }
 }
 
@@ -494,7 +568,7 @@ void networkWorkerTask(void* pvParameters) {
             portEXIT_CRITICAL(&stateMux);
           }
         } else if (msg.type == MSG_QR_SCAN) {
-          processQrScanHttp(msg.strPayload, msg.room);
+          processQrScanHttp(msg.strPayload, msg.room, msg.scanId, msg.scanReceivedMs, msg.enqueuedMs, msg.rssiAtScan);
         }
       } else {
         // Wi-Fi offline: guarantee coalesced state retention
@@ -651,8 +725,17 @@ void dispatchSecurityAlertAsync(const char* room, const char* alertType, const c
   }
 }
 
-void dispatchQrScanAsync(const String& scannedCode) {
+void dispatchQrScanAsync(const String& scannedCode, unsigned long scanReceivedMs = 0) {
   if (netQueue != NULL) {
+    uint32_t scanId = ++globalScanCounter;
+    unsigned long enqueuedMs = millis();
+    if (scanReceivedMs == 0) scanReceivedMs = enqueuedMs;
+
+    UBaseType_t queueDepthBefore = uxQueueMessagesWaiting(netQueue);
+    int8_t rssi = (WiFi.status() == WL_CONNECTED) ? WiFi.RSSI() : 0;
+    const char* inFlightOp = activeNetOp;
+    unsigned long inFlightDur = (strcmp(inFlightOp, "IDLE") != 0) ? (millis() - activeNetOpStartMs) : 0;
+
     NetMessage msg;
     msg.type = MSG_QR_SCAN;
     strncpy(msg.room, defaultScanRoom, sizeof(msg.room) - 1);
@@ -660,7 +743,21 @@ void dispatchQrScanAsync(const String& scannedCode) {
     msg.keyPresent = false;
     strncpy(msg.strPayload, scannedCode.c_str(), sizeof(msg.strPayload) - 1);
     msg.strPayload[sizeof(msg.strPayload) - 1] = '\0';
-    xQueueSend(netQueue, &msg, 0);
+    msg.scanReceivedMs = scanReceivedMs;
+    msg.enqueuedMs = enqueuedMs;
+    msg.scanId = scanId;
+    msg.rssiAtScan = rssi;
+
+    BaseType_t sent = xQueueSend(netQueue, &msg, 0); // 0 timeout: non-blocking immediate return
+    if (sent == pdPASS) {
+      Serial.printf("[DIAG QR-Scan #%lu] Enqueued | QueueDepth=%u/%d | RSSI=%d dBm | InFlightOp=%s (%lu ms)\n",
+                    (unsigned long)scanId, (unsigned int)(queueDepthBefore + 1), NET_QUEUE_LEN, (int)rssi,
+                    inFlightOp, inFlightDur);
+    } else {
+      Serial.printf("[DIAG QR-Scan #%lu] ❌ Queue Full! Dropped scan | QueueDepth=%u/%d | RSSI=%d dBm | InFlightOp=%s (%lu ms)\n",
+                    (unsigned long)scanId, (unsigned int)queueDepthBefore, NET_QUEUE_LEN, (int)rssi,
+                    inFlightOp, inFlightDur);
+    }
   }
 }
 
@@ -883,6 +980,7 @@ void loop() {
   static unsigned long lastScanTime = 0;
   String scannedCode = readScannedCode();
   if (scannedCode.length() > 0) {
+    unsigned long scanCompleteMs = millis();
     if (millis() - lastScanTime >= 1200) {
       lastScanTime = millis();
       buzzerOff();
@@ -891,7 +989,7 @@ void loop() {
       safeLcdPrint("Verifying QR...", "Please wait...");
 
       // Offload HTTP verification asynchronously to Core 0 network worker!
-      dispatchQrScanAsync(scannedCode);
+      dispatchQrScanAsync(scannedCode, scanCompleteMs);
       lastScanTime = millis();
       clearSerialBuffer();
 

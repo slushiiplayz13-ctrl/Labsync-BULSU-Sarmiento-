@@ -171,6 +171,7 @@ body.key-transfer-body {
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -463,24 +464,6 @@ body.key-transfer-body {
   border-radius: 14px;
   padding: 12px 14px;
   margin-bottom: 18px;
-  transition: all 0.2s ease;
-}
-
-.restriction-banner.docked-warning {
-  background: #FFFBEB;
-  border: 1.5px solid #F59E0B;
-  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.08);
-}
-
-.restriction-banner.docked-warning .restriction-icon-wrap {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-.restriction-banner.docked-warning .restriction-text {
-  color: #92400E;
-  font-weight: 600;
-  line-height: 1.5;
 }
 
 .restriction-banner-content {
@@ -499,17 +482,14 @@ body.key-transfer-body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-top: 1px;
 }
 
 .restriction-text {
   font-size: 13px;
   font-weight: 600;
   color: #92400E;
-  line-height: 1.45;
+  line-height: 1.4;
   margin: 0;
-  word-break: normal;
-  overflow-wrap: break-word;
 }
 
 /* --- Action Buttons --- */
@@ -547,15 +527,11 @@ body.key-transfer-body {
   transform: scale(0.99);
 }
 
-.btn-confirm-transfer:disabled,
-.btn-confirm-transfer.btn-transfer-disabled {
-  background: #94A3B8 !important;
-  color: #F8FAFC !important;
-  opacity: 0.7 !important;
-  cursor: not-allowed !important;
-  pointer-events: none !important;
-  box-shadow: none !important;
+.btn-confirm-transfer:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
   transform: none !important;
+  box-shadow: none !important;
 }
 
 .btn-cancel-transfer {
@@ -768,8 +744,13 @@ body.key-transfer-body {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* --- Footer --- */
@@ -932,8 +913,15 @@ body.key-transfer-body {
 }
 
 @keyframes ktModalPop {
-  from { opacity: 0; transform: scale(0.95) translateY(8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .kt-modal-header {
@@ -1003,6 +991,7 @@ body.key-transfer-body {
 .kt-modal-body::-webkit-scrollbar {
   width: 6px;
 }
+
 .kt-modal-body::-webkit-scrollbar-thumb {
   background: rgba(148, 163, 184, 0.4);
   border-radius: 99px;

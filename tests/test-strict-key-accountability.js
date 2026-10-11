@@ -44,7 +44,7 @@ function createMockElement(tag = 'div') {
         matches.forEach(m => {
           results.push({
             getAttribute: (attr) => attr === 'data-url' ? m[1] : null,
-            addEventListener: () => {}
+            addEventListener: () => { }
           });
         });
       }
@@ -277,7 +277,7 @@ async function runStrictKeyAccountabilityTests() {
     const mockWindowLab = {
       location: { pathname: '/faculty-room-status.html' },
       currentUser: { Role: 'Faculty' },
-      lucide: { createIcons: () => {} }
+      lucide: { createIcons: () => { } }
     };
     const evalLabFn = new Function('window', `
       ${labServiceJs}
@@ -353,7 +353,7 @@ async function runStrictKeyAccountabilityTests() {
     console.log('\n--- TEST 8: ACTIVITY TIMELINE ---');
     const timelineJs = fs.readFileSync(path.join(__dirname, '../js/pages/room-status/room-status.timeline.js'), 'utf8');
     const mockWindowTimeline = {
-      lucide: { createIcons: () => {} },
+      lucide: { createIcons: () => { } },
       sessionStorage: {
         getItem: (key) => {
           if (key === 'labsync_cached_labs') {
@@ -400,7 +400,7 @@ async function runStrictKeyAccountabilityTests() {
     console.log('\n--- TEST 9: IT HEAD TIMELINE ---');
     const itHeadJs = fs.readFileSync(path.join(__dirname, '../js/pages/it-head-room-status.js'), 'utf8');
     const mockWindowItHead = {
-      lucide: { createIcons: () => {} },
+      lucide: { createIcons: () => { } },
       sessionStorage: {
         getItem: (key) => {
           if (key === 'labsync_cached_labs') {
@@ -412,7 +412,7 @@ async function runStrictKeyAccountabilityTests() {
         }
       },
       document: {
-        addEventListener: () => {},
+        addEventListener: () => { },
         querySelector: () => null,
         getElementById: () => null
       }

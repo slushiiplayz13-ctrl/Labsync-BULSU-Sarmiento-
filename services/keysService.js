@@ -235,19 +235,7 @@ async function getKeyTransferInfo(keyCode, req = null) {
     let approvalExpiresAt = null;
     let canRequestApproval = false;
 
-    // Physical key presence checks (IoT Key Box Safeguards)
-    const roomKeyStatus = key.Room_Key_Status || 'Unknown';
-    const isDocked = (roomKeyStatus === 'Present');
-    const isAbsent = (roomKeyStatus === 'Absent');
-    const hasValidCustodian = Boolean(key.Current_User_ID);
-
-    if (isDocked) {
-        cannotTransferReason = 'Key transfer is unavailable while the key is inside the IoT key box. Take and register the key through the IoT key box first, then transfer it to another professor.';
-    } else if (!isAbsent) {
-        cannotTransferReason = 'Key transfer is unavailable. The current key status must be verified.';
-    } else if (!hasValidCustodian) {
-        cannotTransferReason = 'Key transfer is unavailable because no registered custodian is currently holding this key. The current key status must be verified.';
-    } else if (!sessionUserId) {
+    if (!sessionUserId) {
         cannotTransferReason = 'Please log in with your Faculty or Department Head account to transfer this key.';
     } else if (sessionUserRole === 'MIS Staff') {
         cannotTransferReason = 'MIS Staff accounts are key inventory custodians and cannot hold or transfer classroom keys. Only Faculty and Department Heads may claim or transfer this key.';
@@ -274,8 +262,7 @@ async function getKeyTransferInfo(keyCode, req = null) {
         }
     }
 
-    const isPhysicallyAvailable = Boolean(isAbsent && hasValidCustodian);
-    const canTransfer = Boolean(isPhysicallyAvailable && sessionUserId && isEligibleRole && !isSelf && (!cannotTransferReason || isApprovedMultiKey));
+    const canTransfer = Boolean(sessionUserId && isEligibleRole && !isSelf && (!cannotTransferReason || isApprovedMultiKey));
 
     let currentUser = null;
     if (sessionUserId) {
@@ -303,10 +290,8 @@ async function getKeyTransferInfo(keyCode, req = null) {
             roomId: key.Room_ID,
             roomNumber: key.Room_Number,
             building: key.Building || 'IT Building',
-            keyStatus: roomKeyStatus,
-            roomKeyStatus,
-            isDocked,
-            isPhysicallyAvailable,
+            keyStatus: key.Key_Status,
+            roomKeyStatus: key.Room_Key_Status,
             currentHolder,
             currentUser,
             canTransfer,
@@ -362,45 +347,8 @@ async function transferKey(keyCode, req) {
         keyInfo = rows[0];
         previousUserId = keyInfo.Current_User_ID;
 
-        // 1b. Physical presence safeguard: Reject transfer if key is docked inside IoT key box
-        if (keyInfo.Room_Key_Status === 'Present') {
-            await connection.rollback();
-            return {
-                status: 400,
-                error: 'Key transfer is unavailable while the key is inside the IoT key box. Take and register the key through the IoT key box first, then transfer it to another professor.'
-            };
-        }
-
-        // 1c. Fail-closed safeguard: Reject if physical key status is not verified Absent
-        if (keyInfo.Room_Key_Status !== 'Absent') {
-            await connection.rollback();
-            return {
-                status: 400,
-                error: 'Key transfer is unavailable. The current key status must be verified.'
-            };
-        }
-
-        // 1d. Custody safeguard: Reject if key has no registered custodian
-        if (!previousUserId) {
-            await connection.rollback();
-            return {
-                status: 400,
-                error: 'Key transfer is unavailable because no registered custodian is currently holding this key. The current key status must be verified.'
-            };
-        }
-
-        // 1e. Custodian validation: Verify custodian user exists and is active
-        const [prevUsers] = await connection.query('SELECT User_ID, Name, Role, Status FROM users WHERE User_ID = ?', [previousUserId]);
-        if (prevUsers.length === 0 || prevUsers[0].Status === 'Inactive') {
-            await connection.rollback();
-            return {
-                status: 400,
-                error: 'Key transfer is unavailable because the current custodian account is invalid or inactive.'
-            };
-        }
-
         // 2. Reject self-transfer
-        if (String(previousUserId) === String(newUserId)) {
+        if (previousUserId && String(previousUserId) === String(newUserId)) {
             await connection.rollback();
             return { status: 400, error: 'You are already the registered holder of this key.' };
         }
@@ -451,8 +399,11 @@ async function transferKey(keyCode, req) {
         }
 
         // 3. Resolve previous holder name for audit trail
-        if (prevUsers[0] && prevUsers[0].Name) {
-            previousUserName = prevUsers[0].Name;
+        if (previousUserId) {
+            const [prevUsers] = await connection.query('SELECT Name FROM users WHERE User_ID = ?', [previousUserId]);
+            if (prevUsers.length > 0 && prevUsers[0].Name) {
+                previousUserName = prevUsers[0].Name;
+            }
         }
 
         // 4. Update laboratory holder (key is in active handoff, status remains Absent from dock)

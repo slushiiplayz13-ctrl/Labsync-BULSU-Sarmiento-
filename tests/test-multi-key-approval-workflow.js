@@ -54,10 +54,9 @@ async function runTests() {
   console.log(`Dept Head: ${deptHead.Name} (ID: ${deptHead.User_ID})`);
   console.log(`Faculty:   ${faculty.Name} (ID: ${faculty.User_ID})`);
 
-  // Ensure clean initial state: Key 203 is held by Dept Head for hallway transfer to Faculty
+  // Ensure clean initial state
   await db.query("DELETE FROM key_authorization_requests WHERE User_ID = ?", [faculty.User_ID]);
-  await db.query("UPDATE laboratories SET Key_Status = 'Present', Current_User_ID = NULL WHERE Room_ID = ?", [room204.Room_ID]);
-  await db.query("UPDATE laboratories SET Key_Status = 'Absent', Current_User_ID = ? WHERE Room_ID = ?", [deptHead.User_ID, room203.Room_ID]);
+  await db.query("UPDATE laboratories SET Key_Status = 'Present', Current_User_ID = NULL WHERE Room_ID IN (?, ?)", [room203.Room_ID, room204.Room_ID]);
 
   const mockReqFaculty = {
     session: {
@@ -90,8 +89,6 @@ async function runTests() {
     // TEST 2: Faculty attempts 2nd Key (Room 204) without approval -> Blocked
     // -------------------------------------------------------------
     console.log('\n--- 2. Unapproved 2nd Key Attempt Blocked ---');
-    // Key 204 is held by Dept Head; Faculty attempts to claim it via hallway transfer while holding Key 203
-    await db.query("UPDATE laboratories SET Key_Status = 'Absent', Current_User_ID = ? WHERE Room_ID = ?", [deptHead.User_ID, room204.Room_ID]);
     const unapprovedInfo = await keysService.getKeyTransferInfo(key204.Key_Code, mockReqFaculty);
     assert.strictEqual(unapprovedInfo.data.canTransfer, false, 'Must not be allowed to claim 2nd key');
     assert.strictEqual(unapprovedInfo.data.canRequestApproval, true, 'canRequestApproval must be true');
@@ -166,8 +163,6 @@ async function runTests() {
     // TEST 8: Mobile QR Transfer of Approved Key 204
     // -------------------------------------------------------------
     console.log('\n--- 8. Mobile QR Key Transfer with Active Approval ---');
-    // Key 204 is physically held by Dept Head and handed off to Faculty
-    await db.query("UPDATE laboratories SET Key_Status = 'Absent', Current_User_ID = ? WHERE Room_ID = ?", [deptHead.User_ID, room204.Room_ID]);
     const approvedInfo = await keysService.getKeyTransferInfo(key204.Key_Code, mockReqFaculty);
     assert.strictEqual(approvedInfo.data.canTransfer, true, 'Approved multi-key must allow transfer');
     assert.strictEqual(approvedInfo.data.isApprovedMultiKey, true, 'isApprovedMultiKey must be true');

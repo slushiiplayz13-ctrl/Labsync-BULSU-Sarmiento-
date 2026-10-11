@@ -116,7 +116,7 @@
             if (cached.user && cached.user.profilePhoto) return cached.user.profilePhoto;
             if (cached.Profile_Photo) return cached.Profile_Photo;
           }
-        } catch (e) {}
+        } catch (e) { }
         return null;
       }
 
@@ -161,12 +161,7 @@
       const prevName = document.getElementById('dispPrevName');
       const prevSub = document.getElementById('dispPrevSub');
 
-      if (keyData.isDocked || keyData.roomKeyStatus === 'Present') {
-        if (prevAvatar) prevAvatar.innerHTML = '<i data-lucide="archive" style="width:20px;height:20px;"></i>';
-        if (prevRole) prevRole.textContent = 'STATUS: IN DOCK';
-        if (prevName) prevName.textContent = 'IoT Key Box (Docked)';
-        if (prevSub) prevSub.textContent = 'Key is inside the IoT key box';
-      } else if (keyData.currentHolder) {
+      if (keyData.currentHolder) {
         const initials = keyData.currentHolder.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
         const prevPhoto = keyData.currentHolder.profilePhoto || null;
         renderAvatar(prevAvatar, prevPhoto, initials);
@@ -174,10 +169,10 @@
         if (prevName) prevName.textContent = keyData.currentHolder.name;
         if (prevSub) prevSub.textContent = keyData.currentHolder.role + (keyData.currentHolder.email ? ` • ${keyData.currentHolder.email}` : '');
       } else {
-        if (prevAvatar) prevAvatar.innerHTML = '<i data-lucide="alert-circle" style="width:20px;height:20px;"></i>';
-        if (prevRole) prevRole.textContent = 'STATUS: UNREGISTERED / UNKNOWN';
-        if (prevName) prevName.textContent = 'No Registered Custodian';
-        if (prevSub) prevSub.textContent = 'Key status must be verified';
+        if (prevAvatar) prevAvatar.innerHTML = '<i data-lucide="inbox" style="width:20px;height:20px;"></i>';
+        if (prevRole) prevRole.textContent = 'STATUS: IN DOCK';
+        if (prevName) prevName.textContent = 'Key Box / No Active Holder';
+        if (prevSub) prevSub.textContent = 'Key is ready to be claimed';
       }
 
       // Populate Receiving User
@@ -212,10 +207,10 @@
                 const cached = JSON.parse(localStorage.getItem('user') || '{}');
                 cached.profilePhoto = fetchedPhoto;
                 localStorage.setItem('user', JSON.stringify(cached));
-              } catch (e) {}
+              } catch (e) { }
             }
           })
-          .catch(() => {});
+          .catch(() => { });
       }
 
       // Permission & Restriction handling
@@ -226,73 +221,51 @@
       const approvedNoticeText = document.getElementById('approvedNoticeText');
       const btnOpenReq = document.getElementById('btnOpenRequestModal');
 
-      // 1. Guard against docked key or any transfer disqualification
-      if (!keyData.canTransfer) {
-        if (approvedNotice) approvedNotice.style.display = 'none';
-        if (btnConfirm) {
-          btnConfirm.disabled = true;
-          btnConfirm.classList.add('btn-transfer-disabled');
-          btnConfirm.style.background = '#94a3b8';
-          btnConfirm.style.boxShadow = 'none';
-          btnConfirm.style.cursor = 'not-allowed';
-          btnConfirm.style.pointerEvents = 'none';
-          const btnSpan = btnConfirm.querySelector('span');
-          if (btnSpan) {
-            btnSpan.textContent = keyData.isDocked
-              ? 'Key Inside Key Box (Unavailable)'
-              : (keyData.heldOtherRoom ? 'Cannot Claim (Key Limit Reached)' : 'Transfer Unavailable');
-          }
-        }
-        if (noticeBox && noticeText) {
-          noticeText.textContent = keyData.cannotTransferReason || 'Key transfer is unavailable while the key is inside the IoT key box. Take and register the key through the IoT key box first, then transfer it to another professor.';
-          noticeBox.style.display = 'block';
-          if (keyData.isDocked) {
-            noticeBox.classList.add('docked-warning');
-          } else {
-            noticeBox.classList.remove('docked-warning');
-          }
-        }
-        if (btnOpenReq) {
-          btnOpenReq.style.display = (keyData.canRequestApproval && !keyData.isDocked) ? 'inline-flex' : 'none';
-        }
-      } else if (keyData.isApprovedMultiKey) {
-        // Multi-key transfer authorized by Department Head
+      if (keyData.isApprovedMultiKey) {
         if (approvedNotice) {
           approvedNotice.style.display = 'block';
           if (approvedNoticeText) {
             approvedNoticeText.textContent = `Department Head approved! You are authorized to claim Key ${keyData.keyCode} for Laboratory ${keyData.roomNumber}.`;
           }
         }
-        if (noticeBox) {
-          noticeBox.style.display = 'none';
-          noticeBox.classList.remove('docked-warning');
-        }
+        if (noticeBox) noticeBox.style.display = 'none';
         if (btnOpenReq) btnOpenReq.style.display = 'none';
         if (btnConfirm) {
           btnConfirm.disabled = false;
-          btnConfirm.classList.remove('btn-transfer-disabled');
           btnConfirm.style.background = '';
           btnConfirm.style.boxShadow = '';
           btnConfirm.style.cursor = 'pointer';
-          btnConfirm.style.pointerEvents = 'auto';
           const btnSpan = btnConfirm.querySelector('span');
           if (btnSpan) btnSpan.textContent = 'Confirm Key Transfer (Authorized)';
         }
-      } else {
-        // Normal eligible transfer
+      } else if (!keyData.canTransfer) {
         if (approvedNotice) approvedNotice.style.display = 'none';
-        if (noticeBox) {
-          noticeBox.style.display = 'none';
-          noticeBox.classList.remove('docked-warning');
+        if (btnConfirm) {
+          btnConfirm.disabled = true;
+          btnConfirm.style.background = '#94a3b8';
+          btnConfirm.style.boxShadow = 'none';
+          btnConfirm.style.cursor = 'not-allowed';
+          const btnSpan = btnConfirm.querySelector('span');
+          if (btnSpan) {
+            btnSpan.textContent = keyData.heldOtherRoom ? 'Cannot Claim (Key Limit Reached)' : 'Transfer Restricted';
+          }
         }
+        if (noticeBox && noticeText) {
+          noticeText.textContent = keyData.cannotTransferReason || 'You are not authorized to transfer this key.';
+          noticeBox.style.display = 'block';
+        }
+        if (btnOpenReq) {
+          btnOpenReq.style.display = keyData.canRequestApproval ? 'inline-flex' : 'none';
+        }
+      } else {
+        if (approvedNotice) approvedNotice.style.display = 'none';
+        if (noticeBox) noticeBox.style.display = 'none';
         if (btnOpenReq) btnOpenReq.style.display = 'none';
         if (btnConfirm) {
           btnConfirm.disabled = false;
-          btnConfirm.classList.remove('btn-transfer-disabled');
           btnConfirm.style.background = '';
           btnConfirm.style.boxShadow = '';
           btnConfirm.style.cursor = 'pointer';
-          btnConfirm.style.pointerEvents = 'auto';
           const btnSpan = btnConfirm.querySelector('span');
           if (btnSpan) btnSpan.textContent = 'Confirm Key Transfer';
         }
@@ -304,9 +277,6 @@
       if (window.lucide && typeof window.lucide.createIcons === 'function') {
         window.lucide.createIcons();
       }
-
-      // Keep key state synced with live backend state
-      startAutoPoll(keyCode);
     } catch (err) {
       console.error('[KeyTransfer] Failed to load details:', err);
       showError('Connection Error', 'Unable to connect to the LabSync server. Please check your network and try again.');
@@ -317,8 +287,7 @@
   function startAutoPoll(keyCode) {
     if (autoPollTimer) clearInterval(autoPollTimer);
     autoPollTimer = setInterval(async () => {
-      const successView = document.getElementById('successView');
-      if (successView && successView.style.display === 'block') {
+      if (!keyData || keyData.isApprovedMultiKey) {
         clearInterval(autoPollTimer);
         return;
       }
@@ -326,21 +295,13 @@
         const response = await fetch(`/api/keys/transfer-info/${encodeURIComponent(keyCode)}`, { credentials: 'include' });
         if (response.ok) {
           const fresh = await response.json();
-          const stateChanged = Boolean(
-            !keyData ||
-            fresh.roomKeyStatus !== keyData.roomKeyStatus ||
-            fresh.canTransfer !== keyData.canTransfer ||
-            fresh.isDocked !== keyData.isDocked ||
-            fresh.isApprovedMultiKey !== keyData.isApprovedMultiKey ||
-            (fresh.currentHolder && (!keyData.currentHolder || String(fresh.currentHolder.id) !== String(keyData.currentHolder.id))) ||
-            (!fresh.currentHolder && keyData.currentHolder)
-          );
-          if (stateChanged) {
+          if (fresh.isApprovedMultiKey) {
+            clearInterval(autoPollTimer);
             await loadTransferDetails(keyCode);
           }
         }
-      } catch (e) {}
-    }, 3500);
+      } catch (e) { }
+    }, 4000);
   }
 
   function setupEventListeners() {
@@ -443,7 +404,7 @@
 
     if (btnConfirm) {
       btnConfirm.addEventListener('click', async () => {
-        if (!keyData || !keyData.canTransfer || keyData.isDocked) return;
+        if (!keyData || !keyData.canTransfer) return;
 
         btnConfirm.disabled = true;
         btnConfirm.innerHTML = '<i data-lucide="loader" class="spin" style="width:18px;height:18px;"></i> Recording transfer...';
@@ -462,8 +423,6 @@
           if (!response.ok) {
             throw new Error(result.error || 'Failed to complete key transfer.');
           }
-
-          if (autoPollTimer) clearInterval(autoPollTimer);
 
           // Show success state view
           const mainView = document.getElementById('mainTransferView');

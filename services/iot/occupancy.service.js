@@ -447,10 +447,14 @@ async function logOccupancy(reqBody = {}, device = null) {
         );
     }
 
-    console.log(`[IoT QR Scan] Processing verification for qrString: "${qrString}"`);
+    const scanTag = reqBody.scanId ? `Scan #${reqBody.scanId} ` : '';
+    console.log(`[IoT QR Scan] ${scanTag}Processing verification (length: ${qrString.length})`);
+    const tUserLookupStart = performance.now();
     const [users] = await userRepository.findByQRString(qrString);
+    const userLookupMs = (performance.now() - tUserLookupStart).toFixed(2);
+
     if (users.length === 0) {
-        console.warn(`[IoT QR Scan] Access Denied: No matching user found for qrString: "${qrString}"`);
+        console.warn(`[IoT QR Scan] ${scanTag}Access Denied: No matching user found (lookup: ${userLookupMs}ms)`);
         return iotResponseService.createErrorResponse(
             404,
             'User not found for the provided QR code.',
@@ -496,6 +500,7 @@ async function logOccupancy(reqBody = {}, device = null) {
 
     // 4b. Anti-Double-Tap Policy: Prevent user from claiming multiple keys simultaneously,
     // unless authorized by Department Head (strictly max 2 keys)
+    const tCustodyStart = performance.now();
     const [activeKeys] = await labRepository.findActiveKeysByUserId(user.User_ID);
     if (activeKeys && activeKeys.length > 0) {
         if (activeKeys.length >= 2) {
@@ -550,6 +555,7 @@ async function logOccupancy(reqBody = {}, device = null) {
         }
         console.log(`[IoT QR Scan] Multi-Key Authorization Detected for User "${user.Name}". Permitting 2nd key withdrawal.`);
     }
+    const custodyCheckMs = (performance.now() - tCustodyStart).toFixed(2);
 
     if (!user.ID_QR_String) {
         const newQR = `LABSYNC-USER-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -571,7 +577,11 @@ async function logOccupancy(reqBody = {}, device = null) {
         }, now);
     }
 
+    const tDbLogStart = performance.now();
     await iotRepository.insertOccupancyLog(user.User_ID, room.Room_ID, authMethod || 'QR Code');
+    const dbLogMs = (performance.now() - tDbLogStart).toFixed(2);
+
+    console.log(`[IoT Sub-Timing] ${scanTag}UserLookup: ${userLookupMs}ms | CustodyCheck: ${custodyCheckMs}ms | DbLog: ${dbLogMs}ms | User: "${user.Name}" (${user.Role})`);
 
     return iotResponseService.createQrVerificationResponse(user);
 }

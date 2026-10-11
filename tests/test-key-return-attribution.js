@@ -30,7 +30,7 @@ const mockDevice = {
 function loadTimelineRenderer() {
     const timelineJs = fs.readFileSync(path.join(__dirname, '../js/pages/room-status/room-status.timeline.js'), 'utf8');
     const mockWindow = {
-        lucide: { createIcons: () => {} },
+        lucide: { createIcons: () => { } },
         escapeHtml: str => String(str || '')
     };
     const fn = new Function('window', 'global', timelineJs);

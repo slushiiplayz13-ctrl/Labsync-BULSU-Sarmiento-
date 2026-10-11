@@ -40,7 +40,8 @@
             <i data-lucide="key" style="width: 24px; height: 24px;"></i>
           </div>
         </div>
-        <h3 style="font-family: var(--font-display); font-size: 18px; font-weight: 800; margin: 0 0 6px 0; color: var(--kt-text-dark);">
+        <h3
+          style="font-family: var(--font-display); font-size: 18px; font-weight: 800; margin: 0 0 6px 0; color: var(--kt-text-dark);">
           Verifying Key & Room Tag...
         </h3>
         <p style="font-size: 13.5px; color: var(--kt-text-muted); margin: 0;">
@@ -53,7 +54,9 @@
         <div class="error-badge-icon">
           <i data-lucide="alert-triangle" style="width: 34px; height: 34px;"></i>
         </div>
-        <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; margin: 0 0 8px 0; color: var(--kt-text-dark);" id="errorTitle">
+        <h3
+          style="font-family: var(--font-display); font-size: 20px; font-weight: 800; margin: 0 0 8px 0; color: var(--kt-text-dark);"
+          id="errorTitle">
           Key Lookup Failed
         </h3>
         <p style="font-size: 14px; color: var(--kt-text-mid); line-height: 1.5; margin: 0 0 24px 0;" id="errorText">
@@ -68,16 +71,19 @@
       <!-- Unauthenticated State -->
       <div id="unauthBox" class="state-box" style="display: none;">
         <div class="loader-ring-wrapper" style="margin-bottom: 14px;">
-          <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(30, 187, 215, 0.12); color: #0284C7; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+          <div
+            style="width: 64px; height: 64px; border-radius: 50%; background: rgba(30, 187, 215, 0.12); color: #0284C7; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
             <i data-lucide="shield-alert" style="width: 32px; height: 32px;"></i>
           </div>
         </div>
-        <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 800; margin: 0 0 8px 0; color: var(--kt-text-dark);">
+        <h3
+          style="font-family: var(--font-display); font-size: 20px; font-weight: 800; margin: 0 0 8px 0; color: var(--kt-text-dark);">
           Faculty Authentication Required
         </h3>
         <p style="font-size: 14px; color: var(--kt-text-mid); line-height: 1.5; margin: 0 0 24px 0;">
           This physical key belongs to an official BulSU laboratory.<br>
-          Please log in with your <strong>Faculty</strong> or <strong>Department Head</strong> account to claim or transfer custody.
+          Please log in with your <strong>Faculty</strong> or <strong>Department Head</strong> account to claim or
+          transfer custody.
         </p>
         <button type="button" id="btnLoginRedirect" class="btn-confirm-transfer">
           <i data-lucide="log-in" style="width: 18px; height: 18px;"></i>
@@ -128,8 +134,8 @@
             </div>
             <div class="party-info">
               <div class="party-role-tag prev-role" id="dispPrevRole">STATUS: IN DOCK</div>
-              <h4 class="party-name" id="dispPrevName">IoT Key Box (Docked)</h4>
-              <div class="party-sub" id="dispPrevSub">Key is inside the IoT key box</div>
+              <h4 class="party-name" id="dispPrevName">No Active Holder</h4>
+              <div class="party-sub" id="dispPrevSub">Key is ready to be claimed</div>
             </div>
           </div>
 
@@ -239,7 +245,8 @@
               <label for="reqReasonInput" class="kt-input-label">Justification / Reason:</label>
               <span class="kt-char-counter" id="reqReasonCharCount" aria-live="polite">0 / 150</span>
             </div>
-            <textarea id="reqReasonInput" class="kt-textarea" rows="3" maxlength="150" placeholder="e.g., Simultaneous lab session, dual examination proctoring, emergency lab change..."></textarea>
+            <textarea id="reqReasonInput" class="kt-textarea" rows="3" maxlength="150"
+              placeholder="e.g., Simultaneous lab session, dual examination proctoring, emergency lab change..."></textarea>
             <div class="kt-hint">
               <i data-lucide="info" class="kt-hint-icon"></i>
               <span>Department Head will receive an instant notification to review and approve.</span>
@@ -278,10 +285,11 @@
               <span>BulSU Custody Pass</span>
             </div>
             <div class="custody-pass-verified">
-              <i data-lucide="shield-check" style="width: 11px; height: 11px; display: inline-block; vertical-align: middle;"></i> Verified
+              <i data-lucide="shield-check"
+                style="width: 11px; height: 11px; display: inline-block; vertical-align: middle;"></i> Verified
             </div>
           </div>
-          
+
           <div class="custody-pass-body">
             <div class="custody-pass-row">
               <span class="custody-pass-label">
