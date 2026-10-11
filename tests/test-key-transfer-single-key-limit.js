@@ -25,18 +25,21 @@ async function run() {
   const keyA = keysA[0];
   const keyB = keysB[0];
 
-  const [facultyUsers] = await db.query("SELECT User_ID, Name, Role FROM users WHERE Role = 'Faculty' LIMIT 1");
-  if (facultyUsers.length === 0) {
-    throw new Error('Faculty user required for test');
+  const [facultyUsers] = await db.query("SELECT User_ID, Name, Role FROM users WHERE Role IN ('Faculty', 'IT Dept. Head', 'Department Head') AND Status = 'Active' LIMIT 2");
+  if (facultyUsers.length < 2) {
+    throw new Error('At least 2 active faculty users required for test');
   }
   const faculty = facultyUsers[0];
+  const donorFaculty = facultyUsers[1];
 
-  console.log(`Faculty: ${faculty.Name} (ID: ${faculty.User_ID})`);
+  console.log(`Faculty (Recipient): ${faculty.Name} (ID: ${faculty.User_ID})`);
+  console.log(`Donor Faculty:       ${donorFaculty.Name} (ID: ${donorFaculty.User_ID})`);
   console.log(`Room A: ${roomA.Room_Number} (${keyA.Key_Code})`);
   console.log(`Room B: ${roomB.Room_Number} (${keyB.Key_Code})`);
 
-  // Ensure initial state: clean custody
-  await db.query("UPDATE laboratories SET Key_Status = 'Present', Current_User_ID = NULL WHERE Room_ID IN (?, ?)", [roomA.Room_ID, roomB.Room_ID]);
+  // Ensure initial state: Keys are held by donor faculty for hallway handoff
+  await db.query("UPDATE laboratories SET Key_Status = 'Absent', Current_User_ID = ? WHERE Room_ID = ?", [donorFaculty.User_ID, roomA.Room_ID]);
+  await db.query("UPDATE laboratories SET Key_Status = 'Absent', Current_User_ID = ? WHERE Room_ID = ?", [donorFaculty.User_ID, roomB.Room_ID]);
 
   const mockReqFaculty = {
     session: {
