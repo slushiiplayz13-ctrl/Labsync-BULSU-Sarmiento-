@@ -1891,6 +1891,12 @@ html.high-contrast .kt-custom-end-row {
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+.kt-opt-badge.is-scheduled-badge {
+  background: rgba(14, 165, 201, 0.14);
+  color: #0284C7;
+  border: 1px solid rgba(14, 165, 201, 0.3);
+}
+
 .kt-room-conflict-banner {
   display: flex;
   align-items: flex-start;
@@ -1913,6 +1919,12 @@ html.high-contrast .kt-custom-end-row {
   background: rgba(245, 158, 11, 0.1);
   border: 1px solid rgba(245, 158, 11, 0.25);
   color: #D97706;
+}
+
+.kt-room-conflict-banner.is-scheduled {
+  background: rgba(14, 165, 201, 0.1);
+  border: 1px solid rgba(14, 165, 201, 0.25);
+  color: #0369A1;
 }
 
 .kt-room-conflict-banner i,
@@ -2510,6 +2522,22 @@ html.high-contrast .kt-room-conflict-banner.is-pending {
   background: rgba(245, 158, 11, 0.16);
   border-color: rgba(245, 158, 11, 0.3);
   color: #FDE68A;
+}
+
+[data-theme="dark"] .kt-opt-badge.is-scheduled-badge,
+html.dark-mode .kt-opt-badge.is-scheduled-badge,
+html.high-contrast .kt-opt-badge.is-scheduled-badge {
+  background: rgba(14, 165, 201, 0.22);
+  color: #38BDF8;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+[data-theme="dark"] .kt-room-conflict-banner.is-scheduled,
+html.dark-mode .kt-room-conflict-banner.is-scheduled,
+html.high-contrast .kt-room-conflict-banner.is-scheduled {
+  background: rgba(14, 165, 201, 0.15);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #38BDF8;
 }
 
 /* ─── Time Selector Dark Mode Styles ─── */

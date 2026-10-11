@@ -613,6 +613,67 @@ async function findUserSchedulesForConflictAll(userId, day, ay, sem, excludeRoom
     return executor.query(query, params);
 }
 
+async function findActiveOfficialScheduleForUser(userId, roomId = null, dayOfWeek, time, ay = null, sem = null, executor = db) {
+    if (!userId || !dayOfWeek || !time || !ay || !sem) return [[]];
+    let query = `
+        SELECT s.Schedule_ID, s.User_ID, s.Room_ID, s.Subject_Name, s.Section, s.Day_of_Week,
+               s.Start_Time, s.End_Time, s.Academic_Year, s.Semester, s.Color_Theme,
+               l.Room_Number, l.Building
+        FROM schedules s
+        JOIN laboratories l ON s.Room_ID = l.Room_ID
+        WHERE s.User_ID = ?
+          AND s.Day_of_Week = ?
+          AND ? >= s.Start_Time AND ? < s.End_Time
+    `;
+    const params = [userId, dayOfWeek, time, time];
+
+    if (roomId) {
+        query += ` AND s.Room_ID = ?`;
+        params.push(roomId);
+    }
+    query += ` AND s.Academic_Year = ? AND s.Semester = ?`;
+    params.push(ay, sem);
+    query += ` ORDER BY s.Start_Time ASC`;
+    return executor.query(query, params);
+}
+
+async function findOfficialScheduleConflictsForUser(userId, roomId, dayOfWeek, startTime, endTime, ay = null, sem = null, executor = db) {
+    if (!userId || !roomId || !dayOfWeek || !startTime || !endTime || !ay || !sem) return [[]];
+    const query = `
+        SELECT s.Schedule_ID, s.User_ID, s.Room_ID, s.Subject_Name, s.Section, s.Day_of_Week,
+               s.Start_Time, s.End_Time, s.Academic_Year, s.Semester, s.Color_Theme,
+               l.Room_Number, l.Building
+        FROM schedules s
+        JOIN laboratories l ON s.Room_ID = l.Room_ID
+        WHERE s.User_ID = ?
+          AND s.Room_ID = ?
+          AND s.Day_of_Week = ?
+          AND ? < s.End_Time AND ? > s.Start_Time
+          AND s.Academic_Year = ? AND s.Semester = ?
+        ORDER BY s.Start_Time ASC
+    `;
+    const params = [userId, roomId, dayOfWeek, startTime, endTime, ay, sem];
+    return executor.query(query, params);
+}
+
+async function findUserOfficialSchedulesOnDay(userId, dayOfWeek, startTime, endTime, ay = null, sem = null, executor = db) {
+    if (!userId || !dayOfWeek || !startTime || !endTime || !ay || !sem) return [[]];
+    const query = `
+        SELECT s.Schedule_ID, s.User_ID, s.Room_ID, s.Subject_Name, s.Section, s.Day_of_Week,
+               s.Start_Time, s.End_Time, s.Academic_Year, s.Semester, s.Color_Theme,
+               l.Room_Number, l.Building
+        FROM schedules s
+        JOIN laboratories l ON s.Room_ID = l.Room_ID
+        WHERE s.User_ID = ?
+          AND s.Day_of_Week = ?
+          AND ? < s.End_Time AND ? > s.Start_Time
+          AND s.Academic_Year = ? AND s.Semester = ?
+        ORDER BY s.Start_Time ASC
+    `;
+    const params = [userId, dayOfWeek, startTime, endTime, ay, sem];
+    return executor.query(query, params);
+}
+
 module.exports = {
     findRoomIdByNumber,
     deleteRoomSchedule,
@@ -643,6 +704,9 @@ module.exports = {
     publishDraftToOfficial,
     clearRoomScheduleDraft,
     findUserSchedulesForConflictAll,
+    findActiveOfficialScheduleForUser,
+    findOfficialScheduleConflictsForUser,
+    findUserOfficialSchedulesOnDay,
     lockUserForUpdate,
     getConnection,
     withTransaction

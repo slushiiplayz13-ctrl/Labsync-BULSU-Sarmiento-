@@ -13,6 +13,27 @@ const auditService = require('./auditService');
 const emailService = require('./email/email.service');
 const appConfig = require('../config/app.config');
 const { KEY_TRANSFER_ROLES, IT_HEAD_ROLES, IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
+const scheduleRepo = require('../repositories/schedule.repository');
+const AcademicTerm = require('../js/utils/academic-term');
+
+function getPhilippineTimeContext(target = null) {
+    const d = target ? new Date(target) : new Date();
+    const day = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Manila',
+        weekday: 'long'
+    }).format(d);
+    const time = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Manila',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h23'
+    }).format(d);
+    const dateStr = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Manila'
+    }).format(d);
+    return { day, time, dateStr, date: d };
+}
 
 /**
  * Computes maximum allowed reservation date (Saturday of next week).
@@ -41,7 +62,7 @@ function getTodayDateString() {
 /**
  * Submit an advance reservation request to borrow an additional laboratory key.
  */
-async function requestAdditionalKey(userId, userRole, userName, roomId, reason, reservationDate = null, startTime = null, endTime = null, req = null) {
+async function requestAdditionalKey(userId, userRole, userName, roomId, reason, reservationDate = null, startTime = null, endTime = null, req = null, options = {}) {
     if (!userId) {
         return { status: 401, error: 'Authentication required' };
     }
@@ -171,38 +192,94 @@ async function requestAdditionalKey(userId, userRole, userName, roomId, reason, 
         calculatedDuration = 120;
     }
 
-    // Check for conflicting reservations for this room and time window
-    const [conflicts] = await keyAuthRepo.findConflictingReservations(parsedRoomId, cleanDate, cleanStartTime, cleanEndTime);
-    if (conflicts && conflicts.length > 0) {
-        const c = conflicts[0];
-        const sStr = String(c.Start_Time).slice(0, 5);
-        const eStr = String(c.End_Time).slice(0, 5);
-        return {
-            status: 409,
-            error: `Room ${targetRoom.Room_Number} is already reserved by ${c.Requester_Name} on ${cleanDate} (${sStr} – ${eStr}). Please choose another room or time slot.`
-        };
-    }
+    // Authoritative check: Prevent reservation request if professor has an official class schedule
+    // for this room that overlaps the requested reservation date and time window
+    const [yr, mo, da] = cleanDate.split('-').map(Number);
+    const resDateMidday = new Date(Date.UTC(yr, mo - 1, da, 4, 0, 0)); // Midday in Asia/Manila (+08:00)
+    const resDayOfWeek = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', weekday: 'long' }).format(resDateMidday);
+    const resTerm = AcademicTerm.getActiveTerm(resDateMidday);
 
-    // Check if user already has an active PENDING request for this room on the same date
-    const [userPending] = await keyAuthRepo.findPendingByUserId(userId);
-    const dupPending = (userPending || []).find(r => r.Room_ID === parsedRoomId && String(r.Reservation_Date).slice(0, 10) === cleanDate);
-    if (dupPending) {
-        return {
-            status: 409,
-            error: `You already have a pending key reservation for Room ${targetRoom.Room_Number} on ${cleanDate} awaiting Department Head review.`
-        };
-    }
-
-    // Insert reservation request
-    const [result] = await keyAuthRepo.createRequest(
+    const [targetSchedConflicts] = await scheduleRepo.findOfficialScheduleConflictsForUser(
         userId,
         parsedRoomId,
-        cleanReason,
-        cleanDate,
+        resDayOfWeek,
         cleanStartTime,
-        cleanEndTime
+        cleanEndTime,
+        resTerm ? resTerm.academicYear : null,
+        resTerm ? resTerm.semester : null
     );
-    const requestId = result.insertId;
+
+    if (targetSchedConflicts && targetSchedConflicts.length > 0) {
+        const cSched = targetSchedConflicts[0];
+        const sStr = String(cSched.Start_Time).slice(0, 5);
+        const eStr = String(cSched.End_Time).slice(0, 5);
+        return {
+            status: 409,
+            error: `You already have an official class schedule for Room ${targetRoom.Room_Number} on ${cleanDate} (${sStr} – ${eStr}). You can take your assigned room's key directly through the standard process without requesting a second key.`
+        };
+    }
+
+    const connection = await db.getConnection();
+    let requestId = null;
+    try {
+        await connection.beginTransaction();
+
+        // Lock user row to serialize concurrent reservation requests for this user
+        await scheduleRepo.lockUserForUpdate(userId, connection);
+
+        // Re-verify in transaction: user key limit
+        const [activeKeysInTx] = await labRepo.findActiveKeysByUserId(userId, connection);
+        if (activeKeysInTx && activeKeysInTx.length >= 2) {
+            await connection.rollback();
+            return {
+                status: 400,
+                error: 'Key limit reached: You cannot hold more than 2 keys simultaneously under any circumstance.'
+            };
+        }
+
+        // Check for conflicting reservations for this room and time window
+        const [conflicts] = await keyAuthRepo.findConflictingReservations(parsedRoomId, cleanDate, cleanStartTime, cleanEndTime, null, connection);
+        if (conflicts && conflicts.length > 0) {
+            await connection.rollback();
+            const c = conflicts[0];
+            const sStr = String(c.Start_Time).slice(0, 5);
+            const eStr = String(c.End_Time).slice(0, 5);
+            return {
+                status: 409,
+                error: `Room ${targetRoom.Room_Number} is already reserved by ${c.Requester_Name} on ${cleanDate} (${sStr} – ${eStr}). Please choose another room or time slot.`
+            };
+        }
+
+        // Check if user already has an active PENDING request for this room on the same date
+        const [userPending] = await keyAuthRepo.findPendingByUserId(userId, connection);
+        const dupPending = (userPending || []).find(r => r.Room_ID === parsedRoomId && String(r.Reservation_Date).slice(0, 10) === cleanDate);
+        if (dupPending) {
+            await connection.rollback();
+            return {
+                status: 409,
+                error: `You already have a pending key reservation for Room ${targetRoom.Room_Number} on ${cleanDate} awaiting Department Head review.`
+            };
+        }
+
+        // Insert reservation request
+        const [result] = await keyAuthRepo.createRequest(
+            userId,
+            parsedRoomId,
+            cleanReason,
+            cleanDate,
+            cleanStartTime,
+            cleanEndTime,
+            connection
+        );
+        requestId = result.insertId;
+
+        await connection.commit();
+    } catch (txErr) {
+        await connection.rollback();
+        throw txErr;
+    } finally {
+        connection.release();
+    }
 
     await auditService.logSecurityEvent({
         req,
@@ -284,7 +361,7 @@ function toLocalDateString(d) {
 /**
  * Get active/latest key authorization status for the logged-in faculty.
  */
-async function getFacultyRequestStatus(userId) {
+async function getFacultyRequestStatus(userId, options = {}) {
     if (!userId) {
         return { status: 401, error: 'Authentication required' };
     }
@@ -304,9 +381,30 @@ async function getFacultyRequestStatus(userId) {
     const heldCount = (heldKeys || []).length;
     const heldList = (heldKeys || []).map(k => ({ Room_ID: k.Room_ID, Room_Number: k.Room_Number }));
 
+    // Retrieve active official scheduled rooms in Philippine Time
+    const phNow = getPhilippineTimeContext((options && options.referenceTime) || null);
+    const activeTerm = AcademicTerm.getActiveTerm(phNow.date);
+    const [activeSchedRows] = await scheduleRepo.findActiveOfficialScheduleForUser(
+        userId,
+        null,
+        phNow.day,
+        phNow.time,
+        activeTerm ? activeTerm.academicYear : null,
+        activeTerm ? activeTerm.semester : null
+    );
+    const activeScheduledRooms = (activeSchedRows || []).map(s => ({
+        Room_ID: s.Room_ID,
+        Room_Number: s.Room_Number,
+        Building: s.Building,
+        Start_Time: String(s.Start_Time).slice(0, 5),
+        End_Time: String(s.End_Time).slice(0, 5),
+        Subject_Name: s.Subject_Name
+    }));
+
     if (request) {
         request.heldCount = heldCount;
         request.heldRooms = heldList;
+        request.activeScheduledRooms = activeScheduledRooms;
 
         if (request.Reservation_Date && request.Start_Time && request.End_Time) {
             const resDateStr = toLocalDateString(request.Reservation_Date);
@@ -347,7 +445,8 @@ async function getFacultyRequestStatus(userId) {
         data: {
             Status: null,
             heldCount,
-            heldRooms: heldList
+            heldRooms: heldList,
+            activeScheduledRooms
         }
     };
 }
@@ -694,7 +793,7 @@ async function checkActiveApprovalByRoomNumber(userId, roomNumber, executor = db
 /**
  * Get room availability & conflict status for a specific date and time window.
  */
-async function getRoomAvailability(reservationDate, startTime, endTime) {
+async function getRoomAvailability(reservationDate, startTime, endTime, userId = null, options = {}) {
     const todayStr = getTodayDateString();
     let cleanDate = reservationDate ? String(reservationDate).trim() : todayStr;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanDate)) {
@@ -732,6 +831,39 @@ async function getRoomAvailability(reservationDate, startTime, endTime) {
         }
     });
 
+    if (userId) {
+        const [yr, mo, da] = cleanDate.split('-').map(Number);
+        const resDateMidday = new Date(Date.UTC(yr, mo - 1, da, 4, 0, 0));
+        const resDayOfWeek = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', weekday: 'long' }).format(resDateMidday);
+        const resTerm = AcademicTerm.getActiveTerm(resDateMidday);
+
+        // Check if the user has an official schedule in any room during the target reservation window
+        const [userScheds] = await scheduleRepo.findUserOfficialSchedulesOnDay(
+            userId,
+            resDayOfWeek,
+            cleanStartTime,
+            cleanEndTime,
+            resTerm ? resTerm.academicYear : null,
+            resTerm ? resTerm.semester : null
+        );
+
+        (userScheds || []).forEach(row => {
+            const rId = row.Room_ID;
+            rooms[rId] = {
+                roomId: rId,
+                roomNumber: row.Room_Number,
+                building: row.Building,
+                status: 'SCHEDULED',
+                label: 'Assigned Schedule',
+                badgeClass: 'is-scheduled-badge',
+                requesterName: 'Your Scheduled Class',
+                startTime: String(row.Start_Time).slice(0, 5),
+                endTime: String(row.End_Time).slice(0, 5),
+                isScheduled: true
+            };
+        });
+    }
+
     return {
         status: 200,
         data: {
@@ -755,5 +887,6 @@ module.exports = {
     cancelRequest,
     checkActiveApproval,
     checkActiveApprovalByRoomNumber,
-    getRoomAvailability
+    getRoomAvailability,
+    getPhilippineTimeContext
 };

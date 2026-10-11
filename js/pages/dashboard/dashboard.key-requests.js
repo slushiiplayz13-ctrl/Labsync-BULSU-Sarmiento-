@@ -427,6 +427,8 @@
 
     const heldRooms = facultyReqData.heldRooms || [];
     const heldIds = new Set(heldRooms.map(r => r.Room_ID));
+    const scheduledRooms = facultyReqData.activeScheduledRooms || [];
+    const scheduledIds = new Set(scheduledRooms.map(r => r.Room_ID));
     const isHoldingKey = heldRooms.length > 0;
     const heldName = isHoldingKey ? heldRooms[0].Room_Number : null;
 
@@ -434,7 +436,7 @@
       ? `<span class="kt-pill-held">Room ${escapeText(heldName)}</span>`
       : `<span class="kt-pill-held" style="background: rgba(14, 165, 201, 0.12); color: #0284C7; border: 1px solid rgba(14, 165, 201, 0.25);">None (1st Key Direct via Key Box)</span>`;
 
-    // Fetch labs
+    // Fetch labs: exclude physically held keys, but keep all rooms available for date/time evaluation
     const labs = await fetchCampusLaboratories();
     const availableLabs = labs.filter(l => !heldIds.has(l.Room_ID));
 
@@ -1116,7 +1118,29 @@
         return;
       }
 
-      if (selectedInfo.status === 'RESERVED') {
+      if (selectedInfo.status === 'SCHEDULED') {
+        if (conflictBanner) {
+          conflictBanner.className = 'kt-room-conflict-banner is-scheduled';
+          conflictBanner.style.display = 'flex';
+          conflictBanner.innerHTML = `
+            <i data-lucide="calendar-check"></i>
+            <div>
+              <strong>Assigned Class Schedule:</strong> You already have an official class schedule in Room ${escapeText(selectedInfo.roomNumber || '')} during this period (${formatTime12h(selectedInfo.startTime)} – ${formatTime12h(selectedInfo.endTime)}). Please withdraw your assigned room's key directly at the Key Box without submitting an advance second-key request.
+            </div>
+          `;
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons({ root: conflictBanner });
+          }
+        }
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('disabled');
+          submitBtn.innerHTML = '<i data-lucide="ban" style="width:16px;height:16px;"></i><span>Already Assigned Room</span>';
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons({ root: submitBtn });
+          }
+        }
+      } else if (selectedInfo.status === 'RESERVED') {
         if (conflictBanner) {
           conflictBanner.className = 'kt-room-conflict-banner is-reserved';
           conflictBanner.style.display = 'flex';
@@ -1238,6 +1262,13 @@
           const val = opt.dataset.value;
           const title = opt.dataset.title;
 
+          const info = (_roomAvailabilityData || {})[val];
+          if (info && info.status === 'SCHEDULED') {
+            if (typeof global.showToast === 'function') {
+              global.showToast('You already have an official class schedule in this room during this time. Please withdraw your assigned room key directly at the Key Box.', 'info', 'Assigned Schedule');
+            }
+          }
+
           roomOptions.forEach(o => {
             o.classList.toggle('selected', o === opt);
           });
@@ -1347,6 +1378,12 @@
 
         if (_roomAvailabilityData && _roomAvailabilityData[roomId]) {
           const roomStatus = _roomAvailabilityData[roomId].status;
+          if (roomStatus === 'SCHEDULED') {
+            if (typeof global.showToast === 'function') {
+              global.showToast('You are officially scheduled in this room during this time. Please withdraw your assigned room key directly at the Key Box.', 'info', 'Assigned Schedule');
+            }
+            return;
+          }
           if (roomStatus === 'RESERVED') {
             if (typeof global.showToast === 'function') {
               global.showToast('This room is already reserved for this date and time window. Please select another room or time.', 'error', 'Room Unavailable');

@@ -40,7 +40,8 @@ async function requestAdditionalKey(req, res, next) {
 async function getFacultyRequestStatus(req, res, next) {
     try {
         const userId = req.session.userId;
-        const result = await keyAuthService.getFacultyRequestStatus(userId);
+        const options = req.referenceTime ? { referenceTime: req.referenceTime } : {};
+        const result = await keyAuthService.getFacultyRequestStatus(userId, options);
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
@@ -139,8 +140,10 @@ async function cancelRequest(req, res, next) {
 
 async function getRoomAvailability(req, res, next) {
     try {
+        const userId = req.session ? req.session.userId : null;
         const { date, startTime, endTime } = req.query;
-        const result = await keyAuthService.getRoomAvailability(date, startTime, endTime);
+        const options = req.referenceTime ? { referenceTime: req.referenceTime } : {};
+        const result = await keyAuthService.getRoomAvailability(date, startTime, endTime, userId, options);
         return res.status(result.status).json(result.data);
     } catch (err) {
         next(err);
