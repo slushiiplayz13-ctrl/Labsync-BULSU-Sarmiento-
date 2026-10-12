@@ -256,14 +256,21 @@
           : (rep.Issue_Type && rep.Issue_Type.toLowerCase() !== 'hardware issue' ? rep.Issue_Type : '');
         const repBadgesHtml = repIssues ? badgeFormatter(repIssues, '', true, { isCompact: true }) : '';
 
+        const repStudentName = (rep.Student_Name || 'Student').trim();
+        const repStudentNum = (rep.Student_Number != null ? String(rep.Student_Number) : '').trim();
+        const isLongName = repStudentName.length > 20;
+
         return `
           <div class="ticket-modal-report-item">
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-weight:750; color:var(--text-dark); font-size:13.5px;">${escapeText(formatReporterIdentity(rep.Student_Name || 'Student', rep.Student_Number))}</span>
-                <span style="font-size:11px; color:#0284C7; background:#E0F2FE; padding:1px 6px; border-radius:6px; font-weight:700;">${escapeText(repParsed.section || 'N/A')}</span>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; font-size:13px;">
+              <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; min-width:0; flex:1;">
+                <span style="font-weight:750; color:var(--text-dark); font-size:13.5px; line-height:1.35; word-break:break-word; ${isLongName ? 'flex-basis:100%;' : ''}">${escapeText(repStudentName)}</span>
+                <span style="display:inline-flex; align-items:center; gap:6px; flex-shrink:0;">
+                  ${repStudentNum ? `<span style="font-weight:750; color:var(--text-dark); font-size:13.5px;">(${escapeText(repStudentNum)})</span>` : ''}
+                  <span style="font-size:11px; color:#0284C7; background:#E0F2FE; padding:1px 6px; border-radius:6px; font-weight:700; white-space:nowrap;">${escapeText(repParsed.section || 'N/A')}</span>
+                </span>
               </div>
-              <span style="font-size:11.5px; color:var(--text-muted); font-weight:500;">${repTimeStr}</span>
+              <span style="font-size:11.5px; color:var(--text-muted); font-weight:500; white-space:nowrap; flex-shrink:0;">${repTimeStr}</span>
             </div>
             ${repBadgesHtml ? `
               <div style="display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 2px 0;">

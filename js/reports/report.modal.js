@@ -449,14 +449,21 @@
         const repRemarks = (repParsed.remarks || '').trim();
         const isRepEmpty = !repRemarks || repRemarks.toLowerCase() === 'none' || repRemarks.toLowerCase() === 'n/a';
 
+        const repStudentName = (rep.Student_Name || 'Student').trim();
+        const repStudentNum = (rep.Student_Number != null ? String(rep.Student_Number) : '').trim();
+        const isLongName = repStudentName.length > 20;
+
         return `
           <div style="background:var(--bg-page); border:1px solid var(--border-light); padding:14px 16px; border-radius:12px; display:flex; flex-direction:column; gap:8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-weight:750; font-size:14px; color:var(--text-dark);">${escapeFn(formatReporterIdentity(rep.Student_Name || 'Student', rep.Student_Number))}</span>
-                <span style="font-size:11px; color:#0284C7; background:#E0F2FE; padding:2px 8px; border-radius:6px; font-weight:700;">${escapeFn(repParsed.section || 'N/A')}</span>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+              <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; min-width:0; flex:1;">
+                <span style="font-weight:750; font-size:14px; color:var(--text-dark); line-height:1.35; word-break:break-word; ${isLongName ? 'flex-basis:100%;' : ''}">${escapeFn(repStudentName)}</span>
+                <span style="display:inline-flex; align-items:center; gap:6px; flex-shrink:0;">
+                  ${repStudentNum ? `<span style="font-weight:750; font-size:14px; color:var(--text-dark);">(${escapeFn(repStudentNum)})</span>` : ''}
+                  <span style="font-size:11px; color:#0284C7; background:#E0F2FE; padding:2px 8px; border-radius:6px; font-weight:700; white-space:nowrap;">${escapeFn(repParsed.section || 'N/A')}</span>
+                </span>
               </div>
-              <span style="font-size:12px; color:var(--text-muted); font-weight:500;">${repTimeStr}</span>
+              <span style="font-size:12px; color:var(--text-muted); font-weight:500; white-space:nowrap; flex-shrink:0;">${repTimeStr}</span>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
               <i data-lucide="message-square" style="width:17px; height:17px; min-width:17px; min-height:17px; color:var(--primary-teal, #0891B2); flex-shrink:0;"></i>

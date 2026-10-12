@@ -330,8 +330,8 @@ test('IT Head / Faculty Modal: displays student number for all reporters in mult
   const modal = env.getModal();
   const html = modal.innerHTML;
 
-  assert(html.includes('Student Alpha (2021-111222)'), 'Multi-report view must display Student Alpha with number');
-  assert(html.includes('Student Beta (2022-333444)'), 'Multi-report view must display Student Beta with number');
+  assert(html.includes('Student Alpha') && html.includes('(2021-111222)'), 'Multi-report view must display Student Alpha with number');
+  assert(html.includes('Student Beta') && html.includes('(2022-333444)'), 'Multi-report view must display Student Beta with number');
 });
 
 test('MIS Maintenance Modal: displays student number for all reporters in multi-report timeline', () => {
@@ -340,8 +340,64 @@ test('MIS Maintenance Modal: displays student number for all reporters in multi-
   const modal = env.getModal();
   const html = modal.innerHTML;
 
-  assert(html.includes('Student Alpha (2021-111222)'), 'MIS multi-report view must display Student Alpha with number');
-  assert(html.includes('Student Beta (2022-333444)'), 'MIS multi-report view must display Student Beta with number');
+  assert(html.includes('Student Alpha') && html.includes('(2021-111222)'), 'MIS multi-report view must display Student Alpha with number');
+  assert(html.includes('Student Beta') && html.includes('(2022-333444)'), 'MIS multi-report view must display Student Beta with number');
+});
+
+const longNameMultiReportIssue = {
+  Report_ID: 305,
+  Issue_ID: 305,
+  PC_ID: 15,
+  PC_Number: 8,
+  Room_Number: '301',
+  Student_Name: 'RANDOLPH RALPH JOHN G HALILI',
+  Student_Number: '2023500737',
+  Status: 'Pending',
+  Priority_Level: 'Low',
+  Date_Reported: '2026-10-12T03:00:00Z',
+  reports: [
+    {
+      Report_ID: 1,
+      Student_Name: 'RANDOLPH RALPH JOHN G HALILI',
+      Student_Number: '2023500737',
+      Issue_Description: '[Program & Section: BSIT3A] [Issues: Keyboard] Remarks: None',
+      Date_Reported: '2026-10-12T03:00:00Z'
+    },
+    {
+      Report_ID: 2,
+      Student_Name: 'Jane Smith',
+      Student_Number: '2023500888',
+      Issue_Description: '[Program & Section: BSIT3A] [Issues: Mouse] Remarks: None',
+      Date_Reported: '2026-10-12T03:05:00Z'
+    }
+  ]
+};
+
+test('Long student name in MIS Maintenance Modal: places section beside student number below', () => {
+  const env = createMaintenanceModalSandbox();
+  env.viewTicketModal(305, [longNameMultiReportIssue]);
+  const modal = env.getModal();
+  const html = modal.innerHTML;
+
+  assert(html.includes('RANDOLPH RALPH JOHN G HALILI'), 'Student name must be rendered');
+  assert(html.includes('flex-basis:100%'), 'Long student name (>20 chars) must occupy top line via flex-basis:100%');
+  assert(html.includes('(2023500737)') && html.includes('BSIT3A'), 'Student number and section must be rendered');
+  // Check that (2023500737) and BSIT3A are grouped together in an inline-flex element
+  assert(html.includes('display:inline-flex; align-items:center; gap:6px; flex-shrink:0;'), 'Student number and section badge must be grouped together in inline-flex container');
+  assert(html.includes('white-space:nowrap; flex-shrink:0;'), 'Timestamp must have white-space:nowrap and flex-shrink:0');
+});
+
+test('Long student name in IT Head / Faculty Modal: places section beside student number below', () => {
+  const env = createReportModalSandbox();
+  env.viewTicketModal(305, [longNameMultiReportIssue]);
+  const modal = env.getModal();
+  const html = modal.innerHTML;
+
+  assert(html.includes('RANDOLPH RALPH JOHN G HALILI'), 'Student name must be rendered');
+  assert(html.includes('flex-basis:100%'), 'Long student name (>20 chars) must occupy top line via flex-basis:100%');
+  assert(html.includes('(2023500737)') && html.includes('BSIT3A'), 'Student number and section must be rendered');
+  assert(html.includes('display:inline-flex; align-items:center; gap:6px; flex-shrink:0;'), 'Student number and section badge must be grouped together in inline-flex container');
+  assert(html.includes('white-space:nowrap; flex-shrink:0;'), 'Timestamp must have white-space:nowrap and flex-shrink:0');
 });
 
 // ────────────────────────────────────────────────────────────────
@@ -426,7 +482,7 @@ test('Mixed legacy & new reporters in multi-report modal: handles null and non-n
 
   assert(html.includes('Old Student A'), 'Old student name present');
   assert(!html.includes('Old Student A ('), 'Old student has no parentheses');
-  assert(html.includes('New Student B (2026-990011)'), 'New student has formatted number in parentheses');
+  assert(html.includes('New Student B') && html.includes('(2026-990011)'), 'New student has formatted number in parentheses');
 });
 
 // ────────────────────────────────────────────────────────────────
