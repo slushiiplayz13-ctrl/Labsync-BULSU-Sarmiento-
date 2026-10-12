@@ -172,7 +172,11 @@
         if (prevAvatar) prevAvatar.innerHTML = '<i data-lucide="inbox" style="width:20px;height:20px;"></i>';
         if (prevRole) prevRole.textContent = 'STATUS: IN DOCK';
         if (prevName) prevName.textContent = 'Key Box / No Active Holder';
-        if (prevSub) prevSub.textContent = 'Key is ready to be claimed';
+        if (prevSub) {
+          prevSub.textContent = (keyData.roomKeyStatus === 'Present')
+            ? 'Key is currently inside IoT Key Box'
+            : 'Key is ready to be claimed';
+        }
       }
 
       // Populate Receiving User
@@ -221,7 +225,7 @@
       const approvedNoticeText = document.getElementById('approvedNoticeText');
       const btnOpenReq = document.getElementById('btnOpenRequestModal');
 
-      if (keyData.isApprovedMultiKey) {
+      if (keyData.canTransfer && keyData.isApprovedMultiKey) {
         if (approvedNotice) {
           approvedNotice.style.display = 'block';
           if (approvedNoticeText) {
@@ -247,7 +251,13 @@
           btnConfirm.style.cursor = 'not-allowed';
           const btnSpan = btnConfirm.querySelector('span');
           if (btnSpan) {
-            btnSpan.textContent = keyData.heldOtherRoom ? 'Cannot Claim (Key Limit Reached)' : 'Transfer Restricted';
+            if (keyData.roomKeyStatus === 'Present') {
+              btnSpan.textContent = 'Key Still in Key Box';
+            } else if (keyData.heldOtherRoom) {
+              btnSpan.textContent = 'Cannot Claim (Key Limit Reached)';
+            } else {
+              btnSpan.textContent = 'Transfer Restricted';
+            }
           }
         }
         if (noticeBox && noticeText) {
@@ -461,9 +471,13 @@
           if (window.lucide) window.lucide.createIcons();
         } catch (err) {
           alert(err.message || 'Transfer failed.');
-          btnConfirm.disabled = false;
-          btnConfirm.innerHTML = '<i data-lucide="check-circle-2" style="width:18px;height:18px;"></i> Confirm Key Transfer';
-          if (window.lucide) window.lucide.createIcons();
+          if (currentKeyCode) {
+            await loadTransferDetails(currentKeyCode);
+          } else {
+            btnConfirm.disabled = false;
+            btnConfirm.innerHTML = '<i data-lucide="check-circle-2" style="width:18px;height:18px;"></i> Confirm Key Transfer';
+            if (window.lucide) window.lucide.createIcons();
+          }
         }
       });
     }

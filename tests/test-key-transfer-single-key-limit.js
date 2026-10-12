@@ -35,8 +35,8 @@ async function run() {
   console.log(`Room A: ${roomA.Room_Number} (${keyA.Key_Code})`);
   console.log(`Room B: ${roomB.Room_Number} (${keyB.Key_Code})`);
 
-  // Ensure initial state: clean custody
-  await db.query("UPDATE laboratories SET Key_Status = 'Present', Current_User_ID = NULL WHERE Room_ID IN (?, ?)", [roomA.Room_ID, roomB.Room_ID]);
+  // Ensure initial state: clean custody, keys removed from box for handoff
+  await db.query("UPDATE laboratories SET Key_Status = 'Absent', Current_User_ID = NULL WHERE Room_ID IN (?, ?)", [roomA.Room_ID, roomB.Room_ID]);
 
   const mockReqFaculty = {
     session: {

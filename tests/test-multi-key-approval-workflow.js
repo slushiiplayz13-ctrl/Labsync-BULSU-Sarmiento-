@@ -54,9 +54,9 @@ async function runTests() {
   console.log(`Dept Head: ${deptHead.Name} (ID: ${deptHead.User_ID})`);
   console.log(`Faculty:   ${faculty.Name} (ID: ${faculty.User_ID})`);
 
-  // Ensure clean initial state
+  // Ensure clean initial state (keys absent from box for physical handoff tests)
   await db.query("DELETE FROM key_authorization_requests WHERE User_ID = ?", [faculty.User_ID]);
-  await db.query("UPDATE laboratories SET Key_Status = 'Present', Current_User_ID = NULL WHERE Room_ID IN (?, ?)", [room203.Room_ID, room204.Room_ID]);
+  await db.query("UPDATE laboratories SET Key_Status = 'Absent', Current_User_ID = NULL WHERE Room_ID IN (?, ?)", [room203.Room_ID, room204.Room_ID]);
 
   const mockReqFaculty = {
     session: {

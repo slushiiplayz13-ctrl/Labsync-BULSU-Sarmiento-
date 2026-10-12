@@ -235,14 +235,18 @@ async function getKeyTransferInfo(keyCode, req = null) {
     let approvalExpiresAt = null;
     let canRequestApproval = false;
 
+    const isKeyDocked = (key.Room_Key_Status === 'Present' || String(key.Room_Key_Status || '').trim().toLowerCase() === 'present');
+
     if (!sessionUserId) {
         cannotTransferReason = 'Please log in with your Faculty or Department Head account to transfer this key.';
     } else if (sessionUserRole === 'MIS Staff') {
         cannotTransferReason = 'MIS Staff accounts are key inventory custodians and cannot hold or transfer classroom keys. Only Faculty and Department Heads may claim or transfer this key.';
-    } else if (isSelf) {
-        cannotTransferReason = 'You are already the registered holder of this key.';
     } else if (!isEligibleRole) {
         cannotTransferReason = 'Only authorized Faculty and Department Heads can claim or transfer this key.';
+    } else if (isKeyDocked) {
+        cannotTransferReason = `The physical key for Laboratory ${key.Room_Number} is currently inside the IoT Key Box. Physical keys must be removed from the key box before custody can be transferred.`;
+    } else if (isSelf) {
+        cannotTransferReason = 'You are already the registered holder of this key.';
     } else {
         // Enforce 1 key per faculty policy: check if faculty already holds another active key
         const [activeKeys] = await labRepository.findActiveKeysByUserId(sessionUserId);
@@ -262,7 +266,13 @@ async function getKeyTransferInfo(keyCode, req = null) {
         }
     }
 
-    const canTransfer = Boolean(sessionUserId && isEligibleRole && !isSelf && (!cannotTransferReason || isApprovedMultiKey));
+    const canTransfer = Boolean(
+        sessionUserId &&
+        isEligibleRole &&
+        !isKeyDocked &&
+        !isSelf &&
+        (!cannotTransferReason || (isApprovedMultiKey && !isKeyDocked))
+    );
 
     let currentUser = null;
     if (sessionUserId) {
@@ -346,6 +356,31 @@ async function transferKey(keyCode, req) {
 
         keyInfo = rows[0];
         previousUserId = keyInfo.Current_User_ID;
+
+        // 1b. Reject transfer if physical key is docked inside the IoT Key Box
+        const isKeyDocked = (keyInfo.Room_Key_Status === 'Present' || String(keyInfo.Room_Key_Status || '').trim().toLowerCase() === 'present');
+        if (isKeyDocked) {
+            await connection.rollback();
+            await auditService.logSecurityEvent({
+                req,
+                action: 'KEY_TRANSFER_BLOCKED_KEY_DOCKED',
+                resourceType: 'LAB_KEY',
+                resourceId: keyInfo.Key_ID,
+                details: {
+                    roomId: keyInfo.Room_ID,
+                    roomNumber: keyInfo.Room_Number,
+                    keyCode: keyInfo.Key_Code,
+                    roomKeyStatus: keyInfo.Room_Key_Status,
+                    userId: newUserId,
+                    userName: newUserName
+                },
+                result: 'DENIED'
+            });
+            return {
+                status: 409,
+                error: `Cannot transfer key: The physical key for Laboratory ${keyInfo.Room_Number} is currently inside the IoT Key Box. The key must be physically removed from the IoT key box before custody can be transferred.`
+            };
+        }
 
         // 2. Reject self-transfer
         if (previousUserId && String(previousUserId) === String(newUserId)) {
