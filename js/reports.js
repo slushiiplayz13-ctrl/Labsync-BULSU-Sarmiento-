@@ -29,6 +29,15 @@
     return true;
   };
 
+  global.formatReporterIdentity = (name, number) => {
+    if (global.reportRenderer && typeof global.reportRenderer.formatReporterIdentity === 'function') {
+      return global.reportRenderer.formatReporterIdentity(name, number);
+    }
+    const cleanName = (name || 'Student').trim();
+    const cleanNum = (number != null ? String(number) : '').trim();
+    return cleanNum ? `${cleanName} (${cleanNum})` : cleanName;
+  };
+
   global.renderSingleCard = (report) => {
     if (global.reportRenderer && typeof global.reportRenderer.renderSingleCard === 'function') {
       return global.reportRenderer.renderSingleCard(report);

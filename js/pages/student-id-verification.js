@@ -400,7 +400,10 @@ async function processScannedID(qrData) {
       const mins = result.cooldown.remainingMinutes || Math.ceil((result.cooldown.remainingSeconds || 60) / 60) || 1;
       showSystemToast(`Notice: 30-minute cooldown active (${mins}m left).`, 'warning', 'Cooldown Notice');
     } else {
-      showSystemToast(`Verified: ${result.studentName}`, 'success', 'Identity Confirmed');
+      const toastIdentity = result.studentNumber
+        ? `${result.studentName} (${result.studentNumber})`
+        : result.studentName;
+      showSystemToast(`Verified: ${toastIdentity}`, 'success', 'Identity Confirmed');
     }
 
     // Automatically transition to the report form after short visual confirmation

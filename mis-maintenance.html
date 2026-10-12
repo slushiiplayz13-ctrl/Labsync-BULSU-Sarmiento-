@@ -64,6 +64,29 @@
       box-shadow: 0 4px 14px rgba(30, 187, 215, 0.35);
     }
 
+    @media (max-width: 1024px) {
+      .maint-controls-row {
+        flex-wrap: wrap !important;
+        gap: 12px !important;
+      }
+
+      .filter-pills-row {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+
+      .maint-search-wrap {
+        flex: 1 1 240px !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+      }
+
+      .maint-search-wrap .search-box {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }
+
     @media (max-width: 768px) {
       .maint-controls-row {
         display: flex !important;
@@ -125,9 +148,13 @@
 
       .maint-table colgroup,
       .maint-table col,
-      .maint-table thead {
+      .maint-table thead,
+      .maint-table:has(.maintenance-empty-row) thead,
+      .maint-table.is-empty thead {
         display: none !important;
         width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
       }
 
       .maint-table {
@@ -1969,7 +1996,7 @@
 
           <!-- Right Search Input -->
           <div class="maint-search-wrap">
-            <div class="search-box" style="position: relative; width: 360px;">
+            <div class="search-box" style="position: relative; width: 360px; max-width: 100%;">
               <i data-lucide="search"
                 style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
               <input type="text" id="maintenanceSearchInput" placeholder="Search by Ticket ID, Room, PC, or Details..."

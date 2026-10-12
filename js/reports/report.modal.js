@@ -14,6 +14,12 @@
     return global.escapeHtml || window.escapeHtml || ((s) => s || '');
   }
 
+  function formatReporterIdentity(name, number) {
+    const cleanName = (name || 'Student').trim();
+    const cleanNum = (number != null ? String(number) : '').trim();
+    return cleanNum ? `${cleanName} (${cleanNum})` : cleanName;
+  }
+
   /**
    * Filters and renders resolved completed tickets in the modal.
    */
@@ -252,6 +258,7 @@
     const pcNumRaw = report.PC_Number != null ? report.PC_Number : 'N/A';
     const formattedPcNum = (!isNaN(pcNumRaw) && String(pcNumRaw).length === 1) ? `0${pcNumRaw}` : String(pcNumRaw).replace(/^pc\s*/i, '');
     const studentName = report.Student_Name || 'Student';
+    const studentNumber = report.Student_Number || null;
 
     closeTicketModal();
 
@@ -259,6 +266,7 @@
       ? report.reports
       : [{
           Student_Name: studentName,
+          Student_Number: studentNumber,
           Issue_Description: report.Issue_Description,
           Issue_Type: report.Issue_Type,
           Date_Reported: report.Date_Reported || report.Created_At
@@ -403,7 +411,7 @@
             </div>
             <div>
               <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; letter-spacing:0.4px;">Reporter</div>
-              <div style="font-size:13.5px; font-weight:700; color:var(--text-dark);">${escapeFn(singleReport.Student_Name || studentName)}</div>
+              <div style="font-size:13.5px; font-weight:700; color:var(--text-dark);">${escapeFn(formatReporterIdentity(singleReport.Student_Name || studentName, singleReport.Student_Number || studentNumber))}</div>
             </div>
             <div>
               <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; letter-spacing:0.4px;">Section</div>
@@ -445,7 +453,7 @@
           <div style="background:var(--bg-page); border:1px solid var(--border-light); padding:14px 16px; border-radius:12px; display:flex; flex-direction:column; gap:8px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-weight:750; font-size:14px; color:var(--text-dark);">${escapeFn(rep.Student_Name || 'Student')}</span>
+                <span style="font-weight:750; font-size:14px; color:var(--text-dark);">${escapeFn(formatReporterIdentity(rep.Student_Name || 'Student', rep.Student_Number))}</span>
                 <span style="font-size:11px; color:#0284C7; background:#E0F2FE; padding:2px 8px; border-radius:6px; font-weight:700;">${escapeFn(repParsed.section || 'N/A')}</span>
               </div>
               <span style="font-size:12px; color:var(--text-muted); font-weight:500;">${repTimeStr}</span>
@@ -776,7 +784,8 @@
     initModalSearchClear,
     viewTicketModal,
     closeTicketModal,
-    initCompletedModalDelegation
+    initCompletedModalDelegation,
+    formatReporterIdentity
   };
 
   global.reportModal = reportModal;
@@ -786,5 +795,6 @@
   global.syncModalSearchClearVisibility = syncModalSearchClearVisibility;
   global.viewTicketModal = viewTicketModal;
   global.closeTicketModal = closeTicketModal;
+  global.formatReporterIdentity = formatReporterIdentity;
 
 })(typeof window !== 'undefined' ? window : this);

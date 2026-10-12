@@ -17,6 +17,12 @@
       .replace(/'/g, '&#039;');
   }
 
+  function formatReporterIdentity(name, number) {
+    const cleanName = (name || 'Student').trim();
+    const cleanNum = (number != null ? String(number) : '').trim();
+    return cleanNum ? `${cleanName} (${cleanNum})` : cleanName;
+  }
+
   /**
    * Closes and removes the Ticket Details Modal from DOM if present.
    */
@@ -71,6 +77,7 @@
       ? report.reports
       : [{
           Student_Name: report.Student_Name || 'Student',
+          Student_Number: report.Student_Number || null,
           Issue_Description: report.Issue_Description,
           Date_Reported: report.Date_Reported || report.Created_At
         }];
@@ -212,7 +219,7 @@
                 <span>Reporter</span>
               </div>
               <div class="ticket-modal-meta-val">
-                <span>${escapeText(singleReport.Student_Name || report.Student_Name || 'Student')}</span>
+                <span>${escapeText(formatReporterIdentity(singleReport.Student_Name || report.Student_Name || 'Student', singleReport.Student_Number || report.Student_Number))}</span>
                 ${singleParsed.section && singleParsed.section !== 'N/A' ? `<span class="section-chip" style="font-size:11px;padding:2px 7px;">${escapeText(singleParsed.section)}</span>` : ''}
               </div>
             </div>
@@ -253,7 +260,7 @@
           <div class="ticket-modal-report-item">
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
               <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-weight:750; color:var(--text-dark); font-size:13.5px;">${escapeText(rep.Student_Name || 'Student')}</span>
+                <span style="font-weight:750; color:var(--text-dark); font-size:13.5px;">${escapeText(formatReporterIdentity(rep.Student_Name || 'Student', rep.Student_Number))}</span>
                 <span style="font-size:11px; color:#0284C7; background:#E0F2FE; padding:1px 6px; border-radius:6px; font-weight:700;">${escapeText(repParsed.section || 'N/A')}</span>
               </div>
               <span style="font-size:11.5px; color:var(--text-muted); font-weight:500;">${repTimeStr}</span>
@@ -411,10 +418,12 @@
 
   const maintenanceModal = {
     viewTicketModal,
-    closeTicketModal
+    closeTicketModal,
+    formatReporterIdentity
   };
 
   global.maintenanceModal = maintenanceModal;
   global.viewTicketModal = viewTicketModal;
+  global.formatReporterIdentity = formatReporterIdentity;
 
 })(typeof window !== 'undefined' ? window : this);

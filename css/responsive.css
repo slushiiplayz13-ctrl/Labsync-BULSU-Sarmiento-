@@ -716,6 +716,23 @@
     transform: translateX(3px) !important;
   }
 
+  /* ─── MIS Maintenance Controls & Toolbar Tablet Adaptation (<= 1024px) ─── */
+  .maint-controls-row {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+
+  .maint-search-wrap {
+    flex: 1 1 240px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .maint-search-wrap .search-box {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
   /* Clean borderless telemetry row for Available / Borrowed / In Session */
   body[data-page="it-head-dashboard"] #itheadLabsCard .section-header,
   body[data-page="dashboard"] #itheadLabsCard .section-header,

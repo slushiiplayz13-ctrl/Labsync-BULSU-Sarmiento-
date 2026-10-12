@@ -947,7 +947,9 @@ function applyVerifiedStudentUI() {
   if (numberTag) numberTag.style.display = 'inline-flex';
 
   if (summaryEl) {
-    summaryEl.textContent = verifiedStudent.studentName;
+    summaryEl.textContent = verifiedStudent.studentNumber
+      ? `${verifiedStudent.studentName} (${verifiedStudent.studentNumber})`
+      : verifiedStudent.studentName;
   }
   if (bannerEl) bannerEl.style.display = 'flex';
 

@@ -70,7 +70,7 @@
   function computeReportsSignature(reports, query = '') {
     if (!Array.isArray(reports) || reports.length === 0) return 'empty:' + query;
     return query + '::' + reports.slice(0, 10).map(r =>
-      `${r.Report_ID}_${r.Status}_${r.Date_Reported}_${r.Room_Number}_${r.PC_Number}_${r.Issue_Description || ''}`
+      `${r.Report_ID}_${r.Status}_${r.Date_Reported}_${r.Room_Number}_${r.PC_Number}_${r.Student_Name || ''}_${r.Student_Number || ''}_${r.Issue_Description || ''}`
     ).join('|');
   }
 
@@ -110,13 +110,31 @@
       return idB - idA;
     });
 
+    const cleanQuery = query.replace(/[^a-z0-9]/gi, '');
     const filtered = sorted.filter(r => {
       if (!query) return true;
       const tkt = `ls-tkt-${r.Report_ID}`.toLowerCase();
       const room = `room ${r.Room_Number}`.toLowerCase();
       const pc = `pc ${r.PC_Number}`.toLowerCase();
       const desc = (r.Issue_Description || '').toLowerCase();
-      return tkt.includes(query) || room.includes(query) || pc.includes(query) || desc.includes(query);
+      const studentName = (r.Student_Name || '').toLowerCase();
+      const studentNumber = (r.Student_Number || '').toLowerCase();
+      const cleanStudentNum = studentNumber.replace(/[^a-z0-9]/gi, '');
+      let linkedStudentMatches = false;
+      if (Array.isArray(r.reports)) {
+        linkedStudentMatches = r.reports.some(lr => {
+          const lrName = (lr.Student_Name || '').toLowerCase();
+          const lrNum = (lr.Student_Number || '').toLowerCase();
+          const cleanLrNum = lrNum.replace(/[^a-z0-9]/gi, '');
+          return (lrName && lrName.includes(query)) ||
+                 (lrNum && lrNum.includes(query)) ||
+                 (cleanQuery && cleanLrNum && cleanLrNum.includes(cleanQuery));
+        });
+      }
+      return tkt.includes(query) || room.includes(query) || pc.includes(query) || desc.includes(query) ||
+             studentName.includes(query) || studentNumber.includes(query) ||
+             (cleanQuery && cleanStudentNum && cleanStudentNum.includes(cleanQuery)) ||
+             linkedStudentMatches;
     });
 
     const signature = computeReportsSignature(filtered, query);

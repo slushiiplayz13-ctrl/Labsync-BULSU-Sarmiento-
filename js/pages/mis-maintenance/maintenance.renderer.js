@@ -51,6 +51,7 @@
         remarks = desc.trim();
       } else {
         remarks = desc
+          .replace(/\[Student ID:[^\]]+\]/gi, '')
           .replace(/\[Program & Section:[^\]]+\]/gi, '')
           .replace(/\[Issues:[^\]]+\]/gi, '')
           .replace(/Remarks:/gi, '')

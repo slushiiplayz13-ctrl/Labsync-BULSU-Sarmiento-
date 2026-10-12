@@ -10,6 +10,12 @@
     return global.escapeHtml || window.escapeHtml || ((s) => s || '');
   }
 
+  function formatReporterIdentity(name, number) {
+    const cleanName = (name || 'Student').trim();
+    const cleanNum = (number != null ? String(number) : '').trim();
+    return cleanNum ? `${cleanName} (${cleanNum})` : cleanName;
+  }
+
   function formatTicketDate(rawDate) {
     if (!rawDate) return 'N/A';
     const dateObj = new Date(rawDate);
@@ -334,6 +340,7 @@
   const reportRenderer = {
     formatTicketDate,
     formatIssueBadges,
+    formatReporterIdentity,
     renderTicketCard,
     renderSingleCard,
     renderModalTicketCard
@@ -341,6 +348,7 @@
 
   global.reportRenderer = reportRenderer;
   global.formatTicketDate = formatTicketDate;
+  global.formatReporterIdentity = formatReporterIdentity;
   global.renderSingleCard = renderSingleCard;
   global.renderModalTicketCard = renderModalTicketCard;
 

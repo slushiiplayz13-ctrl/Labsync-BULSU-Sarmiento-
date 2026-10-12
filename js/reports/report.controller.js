@@ -61,7 +61,7 @@
     if (!Array.isArray(reports)) return '__EMPTY__';
     const q = (query || '').trim().toLowerCase();
     const fStr = filters ? JSON.stringify(filters) : '';
-    const rows = reports.map(r => `${r.Report_ID || ''}_${r.Status || ''}_${r.Follow_Up_Count || 0}_${r.Room_Number || ''}_${r.PC_Number || ''}_${r.Student_Name || ''}_${r.Priority_Level || ''}_${r.Date_Reported || ''}`);
+    const rows = reports.map(r => `${r.Report_ID || ''}_${r.Status || ''}_${r.Follow_Up_Count || 0}_${r.Room_Number || ''}_${r.PC_Number || ''}_${r.Student_Name || ''}_${r.Student_Number || ''}_${r.Priority_Level || ''}_${r.Date_Reported || ''}`);
     return `sig_${rows.join('|')}__q_${q}__f_${fStr}`;
   }
 

@@ -1164,9 +1164,13 @@ html.high-contrast .table-container tbody tr:hover {
 
   .maint-table colgroup,
   .maint-table col,
-  .maint-table thead {
+  .maint-table thead,
+  .maint-table:has(.maintenance-empty-row) thead,
+  .maint-table.is-empty thead {
     display: none !important;
     width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
   }
 
   .maint-table {

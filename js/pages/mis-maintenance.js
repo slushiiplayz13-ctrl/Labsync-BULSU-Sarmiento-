@@ -81,6 +81,20 @@
         const shortTktId = idStr ? `tkt-${idStr}` : '';
 
         const studentName = (report.Student_Name || '').toLowerCase();
+        const studentNumber = (report.Student_Number || '').toLowerCase();
+        const cleanSearchVal = searchVal.replace(/[^a-z0-9]/gi, '');
+        const cleanStudentNum = studentNumber.replace(/[^a-z0-9]/gi, '');
+        let linkedStudentMatches = false;
+        if (Array.isArray(report.reports)) {
+          linkedStudentMatches = report.reports.some(r => {
+            const rName = (r.Student_Name || '').toLowerCase();
+            const rNum = (r.Student_Number || '').toLowerCase();
+            const cleanRNum = rNum.replace(/[^a-z0-9]/gi, '');
+            return (rName && rName.includes(searchVal)) ||
+                   (rNum && rNum.includes(searchVal)) ||
+                   (cleanSearchVal && cleanRNum && cleanRNum.includes(cleanSearchVal));
+          });
+        }
         const roomNum = report.Room_Number != null ? String(report.Room_Number).toLowerCase() : '';
         const roomFormatted = roomNum ? `room ${roomNum}` : '';
         const pcNum = report.PC_Number != null ? String(report.PC_Number).toLowerCase() : '';
@@ -97,6 +111,9 @@
           formattedId.includes(searchVal) ||
           shortTktId.includes(searchVal) ||
           studentName.includes(searchVal) ||
+          studentNumber.includes(searchVal) ||
+          (cleanSearchVal && cleanStudentNum && cleanStudentNum.includes(cleanSearchVal)) ||
+          linkedStudentMatches ||
           roomNum.includes(searchVal) ||
           roomFormatted.includes(searchVal) ||
           pcNum.includes(searchVal) ||
