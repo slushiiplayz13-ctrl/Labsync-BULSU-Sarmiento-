@@ -630,6 +630,13 @@ void networkWorkerTask(void* pvParameters) {
   uint8_t heartbeatRetryCount = 0;
   const uint8_t MAX_HEARTBEAT_RETRIES = 3;
   const unsigned long HEARTBEAT_RETRY_DELAYS[3] = { 3000, 5000, 8000 };
+  const unsigned long PENDING_SYNC_RETRY_DELAY_MS = 5000;
+
+  unsigned long nextAlertRetryMs203 = millis();
+  unsigned long nextAlertRetryMs204 = millis();
+  unsigned long nextSlotRetryMs203 = millis();
+  unsigned long nextSlotRetryMs204 = millis();
+  uint8_t pendingSyncRoundRobin = 0;
 
   while (true) {
     NetMessage msg;
@@ -644,6 +651,11 @@ void networkWorkerTask(void* pvParameters) {
             if (strcmp(msg.room, "203") == 0 && slotTargetState203 == msg.keyPresent) slotNeedsSync203 = false;
             if (strcmp(msg.room, "204") == 0 && slotTargetState204 == msg.keyPresent) slotNeedsSync204 = false;
             portEXIT_CRITICAL(&stateMux);
+            if (strcmp(msg.room, "203") == 0) nextSlotRetryMs203 = millis();
+            if (strcmp(msg.room, "204") == 0) nextSlotRetryMs204 = millis();
+          } else {
+            if (strcmp(msg.room, "203") == 0) nextSlotRetryMs203 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
+            if (strcmp(msg.room, "204") == 0) nextSlotRetryMs204 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
           }
         } else if (msg.type == MSG_SECURITY_ALERT) {
           if (sendSecurityAlertHttp(msg.room, msg.strPayload, msg.eventId)) {
@@ -651,6 +663,8 @@ void networkWorkerTask(void* pvParameters) {
             if (strcmp(msg.room, "203") == 0) alertNeedsSync203 = false;
             if (strcmp(msg.room, "204") == 0) alertNeedsSync204 = false;
             portEXIT_CRITICAL(&stateMux);
+            if (strcmp(msg.room, "203") == 0) nextAlertRetryMs203 = millis();
+            if (strcmp(msg.room, "204") == 0) nextAlertRetryMs204 = millis();
           } else {
             portENTER_CRITICAL(&stateMux);
             if (strcmp(msg.room, "203") == 0) {
@@ -663,6 +677,8 @@ void networkWorkerTask(void* pvParameters) {
               strncpy(alertEventId204, msg.eventId, sizeof(alertEventId204) - 1);
             }
             portEXIT_CRITICAL(&stateMux);
+            if (strcmp(msg.room, "203") == 0) nextAlertRetryMs203 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
+            if (strcmp(msg.room, "204") == 0) nextAlertRetryMs204 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
           }
         } else if (msg.type == MSG_QR_SCAN) {
           bool shouldProcess = false;
@@ -718,12 +734,23 @@ void networkWorkerTask(void* pvParameters) {
     static wl_status_t lastRecordedWifi = WL_IDLE_STATUS;
 
     if (currentWifiStatus == WL_CONNECTED) {
+      if (lastRecordedWifi != WL_CONNECTED) {
+        // Reset retry backoffs upon link restoration so pending sync is attempted immediately
+        nextAlertRetryMs203 = millis();
+        nextAlertRetryMs204 = millis();
+        nextSlotRetryMs203 = millis();
+        nextSlotRetryMs204 = millis();
+      }
+
+      unsigned long nowMs = millis();
       bool needAlert203 = false;
       char alert203[32] = "";
       char eventId203[32] = "";
       bool needAlert204 = false;
       char alert204[32] = "";
       char eventId204[32] = "";
+      bool need203 = false, target203 = true;
+      bool need204 = false, target204 = true;
 
       portENTER_CRITICAL(&stateMux);
       needAlert203 = alertNeedsSync203;
@@ -732,45 +759,75 @@ void networkWorkerTask(void* pvParameters) {
       needAlert204 = alertNeedsSync204;
       strncpy(alert204, alertPayload204, sizeof(alert204) - 1);
       strncpy(eventId204, alertEventId204, sizeof(eventId204) - 1);
+      need203 = slotNeedsSync203;
+      target203 = slotTargetState203;
+      need204 = slotNeedsSync204;
+      target204 = slotTargetState204;
       portEXIT_CRITICAL(&stateMux);
 
-      if (needAlert203) {
+      // Circular round-robin selection among the 4 pending sync operations
+      // ensures fair service and prevents static priority starvation of lower-index items.
+      int selectedSyncOp = -1;
+      for (int i = 0; i < 4; i++) {
+        int candidate = (pendingSyncRoundRobin + i) % 4;
+        if (candidate == 0 && needAlert203 && ((int32_t)(nowMs - nextAlertRetryMs203) >= 0)) {
+          selectedSyncOp = 0;
+          break;
+        } else if (candidate == 1 && needAlert204 && ((int32_t)(nowMs - nextAlertRetryMs204) >= 0)) {
+          selectedSyncOp = 1;
+          break;
+        } else if (candidate == 2 && need203 && ((int32_t)(nowMs - nextSlotRetryMs203) >= 0)) {
+          selectedSyncOp = 2;
+          break;
+        } else if (candidate == 3 && need204 && ((int32_t)(nowMs - nextSlotRetryMs204) >= 0)) {
+          selectedSyncOp = 3;
+          break;
+        }
+      }
+
+      if (selectedSyncOp == 0) {
+        pendingSyncRoundRobin = 1;
         if (sendSecurityAlertHttp("203", alert203, eventId203)) {
           portENTER_CRITICAL(&stateMux);
           alertNeedsSync203 = false;
           portEXIT_CRITICAL(&stateMux);
+          nextAlertRetryMs203 = millis();
+        } else {
+          nextAlertRetryMs203 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
+          Serial.printf("[NetWorker] Alert sync for 203 failed. Retry scheduled in %lu ms\n", PENDING_SYNC_RETRY_DELAY_MS);
         }
-      }
-
-      if (needAlert204) {
+      } else if (selectedSyncOp == 1) {
+        pendingSyncRoundRobin = 2;
         if (sendSecurityAlertHttp("204", alert204, eventId204)) {
           portENTER_CRITICAL(&stateMux);
           alertNeedsSync204 = false;
           portEXIT_CRITICAL(&stateMux);
+          nextAlertRetryMs204 = millis();
+        } else {
+          nextAlertRetryMs204 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
+          Serial.printf("[NetWorker] Alert sync for 204 failed. Retry scheduled in %lu ms\n", PENDING_SYNC_RETRY_DELAY_MS);
         }
-      }
-
-      bool need203 = false, target203 = true;
-      bool need204 = false, target204 = true;
-
-      portENTER_CRITICAL(&stateMux);
-      need203 = slotNeedsSync203; target203 = slotTargetState203;
-      need204 = slotNeedsSync204; target204 = slotTargetState204;
-      portEXIT_CRITICAL(&stateMux);
-
-      if (need203) {
+      } else if (selectedSyncOp == 2) {
+        pendingSyncRoundRobin = 3;
         if (sendKeyStatusHttp("203", target203)) {
           portENTER_CRITICAL(&stateMux);
           if (slotTargetState203 == target203) slotNeedsSync203 = false;
           portEXIT_CRITICAL(&stateMux);
+          nextSlotRetryMs203 = millis();
+        } else {
+          nextSlotRetryMs203 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
+          Serial.printf("[NetWorker] Slot sync for 203 failed. Retry scheduled in %lu ms\n", PENDING_SYNC_RETRY_DELAY_MS);
         }
-      }
-
-      if (need204) {
+      } else if (selectedSyncOp == 3) {
+        pendingSyncRoundRobin = 0;
         if (sendKeyStatusHttp("204", target204)) {
           portENTER_CRITICAL(&stateMux);
           if (slotTargetState204 == target204) slotNeedsSync204 = false;
           portEXIT_CRITICAL(&stateMux);
+          nextSlotRetryMs204 = millis();
+        } else {
+          nextSlotRetryMs204 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
+          Serial.printf("[NetWorker] Slot sync for 204 failed. Retry scheduled in %lu ms\n", PENDING_SYNC_RETRY_DELAY_MS);
         }
       }
 
@@ -784,11 +841,20 @@ void networkWorkerTask(void* pvParameters) {
 
       // Check for higher priority network work before attempting periodic/retry heartbeats
       bool hasHigherPriorityWork = (netQueue != NULL && uxQueueMessagesWaiting(netQueue) > 0) ||
-                                    alertNeedsSync203 || alertNeedsSync204 ||
-                                    slotNeedsSync203 || slotNeedsSync204;
+                                    (alertNeedsSync203 && ((int32_t)(millis() - nextAlertRetryMs203) >= 0)) ||
+                                    (alertNeedsSync204 && ((int32_t)(millis() - nextAlertRetryMs204) >= 0)) ||
+                                    (slotNeedsSync203 && ((int32_t)(millis() - nextSlotRetryMs203) >= 0)) ||
+                                    (slotNeedsSync204 && ((int32_t)(millis() - nextSlotRetryMs204) >= 0));
 
-      // Periodic or bounded retry heartbeat dispatch (wraparound-safe 32-bit signed difference)
-      if (!hasHigherPriorityWork && ((int32_t)(millis() - nextHeartbeatDueMs) >= 0)) {
+      // Periodic or bounded retry heartbeat dispatch (wraparound-safe 32-bit signed difference).
+      // Heartbeat deadlines must be honored: if a heartbeat is due, higher priority work may only
+      // defer it up to MAX_HEARTBEAT_DEFERRAL_MS so that repeated sync failures or non-empty queues
+      // cannot indefinitely starve heartbeats.
+      const unsigned long MAX_HEARTBEAT_DEFERRAL_MS = 5000;
+      bool heartbeatDue = ((int32_t)(millis() - nextHeartbeatDueMs) >= 0);
+      bool heartbeatOverdue = ((int32_t)(millis() - (nextHeartbeatDueMs + MAX_HEARTBEAT_DEFERRAL_MS)) >= 0);
+
+      if ((!hasHigherPriorityWork && heartbeatDue) || heartbeatOverdue) {
         bool hbOk = sendHeartbeatHttp();
         if (hbOk) {
           heartbeatRetryCount = 0;
