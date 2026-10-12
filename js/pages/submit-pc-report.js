@@ -37,6 +37,123 @@ let isVerifyingID = false;
 let currentCameraIndex = 0;
 let availableCameras = [];
 
+// Student Report 30-Minute Cooldown State
+let studentCooldownState = {
+  active: false,
+  remainingSeconds: 0,
+  cooldownUntil: null,
+  intervalId: null
+};
+
+function isCooldownActive() {
+  return Boolean(studentCooldownState && studentCooldownState.active && studentCooldownState.remainingSeconds > 0);
+}
+
+function formatRemainingMinutes(seconds) {
+  const mins = Math.ceil(seconds / 60);
+  return `${mins}m`;
+}
+
+function formatCountdownTimer(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function renderCooldownUI() {
+  const card = document.getElementById('cooldown-notice-card');
+  const timerText = document.getElementById('cooldown-countdown-text');
+  const submitBtn = document.getElementById('submit-button');
+
+  if (isCooldownActive()) {
+    if (card) card.style.display = 'block';
+    if (timerText) timerText.textContent = formatCountdownTimer(studentCooldownState.remainingSeconds);
+    if (submitBtn) {
+      submitBtn.classList.add('btn-disabled');
+      submitBtn.setAttribute('disabled', 'true');
+      submitBtn.disabled = true;
+      submitBtn.setAttribute('aria-disabled', 'true');
+      submitBtn.innerHTML = `Cooldown Active (${formatRemainingMinutes(studentCooldownState.remainingSeconds)} left)`;
+    }
+  } else {
+    if (card) card.style.display = 'none';
+    if (submitBtn && submitBtn.innerHTML.includes('Cooldown Active')) {
+      submitBtn.innerHTML = 'Submit Report';
+    }
+  }
+}
+
+function setCooldownState(remainingSeconds, cooldownUntil = null) {
+  if (studentCooldownState.intervalId) {
+    clearInterval(studentCooldownState.intervalId);
+    studentCooldownState.intervalId = null;
+  }
+
+  const sec = Math.max(0, Math.round(Number(remainingSeconds) || 0));
+  if (sec <= 0) {
+    studentCooldownState.active = false;
+    studentCooldownState.remainingSeconds = 0;
+    studentCooldownState.cooldownUntil = null;
+    renderCooldownUI();
+    updateSubmitButtonState();
+    return;
+  }
+
+  studentCooldownState.active = true;
+  studentCooldownState.remainingSeconds = sec;
+  const targetTime = cooldownUntil ? new Date(cooldownUntil).getTime() : (Date.now() + sec * 1000);
+  studentCooldownState.cooldownUntil = targetTime;
+
+  renderCooldownUI();
+
+  studentCooldownState.intervalId = setInterval(async () => {
+    const now = Date.now();
+    const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
+    studentCooldownState.remainingSeconds = remaining;
+
+    if (remaining <= 0) {
+      clearInterval(studentCooldownState.intervalId);
+      studentCooldownState.intervalId = null;
+
+      // Authoritative re-verification with server
+      await verifyCooldownExpirationWithServer();
+    } else {
+      renderCooldownUI();
+    }
+  }, 1000);
+}
+
+async function verifyCooldownExpirationWithServer() {
+  if (!verifiedStudent || !verifiedStudent.verificationToken) {
+    studentCooldownState.active = false;
+    renderCooldownUI();
+    updateSubmitButtonState();
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/reports/student-cooldown?token=${encodeURIComponent(verifiedStudent.verificationToken)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.cooldown && data.cooldown.active && data.cooldown.remainingSeconds > 0) {
+        // Still on cooldown according to authoritative server
+        setCooldownState(data.cooldown.remainingSeconds, data.cooldown.cooldownUntil);
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to verify cooldown expiration with server:', err);
+  }
+
+  // Cooldown authoritatively cleared
+  studentCooldownState.active = false;
+  studentCooldownState.remainingSeconds = 0;
+  studentCooldownState.cooldownUntil = null;
+  renderCooldownUI();
+  updateSubmitButtonState();
+  showSystemToast('Your 30-minute report cooldown has elapsed. You may now submit a report.', 'success', 'Cooldown Expired');
+}
+
 const checkSvgHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><polyline points="20 6 9 17 4 12"/></svg>`;
 
 /**
@@ -174,6 +291,15 @@ function updateSubmitButtonState() {
   const submitBtn = document.getElementById('submit-button');
   if (!submitBtn) return;
 
+  if (isCooldownActive()) {
+    submitBtn.classList.add('btn-disabled');
+    submitBtn.setAttribute('disabled', 'true');
+    submitBtn.disabled = true;
+    submitBtn.setAttribute('aria-disabled', 'true');
+    submitBtn.innerHTML = `Cooldown Active (${formatRemainingMinutes(studentCooldownState.remainingSeconds)} left)`;
+    return;
+  }
+
   const hasIssue = hasReportableIssue();
   const canSubmit = isConfirmed && !isSubmitting && hasIssue;
 
@@ -182,11 +308,15 @@ function updateSubmitButtonState() {
     submitBtn.removeAttribute('disabled');
     submitBtn.disabled = false;
     submitBtn.setAttribute('aria-disabled', 'false');
+    submitBtn.innerHTML = 'Submit Report';
   } else {
     submitBtn.classList.add('btn-disabled');
     submitBtn.setAttribute('disabled', 'true');
     submitBtn.disabled = true;
     submitBtn.setAttribute('aria-disabled', 'true');
+    if (submitBtn.innerHTML.includes('Cooldown Active')) {
+      submitBtn.innerHTML = 'Submit Report';
+    }
   }
 }
 
@@ -274,6 +404,17 @@ function showSystemToast(message, type = 'warning', title = null) {
  */
 async function handleSubmit() {
   if (isSubmitting) return;
+
+  // Synchronous cooldown guard
+  if (isCooldownActive()) {
+    const mins = formatRemainingMinutes(studentCooldownState.remainingSeconds);
+    showSystemToast(
+      `A 30-minute cooldown is active for this verified student identity. You can submit another report in ${mins}.`,
+      'warning',
+      'Cooldown Active'
+    );
+    return;
+  }
 
   const nameEl = document.getElementById('student-name');
   const numberEl = document.getElementById('student-number');
@@ -369,6 +510,12 @@ async function handleSubmit() {
     const submitFn = window.submitReport || (window.reportService && window.reportService.submitReport);
     if (typeof submitFn === 'function') {
       result = await submitFn(reportPayload);
+      if (result && result.error) {
+        const err = new Error(result.error);
+        err.status = result.status || 400;
+        err.cooldown = result.cooldown;
+        throw err;
+      }
     } else {
       const response = await fetch('/api/reports/submit', {
         method: 'POST',
@@ -376,7 +523,12 @@ async function handleSubmit() {
         body: JSON.stringify(reportPayload)
       });
       result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Failed to submit report');
+      if (!response.ok) {
+        const err = new Error(result.error || 'Failed to submit report');
+        err.status = response.status;
+        err.cooldown = result.cooldown;
+        throw err;
+      }
     }
 
     try {
@@ -399,15 +551,27 @@ async function handleSubmit() {
     }
   } catch (error) {
     console.error('Error submitting report:', error);
-    showSystemToast(error.message || 'Failed to submit report. Please try again.', 'error', 'Submission Notice');
-    if (submitBtn && isConfirmed) {
+
+    // If rejected due to student cooldown (HTTP 429)
+    if (error.status === 429 || error.cooldown) {
+      if (error.cooldown && error.cooldown.active) {
+        setCooldownState(error.cooldown.remainingSeconds, error.cooldown.cooldownUntil);
+      } else {
+        setCooldownState(1800, null);
+      }
+      showSystemToast(error.message || 'You have already submitted a report recently. 30-minute cooldown active.', 'warning', 'Cooldown Active');
+    } else {
+      showSystemToast(error.message || 'Failed to submit report. Please try again.', 'error', 'Submission Notice');
+    }
+
+    if (submitBtn && isConfirmed && !isCooldownActive()) {
       submitBtn.classList.remove('btn-disabled');
       submitBtn.disabled = false;
       submitBtn.innerHTML = 'Submit Report';
     }
   } finally {
     isSubmitting = false;
-    if (submitBtn) {
+    if (submitBtn && !isCooldownActive()) {
       submitBtn.innerHTML = 'Submit Report';
       updateSubmitButtonState();
     }
@@ -745,7 +909,8 @@ function checkVerificationGateway() {
       studentName: data.studentName,
       studentNumber: data.studentNumber,
       verificationToken: data.verificationToken,
-      verificationTimestamp: data.verificationTimestamp
+      verificationTimestamp: data.verificationTimestamp,
+      cooldown: data.cooldown || null
     };
 
     applyVerifiedStudentUI();
@@ -794,6 +959,20 @@ function applyVerifiedStudentUI() {
     sectionInput.focus();
   }
 
+  // Handle attached cooldown status or query authoritative server
+  if (verifiedStudent.cooldown && verifiedStudent.cooldown.active) {
+    setCooldownState(verifiedStudent.cooldown.remainingSeconds, verifiedStudent.cooldown.cooldownUntil);
+  } else if (verifiedStudent.verificationToken && typeof fetch === 'function') {
+    fetch(`/api/reports/student-cooldown?token=${encodeURIComponent(verifiedStudent.verificationToken)}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.cooldown && data.cooldown.active && data.cooldown.remainingSeconds > 0) {
+          setCooldownState(data.cooldown.remainingSeconds, data.cooldown.cooldownUntil);
+        }
+      })
+      .catch(() => {});
+  }
+
   updateSubmitButtonState();
 }
 
@@ -801,6 +980,15 @@ function applyVerifiedStudentUI() {
  * Resets verification and redirects back to the dedicated Student ID verification page.
  */
 function reScanStudentID() {
+  if (studentCooldownState.intervalId) {
+    clearInterval(studentCooldownState.intervalId);
+    studentCooldownState.intervalId = null;
+  }
+  studentCooldownState.active = false;
+  studentCooldownState.remainingSeconds = 0;
+  studentCooldownState.cooldownUntil = null;
+  renderCooldownUI();
+
   try {
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.removeItem('labsync_verified_student');
@@ -868,3 +1056,6 @@ window.toggleFallbackInput = toggleFallbackInput;
 window.handleQRFileUpload = handleQRFileUpload;
 window.processScannedID = processScannedID;
 window.reScanStudentID = reScanStudentID;
+window.isCooldownActive = isCooldownActive;
+window.setCooldownState = setCooldownState;
+window.studentCooldownState = studentCooldownState;

@@ -96,6 +96,11 @@ console.log('================================================================\n'
       await db.query("INSERT INTO laboratories (Room_Number, Building) VALUES ('204', 'IT Building')");
     }
 
+    // Reset test student cooldowns & sessions from previous test runs
+    await db.query("DELETE FROM student_report_cooldowns WHERE Student_Number IN ('2022-100234', '2022-990011', '2023-778899', '2024-554433')");
+    await db.query("DELETE FROM maintenance WHERE Student_Number IN ('2022-100234', '2022-990011', '2023-778899', '2024-554433')");
+    await db.query("DELETE FROM student_verification_sessions WHERE Student_Number IN ('2022-100234', '2022-990011', '2023-778899', '2024-554433')");
+
     console.log('\n================================================================');
     console.log('🛡️ EXECUTING 12 MANDATORY TEST SCENARIOS');
     console.log('================================================================');
@@ -279,7 +284,7 @@ console.log('================================================================\n'
     // -------------------------------------------------------------------------
     console.log('\n--- TEST 9: Reused Session Rejected ---');
     const test9Scan = await studentVerificationService.verifyStudentIDPayload({
-      qrData: '2022-100234|DELA CRUZ, JUAN M.',
+      qrData: '2022-990011|GOMEZ, MARIANO L.',
       roomNumber: '204',
       pcNumber: '1'
     });
@@ -439,7 +444,9 @@ console.log('================================================================\n'
       await db.query("DELETE FROM maintenance WHERE Maintenance_Issue_ID = ?", [row.Issue_ID]);
       await db.query("DELETE FROM maintenance_issues WHERE Issue_ID = ?", [row.Issue_ID]);
     }
-    await db.query("DELETE FROM student_verification_sessions WHERE Student_Number IN ('2022-100234', '2023-778899', '2024-554433')");
+    await db.query("DELETE FROM student_verification_sessions WHERE Student_Number IN ('2022-100234', '2022-990011', '2023-778899', '2024-554433')");
+    await db.query("DELETE FROM student_report_cooldowns WHERE Student_Number IN ('2022-100234', '2022-990011', '2023-778899', '2024-554433')");
+    await db.query("DELETE FROM maintenance WHERE Student_Number IN ('2022-100234', '2022-990011', '2023-778899', '2024-554433')");
 
     console.log('\n================================================================');
     console.log('🎉 ALL 12 MANDATORY TEST SCENARIOS PASSED 100%!');

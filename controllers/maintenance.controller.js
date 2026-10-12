@@ -40,6 +40,9 @@ async function verifyStudentID(req, res, next) {
             result: 'SUCCESS'
         });
 
+        const cooldownStatus = await maintenanceService.getStudentCooldownStatus(result.data.studentNumber);
+        result.data.cooldown = cooldownStatus || { active: false, remainingSeconds: 0 };
+
         return res.status(result.status).json(result.data);
     } catch (err) {
         next(err);
@@ -50,7 +53,10 @@ async function submitReport(req, res, next) {
     try {
         const result = await maintenanceService.submitReport(req.body);
         if (result.error) {
-            return res.status(result.status).json({ error: result.error });
+            return res.status(result.status).json({
+                error: result.error,
+                cooldown: result.cooldown || null
+            });
         }
 
         await auditService.logSecurityEvent({
@@ -226,9 +232,23 @@ async function getPCInfo(req, res, next) {
     }
 }
 
+async function checkStudentCooldown(req, res, next) {
+    try {
+        const token = req.query.token || req.headers['x-verification-token'];
+        const result = await maintenanceService.checkStudentCooldownByToken(token);
+        if (result.error) {
+            return res.status(result.status).json({ error: result.error });
+        }
+        return res.status(result.status).json(result.data);
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     submitReport,
     verifyStudentID,
+    checkStudentCooldown,
     getAllReports,
     updateReportStatus,
     followUpReport,

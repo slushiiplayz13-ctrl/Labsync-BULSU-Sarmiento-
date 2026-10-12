@@ -365,7 +365,8 @@ async function processScannedID(qrData) {
       studentName: result.studentName,
       studentNumber: result.studentNumber,
       verificationToken: result.verificationToken,
-      verificationTimestamp: result.verificationTimestamp
+      verificationTimestamp: result.verificationTimestamp,
+      cooldown: result.cooldown || null
     };
 
     try {
@@ -395,7 +396,12 @@ async function processScannedID(qrData) {
       window.lucide.createIcons();
     }
 
-    showSystemToast(`Verified: ${result.studentName}`, 'success', 'Identity Confirmed');
+    if (result.cooldown && result.cooldown.active) {
+      const mins = result.cooldown.remainingMinutes || Math.ceil((result.cooldown.remainingSeconds || 60) / 60) || 1;
+      showSystemToast(`Notice: 30-minute cooldown active (${mins}m left).`, 'warning', 'Cooldown Notice');
+    } else {
+      showSystemToast(`Verified: ${result.studentName}`, 'success', 'Identity Confirmed');
+    }
 
     // Automatically transition to the report form after short visual confirmation
     setTimeout(() => {

@@ -25,6 +25,7 @@ const crypto = require('crypto');
 const { SESSION_SECRET } = require('../config/app.config');
 const auditService = require('./auditService');
 const studentVerificationRepository = require('../repositories/student-verification.repository');
+const maintenanceRepository = require('../repositories/maintenance.repository');
 
 const SECRET_KEY = SESSION_SECRET || 'labsync-student-identity-capture-secret-2026';
 const TOKEN_TTL_MS = 10 * 60 * 1000; // 10 minutes maximum session validity
@@ -469,6 +470,8 @@ async function verifyStudentIDPayload({ qrData, roomNumber, pcNumber, req = null
         result: 'SUCCESS'
     });
 
+    const cooldown = await maintenanceRepository.getStudentCooldownStatus(parsed.studentNumber);
+
     return {
         status: 200,
         data: {
@@ -477,7 +480,8 @@ async function verifyStudentIDPayload({ qrData, roomNumber, pcNumber, req = null
             verificationToken: tokenObj.token,
             verificationId: tokenObj.verificationId,
             verificationTimestamp: tokenObj.issuedAt,
-            expiresAt: tokenObj.expiresAt
+            expiresAt: tokenObj.expiresAt,
+            cooldown: cooldown || { active: false, remainingSeconds: 0, remainingMinutes: 0, cooldownUntil: null }
         }
     };
 }
@@ -502,10 +506,67 @@ async function verifyStudentToken(token, maybeTimestampOrNum, maybeNumOrName, ma
     return res.valid;
 }
 
+/**
+ * Cryptographically verifies and extracts a capture token payload without requiring
+ * client-supplied student details upfront.
+ *
+ * @param {string} token
+ * @returns {{ valid: boolean, error?: string, payload?: object }}
+ */
+function verifyCaptureTokenPayload(token) {
+    if (!token || typeof token !== 'string') {
+        return { valid: false, error: 'Verification token is missing.' };
+    }
+
+    const dotIndex = token.lastIndexOf('.');
+    if (dotIndex === -1) {
+        return { valid: false, error: 'Verification token format is invalid.' };
+    }
+
+    const encodedPayload = token.slice(0, dotIndex);
+    const signature = token.slice(dotIndex + 1);
+
+    let payloadStr;
+    try {
+        payloadStr = Buffer.from(encodedPayload, 'base64url').toString('utf8');
+    } catch (_) {
+        return { valid: false, error: 'Failed to decode verification token payload.' };
+    }
+
+    const expectedSignature = crypto.createHmac('sha256', SECRET_KEY).update(payloadStr).digest('hex');
+    try {
+        const sigBuf = Buffer.from(signature, 'hex');
+        const expBuf = Buffer.from(expectedSignature, 'hex');
+        if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+            return { valid: false, error: 'Verification token signature is invalid or has been tampered with.' };
+        }
+    } catch (_) {
+        return { valid: false, error: 'Invalid verification token signature.' };
+    }
+
+    let payload;
+    try {
+        payload = JSON.parse(payloadStr);
+    } catch (_) {
+        return { valid: false, error: 'Malformed verification token payload.' };
+    }
+
+    const now = Date.now();
+    if (now > payload.expiresAt) {
+        return { valid: false, error: 'Student ID verification session has expired. Please re-scan your Student ID QR code.' };
+    }
+    if (payload.issuedAt > now + 60 * 1000) {
+        return { valid: false, error: 'Verification token timestamp is invalid (future timestamp).' };
+    }
+
+    return { valid: true, payload };
+}
+
 module.exports = {
     parseStudentIDQR,
     createCaptureToken,
     verifyCaptureToken,
+    verifyCaptureTokenPayload,
     consumeTokenNonce,
     verifyStudentIDPayload,
     createVerificationToken,

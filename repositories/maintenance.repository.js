@@ -607,12 +607,180 @@ async function withTransaction(workFn) {
     }
 }
 
+/**
+ * Checks and acquires an exclusive row lock on a student's cooldown record.
+ * Concurrency-safe: Serializes multiple requests from the same student identity.
+ *
+ * @param {string} studentNumber
+ * @param {object} connection - Transaction connection
+ * @returns {Promise<{ active: boolean, remainingSeconds: number, remainingMinutes: number, cooldownUntil: Date|null }>}
+ */
+async function checkAndAcquireStudentCooldownLock(studentNumber, connection) {
+    const cleanNum = String(studentNumber || '').trim().toUpperCase();
+    if (!cleanNum) {
+        return { active: false, remainingSeconds: 0, remainingMinutes: 0, cooldownUntil: null };
+    }
+
+    // 1. Ensure row exists so that FOR UPDATE acquires an exclusive row lock on the primary key
+    await connection.query(
+        `INSERT INTO student_report_cooldowns (Student_Number, Last_Reported_At, Cooldown_Until)
+         VALUES (?, '1970-01-01 00:00:00', '1970-01-01 00:00:00')
+         ON DUPLICATE KEY UPDATE Student_Number = Student_Number`,
+        [cleanNum]
+    );
+
+    // 2. Lock this student's row exclusively for the duration of this transaction
+    const [rows] = await connection.query(
+        `SELECT Student_Number, Last_Reported_At, Cooldown_Until,
+                TIMESTAMPDIFF(SECOND, NOW(), Cooldown_Until) AS RemainingSeconds
+         FROM student_report_cooldowns
+         WHERE Student_Number = ?
+         FOR UPDATE`,
+        [cleanNum]
+    );
+
+    let remainingSeconds = 0;
+    let cooldownUntil = null;
+
+    if (rows && rows.length > 0) {
+        remainingSeconds = Math.max(0, Number(rows[0].RemainingSeconds) || 0);
+        cooldownUntil = rows[0].Cooldown_Until;
+    }
+
+    // 3. Fallback check against maintenance table for recent reports
+    if (remainingSeconds <= 0) {
+        const [mRows] = await connection.query(
+            `SELECT Date_Reported,
+                    TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(Date_Reported, INTERVAL 30 MINUTE)) AS RemainingSec
+             FROM maintenance
+             WHERE Student_Number = ?
+             ORDER BY Date_Reported DESC
+             LIMIT 1`,
+            [cleanNum]
+        );
+        if (mRows && mRows.length > 0 && Number(mRows[0].RemainingSec) > 0) {
+            remainingSeconds = Math.max(0, Number(mRows[0].RemainingSec));
+            cooldownUntil = new Date(new Date(mRows[0].Date_Reported).getTime() + 30 * 60 * 1000);
+            await connection.query(
+                `UPDATE student_report_cooldowns
+                 SET Last_Reported_At = ?, Cooldown_Until = DATE_ADD(?, INTERVAL 30 MINUTE)
+                 WHERE Student_Number = ?`,
+                [mRows[0].Date_Reported, mRows[0].Date_Reported, cleanNum]
+            );
+        }
+    }
+
+    if (remainingSeconds > 0) {
+        return {
+            active: true,
+            remainingSeconds,
+            remainingMinutes: Math.ceil(remainingSeconds / 60),
+            cooldownUntil
+        };
+    }
+
+    return {
+        active: false,
+        remainingSeconds: 0,
+        remainingMinutes: 0,
+        cooldownUntil: null
+    };
+}
+
+/**
+ * Updates the student's cooldown record to 30 minutes from NOW().
+ * Called upon successful report persistence inside the database transaction.
+ *
+ * @param {string} studentNumber
+ * @param {number|null} reportId
+ * @param {object} connection - Transaction connection
+ */
+async function recordStudentReportCooldown(studentNumber, reportId, connection) {
+    const cleanNum = String(studentNumber || '').trim().toUpperCase();
+    if (!cleanNum) return;
+
+    return connection.query(
+        `INSERT INTO student_report_cooldowns (Student_Number, Last_Reported_At, Cooldown_Until, Last_Report_ID)
+         VALUES (?, NOW(), DATE_ADD(NOW(), INTERVAL 30 MINUTE), ?)
+         ON DUPLICATE KEY UPDATE
+            Last_Reported_At = VALUES(Last_Reported_At),
+            Cooldown_Until = VALUES(Cooldown_Until),
+            Last_Report_ID = VALUES(Last_Report_ID)`,
+        [cleanNum, reportId || null]
+    );
+}
+
+/**
+ * Read-only cooldown status query for a student identity.
+ *
+ * @param {string} studentNumber
+ * @param {object} [executor]
+ * @returns {Promise<{ active: boolean, remainingSeconds: number, remainingMinutes: number, cooldownUntil: Date|null }>}
+ */
+async function getStudentCooldownStatus(studentNumber, executor = db) {
+    const cleanNum = String(studentNumber || '').trim().toUpperCase();
+    if (!cleanNum) {
+        return { active: false, remainingSeconds: 0, remainingMinutes: 0, cooldownUntil: null };
+    }
+
+    const [rows] = await executor.query(
+        `SELECT Student_Number, Last_Reported_At, Cooldown_Until,
+                TIMESTAMPDIFF(SECOND, NOW(), Cooldown_Until) AS RemainingSeconds
+         FROM student_report_cooldowns
+         WHERE Student_Number = ?`,
+        [cleanNum]
+    );
+
+    let remainingSeconds = 0;
+    let cooldownUntil = null;
+
+    if (rows && rows.length > 0) {
+        remainingSeconds = Math.max(0, Number(rows[0].RemainingSeconds) || 0);
+        cooldownUntil = rows[0].Cooldown_Until;
+    }
+
+    if (remainingSeconds <= 0) {
+        const [mRows] = await executor.query(
+            `SELECT Date_Reported,
+                    TIMESTAMPDIFF(SECOND, NOW(), DATE_ADD(Date_Reported, INTERVAL 30 MINUTE)) AS RemainingSec
+             FROM maintenance
+             WHERE Student_Number = ?
+             ORDER BY Date_Reported DESC
+             LIMIT 1`,
+            [cleanNum]
+        );
+        if (mRows && mRows.length > 0 && Number(mRows[0].RemainingSec) > 0) {
+            remainingSeconds = Math.max(0, Number(mRows[0].RemainingSec));
+            cooldownUntil = new Date(new Date(mRows[0].Date_Reported).getTime() + 30 * 60 * 1000);
+        }
+    }
+
+    if (remainingSeconds > 0) {
+        return {
+            active: true,
+            remainingSeconds,
+            remainingMinutes: Math.ceil(remainingSeconds / 60),
+            cooldownUntil
+        };
+    }
+
+    return {
+        active: false,
+        remainingSeconds: 0,
+        remainingMinutes: 0,
+        cooldownUntil: null
+    };
+}
+
 module.exports = {
     lockPCForUpdate,
     findActiveIssueByPCAndType,
     insertMaintenanceIssue,
     updateIssuePriority,
     insertStudentReport,
+    checkAndAcquireStudentCooldownLock,
+    recordStudentReportCooldown,
+    getStudentCooldownStatus,
     findAllMaintenanceIssues,
     updateMaintenanceIssueStatus,
     updateLinkedStudentReportsStatus,

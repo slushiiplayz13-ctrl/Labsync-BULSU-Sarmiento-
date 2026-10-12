@@ -143,19 +143,6 @@ async function submitReport(reqBody = {}) {
     }
     const roomId = rooms[0].Room_ID;
 
-    const [pcs] = await labRepository.findPCByRoomAndNumber(roomId, pcNumber);
-    let pcId;
-    if (pcs.length === 0) {
-        // Auto-provision PC in this laboratory room if not yet present
-        const cleanPc = String(pcNumber).trim().replace(/^(pc\s*unit|pc\s*#|pc|unit)\s*[-:]?\s*/i, '');
-        const pcNumToInsert = cleanPc || String(pcNumber).trim();
-        const qrString = `LABSYNC-PC-${roomId}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-        const [inserted] = await labRepository.insertPC(roomId, pcNumToInsert, qrString);
-        pcId = inserted.insertId;
-    } else {
-        pcId = pcs[0].PC_ID;
-    }
-
     const studentIdPrefix = cleanStudentNumber ? `[Student ID: ${cleanStudentNumber}] ` : '';
     const desc = `${studentIdPrefix}[Program & Section: ${cleanStudentSection}] [Issues: ${issueComponents.join(', ') || 'None'}] Remarks: ${cleanRemarks || 'None'}`;
 
@@ -169,14 +156,12 @@ async function submitReport(reqBody = {}) {
         priority = 'Medium';
     }
 
+    let pcId = null;
     let issueId = null;
     let reportId = null;
 
     try {
         await maintenanceRepository.withTransaction(async (connection) => {
-            // Concurrency Safeguard: Explicitly lock the PC row first
-            await maintenanceRepository.lockPCForUpdate(pcId, connection);
-
             // Replay Defense: Atomically mark persistent verification session as used
             const [markResult] = await studentVerificationRepository.markSessionAsUsed(
                 tokenVerification.payload.nonce,
@@ -187,6 +172,37 @@ async function submitReport(reqBody = {}) {
                 err.status = 403;
                 throw err;
             }
+
+            // Authoritative 30-Minute Student Cooldown Enforcement
+            const cooldownCheck = await maintenanceRepository.checkAndAcquireStudentCooldownLock(
+                cleanStudentNumber,
+                connection
+            );
+            if (cooldownCheck.active) {
+                const minutesLeft = Math.ceil(cooldownCheck.remainingSeconds / 60);
+                const err = new Error(
+                    `You have already submitted a PC issue report recently. A 30-minute cooldown is required between submissions. Please try again in ${minutesLeft} minute${minutesLeft === 1 ? '' : 's'}.`
+                );
+                err.status = 429;
+                err.cooldown = cooldownCheck;
+                throw err;
+            }
+
+            // Locate or auto-provision PC inside transaction after cooldown verification passes
+            const [pcs] = await labRepository.findPCByRoomAndNumber(roomId, pcNumber, connection);
+            if (pcs.length === 0) {
+                // Auto-provision PC in this laboratory room inside transaction
+                const cleanPc = String(pcNumber).trim().replace(/^(pc\s*unit|pc\s*#|pc|unit)\s*[-:]?\s*/i, '');
+                const pcNumToInsert = cleanPc || String(pcNumber).trim();
+                const qrString = `LABSYNC-PC-${roomId}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+                const [inserted] = await labRepository.insertPC(roomId, pcNumToInsert, qrString, connection);
+                pcId = inserted.insertId;
+            } else {
+                pcId = pcs[0].PC_ID;
+            }
+
+            // Concurrency Safeguard: Explicitly lock the PC row for update
+            await maintenanceRepository.lockPCForUpdate(pcId, connection);
 
             if (status === 'Resolved') {
                 // Direct submission without fault flag
@@ -255,12 +271,26 @@ async function submitReport(reqBody = {}) {
                 // Update PC condition to Under Maintenance
                 await labRepository.updateConditionStatus(pcId, 'Under Maintenance', connection);
             }
+
+            // Record authoritative 30-minute cooldown on the student identity
+            await maintenanceRepository.recordStudentReportCooldown(
+                cleanStudentNumber,
+                reportId,
+                connection
+            );
         });
     } catch (txErr) {
         if (txErr.status === 403 || (txErr.message && txErr.message.includes('already been used'))) {
             return {
                 status: 403,
                 error: txErr.message || 'Student ID verification session has already been used. Please re-scan your Student ID QR code.'
+            };
+        }
+        if (txErr.status === 429 || txErr.cooldown) {
+            return {
+                status: 429,
+                error: txErr.message,
+                cooldown: txErr.cooldown
             };
         }
         throw txErr;
@@ -574,6 +604,45 @@ async function getPCInfo(queryParams = {}) {
     return { status: 404, error: 'Workstation not found' };
 }
 
+/**
+ * Queries the current 30-minute report cooldown status for a student number.
+ *
+ * @param {string} studentNumber
+ * @returns {Promise<{ active: boolean, remainingSeconds: number, remainingMinutes: number, cooldownUntil: Date|null }>}
+ */
+async function getStudentCooldownStatus(studentNumber) {
+    return maintenanceRepository.getStudentCooldownStatus(studentNumber);
+}
+
+/**
+ * Validates a client capture token and returns the student's authoritative cooldown status.
+ *
+ * @param {string} token
+ * @returns {Promise<{ status: number, data?: object, error?: string }>}
+ */
+async function checkStudentCooldownByToken(token) {
+    if (!token) {
+        return { status: 400, error: 'Verification token is required.' };
+    }
+
+    const verification = studentVerificationService.verifyCaptureTokenPayload(token);
+    if (!verification.valid) {
+        return { status: 403, error: verification.error || 'Invalid or expired verification token.' };
+    }
+
+    const studentNumber = verification.payload.studentNumber;
+    const cooldown = await maintenanceRepository.getStudentCooldownStatus(studentNumber);
+
+    return {
+        status: 200,
+        data: {
+            studentNumber,
+            studentName: verification.payload.studentName,
+            cooldown
+        }
+    };
+}
+
 module.exports = {
     submitReport,
     getAllReports,
@@ -581,5 +650,7 @@ module.exports = {
     followUpReport,
     deleteReport,
     getNotifications,
-    getPCInfo
+    getPCInfo,
+    getStudentCooldownStatus,
+    checkStudentCooldownByToken
 };

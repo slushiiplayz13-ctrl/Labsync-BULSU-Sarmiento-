@@ -11,6 +11,7 @@ const { publicPCReportLimiter, pcDuplicateReportLimiter, studentVerifyLimiter } 
 router.get('/room-status', requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES), reportsController.generateRoomStatusReport);
 
 router.post('/verify-student-id', studentVerifyLimiter, maintenanceController.verifyStudentID);
+router.get('/student-cooldown', maintenanceController.checkStudentCooldown);
 router.post('/submit', publicPCReportLimiter, pcDuplicateReportLimiter, maintenanceController.submitReport);
 router.get('/pc-info', maintenanceController.getPCInfo);
 router.get('/', requireAuth, maintenanceController.getAllReports);
