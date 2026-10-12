@@ -43,6 +43,11 @@
       if (global.scheduleTouchDrag && typeof global.scheduleTouchDrag.initTouchDragAndDrop === 'function') {
         return global.scheduleTouchDrag.initTouchDragAndDrop(blocksContainer);
       }
+    },
+    bindFormInputGuards() {
+      if (global.scheduleMouseDrag && typeof global.scheduleMouseDrag.bindFormInputGuards === 'function') {
+        return global.scheduleMouseDrag.bindFormInputGuards();
+      }
     }
   };
 

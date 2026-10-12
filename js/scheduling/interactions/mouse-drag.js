@@ -16,16 +16,48 @@
 
   const TOTAL_SLOTS = (global.slotMath && global.slotMath.TOTAL_SLOTS) || 27;
 
+  function cleanupDragState() {
+    document.body.classList.remove('dragging-active');
+    document.querySelectorAll('.grid-day-column.drag-over').forEach(c => c.classList.remove('drag-over'));
+    const tray = document.getElementById('blocks-container');
+    if (tray) tray.classList.remove('drag-over');
+
+    const removePlaceholderFn = (global.scheduleCardRenderer && global.scheduleCardRenderer.removePlaceholder) || global.removePlaceholder;
+    if (removePlaceholderFn) removePlaceholderFn();
+
+    const autoScroller = global.scheduleAutoScroller || global.AutoScroller;
+    if (autoScroller && typeof autoScroller.stop === 'function') {
+      autoScroller.stop();
+    }
+  }
+
   /**
    * Recalculates slot and updates the snap placeholder during native drag auto-scroll.
    */
   function updateDropPlaceholderFromPoint(clientX, clientY) {
     if (document.body.classList.contains('view-mode')) return;
-    const elem = document.elementFromPoint(clientX, clientY);
-    if (!elem) return;
+    const elem = (clientX >= 0 && clientY >= 0 && clientX <= window.innerWidth && clientY <= window.innerHeight)
+      ? document.elementFromPoint(clientX, clientY)
+      : null;
+    if (!elem) {
+      const removePlaceholderFn = (global.scheduleCardRenderer && global.scheduleCardRenderer.removePlaceholder) || global.removePlaceholder;
+      if (removePlaceholderFn) removePlaceholderFn();
+      document.querySelectorAll('.grid-day-column.drag-over').forEach(c => c.classList.remove('drag-over'));
+      return;
+    }
 
     const col = elem.closest('.grid-day-column');
-    if (!col) return;
+    if (!col) {
+      const removePlaceholderFn = (global.scheduleCardRenderer && global.scheduleCardRenderer.removePlaceholder) || global.removePlaceholder;
+      if (removePlaceholderFn) removePlaceholderFn();
+      document.querySelectorAll('.grid-day-column.drag-over').forEach(c => c.classList.remove('drag-over'));
+      return;
+    }
+
+    document.querySelectorAll('.grid-day-column.drag-over').forEach(c => {
+      if (c !== col) c.classList.remove('drag-over');
+    });
+    col.classList.add('drag-over');
 
     const slotHeight = getSlotHeight();
     const rect = col.getBoundingClientRect();
@@ -53,31 +85,90 @@
     }
   }
 
-  // Global drag listeners to keep AutoScroller updated across window boundaries
+  /**
+   * Checks whether an element is an intended valid dropzone for schedule cards/blocks.
+   * Only day columns and the tray container are legitimate drop targets.
+   * @param {EventTarget} target
+   * @returns {boolean}
+   */
+  function isValidScheduleDropTarget(target) {
+    if (!target || typeof target.closest !== 'function') return false;
+    return !!(target.closest('.grid-day-column') || target.closest('#blocks-container'));
+  }
+
+  /**
+   * Explicitly binds dragover and drop blockers to form controls to ensure no native text drop occurs.
+   */
+  function bindFormInputGuards() {
+    const selector = '#block-subject, #block-section, .editor-create-form-section input, .editor-create-form-section select, .custom-select-trigger, .custom-select-input';
+    const controls = document.querySelectorAll(selector);
+    controls.forEach(ctrl => {
+      ctrl.addEventListener('dragover', (e) => {
+        const isDragging = document.querySelector('.grid-card.dragging, .schedule-block.dragging');
+        if (isDragging) {
+          if (typeof e.preventDefault === 'function') e.preventDefault();
+          if (e.dataTransfer) e.dataTransfer.dropEffect = 'none';
+        }
+      });
+      ctrl.addEventListener('drop', (e) => {
+        const isDragging = document.querySelector('.grid-card.dragging, .schedule-block.dragging');
+        if (isDragging) {
+          if (typeof e.preventDefault === 'function') e.preventDefault();
+          if (typeof e.stopPropagation === 'function') e.stopPropagation();
+          cleanupDragState();
+        }
+      });
+    });
+  }
+
+  // Global drag listeners to keep AutoScroller updated across window boundaries and block invalid targets
   document.addEventListener('dragover', (e) => {
     if (document.body.classList.contains('view-mode')) return;
     const isDragging = document.querySelector('.grid-card.dragging, .schedule-block.dragging');
+    if (!isDragging) return;
+
+    if (!isValidScheduleDropTarget(e.target)) {
+      if (e.target && typeof e.target.closest === 'function' && e.target.closest('input, textarea, select, .custom-select-trigger, .custom-select-wrapper, .editor-create-form-section')) {
+        if (typeof e.preventDefault === 'function') {
+          e.preventDefault();
+        }
+      }
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'none';
+      }
+    }
+
+    updateDropPlaceholderFromPoint(e.clientX, e.clientY);
+
     const autoScroller = global.scheduleAutoScroller || global.AutoScroller;
-    if (isDragging && autoScroller && typeof autoScroller.update === 'function') {
+    if (autoScroller && typeof autoScroller.update === 'function') {
       autoScroller.update(e.clientX, e.clientY, updateDropPlaceholderFromPoint);
     }
-  });
+  }, true);
 
   document.addEventListener('dragend', () => {
-    document.body.classList.remove('dragging-active');
-    const autoScroller = global.scheduleAutoScroller || global.AutoScroller;
-    if (autoScroller && typeof autoScroller.stop === 'function') {
-      autoScroller.stop();
+    cleanupDragState();
+    const ghostRenderer = global.ghostScheduleRenderer;
+    if (ghostRenderer && typeof ghostRenderer.restoreDefaultOrClearGhost === 'function') {
+      ghostRenderer.restoreDefaultOrClearGhost();
     }
   });
 
-  document.addEventListener('drop', () => {
-    document.body.classList.remove('dragging-active');
-    const autoScroller = global.scheduleAutoScroller || global.AutoScroller;
-    if (autoScroller && typeof autoScroller.stop === 'function') {
-      autoScroller.stop();
+  // Capture phase drop listener: cancels invalid drops onto inputs/form controls
+  document.addEventListener('drop', (e) => {
+    const isDragging = document.querySelector('.grid-card.dragging, .schedule-block.dragging');
+    if (isDragging) {
+      if (!isValidScheduleDropTarget(e.target)) {
+        if (typeof e.preventDefault === 'function') {
+          e.preventDefault();
+        }
+        if (typeof e.stopPropagation === 'function') {
+          e.stopPropagation();
+        }
+      }
     }
-  });
+    cleanupDragState();
+  }, true);
 
   /**
    * Binds mouse drag listeners to a grid card.
@@ -92,6 +183,9 @@
         e.preventDefault();
         return;
       }
+      const removePlaceholderFn = (global.scheduleCardRenderer && global.scheduleCardRenderer.removePlaceholder) || global.removePlaceholder;
+      if (removePlaceholderFn) removePlaceholderFn();
+
       e.dataTransfer.setData('text/plain', card.id);
       card.classList.add('dragging');
       document.body.classList.add('dragging-active');
@@ -113,9 +207,7 @@
 
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging');
-      document.body.classList.remove('dragging-active');
-      const autoScroller = global.scheduleAutoScroller || global.AutoScroller;
-      if (autoScroller && typeof autoScroller.stop === 'function') autoScroller.stop();
+      cleanupDragState();
 
       const ghostRenderer = global.ghostScheduleRenderer;
       if (ghostRenderer && typeof ghostRenderer.restoreDefaultOrClearGhost === 'function') {
@@ -137,6 +229,9 @@
         e.preventDefault();
         return;
       }
+      const removePlaceholderFn = (global.scheduleCardRenderer && global.scheduleCardRenderer.removePlaceholder) || global.removePlaceholder;
+      if (removePlaceholderFn) removePlaceholderFn();
+
       e.dataTransfer.setData('text/plain', block.id);
       block.classList.add('dragging');
       document.body.classList.add('dragging-active');
@@ -158,9 +253,7 @@
 
     block.addEventListener('dragend', () => {
       block.classList.remove('dragging');
-      document.body.classList.remove('dragging-active');
-      const autoScroller = global.scheduleAutoScroller || global.AutoScroller;
-      if (autoScroller && typeof autoScroller.stop === 'function') autoScroller.stop();
+      cleanupDragState();
 
       const ghostRenderer = global.ghostScheduleRenderer;
       if (ghostRenderer && typeof ghostRenderer.restoreDefaultOrClearGhost === 'function') {
@@ -212,7 +305,7 @@
       });
 
       col.addEventListener('dragleave', (e) => {
-        if (e.target === col && !col.contains(e.relatedTarget)) {
+        if (!e.relatedTarget || !col.contains(e.relatedTarget)) {
           col.classList.remove('drag-over');
           const removePlaceholderFn = (global.scheduleCardRenderer && global.scheduleCardRenderer.removePlaceholder) || global.removePlaceholder;
           if (removePlaceholderFn) removePlaceholderFn();
@@ -356,6 +449,7 @@
         }
       });
     });
+    bindFormInputGuards();
   }
 
   /**
@@ -364,6 +458,7 @@
    */
   function initTrayDropZone(blocksContainer) {
     if (!blocksContainer) return;
+    bindFormInputGuards();
 
     blocksContainer.addEventListener('dragover', (e) => {
       if (document.body.classList.contains('view-mode')) return;
@@ -372,7 +467,7 @@
     });
 
     blocksContainer.addEventListener('dragleave', (e) => {
-      if (e.target === blocksContainer && !blocksContainer.contains(e.relatedTarget)) {
+      if (!e.relatedTarget || !blocksContainer.contains(e.relatedTarget)) {
         blocksContainer.classList.remove('drag-over');
       }
     });
@@ -380,7 +475,7 @@
     blocksContainer.addEventListener('drop', (e) => {
       if (document.body.classList.contains('view-mode')) return;
       e.preventDefault();
-      blocksContainer.classList.remove('drag-over');
+      cleanupDragState();
 
       const blockId = e.dataTransfer.getData('text/plain') || document.querySelector('.grid-card.dragging')?.id;
       const card = blockId ? document.getElementById(blockId) : null;
@@ -406,11 +501,21 @@
     });
   }
 
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bindFormInputGuards);
+    } else {
+      bindFormInputGuards();
+    }
+  }
+
   const scheduleMouseDrag = {
     bindCardDragListeners,
     bindTrayBlockDragListeners,
     initDayColumnDropZones,
-    initTrayDropZone
+    initTrayDropZone,
+    bindFormInputGuards,
+    isValidScheduleDropTarget
   };
 
   global.scheduleMouseDrag = scheduleMouseDrag;

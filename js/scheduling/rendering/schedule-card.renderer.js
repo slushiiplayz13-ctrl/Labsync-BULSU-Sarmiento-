@@ -75,6 +75,8 @@
       placeholderEl.remove();
       placeholderEl = null;
     }
+    const lingering = document.querySelectorAll('.grid-card-placeholder');
+    lingering.forEach(el => el.remove());
   }
 
   /**
