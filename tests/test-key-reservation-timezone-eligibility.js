@@ -240,11 +240,11 @@ async function runTimezoneTests() {
         `Error message must indicate session has ended: "${approvePastAttempt.error}"`);
     console.log('✔ PASS: Approval of already-ended reservation rejected with 400 (no revival/extension).');
 
-    // Verify record remained PENDING and was not revived or extended
+    // Verify record transitioned to EXPIRED and was not approved
     const [checkExpiredRow] = await db.query('SELECT Status, Expires_At FROM key_authorization_requests WHERE Request_ID = ?', [expiredReqId]);
-    assert.strictEqual(checkExpiredRow[0].Status, 'PENDING', 'Record status must not change on failed approval');
+    assert.strictEqual(checkExpiredRow[0].Status, 'EXPIRED', 'Record status must transition to EXPIRED (not APPROVED) on failed approval');
     assert.strictEqual(checkExpiredRow[0].Expires_At, null, 'Expires_At must remain NULL');
-    console.log('✔ PASS: Expired reservation record remained unchanged in database.');
+    console.log('✔ PASS: Expired reservation transitioned to EXPIRED in database and was not approved.');
 
     // -------------------------------------------------------------
     // SECTION 4: Approval Flow: Permitting Valid Future Reservations
@@ -367,7 +367,97 @@ async function runTimezoneTests() {
     console.log('✔ PASS: Faculty request status does NOT grant pickup readiness outside session window.');
 
     // -------------------------------------------------------------
-    // SECTION 8: Clean Up Test Fixtures
+    // SECTION 8: Reported Bug - Overdue Pending Reservation Expiration & Protection
+    // Case: Room 203, Oct 12 8:00 AM - 10:00 AM, Reason "Laro tayo", Status PENDING
+    // Evaluated at Oct 13, 2026, 12:29 AM Philippine Time
+    // -------------------------------------------------------------
+    console.log('\n--- 8. Reported Bug: Overdue PENDING Reservation (Oct 12 8-10 AM at Oct 13 12:29 AM) ---');
+
+    // Clean any prior records
+    await db.query("DELETE FROM key_authorization_requests WHERE User_ID = ?", [testFaculty.User_ID]);
+
+    const [bugInsertRes] = await db.query(
+        `INSERT INTO key_authorization_requests
+         (User_ID, Room_ID, Reservation_Date, Start_Time, End_Time, Duration_Minutes, Reason, Status, Requested_At)
+         VALUES (?, ?, '2026-10-12', '08:00:00', '10:00:00', 120, 'Laro tayo', 'PENDING', '2026-10-11 18:00:00')`,
+        [testFaculty.User_ID, testLab.Room_ID]
+    );
+    const bugReqId = bugInsertRes.insertId;
+
+    const oct13MidnightTime = new Date('2026-10-13T00:29:00+08:00');
+
+    // 8a. Verify lazy cleanup transitions the PENDING request to EXPIRED
+    await keyAuthRepo.expireOldApprovedRequests('2026-10-13', '00:29:00');
+
+    const [bugRowAfterCleanup] = await keyAuthRepo.findById(bugReqId);
+    assert.strictEqual(bugRowAfterCleanup[0].Status, 'EXPIRED', 'Overdue PENDING reservation must transition to EXPIRED');
+    console.log('✔ PASS: Overdue PENDING request transitioned to EXPIRED in database.');
+
+    // 8b. Verify Department Head pending review queue excludes the expired request
+    const deptHeadPendingList = await keyAuthService.getPendingRequestsForDeptHead(
+        testDeptHead.User_ID, testDeptHead.Role, 'pending', { referenceTime: oct13MidnightTime }
+    );
+    assert.strictEqual(deptHeadPendingList.status, 200);
+    const foundInPending = (deptHeadPendingList.data || []).find(r => r.Request_ID === bugReqId);
+    assert.ok(!foundInPending, 'Overdue reservation must NOT appear in Dept Head pending queue');
+    console.log('✔ PASS: Dept Head pending queue excludes the overdue reservation.');
+
+    // 8c. Verify Department Head cannot approve the overdue reservation
+    const overdueApproveRes = await keyAuthService.approveRequest(
+        bugReqId, testDeptHead.User_ID, testDeptHead.Role, 120, null, { referenceTime: oct13MidnightTime }
+    );
+    assert.strictEqual(overdueApproveRes.status, 400, 'Attempting to approve overdue reservation must return 400 Bad Request');
+    const [bugRowAfterApproveAttempt] = await keyAuthRepo.findById(bugReqId);
+    assert.strictEqual(bugRowAfterApproveAttempt[0].Status, 'EXPIRED', 'Status must remain EXPIRED and not change to APPROVED');
+    console.log('✔ PASS: Dept Head cannot approve overdue reservation; remains EXPIRED.');
+
+    // 8d. Verify faculty request status endpoint reports it as EXPIRED (no longer pending banner)
+    const facultyBugStatus = await keyAuthService.getFacultyRequestStatus(testFaculty.User_ID, {
+        referenceTime: oct13MidnightTime
+    });
+    assert.strictEqual(facultyBugStatus.status, 200);
+    assert.strictEqual(facultyBugStatus.data.Status, 'EXPIRED', 'Faculty request status must report Status as EXPIRED');
+    assert.strictEqual(facultyBugStatus.data.isExpired, true, 'isExpired flag must be true');
+    assert.strictEqual(facultyBugStatus.data.isPickupReady, false, 'isPickupReady must be false');
+    console.log('✔ PASS: Faculty request status reports EXPIRED (Room Status banner will not show "Pending").');
+
+    // 8e. Verify a reservation that has not yet reached its scheduled end time is NOT prematurely expired
+    const [ongoingInsertRes] = await db.query(
+        `INSERT INTO key_authorization_requests
+         (User_ID, Room_ID, Reservation_Date, Start_Time, End_Time, Duration_Minutes, Reason, Status, Requested_At)
+         VALUES (?, ?, '2026-10-13', '14:00:00', '16:00:00', 120, 'Afternoon session', 'PENDING', '2026-10-13 10:00:00')`,
+        [testFaculty.User_ID, testLab.Room_ID]
+    );
+    const ongoingReqId = ongoingInsertRes.insertId;
+
+    // Evaluated at 12:29 PM (before 4:00 PM end time)
+    await keyAuthRepo.expireOldApprovedRequests('2026-10-13', '12:29:00');
+    const [ongoingCheckBefore] = await keyAuthRepo.findById(ongoingReqId);
+    assert.strictEqual(ongoingCheckBefore[0].Status, 'PENDING', 'Active/ongoing reservation must NOT prematurely expire before end time');
+    console.log('✔ PASS: Reservation prior to scheduled end time is not prematurely expired.');
+
+    // 8f. Verify exact end-time boundary: at 16:00:00, reservation expires
+    await keyAuthRepo.expireOldApprovedRequests('2026-10-13', '16:00:00');
+    const [ongoingCheckAtEnd] = await keyAuthRepo.findById(ongoingReqId);
+    assert.strictEqual(ongoingCheckAtEnd[0].Status, 'EXPIRED', 'Reservation must transition to EXPIRED exactly at scheduled end time');
+    console.log('✔ PASS: Exact end-time boundary expires reservation.');
+
+    // 8g. Verify valid future pending reservation remains PENDING
+    const [futurePendingInsertRes] = await db.query(
+        `INSERT INTO key_authorization_requests
+         (User_ID, Room_ID, Reservation_Date, Start_Time, End_Time, Duration_Minutes, Reason, Status, Requested_At)
+         VALUES (?, ?, '2026-10-14', '09:00:00', '11:00:00', 120, 'Future pending session', 'PENDING', '2026-10-13 10:00:00')`,
+        [testFaculty.User_ID, testLab.Room_ID]
+    );
+    const futurePendingReqId = futurePendingInsertRes.insertId;
+
+    await keyAuthRepo.expireOldApprovedRequests('2026-10-13', '12:29:00');
+    const [futurePendingCheck] = await keyAuthRepo.findById(futurePendingReqId);
+    assert.strictEqual(futurePendingCheck[0].Status, 'PENDING', 'Valid future pending reservation must remain PENDING');
+    console.log('✔ PASS: Valid future pending reservation remains PENDING.');
+
+    // -------------------------------------------------------------
+    // SECTION 9: Clean Up Test Fixtures
     // -------------------------------------------------------------
     await db.query("DELETE FROM key_authorization_requests WHERE User_ID = ?", [testFaculty.User_ID]);
     console.log('✔ PASS: Cleaned up test database records.');

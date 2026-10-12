@@ -424,6 +424,10 @@ async function getFacultyRequestStatus(userId, options = {}) {
             request.isExpired = (now >= pickupEnd && request.Status !== 'CLAIMED' && request.Status !== 'COMPLETED');
             request.Pickup_Opens_At = pickupStart.toISOString();
 
+            if (request.isExpired && request.Status === 'PENDING') {
+                request.Status = 'EXPIRED';
+            }
+
             const remainingMs = pickupEnd.getTime() - now.getTime();
             request.Minutes_Remaining = remainingMs > 0 ? Math.floor(remainingMs / (60 * 1000)) : 0;
         } else {
@@ -460,7 +464,7 @@ async function getFacultyRequestStatus(userId, options = {}) {
  * Get all pending key authorization requests for the Department Head dashboard.
  * Supports optional filtering by status ('pending', 'approved', 'all').
  */
-async function getPendingRequestsForDeptHead(userId, userRole, filter = 'pending') {
+async function getPendingRequestsForDeptHead(userId, userRole, filter = 'pending', options = {}) {
     if (!userId) {
         return { status: 401, error: 'Authentication required' };
     }
@@ -469,8 +473,10 @@ async function getPendingRequestsForDeptHead(userId, userRole, filter = 'pending
         return { status: 403, error: 'Forbidden: Only authorized department administrators can review key requests.' };
     }
 
+    const phNow = getPhilippineTimeContext((options && options.referenceTime) || null);
+
     try {
-        await keyAuthRepo.expireOldApprovedRequests();
+        await keyAuthRepo.expireOldApprovedRequests(phNow.dateStr, phNow.time);
     } catch (e) {
         console.error('[KeyAuthService] Expiration cleanup failed:', e.message);
     }
@@ -563,7 +569,8 @@ async function approveRequest(requestId, approvedBy, userRole, durationMinutes =
 
             // An approval made after the reservation has already ended must not revive that expired pickup window
             if (expiresAt <= now) {
-                await connection.rollback();
+                await connection.query("UPDATE key_authorization_requests SET Status = 'EXPIRED' WHERE Request_ID = ?", [parsedRequestId]);
+                await connection.commit();
                 return {
                     status: 400,
                     error: 'Cannot approve request: The scheduled reservation window has already ended.'

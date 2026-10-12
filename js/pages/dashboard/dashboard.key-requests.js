@@ -220,7 +220,7 @@
       let bannerHtml = '';
       banner.className = 'faculty-key-status-banner';
 
-      if (req.Status === 'PENDING') {
+      if (req.Status === 'PENDING' && !req.isExpired) {
         banner.classList.add('is-pending');
         const sessionInfo = (req.Reservation_Date_Str && req.Start_Time_Str && req.End_Time_Str)
           ? `Scheduled for <strong>${escapeText(formatDateFriendly(req.Reservation_Date_Str))}</strong> (${escapeText(formatTime12h(req.Start_Time_Str))} – ${escapeText(formatTime12h(req.End_Time_Str))}).`

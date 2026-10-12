@@ -380,7 +380,7 @@ async function expireOldApprovedRequests(phDateOrExec = null, phTime = null, exe
     return ctx.executor.query(
         `UPDATE key_authorization_requests
          SET Status = 'EXPIRED'
-         WHERE Status = 'APPROVED'
+         WHERE Status IN ('PENDING', 'APPROVED')
            AND (
              (Expires_At IS NOT NULL AND Expires_At <= ?)
              OR
