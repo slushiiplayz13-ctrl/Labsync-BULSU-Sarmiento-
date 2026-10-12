@@ -121,6 +121,28 @@
         throw err;
       }
       return data;
+    },
+
+    /**
+     * Triggers password reset and generates new temporary credentials for an MIS Staff account.
+     * @param {string|number} userId
+     * @returns {Promise<Object>}
+     */
+    async resetPassword(userId) {
+      const response = await fetch(`/api/mis-staff/${userId}/reset-password`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include'
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const errorMsg = data.error || data.message || `Failed to reset password: HTTP ${response.status}`;
+        const err = new Error(errorMsg);
+        err.status = response.status;
+        throw err;
+      }
+      return data;
     }
   };
 

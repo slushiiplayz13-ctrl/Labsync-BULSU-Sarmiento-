@@ -151,7 +151,7 @@
   /**
    * Updates page greeting description based on authenticated role permissions.
    * - IT Department Head: Manage Faculty and MIS Staff accounts and view OJT Intern accounts.
-   * - Program Coordinator: Add or remove Faculty accounts and view OJT Intern accounts.
+   * - Program Coordinator: Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts.
    */
   function updateRoleGreetingDescription() {
     const subEl = document.getElementById('greetingSub');
@@ -166,9 +166,12 @@
       const user = (rawUser && (rawUser.user || rawUser)) || null;
       const role = String((user && (user.role || user.Role)) || '').trim().toLowerCase();
       const isDeptHead = (role.includes('head') && !role.includes('coordinator'));
+      const isCoord = (role.includes('coordinator'));
 
       if (isDeptHead) {
         subEl.textContent = 'Manage Faculty and MIS Staff accounts and view OJT Intern accounts.';
+      } else if (isCoord) {
+        subEl.textContent = 'Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts.';
       } else {
         subEl.textContent = 'Add or remove Faculty accounts and view OJT Intern accounts.';
       }

@@ -293,7 +293,11 @@ async function updateMisStaff(userId, reqBody) {
 /**
  * Deactivates an active MIS Staff account, archiving it and clearing the way for a replacement.
  */
-async function deactivateMisStaff(userId) {
+async function deactivateMisStaff(userId, actingUserId = null) {
+    if (actingUserId && Number(actingUserId) === Number(userId)) {
+        return { status: 400, error: 'You cannot deactivate your own account.' };
+    }
+
     const targetCheck = await verifyTargetIsMisStaff(userId);
     if (targetCheck.error) {
         return { status: targetCheck.status, error: targetCheck.error };
@@ -359,11 +363,45 @@ async function reactivateMisStaff(userId) {
     };
 }
 
+/**
+ * Generates and assigns a new temporary password for an MIS Staff account.
+ */
+async function resetPassword(userId) {
+    const targetCheck = await verifyTargetIsMisStaff(userId);
+    if (targetCheck.error) {
+        return { status: targetCheck.status, error: targetCheck.error };
+    }
+
+    const temporaryPassword = generateSecureTemporaryPassword(12);
+    const passwordHash = await bcrypt.hash(temporaryPassword, SALT_ROUNDS);
+
+    await userRepository.updatePasswordOnly(Number(userId), passwordHash);
+
+    const [updatedRows] = await misRepository.findById(Number(userId));
+    const user = updatedRows && updatedRows.length > 0 ? updatedRows[0] : targetCheck.user;
+
+    // Asynchronously dispatch welcome / reset email with new credentials
+    sendWelcomeEmail(user.Email, user.Name, temporaryPassword, 'MIS Staff')
+        .catch(err => {
+            console.error('[misService] Reset password email error:', err.message);
+        });
+
+    return {
+        status: 200,
+        data: {
+            message: 'MIS Staff temporary password generated successfully',
+            user,
+            temporaryPassword
+        }
+    };
+}
+
 module.exports = {
     generateSecureTemporaryPassword,
     getMisStaffRoster,
     createMisStaff,
     updateMisStaff,
     deactivateMisStaff,
-    reactivateMisStaff
+    reactivateMisStaff,
+    resetPassword
 };

@@ -3,8 +3,8 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Comprehensive verification suite for User Management and MIS Staff account lifecycle:
  * 1. IT Dept. Head can list MIS Staff accounts.
- * 2. Program Coordinator receives 403 Forbidden for MIS endpoints.
- * 3. MIS Staff receives 403 Forbidden for MIS endpoints.
+ * 2. Program Coordinator is authorized to manage MIS Staff accounts.
+ * 3. MIS Staff and non-admins receive 403 Forbidden for MIS endpoints.
  * 4. IT Dept. Head can create MIS Staff when no active MIS exists.
  * 5. Creation generates secure credentials using existing workflow (bcrypt, password, QR).
  * 6. Second active MIS creation is rejected with 409 Conflict.
@@ -28,9 +28,11 @@ const misController = require('../controllers/mis.controller');
 const facultyController = require('../controllers/faculty.controller');
 const facultyService = require('../services/facultyService');
 const authService = require('../services/authService');
-const { requireRole, IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
+const { requireRole, IT_HEAD_ROLES, IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
 
 function createMockReqRes({ session = {}, params = {}, body = {}, ip = '127.0.0.1' } = {}) {
+    session.destroy = session.destroy || function(cb) { cb && cb(); };
+    session.save = session.save || function(cb) { cb && cb(); };
     const req = {
         session,
         params,
@@ -50,6 +52,9 @@ function createMockReqRes({ session = {}, params = {}, body = {}, ip = '127.0.0.
         },
         json(data) {
             this.jsonData = data;
+            return this;
+        },
+        clearCookie(name) {
             return this;
         }
     };
@@ -95,29 +100,39 @@ async function runTests() {
         console.log('✔ PASS: IT Dept. Head successfully listed MIS Staff accounts.');
 
         // ─────────────────────────────────────────────────────────────
-        // 2. Program Coordinator receives 403 Forbidden for MIS endpoints
+        // 2. Program Coordinator is authorized for MIS endpoints (HTTP 200)
         // ─────────────────────────────────────────────────────────────
-        console.log('\n--- 2. Testing Program Coordinator Access Block (403 Forbidden) ---');
+        console.log('\n--- 2. Testing Program Coordinator Access to MIS endpoints ---');
         const { req: req2, res: res2 } = createMockReqRes({ session: { userId: progCoord.User_ID, userRole: progCoord.Role } });
-        const routeGuard = requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES);
+        const misRouteGuard = requireRole(IT_HEAD_ROLES);
         let pcPassed = false;
-        await routeGuard(req2, res2, () => { pcPassed = true; });
-        assert.strictEqual(pcPassed, false, 'Program Coordinator must NOT pass exclusive route guard');
-        assert.strictEqual(res2.statusCode, 403, 'Program Coordinator must receive HTTP 403 Forbidden');
-        console.log('✔ PASS: Program Coordinator is strictly blocked with HTTP 403 Forbidden.');
+        await misRouteGuard(req2, res2, () => { pcPassed = true; });
+        assert.strictEqual(pcPassed, true, 'Program Coordinator must pass IT_HEAD_ROLES route guard');
+        await misController.listMisStaff(req2, res2, () => {});
+        assert.strictEqual(res2.statusCode, 200, 'Program Coordinator listing MIS Staff must return HTTP 200');
+        assert.ok(res2.jsonData && Array.isArray(res2.jsonData.all), 'Response should contain array of MIS staff');
+        console.log('✔ PASS: Program Coordinator is authorized and successfully lists MIS Staff accounts.');
 
         // ─────────────────────────────────────────────────────────────
-        // 3. MIS Staff receives 403 Forbidden for MIS endpoints
+        // 3. MIS Staff and Faculty receive 403 Forbidden for MIS endpoints
         // ─────────────────────────────────────────────────────────────
-        console.log('\n--- 3. Testing MIS Staff Access Block (403 Forbidden) ---');
+        console.log('\n--- 3. Testing MIS Staff and Faculty Access Block (403 Forbidden) ---');
         if (originalActiveMis) {
             const { req: req3, res: res3 } = createMockReqRes({ session: { userId: originalActiveMis.User_ID, userRole: originalActiveMis.Role } });
             let misPassed = false;
-            await routeGuard(req3, res3, () => { misPassed = true; });
-            assert.strictEqual(misPassed, false, 'MIS Staff must NOT pass exclusive route guard');
+            await misRouteGuard(req3, res3, (err) => { if (!err) misPassed = true; });
+            assert.strictEqual(misPassed, false, 'MIS Staff must NOT pass IT_HEAD_ROLES route guard');
             assert.strictEqual(res3.statusCode, 403, 'MIS Staff must receive HTTP 403 Forbidden');
             console.log('✔ PASS: MIS Staff cannot manage other MIS accounts (HTTP 403 Forbidden).');
         }
+        const [facUsers] = await db.query("SELECT User_ID, Role FROM users WHERE Role = 'Faculty' AND Status = 'ACTIVE' LIMIT 1");
+        const testFacId = facUsers.length > 0 ? facUsers[0].User_ID : 9999;
+        const { req: reqFac, res: resFac } = createMockReqRes({ session: { userId: testFacId, userRole: 'Faculty' } });
+        let facPassed = false;
+        await misRouteGuard(reqFac, resFac, (err) => { if (!err) facPassed = true; });
+        assert.strictEqual(facPassed, false, 'Faculty must NOT pass IT_HEAD_ROLES route guard');
+        assert.strictEqual(resFac.statusCode, 403, 'Faculty must receive HTTP 403 Forbidden');
+        console.log('✔ PASS: Faculty cannot manage MIS accounts (HTTP 403 Forbidden).');
 
         // ─────────────────────────────────────────────────────────────
         // 4 & 6. Enforce Single Active MIS Staff Account Rule

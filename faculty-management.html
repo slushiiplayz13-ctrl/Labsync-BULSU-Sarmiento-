@@ -317,8 +317,11 @@
                 var sub = document.getElementById('greetingSub');
                 if (sub) {
                   var isHead = (r.indexOf('head') !== -1 && r.indexOf('coordinator') === -1);
+                  var isCoord = (r.indexOf('coordinator') !== -1);
                   if (isHead) {
                     sub.textContent = 'Manage Faculty and MIS Staff accounts and view OJT Intern accounts.';
+                  } else if (isCoord) {
+                    sub.textContent = 'Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts.';
                   } else {
                     sub.textContent = 'Add or remove Faculty accounts and view OJT Intern accounts.';
                   }
@@ -528,9 +531,11 @@
             var role = (u && (u.role || (u.user && u.user.role) || u.Role)) || "";
             var itHeadAliases = ["IT Dept. Head", "IT Head", "IT Dept Head", "Department Head"];
             var isItHead = itHeadAliases.indexOf(role) !== -1 || (role.toLowerCase().indexOf("head") !== -1 && role.toLowerCase().indexOf("coordinator") === -1);
+            var isCoord = role === "Program Coordinator" || role.toLowerCase().indexOf("coordinator") !== -1;
+            var canManageMis = isItHead || isCoord;
 
             var misTabBtn = document.getElementById("umTabMis");
-            if (misTabBtn && isItHead) {
+            if (misTabBtn && canManageMis) {
               misTabBtn.style.display = "inline-flex";
             }
 
@@ -538,6 +543,8 @@
             if (subEl) {
               if (isItHead) {
                 subEl.textContent = "Manage Faculty and MIS Staff accounts and view OJT Intern accounts.";
+              } else if (isCoord) {
+                subEl.textContent = "Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts.";
               } else {
                 subEl.textContent = "Add or remove Faculty accounts and view OJT Intern accounts.";
               }

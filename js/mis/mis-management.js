@@ -42,18 +42,24 @@
       }
     } catch (err) {
       console.error('[MIS Management] Error loading accounts:', err);
+      _misData = { active: null, history: [], all: [] };
       if (activeEl) {
+        const errorDetail = (err && (err.message || (typeof err === 'string' ? err : ''))) || 'Please refresh the page.';
         activeEl.innerHTML = `
           <div class="ui-empty-state" style="padding: 24px;">
             <div class="ui-empty-icon" style="background:#FEE2E2; color:#EF4444;">
               <i data-lucide="alert-circle" style="width:24px;height:24px;"></i>
             </div>
-            <p>Failed to load MIS Staff records. Please refresh the page.</p>
+            <p style="font-weight:600;color:var(--text-dark,#1F2937);margin:0 0 4px 0;">Failed to load MIS Staff records.</p>
+            <p style="font-size:13px;color:var(--text-light,#6B7280);margin:0;">${escapeHtml(errorDetail)}</p>
           </div>
         `;
         if (global.lucide && typeof global.lucide.createIcons === 'function') {
           global.lucide.createIcons({ root: activeEl });
         }
+      }
+      if (historyEl) {
+        historyEl.innerHTML = '';
       }
     }
   }
@@ -125,6 +131,9 @@
             <button type="button" id="btn-edit-mis" class="mis-btn mis-btn-edit">
               <i data-lucide="edit-3"></i> Edit Details
             </button>
+            <button type="button" id="btn-reset-mis" class="mis-btn mis-btn-edit">
+              <i data-lucide="key-round"></i> Reset Password
+            </button>
             <button type="button" id="btn-deactivate-mis" class="mis-btn mis-btn-deact">
               <i data-lucide="user-x"></i> Deactivate Account
             </button>
@@ -169,6 +178,11 @@
     const editBtn = container.querySelector('#btn-edit-mis');
     if (editBtn) {
       editBtn.addEventListener('click', () => showEditMisStaffModal(activeUser));
+    }
+
+    const resetBtn = container.querySelector('#btn-reset-mis');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => showResetMisPasswordModal(activeUser));
     }
 
     const deactBtn = container.querySelector('#btn-deactivate-mis');
@@ -222,9 +236,14 @@
             </span>
           </td>
           <td>
-            <span class="mis-badge-audit">
-              <i data-lucide="check-circle-2"></i> Records Preserved
-            </span>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="mis-badge-audit">
+                <i data-lucide="check-circle-2"></i> Records Preserved
+              </span>
+              <button type="button" class="mis-btn mis-btn-edit btn-reactivate-mis" data-id="${u.User_ID}" style="padding:4px 8px;font-size:11.5px;display:inline-flex;align-items:center;gap:4px;" title="Reactivate this MIS Staff account">
+                <i data-lucide="rotate-ccw" style="width:12px;height:12px;"></i> Reactivate
+              </button>
+            </div>
           </td>
         </tr>
       `;
@@ -239,7 +258,7 @@
               <th>Contact</th>
               <th>Deactivated On</th>
               <th>Status</th>
-              <th>Audit Trail</th>
+              <th>Audit Trail &amp; Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -248,6 +267,30 @@
         </table>
       </div>
     `;
+
+    container.querySelectorAll('.btn-reactivate-mis').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const targetId = btn.getAttribute('data-id');
+        if (!targetId) return;
+        try {
+          btn.disabled = true;
+          await global.misService.reactivateMisStaff(targetId);
+          if (typeof global.showToast === 'function') {
+            global.showToast('MIS Staff account reactivated successfully.', 'success', 'Account Reactivated');
+          }
+          await loadMisStaff();
+        } catch (err) {
+          const msg = err.message || 'Failed to reactivate MIS Staff account.';
+          if (typeof global.showToast === 'function') {
+            global.showToast(msg, 'error', 'Reactivation Failed');
+          } else {
+            alert(msg);
+          }
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
   }
 
   /**
@@ -594,12 +637,80 @@
     });
   }
 
+  /**
+   * Modal: Reset MIS Staff Password
+   */
+  function showResetMisPasswordModal(user) {
+    if (!user) return;
+    const existing = document.getElementById('mis-reset-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'mis-reset-modal';
+    modal.className = 'mis-modal-overlay';
+
+    modal.innerHTML = `
+      <div class="mis-modal-dialog" style="text-align:center;">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(14,165,233,0.12);color:var(--primary-teal);display:flex;align-items:center;justify-content:center;margin:0 auto 18px auto;">
+          <i data-lucide="key-round" style="width:28px;height:28px;"></i>
+        </div>
+
+        <h3 style="font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--text-dark);margin:0 0 10px 0;">Reset MIS Staff Password?</h3>
+        
+        <p style="font-size:13.5px;color:var(--text-mid);line-height:1.5;margin:0 0 20px 0;">
+          Are you sure you want to reset the password for <strong>${escapeHtml(user.Name)}</strong>? A new temporary password will be generated and dispatched to <strong>${escapeHtml(user.Email)}</strong>.
+        </p>
+
+        <div style="display:flex;gap:12px;">
+          <button type="button" id="cancel-mis-reset" class="mis-btn mis-btn-edit" style="flex:1;justify-content:center;">Cancel</button>
+          <button type="button" id="confirm-mis-reset" style="flex:1;padding:12px;border:none;background:var(--primary-teal);color:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(30,187,215,0.25);font-family:var(--font-body);">Reset Password</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    if (global.lucide && typeof global.lucide.createIcons === 'function') {
+      global.lucide.createIcons({ root: modal });
+    }
+
+    const closeModal = () => modal.remove();
+    modal.querySelector('#cancel-mis-reset')?.addEventListener('click', closeModal);
+
+    const confirmBtn = modal.querySelector('#confirm-mis-reset');
+    confirmBtn?.addEventListener('click', async () => {
+      try {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Resetting...';
+
+        const res = await global.misService.resetPassword(user.User_ID);
+        closeModal();
+
+        if (typeof global.showToast === 'function') {
+          global.showToast('MIS Staff password reset successfully.', 'success', 'Password Reset');
+        }
+
+        if (res && res.data && res.data.temporaryPassword) {
+          showCredentialsModal(res.data.user || user, res.data.temporaryPassword);
+        }
+      } catch (err) {
+        console.error('[Reset MIS Password] Error:', err);
+        const msg = err.message || 'Failed to reset MIS Staff password.';
+        if (typeof global.showToast === 'function') {
+          global.showToast(msg, 'error', 'Reset Failed');
+        } else {
+          alert(msg);
+        }
+      }
+    });
+  }
+
   // Expose globally
   global.misManagement = {
     loadMisStaff,
     showAddMisStaffModal,
     showEditMisStaffModal,
-    showDeactivateMisStaffModal
+    showDeactivateMisStaffModal,
+    showResetMisPasswordModal
   };
 
 })(typeof window !== 'undefined' ? window : this);

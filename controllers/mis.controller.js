@@ -78,7 +78,12 @@ async function updateMisStaff(req, res, next) {
 async function deactivateMisStaff(req, res, next) {
     try {
         const { userId } = req.params;
-        const result = await misService.deactivateMisStaff(userId);
+        const currentUserId = req.session ? req.session.userId : null;
+        if (currentUserId && Number(currentUserId) === Number(userId)) {
+            return res.status(400).json({ error: 'You cannot deactivate your own account.' });
+        }
+
+        const result = await misService.deactivateMisStaff(userId, currentUserId);
         if (result.error) {
             return res.status(result.status).json({ error: result.error });
         }
@@ -129,10 +134,38 @@ async function reactivateMisStaff(req, res, next) {
     }
 }
 
+async function resetMisStaffPassword(req, res, next) {
+    try {
+        const { userId } = req.params;
+        const result = await misService.resetPassword(userId);
+        if (result.error) {
+            return res.status(result.status).json({ error: result.error });
+        }
+
+        const updatedUser = result.data.user;
+        await auditService.logSecurityEvent({
+            req,
+            action: 'MIS_PASSWORD_RESET',
+            resourceType: 'USER',
+            resourceId: Number(userId),
+            details: {
+                name: updatedUser.Name,
+                email: updatedUser.Email
+            },
+            result: 'SUCCESS'
+        });
+
+        return res.status(result.status).json(result.data);
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     listMisStaff,
     createMisStaff,
     updateMisStaff,
     deactivateMisStaff,
-    reactivateMisStaff
+    reactivateMisStaff,
+    resetMisStaffPassword
 };

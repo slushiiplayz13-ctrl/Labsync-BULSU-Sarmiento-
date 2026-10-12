@@ -8,17 +8,17 @@
  *    - js/pages/faculty-management.js defines & exports updateRoleGreetingDescription()
  * 
  * 2. Role-Aware Description Verification:
- *    - Program Coordinator: "Add or remove Faculty accounts and view OJT Intern accounts."
+ *    - Program Coordinator: "Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts."
  *    - IT Department Head / IT Head: "Manage Faculty and MIS Staff accounts and view OJT Intern accounts."
  * 
  * 3. Access Control & Permission Enforcement Verification:
  *    - Faculty: Program Coordinator can add and remove regular faculty accounts.
  *    - OJT Interns: Program Coordinator has read-only visibility (GET 200, mutations 403).
- *    - MIS Staff: Program Coordinator is completely blocked from all endpoints (403 Forbidden).
+ *    - MIS Staff: Program Coordinator can manage MIS Staff accounts (view, create, edit, reset password, activate, deactivate; permanent delete restricted).
  * 
  * 4. Headless Chrome Live DOM UI Verification:
  *    - Evaluates live DOM greetingSub text for Program Coordinator and IT Dept. Head.
- *    - Verifies MIS Staff tab is hidden for Program Coordinator and visible for IT Dept. Head.
+ *    - Verifies MIS Staff tab is visible for both Program Coordinator and IT Dept. Head.
  *    - Captures desktop verification screenshots.
  */
 
@@ -33,7 +33,7 @@ const facultyService = require('../services/facultyService');
 const ojtController = require('../controllers/ojt.controller');
 const misController = require('../controllers/mis.controller');
 
-const EXPECTED_PC_DESCRIPTION = 'Add or remove Faculty accounts and view OJT Intern accounts.';
+const EXPECTED_PC_DESCRIPTION = 'Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts.';
 const EXPECTED_DEPT_HEAD_DESCRIPTION = 'Manage Faculty and MIS Staff accounts and view OJT Intern accounts.';
 const EXPECTED_MIS_OJT_DESCRIPTION = 'Manage student intern accounts, internship periods, and access.';
 
@@ -194,7 +194,7 @@ async function runTestSuite() {
   }
 
   // Verify OJT controller permissions
-  const { requireRole, MIS_STAFF_ROLES, IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
+  const { requireRole, MIS_STAFF_ROLES, IT_HEAD_ROLES, IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
 
   // Verify middleware definition: OJT mutative endpoints strictly require MIS_STAFF_ROLES
   assert.deepStrictEqual(MIS_STAFF_ROLES, ['MIS Staff'], 'MIS_STAFF_ROLES must strictly contain only MIS Staff');
@@ -202,10 +202,12 @@ async function runTestSuite() {
   assert.ok(!MIS_STAFF_ROLES.includes('IT Dept. Head'), 'IT Dept. Head must NOT be in MIS_STAFF_ROLES');
   console.log('✔ PASS: OJT mutative operations strictly restricted to MIS Staff (Program Coordinator has view-only access).');
 
-  // 3c. MIS Staff Management: Program Coordinator completely forbidden
-  assert.ok(!IT_DEPT_HEAD_EXCLUSIVE_ROLES.includes('Program Coordinator'), 'Program Coordinator must NOT be in IT_DEPT_HEAD_EXCLUSIVE_ROLES');
-  assert.ok(IT_DEPT_HEAD_EXCLUSIVE_ROLES.includes('IT Dept. Head'), 'IT Dept. Head must be in IT_DEPT_HEAD_EXCLUSIVE_ROLES');
-  console.log('✔ PASS: MIS Staff account management strictly exclusive to IT Dept. Head (Program Coordinator forbidden).');
+  // 3c. MIS Staff Management: Program Coordinator and IT Dept Head permitted under IT_HEAD_ROLES
+  assert.ok(IT_HEAD_ROLES.includes('Program Coordinator'), 'Program Coordinator must be in IT_HEAD_ROLES');
+  assert.ok(IT_HEAD_ROLES.includes('IT Dept. Head'), 'IT Dept. Head must be in IT_HEAD_ROLES');
+  assert.ok(!IT_HEAD_ROLES.includes('MIS Staff'), 'MIS Staff must NOT be in IT_HEAD_ROLES');
+  assert.ok(!IT_HEAD_ROLES.includes('Faculty'), 'Faculty must NOT be in IT_HEAD_ROLES');
+  console.log('✔ PASS: MIS Staff account management authorized for IT Dept. Head and Program Coordinator (IT_HEAD_ROLES).');
 
   // ───────────────────────────────────────────────────────────────────────────
   // 4. Headless Chrome UI Verification Across Roles
@@ -318,7 +320,7 @@ async function runTestSuite() {
       );
 
       if (roleName === 'Program Coordinator') {
-        assert.strictEqual(resMisTabDisplay.result.value, 'none', 'Program Coordinator MUST NOT see MIS Staff tab');
+        assert.notStrictEqual(resMisTabDisplay.result.value, 'none', 'Program Coordinator MUST see MIS Staff tab');
         assert.notStrictEqual(resOjtTabDisplay.result.value, 'none', 'Program Coordinator MUST see OJT Interns tab');
       } else {
         assert.notStrictEqual(resMisTabDisplay.result.value, 'none', 'IT Dept. Head MUST see MIS Staff tab');
