@@ -243,9 +243,9 @@
             </button>
           </div>
         `;
-      } else if (req.Status === 'APPROVED') {
-        const isReady = req.isPickupReady;
-        const isFuture = req.isFutureReservation;
+      } else if (req.Status === 'APPROVED' && !req.isExpired) {
+        const isReady = Boolean(req.isPickupReady && !req.isExpired);
+        const isFuture = Boolean(req.isFutureReservation && !req.isExpired);
 
         if (isReady) {
           banner.classList.add('is-approved');

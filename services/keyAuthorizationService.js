@@ -52,11 +52,7 @@ function getMaxAllowedReservationDate() {
 }
 
 function getTodayDateString() {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    return getPhilippineTimeContext().dateStr;
 }
 
 /**
@@ -352,10 +348,10 @@ async function requestAdditionalKey(userId, userRole, userName, roomId, reason, 
 function toLocalDateString(d) {
     if (!d) return null;
     if (typeof d === 'string') return d.split('T')[0];
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+    if (d instanceof Date) {
+        return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(d);
+    }
+    return String(d).split('T')[0];
 }
 
 /**
@@ -366,9 +362,11 @@ async function getFacultyRequestStatus(userId, options = {}) {
         return { status: 401, error: 'Authentication required' };
     }
 
+    const phNow = getPhilippineTimeContext((options && options.referenceTime) || null);
+
     // Lazy cleanup of expired approved requests
     try {
-        await keyAuthRepo.expireOldApprovedRequests();
+        await keyAuthRepo.expireOldApprovedRequests(phNow.dateStr, phNow.time);
     } catch (e) {
         console.error('[KeyAuthService] Expiration cleanup failed:', e.message);
     }
@@ -382,7 +380,6 @@ async function getFacultyRequestStatus(userId, options = {}) {
     const heldList = (heldKeys || []).map(k => ({ Room_ID: k.Room_ID, Room_Number: k.Room_Number }));
 
     // Retrieve active official scheduled rooms in Philippine Time
-    const phNow = getPhilippineTimeContext((options && options.referenceTime) || null);
     const activeTerm = AcademicTerm.getActiveTerm(phNow.date);
     const [activeSchedRows] = await scheduleRepo.findActiveOfficialScheduleForUser(
         userId,
@@ -415,21 +412,31 @@ async function getFacultyRequestStatus(userId, options = {}) {
             request.Start_Time_Str = startTimeStr;
             request.End_Time_Str = endTimeStr;
 
-            const [sh, sm] = startTimeStr.split(':').map(Number);
-            const [eh, em] = endTimeStr.split(':').map(Number);
-            const [yr, mo, da] = resDateStr.split('-').map(Number);
+            const cleanStart = startTimeStr.length === 5 ? startTimeStr + ':00' : startTimeStr;
+            const cleanEnd = endTimeStr.length === 5 ? endTimeStr + ':00' : endTimeStr;
 
-            const pickupStart = new Date(yr, mo - 1, da, sh, sm, 0);
-            const pickupEnd = new Date(yr, mo - 1, da, eh, em, 0);
+            const pickupStart = new Date(`${resDateStr}T${cleanStart}+08:00`);
+            const pickupEnd = new Date(`${resDateStr}T${cleanEnd}+08:00`);
 
-            const now = new Date();
+            const now = phNow.date;
             request.isPickupReady = (request.Status === 'APPROVED' && now >= pickupStart && now < pickupEnd);
             request.isFutureReservation = (request.Status === 'APPROVED' && now < pickupStart);
             request.isExpired = (now >= pickupEnd && request.Status !== 'CLAIMED' && request.Status !== 'COMPLETED');
             request.Pickup_Opens_At = pickupStart.toISOString();
+
+            const remainingMs = pickupEnd.getTime() - now.getTime();
+            request.Minutes_Remaining = remainingMs > 0 ? Math.floor(remainingMs / (60 * 1000)) : 0;
         } else {
-            request.isPickupReady = request.Status === 'APPROVED';
+            const now = phNow.date;
+            const isExpired = request.Expires_At ? (now >= new Date(request.Expires_At)) : false;
+            request.isExpired = (isExpired && request.Status !== 'CLAIMED' && request.Status !== 'COMPLETED');
+            request.isPickupReady = (request.Status === 'APPROVED' && !isExpired);
             request.isFutureReservation = false;
+
+            if (request.Expires_At) {
+                const remainingMs = new Date(request.Expires_At).getTime() - now.getTime();
+                request.Minutes_Remaining = remainingMs > 0 ? Math.floor(remainingMs / (60 * 1000)) : 0;
+            }
         }
 
         return {
@@ -503,7 +510,7 @@ async function getApprovedRequestsForDeptHead(userId, userRole) {
 /**
  * Approve a pending key authorization request.
  */
-async function approveRequest(requestId, approvedBy, userRole, durationMinutes = null, req = null) {
+async function approveRequest(requestId, approvedBy, userRole, durationMinutes = null, req = null, options = {}) {
     if (!approvedBy) {
         return { status: 401, error: 'Authentication required' };
     }
@@ -541,26 +548,31 @@ async function approveRequest(requestId, approvedBy, userRole, durationMinutes =
             };
         }
 
-        // Set expiresAt to the reservation date and end time
+        const now = (options && options.referenceTime) ? new Date(options.referenceTime) : new Date();
+
+        // Set expiresAt to the reservation date and end time in Philippine Time (+08:00)
         if (requestInfo.Reservation_Date && requestInfo.End_Time) {
             const dateStr = toLocalDateString(requestInfo.Reservation_Date);
-            const [eh, em, es] = String(requestInfo.End_Time).split(':').map(Number);
-            const [yr, mo, da] = dateStr.split('-').map(Number);
-            expiresAt = new Date(yr, mo - 1, da, eh, em || 0, es || 0);
+            const cleanEndTime = String(requestInfo.End_Time).trim();
+            const cleanEnd = cleanEndTime.length === 5 ? cleanEndTime + ':00' : cleanEndTime;
+            expiresAt = new Date(`${dateStr}T${cleanEnd}+08:00`);
 
             if (requestInfo.Duration_Minutes) {
                 finalDuration = requestInfo.Duration_Minutes;
             }
 
-            if (expiresAt <= new Date()) {
-                const parsedDuration = Math.max(15, Math.min(1440, Number(durationMinutes) || 120));
-                finalDuration = parsedDuration;
-                expiresAt = new Date(Date.now() + parsedDuration * 60 * 1000);
+            // An approval made after the reservation has already ended must not revive that expired pickup window
+            if (expiresAt <= now) {
+                await connection.rollback();
+                return {
+                    status: 400,
+                    error: 'Cannot approve request: The scheduled reservation window has already ended.'
+                };
             }
         } else {
             const parsedDuration = Math.max(15, Math.min(1440, Number(durationMinutes) || 120));
             finalDuration = parsedDuration;
-            expiresAt = new Date(Date.now() + parsedDuration * 60 * 1000);
+            expiresAt = new Date(now.getTime() + parsedDuration * 60 * 1000);
         }
 
         await keyAuthRepo.approveRequest(parsedRequestId, approvedBy, finalDuration, expiresAt, connection);
@@ -775,7 +787,8 @@ async function cancelRequest(requestId, userId, userRole, req = null) {
  */
 async function checkActiveApproval(userId, roomId, executor = db) {
     if (!userId || !roomId) return null;
-    const [rows] = await keyAuthRepo.findActiveApprovedByUserIdAndRoom(userId, roomId, executor);
+    const ph = getPhilippineTimeContext();
+    const [rows] = await keyAuthRepo.findActiveApprovedByUserIdAndRoom(userId, roomId, executor, ph.dateStr, ph.time);
     return (rows && rows.length > 0) ? rows[0] : null;
 }
 
@@ -784,7 +797,8 @@ async function checkActiveApproval(userId, roomId, executor = db) {
  */
 async function checkActiveApprovalByRoomNumber(userId, roomNumber, executor = db) {
     if (!userId || !roomNumber) return null;
-    const [rows] = await keyAuthRepo.findActiveApprovedByUserIdAndRoomNumber(userId, roomNumber, executor);
+    const ph = getPhilippineTimeContext();
+    const [rows] = await keyAuthRepo.findActiveApprovedByUserIdAndRoomNumber(userId, roomNumber, executor, ph.dateStr, ph.time);
     return (rows && rows.length > 0) ? rows[0] : null;
 }
 

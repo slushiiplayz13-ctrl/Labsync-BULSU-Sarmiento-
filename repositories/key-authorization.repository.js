@@ -7,6 +7,97 @@
 
 const db = require('../database/connection');
 
+function getPhilippineTimeContext(target = null) {
+    const d = target ? new Date(target) : new Date();
+    const day = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Manila',
+        weekday: 'long'
+    }).format(d);
+    const time = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Manila',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    }).format(d);
+    const dateStr = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Manila'
+    }).format(d);
+    return { day, time, dateStr, date: d };
+}
+
+function resolveRepoContext(executorOrDate, maybeTimeOrExec, maybeExec) {
+    let executor = db;
+    let phDate = null;
+    let phTime = null;
+    let now = new Date();
+
+    if (executorOrDate && typeof executorOrDate.query === 'function') {
+        executor = executorOrDate;
+        if (typeof maybeTimeOrExec === 'string') {
+            phDate = maybeTimeOrExec;
+            if (typeof maybeExec === 'string') {
+                phTime = maybeExec;
+            }
+        }
+    } else if (typeof executorOrDate === 'string') {
+        phDate = executorOrDate;
+        if (typeof maybeTimeOrExec === 'string') {
+            phTime = maybeTimeOrExec;
+            if (maybeExec && typeof maybeExec.query === 'function') {
+                executor = maybeExec;
+            }
+        } else if (maybeTimeOrExec && typeof maybeTimeOrExec.query === 'function') {
+            executor = maybeTimeOrExec;
+        }
+    }
+
+    if (!phDate || !phTime) {
+        const ph = getPhilippineTimeContext();
+        if (!phDate) phDate = ph.dateStr;
+        if (!phTime) phTime = ph.time;
+        now = ph.date;
+    } else {
+        const cleanT = phTime.length === 5 ? phTime + ':00' : phTime;
+        now = new Date(`${phDate}T${cleanT}+08:00`);
+    }
+
+    return { executor, phDate, phTime, now };
+}
+
+function resolveExpireContext(phDateOrExec, maybeTimeOrExec, maybeExec) {
+    let executor = db;
+    let phDate = null;
+    let phTime = null;
+    let now = new Date();
+
+    if (phDateOrExec && typeof phDateOrExec.query === 'function') {
+        executor = phDateOrExec;
+    } else if (typeof phDateOrExec === 'string') {
+        phDate = phDateOrExec;
+        if (typeof maybeTimeOrExec === 'string') {
+            phTime = maybeTimeOrExec;
+            if (maybeExec && typeof maybeExec.query === 'function') {
+                executor = maybeExec;
+            }
+        } else if (maybeTimeOrExec && typeof maybeTimeOrExec.query === 'function') {
+            executor = maybeTimeOrExec;
+        }
+    }
+
+    if (!phDate || !phTime) {
+        const ph = getPhilippineTimeContext();
+        if (!phDate) phDate = ph.dateStr;
+        if (!phTime) phTime = ph.time;
+        now = ph.date;
+    } else {
+        const cleanT = phTime.length === 5 ? phTime + ':00' : phTime;
+        now = new Date(`${phDate}T${cleanT}+08:00`);
+    }
+
+    return { executor, phDate, phTime, now };
+}
+
 async function createRequest(userId, roomId, reason, reservationDate = null, startTime = null, endTime = null, executor = db) {
     return executor.query(
         `INSERT INTO key_authorization_requests 
@@ -61,60 +152,63 @@ async function findPendingByUserId(userId, executor = db) {
     );
 }
 
-async function findActiveApprovedByUserIdAndRoom(userId, roomId, executor = db) {
-    return executor.query(
+async function findActiveApprovedByUserIdAndRoom(userId, roomId, executor = db, phDate = null, phTime = null) {
+    const ctx = resolveRepoContext(executor, phDate, phTime);
+    return ctx.executor.query(
         `SELECT r.*, lab.Room_Number, lab.Building
          FROM key_authorization_requests r
          JOIN laboratories lab ON r.Room_ID = lab.Room_ID
          WHERE r.User_ID = ? AND r.Room_ID = ? 
            AND r.Status IN ('APPROVED', 'CLAIMED')
            AND (
-             (r.Reservation_Date IS NULL AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
+             (r.Reservation_Date IS NULL AND (r.Expires_At IS NULL OR r.Expires_At > ?))
              OR
-             (r.Reservation_Date = CURDATE() AND r.Start_Time <= CURTIME() AND r.End_Time > CURTIME())
+             (r.Reservation_Date = ? AND r.Start_Time <= ? AND r.End_Time > ?)
              OR
-             (r.Status = 'CLAIMED' AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
+             (r.Status = 'CLAIMED' AND (r.Expires_At IS NULL OR r.Expires_At > ?))
            )
          ORDER BY r.Approved_At DESC LIMIT 1`,
-        [userId, roomId]
+        [userId, roomId, ctx.now, ctx.phDate, ctx.phTime, ctx.phTime, ctx.now]
     );
 }
 
-async function findActiveApprovedByUserIdAndRoomNumber(userId, roomNumber, executor = db) {
-    return executor.query(
+async function findActiveApprovedByUserIdAndRoomNumber(userId, roomNumber, executor = db, phDate = null, phTime = null) {
+    const ctx = resolveRepoContext(executor, phDate, phTime);
+    return ctx.executor.query(
         `SELECT r.*, lab.Room_Number, lab.Building
          FROM key_authorization_requests r
          JOIN laboratories lab ON r.Room_ID = lab.Room_ID
          WHERE r.User_ID = ? AND TRIM(lab.Room_Number) = TRIM(?)
            AND r.Status IN ('APPROVED', 'CLAIMED')
            AND (
-             (r.Reservation_Date IS NULL AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
+             (r.Reservation_Date IS NULL AND (r.Expires_At IS NULL OR r.Expires_At > ?))
              OR
-             (r.Reservation_Date = CURDATE() AND r.Start_Time <= CURTIME() AND r.End_Time > CURTIME())
+             (r.Reservation_Date = ? AND r.Start_Time <= ? AND r.End_Time > ?)
              OR
-             (r.Status = 'CLAIMED' AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
+             (r.Status = 'CLAIMED' AND (r.Expires_At IS NULL OR r.Expires_At > ?))
            )
          ORDER BY r.Approved_At DESC LIMIT 1`,
-        [userId, roomNumber]
+        [userId, roomNumber, ctx.now, ctx.phDate, ctx.phTime, ctx.phTime, ctx.now]
     );
 }
 
-async function findAnyActiveAuthorizationByUserId(userId, executor = db) {
-    return executor.query(
+async function findAnyActiveAuthorizationByUserId(userId, executor = db, phDate = null, phTime = null) {
+    const ctx = resolveRepoContext(executor, phDate, phTime);
+    return ctx.executor.query(
         `SELECT r.*, lab.Room_Number, lab.Building
          FROM key_authorization_requests r
          JOIN laboratories lab ON r.Room_ID = lab.Room_ID
          WHERE r.User_ID = ?
            AND r.Status IN ('APPROVED', 'CLAIMED')
            AND (
-             (r.Reservation_Date IS NULL AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
+             (r.Reservation_Date IS NULL AND (r.Expires_At IS NULL OR r.Expires_At > ?))
              OR
-             (r.Reservation_Date = CURDATE() AND r.Start_Time <= CURTIME() AND r.End_Time > CURTIME())
+             (r.Reservation_Date = ? AND r.Start_Time <= ? AND r.End_Time > ?)
              OR
-             (r.Status = 'CLAIMED' AND (r.Expires_At IS NULL OR r.Expires_At > NOW()))
+             (r.Status = 'CLAIMED' AND (r.Expires_At IS NULL OR r.Expires_At > ?))
            )
          ORDER BY r.Approved_At DESC`,
-        [userId]
+        [userId, ctx.now, ctx.phDate, ctx.phTime, ctx.phTime, ctx.now]
     );
 }
 
@@ -281,23 +375,26 @@ async function markCompletedByRoomAndUser(roomId, userId, executor = db) {
     );
 }
 
-async function expireOldApprovedRequests(executor = db) {
-    return executor.query(
+async function expireOldApprovedRequests(phDateOrExec = null, phTime = null, executor = db) {
+    const ctx = resolveExpireContext(phDateOrExec, phTime, executor);
+    return ctx.executor.query(
         `UPDATE key_authorization_requests
          SET Status = 'EXPIRED'
          WHERE Status = 'APPROVED'
            AND (
-             (Expires_At IS NOT NULL AND Expires_At < NOW())
+             (Expires_At IS NOT NULL AND Expires_At <= ?)
              OR
              (Reservation_Date IS NOT NULL AND (
-               Reservation_Date < CURDATE()
-               OR (Reservation_Date = CURDATE() AND End_Time < CURTIME())
+               Reservation_Date < ?
+               OR (Reservation_Date = ? AND End_Time <= ?)
              ))
-           )`
+           )`,
+        [ctx.now, ctx.phDate, ctx.phDate, ctx.phTime]
     );
 }
 
 module.exports = {
+    getPhilippineTimeContext,
     createRequest,
     findConflictingReservations,
     findAllRoomConflicts,

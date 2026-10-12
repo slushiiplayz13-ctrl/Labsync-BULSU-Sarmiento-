@@ -520,14 +520,15 @@ async function logOccupancy(reqBody = {}, device = null) {
         const hasAuthorization = (approvedRows && approvedRows.length > 0) || (anyAuthRows && anyAuthRows.length > 0);
         if (!hasAuthorization) {
             // Check if user has an upcoming approved reservation that is not yet ready for pickup
+            const { dateStr: phDate, time: phTime } = keyAuthRepo.getPhilippineTimeContext();
             const [upcomingRows] = await db.query(
                 `SELECT r.*, lab.Room_Number 
                  FROM key_authorization_requests r
                  JOIN laboratories lab ON r.Room_ID = lab.Room_ID
                  WHERE r.User_ID = ? AND r.Status = 'APPROVED'
-                   AND (r.Reservation_Date > CURDATE() OR (r.Reservation_Date = CURDATE() AND r.End_Time > CURTIME()))
+                   AND (r.Reservation_Date > ? OR (r.Reservation_Date = ? AND r.Start_Time > ?))
                  ORDER BY r.Reservation_Date ASC, r.Start_Time ASC LIMIT 1`,
-                [user.User_ID]
+                [user.User_ID, phDate, phDate, phTime]
             );
 
             if (upcomingRows && upcomingRows.length > 0) {
