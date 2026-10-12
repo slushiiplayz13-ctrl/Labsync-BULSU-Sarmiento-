@@ -4,6 +4,18 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoJson.h>
+#include <Preferences.h>
+
+// Persistent Queue Structure & Limits (declared before function prototypes)
+const int MAX_PERSISTENT_ALERTS = 12;
+const int MAX_OVERFLOW_ALERTS = 4;
+struct PersistentAlertItem {
+  char room[8];
+  char alertType[32];
+  char eventId[32];
+};
+
+void dispatchSecurityAlertAsync(const char* room, const char* alertType, const char* eventId = NULL);
 
 // ==============================================================
 // LabSync IoT Key Dock Firmware - High Performance & Multi-Slot
@@ -15,6 +27,7 @@
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 bool lcdDetected = false;
 SemaphoreHandle_t i2cMutex = NULL;
+SemaphoreHandle_t nvsMutex = NULL;
 
 // Wi-Fi Credentials
 const char* ssid = "BLK 26 LT POGI - 2.4Ghz";
@@ -62,6 +75,537 @@ unsigned long unauthorizedAlarmStarted203 = 0;
 unsigned long unauthorizedAlarmStarted204 = 0;
 unsigned long wrongKeyAlarmStarted203 = 0;
 unsigned long wrongKeyAlarmStarted204 = 0;
+
+// Thread-safe NVS mutex helpers & persistence routines
+bool takeNvsMutex(TickType_t timeout = pdMS_TO_TICKS(200)) {
+  if (nvsMutex == NULL) return true;
+  return (xSemaphoreTake(nvsMutex, timeout) == pdTRUE);
+}
+
+void giveNvsMutex() {
+  if (nvsMutex != NULL) {
+    xSemaphoreGive(nvsMutex);
+  }
+}
+
+void persistIncidentState(const char* room, bool isUnauth, bool isWrong) {
+  if (!takeNvsMutex()) return;
+  Preferences prefs;
+  if (prefs.begin("labsync_sec", false)) {
+    if (strcmp(room, "203") == 0) {
+      prefs.putBool("unauth203", isUnauth);
+      prefs.putBool("wrong203", isWrong);
+    } else if (strcmp(room, "204") == 0) {
+      prefs.putBool("unauth204", isUnauth);
+      prefs.putBool("wrong204", isWrong);
+    }
+    prefs.end();
+  }
+  giveNvsMutex();
+}
+
+// Bounded persistent FIFO queue tracking
+volatile uint32_t nvsQueueOverflowCount = 0;
+
+void updateSummaryKeysInPrefs(Preferences& prefs) {
+  int count = prefs.getInt("pQ_cnt", 0);
+  if (count < 0) count = 0;
+  if (count > MAX_PERSISTENT_ALERTS) count = MAX_PERSISTENT_ALERTS;
+
+  bool hasU203 = false, hasW203 = false;
+  char evtU203[32] = "", evtW203[32] = "";
+
+  bool hasU204 = false, hasW204 = false;
+  char evtU204[32] = "", evtW204[32] = "";
+
+  for (int i = 0; i < count; i++) {
+    char kr[16], kt[16], ke[16];
+    snprintf(kr, sizeof(kr), "pQ_r_%d", i);
+    snprintf(kt, sizeof(kt), "pQ_t_%d", i);
+    snprintf(ke, sizeof(ke), "pQ_e_%d", i);
+
+    String r = prefs.getString(kr, "");
+    String t = prefs.getString(kt, "");
+    String e = prefs.getString(ke, "");
+
+    if (r == "203") {
+      if (t == "Unauthorized Removal" && !hasU203) {
+        hasU203 = true;
+        strncpy(evtU203, e.c_str(), sizeof(evtU203) - 1);
+        evtU203[sizeof(evtU203) - 1] = '\0';
+      } else if (t == "Wrong Key Slot" && !hasW203) {
+        hasW203 = true;
+        strncpy(evtW203, e.c_str(), sizeof(evtW203) - 1);
+        evtW203[sizeof(evtW203) - 1] = '\0';
+      }
+    } else if (r == "204") {
+      if (t == "Unauthorized Removal" && !hasU204) {
+        hasU204 = true;
+        strncpy(evtU204, e.c_str(), sizeof(evtU204) - 1);
+        evtU204[sizeof(evtU204) - 1] = '\0';
+      } else if (t == "Wrong Key Slot" && !hasW204) {
+        hasW204 = true;
+        strncpy(evtW204, e.c_str(), sizeof(evtW204) - 1);
+        evtW204[sizeof(evtW204) - 1] = '\0';
+      }
+    }
+  }
+
+  // If any room/incident summary key is not set, check staged overflow buffer
+  int ovfCount = prefs.getInt("pQ_ovf_cnt", 0);
+  if (ovfCount < 0) ovfCount = 0;
+  if (ovfCount > MAX_OVERFLOW_ALERTS) ovfCount = MAX_OVERFLOW_ALERTS;
+
+  for (int i = 0; i < ovfCount && (!hasU203 || !hasW203 || !hasU204 || !hasW204); i++) {
+    char kor[16], kot[16], koe[16];
+    snprintf(kor, sizeof(kor), "pQ_or_%d", i);
+    snprintf(kot, sizeof(kot), "pQ_ot_%d", i);
+    snprintf(koe, sizeof(koe), "pQ_oe_%d", i);
+
+    String r = prefs.getString(kor, "");
+    String t = prefs.getString(kot, "");
+    String e = prefs.getString(koe, "");
+
+    if (r == "203") {
+      if (t == "Unauthorized Removal" && !hasU203) {
+        hasU203 = true;
+        strncpy(evtU203, e.c_str(), sizeof(evtU203) - 1);
+        evtU203[sizeof(evtU203) - 1] = '\0';
+      } else if (t == "Wrong Key Slot" && !hasW203) {
+        hasW203 = true;
+        strncpy(evtW203, e.c_str(), sizeof(evtW203) - 1);
+        evtW203[sizeof(evtW203) - 1] = '\0';
+      }
+    } else if (r == "204") {
+      if (t == "Unauthorized Removal" && !hasU204) {
+        hasU204 = true;
+        strncpy(evtU204, e.c_str(), sizeof(evtU204) - 1);
+        evtU204[sizeof(evtU204) - 1] = '\0';
+      } else if (t == "Wrong Key Slot" && !hasW204) {
+        hasW204 = true;
+        strncpy(evtW204, e.c_str(), sizeof(evtW204) - 1);
+        evtW204[sizeof(evtW204) - 1] = '\0';
+      }
+    }
+  }
+
+  prefs.putBool("pUAlert203", hasU203);
+  prefs.putString("pUEvt203", evtU203);
+  prefs.putBool("pWAlert203", hasW203);
+  prefs.putString("pWEvt203", evtW203);
+  prefs.putBool("pAlert203", hasU203 || hasW203);
+
+  if (hasU203) {
+    prefs.putString("pType203", "Unauthorized Removal");
+    prefs.putString("pEvt203", evtU203);
+  } else if (hasW203) {
+    prefs.putString("pType203", "Wrong Key Slot");
+    prefs.putString("pEvt203", evtW203);
+  } else {
+    prefs.putString("pType203", "");
+    prefs.putString("pEvt203", "");
+  }
+
+  prefs.putBool("pUAlert204", hasU204);
+  prefs.putString("pUEvt204", evtU204);
+  prefs.putBool("pWAlert204", hasW204);
+  prefs.putString("pWEvt204", evtW204);
+  prefs.putBool("pAlert204", hasU204 || hasW204);
+
+  if (hasU204) {
+    prefs.putString("pType204", "Unauthorized Removal");
+    prefs.putString("pEvt204", evtU204);
+  } else if (hasW204) {
+    prefs.putString("pType204", "Wrong Key Slot");
+    prefs.putString("pEvt204", evtW204);
+  } else {
+    prefs.putString("pType204", "");
+    prefs.putString("pEvt204", "");
+  }
+}
+
+bool promotePersistentOverflowIfSpaceAvailable(Preferences& prefs) {
+  int count = prefs.getInt("pQ_cnt", 0);
+  int ovfCount = prefs.getInt("pQ_ovf_cnt", 0);
+  if (count < MAX_PERSISTENT_ALERTS && ovfCount > 0) {
+    String oroom = prefs.getString("pQ_or_0", "");
+    String otype = prefs.getString("pQ_ot_0", "");
+    String oevt  = prefs.getString("pQ_oe_0", "");
+
+    if (oroom.length() > 0 && otype.length() > 0) {
+      char kr[16], kt[16], ke[16];
+      snprintf(kr, sizeof(kr), "pQ_r_%d", count);
+      snprintf(kt, sizeof(kt), "pQ_t_%d", count);
+      snprintf(ke, sizeof(ke), "pQ_e_%d", count);
+
+      prefs.putString(kr, oroom);
+      prefs.putString(kt, otype);
+      prefs.putString(ke, oevt);
+      count++;
+      prefs.putInt("pQ_cnt", count);
+
+      Serial.printf("📥 [NVS OVERFLOW PROMOTED] Promoted Room %s alert '%s' (%s) into primary queue slot %d\n",
+                    oroom.c_str(), otype.c_str(), oevt.c_str(), count - 1);
+
+      for (int i = 0; i < ovfCount - 1; i++) {
+        char kor_cur[16], kot_cur[16], koe_cur[16];
+        char kor_next[16], kot_next[16], koe_next[16];
+        snprintf(kor_cur, sizeof(kor_cur), "pQ_or_%d", i);
+        snprintf(kot_cur, sizeof(kot_cur), "pQ_ot_%d", i);
+        snprintf(koe_cur, sizeof(koe_cur), "pQ_oe_%d", i);
+        snprintf(kor_next, sizeof(kor_next), "pQ_or_%d", i + 1);
+        snprintf(kot_next, sizeof(kot_next), "pQ_ot_%d", i + 1);
+        snprintf(koe_next, sizeof(koe_next), "pQ_oe_%d", i + 1);
+
+        prefs.putString(kor_cur, prefs.getString(kor_next, ""));
+        prefs.putString(kot_cur, prefs.getString(kot_next, ""));
+        prefs.putString(koe_cur, prefs.getString(koe_next, ""));
+      }
+      char kor_last[16], kot_last[16], koe_last[16];
+      snprintf(kor_last, sizeof(kor_last), "pQ_or_%d", ovfCount - 1);
+      snprintf(kot_last, sizeof(kot_last), "pQ_ot_%d", ovfCount - 1);
+      snprintf(koe_last, sizeof(koe_last), "pQ_oe_%d", ovfCount - 1);
+      prefs.remove(kor_last);
+      prefs.remove(kot_last);
+      prefs.remove(koe_last);
+
+      ovfCount--;
+      prefs.putInt("pQ_ovf_cnt", ovfCount);
+      prefs.putBool("pQ_ovf_has", ovfCount > 0);
+
+      dispatchSecurityAlertAsync(oroom.c_str(), otype.c_str(), oevt.c_str());
+      return true;
+    }
+  }
+  return false;
+}
+
+bool persistClearPendingAlert(const char* room, const char* alertType = "", const char* eventId = "") {
+  if (!takeNvsMutex()) {
+    Serial.println("❌ [NVS] Mutex acquisition failed in persistClearPendingAlert");
+    return false;
+  }
+  Preferences prefs;
+  if (!prefs.begin("labsync_sec", false)) {
+    Serial.println("❌ [NVS] Failed to open labsync_sec in persistClearPendingAlert");
+    giveNvsMutex();
+    return false;
+  }
+
+  int count = prefs.getInt("pQ_cnt", 0);
+  if (count < 0) count = 0;
+  if (count > MAX_PERSISTENT_ALERTS) count = MAX_PERSISTENT_ALERTS;
+
+  int targetIdx = -1;
+  if (eventId && eventId[0] != '\0') {
+    for (int i = 0; i < count; i++) {
+      char ke[16];
+      snprintf(ke, sizeof(ke), "pQ_e_%d", i);
+      String existingId = prefs.getString(ke, "");
+      if (existingId.equals(eventId)) {
+        targetIdx = i;
+        break;
+      }
+    }
+  }
+
+  if (targetIdx == -1 && alertType && alertType[0] != '\0') {
+    for (int i = 0; i < count; i++) {
+      char kr[16], kt[16];
+      snprintf(kr, sizeof(kr), "pQ_r_%d", i);
+      snprintf(kt, sizeof(kt), "pQ_t_%d", i);
+      String r = prefs.getString(kr, "");
+      String t = prefs.getString(kt, "");
+      if (r.equals(room) && t.equals(alertType)) {
+        targetIdx = i;
+        break;
+      }
+    }
+  }
+
+  if (targetIdx >= 0) {
+    for (int i = targetIdx; i < count - 1; i++) {
+      char kr_cur[16], kt_cur[16], ke_cur[16];
+      char kr_next[16], kt_next[16], ke_next[16];
+      snprintf(kr_cur, sizeof(kr_cur), "pQ_r_%d", i);
+      snprintf(kt_cur, sizeof(kt_cur), "pQ_t_%d", i);
+      snprintf(ke_cur, sizeof(ke_cur), "pQ_e_%d", i);
+      snprintf(kr_next, sizeof(kr_next), "pQ_r_%d", i + 1);
+      snprintf(kt_next, sizeof(kt_next), "pQ_t_%d", i + 1);
+      snprintf(ke_next, sizeof(ke_next), "pQ_e_%d", i + 1);
+
+      prefs.putString(kr_cur, prefs.getString(kr_next, ""));
+      prefs.putString(kt_cur, prefs.getString(kt_next, ""));
+      prefs.putString(ke_cur, prefs.getString(ke_next, ""));
+    }
+    char kr_last[16], kt_last[16], ke_last[16];
+    snprintf(kr_last, sizeof(kr_last), "pQ_r_%d", count - 1);
+    snprintf(kt_last, sizeof(kt_last), "pQ_t_%d", count - 1);
+    snprintf(ke_last, sizeof(ke_last), "pQ_e_%d", count - 1);
+    prefs.remove(kr_last);
+    prefs.remove(kt_last);
+    prefs.remove(ke_last);
+    count--;
+    prefs.putInt("pQ_cnt", count);
+  } else if (!alertType || alertType[0] == '\0') {
+    // Clear all for room
+    int writeIdx = 0;
+    for (int i = 0; i < count; i++) {
+      char kr[16], kt[16], ke[16];
+      snprintf(kr, sizeof(kr), "pQ_r_%d", i);
+      snprintf(kt, sizeof(kt), "pQ_t_%d", i);
+      snprintf(ke, sizeof(ke), "pQ_e_%d", i);
+      String r = prefs.getString(kr, "");
+      String t = prefs.getString(kt, "");
+      String e = prefs.getString(ke, "");
+      if (!r.equals(room)) {
+        if (writeIdx != i) {
+          char kwr[16], kwt[16], kwe[16];
+          snprintf(kwr, sizeof(kwr), "pQ_r_%d", writeIdx);
+          snprintf(kwt, sizeof(kwt), "pQ_t_%d", writeIdx);
+          snprintf(kwe, sizeof(kwe), "pQ_e_%d", writeIdx);
+          prefs.putString(kwr, r);
+          prefs.putString(kwt, t);
+          prefs.putString(kwe, e);
+        }
+        writeIdx++;
+      }
+    }
+    for (int i = writeIdx; i < count; i++) {
+      char kr[16], kt[16], ke[16];
+      snprintf(kr, sizeof(kr), "pQ_r_%d", i);
+      snprintf(kt, sizeof(kt), "pQ_t_%d", i);
+      snprintf(ke, sizeof(ke), "pQ_e_%d", i);
+      prefs.remove(kr);
+      prefs.remove(kt);
+      prefs.remove(ke);
+    }
+    count = writeIdx;
+    prefs.putInt("pQ_cnt", count);
+  }
+
+  // Also clean up overflow buffer if targetIdx was not found or if clearing all for room
+  int curOvfCount = prefs.getInt("pQ_ovf_cnt", 0);
+  if (curOvfCount < 0) curOvfCount = 0;
+  if (curOvfCount > MAX_OVERFLOW_ALERTS) curOvfCount = MAX_OVERFLOW_ALERTS;
+
+  if (targetIdx == -1 && eventId && eventId[0] != '\0') {
+    for (int i = 0; i < curOvfCount; i++) {
+      char koe[16];
+      snprintf(koe, sizeof(koe), "pQ_oe_%d", i);
+      if (prefs.getString(koe, "").equals(eventId)) {
+        for (int j = i; j < curOvfCount - 1; j++) {
+          char kor_c[16], kot_c[16], koe_c[16];
+          char kor_n[16], kot_n[16], koe_n[16];
+          snprintf(kor_c, sizeof(kor_c), "pQ_or_%d", j);
+          snprintf(kot_c, sizeof(kot_c), "pQ_ot_%d", j);
+          snprintf(koe_c, sizeof(koe_c), "pQ_oe_%d", j);
+          snprintf(kor_n, sizeof(kor_n), "pQ_or_%d", j + 1);
+          snprintf(kot_n, sizeof(kot_n), "pQ_ot_%d", j + 1);
+          snprintf(koe_n, sizeof(koe_n), "pQ_oe_%d", j + 1);
+          prefs.putString(kor_c, prefs.getString(kor_n, ""));
+          prefs.putString(kot_c, prefs.getString(kot_n, ""));
+          prefs.putString(koe_c, prefs.getString(koe_n, ""));
+        }
+        char kor_l[16], kot_l[16], koe_l[16];
+        snprintf(kor_l, sizeof(kor_l), "pQ_or_%d", curOvfCount - 1);
+        snprintf(kot_l, sizeof(kot_l), "pQ_ot_%d", curOvfCount - 1);
+        snprintf(koe_l, sizeof(koe_l), "pQ_oe_%d", curOvfCount - 1);
+        prefs.remove(kor_l);
+        prefs.remove(kot_l);
+        prefs.remove(koe_l);
+        curOvfCount--;
+        prefs.putInt("pQ_ovf_cnt", curOvfCount);
+        prefs.putBool("pQ_ovf_has", curOvfCount > 0);
+        break;
+      }
+    }
+  } else if (!alertType || alertType[0] == '\0') {
+    int oWriteIdx = 0;
+    for (int i = 0; i < curOvfCount; i++) {
+      char kor[16], kot[16], koe[16];
+      snprintf(kor, sizeof(kor), "pQ_or_%d", i);
+      snprintf(kot, sizeof(kot), "pQ_ot_%d", i);
+      snprintf(koe, sizeof(koe), "pQ_oe_%d", i);
+      String r = prefs.getString(kor, "");
+      String t = prefs.getString(kot, "");
+      String e = prefs.getString(koe, "");
+      if (!r.equals(room)) {
+        if (oWriteIdx != i) {
+          char kwr[16], kwt[16], kwe[16];
+          snprintf(kwr, sizeof(kwr), "pQ_or_%d", oWriteIdx);
+          snprintf(kwt, sizeof(kwt), "pQ_ot_%d", oWriteIdx);
+          snprintf(kwe, sizeof(kwe), "pQ_oe_%d", oWriteIdx);
+          prefs.putString(kwr, r);
+          prefs.putString(kwt, t);
+          prefs.putString(kwe, e);
+        }
+        oWriteIdx++;
+      }
+    }
+    for (int i = oWriteIdx; i < curOvfCount; i++) {
+      char kor[16], kot[16], koe[16];
+      snprintf(kor, sizeof(kor), "pQ_or_%d", i);
+      snprintf(kot, sizeof(kot), "pQ_ot_%d", i);
+      snprintf(koe, sizeof(koe), "pQ_oe_%d", i);
+      prefs.remove(kor);
+      prefs.remove(kot);
+      prefs.remove(koe);
+    }
+    curOvfCount = oWriteIdx;
+    prefs.putInt("pQ_ovf_cnt", curOvfCount);
+    prefs.putBool("pQ_ovf_has", curOvfCount > 0);
+  }
+
+  // If primary queue has space and an overflow alert is staged, promote it immediately
+  while (promotePersistentOverflowIfSpaceAvailable(prefs)) {}
+
+  updateSummaryKeysInPrefs(prefs);
+  prefs.end();
+  giveNvsMutex();
+  return true;
+}
+
+bool persistPendingAlert(const char* room, bool isPending, const char* alertType = "", const char* eventId = "") {
+  if (!isPending) {
+    return persistClearPendingAlert(room, alertType, eventId);
+  }
+
+  if (!takeNvsMutex()) {
+    Serial.println("❌ [NVS] Mutex acquisition failed in persistPendingAlert");
+    return false;
+  }
+  Preferences prefs;
+  if (!prefs.begin("labsync_sec", false)) {
+    Serial.println("❌ [NVS] Failed to open labsync_sec in persistPendingAlert");
+    giveNvsMutex();
+    return false;
+  }
+
+  int count = prefs.getInt("pQ_cnt", 0);
+  if (count < 0) count = 0;
+
+  // Deduplicate against active primary queue
+  if (eventId && eventId[0] != '\0') {
+    for (int i = 0; i < count; i++) {
+      char ke[16];
+      snprintf(ke, sizeof(ke), "pQ_e_%d", i);
+      String existingId = prefs.getString(ke, "");
+      if (existingId.equals(eventId)) {
+        updateSummaryKeysInPrefs(prefs);
+        prefs.end();
+        giveNvsMutex();
+        return true;
+      }
+    }
+    // Also deduplicate against staged overflow buffer
+    int ovfCount = prefs.getInt("pQ_ovf_cnt", 0);
+    for (int i = 0; i < ovfCount; i++) {
+      char koe[16];
+      snprintf(koe, sizeof(koe), "pQ_oe_%d", i);
+      String existingId = prefs.getString(koe, "");
+      if (existingId.equals(eventId)) {
+        updateSummaryKeysInPrefs(prefs);
+        prefs.end();
+        giveNvsMutex();
+        return true;
+      }
+    }
+  }
+
+  // If primary queue has space, store directly
+  if (count < MAX_PERSISTENT_ALERTS) {
+    char kr[16], kt[16], ke[16];
+    snprintf(kr, sizeof(kr), "pQ_r_%d", count);
+    snprintf(kt, sizeof(kt), "pQ_t_%d", count);
+    snprintf(ke, sizeof(ke), "pQ_e_%d", count);
+
+    prefs.putString(kr, room ? room : "");
+    prefs.putString(kt, alertType ? alertType : "");
+    prefs.putString(ke, eventId ? eventId : "");
+
+    count++;
+    prefs.putInt("pQ_cnt", count);
+
+    updateSummaryKeysInPrefs(prefs);
+    prefs.end();
+    giveNvsMutex();
+    return true;
+  }
+
+  // Primary queue is full: stage into persistent overflow buffer so event is NEVER lost
+  int ovfCount = prefs.getInt("pQ_ovf_cnt", 0);
+  if (ovfCount < 0) ovfCount = 0;
+  if (ovfCount < MAX_OVERFLOW_ALERTS) {
+    char kor[16], kot[16], koe[16];
+    snprintf(kor, sizeof(kor), "pQ_or_%d", ovfCount);
+    snprintf(kot, sizeof(kot), "pQ_ot_%d", ovfCount);
+    snprintf(koe, sizeof(koe), "pQ_oe_%d", ovfCount);
+
+    prefs.putString(kor, room ? room : "");
+    prefs.putString(kot, alertType ? alertType : "");
+    prefs.putString(koe, eventId ? eventId : "");
+
+    ovfCount++;
+    prefs.putInt("pQ_ovf_cnt", ovfCount);
+    prefs.putBool("pQ_ovf_has", true);
+    nvsQueueOverflowCount++;
+
+    Serial.printf("⚠️ [NVS OVERFLOW STAGED] Primary queue full (%d/%d)! Staged Room %s alert '%s' (%s) in persistent overflow slot %d\n",
+                  count, MAX_PERSISTENT_ALERTS, room ? room : "NULL", alertType ? alertType : "", eventId ? eventId : "", ovfCount - 1);
+
+    updateSummaryKeysInPrefs(prefs);
+    prefs.end();
+    giveNvsMutex();
+    return true;
+  }
+
+  // Both primary queue and overflow buffer are exhausted: explicit capacity limit reached
+  Serial.printf("❌ [NVS QUEUE FULL] Capacity %d + %d overflow reached! Cannot store Room %s alert '%s' (%s)\n",
+                MAX_PERSISTENT_ALERTS, MAX_OVERFLOW_ALERTS, room ? room : "NULL", alertType ? alertType : "", eventId ? eventId : "");
+  nvsQueueOverflowCount++;
+  prefs.end();
+  giveNvsMutex();
+  return false;
+}
+
+int loadPersistentAlertsFromNvs(PersistentAlertItem* outItems, int maxItems) {
+  if (!takeNvsMutex()) return 0;
+  Preferences prefs;
+  if (!prefs.begin("labsync_sec", true)) {
+    giveNvsMutex();
+    return 0;
+  }
+  int count = prefs.getInt("pQ_cnt", 0);
+  if (count < 0) count = 0;
+  if (count > maxItems) count = maxItems;
+
+  int loaded = 0;
+  for (int i = 0; i < count; i++) {
+    char kr[16], kt[16], ke[16];
+    snprintf(kr, sizeof(kr), "pQ_r_%d", i);
+    snprintf(kt, sizeof(kt), "pQ_t_%d", i);
+    snprintf(ke, sizeof(ke), "pQ_e_%d", i);
+
+    String r = prefs.getString(kr, "");
+    String t = prefs.getString(kt, "");
+    String e = prefs.getString(ke, "");
+
+    if (r.length() > 0 && t.length() > 0) {
+      strncpy(outItems[loaded].room, r.c_str(), sizeof(outItems[loaded].room) - 1);
+      outItems[loaded].room[sizeof(outItems[loaded].room) - 1] = '\0';
+      strncpy(outItems[loaded].alertType, t.c_str(), sizeof(outItems[loaded].alertType) - 1);
+      outItems[loaded].alertType[sizeof(outItems[loaded].alertType) - 1] = '\0';
+      strncpy(outItems[loaded].eventId, e.c_str(), sizeof(outItems[loaded].eventId) - 1);
+      outItems[loaded].eventId[sizeof(outItems[loaded].eventId) - 1] = '\0';
+      loaded++;
+    }
+  }
+
+  prefs.end();
+  giveNvsMutex();
+  return loaded;
+}
 
 // QR Authorization State Machine
 enum QrAuthState {
@@ -151,7 +695,8 @@ void showUnauthorizedScreen() {
 
 void showWrongKeyScreen() {
   String l2 = "Wrong Key Insert";
-  if (isWrongKey203) l2 = "Slot 203 Wrong! ";
+  if (isWrongKey203 && isWrongKey204) l2 = "Slots 203 & 204!";
+  else if (isWrongKey203) l2 = "Slot 203 Wrong! ";
   else if (isWrongKey204) l2 = "Slot 204 Wrong! ";
   safeLcdPrint("WRONG KEY SLOT!", l2);
 }
@@ -262,13 +807,103 @@ volatile bool slotTargetState203 = true; // true = Present, false = Absent
 volatile bool slotNeedsSync204 = false;
 volatile bool slotTargetState204 = true;
 
+// Multi-incident independent pending alert tracking (avoids event overwriting)
+volatile bool alertUnauthNeedsSync203 = false;
+char alertUnauthEventId203[32] = "";
+volatile bool alertWrongNeedsSync203 = false;
+char alertWrongEventId203[32] = "";
+
 volatile bool alertNeedsSync203 = false;
 char alertPayload203[32] = "";
 char alertEventId203[32] = "";
 
+volatile bool alertUnauthNeedsSync204 = false;
+char alertUnauthEventId204[32] = "";
+volatile bool alertWrongNeedsSync204 = false;
+char alertWrongEventId204[32] = "";
+
 volatile bool alertNeedsSync204 = false;
 char alertPayload204[32] = "";
 char alertEventId204[32] = "";
+
+void updateAlertState203_underMux() {
+  alertNeedsSync203 = (alertUnauthNeedsSync203 || alertWrongNeedsSync203);
+  if (alertUnauthNeedsSync203) {
+    strncpy(alertPayload203, "Unauthorized Removal", sizeof(alertPayload203) - 1);
+    alertPayload203[sizeof(alertPayload203) - 1] = '\0';
+    strncpy(alertEventId203, alertUnauthEventId203, sizeof(alertEventId203) - 1);
+    alertEventId203[sizeof(alertEventId203) - 1] = '\0';
+  } else if (alertWrongNeedsSync203) {
+    strncpy(alertPayload203, "Wrong Key Slot", sizeof(alertPayload203) - 1);
+    alertPayload203[sizeof(alertPayload203) - 1] = '\0';
+    strncpy(alertEventId203, alertWrongEventId203, sizeof(alertEventId203) - 1);
+    alertEventId203[sizeof(alertEventId203) - 1] = '\0';
+  } else {
+    alertPayload203[0] = '\0';
+    alertEventId203[0] = '\0';
+  }
+}
+
+void updateAlertState204_underMux() {
+  alertNeedsSync204 = (alertUnauthNeedsSync204 || alertWrongNeedsSync204);
+  if (alertUnauthNeedsSync204) {
+    strncpy(alertPayload204, "Unauthorized Removal", sizeof(alertPayload204) - 1);
+    alertPayload204[sizeof(alertPayload204) - 1] = '\0';
+    strncpy(alertEventId204, alertUnauthEventId204, sizeof(alertEventId204) - 1);
+    alertEventId204[sizeof(alertEventId204) - 1] = '\0';
+  } else if (alertWrongNeedsSync204) {
+    strncpy(alertPayload204, "Wrong Key Slot", sizeof(alertPayload204) - 1);
+    alertPayload204[sizeof(alertPayload204) - 1] = '\0';
+    strncpy(alertEventId204, alertWrongEventId204, sizeof(alertEventId204) - 1);
+    alertEventId204[sizeof(alertEventId204) - 1] = '\0';
+  } else {
+    alertPayload204[0] = '\0';
+    alertEventId204[0] = '\0';
+  }
+}
+
+// Synchronize volatile RAM state flags under stateMux with current NVS persistent queue summary
+void refreshAlertStateFromNvs() {
+  if (!takeNvsMutex()) return;
+  Preferences prefs;
+  if (!prefs.begin("labsync_sec", true)) {
+    giveNvsMutex();
+    return;
+  }
+
+  bool u203 = prefs.getBool("pUAlert203", false);
+  String eu203 = prefs.getString("pUEvt203", "");
+  bool w203 = prefs.getBool("pWAlert203", false);
+  String ew203 = prefs.getString("pWEvt203", "");
+
+  bool u204 = prefs.getBool("pUAlert204", false);
+  String eu204 = prefs.getString("pUEvt204", "");
+  bool w204 = prefs.getBool("pWAlert204", false);
+  String ew204 = prefs.getString("pWEvt204", "");
+
+  prefs.end();
+  giveNvsMutex();
+
+  portENTER_CRITICAL(&stateMux);
+  alertUnauthNeedsSync203 = u203;
+  strncpy(alertUnauthEventId203, eu203.c_str(), sizeof(alertUnauthEventId203) - 1);
+  alertUnauthEventId203[sizeof(alertUnauthEventId203) - 1] = '\0';
+
+  alertWrongNeedsSync203 = w203;
+  strncpy(alertWrongEventId203, ew203.c_str(), sizeof(alertWrongEventId203) - 1);
+  alertWrongEventId203[sizeof(alertWrongEventId203) - 1] = '\0';
+  updateAlertState203_underMux();
+
+  alertUnauthNeedsSync204 = u204;
+  strncpy(alertUnauthEventId204, eu204.c_str(), sizeof(alertUnauthEventId204) - 1);
+  alertUnauthEventId204[sizeof(alertUnauthEventId204) - 1] = '\0';
+
+  alertWrongNeedsSync204 = w204;
+  strncpy(alertWrongEventId204, ew204.c_str(), sizeof(alertWrongEventId204) - 1);
+  alertWrongEventId204[sizeof(alertWrongEventId204) - 1] = '\0';
+  updateAlertState204_underMux();
+  portEXIT_CRITICAL(&stateMux);
+}
 
 // Direct HTTP dispatch for key status transitions
 bool sendKeyStatusHttp(const char* room, bool present) {
@@ -368,7 +1003,7 @@ bool sendSecurityAlertHttp(const char* room, const char* alertType, const char* 
   lastCompletedNetOpDurationMs = millis() - activeNetOpStartMs;
   activeNetOp = "IDLE";
 
-  return (code > 0);
+  return (code >= 200 && code < 300);
 }
 
 // Direct HTTP dispatch for telemetry heartbeat
@@ -659,24 +1294,13 @@ void networkWorkerTask(void* pvParameters) {
           }
         } else if (msg.type == MSG_SECURITY_ALERT) {
           if (sendSecurityAlertHttp(msg.room, msg.strPayload, msg.eventId)) {
-            portENTER_CRITICAL(&stateMux);
-            if (strcmp(msg.room, "203") == 0) alertNeedsSync203 = false;
-            if (strcmp(msg.room, "204") == 0) alertNeedsSync204 = false;
-            portEXIT_CRITICAL(&stateMux);
+            persistClearPendingAlert(msg.room, msg.strPayload, msg.eventId);
+            refreshAlertStateFromNvs();
             if (strcmp(msg.room, "203") == 0) nextAlertRetryMs203 = millis();
             if (strcmp(msg.room, "204") == 0) nextAlertRetryMs204 = millis();
           } else {
-            portENTER_CRITICAL(&stateMux);
-            if (strcmp(msg.room, "203") == 0) {
-              alertNeedsSync203 = true;
-              strncpy(alertPayload203, msg.strPayload, sizeof(alertPayload203) - 1);
-              strncpy(alertEventId203, msg.eventId, sizeof(alertEventId203) - 1);
-            } else if (strcmp(msg.room, "204") == 0) {
-              alertNeedsSync204 = true;
-              strncpy(alertPayload204, msg.strPayload, sizeof(alertPayload204) - 1);
-              strncpy(alertEventId204, msg.eventId, sizeof(alertEventId204) - 1);
-            }
-            portEXIT_CRITICAL(&stateMux);
+            persistPendingAlert(msg.room, true, msg.strPayload, msg.eventId);
+            refreshAlertStateFromNvs();
             if (strcmp(msg.room, "203") == 0) nextAlertRetryMs203 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
             if (strcmp(msg.room, "204") == 0) nextAlertRetryMs204 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
           }
@@ -703,17 +1327,8 @@ void networkWorkerTask(void* pvParameters) {
           if (strcmp(msg.room, "204") == 0) slotNeedsSync204 = true;
           portEXIT_CRITICAL(&stateMux);
         } else if (msg.type == MSG_SECURITY_ALERT) {
-          portENTER_CRITICAL(&stateMux);
-          if (strcmp(msg.room, "203") == 0) {
-            alertNeedsSync203 = true;
-            strncpy(alertPayload203, msg.strPayload, sizeof(alertPayload203) - 1);
-            strncpy(alertEventId203, msg.eventId, sizeof(alertEventId203) - 1);
-          } else if (strcmp(msg.room, "204") == 0) {
-            alertNeedsSync204 = true;
-            strncpy(alertPayload204, msg.strPayload, sizeof(alertPayload204) - 1);
-            strncpy(alertEventId204, msg.eventId, sizeof(alertEventId204) - 1);
-          }
-          portEXIT_CRITICAL(&stateMux);
+          persistPendingAlert(msg.room, true, msg.strPayload, msg.eventId);
+          refreshAlertStateFromNvs();
         } else if (msg.type == MSG_QR_SCAN) {
           portENTER_CRITICAL(&authMux);
           if (msg.scanId == activeScanId) {
@@ -788,9 +1403,8 @@ void networkWorkerTask(void* pvParameters) {
       if (selectedSyncOp == 0) {
         pendingSyncRoundRobin = 1;
         if (sendSecurityAlertHttp("203", alert203, eventId203)) {
-          portENTER_CRITICAL(&stateMux);
-          alertNeedsSync203 = false;
-          portEXIT_CRITICAL(&stateMux);
+          persistClearPendingAlert("203", alert203, eventId203);
+          refreshAlertStateFromNvs();
           nextAlertRetryMs203 = millis();
         } else {
           nextAlertRetryMs203 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
@@ -799,9 +1413,8 @@ void networkWorkerTask(void* pvParameters) {
       } else if (selectedSyncOp == 1) {
         pendingSyncRoundRobin = 2;
         if (sendSecurityAlertHttp("204", alert204, eventId204)) {
-          portENTER_CRITICAL(&stateMux);
-          alertNeedsSync204 = false;
-          portEXIT_CRITICAL(&stateMux);
+          persistClearPendingAlert("204", alert204, eventId204);
+          refreshAlertStateFromNvs();
           nextAlertRetryMs204 = millis();
         } else {
           nextAlertRetryMs204 = millis() + PENDING_SYNC_RETRY_DELAY_MS;
@@ -914,7 +1527,7 @@ void dispatchKeyStatusAsync(const char* room, bool present) {
   }
 }
 
-void dispatchSecurityAlertAsync(const char* room, const char* alertType, const char* eventId = NULL) {
+void dispatchSecurityAlertAsync(const char* room, const char* alertType, const char* eventId) {
   if (netQueue != NULL) {
     NetMessage msg;
     msg.type = MSG_SECURITY_ALERT;
@@ -1008,9 +1621,29 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
         wrongAlarmStarted = millis(); // Start audible timer for wrong key
         String insertedKeyName = (verifyState == KEY_203) ? "203" : "204";
         Serial.printf("❌ WRONG KEY SLOT! Key %s inserted into Slot %s\n", insertedKeyName.c_str(), slotRoom.c_str());
-        dispatchSecurityAlertAsync(slotRoom.c_str(), "Wrong Key Slot");
+        char wrongEvtId[32] = "";
+        snprintf(wrongEvtId, sizeof(wrongEvtId), "%s-wrong-%lu", slotRoom.c_str(), millis());
+
+        portENTER_CRITICAL(&stateMux);
+        if (slotRoom == "203") {
+          alertWrongNeedsSync203 = true;
+          strncpy(alertWrongEventId203, wrongEvtId, sizeof(alertWrongEventId203) - 1);
+          alertWrongEventId203[sizeof(alertWrongEventId203) - 1] = '\0';
+          updateAlertState203_underMux();
+        } else if (slotRoom == "204") {
+          alertWrongNeedsSync204 = true;
+          strncpy(alertWrongEventId204, wrongEvtId, sizeof(alertWrongEventId204) - 1);
+          alertWrongEventId204[sizeof(alertWrongEventId204) - 1] = '\0';
+          updateAlertState204_underMux();
+        }
+        portEXIT_CRITICAL(&stateMux);
+
+        persistIncidentState(slotRoom.c_str(), isUnauth, true);
+        persistPendingAlert(slotRoom.c_str(), true, "Wrong Key Slot", wrongEvtId);
+        dispatchSecurityAlertAsync(slotRoom.c_str(), "Wrong Key Slot", wrongEvtId);
         showWrongKeyScreen();
         lcdRevertAt = millis() + 2500;
+        buzzerOn();
         return;
       }
 
@@ -1021,6 +1654,7 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
         isWrong = false;
         unauthAlarmStarted = 0; // Reset audible alarm timers
         wrongAlarmStarted = 0;
+        persistIncidentState(slotRoom.c_str(), false, false);
 
         triggerBuzzer(80, 2);
         safeLcdPrint(slotRoom + " Key Return", wasUnauth ? "Alarm Cleared " : "Room Secured  ");
@@ -1035,9 +1669,16 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
         if (isWrong) {
           isWrong = false;
           wrongAlarmStarted = 0;
+          persistIncidentState(slotRoom.c_str(), isUnauth, false);
           triggerBuzzer(60, 1);
-          safeLcdPrint("Key Removed", "System Ready");
-          lcdRevertAt = millis() + 1000;
+          bool anyAlarmRemaining = isUnauthorized203 || isUnauthorized204 || isWrongKey203 || isWrongKey204;
+          if (anyAlarmRemaining) {
+            if (isUnauthorized203 || isUnauthorized204) showUnauthorizedScreen();
+            else showWrongKeyScreen();
+          } else {
+            safeLcdPrint("Key Removed", "System Ready");
+            lcdRevertAt = millis() + 1000;
+          }
           return;
         }
 
@@ -1070,19 +1711,21 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
           if (slotRoom == "203") {
             slotTargetState203 = false;
             slotNeedsSync203 = false;
-            alertNeedsSync203 = true;
-            strncpy(alertPayload203, "Unauthorized Removal", sizeof(alertPayload203) - 1);
-            snprintf(alertEventId203, sizeof(alertEventId203), "203-%lu", millis());
+            alertUnauthNeedsSync203 = true;
+            snprintf(alertUnauthEventId203, sizeof(alertUnauthEventId203), "203-%lu", millis());
+            updateAlertState203_underMux();
           } else if (slotRoom == "204") {
             slotTargetState204 = false;
             slotNeedsSync204 = false;
-            alertNeedsSync204 = true;
-            strncpy(alertPayload204, "Unauthorized Removal", sizeof(alertPayload204) - 1);
-            snprintf(alertEventId204, sizeof(alertEventId204), "204-%lu", millis());
+            alertUnauthNeedsSync204 = true;
+            snprintf(alertUnauthEventId204, sizeof(alertUnauthEventId204), "204-%lu", millis());
+            updateAlertState204_underMux();
           }
           portEXIT_CRITICAL(&stateMux);
 
-          const char* curEvtId = (slotRoom == "203") ? alertEventId203 : alertEventId204;
+          const char* curEvtId = (slotRoom == "203") ? alertUnauthEventId203 : alertUnauthEventId204;
+          persistIncidentState(slotRoom.c_str(), true, isWrong);
+          persistPendingAlert(slotRoom.c_str(), true, "Unauthorized Removal", curEvtId);
           dispatchSecurityAlertAsync(slotRoom.c_str(), "Unauthorized Removal", curEvtId);
           showUnauthorizedScreen();
           buzzerOn(); // Immediate alarm tone without waiting for network!
@@ -1101,17 +1744,262 @@ void setup() {
   buzzerOff();
   isBuzzerCurrentlyOn = false;
 
+  nvsMutex = xSemaphoreCreateMutex();
+
   analogSetPinAttenuation(KEY_PIN_203, ADC_11db);
   analogSetPinAttenuation(KEY_PIN_204, ADC_11db);
   analogReadResolution(12);
   delay(50);
 
-  lastSlotState203 = detectKeyType(KEY_PIN_203);
-  lastSlotState204 = detectKeyType(KEY_PIN_204);
+  // Debounced startup ADC reading to prevent transient false triggers
+  KeyType boot203 = detectKeyType(KEY_PIN_203);
+  KeyType boot204 = detectKeyType(KEY_PIN_204);
+  delay(40);
+  KeyType vBoot203 = detectKeyType(KEY_PIN_203);
+  KeyType vBoot204 = detectKeyType(KEY_PIN_204);
+  lastSlotState203 = (boot203 == vBoot203) ? boot203 : detectKeyType(KEY_PIN_203);
+  lastSlotState204 = (boot204 == vBoot204) ? boot204 : detectKeyType(KEY_PIN_204);
+
   portENTER_CRITICAL(&stateMux);
   slotTargetState203 = (lastSlotState203 != KEY_NONE);
   slotTargetState204 = (lastSlotState204 != KEY_NONE);
   portEXIT_CRITICAL(&stateMux);
+
+  // Load persisted security incidents and pending events from NVS
+  bool pUnauth203 = false, pWrong203 = false;
+  bool pUnauth204 = false, pWrong204 = false;
+  bool pUAlert203 = false, pWAlert203 = false;
+  char pUEvt203[32] = "", pWEvt203[32] = "";
+  bool pUAlert204 = false, pWAlert204 = false;
+  char pUEvt204[32] = "", pWEvt204[32] = "";
+
+  if (takeNvsMutex()) {
+    Preferences prefs;
+    if (prefs.begin("labsync_sec", true)) { // Read-only startup query
+      pUnauth203 = prefs.getBool("unauth203", false);
+      pWrong203 = prefs.getBool("wrong203", false);
+      pUnauth204 = prefs.getBool("unauth204", false);
+      pWrong204 = prefs.getBool("wrong204", false);
+
+      pUAlert203 = prefs.getBool("pUAlert203", false);
+      if (pUAlert203) prefs.getString("pUEvt203", pUEvt203, sizeof(pUEvt203));
+
+      pWAlert203 = prefs.getBool("pWAlert203", false);
+      if (pWAlert203) prefs.getString("pWEvt203", pWEvt203, sizeof(pWEvt203));
+
+      pUAlert204 = prefs.getBool("pUAlert204", false);
+      if (pUAlert204) prefs.getString("pUEvt204", pUEvt204, sizeof(pUEvt204));
+
+      pWAlert204 = prefs.getBool("pWAlert204", false);
+      if (pWAlert204) prefs.getString("pWEvt204", pWEvt204, sizeof(pWEvt204));
+
+      // Legacy migration fallback for prior pAlert203 / pAlert204 records
+      bool pAlert203 = prefs.getBool("pAlert203", false);
+      if (pAlert203 && !pUAlert203 && !pWAlert203) {
+        char pType203[32] = "", pEvt203[32] = "";
+        prefs.getString("pType203", pType203, sizeof(pType203));
+        prefs.getString("pEvt203", pEvt203, sizeof(pEvt203));
+        if (strcmp(pType203, "Wrong Key Slot") == 0) {
+          pWAlert203 = true;
+          strncpy(pWEvt203, pEvt203, sizeof(pWEvt203) - 1);
+        } else {
+          pUAlert203 = true;
+          strncpy(pUEvt203, pEvt203, sizeof(pUEvt203) - 1);
+        }
+      }
+
+      bool pAlert204 = prefs.getBool("pAlert204", false);
+      if (pAlert204 && !pUAlert204 && !pWAlert204) {
+        char pType204[32] = "", pEvt204[32] = "";
+        prefs.getString("pType204", pType204, sizeof(pType204));
+        prefs.getString("pEvt204", pEvt204, sizeof(pEvt204));
+        if (strcmp(pType204, "Wrong Key Slot") == 0) {
+          pWAlert204 = true;
+          strncpy(pWEvt204, pEvt204, sizeof(pWEvt204) - 1);
+        } else {
+          pUAlert204 = true;
+          strncpy(pUEvt204, pEvt204, sizeof(pUEvt204) - 1);
+        }
+      }
+
+      prefs.end();
+    }
+    giveNvsMutex();
+  }
+
+  PersistentAlertItem startupAlerts[MAX_PERSISTENT_ALERTS];
+  int startupAlertCount = loadPersistentAlertsFromNvs(startupAlerts, MAX_PERSISTENT_ALERTS);
+
+  // If queue was empty but legacy keys were present, initialize queue from legacy keys
+  if (startupAlertCount == 0) {
+    if (pUAlert203 && pUEvt203[0] != '\0') persistPendingAlert("203", true, "Unauthorized Removal", pUEvt203);
+    if (pWAlert203 && pWEvt203[0] != '\0') persistPendingAlert("203", true, "Wrong Key Slot", pWEvt203);
+    if (pUAlert204 && pUEvt204[0] != '\0') persistPendingAlert("204", true, "Unauthorized Removal", pUEvt204);
+    if (pWAlert204 && pWEvt204[0] != '\0') persistPendingAlert("204", true, "Wrong Key Slot", pWEvt204);
+    startupAlertCount = loadPersistentAlertsFromNvs(startupAlerts, MAX_PERSISTENT_ALERTS);
+  }
+
+  // --- SLOT 203 STARTUP VALIDATION ---
+  if (lastSlotState203 != KEY_NONE && lastSlotState203 != KEY_203) {
+    // Wrong key detected in Slot 203 (e.g. Key 204 placed in Slot 203)
+    Serial.println("🚨 STARTUP WARNING: Wrong key detected in Slot 203!");
+    isWrongKey203 = true;
+    wrongKeyAlarmStarted203 = millis();
+
+    // If Room 203 key was previously removed without authorization, latch remains active!
+    if (pUnauth203) {
+      Serial.println("🚨 STARTUP ALARM: Unresolved unauthorized removal on Room 203 restored from NVS!");
+      isUnauthorized203 = true;
+      unauthorizedAlarmStarted203 = millis();
+    }
+
+    portENTER_CRITICAL(&stateMux);
+    if (pUAlert203) {
+      alertUnauthNeedsSync203 = true;
+      strncpy(alertUnauthEventId203, pUEvt203, sizeof(alertUnauthEventId203) - 1);
+    }
+    updateAlertState203_underMux();
+    portEXIT_CRITICAL(&stateMux);
+
+    bool shouldQueueWrong203 = !pWrong203 || pWAlert203;
+    if (shouldQueueWrong203) {
+      char evtId[32] = "";
+      if (pWAlert203 && pWEvt203[0] != '\0') {
+        strncpy(evtId, pWEvt203, sizeof(evtId) - 1);
+      } else {
+        snprintf(evtId, sizeof(evtId), "203-wrong-%lu", millis());
+        persistPendingAlert("203", true, "Wrong Key Slot", evtId);
+      }
+
+      portENTER_CRITICAL(&stateMux);
+      alertWrongNeedsSync203 = true;
+      strncpy(alertWrongEventId203, evtId, sizeof(alertWrongEventId203) - 1);
+      updateAlertState203_underMux();
+      portEXIT_CRITICAL(&stateMux);
+    }
+
+    persistIncidentState("203", pUnauth203, true);
+  } else if (lastSlotState203 == KEY_203) {
+    // Correct key is physically present and secured in Slot 203
+    isWrongKey203 = false;
+    isUnauthorized203 = false;
+    persistIncidentState("203", false, false);
+    portENTER_CRITICAL(&stateMux);
+    if (pUAlert203) {
+      alertUnauthNeedsSync203 = true;
+      strncpy(alertUnauthEventId203, pUEvt203, sizeof(alertUnauthEventId203) - 1);
+    }
+    if (pWAlert203) {
+      alertWrongNeedsSync203 = true;
+      strncpy(alertWrongEventId203, pWEvt203, sizeof(alertWrongEventId203) - 1);
+    }
+    updateAlertState203_underMux();
+    portEXIT_CRITICAL(&stateMux);
+  } else if (lastSlotState203 == KEY_NONE) {
+    // Slot 203 is physically empty
+    isWrongKey203 = false;
+    if (pUnauth203) {
+      // Unresolved unauthorized removal survives reboot
+      Serial.println("🚨 STARTUP ALARM: Unresolved unauthorized removal on Room 203 restored from NVS!");
+      isUnauthorized203 = true;
+      unauthorizedAlarmStarted203 = millis();
+    } else {
+      // Legitimate absence (borrowed with authorization or idle) - no alarm
+      isUnauthorized203 = false;
+    }
+    portENTER_CRITICAL(&stateMux);
+    if (pUAlert203) {
+      alertUnauthNeedsSync203 = true;
+      strncpy(alertUnauthEventId203, pUEvt203, sizeof(alertUnauthEventId203) - 1);
+    }
+    if (pWAlert203) {
+      alertWrongNeedsSync203 = true;
+      strncpy(alertWrongEventId203, pWEvt203, sizeof(alertWrongEventId203) - 1);
+    }
+    updateAlertState203_underMux();
+    portEXIT_CRITICAL(&stateMux);
+  }
+
+  // --- SLOT 204 STARTUP VALIDATION ---
+  if (lastSlotState204 != KEY_NONE && lastSlotState204 != KEY_204) {
+    // Wrong key detected in Slot 204 (e.g. Key 203 placed in Slot 204)
+    Serial.println("🚨 STARTUP WARNING: Wrong key detected in Slot 204!");
+    isWrongKey204 = true;
+    wrongKeyAlarmStarted204 = millis();
+
+    // If Room 204 key was previously removed without authorization, latch remains active!
+    if (pUnauth204) {
+      Serial.println("🚨 STARTUP ALARM: Unresolved unauthorized removal on Room 204 restored from NVS!");
+      isUnauthorized204 = true;
+      unauthorizedAlarmStarted204 = millis();
+    }
+
+    portENTER_CRITICAL(&stateMux);
+    if (pUAlert204) {
+      alertUnauthNeedsSync204 = true;
+      strncpy(alertUnauthEventId204, pUEvt204, sizeof(alertUnauthEventId204) - 1);
+    }
+    updateAlertState204_underMux();
+    portEXIT_CRITICAL(&stateMux);
+
+    bool shouldQueueWrong204 = !pWrong204 || pWAlert204;
+    if (shouldQueueWrong204) {
+      char evtId[32] = "";
+      if (pWAlert204 && pWEvt204[0] != '\0') {
+        strncpy(evtId, pWEvt204, sizeof(evtId) - 1);
+      } else {
+        snprintf(evtId, sizeof(evtId), "204-wrong-%lu", millis());
+        persistPendingAlert("204", true, "Wrong Key Slot", evtId);
+      }
+
+      portENTER_CRITICAL(&stateMux);
+      alertWrongNeedsSync204 = true;
+      strncpy(alertWrongEventId204, evtId, sizeof(alertWrongEventId204) - 1);
+      updateAlertState204_underMux();
+      portEXIT_CRITICAL(&stateMux);
+    }
+
+    persistIncidentState("204", pUnauth204, true);
+  } else if (lastSlotState204 == KEY_204) {
+    // Correct key is physically present and secured in Slot 204
+    isWrongKey204 = false;
+    isUnauthorized204 = false;
+    persistIncidentState("204", false, false);
+    portENTER_CRITICAL(&stateMux);
+    if (pUAlert204) {
+      alertUnauthNeedsSync204 = true;
+      strncpy(alertUnauthEventId204, pUEvt204, sizeof(alertUnauthEventId204) - 1);
+    }
+    if (pWAlert204) {
+      alertWrongNeedsSync204 = true;
+      strncpy(alertWrongEventId204, pWEvt204, sizeof(alertWrongEventId204) - 1);
+    }
+    updateAlertState204_underMux();
+    portEXIT_CRITICAL(&stateMux);
+  } else if (lastSlotState204 == KEY_NONE) {
+    // Slot 204 is physically empty
+    isWrongKey204 = false;
+    if (pUnauth204) {
+      // Unresolved unauthorized removal survives reboot
+      Serial.println("🚨 STARTUP ALARM: Unresolved unauthorized removal on Room 204 restored from NVS!");
+      isUnauthorized204 = true;
+      unauthorizedAlarmStarted204 = millis();
+    } else {
+      // Legitimate absence (borrowed with authorization or idle) - no alarm
+      isUnauthorized204 = false;
+    }
+    portENTER_CRITICAL(&stateMux);
+    if (pUAlert204) {
+      alertUnauthNeedsSync204 = true;
+      strncpy(alertUnauthEventId204, pUEvt204, sizeof(alertUnauthEventId204) - 1);
+    }
+    if (pWAlert204) {
+      alertWrongNeedsSync204 = true;
+      strncpy(alertWrongEventId204, pWEvt204, sizeof(alertWrongEventId204) - 1);
+    }
+    updateAlertState204_underMux();
+    portEXIT_CRITICAL(&stateMux);
+  }
 
   // Initialize LCD & Mutex
   i2cMutex = xSemaphoreCreateMutex();
@@ -1144,6 +2032,29 @@ void setup() {
 
   // Create FreeRTOS Network Queue (16 elements)
   netQueue = xQueueCreate(NET_QUEUE_LEN, sizeof(NetMessage));
+
+  // Promote any staged overflow alerts if space is available in primary queue
+  if (takeNvsMutex()) {
+    Preferences prefs;
+    if (prefs.begin("labsync_sec", false)) {
+      while (promotePersistentOverflowIfSpaceAvailable(prefs)) {}
+      int currentOvf = prefs.getInt("pQ_ovf_cnt", 0);
+      if (currentOvf > 0) {
+        Serial.printf("⚠️ [NVS OVERFLOW] %d alert(s) staged in persistent overflow buffer awaiting queue capacity\n", currentOvf);
+      }
+      prefs.end();
+    }
+    giveNvsMutex();
+  }
+
+  // Reload all persistent alerts (including any new startup validation alerts or promoted items)
+  startupAlertCount = loadPersistentAlertsFromNvs(startupAlerts, MAX_PERSISTENT_ALERTS);
+
+  // Enqueue all pending alerts from NVS queue
+  for (int i = 0; i < startupAlertCount; i++) {
+    dispatchSecurityAlertAsync(startupAlerts[i].room, startupAlerts[i].alertType, startupAlerts[i].eventId);
+  }
+  refreshAlertStateFromNvs();
 
   // Connect Wi-Fi
   WiFi.setAutoReconnect(true); // Enable ESP32 hardware Wi-Fi auto-reconnect
@@ -1186,7 +2097,17 @@ void setup() {
   );
 
   if (lcdDetected) {
-    showReadyScreen();
+    if (isUnauthorized203 || isUnauthorized204) {
+      showUnauthorizedScreen();
+    } else if (isWrongKey203 || isWrongKey204) {
+      showWrongKeyScreen();
+    } else {
+      showReadyScreen();
+    }
+  }
+
+  if (isUnauthorized203 || isUnauthorized204 || isWrongKey203 || isWrongKey204) {
+    buzzerOn();
   }
 }
 
@@ -1249,16 +2170,20 @@ void loop() {
           if (isUnauthorized204 && !isUnauthorized203) {
             isUnauthorized204 = false;
             unauthorizedAlarmStarted204 = 0;
+            persistIncidentState("204", false, isWrongKey204);
             dispatchKeyStatusAsync("204", false);
           } else if (isUnauthorized203 && !isUnauthorized204) {
             isUnauthorized203 = false;
             unauthorizedAlarmStarted203 = 0;
+            persistIncidentState("203", false, isWrongKey203);
             dispatchKeyStatusAsync("203", false);
           } else if (isUnauthorized203 && isUnauthorized204) {
             isUnauthorized204 = false;
             isUnauthorized203 = false;
             unauthorizedAlarmStarted204 = 0;
             unauthorizedAlarmStarted203 = 0;
+            persistIncidentState("203", false, isWrongKey203);
+            persistIncidentState("204", false, isWrongKey204);
             dispatchKeyStatusAsync("204", false);
             dispatchKeyStatusAsync("203", false);
           }
