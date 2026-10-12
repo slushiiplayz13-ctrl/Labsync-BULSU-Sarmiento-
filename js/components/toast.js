@@ -42,6 +42,33 @@
       if (targetParent) targetParent.appendChild(container);
     }
 
+    // Deduplicate rapid identical toasts from multiple clicks or concurrent events
+    if (container) {
+      const activeCards = container.querySelectorAll('.labsync-toast-card');
+      for (let i = 0; i < activeCards.length; i++) {
+        const text = activeCards[i].textContent || '';
+        if (text.includes(displayMsg)) {
+          return;
+        }
+      }
+    }
+
+    const toastKey = `${type || 'default'}:${displayMsg}`;
+    const now = Date.now();
+    if (!global._labsyncRecentToasts) {
+      global._labsyncRecentToasts = new Map();
+    }
+    const lastTime = global._labsyncRecentToasts.get(toastKey);
+    if (lastTime && (now - lastTime) < 1500) {
+      return;
+    }
+    global._labsyncRecentToasts.set(toastKey, now);
+    if (global._labsyncRecentToasts.size > 25) {
+      for (const [k, t] of global._labsyncRecentToasts.entries()) {
+        if (now - t > 5000) global._labsyncRecentToasts.delete(k);
+      }
+    }
+
     const lowerMsg = displayMsg.toLowerCase();
     const isError = type === 'error' || (!type && (lowerMsg.includes('failed') || lowerMsg.includes('error') || lowerMsg.includes('invalid') || lowerMsg.includes('too large') || lowerMsg.includes('exceed')));
     const isWarning = type === 'warning' || (!type && (lowerMsg.includes('conflict') || lowerMsg.includes('overlap') || lowerMsg.includes('already scheduled') || lowerMsg.includes('already assigned') || lowerMsg.includes('warning')));
@@ -56,6 +83,8 @@
 
     const card = document.createElement('div');
     card.className = 'labsync-toast-card';
+    card.dataset.type = type || 'success';
+    card.dataset.title = toastTitle;
     card.style.cssText = `
       pointer-events: auto;
       background: #ffffff;

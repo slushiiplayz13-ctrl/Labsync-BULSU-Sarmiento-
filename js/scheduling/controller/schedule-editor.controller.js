@@ -7,6 +7,23 @@
   'use strict';
 
   let activeEditingCard = null;
+  let _isFinalizing = false;
+  let _isStatusModalOpen = false;
+
+  function restoreFinalizeButton(btn) {
+    if (!btn) return;
+    btn.disabled = false;
+    btn.removeAttribute('disabled');
+    btn.removeAttribute('aria-disabled');
+    btn.classList.remove('loading');
+    btn.style.pointerEvents = '';
+    btn.style.opacity = '';
+    btn.innerHTML = '<i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> Finalize Official Schedule';
+    btn.style.background = '#059669';
+    if (global.lucide && typeof global.lucide.createIcons === 'function') {
+      global.lucide.createIcons({ root: btn });
+    }
+  }
 
   /**
    * Prepares draft print payload and opens single room print preview in a new tab.
@@ -878,6 +895,15 @@
       const modal = document.getElementById('schedule-status-confirm-modal');
       if (!modal) return;
 
+      const finalizeBtn = document.getElementById('finalize-schedule-btn');
+      _isStatusModalOpen = true;
+
+      // When opening finalize confirm modal, disable finalizeBtn to prevent duplicate clicks behind or around modal
+      if (type === 'finalize' && finalizeBtn) {
+        finalizeBtn.disabled = true;
+        finalizeBtn.setAttribute('aria-disabled', 'true');
+      }
+
       const titleEl = document.getElementById('status-modal-title');
       const descEl = document.getElementById('status-modal-desc');
       const confirmBtn = document.getElementById('status-modal-confirm-btn');
@@ -896,6 +922,7 @@
         if (confirmBtn) {
           confirmBtn.textContent = 'Confirm Finalization';
           confirmBtn.style.background = '#059669';
+          confirmBtn.disabled = false;
         }
         if (iconWrap) {
           iconWrap.style.background = '#ECFDF5';
@@ -908,6 +935,7 @@
         if (confirmBtn) {
           confirmBtn.textContent = 'Reopen for Editing';
           confirmBtn.style.background = '#D97706';
+          confirmBtn.disabled = false;
         }
         if (iconWrap) {
           iconWrap.style.background = '#FEF3C7';
@@ -925,7 +953,18 @@
 
       const closeModal = () => {
         modal.classList.remove('active');
-        setTimeout(() => modal.style.display = 'none', 200);
+        setTimeout(() => {
+          modal.style.display = 'none';
+        }, 200);
+        _isStatusModalOpen = false;
+        if (!_isFinalizing && finalizeBtn && type === 'finalize') {
+          const currentStatus = (persistence && typeof persistence.getCurrentStatus === 'function')
+            ? persistence.getCurrentStatus()
+            : ((global.scheduleState && global.scheduleState.status) || 'Draft');
+          if (currentStatus !== 'Finalized') {
+            restoreFinalizeButton(finalizeBtn);
+          }
+        }
       };
 
       if (cancelBtn) {
@@ -933,14 +972,26 @@
       }
 
       if (confirmBtn) {
-        let isSubmitting = false;
         confirmBtn.onclick = async () => {
-          if (isSubmitting) return;
-          try {
-            isSubmitting = true;
-            confirmBtn.disabled = true;
-            confirmBtn.textContent = 'Processing...';
+          // Synchronously guard against concurrent or repeated finalization attempts
+          if (_isFinalizing) return;
+          _isFinalizing = true;
+          _isStatusModalOpen = false;
 
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = 'Processing...';
+
+          if (type === 'finalize' && finalizeBtn) {
+            finalizeBtn.disabled = true;
+            finalizeBtn.classList.add('loading');
+            finalizeBtn.setAttribute('aria-disabled', 'true');
+            finalizeBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width: 16px; height: 16px;"></i> Finalizing...';
+            if (global.lucide && typeof global.lucide.createIcons === 'function') {
+              global.lucide.createIcons({ root: finalizeBtn });
+            }
+          }
+
+          try {
             const editToken = (persistence && typeof persistence.getEditSessionToken === 'function')
               ? persistence.getEditSessionToken()
               : null;
@@ -970,6 +1021,7 @@
                   alert(msg);
                 }
                 closeModal();
+                if (finalizeBtn) restoreFinalizeButton(finalizeBtn);
                 return;
               }
 
@@ -1008,17 +1060,25 @@
             console.error('Error changing schedule status:', err);
             if (err && err.status === 409 && typeof showStaleScheduleModal === 'function') {
               showStaleScheduleModal(err.message);
-            } else if (global.showToast) {
+            } else if (global.showToast && (!err || !err._toastShown)) {
               const toastType = (err && (err.status === 400 || (err.message && err.message.toLowerCase().includes('conflict')))) ? 'warning' : 'error';
               const toastTitle = toastType === 'warning' ? 'Schedule Conflict' : 'Operation Failed';
               global.showToast(err.message || 'Operation failed. Please try again.', toastType, toastTitle);
-            } else {
+            } else if (!global.showToast && (!err || !err._toastShown)) {
               alert(err.message || 'Operation failed.');
             }
           } finally {
-            isSubmitting = false;
+            _isFinalizing = false;
             confirmBtn.disabled = false;
             confirmBtn.textContent = (type === 'finalize') ? 'Confirm Finalization' : 'Reopen for Editing';
+            if (type === 'finalize' && finalizeBtn) {
+              const currentStatus = (persistence && typeof persistence.getCurrentStatus === 'function')
+                ? persistence.getCurrentStatus()
+                : ((global.scheduleState && global.scheduleState.status) || 'Draft');
+              if (currentStatus !== 'Finalized') {
+                restoreFinalizeButton(finalizeBtn);
+              }
+            }
           }
         };
       }
@@ -1073,17 +1133,35 @@
       }
     }
 
+    global.openStatusConfirmModal = openStatusConfirmModal;
     global.showStaleScheduleModal = showStaleScheduleModal;
 
     // Finalize schedule button binding
     const finalizeBtn = document.getElementById('finalize-schedule-btn');
-    if (finalizeBtn) {
+    if (finalizeBtn && !finalizeBtn._boundFinalize && !(finalizeBtn.dataset && finalizeBtn.dataset.boundFinalize)) {
+      finalizeBtn._boundFinalize = true;
+      if (finalizeBtn.dataset) finalizeBtn.dataset.boundFinalize = 'true';
+
       finalizeBtn.addEventListener('click', (e) => {
+        if (e) {
+          e.preventDefault();
+        }
+
+        // 1. Synchronously prevent multiple finalization attempts while a request is already in progress or modal is open
+        if (_isFinalizing || _isStatusModalOpen) {
+          return;
+        }
+
+        // 2. Prevent submission if already finalized
+        const status = (persistence && typeof persistence.getCurrentStatus === 'function')
+          ? persistence.getCurrentStatus()
+          : ((global.scheduleState && global.scheduleState.status) || 'Draft');
+        if (status === 'Finalized') {
+          return;
+        }
+
+        // 3. Role authorization check
         if (!isUserITDeptHead()) {
-          if (e) {
-            e.preventDefault();
-            e.stopPropagation();
-          }
           const msg = 'Only the IT Department Head can finalize the official schedule.';
           if (global.showToast) {
             global.showToast(msg, 'error', 'Permission Denied');
@@ -1093,6 +1171,7 @@
           return;
         }
 
+        // 4. Validate non-empty schedule
         const scheduleData = (persistence && typeof persistence.getCurrentScheduleData === 'function')
           ? persistence.getCurrentScheduleData()
           : [];
@@ -1119,13 +1198,16 @@
           return;
         }
 
+        // 5. Open confirmation modal (which synchronously disables finalizeBtn while open)
         openStatusConfirmModal('finalize');
       });
     }
 
     // Reopen schedule button binding
     const reopenBtn = document.getElementById('reopen-schedule-btn');
-    if (reopenBtn) {
+    if (reopenBtn && !reopenBtn._boundReopen && !(reopenBtn.dataset && reopenBtn.dataset.boundReopen)) {
+      reopenBtn._boundReopen = true;
+      if (reopenBtn.dataset) reopenBtn.dataset.boundReopen = 'true';
       reopenBtn.addEventListener('click', (e) => {
         if (!isUserITDeptHead()) {
           if (e) {
@@ -1372,7 +1454,10 @@
     initSectionSelector,
     resetSectionSelector,
     updateSectionValue,
-    STANDARD_SECTIONS
+    STANDARD_SECTIONS,
+    isFinalizing: () => _isFinalizing,
+    openStatusConfirmModal: (...args) => (global.openStatusConfirmModal ? global.openStatusConfirmModal(...args) : null),
+    restoreFinalizeButton
   };
 
   global.scheduleEditorController = scheduleEditorController;
