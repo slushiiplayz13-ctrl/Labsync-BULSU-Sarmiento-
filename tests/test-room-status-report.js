@@ -435,6 +435,192 @@ test('Room Status Activity Log Report Suite', async (t) => {
         });
     });
 
+    await t.test('9. Key Status Legend Verification (Revision 3)', async (t) => {
+        const cp = require('child_process');
+        const fs = require('fs');
+        const path = require('path');
+
+        function extractPdfPagesText(pdfBuffer) {
+            const tmpPdf = path.join(__dirname, `tmp_legend_test_${Date.now()}_${Math.random().toString(36).slice(2)}.pdf`);
+            fs.writeFileSync(tmpPdf, pdfBuffer);
+            try {
+                const out = cp.execFileSync('python', [
+                    '-c',
+                    'import sys, pymupdf\ndoc = pymupdf.open(sys.argv[1])\nfor i, p in enumerate(doc):\n    print(f"---PAGE_{i+1}---")\n    print(p.get_text())\n',
+                    tmpPdf
+                ], { encoding: 'utf-8' });
+                return out;
+            } finally {
+                if (fs.existsSync(tmpPdf)) fs.unlinkSync(tmpPdf);
+            }
+        }
+
+        await t.test('9.1 buildRoomStatusReportPDF renders Key Status Legend with all indicators and definitions', async () => {
+            const sampleRecords = [
+                {
+                    date: 'Oct 16, 2026',
+                    time: '08:00 AM',
+                    room: 'RM 203',
+                    status: 'Key Returned',
+                    user: 'Prof. John Doe',
+                    role: 'Faculty',
+                    authMethod: 'Key Box',
+                    details: 'Key returned to slot'
+                },
+                {
+                    date: 'Oct 16, 2026',
+                    time: '09:30 AM',
+                    room: 'RM 203',
+                    status: 'In Session (Key Taken)',
+                    user: 'Prof. Maria Santos',
+                    role: 'Faculty',
+                    authMethod: 'Key Box',
+                    details: 'Scheduled Class Session'
+                }
+            ];
+
+            const pdfBuf = await roomStatusReportService.buildRoomStatusReportPDF({
+                records: sampleRecords,
+                periodLabel: 'Today (Oct 16, 2026)',
+                roomFilterLabel: 'All Rooms',
+                professorFilterLabel: 'All Professors',
+                generatedBy: 'IT Department Head'
+            });
+
+            assert.strictEqual(pdfBuf.slice(0, 4).toString(), '%PDF', 'Output must be valid PDF');
+            const fullText = extractPdfPagesText(pdfBuf);
+
+            // Verify Key Status Legend title and subtitle
+            assert.ok(fullText.includes('KEY STATUS LEGEND'), 'PDF must include KEY STATUS LEGEND section title');
+            assert.ok(
+                fullText.includes('Physical key detection states and room custody activity indicators'),
+                'PDF must include legend explanatory subtitle'
+            );
+
+            // Verify Physical Key detection statuses
+            assert.ok(fullText.includes('Present'), 'Legend must include Present status');
+            assert.ok(
+                fullText.includes('Physical key detected in slot; room available'),
+                'Legend must define Present as key detected in slot with room available'
+            );
+            assert.ok(fullText.includes('Absent'), 'Legend must include Absent status');
+            assert.ok(
+                fullText.includes('Physical key removed from designated slot'),
+                'Legend must define Absent as physical key removed from designated slot'
+            );
+
+            // Verify Room Activity and Custody statuses
+            assert.ok(fullText.includes('In Session / Borrowed'), 'Legend must include In Session / Borrowed');
+            assert.ok(
+                fullText.includes('Key absent; active class or lab borrowing'),
+                'Legend must define In Session / Borrowed'
+            );
+            assert.ok(fullText.includes('Key Returned'), 'Legend must include Key Returned');
+            assert.ok(
+                fullText.includes('Key restored and confirmed in slot'),
+                'Legend must define Key Returned as restored and confirmed in slot'
+            );
+            assert.ok(fullText.includes('Key Transferred'), 'Legend must include Key Transferred');
+            assert.ok(
+                fullText.includes('Custody transferred between faculty'),
+                'Legend must define Key Transferred as custody transferred between faculty'
+            );
+            assert.ok(fullText.includes('Security Alert'), 'Legend must include Security Alert');
+            assert.ok(
+                fullText.includes('Unauthorized removal or wrong key slot'),
+                'Legend must define Security Alert as unauthorized removal or wrong key slot'
+            );
+        });
+
+        await t.test('9.2 Key Status Legend renders properly when records count is zero (empty report)', async () => {
+            const pdfBuf = await roomStatusReportService.buildRoomStatusReportPDF({
+                records: [],
+                periodLabel: 'Today (Oct 16, 2026)',
+                roomFilterLabel: 'Room 203',
+                professorFilterLabel: 'Prof. John Doe',
+                generatedBy: 'IT Department Head'
+            });
+
+            const fullText = extractPdfPagesText(pdfBuf);
+            assert.ok(fullText.includes('KEY STATUS LEGEND'), 'Empty report must still display KEY STATUS LEGEND');
+            assert.ok(fullText.includes('Present'), 'Empty report must still explain Present status');
+            assert.ok(fullText.includes('Absent'), 'Empty report must still explain Absent status');
+            assert.ok(
+                fullText.includes('No room status activity records were found for the selected period.'),
+                'Empty report must retain empty state message'
+            );
+            assert.ok(fullText.includes('0 records'), 'Metadata card must show 0 records');
+        });
+
+        await t.test('9.3 Multi-page layout preserves pagination and renders legend only on Page 1', async () => {
+            const multiRecords = [];
+            for (let i = 0; i < 40; i++) {
+                multiRecords.push({
+                    date: 'Oct 16, 2026',
+                    time: '08:00 AM',
+                    room: 'RM 203',
+                    status: i % 2 === 0 ? 'Key Returned' : 'In Session (Key Taken)',
+                    user: `Prof. Test ${i + 1}`,
+                    role: 'Faculty',
+                    authMethod: 'Key Box',
+                    details: `Event ${i + 1}`
+                });
+            }
+
+            const pdfBuf = await roomStatusReportService.buildRoomStatusReportPDF({
+                records: multiRecords,
+                periodLabel: 'Today (Oct 16, 2026)',
+                roomFilterLabel: 'All Rooms',
+                professorFilterLabel: 'All Professors',
+                generatedBy: 'IT Department Head'
+            });
+
+            const pagesText = extractPdfPagesText(pdfBuf);
+            const pageChunks = pagesText.split('---PAGE_');
+            // pageChunks[0] is empty prefix, pageChunks[1] is Page 1, pageChunks[2] is Page 2
+            assert.ok(pageChunks.length >= 3, '40 records must span across at least 2 pages');
+
+            const page1Text = pageChunks[1];
+            const page2Text = pageChunks[2];
+
+            // Page 1 should contain the legend
+            assert.ok(page1Text.includes('KEY STATUS LEGEND'), 'Page 1 must contain KEY STATUS LEGEND');
+            assert.ok(page1Text.includes('Physical key detected in slot'), 'Page 1 must contain definitions');
+
+            // Page 2 should NOT contain a duplicate legend
+            assert.ok(!page2Text.includes('KEY STATUS LEGEND'), 'Page 2 must NOT duplicate KEY STATUS LEGEND');
+
+            // Both pages should contain footer page numbers
+            assert.ok(page1Text.includes('Page 1 of 2'), 'Page 1 must contain footer "Page 1 of 2"');
+            assert.ok(page2Text.includes('Page 2 of 2'), 'Page 2 must contain footer "Page 2 of 2"');
+        });
+
+        await t.test('9.4 Department Head endpoint returns PDF containing Key Status Legend', async () => {
+            const res = await makeRequest('/api/reports/room-status?period=today', deptHeadUser);
+            assert.strictEqual(res.status, 200);
+            assert.ok(res.headers.get('content-type').includes('application/pdf'));
+
+            const text = extractPdfPagesText(res.body);
+            assert.ok(text.includes('KEY STATUS LEGEND'), 'Generated endpoint PDF must include KEY STATUS LEGEND');
+            assert.ok(text.includes('Present'), 'Generated endpoint PDF must include Present');
+            assert.ok(text.includes('Absent'), 'Generated endpoint PDF must include Absent');
+        });
+
+        await t.test('9.5 Professor-filtered endpoint returns PDF containing Key Status Legend and filtered data', async () => {
+            const res = await makeRequest(
+                `/api/reports/room-status?period=today&professorId=${facultyUser.User_ID}`,
+                deptHeadUser
+            );
+            assert.strictEqual(res.status, 200);
+            assert.ok(res.headers.get('content-type').includes('application/pdf'));
+
+            const text = extractPdfPagesText(res.body);
+            assert.ok(text.includes('KEY STATUS LEGEND'), 'Filtered report must retain KEY STATUS LEGEND');
+            assert.ok(text.includes('Professor Filter:'), 'Filtered report must display Professor Filter field');
+            assert.ok(text.includes(facultyUser.Name), 'Filtered report must display target professor name');
+        });
+    });
+
     await t.test('Teardown test server and database', async () => {
         if (server) {
             await new Promise((resolve) => server.close(resolve));

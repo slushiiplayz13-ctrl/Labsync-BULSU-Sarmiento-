@@ -639,7 +639,84 @@ async function buildRoomStatusReportPDF({
                        ellipsis: true
                    });
 
-                return cardY + cardHeight + 12;
+                return cardY + cardHeight + 8;
+            }
+
+            function drawKeyStatusLegend(startY) {
+                const legendHeight = 58;
+                const legendY = startY;
+
+                // Card container with clean border and subtle slate background
+                doc.roundedRect(leftMargin, legendY, usableWidth, legendHeight, 6)
+                   .lineWidth(0.75)
+                   .fillAndStroke('#F8FAFC', '#E2E8F0');
+
+                // Section Title & Subtitle
+                doc.font('Helvetica-Bold')
+                   .fontSize(7.8)
+                   .fillColor('#0F172A')
+                   .text('KEY STATUS LEGEND', leftMargin + 10, legendY + 6.5, { continued: true });
+
+                doc.font('Helvetica')
+                   .fontSize(6.8)
+                   .fillColor('#64748B')
+                   .text('   ·   Physical key detection states and room custody activity indicators');
+
+                // Subtle inner divider
+                doc.strokeColor('#E2E8F0')
+                   .lineWidth(0.5)
+                   .moveTo(leftMargin + 10, legendY + 18)
+                   .lineTo(leftMargin + usableWidth - 10, legendY + 18)
+                   .stroke();
+
+                const col1X = leftMargin + 10;
+                const col2X = leftMargin + 266;
+
+                // Column 1 - Physical Key Detection States
+                // Row 1: Present
+                doc.circle(col1X + 4, legendY + 26.5, 2.5).fillColor('#059669').fill();
+                doc.font('Helvetica-Bold').fontSize(6.8).fillColor('#0F172A')
+                   .text('Present', col1X + 11, legendY + 23, { continued: true });
+                doc.font('Helvetica').fontSize(6.8).fillColor('#475569')
+                   .text(' — Physical key detected in slot; room available');
+
+                // Row 2: Absent
+                doc.circle(col1X + 4, legendY + 37.5, 2.5).fillColor('#D97706').fill();
+                doc.font('Helvetica-Bold').fontSize(6.8).fillColor('#0F172A')
+                   .text('Absent', col1X + 11, legendY + 34, { continued: true });
+                doc.font('Helvetica').fontSize(6.8).fillColor('#475569')
+                   .text(' — Physical key removed from designated slot');
+
+                // Row 3: Key Transferred
+                doc.circle(col1X + 4, legendY + 48.5, 2.5).fillColor('#2563EB').fill();
+                doc.font('Helvetica-Bold').fontSize(6.8).fillColor('#0F172A')
+                   .text('Key Transferred', col1X + 11, legendY + 45, { continued: true });
+                doc.font('Helvetica').fontSize(6.8).fillColor('#475569')
+                   .text(' — Custody transferred between faculty');
+
+                // Column 2 - Room Activity & Custody States
+                // Row 1: In Session / Borrowed
+                doc.circle(col2X + 4, legendY + 26.5, 2.5).fillColor('#D97706').fill();
+                doc.font('Helvetica-Bold').fontSize(6.8).fillColor('#0F172A')
+                   .text('In Session / Borrowed', col2X + 11, legendY + 23, { continued: true });
+                doc.font('Helvetica').fontSize(6.8).fillColor('#475569')
+                   .text(' — Key absent; active class or lab borrowing');
+
+                // Row 2: Key Returned
+                doc.circle(col2X + 4, legendY + 37.5, 2.5).fillColor('#059669').fill();
+                doc.font('Helvetica-Bold').fontSize(6.8).fillColor('#0F172A')
+                   .text('Key Returned', col2X + 11, legendY + 34, { continued: true });
+                doc.font('Helvetica').fontSize(6.8).fillColor('#475569')
+                   .text(' — Key restored and confirmed in slot');
+
+                // Row 3: Security Alert
+                doc.circle(col2X + 4, legendY + 48.5, 2.5).fillColor('#DC2626').fill();
+                doc.font('Helvetica-Bold').fontSize(6.8).fillColor('#0F172A')
+                   .text('Security Alert', col2X + 11, legendY + 45, { continued: true });
+                doc.font('Helvetica').fontSize(6.8).fillColor('#475569')
+                   .text(' — Unauthorized removal or wrong key slot');
+
+                return legendY + legendHeight + 10;
             }
 
             function drawTableHeader(y) {
@@ -667,6 +744,7 @@ async function buildRoomStatusReportPDF({
             // Draw Initial Page Elements
             let currentY = drawHeader();
             currentY = drawMetadataCard(currentY);
+            currentY = drawKeyStatusLegend(currentY);
             currentY = drawTableHeader(currentY);
 
             // Draw Table Rows
