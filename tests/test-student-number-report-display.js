@@ -271,7 +271,7 @@ test('IT Head / Faculty Modal: displays verified student name and number in sing
   const html = modal.innerHTML;
 
   assert(html.includes('Juan Dela Cruz (2022-123456)'), 'Modal must contain "Juan Dela Cruz (2022-123456)"');
-  assert(html.includes('Reporter'), 'Modal must contain Reporter label');
+  assert(html.includes('Reported By'), 'Modal must contain Reported By label');
   assert(!html.includes('undefined'), 'Modal must not contain "undefined"');
   assert(!html.includes('null'), 'Modal must not contain "null"');
 });
@@ -284,7 +284,7 @@ test('MIS Maintenance Modal: displays verified student name and number in single
   const html = modal.innerHTML;
 
   assert(html.includes('Juan Dela Cruz (2022-123456)'), 'MIS modal must contain "Juan Dela Cruz (2022-123456)"');
-  assert(html.includes('Reporter'), 'MIS modal must contain Reporter section');
+  assert(html.includes('Reported By'), 'MIS modal must contain Reported By section');
   assert(!html.includes('undefined'), 'MIS modal must not contain "undefined"');
   assert(!html.includes('null'), 'MIS modal must not contain "null"');
 });

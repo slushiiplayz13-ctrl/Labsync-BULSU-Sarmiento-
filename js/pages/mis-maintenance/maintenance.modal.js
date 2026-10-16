@@ -216,7 +216,7 @@
             <div class="ticket-modal-meta-cell">
               <div class="ticket-modal-meta-label">
                 <i data-lucide="user" style="width:13px;height:13px;color:var(--primary-teal);flex-shrink:0;"></i>
-                <span>Reporter</span>
+                <span>Reported By</span>
               </div>
               <div class="ticket-modal-meta-val">
                 <span>${escapeText(formatReporterIdentity(singleReport.Student_Name || report.Student_Name || 'Student', singleReport.Student_Number || report.Student_Number))}</span>

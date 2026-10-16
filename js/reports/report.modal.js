@@ -399,7 +399,7 @@
 
       bodyContentHtml = `
         <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:20px;">
-          <!-- 2x2 Grid: Laboratory, Computer, Reporter, Section -->
+          <!-- 2x2 Grid: Laboratory, Computer, Reported By, Section -->
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:var(--bg-page); padding:14px 16px; border-radius:12px; border:1px solid var(--border-light);">
             <div>
               <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; letter-spacing:0.4px;">Laboratory</div>
@@ -410,7 +410,7 @@
               <div style="font-size:14px; font-weight:800; color:var(--text-dark);">PC ${escapeFn(String(formattedPcNum))}</div>
             </div>
             <div>
-              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; letter-spacing:0.4px;">Reporter</div>
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; letter-spacing:0.4px;">Reported By</div>
               <div style="font-size:13.5px; font-weight:700; color:var(--text-dark);">${escapeFn(formatReporterIdentity(singleReport.Student_Name || studentName, singleReport.Student_Number || studentNumber))}</div>
             </div>
             <div>
