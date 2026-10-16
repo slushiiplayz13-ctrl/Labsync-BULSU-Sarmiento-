@@ -8,8 +8,8 @@
  *    - js/pages/faculty-management.js defines & exports updateRoleGreetingDescription()
  * 
  * 2. Role-Aware Description Verification:
- *    - Program Coordinator: "Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts."
- *    - IT Department Head / IT Head: "Manage Faculty and MIS Staff accounts and view OJT Intern accounts."
+ *    - Program Coordinator: "Add and manage Faculty and MIS Staff accounts, and view On-the-Job Trainee accounts."
+ *    - IT Department Head / IT Head: "Manage Faculty and MIS Staff accounts and view On-the-Job Trainee accounts."
  * 
  * 3. Access Control & Permission Enforcement Verification:
  *    - Faculty: Program Coordinator can add and remove regular faculty accounts.
@@ -33,9 +33,9 @@ const facultyService = require('../services/facultyService');
 const ojtController = require('../controllers/ojt.controller');
 const misController = require('../controllers/mis.controller');
 
-const EXPECTED_PC_DESCRIPTION = 'Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts.';
-const EXPECTED_DEPT_HEAD_DESCRIPTION = 'Manage Faculty and MIS Staff accounts and view OJT Intern accounts.';
-const EXPECTED_MIS_OJT_DESCRIPTION = 'Manage student intern accounts, internship periods, and access.';
+const EXPECTED_PC_DESCRIPTION = 'Add and manage Faculty and MIS Staff accounts, and view On-the-Job Trainee accounts.';
+const EXPECTED_DEPT_HEAD_DESCRIPTION = 'Manage Faculty and MIS Staff accounts and view On-the-Job Trainee accounts.';
+const EXPECTED_MIS_OJT_DESCRIPTION = 'Manage On-the-Job Trainee accounts, training periods, and access.';
 
 async function findChromePath() {
   const possiblePaths = [
@@ -319,12 +319,18 @@ async function runTestSuite() {
         `Role ${roleName} must render exact expected description: "${expectedDesc}"`
       );
 
+      const resOjtTabText = await send(pWs, 'Runtime.evaluate', {
+        expression: `document.getElementById('umTabOjt')?.innerText?.trim()`,
+        returnByValue: true
+      });
+      assert.strictEqual(resOjtTabText.result.value, 'OJT Trainees', 'OJT tab label must display "OJT Trainees"');
+
       if (roleName === 'Program Coordinator') {
         assert.notStrictEqual(resMisTabDisplay.result.value, 'none', 'Program Coordinator MUST see MIS Staff tab');
-        assert.notStrictEqual(resOjtTabDisplay.result.value, 'none', 'Program Coordinator MUST see OJT Interns tab');
+        assert.notStrictEqual(resOjtTabDisplay.result.value, 'none', 'Program Coordinator MUST see On-the-Job Trainees tab');
       } else {
         assert.notStrictEqual(resMisTabDisplay.result.value, 'none', 'IT Dept. Head MUST see MIS Staff tab');
-        assert.notStrictEqual(resOjtTabDisplay.result.value, 'none', 'IT Dept. Head MUST see OJT Interns tab');
+        assert.notStrictEqual(resOjtTabDisplay.result.value, 'none', 'IT Dept. Head MUST see On-the-Job Trainees tab');
       }
 
       const snap = await send(pWs, 'Page.captureScreenshot', { format: 'png' });

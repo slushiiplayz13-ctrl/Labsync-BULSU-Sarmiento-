@@ -1,5 +1,5 @@
 /* ================================================================
-   LabSync – OJT Interns Directory Viewer | js/ojt/ojt-viewer.js
+   LabSync – On-the-Job Trainees Directory Viewer | js/ojt/ojt-viewer.js
    Provides read-only roster browsing and inspection for Dept Heads.
    ================================================================ */
 
@@ -76,7 +76,7 @@
       container.innerHTML = `
         <div style="padding:40px 20px;text-align:center;color:var(--text-light);">
           <div class="sched-spinner" style="width:28px;height:28px;border:3px solid var(--border-light);border-top-color:var(--primary-teal);border-radius:50%;margin:0 auto 12px auto;"></div>
-          <p style="font-size:13.5px;margin:0;">Loading OJT intern directory...</p>
+          <p style="font-size:13.5px;margin:0;">Loading On-the-Job Trainee directory...</p>
         </div>
       `;
     }
@@ -104,7 +104,7 @@
           <div class="ojt-empty-icon" style="background:#FEE2E2;color:#EF4444;">
             <i data-lucide="alert-circle" style="width:24px;height:24px;"></i>
           </div>
-          <p style="margin:0 0 6px 0;font-weight:600;color:var(--text-dark);">Failed to Load OJT Interns</p>
+          <p style="margin:0 0 6px 0;font-weight:600;color:var(--text-dark);">Failed to Load On-the-Job Trainees</p>
           <p style="margin:0 0 14px 0;font-size:12.5px;color:var(--text-mid);max-width:440px;margin-left:auto;margin-right:auto;line-height:1.45;">
             ${isForbidden 
               ? 'The backend server was running prior to route permission updates. Please restart the backend server (<code style="background:var(--bg-card);padding:2px 6px;border-radius:4px;border:1px solid var(--border-light);font-family:monospace;">npm start</code>) to load the new permissions.' 
@@ -157,9 +157,9 @@
           <div class="ojt-empty-icon">
             <i data-lucide="users" style="width:24px;height:24px;"></i>
           </div>
-          <p style="margin:0 0 4px 0;font-weight:600;color:var(--text-dark);">No OJT Interns Found</p>
+          <p style="margin:0 0 4px 0;font-weight:600;color:var(--text-dark);">No On-the-Job Trainees Found</p>
           <p style="margin:0;font-size:12.5px;color:var(--text-mid);">
-            ${_searchQuery ? 'No records match your search criteria.' : 'No OJT interns are currently registered in this category.'}
+            ${_searchQuery ? 'No records match your search criteria.' : 'No On-the-Job Trainees are currently registered in this category.'}
           </p>
         </div>
       `;
@@ -171,7 +171,7 @@
 
     let rowsHtml = '';
     filtered.forEach(u => {
-      const name = u.Name || 'Unnamed Intern';
+      const name = u.Name || 'Unnamed Trainee';
       const email = u.Email || 'No email';
       const phone = u.Phone || '—';
       const rawStart = u.OJT_Start_Date || u.startDate;
@@ -249,7 +249,7 @@
                   ${escapeHtml(name)}
                 </div>
                 <div style="font-size:11.5px;color:var(--text-light);display:flex;align-items:center;gap:4px;margin-top:2px;">
-                  <i data-lucide="graduation-cap" style="width:12px;height:12px;color:var(--primary-teal);"></i> OJT Intern
+                  <i data-lucide="graduation-cap" style="width:12px;height:12px;color:var(--primary-teal);"></i> On-the-Job Trainee
                 </div>
               </div>
             </div>
@@ -308,7 +308,7 @@
     const existing = document.getElementById('ojt-details-modal');
     if (existing) existing.remove();
 
-    const name = intern.Name || 'Unnamed Intern';
+    const name = intern.Name || 'Unnamed Trainee';
     const email = intern.Email || 'No email';
     const phone = intern.Phone || 'Not specified';
     const rawStart = intern.OJT_Start_Date || intern.startDate;
@@ -328,9 +328,9 @@
 
     let statusPill = '';
     if (status === 'ACTIVE') {
-      statusPill = '<span class="mis-badge-active"><span class="mis-badge-dot"></span> Active Intern</span>';
+      statusPill = '<span class="mis-badge-active"><span class="mis-badge-dot"></span> Active Trainee</span>';
     } else if (status === 'EXPIRED') {
-      statusPill = '<span class="mis-badge-deact" style="background:rgba(245,158,11,0.12);color:#D97706;border-color:rgba(245,158,11,0.3);"><i data-lucide="calendar-x" style="width:11px;height:11px;"></i> Internship Concluded</span>';
+      statusPill = '<span class="mis-badge-deact" style="background:rgba(245,158,11,0.12);color:#D97706;border-color:rgba(245,158,11,0.3);"><i data-lucide="calendar-x" style="width:11px;height:11px;"></i> Training Concluded</span>';
     } else {
       statusPill = '<span class="mis-badge-deact">Deactivated Record</span>';
     }
@@ -344,10 +344,10 @@
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
           <div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
-              <h2 style="font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--text-dark);margin:0;">OJT Intern Profile</h2>
+              <h2 style="font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--text-dark);margin:0;">On-the-Job Trainee Profile</h2>
               <span class="ojt-badge-readonly">Read-Only</span>
             </div>
-            <p style="font-size:12.5px;color:var(--text-light);margin:0;">OJT Intern technical operations account</p>
+            <p style="font-size:12.5px;color:var(--text-light);margin:0;">On-the-Job Trainee technical operations account</p>
           </div>
           <button id="close-ojt-details" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;">
             <i data-lucide="x" style="width:20px;height:20px;color:var(--text-mid);"></i>
@@ -365,7 +365,7 @@
               ${statusPill}
             </div>
             <div style="font-size:12px;color:var(--primary-teal);font-weight:600;display:flex;align-items:center;gap:4px;">
-              <i data-lucide="graduation-cap" style="width:13px;height:13px;"></i> OJT Intern
+              <i data-lucide="graduation-cap" style="width:13px;height:13px;"></i> On-the-Job Trainee
             </div>
           </div>
         </div>
@@ -397,7 +397,7 @@
               <i data-lucide="calendar" style="width:16px;height:16px;"></i>
             </div>
             <div class="mis-contact-info">
-              <span class="mis-contact-label">Internship Start</span>
+              <span class="mis-contact-label">Training Start</span>
               <span class="mis-contact-val" style="font-size:13px;">${escapeHtml(startDisplay)}</span>
             </div>
           </div>
@@ -407,7 +407,7 @@
               <i data-lucide="calendar-check" style="width:16px;height:16px;"></i>
             </div>
             <div class="mis-contact-info">
-              <span class="mis-contact-label">Internship End</span>
+              <span class="mis-contact-label">Training End</span>
               <span class="mis-contact-val" style="font-size:13px;">${escapeHtml(endDisplay)}</span>
             </div>
           </div>

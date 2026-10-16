@@ -152,9 +152,9 @@
             position: 'right'
         },
         {
-            selector: '.sidebar-nav .sidebar-btn[data-tooltip="OJT Interns"], .sidebar-nav .sidebar-btn[title="OJT Interns"], .sidebar .sidebar-btn[data-tooltip*="OJT"], .sidebar .sidebar-btn[title*="OJT"], .sidebar-btn[onclick*="mis-ojt.html"]',
-            title: '👥 OJT Intern Management',
-            badge: 'Menu 5: OJT Interns',
+            selector: '.sidebar-nav .sidebar-btn[data-tooltip="On-the-Job Trainees"], .sidebar-nav .sidebar-btn[title="On-the-Job Trainees"], .sidebar-nav .sidebar-btn[data-tooltip="OJT Interns"], .sidebar-nav .sidebar-btn[title="OJT Interns"], .sidebar .sidebar-btn[data-tooltip*="Trainee"], .sidebar .sidebar-btn[title*="Trainee"], .sidebar .sidebar-btn[data-tooltip*="OJT"], .sidebar .sidebar-btn[title*="OJT"], .sidebar-btn[onclick*="mis-ojt.html"]',
+            title: '👥 On-the-Job Trainee Management',
+            badge: 'Menu 5: On-the-Job Trainees',
             description: 'Register and manage student intern accounts, monitor active, expiring, and concluded internship periods, generate temporary credentials, and handle password resets.',
             position: 'right'
         },

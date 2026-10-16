@@ -160,7 +160,7 @@
         <td colspan="5" class="empty-table-cell" style="padding: 48px 20px; text-align: center; color: var(--text-muted);">
           <div class="ojt-empty-state" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin: auto;">
             <i data-lucide="loader" style="width: 24px; height: 24px; animation: spin 1s linear infinite; color: var(--primary-teal);"></i>
-            <span>Loading OJT intern accounts...</span>
+            <span>Loading On-the-Job Trainee accounts...</span>
           </div>
         </td>
       </tr>
@@ -276,7 +276,7 @@
     let html = '';
     filtered.forEach(u => {
       const derived = getOjtDerivedStatus(u);
-      const name = u.Name || u.name || 'Unnamed Intern';
+      const name = u.Name || u.name || 'Unnamed Trainee';
       const email = u.Email || u.email || '—';
       const phone = u.Phone || u.phone || '';
       const photo = u.Profile_Photo || u.profilePhoto || '';
@@ -350,7 +350,7 @@
               <div class="ojt-avatar">${avatarContent}</div>
               <div>
                 <div class="ojt-name">${escapeHtml(name)}</div>
-                <div class="ojt-sub">${phone ? escapeHtml(phone) : 'OJT Intern'}</div>
+                <div class="ojt-sub">${phone ? escapeHtml(phone) : 'On-the-Job Trainee'}</div>
               </div>
             </div>
           </td>
@@ -407,11 +407,11 @@
     const isSearching = !!_searchQuery;
     const isFiltered = _activeFilter !== 'ALL';
 
-    let message = 'No OJT interns have been registered yet.';
+    let message = 'No On-the-Job Trainees have been registered yet.';
     let actionBtn = `
       <button type="button" class="btn-add-ojt" onclick="window.ojtManager.openAddModal()" style="margin-top: 6px;">
         <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
-        <span>Add OJT Intern</span>
+        <span>Add On-the-Job Trainee</span>
       </button>
     `;
 
@@ -464,7 +464,7 @@
               <i data-lucide="alert-triangle" style="width: 24px; height: 24px;"></i>
             </div>
             <p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-dark);">
-              Failed to load OJT intern accounts.<br>
+              Failed to load On-the-Job Trainee accounts.<br>
               <span style="font-size: 12px; color: var(--text-mid);">${escapeHtml(errorMsg)}</span>
             </p>
             <button type="button" class="btn-tbl-action" onclick="window.ojtManager.refresh()" style="margin-top: 6px;">
@@ -870,7 +870,7 @@
 
     _selectedUser = user;
     const targetNameEl = document.getElementById('resetTargetName');
-    if (targetNameEl) targetNameEl.textContent = user.Name || user.name || 'this intern';
+    if (targetNameEl) targetNameEl.textContent = user.Name || user.name || 'this trainee';
 
     openModal('resetPasswordModalOverlay');
   }
@@ -878,7 +878,7 @@
   async function handleConfirmResetPassword() {
     if (!_selectedUser) return;
     const userId = _selectedUser.User_ID || _selectedUser.userId || _selectedUser.id;
-    const internName = _selectedUser.Name || _selectedUser.name || 'Intern';
+    const internName = _selectedUser.Name || _selectedUser.name || 'Trainee';
     const internEmail = _selectedUser.Email || _selectedUser.email || '';
 
     const btnConfirm = document.getElementById('btnConfirmResetPassword');
@@ -933,7 +933,7 @@
 
     _selectedUser = user;
     const targetNameEl = document.getElementById('deactTargetName');
-    if (targetNameEl) targetNameEl.textContent = user.Name || user.name || 'this intern';
+    if (targetNameEl) targetNameEl.textContent = user.Name || user.name || 'this trainee';
 
     openModal('deactivateModalOverlay');
   }
@@ -991,7 +991,7 @@
 
     _selectedUser = user;
     const targetNameEl = document.getElementById('actTargetName');
-    if (targetNameEl) targetNameEl.textContent = user.Name || user.name || 'this intern';
+    if (targetNameEl) targetNameEl.textContent = user.Name || user.name || 'this trainee';
 
     openModal('activateModalOverlay');
   }

@@ -188,19 +188,21 @@ async function runTests() {
     await send(pWs, 'Page.navigate', { url: 'http://localhost:3000/faculty-management.html' });
     await new Promise(r => setTimeout(r, 2000));
 
-    // Click OJT Interns tab
+    // Click On-the-Job Trainees tab
     const tabClickRes = await send(pWs, 'Runtime.evaluate', {
       expression: `
         (function() {
           const btn = document.getElementById('umTabOjt');
           if (!btn) return { ok: false, error: 'Button not found' };
+          const label = btn.innerText.trim();
           btn.click();
-          return { ok: true };
+          return { ok: true, label };
         })()
       `,
       returnByValue: true
     });
     assert.strictEqual(tabClickRes.result.value.ok, true, 'OJT tab button clicked successfully');
+    assert.strictEqual(tabClickRes.result.value.label, 'OJT Trainees', 'User Management menu tab must display "OJT Trainees"');
     await new Promise(r => setTimeout(r, 1200));
 
     // Verify UI state

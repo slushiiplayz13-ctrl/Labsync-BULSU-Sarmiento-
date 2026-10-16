@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LabSync – OJT Intern Management</title>
+  <title>LabSync – On-the-Job Trainee Management</title>
   <link rel="icon" href="/assets/LabSync (Logo Only).png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1582,7 +1582,7 @@
           <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
         </svg>
       </button>
-      <button class="sidebar-btn active" data-tooltip="OJT Interns" title="OJT Interns"
+      <button class="sidebar-btn active" data-tooltip="On-the-Job Trainees" title="On-the-Job Trainees"
         onclick="window.location.href='mis-ojt.html'">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -1707,8 +1707,8 @@
       <!-- Greeting + Clock Row -->
       <div class="greeting-row">
         <div class="greeting-left">
-          <h1 class="greeting-title" id="greetingText">OJT Intern Management</h1>
-          <p class="greeting-sub" id="greetingSub">Manage student intern accounts, internship periods, and access.</p>
+          <h1 class="greeting-title" id="greetingText">On-the-Job Trainee Management</h1>
+          <p class="greeting-sub" id="greetingSub">Manage On-the-Job Trainee accounts, training periods, and access.</p>
         </div>
         <div class="clock-block">
           <div class="clock-time" id="clockTime"></div>
@@ -1832,10 +1832,10 @@
                 <i data-lucide="x" style="width: 14px; height: 14px;"></i>
               </button>
             </div>
-            <button type="button" class="btn-add-ojt" id="btnAddOjt" aria-label="Add new OJT intern">
+            <button type="button" class="btn-add-ojt" id="btnAddOjt" aria-label="Add new On-the-Job Trainee">
               <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
-              <span class="btn-add-text-full">+ Add OJT Intern</span>
-              <span class="btn-add-text-short">+ Add OJT</span>
+              <span class="btn-add-text-full">+ Add On-the-Job Trainee</span>
+              <span class="btn-add-text-short">+ Add Trainee</span>
             </button>
           </div>
         </div>
@@ -1857,7 +1857,7 @@
                 <td colspan="5" class="empty-table-cell" style="padding: 48px 20px; text-align: center; color: var(--text-muted);">
                   <div class="ojt-empty-state" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin: auto;">
                     <i data-lucide="loader" style="width: 24px; height: 24px; animation: spin 1s linear infinite; color: var(--primary-teal);"></i>
-                    <span>Loading OJT intern accounts...</span>
+                    <span>Loading On-the-Job Trainee accounts...</span>
                   </div>
                 </td>
               </tr>
@@ -1880,8 +1880,8 @@
     <div class="ojt-modal-card" role="dialog" aria-labelledby="addOjtModalTitle" aria-modal="true">
       <div class="ojt-modal-header">
         <div>
-          <h2 class="ojt-modal-title" id="addOjtModalTitle">Add OJT Intern</h2>
-          <p class="ojt-modal-sub">Create an individual account for student intern duty</p>
+          <h2 class="ojt-modal-title" id="addOjtModalTitle">Add On-the-Job Trainee</h2>
+          <p class="ojt-modal-sub">Create an individual account for on-the-job trainee duty</p>
         </div>
         <button type="button" class="ojt-modal-close-btn" id="btnCloseAddModal" aria-label="Close modal">
           <i data-lucide="x" style="width: 18px; height: 18px;"></i>
@@ -1892,7 +1892,7 @@
         <!-- Read-Only Account Type Display -->
         <div class="ojt-readonly-badge">
           <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
-          <span>Account Type: <strong>OJT Intern (Operational Access Only)</strong></span>
+          <span>Account Type: <strong>On-the-Job Trainee (Operational Access Only)</strong></span>
         </div>
 
         <div class="ojt-form-group">
@@ -1956,8 +1956,8 @@
     <div class="ojt-modal-card" role="dialog" aria-labelledby="editOjtModalTitle" aria-modal="true">
       <div class="ojt-modal-header">
         <div>
-          <h2 class="ojt-modal-title" id="editOjtModalTitle">Edit OJT Intern</h2>
-          <p class="ojt-modal-sub">Update intern profile and internship duration</p>
+          <h2 class="ojt-modal-title" id="editOjtModalTitle">Edit On-the-Job Trainee</h2>
+          <p class="ojt-modal-sub">Update trainee profile and training duration</p>
         </div>
         <button type="button" class="ojt-modal-close-btn" id="btnCloseEditModal" aria-label="Close modal">
           <i data-lucide="x" style="width: 18px; height: 18px;"></i>
@@ -1969,7 +1969,7 @@
 
         <div class="ojt-readonly-badge">
           <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
-          <span>Account Role: <strong>OJT Intern</strong></span>
+          <span>Account Role: <strong>On-the-Job Trainee</strong></span>
         </div>
 
         <div class="ojt-form-group">
@@ -2025,8 +2025,8 @@
     <div class="ojt-modal-card" role="dialog" aria-labelledby="credModalTitle" aria-modal="true">
       <div class="ojt-modal-header">
         <div>
-          <h2 class="ojt-modal-title" id="credModalTitle">OJT Account Credentials</h2>
-          <p class="ojt-modal-sub">Securely provide these login details to the intern</p>
+          <h2 class="ojt-modal-title" id="credModalTitle">On-the-Job Trainee Account Credentials</h2>
+          <p class="ojt-modal-sub">Securely provide these login details to the trainee</p>
         </div>
         <button type="button" class="ojt-modal-close-btn" id="btnCloseCredModal" aria-label="Close modal">
           <i data-lucide="x" style="width: 18px; height: 18px;"></i>
@@ -2039,7 +2039,7 @@
         <div>
           <div style="font-weight: 700; font-size: 13.5px; color: #EF4444; margin-bottom: 2px;">One-Time Credential View</div>
           <p style="margin: 0; font-size: 12.5px; color: var(--text-dark); line-height: 1.45;">
-            This temporary password is displayed <strong>only once</strong> and is never stored in browser memory. Please copy or securely provide it to the intern before closing this window.
+            This temporary password is displayed <strong>only once</strong> and is never stored in browser memory. Please copy or securely provide it to the trainee before closing this window.
           </p>
         </div>
       </div>
@@ -2047,7 +2047,7 @@
       <!-- Credential Details Box -->
       <div class="ojt-credential-card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 12px; font-weight: 700; color: var(--text-mid); text-transform: uppercase;">Intern Name</span>
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-mid); text-transform: uppercase;">Trainee Name</span>
           <span id="credOjtName" style="font-size: 14px; font-weight: 700; color: var(--text-dark);"></span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -2083,7 +2083,7 @@
     <div class="ojt-modal-card" role="dialog" aria-labelledby="resetPwTitle" aria-modal="true">
       <div class="ojt-modal-header">
         <div>
-          <h2 class="ojt-modal-title" id="resetPwTitle">Reset OJT Password</h2>
+          <h2 class="ojt-modal-title" id="resetPwTitle">Reset On-the-Job Trainee Password</h2>
           <p class="ojt-modal-sub">Generate a new temporary password</p>
         </div>
         <button type="button" class="ojt-modal-close-btn" id="btnCloseResetModal" aria-label="Close modal">
@@ -2092,7 +2092,7 @@
       </div>
 
       <p style="margin: 0; font-size: 13.5px; color: var(--text-dark); line-height: 1.5;">
-        Are you sure you want to reset the password for <strong id="resetTargetName">this intern</strong>?
+        Are you sure you want to reset the password for <strong id="resetTargetName">this trainee</strong>?
       </p>
 
       <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
@@ -2119,8 +2119,8 @@
     <div class="ojt-modal-card" role="dialog" aria-labelledby="deactTitle" aria-modal="true">
       <div class="ojt-modal-header">
         <div>
-          <h2 class="ojt-modal-title" id="deactTitle" style="color: #EF4444;">Deactivate OJT Account</h2>
-          <p class="ojt-modal-sub">Suspend operational access for this intern</p>
+          <h2 class="ojt-modal-title" id="deactTitle" style="color: #EF4444;">Deactivate On-the-Job Trainee Account</h2>
+          <p class="ojt-modal-sub">Suspend operational access for this trainee</p>
         </div>
         <button type="button" class="ojt-modal-close-btn" id="btnCloseDeactModal" aria-label="Close modal">
           <i data-lucide="x" style="width: 18px; height: 18px;"></i>
@@ -2128,7 +2128,7 @@
       </div>
 
       <p style="margin: 0; font-size: 13.5px; color: var(--text-dark); line-height: 1.5;">
-        Are you sure you want to deactivate <strong id="deactTargetName">this intern</strong>?
+        Are you sure you want to deactivate <strong id="deactTargetName">this trainee</strong>?
       </p>
 
       <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
@@ -2159,8 +2159,8 @@
     <div class="ojt-modal-card" role="dialog" aria-labelledby="actTitle" aria-modal="true">
       <div class="ojt-modal-header">
         <div>
-          <h2 class="ojt-modal-title" id="actTitle" style="color: var(--primary-teal);">Activate OJT Account</h2>
-          <p class="ojt-modal-sub">Restore operational access for this intern</p>
+          <h2 class="ojt-modal-title" id="actTitle" style="color: var(--primary-teal);">Activate On-the-Job Trainee Account</h2>
+          <p class="ojt-modal-sub">Restore operational access for this trainee</p>
         </div>
         <button type="button" class="ojt-modal-close-btn" id="btnCloseActModal" aria-label="Close modal">
           <i data-lucide="x" style="width: 18px; height: 18px;"></i>
@@ -2168,13 +2168,13 @@
       </div>
 
       <p style="margin: 0; font-size: 13.5px; color: var(--text-dark); line-height: 1.5;">
-        Re-enable operational login access for <strong id="actTargetName">this intern</strong>?
+        Re-enable operational login access for <strong id="actTargetName">this trainee</strong>?
       </p>
 
       <div style="background: rgba(30, 187, 215, 0.08); border: 1px solid rgba(30, 187, 215, 0.25); border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
         <i data-lucide="info" style="width: 16px; height: 16px; color: var(--primary-teal); flex-shrink: 0; margin-top: 2px;"></i>
         <p style="margin: 0; font-size: 12.5px; color: var(--text-dark); line-height: 1.45;">
-          Activation marks the account as <strong>ACTIVE</strong>. Note: If the intern's OJT End Date has already passed, they will still be unable to log in until their internship end date is extended.
+          Activation marks the account as <strong>ACTIVE</strong>. Note: If the trainee's OJT End Date has already passed, they will still be unable to log in until their internship end date is extended.
         </p>
       </div>
 

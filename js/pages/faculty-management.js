@@ -150,8 +150,8 @@
 
   /**
    * Updates page greeting description based on authenticated role permissions.
-   * - IT Department Head: Manage Faculty and MIS Staff accounts and view OJT Intern accounts.
-   * - Program Coordinator: Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts.
+   * - IT Department Head: Manage Faculty and MIS Staff accounts and view On-the-Job Trainee accounts.
+   * - Program Coordinator: Add and manage Faculty and MIS Staff accounts, and view On-the-Job Trainee accounts.
    */
   function updateRoleGreetingDescription() {
     const subEl = document.getElementById('greetingSub');
@@ -169,11 +169,11 @@
       const isCoord = (role.includes('coordinator'));
 
       if (isDeptHead) {
-        subEl.textContent = 'Manage Faculty and MIS Staff accounts and view OJT Intern accounts.';
+        subEl.textContent = 'Manage Faculty and MIS Staff accounts and view On-the-Job Trainee accounts.';
       } else if (isCoord) {
-        subEl.textContent = 'Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts.';
+        subEl.textContent = 'Add and manage Faculty and MIS Staff accounts, and view On-the-Job Trainee accounts.';
       } else {
-        subEl.textContent = 'Add or remove Faculty accounts and view OJT Intern accounts.';
+        subEl.textContent = 'Add or remove Faculty accounts and view On-the-Job Trainee accounts.';
       }
     } catch (e) { }
   }

@@ -308,7 +308,7 @@
       <div class="greeting-row">
         <div class="greeting-left">
           <h1 class="greeting-title" id="greetingText">User Management</h1>
-          <p class="greeting-sub" id="greetingSub">Manage Faculty and MIS Staff accounts and view OJT Intern accounts.</p>
+          <p class="greeting-sub" id="greetingSub">Manage Faculty and MIS Staff accounts and view On-the-Job Trainee accounts.</p>
           <script>
             (function () {
               try {
@@ -319,11 +319,11 @@
                   var isHead = (r.indexOf('head') !== -1 && r.indexOf('coordinator') === -1);
                   var isCoord = (r.indexOf('coordinator') !== -1);
                   if (isHead) {
-                    sub.textContent = 'Manage Faculty and MIS Staff accounts and view OJT Intern accounts.';
+                    sub.textContent = 'Manage Faculty and MIS Staff accounts and view On-the-Job Trainee accounts.';
                   } else if (isCoord) {
-                    sub.textContent = 'Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts.';
+                    sub.textContent = 'Add and manage Faculty and MIS Staff accounts, and view On-the-Job Trainee accounts.';
                   } else {
-                    sub.textContent = 'Add or remove Faculty accounts and view OJT Intern accounts.';
+                    sub.textContent = 'Add or remove Faculty accounts and view On-the-Job Trainee accounts.';
                   }
                 }
               } catch (e) { }
@@ -362,7 +362,7 @@
           </button>
           <button type="button" class="um-tab-btn" id="umTabOjt" data-tab="ojt">
             <i data-lucide="graduation-cap"></i>
-            OJT Interns
+            OJT Trainees
           </button>
         </div>
 
@@ -491,18 +491,18 @@
         </div>
       </div><!-- /mis-view -->
 
-      <!-- 3. OJT INTERNS VIEW -->
+      <!-- 3. ON-THE-JOB TRAINEES VIEW -->
       <div id="ojt-view" class="um-tab-view" style="display:none;">
         <div class="ojt-roster-header">
           <div>
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-              <h2 class="mis-lead-name" style="font-size:18px;">OJT Intern Directory</h2>
+              <h2 class="mis-lead-name" style="font-size:18px;">On-the-Job Trainee Directory</h2>
               <span class="ojt-badge-readonly">
                 <i data-lucide="eye" style="width:12px;height:12px;"></i> View-Only Roster
               </span>
             </div>
             <p style="font-size:13px;color:var(--text-light);margin:0;">
-              OJT Interns active in laboratory operations. Account lifecycle and onboarding are administered by MIS Staff.
+              On-the-Job Trainees active in laboratory operations. Account lifecycle and onboarding are administered by MIS Staff.
             </p>
           </div>
         </div>
@@ -542,11 +542,11 @@
             var subEl = document.getElementById("greetingSub");
             if (subEl) {
               if (isItHead) {
-                subEl.textContent = "Manage Faculty and MIS Staff accounts and view OJT Intern accounts.";
+                subEl.textContent = "Manage Faculty and MIS Staff accounts and view On-the-Job Trainee accounts.";
               } else if (isCoord) {
-                subEl.textContent = "Add and manage Faculty and MIS Staff accounts, and view OJT Intern accounts.";
+                subEl.textContent = "Add and manage Faculty and MIS Staff accounts, and view On-the-Job Trainee accounts.";
               } else {
-                subEl.textContent = "Add or remove Faculty accounts and view OJT Intern accounts.";
+                subEl.textContent = "Add or remove Faculty accounts and view On-the-Job Trainee accounts.";
               }
             }
 
