@@ -285,7 +285,8 @@ async function findAllNotifications(executor = db) {
                  END) AS detail,
                 t.priority,
                 NULL AS session_type,
-                t.follow_up_count
+                t.follow_up_count,
+                NULL AS user_id
          FROM (
              SELECT i.Issue_ID AS id,
                     i.Status AS status,
@@ -328,7 +329,8 @@ async function findAllNotifications(executor = db) {
                    WHEN o.Auth_Method = 'Key Taken' THEN 'Borrowed'
                    ELSE NULL
                 END) AS session_type,
-                0 AS follow_up_count
+                0 AS follow_up_count,
+                o.User_ID AS user_id
         FROM occupancy_log o
         LEFT JOIN users u ON o.User_ID = u.User_ID
         JOIN laboratories r ON o.Room_ID = r.Room_ID)

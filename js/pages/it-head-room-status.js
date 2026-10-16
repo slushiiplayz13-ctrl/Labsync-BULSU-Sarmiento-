@@ -25,6 +25,9 @@
   let _inlineActivityLogLastKey = '';
   let _itHeadRequestId = 0;
   let _itHeadFirstLoad = true;
+  let _allFacultyList = [];
+  let _rawTimelineNotifs = [];
+  let _selectedProfessorId = 'all';
 
   // Sidebar scroll clue
   function initSidebarScrollClue() {
@@ -110,6 +113,107 @@
     return deduped;
   }
 
+  // Renders activity logs
+  function filterAndRenderTimeline() {
+    if (!Array.isArray(_rawTimelineNotifs)) return;
+    renderActivityLogList(_rawTimelineNotifs);
+  }
+
+  // Selects professor filter for report generation
+  function selectProfessorFilter(id, name) {
+    _selectedProfessorId = (id && String(id).trim() !== 'all') ? String(id).trim() : 'all';
+    const modalSelect = document.getElementById('reportProfessorFilter');
+    if (modalSelect) modalSelect.value = _selectedProfessorId;
+
+    const wrapper = document.getElementById('reportProfessorFilterWrapper');
+    if (wrapper) {
+      wrapper.dataset.value = _selectedProfessorId;
+      wrapper.classList.remove('open');
+      const triggerSpan = wrapper.querySelector('.custom-select-trigger span');
+      if (triggerSpan) triggerSpan.textContent = name || (_selectedProfessorId === 'all' ? 'All Professors' : name);
+    }
+
+    const modalDropdown = document.getElementById('reportProfessorFilterDropdown');
+    if (modalDropdown) {
+      modalDropdown.querySelectorAll('.custom-select-option').forEach(opt => {
+        const isMatch = opt.getAttribute('data-value') === _selectedProfessorId;
+        opt.classList.toggle('selected', isMatch);
+        opt.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+      });
+    }
+  }
+
+  // Fetches authoritative faculty list from /api/faculty and populates modal + card selects
+  async function fetchAndPopulateFaculty() {
+    try {
+      if (typeof window === 'undefined' || !window.location || !window.location.origin) return;
+      const response = await fetch('/api/faculty', { credentials: 'include' });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!Array.isArray(data)) return;
+
+      const seenIds = new Set();
+      _allFacultyList = data.filter(f => {
+        if (!f || !f.User_ID || seenIds.has(f.User_ID)) return false;
+        seenIds.add(f.User_ID);
+        return true;
+      });
+
+      _allFacultyList.sort((a, b) => (a.Name || '').localeCompare(b.Name || ''));
+
+      const modalSelect = document.getElementById('reportProfessorFilter');
+      const modalDropdown = document.getElementById('reportProfessorFilterDropdown');
+
+      if (modalSelect && modalDropdown) {
+        modalSelect.innerHTML = '<option value="all" selected>All Professors</option>';
+        modalDropdown.innerHTML = '';
+
+        const allOpt = document.createElement('div');
+        allOpt.className = 'custom-select-option' + (_selectedProfessorId === 'all' || !_selectedProfessorId ? ' selected' : '');
+        allOpt.setAttribute('data-value', 'all');
+        allOpt.setAttribute('role', 'option');
+        allOpt.setAttribute('aria-selected', _selectedProfessorId === 'all' || !_selectedProfessorId ? 'true' : 'false');
+        allOpt.textContent = 'All Professors';
+        allOpt.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectProfessorFilter('all', 'All Professors');
+        });
+        modalDropdown.appendChild(allOpt);
+
+        _allFacultyList.forEach(f => {
+          const formattedName = f.Role === 'Faculty'
+            ? (f.Name.startsWith('Prof.') ? f.Name : `Prof. ${f.Name}`)
+            : f.Name;
+          const profIdStr = String(f.User_ID);
+
+          const opt = document.createElement('option');
+          opt.value = profIdStr;
+          opt.textContent = formattedName;
+          modalSelect.appendChild(opt);
+
+          const customOpt = document.createElement('div');
+          customOpt.className = 'custom-select-option' + (_selectedProfessorId === profIdStr ? ' selected' : '');
+          customOpt.setAttribute('data-value', profIdStr);
+          customOpt.setAttribute('role', 'option');
+          customOpt.setAttribute('aria-selected', _selectedProfessorId === profIdStr ? 'true' : 'false');
+          customOpt.textContent = formattedName;
+          customOpt.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectProfessorFilter(profIdStr, formattedName);
+          });
+          modalDropdown.appendChild(customOpt);
+        });
+      }
+
+      // Re-synchronize selected value if custom select was already rendered
+      if (typeof window.setCustomSelectValue === 'function') {
+        window.setCustomSelectValue('reportProfessorFilterWrapper', _selectedProfessorId || 'all');
+      }
+    } catch (e) {
+      console.warn('Could not load faculty list:', e);
+    }
+  }
+
   // Load room status & activity logs concurrently with instant SWR cache
   async function loadRoomStatusAndLogs() {
     // 1. Instant SWR pre-render from cache ONLY on initial first load
@@ -121,7 +225,8 @@
         }
         const cachedNotifs = JSON.parse(sessionStorage.getItem('labsync_cached_activities') || 'null');
         if (Array.isArray(cachedNotifs) && cachedNotifs.length > 0) {
-          renderActivityLogList(cachedNotifs);
+          _rawTimelineNotifs = cachedNotifs;
+          filterAndRenderTimeline();
         }
       } catch (e) {}
     }
@@ -152,7 +257,8 @@
 
       if (Array.isArray(notifs) && notifs.length > 0) {
         try { sessionStorage.setItem('labsync_cached_activities', JSON.stringify(notifs)); } catch (e) {}
-        renderActivityLogList(notifs);
+        _rawTimelineNotifs = notifs;
+        filterAndRenderTimeline();
       }
 
       _itHeadFirstLoad = false;
@@ -408,6 +514,7 @@
     const startDateInput = document.getElementById('reportStartDate');
     const endDateInput = document.getElementById('reportEndDate');
     const roomSelect = document.getElementById('reportRoomFilter');
+    const profSelect = document.getElementById('reportProfessorFilter');
     const summaryText = document.getElementById('reportPeriodSummaryText');
     const errorBanner = document.getElementById('reportErrorBanner');
     const errorText = document.getElementById('reportErrorText');
@@ -533,8 +640,11 @@
       if (modalContent) modalContent.style.transform = 'translateY(0)';
 
       setupCustomSelect();
+      setupProfessorCustomSelect();
       if (typeof window.setCustomSelectValue === 'function') {
         window.setCustomSelectValue('reportRoomFilterWrapper', roomSelect ? roomSelect.value : 'all');
+        const currentProf = profSelect ? profSelect.value : (_selectedProfessorId || 'all');
+        window.setCustomSelectValue('reportProfessorFilterWrapper', currentProf);
       }
       if (window.LabSyncDatePicker && typeof window.LabSyncDatePicker.init === 'function') {
         window.LabSyncDatePicker.init();
@@ -553,6 +663,8 @@
       }
       const selectWrapper = document.getElementById('reportRoomFilterWrapper');
       if (selectWrapper) selectWrapper.classList.remove('open');
+      const profWrapper = document.getElementById('reportProfessorFilterWrapper');
+      if (profWrapper) profWrapper.classList.remove('open');
 
       modal.classList.add('closing');
       modal.setAttribute('data-closing', 'true');
@@ -593,6 +705,36 @@
         if (typeof window.setCustomSelectValue === 'function') {
           window.setCustomSelectValue('reportRoomFilterWrapper', roomSelect.value);
         }
+      });
+    }
+
+    function setupProfessorCustomSelect() {
+      const wrapper = document.getElementById('reportProfessorFilterWrapper');
+      if (!wrapper) return;
+      const trigger = wrapper.querySelector('.custom-select-trigger');
+      if (trigger && !trigger.dataset.bound) {
+        trigger.dataset.bound = 'true';
+        trigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+            if (w !== wrapper) w.classList.remove('open');
+          });
+          wrapper.classList.toggle('open');
+        });
+      }
+      if (typeof window.initCustomSelect === 'function') {
+        window.initCustomSelect('reportProfessorFilterWrapper', (val) => {
+          const match = _allFacultyList.find(f => String(f.User_ID) === String(val));
+          const name = match ? (match.Role === 'Faculty' ? (match.Name.startsWith('Prof.') ? match.Name : `Prof. ${match.Name}`) : match.Name) : 'All Professors';
+          selectProfessorFilter(val, name);
+        });
+      }
+    }
+    setupProfessorCustomSelect();
+
+    if (profSelect) {
+      profSelect.addEventListener('change', () => {
+        selectProfessorFilter(profSelect.value);
       });
     }
 
@@ -647,6 +789,20 @@
         const periodVal = selectedRadio ? selectedRadio.value : 'today';
         const roomVal = roomSelect ? roomSelect.value : 'all';
 
+        const profWrapper = document.getElementById('reportProfessorFilterWrapper');
+        const selectedCustomOpt = profWrapper ? profWrapper.querySelector('.custom-select-option.selected') : null;
+
+        let profVal = 'all';
+        if (_selectedProfessorId && _selectedProfessorId !== 'all') {
+          profVal = _selectedProfessorId;
+        } else if (profSelect && profSelect.value && profSelect.value !== 'all') {
+          profVal = profSelect.value;
+        } else if (profWrapper && profWrapper.dataset && profWrapper.dataset.value && profWrapper.dataset.value !== 'all') {
+          profVal = profWrapper.dataset.value;
+        } else if (selectedCustomOpt && selectedCustomOpt.getAttribute('data-value') && selectedCustomOpt.getAttribute('data-value') !== 'all') {
+          profVal = selectedCustomOpt.getAttribute('data-value');
+        }
+
         let startDate = '';
         let endDate = '';
 
@@ -675,6 +831,9 @@
           params.set('period', periodVal);
           if (roomVal && roomVal !== 'all') {
             params.set('roomNumber', roomVal);
+          }
+          if (profVal && profVal !== 'all') {
+            params.set('professorId', profVal);
           }
           if (periodVal === 'custom') {
             params.set('startDate', startDate);
@@ -739,6 +898,7 @@
   function initPage() {
     initSidebarScrollClue();
     loadRoomStatusAndLogs();
+    fetchAndPopulateFaculty();
     initRoomStatusReportModal();
   }
 

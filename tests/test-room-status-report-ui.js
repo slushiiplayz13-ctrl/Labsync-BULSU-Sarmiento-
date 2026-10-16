@@ -52,6 +52,12 @@ test('Room Status Activity Log Report UI Verification', async (t) => {
         assert.ok(html.includes('value="203"'), 'Option "203" must exist');
         assert.ok(html.includes('value="204"'), 'Option "204" must exist');
 
+        // Professor Filter (Revision 2 - Report Generation Filter)
+        assert.ok(html.includes('id="reportProfessorFilter"'), '#reportProfessorFilter dropdown must exist in report modal');
+        assert.ok(html.includes('id="reportProfessorFilterWrapper"'), '#reportProfessorFilterWrapper custom select wrapper must exist in modal');
+        assert.ok(!html.includes('id="activityLogProfessorFilter"'), '#activityLogProfessorFilter must not exist on activity card');
+        assert.ok(html.includes('All Professors'), 'Default "All Professors" option must exist');
+
         // Included Period Summary Display
         assert.ok(html.includes('id="reportPeriodSummaryText"'), '#reportPeriodSummaryText must exist');
     });
@@ -62,6 +68,7 @@ test('Room Status Activity Log Report UI Verification', async (t) => {
         assert.ok(css.includes('.period-radio-card'), '.period-radio-card must be styled in modals.css');
         assert.ok(css.includes('.btn-generate-report'), '.btn-generate-report must be styled in modals.css');
         assert.ok(css.includes('html.dark-mode #roomStatusReportModal'), 'Dark mode styles must exist for report modal');
+        assert.ok(css.includes('.report-select-wrap'), '.report-select-wrap must be styled in modals.css');
     });
 
     await t.test('4. Frontend Page Controller Logic in it-head-room-status.js', () => {
@@ -70,5 +77,9 @@ test('Room Status Activity Log Report UI Verification', async (t) => {
         assert.ok(js.includes('/api/reports/room-status'), 'Must make API requests to /api/reports/room-status');
         assert.ok(js.includes('window.URL.createObjectURL'), 'Must trigger client-side download using object URL');
         assert.ok(js.includes('Generating PDF...'), 'Must set loading state while PDF generates');
+        assert.ok(js.includes('fetchAndPopulateFaculty'), 'fetchAndPopulateFaculty must be defined');
+        assert.ok(js.includes('/api/faculty'), 'Must fetch faculty records from /api/faculty');
+        assert.ok(js.includes('filterAndRenderTimeline'), 'filterAndRenderTimeline must be defined');
+        assert.ok(js.includes('professorId'), 'Must pass professorId filter in report query params');
     });
 });

@@ -2114,11 +2114,11 @@ html.high-contrast .rc-card-res-when {
 
 #roomStatusReportModal .modal-content,
 .report-modal-content {
-  max-width: 490px;
+  max-width: 540px;
   width: 100%;
   border-radius: 20px;
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
   margin: auto;
   box-sizing: border-box;
   transform: translateY(12px);
@@ -2461,10 +2461,33 @@ html.high-contrast .rc-card-res-when {
   z-index: 2600;
   padding: 6px;
   box-sizing: border-box;
+  max-height: 135px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.report-select-wrap .custom-select-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.report-select-wrap .custom-select-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+.report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
 
 .report-select-wrap .custom-select-wrapper.open .custom-select-dropdown {
@@ -2960,6 +2983,22 @@ body.dark-mode .report-select-wrap .custom-select-dropdown,
   box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.5) !important;
 }
 
+html.high-contrast .report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb,
+html.dark-mode .report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb,
+body.high-contrast .report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb,
+body.dark-mode .report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb,
+[data-theme="dark"] .report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb {
+  background: #475569 !important;
+}
+
+html.high-contrast .report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb:hover,
+html.dark-mode .report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb:hover,
+body.high-contrast .report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb:hover,
+body.dark-mode .report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .report-select-wrap .custom-select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #64748B !important;
+}
+
 html.high-contrast .report-select-wrap .custom-select-option,
 html.dark-mode .report-select-wrap .custom-select-option,
 body.high-contrast .report-select-wrap .custom-select-option,
@@ -3287,7 +3326,3 @@ body.dark-mode .btn-card-action#btnOpenReportModal:hover,
     font-size: 13px !important;
   }
 }
-
-
-
-

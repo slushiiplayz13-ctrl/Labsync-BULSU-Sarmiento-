@@ -79,7 +79,7 @@ async function insertLog(userId, roomId, authMethod, accessTime = null, executor
     );
 }
 
-async function findActivityLogsForReport({ startDateTime, endDateTime, roomNumber = null, excludeIntermediateQr = true }, executor = db) {
+async function findActivityLogsForReport({ startDateTime, endDateTime, roomNumber = null, professorId = null, excludeIntermediateQr = true }, executor = db) {
     let sql = `
         SELECT 
             o.Log_ID AS id,
@@ -132,6 +132,11 @@ async function findActivityLogsForReport({ startDateTime, endDateTime, roomNumbe
     if (roomNumber && String(roomNumber).toLowerCase() !== 'all') {
         sql += ` AND r.Room_Number = ?`;
         params.push(String(roomNumber));
+    }
+
+    if (professorId && String(professorId).toLowerCase() !== 'all') {
+        sql += ` AND o.User_ID = ?`;
+        params.push(professorId);
     }
 
     sql += ` ORDER BY o.Access_Time DESC, o.Log_ID DESC`;

@@ -54,19 +54,19 @@ test('Room Status Activity Log Report Suite', async (t) => {
     await t.test('Setup test users and server', async () => {
         // Query real users from database
         const [deptHeadRows] = await db.query(
-            "SELECT User_ID, Role, Status FROM users WHERE Role IN ('IT Dept. Head', 'IT Head', 'Department Head') AND Status = 'ACTIVE' LIMIT 1"
+            "SELECT User_ID, Name, Role, Status FROM users WHERE Role IN ('IT Dept. Head', 'IT Head', 'Department Head') AND Status = 'ACTIVE' LIMIT 1"
         );
         const [facultyRows] = await db.query(
-            "SELECT User_ID, Role, Status FROM users WHERE Role = 'Faculty' AND Status = 'ACTIVE' LIMIT 1"
+            "SELECT User_ID, Name, Role, Status FROM users WHERE Role = 'Faculty' AND Status = 'ACTIVE' LIMIT 1"
         );
         const [misRows] = await db.query(
-            "SELECT User_ID, Role, Status FROM users WHERE Role = 'MIS Staff' AND Status = 'ACTIVE' LIMIT 1"
+            "SELECT User_ID, Name, Role, Status FROM users WHERE Role = 'MIS Staff' AND Status = 'ACTIVE' LIMIT 1"
         );
         const [ojtRows] = await db.query(
-            "SELECT User_ID, Role, Status FROM users WHERE Role = 'OJT' AND Status = 'ACTIVE' LIMIT 1"
+            "SELECT User_ID, Name, Role, Status FROM users WHERE Role = 'OJT' AND Status = 'ACTIVE' LIMIT 1"
         );
         const [coordRows] = await db.query(
-            "SELECT User_ID, Role, Status FROM users WHERE Role = 'Program Coordinator' AND Status = 'ACTIVE' LIMIT 1"
+            "SELECT User_ID, Name, Role, Status FROM users WHERE Role = 'Program Coordinator' AND Status = 'ACTIVE' LIMIT 1"
         );
 
         deptHeadUser = deptHeadRows[0];
@@ -281,6 +281,158 @@ test('Room Status Activity Log Report Suite', async (t) => {
         const labsyncLogoOnly = path.join(__dirname, '../assets/LabSync (Logo Only).png');
         assert.ok(fs.existsSync(sarmientoLogo), 'bsu-sarmiento-logo.png must exist in assets');
         assert.ok(fs.existsSync(labsyncLogoOnly), 'LabSync (Logo Only).png must exist in assets');
+    });
+
+    await t.test('8. Professor Filtering Verification (Revision 2)', async (t) => {
+        // 8.1 resolveProfessorFilter unit tests
+        await t.test('resolveProfessorFilter resolves "all" to null filter', async () => {
+            const res = await roomStatusReportService.resolveProfessorFilter('all');
+            assert.strictEqual(res.professorFilter, null);
+            assert.strictEqual(res.professorFilterLabel, 'All Professors');
+            assert.strictEqual(res.professorName, null);
+        });
+
+        await t.test('resolveProfessorFilter resolves null / empty string to All Professors', async () => {
+            const res1 = await roomStatusReportService.resolveProfessorFilter(null);
+            assert.strictEqual(res1.professorFilter, null);
+            assert.strictEqual(res1.professorFilterLabel, 'All Professors');
+
+            const res2 = await roomStatusReportService.resolveProfessorFilter('');
+            assert.strictEqual(res2.professorFilter, null);
+            assert.strictEqual(res2.professorFilterLabel, 'All Professors');
+        });
+
+        await t.test('resolveProfessorFilter resolves valid faculty ID', async () => {
+            const res = await roomStatusReportService.resolveProfessorFilter(facultyUser.User_ID);
+            assert.strictEqual(res.professorFilter, facultyUser.User_ID);
+            assert.ok(res.professorFilterLabel.includes(facultyUser.Name) || res.professorFilterLabel.startsWith('Prof.'));
+        });
+
+        await t.test('resolveProfessorFilter rejects non-numeric professor ID with 400', async () => {
+            await assert.rejects(
+                async () => roomStatusReportService.resolveProfessorFilter('abc'),
+                (err) => err.statusCode === 400 && err.message.includes('Invalid professor filter')
+            );
+        });
+
+        await t.test('resolveProfessorFilter rejects non-existent professor ID with 400', async () => {
+            await assert.rejects(
+                async () => roomStatusReportService.resolveProfessorFilter('99999999'),
+                (err) => err.statusCode === 400 && err.message.includes('not found')
+            );
+        });
+
+        await t.test('resolveProfessorFilter safely rejects SQL injection strings', async () => {
+            await assert.rejects(
+                async () => roomStatusReportService.resolveProfessorFilter("1' OR '1'='1"),
+                (err) => err.statusCode === 400
+            );
+        });
+
+        // 8.2 Endpoint integration tests
+        await t.test('Endpoint with professorId=all returns 200 and valid PDF', async () => {
+            const res = await makeRequest('/api/reports/room-status?period=today&professorId=all', deptHeadUser);
+            assert.strictEqual(res.status, 200);
+            assert.ok(res.headers.get('content-type').includes('application/pdf'));
+            assert.strictEqual(res.body.slice(0, 4).toString(), '%PDF');
+        });
+
+        await t.test('Endpoint with valid professorId returns 200 and PDF with professor filename', async () => {
+            const res = await makeRequest(`/api/reports/room-status?period=today&professorId=${facultyUser.User_ID}`, deptHeadUser);
+            assert.strictEqual(res.status, 200);
+            assert.ok(res.headers.get('content-type').includes('application/pdf'));
+            assert.strictEqual(res.body.slice(0, 4).toString(), '%PDF');
+            const disposition = res.headers.get('content-disposition') || '';
+            assert.ok(disposition.includes('Prof_') || disposition.includes('Report'));
+        });
+
+        await t.test('Endpoint with invalid professorId returns 400 Bad Request', async () => {
+            const res = await makeRequest('/api/reports/room-status?period=today&professorId=not-a-number', deptHeadUser);
+            assert.strictEqual(res.status, 400);
+            assert.strictEqual(res.body.code, 'INVALID_REPORT_PARAMS');
+        });
+
+        await t.test('Endpoint with non-existent professorId returns 400 Bad Request', async () => {
+            const res = await makeRequest('/api/reports/room-status?period=today&professorId=9999999', deptHeadUser);
+            assert.strictEqual(res.status, 400);
+            assert.strictEqual(res.body.code, 'INVALID_REPORT_PARAMS');
+        });
+
+        await t.test('Combined filters: period + room + professor returns 200 and PDF', async () => {
+            const res = await makeRequest(
+                `/api/reports/room-status?period=today&roomNumber=203&professorId=${facultyUser.User_ID}`,
+                deptHeadUser
+            );
+            assert.strictEqual(res.status, 200);
+            assert.ok(res.headers.get('content-type').includes('application/pdf'));
+            assert.strictEqual(res.body.slice(0, 4).toString(), '%PDF');
+        });
+
+        // 8.3 Data isolation and exclusion test
+        await t.test('Data isolation: Filtering by professor returns only that professor records', async () => {
+            // Find a room ID
+            const [rooms] = await db.query('SELECT Room_ID FROM laboratories LIMIT 1');
+            const testRoomId = rooms[0].Room_ID;
+
+            // Find a second faculty member or create one
+            const [otherFacultyRows] = await db.query(
+                'SELECT User_ID, Name FROM users WHERE Role = "Faculty" AND User_ID != ? LIMIT 1',
+                [facultyUser.User_ID]
+            );
+
+            let otherUserId;
+            let cleanupOtherUser = false;
+            if (otherFacultyRows.length > 0) {
+                otherUserId = otherFacultyRows[0].User_ID;
+            } else {
+                const [insUser] = await db.query(
+                    'INSERT INTO users (Name, Email, Role, Password, ID_QR_String) VALUES ("Test Other Prof", "otherprof@test.com", "Faculty", "hashedpw", "TEST-QR-OTHER")'
+                );
+                otherUserId = insUser.insertId;
+                cleanupOtherUser = true;
+            }
+
+            // Insert distinct occupancy records for both professors using NOW()
+            const [ins1] = await db.query(
+                'INSERT INTO occupancy_log (User_ID, Room_ID, Access_Time, Auth_Method) VALUES (?, ?, NOW(), "Key Taken")',
+                [facultyUser.User_ID, testRoomId]
+            );
+            const [ins2] = await db.query(
+                'INSERT INTO occupancy_log (User_ID, Room_ID, Access_Time, Auth_Method) VALUES (?, ?, NOW(), "Key Taken")',
+                [otherUserId, testRoomId]
+            );
+
+            try {
+                // Fetch report data filtered to facultyUser
+                const reportDataTarget = await roomStatusReportService.getRoomStatusActivityReportData({
+                    period: 'today',
+                    roomNumber: 'all',
+                    professorId: facultyUser.User_ID
+                });
+
+                // Assert target professor records exist and other professor records are excluded
+                const targetProfRecords = reportDataTarget.records.filter(r => r.user.includes(facultyUser.Name));
+                const otherProfRecords = reportDataTarget.records.filter(r => r.user.includes('Test Other Prof') || (otherFacultyRows[0] && r.user.includes(otherFacultyRows[0].Name)));
+
+                assert.ok(targetProfRecords.length > 0, 'Target professor records must be present in filtered report');
+                assert.strictEqual(otherProfRecords.length, 0, 'Other professor records must be strictly excluded');
+
+                // Fetch unfiltered report data
+                const reportDataAll = await roomStatusReportService.getRoomStatusActivityReportData({
+                    period: 'today',
+                    roomNumber: 'all',
+                    professorId: 'all'
+                });
+
+                assert.ok(reportDataAll.records.length >= reportDataTarget.records.length, 'Unfiltered report must contain all records');
+            } finally {
+                // Clean up inserted logs
+                await db.query('DELETE FROM occupancy_log WHERE Log_ID IN (?, ?)', [ins1.insertId, ins2.insertId]);
+                if (cleanupOtherUser) {
+                    await db.query('DELETE FROM users WHERE User_ID = ?', [otherUserId]);
+                }
+            }
+        });
     });
 
     await t.test('Teardown test server and database', async () => {

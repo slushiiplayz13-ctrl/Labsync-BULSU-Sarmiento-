@@ -520,6 +520,11 @@ async function getNotifications(sessionUserId, sessionUserRole, queryParams = {}
     const scope = queryParams && queryParams.scope;
     if (scope === 'timeline') {
         const [notifications] = await maintenanceRepository.findAllNotifications();
+        const profId = queryParams.professorId || queryParams.userId;
+        if (profId && profId !== 'all') {
+            const filtered = (notifications || []).filter(n => n.type === 'occupancy' && String(n.user_id) === String(profId));
+            return { status: 200, data: filtered };
+        }
         return { status: 200, data: notifications };
     }
 

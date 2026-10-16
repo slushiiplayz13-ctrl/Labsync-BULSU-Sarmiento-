@@ -36,13 +36,15 @@ async function generateRoomStatusReport(req, res, next) {
         const startDate = req.query.startDate;
         const endDate = req.query.endDate;
         const roomNumber = req.query.roomNumber || req.query.room || null;
+        const professorId = req.query.professorId || req.query.professor || req.query.userId || null;
 
         // Fetch activity data from real database records
         const reportData = await roomStatusReportService.getRoomStatusActivityReportData({
             period,
             startDate,
             endDate,
-            roomNumber
+            roomNumber,
+            professorId
         });
 
         // Determine generatedBy label from session or safe default
@@ -53,6 +55,7 @@ async function generateRoomStatusReport(req, res, next) {
             records: reportData.records,
             periodLabel: reportData.periodLabel,
             roomFilterLabel: reportData.roomFilterLabel,
+            professorFilterLabel: reportData.professorFilterLabel,
             generatedBy
         });
 
@@ -68,6 +71,7 @@ async function generateRoomStatusReport(req, res, next) {
                 startDate: reportData.startDateStr,
                 endDate: reportData.endDateStr,
                 roomFilter: reportData.roomFilterLabel,
+                professorFilter: reportData.professorFilterLabel,
                 recordCount: reportData.records.length,
                 filename: reportData.filename
             },

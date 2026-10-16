@@ -17,7 +17,9 @@
     try {
       const scope = (typeof options === 'string' ? options : (options && options.scope)) || '';
       const scopeParam = scope ? `&scope=${encodeURIComponent(scope)}` : '';
-      const response = await fetch(`/api/notifications?_=${Date.now()}${scopeParam}`, {
+      const profId = (options && typeof options === 'object') ? (options.professorId || options.userId) : null;
+      const profParam = (profId && profId !== 'all') ? `&professorId=${encodeURIComponent(profId)}` : '';
+      const response = await fetch(`/api/notifications?_=${Date.now()}${scopeParam}${profParam}`, {
         credentials: 'include',
         headers: {
           'X-Background-Poll': 'true'

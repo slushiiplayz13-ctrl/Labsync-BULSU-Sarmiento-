@@ -427,7 +427,7 @@
                   <h3>Activity Log</h3>
                 </div>
               </div>
-              <div class="sh-actions" style="margin-left: auto;">
+              <div class="sh-actions" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
                 <button type="button" id="btnOpenReportModal" class="btn-card-action" title="Generate Room Status Activity Report">
                   <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
                   <span>Generate PDF Report</span>
@@ -620,6 +620,28 @@
               <option value="all" selected>All Rooms (203 & 204)</option>
               <option value="203">Room 203</option>
               <option value="204">Room 204</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Professor / Faculty Filter -->
+        <div class="report-form-group">
+          <label for="reportProfessorFilterWrapper" class="report-form-label">
+            <i data-lucide="graduation-cap" class="report-label-icon"></i>
+            <span>Professor / Faculty</span>
+          </label>
+          <div class="report-select-wrap">
+            <div class="custom-select-wrapper" id="reportProfessorFilterWrapper" data-value="all">
+              <div class="custom-select-trigger" id="reportProfessorFilterTrigger" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false">
+                <span id="reportProfessorFilterDisplay">All Professors</span>
+                <i data-lucide="chevron-down" class="report-select-chevron"></i>
+              </div>
+              <div class="custom-select-dropdown" id="reportProfessorFilterDropdown" role="listbox">
+                <div class="custom-select-option selected" data-value="all" role="option" aria-selected="true">All Professors</div>
+              </div>
+            </div>
+            <select id="reportProfessorFilter" class="report-select-input" style="display: none;" aria-hidden="true" tabindex="-1">
+              <option value="all" selected>All Professors</option>
             </select>
           </div>
         </div>

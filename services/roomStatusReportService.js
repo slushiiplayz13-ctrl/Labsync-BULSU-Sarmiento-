@@ -18,6 +18,8 @@ const path = require('path');
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
 const occupancyRepository = require('../repositories/occupancy.repository');
+const facultyRepository = require('../repositories/faculty.repository');
+const db = require('../database/connection');
 
 const MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -246,23 +248,100 @@ async function resolveRoomFilter(roomNumber) {
 }
 
 /**
+ * Validates and normalizes professor / faculty filter.
+ * 
+ * Supports:
+ * - null / undefined / '' / 'all' -> All Professors (unfiltered)
+ * - numeric ID (positive integer) -> specific faculty member verified against database
+ * 
+ * @param {string|number|null} professorId
+ * @returns {Promise<{ professorFilter: number|null, professorFilterLabel: string, professorName: string|null }>}
+ */
+async function resolveProfessorFilter(professorId) {
+    if (!professorId || String(professorId).trim().toLowerCase() === 'all') {
+        return {
+            professorFilter: null,
+            professorFilterLabel: 'All Professors',
+            professorName: null
+        };
+    }
+
+    const cleanStr = String(professorId).trim();
+    if (!/^\d+$/.test(cleanStr)) {
+        const err = new Error(`Invalid professor filter '${cleanStr}'. Must be a valid positive integer faculty ID or 'all'.`);
+        err.statusCode = 400;
+        throw err;
+    }
+
+    const parsedId = Number(cleanStr);
+    if (!Number.isInteger(parsedId) || parsedId <= 0) {
+        const err = new Error(`Invalid professor filter '${cleanStr}'. Must be a positive integer.`);
+        err.statusCode = 400;
+        throw err;
+    }
+
+    // Query faculty from database to verify faculty member exists
+    const [faculties] = await facultyRepository.findAllFaculty();
+    const matched = faculties.find(f => Number(f.User_ID) === parsedId);
+
+    if (!matched) {
+        // Fallback check against users table to check if user exists and verify role
+        const [users] = await db.query('SELECT User_ID, Name, Role FROM users WHERE User_ID = ?', [parsedId]);
+        if (users.length === 0) {
+            const err = new Error(`Faculty member with ID ${parsedId} not found.`);
+            err.statusCode = 400;
+            throw err;
+        }
+        const u = users[0];
+        const ALLOWED_FACULTY_ROLES = ['Faculty', 'IT Head', 'IT Dept. Head', 'IT Dept Head', 'Program Coordinator'];
+        if (!ALLOWED_FACULTY_ROLES.includes(u.Role)) {
+            const err = new Error(`User with ID ${parsedId} (${u.Role}) is not an eligible faculty member.`);
+            err.statusCode = 400;
+            throw err;
+        }
+        const label = u.Role === 'Faculty'
+            ? (u.Name.startsWith('Prof.') ? u.Name : `Prof. ${u.Name}`)
+            : u.Name;
+        return {
+            professorFilter: u.User_ID,
+            professorFilterLabel: label,
+            professorName: u.Name
+        };
+    }
+
+    const label = matched.Role === 'Faculty'
+        ? (matched.Name.startsWith('Prof.') ? matched.Name : `Prof. ${matched.Name}`)
+        : matched.Name;
+
+    return {
+        professorFilter: matched.User_ID,
+        professorFilterLabel: label,
+        professorName: matched.Name
+    };
+}
+
+/**
  * Generates a clean, safe filename for the PDF download.
  * e.g. LabSync_Room_Status_Report_2026-10-04.pdf
- * or LabSync_Room_Status_Report_2026-10-01_to_2026-10-04.pdf
+ * or LabSync_Room_Status_Report_Room_203_Prof_John_Doe_2026-10-01_to_2026-10-04.pdf
  * 
  * @param {object} params
  * @param {string} params.startDateStr
  * @param {string} params.endDateStr
  * @param {string|null} [params.roomFilter]
+ * @param {string|null} [params.professorName]
  * @returns {string}
  */
-function generateReportFilename({ startDateStr, endDateStr, roomFilter = null }) {
+function generateReportFilename({ startDateStr, endDateStr, roomFilter = null, professorName = null }) {
     const roomPart = roomFilter ? `_Room_${roomFilter}` : '';
+    const profPart = professorName
+        ? `_Prof_${professorName.replace(/^Prof\.?\s*/i, '').trim().replace(/\s+/g, '_')}`
+        : '';
     let datePart = startDateStr;
     if (startDateStr !== endDateStr) {
         datePart = `${startDateStr}_to_${endDateStr}`;
     }
-    const raw = `LabSync_Room_Status_Report${roomPart}_${datePart}.pdf`;
+    const raw = `LabSync_Room_Status_Report${roomPart}${profPart}_${datePart}.pdf`;
     return raw.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
 }
 
@@ -272,16 +351,18 @@ function generateReportFilename({ startDateStr, endDateStr, roomFilter = null })
  * @param {object} options
  * @returns {Promise<object>}
  */
-async function getRoomStatusActivityReportData({ period, startDate, endDate, roomNumber }) {
+async function getRoomStatusActivityReportData({ period, startDate, endDate, roomNumber, professorId = null }) {
     const { startDateTime, endDateTime, periodLabel, startDateStr, endDateStr, periodType } =
         resolvePeriodDates({ period, startDate, endDate });
 
     const { roomFilter, roomFilterLabel } = await resolveRoomFilter(roomNumber);
+    const { professorFilter, professorFilterLabel, professorName } = await resolveProfessorFilter(professorId);
 
     const [rows] = await occupancyRepository.findActivityLogsForReport({
         startDateTime,
         endDateTime,
         roomNumber: roomFilter,
+        professorId: professorFilter,
         excludeIntermediateQr: true
     });
 
@@ -349,17 +430,19 @@ async function getRoomStatusActivityReportData({ period, startDate, endDate, roo
         };
     });
 
-    const filename = generateReportFilename({ startDateStr, endDateStr, roomFilter });
+    const filename = generateReportFilename({ startDateStr, endDateStr, roomFilter, professorName });
 
     return {
         records,
         periodLabel,
         roomFilterLabel,
+        professorFilterLabel,
         startDateStr,
         endDateStr,
         periodType,
         filename,
-        roomFilter
+        roomFilter,
+        professorFilter
     };
 }
 
@@ -377,6 +460,7 @@ async function buildRoomStatusReportPDF({
     records,
     periodLabel,
     roomFilterLabel,
+    professorFilterLabel = 'All Professors',
     generatedBy = 'Department Head'
 }) {
     return new Promise((resolve, reject) => {
@@ -479,7 +563,7 @@ async function buildRoomStatusReportPDF({
             }
 
             function drawMetadataCard(startY) {
-                const cardHeight = 44;
+                const cardHeight = 54;
                 const cardY = startY;
 
                 // Rounded background box with clean border and fill
@@ -492,13 +576,14 @@ async function buildRoomStatusReportPDF({
                 const colWidth = (usableWidth / 2) - colPad - 8;
                 const leftLabelWidth = 78;
                 const rightLabelWidth = 68;
-                const row1Y = cardY + 9;
-                const row2Y = cardY + 25;
+                const row1Y = cardY + 7;
+                const row2Y = cardY + 22;
+                const row3Y = cardY + 37;
 
                 const now = new Date();
                 const nowFormatted = `${formatShortDate(now)}, ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
 
-                // Left Column: Reporting Period & Room Filter
+                // Left Column: Reporting Period, Room Filter, Professor Filter
                 doc.font('Helvetica-Bold').fontSize(8).fillColor('#64748B')
                    .text('Reporting Period:', leftMargin + colPad, row1Y);
                 doc.font('Helvetica-Bold').fontSize(8).fillColor('#0F172A')
@@ -517,7 +602,16 @@ async function buildRoomStatusReportPDF({
                        ellipsis: true
                    });
 
-                // Right Column: Generated Date & Generated By
+                doc.font('Helvetica-Bold').fontSize(8).fillColor('#64748B')
+                   .text('Professor Filter:', leftMargin + colPad, row3Y);
+                doc.font('Helvetica-Bold').fontSize(8).fillColor('#0F172A')
+                   .text(professorFilterLabel, leftMargin + colPad + leftLabelWidth, row3Y, {
+                       width: colWidth - leftLabelWidth,
+                       lineBreak: false,
+                       ellipsis: true
+                   });
+
+                // Right Column: Generated Date, Generated By, Total Records
                 doc.font('Helvetica-Bold').fontSize(8).fillColor('#64748B')
                    .text('Generated At:', midX + colPad, row1Y);
                 doc.font('Helvetica').fontSize(8).fillColor('#0F172A')
@@ -531,6 +625,15 @@ async function buildRoomStatusReportPDF({
                    .text('Generated By:', midX + colPad, row2Y);
                 doc.font('Helvetica').fontSize(8).fillColor('#0F172A')
                    .text(generatedBy, midX + colPad + rightLabelWidth, row2Y, {
+                       width: colWidth - rightLabelWidth,
+                       lineBreak: false,
+                       ellipsis: true
+                   });
+
+                doc.font('Helvetica-Bold').fontSize(8).fillColor('#64748B')
+                   .text('Total Records:', midX + colPad, row3Y);
+                doc.font('Helvetica').fontSize(8).fillColor('#0F172A')
+                   .text(`${records.length} record${records.length === 1 ? '' : 's'}`, midX + colPad + rightLabelWidth, row3Y, {
                        width: colWidth - rightLabelWidth,
                        lineBreak: false,
                        ellipsis: true
@@ -729,6 +832,7 @@ async function buildRoomStatusReportPDF({
 module.exports = {
     resolvePeriodDates,
     resolveRoomFilter,
+    resolveProfessorFilter,
     generateReportFilename,
     getRoomStatusActivityReportData,
     buildRoomStatusReportPDF,
