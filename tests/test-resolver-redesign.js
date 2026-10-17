@@ -456,6 +456,16 @@ function createTableSandbox() {
       Resolved_By_Name: null,
       Resolved_By_Role: null,
       Issue_Description: '[Program & Section: BSIT-1B] [Issues: Audio] Remarks: No sound'
+    },
+    {
+      Report_ID: 304,
+      Status: 'In Progress',
+      Room_Number: '201',
+      PC_Number: '4',
+      Date_Reported: '2026-09-17T09:30:00.000Z',
+      Resolved_By_Name: null,
+      Resolved_By_Role: null,
+      Issue_Description: '[Program & Section: BSIT-1B] [Issues: Mouse] Remarks: Cleaned lens'
     }
   ];
 
@@ -475,8 +485,11 @@ function createTableSandbox() {
   // Report 302: Historical NULL resolver
   assert(rowsHtml.includes('data-report-id="302"'), 'Historical ticket renders completed button');
 
-  // Report 303: Pending Mark Resolved button
-  assert(rowsHtml.includes('btn-resolve-ticket'), 'Pending report must render Mark Resolved button');
+  // Report 303: Pending Start Repair button
+  assert(rowsHtml.includes('btn-start-repair'), 'Pending report must render Start Repair button');
+
+  // Report 304: Ongoing Repair Mark Resolved button
+  assert(rowsHtml.includes('btn-resolve-ticket'), 'Ongoing Repair report must render Mark Resolved button');
 
   // Test dynamic singleton popover positioning & content
   const mockChip301 = {

@@ -143,7 +143,8 @@
         const name = String(u.Name || '').toLowerCase();
         const email = String(u.Email || '').toLowerCase();
         const phone = String(u.Phone || '').toLowerCase();
-        if (!name.includes(q) && !email.includes(q) && !phone.includes(q)) {
+        const type = String(u.Training_Type || u.trainingType || '').toLowerCase();
+        if (!name.includes(q) && !email.includes(q) && !phone.includes(q) && !type.includes(q)) {
           return false;
         }
       }
@@ -237,19 +238,31 @@
         periodSub = '<span class="ojt-period-sub" style="color:var(--text-light);"><i data-lucide="slash" style="width:11px;height:11px;"></i> Inactive</span>';
       }
 
+      // Training Type badge
+      const rawType = u.Training_Type || u.trainingType || null;
+      let trainingTypeBadge = '';
+      if (rawType === 'Internship') {
+        trainingTypeBadge = '<span class="ojt-training-type-badge type-internship" style="font-size:11px;padding:2px 7px;border-radius:5px;background:rgba(30,187,215,0.12);color:#0284C7;font-weight:600;display:inline-flex;align-items:center;gap:3px;border:1px solid rgba(30,187,215,0.3);"><i data-lucide="graduation-cap" style="width:11px;height:11px;"></i>Internship</span>';
+      } else if (rawType === 'Work Immersion') {
+        trainingTypeBadge = '<span class="ojt-training-type-badge type-immersion" style="font-size:11px;padding:2px 7px;border-radius:5px;background:rgba(139,92,246,0.12);color:#7C3AED;font-weight:600;display:inline-flex;align-items:center;gap:3px;border:1px solid rgba(139,92,246,0.3);"><i data-lucide="briefcase" style="width:11px;height:11px;"></i>Work Immersion</span>';
+      } else {
+        trainingTypeBadge = '<span class="ojt-training-type-badge type-unspecified" style="font-size:11px;padding:2px 7px;border-radius:5px;background:rgba(100,116,139,0.1);color:#64748B;font-weight:600;display:inline-flex;align-items:center;gap:3px;border:1px dashed rgba(100,116,139,0.35);"><i data-lucide="help-circle" style="width:11px;height:11px;"></i>Not Specified</span>';
+      }
+
       rowsHtml += `
-        <tr data-user-id="${u.User_ID}">
+        <tr data-user-id="${u.User_ID}" style="cursor: pointer;" title="Click to view details">
           <td>
             <div style="display:flex;align-items:center;gap:12px;">
               <div class="ojt-roster-avatar">
                 ${avatarHtml}
               </div>
               <div>
-                <div style="font-weight:600;color:var(--text-dark);font-size:13.5px;line-height:1.3;">
-                  ${escapeHtml(name)}
+                <div style="font-weight:600;color:var(--text-dark);font-size:13.5px;line-height:1.3;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                  <span>${escapeHtml(name)}</span>
+                  ${trainingTypeBadge}
                 </div>
                 <div style="font-size:11.5px;color:var(--text-light);display:flex;align-items:center;gap:4px;margin-top:2px;">
-                  <i data-lucide="graduation-cap" style="width:12px;height:12px;color:var(--primary-teal);"></i> On-the-Job Trainee
+                  <i data-lucide="user-check" style="width:12px;height:12px;color:var(--primary-teal);"></i> On-the-Job Trainee
                 </div>
               </div>
             </div>
@@ -295,6 +308,14 @@
       </div>
     `;
 
+    container.querySelectorAll('tbody tr[data-user-id]').forEach(tr => {
+      tr.addEventListener('click', () => {
+        const id = tr.getAttribute('data-user-id');
+        const user = _allOjts.find(u => String(u.User_ID) === String(id));
+        if (user) showOjtDetailsModal(user);
+      });
+    });
+
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
       global.lucide.createIcons({ root: container });
     }
@@ -335,6 +356,23 @@
       statusPill = '<span class="mis-badge-deact">Deactivated Record</span>';
     }
 
+    const rawType = intern.Training_Type || intern.trainingType || null;
+    let displayType = 'Not Specified';
+    let typeIcon = 'help-circle';
+    let typeBg = 'rgba(100,116,139,0.1)';
+    let typeColor = '#64748B';
+    if (rawType === 'Internship') {
+      displayType = 'Internship (BulSU 4th Year)';
+      typeIcon = 'graduation-cap';
+      typeBg = 'rgba(30,187,215,0.12)';
+      typeColor = '#0284C7';
+    } else if (rawType === 'Work Immersion') {
+      displayType = 'Work Immersion (Senior High School)';
+      typeIcon = 'briefcase';
+      typeBg = 'rgba(139,92,246,0.12)';
+      typeColor = '#7C3AED';
+    }
+
     const modal = document.createElement('div');
     modal.id = 'ojt-details-modal';
     modal.className = 'mis-modal-overlay';
@@ -372,6 +410,16 @@
 
         <!-- Bento Grid Details -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:18px;">
+          <div class="mis-contact-card" style="padding:12px 14px;grid-column: 1 / -1;">
+            <div class="mis-contact-icon-wrap" style="width:34px;height:34px;background:${typeBg};color:${typeColor};">
+              <i data-lucide="${typeIcon}" style="width:16px;height:16px;"></i>
+            </div>
+            <div class="mis-contact-info">
+              <span class="mis-contact-label">Training Type</span>
+              <span class="mis-contact-val" style="font-size:13px;font-weight:600;color:${typeColor};">${escapeHtml(displayType)}</span>
+            </div>
+          </div>
+
           <div class="mis-contact-card" style="padding:12px 14px;">
             <div class="mis-contact-icon-wrap email-wrap" style="width:34px;height:34px;">
               <i data-lucide="mail" style="width:16px;height:16px;"></i>

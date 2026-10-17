@@ -29,8 +29,8 @@
   function calculateStats(reports) {
     const list = Array.isArray(reports) ? reports : [];
     const total = list.length;
-    const pending = list.filter(r => r.Status !== 'Resolved').length;
-    const resolved = list.filter(r => r.Status === 'Resolved').length;
+    const pending = list.filter(r => (r.Status || '').toLowerCase() === 'pending').length;
+    const resolved = list.filter(r => (r.Status || '').toLowerCase() === 'resolved').length;
 
     const totalEl = document.getElementById('stat-total');
     const pendingEl = document.getElementById('stat-pending');
@@ -69,7 +69,8 @@
     const filtered = maintenanceReports.filter(report => {
       // Status filter
       const status = (report.Status || '').toLowerCase();
-      if (activeFilter === 'pending' && status === 'resolved') return false;
+      if (activeFilter === 'pending' && status !== 'pending') return false;
+      if ((activeFilter === 'in-progress' || activeFilter === 'ongoing-repair') && status !== 'in progress' && status !== 'ongoing repair') return false;
       if (activeFilter === 'resolved' && status !== 'resolved') return false;
 
       // Search filter
@@ -311,6 +312,20 @@
         return;
       }
 
+      // Start Repair button in table row
+      const startRepairBtn = e.target.closest('.btn-start-repair[data-action="start-repair"]');
+      if (startRepairBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const reportId = startRepairBtn.getAttribute('data-report-id');
+        if (reportId && global.maintenanceActions && typeof global.maintenanceActions.updateReportStatus === 'function') {
+          global.maintenanceActions.updateReportStatus(reportId, 'In Progress');
+        } else if (reportId && typeof global.updateReportStatus === 'function') {
+          global.updateReportStatus(reportId, 'In Progress');
+        }
+        return;
+      }
+
       // Resolve button in table row
       const resolveBtn = e.target.closest('.btn-resolve-ticket[data-action="resolve-ticket"]');
       if (resolveBtn) {
@@ -321,6 +336,26 @@
           global.maintenanceActions.updateReportStatus(reportId, 'Resolved');
         } else if (reportId && typeof global.updateReportStatus === 'function') {
           global.updateReportStatus(reportId, 'Resolved');
+        }
+        return;
+      }
+
+      // Start Repair button inside modal
+      const startRepairModalBtn = e.target.closest('.btn-start-repair[data-action="start-repair-modal"]');
+      if (startRepairModalBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const reportId = startRepairModalBtn.getAttribute('data-report-id');
+        if (global.maintenanceModal && typeof global.maintenanceModal.closeTicketModal === 'function') {
+          global.maintenanceModal.closeTicketModal();
+        } else {
+          const modal = document.getElementById('ticket-details-modal');
+          if (modal) modal.remove();
+        }
+        if (reportId && global.maintenanceActions && typeof global.maintenanceActions.updateReportStatus === 'function') {
+          global.maintenanceActions.updateReportStatus(reportId, 'In Progress');
+        } else if (reportId && typeof global.updateReportStatus === 'function') {
+          global.updateReportStatus(reportId, 'In Progress');
         }
         return;
       }

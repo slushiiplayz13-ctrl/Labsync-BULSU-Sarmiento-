@@ -49,7 +49,8 @@ async function createOjt(req, res, next) {
                 name: createdUser.Name,
                 email: createdUser.Email,
                 startDate: createdUser.OJT_Start_Date,
-                endDate: createdUser.OJT_End_Date
+                endDate: createdUser.OJT_End_Date,
+                trainingType: createdUser.Training_Type
             },
             result: 'SUCCESS'
         });
@@ -78,7 +79,8 @@ async function updateOjt(req, res, next) {
                 name: updatedUser.Name,
                 email: updatedUser.Email,
                 startDate: updatedUser.OJT_Start_Date,
-                endDate: updatedUser.OJT_End_Date
+                endDate: updatedUser.OJT_End_Date,
+                trainingType: updatedUser.Training_Type
             },
             result: 'SUCCESS'
         });

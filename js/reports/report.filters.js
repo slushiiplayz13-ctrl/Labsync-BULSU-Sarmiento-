@@ -59,6 +59,7 @@
     const remarks = (parsed.remarks || '').toLowerCase();
     const priority = (report.Priority_Level || '').toLowerCase();
     const status = (report.Status || '').toLowerCase();
+    const displayStatus = (status === 'in progress' || status === 'ongoing repair') ? 'ongoing repair' : status;
 
     return (
       idStr === q ||
@@ -81,7 +82,8 @@
       issues.includes(q) ||
       remarks.includes(q) ||
       priority.includes(q) ||
-      status.includes(q)
+      status.includes(q) ||
+      displayStatus.includes(q)
     );
   }
 
@@ -256,7 +258,13 @@
     if (f.status) {
       const targetStatus = f.status.toLowerCase().trim();
       const reportStatus = String(report.Status || '').toLowerCase().trim();
-      if (reportStatus !== targetStatus) return false;
+      const isTargetOngoing = targetStatus === 'ongoing repair' || targetStatus === 'in progress';
+      const isReportOngoing = reportStatus === 'ongoing repair' || reportStatus === 'in progress';
+      if (isTargetOngoing) {
+        if (!isReportOngoing) return false;
+      } else if (reportStatus !== targetStatus) {
+        return false;
+      }
     }
 
     // 5. Date Range

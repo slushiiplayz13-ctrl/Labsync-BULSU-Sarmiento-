@@ -605,7 +605,21 @@
       <div class="dashboard-card" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; min-height: 0;">
         <div class="reports-controls"
           style="display: flex; gap: 10px; align-items: center; justify-content: flex-start; flex-wrap: wrap;">
-          <div class="search-box" style="max-width: 440px; width: 100%; position: relative;">
+          <!-- Quick Status Filters: All Tickets | Pending | Ongoing Repair (styled like MIS maintenance filter-pill) -->
+          <div class="filter-pills-row quick-status-filters" id="quickStatusFilters" role="group" aria-label="Quick Status Filters">
+            <button type="button" class="filter-pill btn-quick-filter active" id="quickFilterAll" data-status="" aria-pressed="true" title="Show all tickets">
+              <i data-lucide="layers" style="width: 16px; height: 16px;"></i> All Tickets
+            </button>
+            <button type="button" class="filter-pill btn-quick-filter btn-quick-filter-pending" id="quickFilterPending" data-status="Pending" aria-pressed="false" title="Show Pending reports only">
+              <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i> Pending
+            </button>
+            <button type="button" class="filter-pill btn-quick-filter btn-quick-filter-ongoing" id="quickFilterOngoing" data-status="In Progress" data-display-status="Ongoing Repair" aria-pressed="false" title="Show Ongoing Repair reports only">
+              <i data-lucide="wrench" style="width: 16px; height: 16px;"></i> Ongoing Repair
+            </button>
+            <button type="button" class="btn-quick-filter-clear" id="quickFilterClear" style="display:none;" title="Clear status filter" aria-label="Clear status filter"></button>
+          </div>
+
+          <div class="search-box" style="max-width: 380px; width: 100%; position: relative; margin-left: auto;">
             <i data-lucide="search"
               style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94A3B8;"></i>
             <input type="text" id="reportSearchInput" class="search-input"
@@ -674,7 +688,7 @@
                   <select id="filterStatus" class="filter-field-select" style="display:none;" tabindex="-1" aria-hidden="true">
                     <option value="">All Statuses</option>
                     <option value="Pending">Pending</option>
-                    <option value="In Progress">In Progress</option>
+                    <option value="In Progress">Ongoing Repair</option>
                     <option value="Resolved">Resolved</option>
                   </select>
                   <div class="custom-select-wrapper filter-custom-select" id="customSelectStatus">
@@ -725,7 +739,7 @@
               </div>
             </div>
           </div>
-          <div id="completedToggleContainer" style="margin-left: auto;"></div>
+          <div id="completedToggleContainer"></div>
         </div>
 
         <div id="reportsActiveFilterBar" class="reports-active-filter-bar" style="display:none;">
@@ -735,11 +749,14 @@
         </div>
 
         <div id="dynamicReportsList">
-          <div class="ui-empty-state">
-            <div class="ui-empty-icon">
-              <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+          <div class="report-section active-section" id="initialReportsSection">
+            <h4 class="sr-only">Active Tickets</h4>
+            <div class="ui-empty-state">
+              <div class="ui-empty-icon">
+                <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+              </div>
+              <p>Loading PC issue reports...</p>
             </div>
-            <p>Loading PC issue reports...</p>
           </div>
           <script>
             (function () {

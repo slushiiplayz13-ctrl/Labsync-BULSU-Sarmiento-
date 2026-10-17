@@ -87,8 +87,9 @@
     const reportId = report.Report_ID != null ? report.Report_ID : (report.Issue_ID || '');
     const statusStr = (report.Status || 'Pending').trim();
     const isResolved = statusStr.toLowerCase() === 'resolved';
-    const badgeClass = isResolved ? 'resolved' : 'pending';
-    const actualBadgeLabel = isResolved ? 'RESOLVED' : statusStr.toUpperCase();
+    const isOngoingRepair = statusStr.toLowerCase() === 'in progress' || statusStr.toLowerCase() === 'ongoing repair';
+    const badgeClass = isResolved ? 'resolved' : (isOngoingRepair ? 'ongoing-repair' : 'pending');
+    const actualBadgeLabel = isResolved ? 'RESOLVED' : (isOngoingRepair ? 'ONGOING REPAIR' : statusStr.toUpperCase());
 
     // Timestamp: Resolved tickets display the year dynamically; falls back to Date_Reported or Created_At
     const rawDate = isResolved
@@ -173,11 +174,22 @@
 
     if (currentPage === 'mis-pc-reports' || currentPage === 'mis-maintenance' || currentPage === 'mis-dashboard') {
       if (!isResolved) {
-        actionsHtml = `
-          <button type="button" class="btn-action resolve" onclick="window.updateReportStatus(${reportId}, 'Resolved')">
-            <i data-lucide="check" style="width:13px;height:13px;"></i>Resolve Ticket
-          </button>
-        `;
+        if (!isOngoingRepair) {
+          actionsHtml = `
+            <button type="button" class="btn-action start-repair" onclick="window.updateReportStatus(${reportId}, 'In Progress')">
+              <i data-lucide="wrench" style="width:13px;height:13px;"></i>Start Repair
+            </button>
+            <button type="button" class="btn-action resolve" onclick="window.updateReportStatus(${reportId}, 'Resolved')">
+              <i data-lucide="check" style="width:13px;height:13px;"></i>Resolve Ticket
+            </button>
+          `;
+        } else {
+          actionsHtml = `
+            <button type="button" class="btn-action resolve" onclick="window.updateReportStatus(${reportId}, 'Resolved')">
+              <i data-lucide="check" style="width:13px;height:13px;"></i>Resolve Ticket
+            </button>
+          `;
+        }
       }
     } else if (!isModal && !isResolved && isITDeptHeadUser() && (currentPage === 'pc-reports' || currentPage === 'it-head-pc-reports' || !currentPage)) {
       if (isFollowedUpToday(report)) {

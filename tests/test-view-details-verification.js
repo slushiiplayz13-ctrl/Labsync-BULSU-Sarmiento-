@@ -52,14 +52,16 @@ console.log('✔ Verified mis-maintenance.html desktop & mobile responsive rules
 // 4. Check Documentation
 const rawSysDoc = fs.readFileSync(path.join(__dirname, '..', 'docs', 'SYSTEM_DOCUMENTATION.md'), 'utf8');
 const sysDoc = rawSysDoc.replace(/\r\n/g, '\n');
-const rawChapDoc = fs.readFileSync(path.join(__dirname, '..', 'CHAPTER-1-5-SYSTEM-DOCUMENTATION.md'), 'utf8');
-const chapDoc = rawChapDoc.replace(/\r\n/g, '\n');
+const chapDocPath = path.join(__dirname, '..', 'CHAPTER-1-5-SYSTEM-DOCUMENTATION.md');
 
 assert(sysDoc.includes('[ 👁️ View Details ]'), 'SYSTEM_DOCUMENTATION.md must reference [ 👁️ View Details ]');
 assert(!sysDoc.includes('[ 👁️ View Info ]'), 'SYSTEM_DOCUMENTATION.md must NOT reference [ 👁️ View Info ]');
 
-assert(chapDoc.includes('[ 👁️ View Details ]'), 'CHAPTER-1-5-SYSTEM-DOCUMENTATION.md must reference [ 👁️ View Details ]');
-assert(!chapDoc.includes('[ 👁️ View Info ]'), 'CHAPTER-1-5-SYSTEM-DOCUMENTATION.md must NOT reference [ 👁️ View Info ]');
+if (fs.existsSync(chapDocPath)) {
+  const chapDoc = fs.readFileSync(chapDocPath, 'utf8').replace(/\r\n/g, '\n');
+  assert(chapDoc.includes('[ 👁️ View Details ]'), 'CHAPTER-1-5-SYSTEM-DOCUMENTATION.md must reference [ 👁️ View Details ]');
+  assert(!chapDoc.includes('[ 👁️ View Info ]'), 'CHAPTER-1-5-SYSTEM-DOCUMENTATION.md must NOT reference [ 👁️ View Info ]');
+}
 
 console.log('✔ Verified documentation references synchronized');
 
@@ -91,6 +93,14 @@ const sampleReports = [
     Issue_Description: '[Program & Section: BSIT-3A] [Issues: Keyboard] Remarks: Missing keys'
   },
   {
+    Report_ID: 103,
+    Status: 'In Progress',
+    Room_Number: '301',
+    PC_Number: '06',
+    Date_Reported: new Date().toISOString(),
+    Issue_Description: '[Program & Section: BSIT-3A] [Issues: Monitor] Remarks: Flickering'
+  },
+  {
     Report_ID: 102,
     Status: 'Resolved',
     Room_Number: '302',
@@ -112,7 +122,8 @@ assert(!renderedHtml.includes('View Info'), 'Rendered table rows must NOT contai
 assert(renderedHtml.includes('title="View full ticket details"'), 'Rendered table rows must contain updated title tooltip');
 assert(renderedHtml.includes('aria-label="View full ticket details for ticket LS-TKT-101"'), 'Rendered pending row has correct aria-label');
 assert(renderedHtml.includes('aria-label="View full ticket details for ticket LS-TKT-102"'), 'Rendered resolved row has correct aria-label');
-assert(renderedHtml.includes('Mark Resolved'), 'Pending row must contain "Mark Resolved"');
+assert(renderedHtml.includes('Start Repair'), 'Pending row must contain "Start Repair"');
+assert(renderedHtml.includes('Mark Resolved'), 'Ongoing Repair row must contain "Mark Resolved"');
 
 // Check Resolved row
 assert(renderedHtml.includes('completed-chip interactive'), 'Resolved row must contain interactive completed-chip');

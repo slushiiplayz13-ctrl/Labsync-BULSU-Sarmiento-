@@ -951,7 +951,7 @@
     align-items: center !important;
     justify-content: flex-start !important;
     gap: 10px !important;
-    flex-wrap: nowrap !important;
+    flex-wrap: wrap !important;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
@@ -960,7 +960,8 @@
   body[data-page="pc-reports"] .reports-controls .search-box {
     flex: 1 1 auto !important;
     min-width: 0 !important;
-    max-width: none !important;
+    max-width: 380px !important;
+    margin-left: auto !important;
     width: auto !important;
     position: relative !important;
     box-sizing: border-box !important;
@@ -980,7 +981,6 @@
     width: auto !important;
     max-width: none !important;
     box-sizing: border-box !important;
-    margin-left: auto !important;
   }
 
   body[data-page="pc-reports"] .reports-controls .toggle-completed-btn {
@@ -1645,14 +1645,75 @@
 
 }
 
-/* ─── PC Reports Responsive Controls Adaptation (Max Width: 640px) ─── */
-@media (max-width: 640px) {
+/* ─── PC Reports Tablet Controls Adaptation (Max Width: 1024px) ───── */
+@media (max-width: 1024px) {
   body[data-page="pc-reports"] .reports-controls {
+    flex-wrap: wrap !important;
     gap: 8px !important;
   }
 
+  body[data-page="pc-reports"] .quick-status-filters {
+    order: 10 !important;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    margin-top: 2px !important;
+  }
+
+  body[data-page="pc-reports"] .reports-controls .search-box {
+    order: 1 !important;
+    margin-left: 0 !important;
+    flex: 1 1 0px !important;
+    min-width: 91px !important;
+    max-width: none !important;
+  }
+
+  body[data-page="pc-reports"] #reportsFilterContainer {
+    order: 2 !important;
+  }
+
+  body[data-page="pc-reports"] #completedToggleContainer {
+    order: 3 !important;
+    margin-left: auto !important;
+  }
+}
+
+/* ─── PC Reports Responsive Controls Adaptation (Max Width: 640px) ─── */
+@media (max-width: 640px) {
+  body[data-page="pc-reports"] .reports-controls {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  body[data-page="pc-reports"] .quick-status-filters {
+    order: 10 !important;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    margin-top: 2px !important;
+  }
+
+  body[data-page="pc-reports"] .reports-controls .search-box {
+    order: 1 !important;
+    margin-left: 0 !important;
+    flex: 1 1 0px !important;
+    min-width: 91px !important;
+    max-width: none !important;
+  }
+
+  body[data-page="pc-reports"] #reportsFilterContainer {
+    order: 2 !important;
+  }
+
+  body[data-page="pc-reports"] #completedToggleContainer {
+    order: 3 !important;
+    margin-left: auto !important;
+  }
+
   body[data-page="pc-reports"] .toggle-completed-btn {
-    padding: 0 12px !important;
+    padding: 0 10px !important;
     gap: 6px !important;
     font-size: 13px !important;
   }
@@ -1664,6 +1725,18 @@
   body[data-page="pc-reports"] .toggle-completed-btn .btn-text-short {
     display: inline !important;
   }
+}
+
+@media (max-width: 430px) {
+  body[data-page="pc-reports"] .btn-reports-filter {
+    padding: 0 8px !important;
+    gap: 4px !important;
+  }
+
+  body[data-page="pc-reports"] .toggle-completed-btn {
+    padding: 0 8px !important;
+  }
+}
 
   /* Completed Tickets Modal & Card Mobile Responsive Adaptations */
   #completedTicketsModal {
@@ -1838,6 +1911,63 @@
     padding: 0 12px !important;
     box-sizing: border-box !important;
   }
+
+  /* Revert main page report cards to classic horizontal middle-row layout */
+  #dynamicReportsList .report-card .report-card-middle-row,
+  body[data-page="pc-reports"] .report-card:not(.modal-ticket-card) .report-card-middle-row,
+  .report-card:not(.modal-ticket-card) .report-card-middle-row {
+    flex-direction: row !important;
+    align-items: flex-end !important;
+    justify-content: space-between !important;
+    gap: 10px 12px !important;
+    flex-wrap: wrap !important;
+  }
+
+  #dynamicReportsList .report-card .rc-issue-block,
+  body[data-page="pc-reports"] .report-card:not(.modal-ticket-card) .rc-issue-block,
+  .report-card:not(.modal-ticket-card) .rc-issue-block {
+    width: auto !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  #dynamicReportsList .report-card .rc-badges-list,
+  body[data-page="pc-reports"] .report-card:not(.modal-ticket-card) .rc-badges-list,
+  .report-card:not(.modal-ticket-card) .rc-badges-list {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+
+  #dynamicReportsList .report-card .rc-action-block,
+  body[data-page="pc-reports"] .report-card:not(.modal-ticket-card) .rc-action-block,
+  .report-card:not(.modal-ticket-card) .rc-action-block {
+    width: auto !important;
+    flex: none !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-top: 0 !important;
+    flex-wrap: nowrap !important;
+  }
+
+  #dynamicReportsList .report-card .rc-action-block .btn-view-full-report,
+  body[data-page="pc-reports"] .report-card:not(.modal-ticket-card) .rc-action-block .btn-view-full-report,
+  .report-card:not(.modal-ticket-card) .rc-action-block .btn-view-full-report,
+  #dynamicReportsList .report-card .rc-action-block .btn-card-followup,
+  body[data-page="pc-reports"] .report-card:not(.modal-ticket-card) .rc-action-block .btn-card-followup,
+  .report-card:not(.modal-ticket-card) .rc-action-block .btn-card-followup {
+    width: auto !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    font-size: 12px !important;
+    padding: 0 12px !important;
+    justify-content: center !important;
+  }
+
 
   /* ─── Faculty Schedule Modal Responsive Layout Adaptations ───────── */
   #schedule-view-modal,
@@ -2093,12 +2223,12 @@
 /* ─── Ultra-Narrow Mobile Viewports (Max Width: 360px) ─────────────── */
 @media (max-width: 360px) {
   body[data-page="pc-reports"] .reports-controls {
-    gap: 6px !important;
+    gap: 4px !important;
   }
 
   body[data-page="pc-reports"] .toggle-completed-btn {
-    padding: 0 8px !important;
-    gap: 4px !important;
+    padding: 0 6px !important;
+    gap: 3px !important;
   }
 
   body[data-page="pc-reports"] .toggle-completed-btn .btn-text-full {

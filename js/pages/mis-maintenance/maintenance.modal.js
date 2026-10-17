@@ -330,14 +330,23 @@
     modal.className = 'modal-backdrop active';
     modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,0.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:2500;padding:20px;box-sizing:border-box;overflow-y:auto;';
 
-    let resolveBtnHtml = '';
-    if (report.Status !== 'Resolved') {
-      resolveBtnHtml = `
+    const isOngoingRepair = report.Status === 'In Progress' || report.Status === 'Ongoing Repair';
+    const isResolved = report.Status === 'Resolved';
+    let actionBtnsHtml = '';
+    if (!isResolved) {
+      actionBtnsHtml = !isOngoingRepair ? `
+        <button type="button" class="btn-start-repair" data-action="start-repair-modal" data-report-id="${report.Report_ID}" style="padding:8px 18px;font-size:13px;background:linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);color:#fff;border:none;border-radius:99px;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 1px 3px rgba(37,99,235,0.3);">
+          <i data-lucide="wrench" style="width:14px;height:14px;"></i> Start Repair
+        </button>
+      ` : `
         <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket-modal" data-report-id="${report.Report_ID}">
           <i data-lucide="check" style="width:15px;height:15px;"></i> Mark Resolved
         </button>
       `;
     }
+
+    const modalPulseClass = isResolved ? 'resolved' : (isOngoingRepair ? 'ongoing-repair' : 'pending');
+    const modalPulseText = isResolved ? 'RESOLVED' : (isOngoingRepair ? 'ONGOING REPAIR' : report.Status.toUpperCase());
 
     modal.innerHTML = `
       <div class="modal-card ticket-modal-card">
@@ -345,8 +354,8 @@
         <div class="ticket-modal-header">
           <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
             <span class="ticket-chip" style="font-size:13.5px; padding:5px 14px; font-weight:700;">LS-TKT-${report.Report_ID}</span>
-            <span class="status-badge-pulse ${report.Status === 'Resolved' ? 'resolved' : 'pending'}">
-              <span class="pulse-dot"></span> ${report.Status.toUpperCase()}
+            <span class="status-badge-pulse ${modalPulseClass}">
+              <span class="pulse-dot"></span> ${modalPulseText}
             </span>
           </div>
           <div class="ticket-modal-date">
@@ -363,7 +372,7 @@
         <!-- Footer Actions -->
         <div class="ticket-modal-footer">
           <button type="button" class="btn-ticket-modal-close" data-action="close-modal">Close</button>
-          ${resolveBtnHtml}
+          ${actionBtnsHtml}
         </div>
       </div>
     `;
@@ -399,6 +408,21 @@
         e.preventDefault();
         e.stopPropagation();
         closeTicketModal();
+        return;
+      }
+
+      // Start repair button inside modal clicked
+      const startRepairBtn = e.target.closest('[data-action="start-repair-modal"]');
+      if (startRepairBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const repId = startRepairBtn.getAttribute('data-report-id');
+        closeTicketModal();
+        if (repId && global.maintenanceActions && typeof global.maintenanceActions.updateReportStatus === 'function') {
+          global.maintenanceActions.updateReportStatus(repId, 'In Progress');
+        } else if (repId && typeof global.updateReportStatus === 'function') {
+          global.updateReportStatus(repId, 'In Progress');
+        }
         return;
       }
 

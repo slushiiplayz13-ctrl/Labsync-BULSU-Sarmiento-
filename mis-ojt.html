@@ -656,6 +656,206 @@
       color: #64748B;
     }
 
+    /* Training Type Identification Badges */
+    .ojt-training-type-badge {
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      width: fit-content;
+      line-height: 1.2;
+    }
+
+    .ojt-training-type-badge.type-internship {
+      background: rgba(30, 187, 215, 0.12);
+      color: #0284C7;
+      border: 1px solid rgba(30, 187, 215, 0.3);
+    }
+
+    .ojt-training-type-badge.type-immersion {
+      background: rgba(139, 92, 246, 0.12);
+      color: #7C3AED;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .ojt-training-type-badge.type-unspecified {
+      background: rgba(100, 116, 139, 0.1);
+      color: #64748B;
+      border: 1px dashed rgba(100, 116, 139, 0.35);
+    }
+
+    /* ─── Custom Training Type Dropdown Styling ─── */
+    .ojt-dropdown-group {
+      position: relative;
+      z-index: 50;
+    }
+
+    .ojt-custom-select-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .ojt-custom-select-wrapper .custom-select-trigger {
+      width: 100%;
+      height: 44px;
+      box-sizing: border-box;
+      padding: 0 14px;
+      border: 1.5px solid var(--border-light, #CBD5E1);
+      border-radius: 9px;
+      font-size: 13.5px;
+      outline: none;
+      background: var(--bg-card, #FFFFFF);
+      color: var(--text-dark, #0F172A);
+      font-family: var(--font-body);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.15s ease;
+      user-select: none;
+    }
+
+    .ojt-custom-select-wrapper .custom-select-trigger:hover,
+    .ojt-custom-select-wrapper.open .custom-select-trigger,
+    .ojt-custom-select-wrapper:focus-within .custom-select-trigger {
+      border-color: var(--primary-teal, #1EBBD7);
+      box-shadow: 0 0 0 3px rgba(30, 187, 215, 0.16);
+    }
+
+    .ojt-custom-select-wrapper .ojt-select-chevron {
+      width: 16px;
+      height: 16px;
+      color: #94A3B8;
+      flex-shrink: 0;
+      transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s ease;
+    }
+
+    .ojt-custom-select-wrapper.open .ojt-select-chevron {
+      transform: rotate(180deg);
+      color: var(--primary-teal, #1EBBD7);
+    }
+
+    .ojt-custom-select-wrapper .custom-select-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      width: 100%;
+      border-radius: 12px;
+      border: 1.5px solid var(--border-light, #E2E8F0);
+      background: var(--bg-card, #FFFFFF);
+      box-shadow: 0 14px 34px -4px rgba(15, 23, 42, 0.18), 0 4px 10px rgba(0, 0, 0, 0.05);
+      z-index: 2600;
+      padding: 6px;
+      box-sizing: border-box;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s;
+    }
+
+    .ojt-custom-select-wrapper.open .custom-select-dropdown {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .ojt-custom-select-wrapper .custom-select-option {
+      padding: 10px 12px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-dark, #1E293B);
+      border-radius: 9px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.16s ease;
+      user-select: none;
+      margin-bottom: 3px;
+    }
+
+    .ojt-custom-select-wrapper .custom-select-option:last-child {
+      margin-bottom: 0;
+    }
+
+    .ojt-custom-select-wrapper .custom-select-option:hover {
+      background: rgba(30, 187, 215, 0.08);
+      color: var(--primary-teal, #1EBBD7);
+    }
+
+    .ojt-custom-select-wrapper .custom-select-option.selected {
+      background: var(--primary-teal, #1EBBD7) !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 3px 10px rgba(30, 187, 215, 0.3);
+    }
+
+    .ojt-custom-select-wrapper .ojt-opt-content {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .ojt-custom-select-wrapper .ojt-type-opt-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .ojt-custom-select-wrapper .ojt-type-opt-icon.icon-internship {
+      background: rgba(30, 187, 215, 0.12);
+      color: #0284C7;
+    }
+
+    .ojt-custom-select-wrapper .ojt-type-opt-icon.icon-immersion {
+      background: rgba(139, 92, 246, 0.12);
+      color: #7C3AED;
+    }
+
+    .ojt-custom-select-wrapper .custom-select-option.selected .ojt-type-opt-icon {
+      background: rgba(255, 255, 255, 0.22) !important;
+      color: #FFFFFF !important;
+    }
+
+    .ojt-custom-select-wrapper .ojt-opt-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-align: left;
+    }
+
+    .ojt-custom-select-wrapper .ojt-opt-title {
+      font-weight: 600;
+      font-size: 13.5px;
+      line-height: 1.25;
+    }
+
+    .ojt-custom-select-wrapper .ojt-opt-sub {
+      font-size: 11.5px;
+      color: var(--text-mid, #64748B);
+      font-weight: 400;
+      line-height: 1.2;
+      transition: color 0.15s ease;
+    }
+
+    .ojt-custom-select-wrapper .custom-select-option.selected .ojt-opt-sub {
+      color: rgba(255, 255, 255, 0.88) !important;
+    }
+
+    .ojt-custom-select-wrapper .ojt-select-placeholder {
+      color: var(--text-muted, #94A3B8);
+      font-weight: 500;
+    }
+
     /* Action buttons in cell */
     .ojt-actions-wrap {
       display: flex;
@@ -971,6 +1171,83 @@
     [data-theme="dark"] .ojt-period-badge.deactivated {
       background: rgba(148, 163, 184, 0.2) !important;
       color: #94A3B8 !important;
+    }
+
+    html.dark-mode .ojt-training-type-badge.type-internship,
+    body.dark-mode .ojt-training-type-badge.type-internship,
+    html.high-contrast .ojt-training-type-badge.type-internship,
+    [data-theme="dark"] .ojt-training-type-badge.type-internship {
+      background: rgba(30, 187, 215, 0.22) !important;
+      color: #38BDF8 !important;
+      border-color: rgba(56, 189, 248, 0.4) !important;
+    }
+
+    html.dark-mode .ojt-training-type-badge.type-immersion,
+    body.dark-mode .ojt-training-type-badge.type-immersion,
+    html.high-contrast .ojt-training-type-badge.type-immersion,
+    [data-theme="dark"] .ojt-training-type-badge.type-immersion {
+      background: rgba(139, 92, 246, 0.22) !important;
+      color: #A78BFA !important;
+      border-color: rgba(167, 139, 250, 0.4) !important;
+    }
+
+    html.dark-mode .ojt-training-type-badge.type-unspecified,
+    body.dark-mode .ojt-training-type-badge.type-unspecified,
+    html.high-contrast .ojt-training-type-badge.type-unspecified,
+    [data-theme="dark"] .ojt-training-type-badge.type-unspecified {
+      background: rgba(148, 163, 184, 0.18) !important;
+      color: #94A3B8 !important;
+      border-color: rgba(148, 163, 184, 0.35) !important;
+    }
+
+    /* Custom Dropdown Dark Mode */
+    html.dark-mode .ojt-custom-select-wrapper .custom-select-trigger,
+    body.dark-mode .ojt-custom-select-wrapper .custom-select-trigger,
+    [data-theme="dark"] .ojt-custom-select-wrapper .custom-select-trigger {
+      background: var(--bg-card, #1E293B);
+      border-color: rgba(148, 163, 184, 0.25);
+      color: #F8FAFC;
+    }
+
+    html.dark-mode .ojt-custom-select-wrapper .custom-select-dropdown,
+    body.dark-mode .ojt-custom-select-wrapper .custom-select-dropdown,
+    [data-theme="dark"] .ojt-custom-select-wrapper .custom-select-dropdown {
+      background: #1E293B;
+      border-color: rgba(148, 163, 184, 0.28);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+    }
+
+    html.dark-mode .ojt-custom-select-wrapper .custom-select-option,
+    body.dark-mode .ojt-custom-select-wrapper .custom-select-option,
+    [data-theme="dark"] .ojt-custom-select-wrapper .custom-select-option {
+      color: #E2E8F0;
+    }
+
+    html.dark-mode .ojt-custom-select-wrapper .ojt-opt-sub,
+    body.dark-mode .ojt-custom-select-wrapper .ojt-opt-sub,
+    [data-theme="dark"] .ojt-custom-select-wrapper .ojt-opt-sub {
+      color: #94A3B8;
+    }
+
+    html.dark-mode .ojt-custom-select-wrapper .custom-select-option:hover,
+    body.dark-mode .ojt-custom-select-wrapper .custom-select-option:hover,
+    [data-theme="dark"] .ojt-custom-select-wrapper .custom-select-option:hover {
+      background: rgba(30, 187, 215, 0.16);
+      color: #38BDF8;
+    }
+
+    html.dark-mode .ojt-custom-select-wrapper .ojt-type-opt-icon.icon-internship,
+    body.dark-mode .ojt-custom-select-wrapper .ojt-type-opt-icon.icon-internship,
+    [data-theme="dark"] .ojt-custom-select-wrapper .ojt-type-opt-icon.icon-internship {
+      background: rgba(30, 187, 215, 0.22);
+      color: #38BDF8;
+    }
+
+    html.dark-mode .ojt-custom-select-wrapper .ojt-type-opt-icon.icon-immersion,
+    body.dark-mode .ojt-custom-select-wrapper .ojt-type-opt-icon.icon-immersion,
+    [data-theme="dark"] .ojt-custom-select-wrapper .ojt-type-opt-icon.icon-immersion {
+      background: rgba(139, 92, 246, 0.22);
+      color: #A78BFA;
     }
 
     /* ─── Mobile Table Card Transformation (<= 768px) ─── */
@@ -1845,7 +2122,7 @@
           <table class="ojt-table is-empty">
             <thead>
               <tr>
-                <th style="width: 28%;">INTERN</th>
+                <th style="width: 28%;">TRAINEE</th>
                 <th style="width: 26%;">EMAIL</th>
                 <th style="width: 20%;">OJT PERIOD</th>
                 <th style="width: 12%;">STATUS</th>
@@ -1911,6 +2188,47 @@
           <label for="addOjtPhone">Contact Phone Number (Optional)</label>
           <input type="tel" id="addOjtPhone" class="ojt-form-input" placeholder="e.g. 09123456789" />
           <span class="form-error" id="addOjtPhoneErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
+        </div>
+
+        <div class="ojt-form-group ojt-dropdown-group">
+          <label for="addOjtTrainingTypeTrigger">Training Type <span style="color: #EF4444;">*</span></label>
+          <div class="custom-select-wrapper ojt-custom-select-wrapper" id="addOjtTrainingTypeWrapper" data-value="">
+            <div class="custom-select-trigger" id="addOjtTrainingTypeTrigger" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-label="Select training category">
+              <span id="addOjtTrainingTypeDisplay" class="ojt-select-placeholder">Select training category...</span>
+              <i data-lucide="chevron-down" class="ojt-select-chevron"></i>
+            </div>
+            <div class="custom-select-dropdown" id="addOjtTrainingTypeDropdown" role="listbox">
+              <div class="custom-select-option" data-value="Internship" data-display="Internship" role="option">
+                <div class="ojt-opt-content">
+                  <div class="ojt-type-opt-icon icon-internship">
+                    <i data-lucide="graduation-cap"></i>
+                  </div>
+                  <div class="ojt-opt-text">
+                    <span class="ojt-opt-title">Internship</span>
+                    <span class="ojt-opt-sub">Fourth-year BulSU college student</span>
+                  </div>
+                </div>
+              </div>
+              <div class="custom-select-option" data-value="Work Immersion" data-display="Work Immersion" role="option">
+                <div class="ojt-opt-content">
+                  <div class="ojt-type-opt-icon icon-immersion">
+                    <i data-lucide="briefcase"></i>
+                  </div>
+                  <div class="ojt-opt-text">
+                    <span class="ojt-opt-title">Work Immersion</span>
+                    <span class="ojt-opt-sub">Senior high school student from another school</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Hidden standard select to preserve 100% contract for form submission and test scripts -->
+          <select id="addOjtTrainingType" class="ojt-form-input" style="display: none;" aria-hidden="true" tabindex="-1" required>
+            <option value="" disabled selected>Select training category...</option>
+            <option value="Internship">Internship — Fourth-year BulSU college student</option>
+            <option value="Work Immersion">Work Immersion — Senior high school student from another school</option>
+          </select>
+          <span class="form-error" id="addOjtTrainingTypeErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
         </div>
 
         <div class="ojt-form-row">
@@ -1988,6 +2306,47 @@
           <label for="editOjtPhone">Contact Phone Number</label>
           <input type="tel" id="editOjtPhone" class="ojt-form-input" />
           <span class="form-error" id="editOjtPhoneErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
+        </div>
+
+        <div class="ojt-form-group ojt-dropdown-group">
+          <label for="editOjtTrainingTypeTrigger">Training Type <span style="color: #EF4444;">*</span></label>
+          <div class="custom-select-wrapper ojt-custom-select-wrapper" id="editOjtTrainingTypeWrapper" data-value="">
+            <div class="custom-select-trigger" id="editOjtTrainingTypeTrigger" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-label="Select training category">
+              <span id="editOjtTrainingTypeDisplay" class="ojt-select-placeholder">Select training category...</span>
+              <i data-lucide="chevron-down" class="ojt-select-chevron"></i>
+            </div>
+            <div class="custom-select-dropdown" id="editOjtTrainingTypeDropdown" role="listbox">
+              <div class="custom-select-option" data-value="Internship" data-display="Internship" role="option">
+                <div class="ojt-opt-content">
+                  <div class="ojt-type-opt-icon icon-internship">
+                    <i data-lucide="graduation-cap"></i>
+                  </div>
+                  <div class="ojt-opt-text">
+                    <span class="ojt-opt-title">Internship</span>
+                    <span class="ojt-opt-sub">Fourth-year BulSU college student</span>
+                  </div>
+                </div>
+              </div>
+              <div class="custom-select-option" data-value="Work Immersion" data-display="Work Immersion" role="option">
+                <div class="ojt-opt-content">
+                  <div class="ojt-type-opt-icon icon-immersion">
+                    <i data-lucide="briefcase"></i>
+                  </div>
+                  <div class="ojt-opt-text">
+                    <span class="ojt-opt-title">Work Immersion</span>
+                    <span class="ojt-opt-sub">Senior high school student from another school</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Hidden standard select to preserve 100% contract for form submission and test scripts -->
+          <select id="editOjtTrainingType" class="ojt-form-input" style="display: none;" aria-hidden="true" tabindex="-1" required>
+            <option value="" disabled>Select training category...</option>
+            <option value="Internship">Internship — Fourth-year BulSU college student</option>
+            <option value="Work Immersion">Work Immersion — Senior high school student from another school</option>
+          </select>
+          <span class="form-error" id="editOjtTrainingTypeErr" style="color: #EF4444; font-size: 12px; display: none;"></span>
         </div>
 
         <div class="ojt-form-row">
@@ -2203,6 +2562,7 @@
   <script src="js/components/notifications.js"></script>
   <script src="js/components/sidebar-nav.js"></script>
   <script src="js/components/datepicker.js"></script>
+  <script src="js/components/custom-select.js"></script>
   <script src="js/tutorial.js"></script>
   <script src="js/core/app.js"></script>
 

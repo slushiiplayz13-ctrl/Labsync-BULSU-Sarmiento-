@@ -38,10 +38,32 @@
       document.querySelectorAll('.custom-select-wrapper').forEach(w => {
         if (w !== wrapper) {
           w.classList.remove('open');
+          const otherTrig = w.querySelector('.custom-select-trigger');
+          if (otherTrig) otherTrig.setAttribute('aria-expanded', 'false');
         }
       });
 
       wrapper.classList.toggle('open');
+      trigger.setAttribute('aria-expanded', wrapper.classList.contains('open') ? 'true' : 'false');
+    });
+
+    // Keyboard support for trigger (Enter, Space, ArrowDown to toggle, Escape to close)
+    trigger.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+          if (w !== wrapper) {
+            w.classList.remove('open');
+            const otherTrig = w.querySelector('.custom-select-trigger');
+            if (otherTrig) otherTrig.setAttribute('aria-expanded', 'false');
+          }
+        });
+        wrapper.classList.toggle('open');
+        trigger.setAttribute('aria-expanded', wrapper.classList.contains('open') ? 'true' : 'false');
+      } else if (e.key === 'Escape') {
+        wrapper.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
     });
 
     // Handle option selection
@@ -58,16 +80,24 @@
 
         const triggerSpan = trigger.querySelector('span');
         if (triggerSpan) {
-          triggerSpan.textContent = opt.textContent.trim();
+          triggerSpan.textContent = opt.getAttribute('data-display') || opt.textContent.trim();
         }
 
         options.forEach(o => o.classList.remove('selected'));
         opt.classList.add('selected');
 
         wrapper.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
 
         if (typeof onChangeCallback === 'function') {
           onChangeCallback(val);
+        }
+      });
+
+      opt.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          opt.click();
         }
       });
     }
@@ -87,6 +117,8 @@
       document.addEventListener('click', () => {
         document.querySelectorAll('.custom-select-wrapper').forEach(w => {
           w.classList.remove('open');
+          const t = w.querySelector('.custom-select-trigger');
+          if (t) t.setAttribute('aria-expanded', 'false');
         });
       });
     }
@@ -122,7 +154,7 @@
         found = true;
         opt.classList.add('selected');
         if (triggerSpan) {
-          triggerSpan.textContent = opt.textContent.trim();
+          triggerSpan.textContent = opt.getAttribute('data-display') || opt.textContent.trim();
         }
         wrapper.dataset.value = value;
       } else {

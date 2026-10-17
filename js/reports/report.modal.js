@@ -540,13 +540,22 @@
 
     let actionBtnHtml = '';
     const currentPage = document.body ? document.body.dataset.page : '';
+    const isOngoingRepair = (report.Status || '').toLowerCase() === 'in progress' || (report.Status || '').toLowerCase() === 'ongoing repair';
     if (currentPage === 'mis-pc-reports' || currentPage === 'mis-maintenance' || currentPage === 'mis-dashboard') {
       if (!isResolved) {
-        actionBtnHtml = `
-          <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket-modal" data-report-id="${report.Report_ID}" style="padding:9px 18px;font-size:13px;background:var(--primary-teal);color:#fff;border:none;border-radius:99px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
-            <i data-lucide="check" style="width:14px;height:14px;"></i> Mark Resolved
-          </button>
-        `;
+        if (!isOngoingRepair) {
+          actionBtnHtml = `
+            <button type="button" class="btn-start-repair" data-action="start-repair-modal" data-report-id="${report.Report_ID}" style="padding:9px 18px;font-size:13px;background:linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);color:#fff;border:none;border-radius:99px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 6px rgba(37,99,235,0.25);">
+              <i data-lucide="wrench" style="width:14px;height:14px;"></i> Start Repair
+            </button>
+          `;
+        } else {
+          actionBtnHtml = `
+            <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket-modal" data-report-id="${report.Report_ID}" style="padding:9px 18px;font-size:13px;background:var(--primary-teal);color:#fff;border:none;border-radius:99px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+              <i data-lucide="check" style="width:14px;height:14px;"></i> Mark Resolved
+            </button>
+          `;
+        }
       }
     } else if (!isResolved && isITDeptHeadUser()) {
       const isTodayFollowUp = Boolean(
@@ -641,7 +650,7 @@
             <div>
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <h3 id="fullReportModalTitle" style="font-size:18px; font-weight:800; color:var(--text-dark); margin:0;">Ticket #${escapeFn(String(report.Report_ID || reportId))}</h3>
-                <span class="status-badge ${isResolved ? 'resolved' : 'pending'}" style="font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; text-transform:uppercase; letter-spacing:0.5px; background:${isResolved ? '#DCFCE7' : '#FEF3C7'}; color:${isResolved ? '#15803D' : '#D97706'}; display:inline-flex; align-items:center; justify-content:center; line-height:1.2;">${isResolved ? 'RESOLVED' : escapeFn((report.Status || 'PENDING').toUpperCase())}</span>
+                <span class="status-badge ${isResolved ? 'resolved' : (isOngoingRepair ? 'ongoing-repair' : 'pending')}" style="font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; text-transform:uppercase; letter-spacing:0.5px; background:${isResolved ? '#DCFCE7' : (isOngoingRepair ? '#EFF6FF' : '#FEF3C7')}; color:${isResolved ? '#15803D' : (isOngoingRepair ? '#2563EB' : '#D97706')}; display:inline-flex; align-items:center; justify-content:center; line-height:1.2;">${isResolved ? 'RESOLVED' : (isOngoingRepair ? 'ONGOING REPAIR' : escapeFn((report.Status || 'PENDING').toUpperCase()))}</span>
               </div>
               <div style="font-size:12.5px; color:var(--text-muted); margin-top:4px; font-weight:500;">
                 ${headerSubtitle}
@@ -714,6 +723,19 @@
 
       if (e.target.id === 'ticket-details-modal') {
         e.stopPropagation();
+        return;
+      }
+
+      // Start repair inside details modal
+      const startRepairModalBtn = e.target.closest('[data-action="start-repair-modal"]');
+      if (startRepairModalBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const reportId = startRepairModalBtn.getAttribute('data-report-id');
+        closeTicketModal();
+        if (reportId && typeof global.updateReportStatus === 'function') {
+          global.updateReportStatus(reportId, 'In Progress');
+        }
         return;
       }
 

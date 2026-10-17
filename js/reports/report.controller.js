@@ -152,16 +152,30 @@
       }
     }
 
+    const curStatus = (activeFilters.status || '').toLowerCase().trim();
+    const isPendingActive = curStatus === 'pending';
+    const isOngoingActive = curStatus === 'in progress' || curStatus === 'ongoing repair';
+
+    // Candidate active reports matching query & all other non-status filters to calculate live counts
+    const candidateActiveReports = reports.filter(r => {
+      const isNotResolved = (r.Status || r.status || '').toLowerCase() !== 'resolved';
+      if (!isNotResolved) return false;
+      const filtersWithoutStatus = { ...activeFilters, status: '' };
+      return matchQueryFn(r, query) && matchFiltersFn(r, filtersWithoutStatus);
+    });
+    const pendingCount = candidateActiveReports.filter(r => (r.Status || r.status || '').toLowerCase() === 'pending').length;
+    const ongoingCount = candidateActiveReports.filter(r => {
+      const s = (r.Status || r.status || '').toLowerCase();
+      return s === 'in progress' || s === 'ongoing repair';
+    }).length;
+
     let htmlContent = '';
     const renderSingleCardFn = (global.reportRenderer && global.reportRenderer.renderSingleCard) || global.renderSingleCard;
 
     if (activeReports.length > 0) {
       htmlContent += `
         <div class="report-section active-section">
-          <div class="report-section-header" style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid var(--border-light); flex-shrink:0;">
-            <div style="width:10px; height:10px; border-radius:50%; background:#F59E0B; box-shadow:0 0 8px rgba(245,158,11,0.5);"></div>
-            <h4 style="font-size:14px; font-weight:700; color:var(--text-dark); text-transform:uppercase; letter-spacing:0.5px;">Active Tickets (${activeReports.length})</h4>
-          </div>
+          <h4 class="sr-only">Active Tickets (${activeReports.length})</h4>
           <div class="reports-list">
             ${activeReports.map(r => renderSingleCardFn(r)).join('')}
           </div>
@@ -170,10 +184,7 @@
     } else if (isResolvedStatusFilter && resolvedReports.length > 0) {
       htmlContent += `
         <div class="report-section resolved-section">
-          <div class="report-section-header" style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid var(--border-light); flex-shrink:0;">
-            <div style="width:10px; height:10px; border-radius:50%; background:#10B981; box-shadow:0 0 8px rgba(16,185,129,0.5);"></div>
-            <h4 style="font-size:14px; font-weight:700; color:var(--text-dark); text-transform:uppercase; letter-spacing:0.5px;">Resolved Tickets (${resolvedReports.length})</h4>
-          </div>
+          <h4 class="sr-only">Resolved Tickets (${resolvedReports.length})</h4>
           <div class="reports-list">
             ${resolvedReports.map(r => renderSingleCardFn(r)).join('')}
           </div>
@@ -185,6 +196,25 @@
 
     if (!htmlContent) {
       if (activeFiltersCount > 0 || query) {
+        if (isPendingActive || isOngoingActive) {
+          container.innerHTML = `
+            <div class="report-section active-section">
+              <h4 class="sr-only">Active Tickets (0)</h4>
+              <div class="ui-empty-state">
+                <div class="ui-empty-icon">
+                  <i data-lucide="file-bar-chart-2" style="width:24px;height:24px;"></i>
+                </div>
+                <p>No active PC issue reports match status <strong>${isPendingActive ? 'Pending' : 'Ongoing Repair'}</strong>.</p>
+                <button type="button" class="btn-clear-empty-filters" onclick="if(window.reportController)window.reportController.clearStatusFilter()">Clear Status Filter</button>
+              </div>
+            </div>
+          `;
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons();
+          }
+          syncFilterUI(activeFiltersCount, 0);
+          return;
+        }
         if (resolvedReports.length > 0 && !isResolvedStatusFilter) {
           container.innerHTML = `
             <div class="ui-empty-state">
@@ -250,9 +280,16 @@
     const activeFilters = (filters && typeof filters.getActiveFilters === 'function')
       ? filters.getActiveFilters()
       : {};
-    const count = typeof activeCount === 'number'
-      ? activeCount
-      : (filters && typeof filters.countActiveFilters === 'function' ? filters.countActiveFilters(activeFilters) : 0);
+
+    // Count advanced modal filters (status is handled separately by toolbar quick filter pills)
+    let advancedCount = 0;
+    if (activeFilters.issueType) advancedCount++;
+    if (activeFilters.roomNumber) advancedCount++;
+    if (activeFilters.pcNumber) advancedCount++;
+    if (activeFilters.dateFrom || activeFilters.dateTo) advancedCount++;
+    if (activeFilters.section) advancedCount++;
+
+    const count = advancedCount;
 
     const filterBtn = document.getElementById('btnReportsFilter');
     const badge = document.getElementById('reportsFilterBadge');
@@ -274,35 +311,78 @@
     const escapeFn = getEscapeFn();
 
     if (filterBar && chipsContainer) {
-      if (count > 0) {
+      let chipsHtml = '';
+      if (activeFilters.issueType) {
+        chipsHtml += `<span class="active-filter-chip">Issue: ${escapeFn(activeFilters.issueType)} <button type="button" class="chip-remove" data-clear-prop="issueType" aria-label="Remove issue type filter">×</button></span>`;
+      }
+      if (activeFilters.roomNumber) {
+        chipsHtml += `<span class="active-filter-chip">Room: ${escapeFn(activeFilters.roomNumber)} <button type="button" class="chip-remove" data-clear-prop="roomNumber" aria-label="Remove room filter">×</button></span>`;
+      }
+      if (activeFilters.pcNumber) {
+        chipsHtml += `<span class="active-filter-chip">PC: ${escapeFn(activeFilters.pcNumber)} <button type="button" class="chip-remove" data-clear-prop="pcNumber" aria-label="Remove PC number filter">×</button></span>`;
+      }
+      if (activeFilters.dateFrom || activeFilters.dateTo) {
+        const dateLabel = activeFilters.dateFrom && activeFilters.dateTo
+          ? `${activeFilters.dateFrom} to ${activeFilters.dateTo}`
+          : activeFilters.dateFrom ? `From ${activeFilters.dateFrom}` : `Up to ${activeFilters.dateTo}`;
+        chipsHtml += `<span class="active-filter-chip">Date: ${escapeFn(dateLabel)} <button type="button" class="chip-remove" data-clear-prop="dates" aria-label="Remove date range filter">×</button></span>`;
+      }
+      if (activeFilters.section) {
+        chipsHtml += `<span class="active-filter-chip">Section: ${escapeFn(activeFilters.section)} <button type="button" class="chip-remove" data-clear-prop="section" aria-label="Remove section filter">×</button></span>`;
+      }
+
+      if (chipsHtml.trim().length > 0) {
         filterBar.style.display = 'flex';
-        let chipsHtml = '';
-        if (activeFilters.issueType) {
-          chipsHtml += `<span class="active-filter-chip">Issue: ${escapeFn(activeFilters.issueType)} <button type="button" class="chip-remove" data-clear-prop="issueType" aria-label="Remove issue type filter">×</button></span>`;
-        }
-        if (activeFilters.roomNumber) {
-          chipsHtml += `<span class="active-filter-chip">Room: ${escapeFn(activeFilters.roomNumber)} <button type="button" class="chip-remove" data-clear-prop="roomNumber" aria-label="Remove room filter">×</button></span>`;
-        }
-        if (activeFilters.pcNumber) {
-          chipsHtml += `<span class="active-filter-chip">PC: ${escapeFn(activeFilters.pcNumber)} <button type="button" class="chip-remove" data-clear-prop="pcNumber" aria-label="Remove PC number filter">×</button></span>`;
-        }
-        if (activeFilters.status) {
-          chipsHtml += `<span class="active-filter-chip">Status: ${escapeFn(activeFilters.status)} <button type="button" class="chip-remove" data-clear-prop="status" aria-label="Remove status filter">×</button></span>`;
-        }
-        if (activeFilters.dateFrom || activeFilters.dateTo) {
-          const dateLabel = activeFilters.dateFrom && activeFilters.dateTo
-            ? `${activeFilters.dateFrom} to ${activeFilters.dateTo}`
-            : activeFilters.dateFrom ? `From ${activeFilters.dateFrom}` : `Up to ${activeFilters.dateTo}`;
-          chipsHtml += `<span class="active-filter-chip">Date: ${escapeFn(dateLabel)} <button type="button" class="chip-remove" data-clear-prop="dates" aria-label="Remove date range filter">×</button></span>`;
-        }
-        if (activeFilters.section) {
-          chipsHtml += `<span class="active-filter-chip">Section: ${escapeFn(activeFilters.section)} <button type="button" class="chip-remove" data-clear-prop="section" aria-label="Remove section filter">×</button></span>`;
-        }
         chipsContainer.innerHTML = chipsHtml;
       } else {
         filterBar.style.display = 'none';
         chipsContainer.innerHTML = '';
       }
+    }
+
+    // Synchronize Quick Status Filter buttons (.btn-quick-filter, .filter-pill)
+    const curStatus = (activeFilters.status || '').toLowerCase().trim();
+    const isPendingActive = curStatus === 'pending';
+    const isOngoingActive = curStatus === 'in progress' || curStatus === 'ongoing repair';
+    const isAllActive = !isPendingActive && !isOngoingActive;
+
+    const allBtn = document.getElementById('quickFilterAll') || document.getElementById('btnQuickFilterAll') || document.getElementById('filter-all');
+    const pendingBtn = document.getElementById('quickFilterPending') || document.getElementById('btnQuickFilterPending');
+    const ongoingBtn = document.getElementById('quickFilterOngoing') || document.getElementById('btnQuickFilterOngoing');
+    const clearStatusBtn = document.getElementById('quickFilterClear') || document.getElementById('btnQuickFilterClear');
+
+    if (allBtn) {
+      if (isAllActive) {
+        allBtn.classList.add('active');
+        allBtn.setAttribute('aria-pressed', 'true');
+      } else {
+        allBtn.classList.remove('active');
+        allBtn.setAttribute('aria-pressed', 'false');
+      }
+    }
+
+    if (pendingBtn) {
+      if (isPendingActive) {
+        pendingBtn.classList.add('active');
+        pendingBtn.setAttribute('aria-pressed', 'true');
+      } else {
+        pendingBtn.classList.remove('active');
+        pendingBtn.setAttribute('aria-pressed', 'false');
+      }
+    }
+
+    if (ongoingBtn) {
+      if (isOngoingActive) {
+        ongoingBtn.classList.add('active');
+        ongoingBtn.setAttribute('aria-pressed', 'true');
+      } else {
+        ongoingBtn.classList.remove('active');
+        ongoingBtn.setAttribute('aria-pressed', 'false');
+      }
+    }
+
+    if (clearStatusBtn) {
+      clearStatusBtn.style.display = (isPendingActive || isOngoingActive) ? 'inline-flex' : 'none';
     }
   }
 
@@ -710,6 +790,54 @@
   }
 
   /**
+   * Toggles or applies a quick status filter (Pending or Ongoing Repair).
+   * Clicking an active status filter deselects it and restores all reports.
+   * @param {string} targetStatus - 'Pending' | 'In Progress' | 'Ongoing Repair' | ''
+   */
+  function setQuickStatusFilter(targetStatus) {
+    const filters = global.reportFilters;
+    if (!filters || typeof filters.getActiveFilters !== 'function') return;
+
+    const cur = filters.getActiveFilters();
+    const curStatus = (cur.status || '').toLowerCase().trim();
+    const target = (targetStatus || '').toLowerCase().trim();
+
+    if (target === 'pending') {
+      cur.status = curStatus === 'pending' ? '' : 'Pending';
+    } else if (target === 'in progress' || target === 'ongoing repair') {
+      const isAlreadyOngoing = curStatus === 'in progress' || curStatus === 'ongoing repair';
+      cur.status = isAlreadyOngoing ? '' : 'In Progress';
+    } else {
+      cur.status = '';
+    }
+
+    if (typeof filters.setActiveFilters === 'function') {
+      filters.setActiveFilters(cur);
+    }
+
+    const statusSelect = document.getElementById('filterStatus');
+    if (statusSelect) {
+      statusSelect.value = cur.status;
+    }
+    syncFilterCustomSelectUI('filterStatus', 'customSelectStatus', 'All Statuses');
+
+    renderReports();
+
+    const modal = document.getElementById('completedTicketsModal');
+    if (modal && modal.style.display !== 'none') {
+      const filterCompletedFn = (global.reportModal && global.reportModal.filterCompletedTickets) || global.filterCompletedTickets;
+      if (filterCompletedFn) filterCompletedFn();
+    }
+  }
+
+  /**
+   * Clears any active status filter and restores full active reports list.
+   */
+  function clearStatusFilter() {
+    setQuickStatusFilter('');
+  }
+
+  /**
    * Binds click and change events for the filter button and panel.
    */
   function initFilterControls() {
@@ -721,6 +849,64 @@
     const roomSelect = document.getElementById('filterRoomNumber');
     const dropdown = document.getElementById('reportsFilterDropdown');
     const chipsContainer = document.getElementById('reportsActiveFilterChips');
+
+    // Quick Status Filter buttons
+    const quickAllBtn = document.getElementById('quickFilterAll') || document.getElementById('btnQuickFilterAll') || document.getElementById('filter-all');
+    const quickPendingBtn = document.getElementById('quickFilterPending') || document.getElementById('btnQuickFilterPending');
+    const quickOngoingBtn = document.getElementById('quickFilterOngoing') || document.getElementById('btnQuickFilterOngoing');
+    const quickClearBtnStatus = document.getElementById('quickFilterClear') || document.getElementById('btnQuickFilterClear');
+
+    if (quickAllBtn) {
+      quickAllBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearStatusFilter();
+      });
+    }
+
+    if (quickPendingBtn) {
+      quickPendingBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setQuickStatusFilter('Pending');
+      });
+    }
+
+    if (quickOngoingBtn) {
+      quickOngoingBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setQuickStatusFilter('In Progress');
+      });
+    }
+
+    if (quickClearBtnStatus) {
+      quickClearBtnStatus.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearStatusFilter();
+      });
+    }
+
+    // Document event delegation for quick filter clicks
+    document.addEventListener('click', (e) => {
+      const qBtn = e.target.closest('.btn-quick-filter, .filter-pill, [data-action="filter-pending"], [data-action="filter-ongoing"]');
+      if (qBtn) {
+        e.stopPropagation();
+        const rawStatus = qBtn.dataset.status !== undefined ? qBtn.dataset.status : (
+          qBtn.id && qBtn.id.toLowerCase().includes('pending') ? 'Pending' :
+          qBtn.id && qBtn.id.toLowerCase().includes('ongoing') ? 'In Progress' : ''
+        );
+        setQuickStatusFilter(rawStatus);
+        return;
+      }
+      const cBtn = e.target.closest('.btn-quick-filter-clear, [data-action="clear-status-filter"]');
+      if (cBtn) {
+        e.stopPropagation();
+        clearStatusFilter();
+        return;
+      }
+    });
+
+    if (global.lucide && typeof global.lucide.createIcons === 'function') {
+      global.lucide.createIcons();
+    }
 
     setupFilterCustomSelectEvents();
 
@@ -945,12 +1131,16 @@
     closeFilterDropdown,
     applyFiltersFromUI,
     resetAllFilters,
-    syncFilterUI
+    syncFilterUI,
+    setQuickStatusFilter,
+    clearStatusFilter
   };
 
   global.reportController = reportController;
   global.loadReports = loadReports;
   global.renderReports = renderReports;
   global.resetAllFilters = resetAllFilters;
+  global.setQuickStatusFilter = setQuickStatusFilter;
+  global.clearStatusFilter = clearStatusFilter;
 
 })(typeof window !== 'undefined' ? window : this);

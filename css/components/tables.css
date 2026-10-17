@@ -637,6 +637,54 @@ html.high-contrast .maintenance-empty-text.error {
     flex-shrink: 0 !important;
     display: inline-block !important;
   }
+
+  .table-actions-cluster .btn-start-repair {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    padding: 0 10px !important;
+    border-radius: 99px !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    font-family: var(--font-body, inherit) !important;
+    line-height: 1 !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    width: 130px !important;
+    min-width: 122px !important;
+    max-width: 130px !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .table-actions-cluster .btn-start-repair:hover {
+    background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.4) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .table-actions-cluster .btn-start-repair:active {
+    transform: translateY(0) !important;
+  }
+
+  .table-actions-cluster .btn-start-repair i,
+  .table-actions-cluster .btn-start-repair svg {
+    width: 14px !important;
+    height: 14px !important;
+    stroke-width: 2.2 !important;
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+  }
 }
 
 .btn-view-ticket-info {
@@ -1460,12 +1508,15 @@ html.high-contrast .table-container tbody tr:hover {
   }
 
   .maint-table .btn-view-ticket-info,
+  .maint-table .btn-start-repair,
   .maint-table .btn-resolve-ticket,
   .maint-table .completed-chip,
   .maint-table .completed-label,
   .maint-table .btn-completed,
+  .maint-mobile-card .btn-start-repair,
   .maint-mobile-card .btn-resolve-ticket,
   .maint-mobile-card .completed-chip,
+  .ticket-card-mobile .btn-start-repair,
   .ticket-card-mobile .btn-resolve-ticket,
   .ticket-card-mobile .completed-chip {
     width: 100% !important;

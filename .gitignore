@@ -12,6 +12,7 @@ LabSync_ESP32/secrets.h
 
 # Temporary/scratch scripts & test caches
 scratch/
+backups/
 tests/temp-*
 tests/*.png
 *temp-chrome*

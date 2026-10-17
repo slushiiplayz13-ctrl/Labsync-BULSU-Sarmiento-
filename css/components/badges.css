@@ -126,7 +126,8 @@
   color: #D97706;
 }
 
-.status-pill.in-progress {
+.status-pill.in-progress,
+.status-pill.ongoing-repair {
   background: #DBEAFE;
   color: #2563EB;
 }
@@ -149,7 +150,11 @@ html.high-contrast .status-pill.pending {
 html.dark-mode .status-pill.in-progress,
 body.dark-mode .status-pill.in-progress,
 [data-theme="dark"] .status-pill.in-progress,
-html.high-contrast .status-pill.in-progress {
+html.high-contrast .status-pill.in-progress,
+html.dark-mode .status-pill.ongoing-repair,
+body.dark-mode .status-pill.ongoing-repair,
+[data-theme="dark"] .status-pill.ongoing-repair,
+html.high-contrast .status-pill.ongoing-repair {
   background: rgba(59, 130, 246, 0.18) !important;
   color: #60A5FA !important;
   border: 1px solid rgba(59, 130, 246, 0.35) !important;

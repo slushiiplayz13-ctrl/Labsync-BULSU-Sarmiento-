@@ -257,7 +257,8 @@
         const name = String(u.Name || u.name || '').toLowerCase();
         const email = String(u.Email || u.email || '').toLowerCase();
         const phone = String(u.Phone || u.phone || '').toLowerCase();
-        return name.includes(query) || email.includes(query) || phone.includes(query);
+        const type = String(u.Training_Type || u.trainingType || '').toLowerCase();
+        return name.includes(query) || email.includes(query) || phone.includes(query) || type.includes(query);
       }
 
       return true;
@@ -342,14 +343,28 @@
         `;
       }
 
+      // Training Type badge markup
+      const rawType = u.Training_Type || u.trainingType || null;
+      let trainingTypeBadge = '';
+      if (rawType === 'Internship') {
+        trainingTypeBadge = '<span class="ojt-training-type-badge type-internship" title="BulSU Fourth-Year College Internship"><i data-lucide="graduation-cap" style="width:11px;height:11px;"></i>Internship</span>';
+      } else if (rawType === 'Work Immersion') {
+        trainingTypeBadge = '<span class="ojt-training-type-badge type-immersion" title="Senior High School Work Immersion"><i data-lucide="briefcase" style="width:11px;height:11px;"></i>Work Immersion</span>';
+      } else {
+        trainingTypeBadge = '<span class="ojt-training-type-badge type-unspecified" title="Training category not specified"><i data-lucide="help-circle" style="width:11px;height:11px;"></i>Not Specified</span>';
+      }
+
       html += `
         <tr data-user-id="${userId}">
-          <!-- Intern Column -->
+          <!-- Trainee Column -->
           <td>
             <div class="ojt-intern-cell">
               <div class="ojt-avatar">${avatarContent}</div>
-              <div>
-                <div class="ojt-name">${escapeHtml(name)}</div>
+              <div style="min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                  <span class="ojt-name">${escapeHtml(name)}</span>
+                  ${trainingTypeBadge}
+                </div>
                 <div class="ojt-sub">${phone ? escapeHtml(phone) : 'On-the-Job Trainee'}</div>
               </div>
             </div>
@@ -506,6 +521,57 @@
     if (window.LabSyncDatePicker && typeof window.LabSyncDatePicker.close === 'function') {
       window.LabSyncDatePicker.close();
     }
+    // Close any open custom select dropdowns
+    document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+      w.classList.remove('open');
+      const trig = w.querySelector('.custom-select-trigger');
+      if (trig) trig.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  /**
+   * Sets the visual and programmatic value for the custom Training Type dropdown
+   * @param {'add'|'edit'} prefix
+   * @param {string} val - 'Internship' | 'Work Immersion' | ''
+   */
+  function setTrainingTypeValue(prefix, val) {
+    const wrapper = document.getElementById(`${prefix}OjtTrainingTypeWrapper`);
+    const select = document.getElementById(`${prefix}OjtTrainingType`);
+    const display = document.getElementById(`${prefix}OjtTrainingTypeDisplay`);
+    const trigger = document.getElementById(`${prefix}OjtTrainingTypeTrigger`);
+
+    const cleanVal = (val === 'Internship' || val === 'Work Immersion') ? val : '';
+
+    if (select) {
+      select.value = cleanVal;
+    }
+
+    if (wrapper) {
+      wrapper.dataset.value = cleanVal;
+      const options = wrapper.querySelectorAll('.custom-select-option');
+      options.forEach(opt => {
+        const optVal = opt.getAttribute('data-value');
+        opt.classList.toggle('selected', optVal === cleanVal);
+      });
+    }
+
+    if (display) {
+      if (cleanVal === 'Internship') {
+        display.textContent = 'Internship';
+        display.classList.remove('ojt-select-placeholder');
+      } else if (cleanVal === 'Work Immersion') {
+        display.textContent = 'Work Immersion';
+        display.classList.remove('ojt-select-placeholder');
+      } else {
+        display.textContent = 'Select training category...';
+        display.classList.add('ojt-select-placeholder');
+      }
+    }
+
+    if (trigger) {
+      trigger.style.borderColor = '';
+      trigger.style.boxShadow = '';
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -514,6 +580,8 @@
   function openAddModal() {
     const form = document.getElementById('formAddOjt');
     if (form) form.reset();
+
+    setTrainingTypeValue('add', '');
 
     // Default dates: start today, end in 60 days
     const today = new Date();
@@ -536,6 +604,7 @@
     const name = document.getElementById('addOjtName')?.value.trim();
     const email = document.getElementById('addOjtEmail')?.value.trim();
     const phone = document.getElementById('addOjtPhone')?.value.trim();
+    const trainingType = document.getElementById('addOjtTrainingType')?.value;
     const startDate = document.getElementById('addOjtStartDate')?.value;
     const endDate = document.getElementById('addOjtEndDate')?.value;
 
@@ -551,6 +620,16 @@
 
     if (!email || !email.includes('@')) {
       showFieldError('addOjtEmailErr', 'A valid email address is required.');
+      hasError = true;
+    }
+
+    if (!trainingType || (trainingType !== 'Internship' && trainingType !== 'Work Immersion')) {
+      showFieldError('addOjtTrainingTypeErr', 'Please select a valid training type (Internship or Work Immersion).');
+      const trig = document.getElementById('addOjtTrainingTypeTrigger');
+      if (trig) {
+        trig.style.borderColor = '#EF4444';
+        trig.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.15)';
+      }
       hasError = true;
     }
 
@@ -576,7 +655,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ name, email, phone: phone || null, startDate, endDate })
+        body: JSON.stringify({ name, email, phone: phone || null, trainingType, startDate, endDate })
       });
 
       const resData = await response.json();
@@ -620,6 +699,7 @@
     const curName = (document.getElementById('editOjtName')?.value || '').trim();
     const curEmail = (document.getElementById('editOjtEmail')?.value || '').trim();
     const curPhone = (document.getElementById('editOjtPhone')?.value || '').trim();
+    const curTrainingType = (document.getElementById('editOjtTrainingType')?.value || '').trim();
     const curStart = (document.getElementById('editOjtStartDate')?.value || '').trim();
     const curEnd = (document.getElementById('editOjtEndDate')?.value || '').trim();
 
@@ -627,6 +707,7 @@
       curName !== _editBaseline.name ||
       curEmail !== _editBaseline.email ||
       curPhone !== _editBaseline.phone ||
+      curTrainingType !== _editBaseline.trainingType ||
       curStart !== _editBaseline.startDate ||
       curEnd !== _editBaseline.endDate
     );
@@ -639,10 +720,12 @@
     const hasChanges = checkEditHasChanges();
     const curName = (document.getElementById('editOjtName')?.value || '').trim();
     const curEmail = (document.getElementById('editOjtEmail')?.value || '').trim();
+    const curTrainingType = (document.getElementById('editOjtTrainingType')?.value || '').trim();
     const curStart = (document.getElementById('editOjtStartDate')?.value || '').trim();
     const curEnd = (document.getElementById('editOjtEndDate')?.value || '').trim();
 
-    const isValid = curName.length >= 2 && !/\d/.test(curName) && curEmail.includes('@') && curStart && curEnd && curStart <= curEnd;
+    const isTypeValid = curTrainingType === 'Internship' || curTrainingType === 'Work Immersion';
+    const isValid = curName.length >= 2 && !/\d/.test(curName) && curEmail.includes('@') && isTypeValid && curStart && curEnd && curStart <= curEnd;
 
     if (hasChanges && isValid) {
       btnSubmit.disabled = false;
@@ -671,6 +754,7 @@
     const nameVal = user.Name || user.name || '';
     const emailVal = user.Email || user.email || '';
     const phoneVal = user.Phone || user.phone || '';
+    const typeVal = user.Training_Type || user.trainingType || '';
     const startVal = String(user.OJT_Start_Date || user.startDate || '').split('T')[0];
     const endVal = String(user.OJT_End_Date || user.endDate || '').split('T')[0];
 
@@ -678,6 +762,12 @@
     document.getElementById('editOjtName').value = nameVal;
     document.getElementById('editOjtEmail').value = emailVal;
     document.getElementById('editOjtPhone').value = phoneVal;
+
+    const editTypeSelect = document.getElementById('editOjtTrainingType');
+    if (editTypeSelect) {
+      editTypeSelect.value = (typeVal === 'Internship' || typeVal === 'Work Immersion') ? typeVal : '';
+    }
+    setTrainingTypeValue('edit', typeVal);
 
     const startInput = document.getElementById('editOjtStartDate');
     const endInput = document.getElementById('editOjtEndDate');
@@ -688,6 +778,7 @@
       name: nameVal.trim(),
       email: emailVal.trim(),
       phone: phoneVal.trim(),
+      trainingType: (typeVal === 'Internship' || typeVal === 'Work Immersion') ? typeVal : '',
       startDate: startVal.trim(),
       endDate: endVal.trim()
     };
@@ -708,6 +799,7 @@
     const name = document.getElementById('editOjtName')?.value.trim();
     const email = document.getElementById('editOjtEmail')?.value.trim();
     const phone = document.getElementById('editOjtPhone')?.value.trim();
+    const trainingType = document.getElementById('editOjtTrainingType')?.value;
     const startDate = document.getElementById('editOjtStartDate')?.value;
     const endDate = document.getElementById('editOjtEndDate')?.value;
 
@@ -723,6 +815,16 @@
 
     if (!email || !email.includes('@')) {
       showFieldError('editOjtEmailErr', 'A valid email address is required.');
+      hasError = true;
+    }
+
+    if (!trainingType || (trainingType !== 'Internship' && trainingType !== 'Work Immersion')) {
+      showFieldError('editOjtTrainingTypeErr', 'Please select a valid training type (Internship or Work Immersion).');
+      const trig = document.getElementById('editOjtTrainingTypeTrigger');
+      if (trig) {
+        trig.style.borderColor = '#EF4444';
+        trig.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.15)';
+      }
       hasError = true;
     }
 
@@ -748,7 +850,7 @@
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ name, email, phone: phone || null, startDate, endDate })
+        body: JSON.stringify({ name, email, phone: phone || null, trainingType, startDate, endDate })
       });
 
       const resData = await response.json();
@@ -1057,6 +1159,11 @@
       e.textContent = '';
       e.style.display = 'none';
     });
+    const trig = document.getElementById(`${prefix}OjtTrainingTypeTrigger`);
+    if (trig) {
+      trig.style.borderColor = '';
+      trig.style.boxShadow = '';
+    }
   }
 
   function setFilter(filterKey) {
@@ -1223,6 +1330,56 @@
     // Modal open buttons
     document.getElementById('btnAddOjt')?.addEventListener('click', openAddModal);
 
+    // Initialize Custom Training Type Select Components
+    if (typeof global.initCustomSelect === 'function') {
+      global.initCustomSelect('addOjtTrainingTypeWrapper', (val) => {
+        const select = document.getElementById('addOjtTrainingType');
+        if (select) {
+          select.value = val;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          select.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        const disp = document.getElementById('addOjtTrainingTypeDisplay');
+        if (disp) {
+          disp.classList.remove('ojt-select-placeholder');
+        }
+        const trig = document.getElementById('addOjtTrainingTypeTrigger');
+        if (trig) {
+          trig.style.borderColor = '';
+          trig.style.boxShadow = '';
+        }
+        const err = document.getElementById('addOjtTrainingTypeErr');
+        if (err) {
+          err.textContent = '';
+          err.style.display = 'none';
+        }
+      });
+
+      global.initCustomSelect('editOjtTrainingTypeWrapper', (val) => {
+        const select = document.getElementById('editOjtTrainingType');
+        if (select) {
+          select.value = val;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          select.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        const disp = document.getElementById('editOjtTrainingTypeDisplay');
+        if (disp) {
+          disp.classList.remove('ojt-select-placeholder');
+        }
+        const trig = document.getElementById('editOjtTrainingTypeTrigger');
+        if (trig) {
+          trig.style.borderColor = '';
+          trig.style.boxShadow = '';
+        }
+        const err = document.getElementById('editOjtTrainingTypeErr');
+        if (err) {
+          err.textContent = '';
+          err.style.display = 'none';
+        }
+        updateEditSaveButtonState();
+      });
+    }
+
     // Modal forms
     document.getElementById('formAddOjt')?.addEventListener('submit', handleAddSubmit);
     document.getElementById('formEditOjt')?.addEventListener('submit', handleEditSubmit);
@@ -1233,7 +1390,24 @@
       formEditOjt.addEventListener('input', updateEditSaveButtonState);
       formEditOjt.addEventListener('change', updateEditSaveButtonState);
     }
-    const editInputIds = ['editOjtName', 'editOjtEmail', 'editOjtPhone', 'editOjtStartDate', 'editOjtEndDate'];
+    // Add & Edit form input error clearing
+    const addInputIds = ['addOjtName', 'addOjtEmail', 'addOjtPhone', 'addOjtTrainingType', 'addOjtStartDate', 'addOjtEndDate'];
+    addInputIds.forEach(id => {
+      const inputEl = document.getElementById(id);
+      if (inputEl) {
+        const handler = () => {
+          const errEl = document.getElementById(`${id}Err`) || (id === 'addOjtStartDate' || id === 'addOjtEndDate' ? document.getElementById('addOjtDateErr') : null);
+          if (errEl) {
+            errEl.textContent = '';
+            errEl.style.display = 'none';
+          }
+        };
+        inputEl.addEventListener('input', handler);
+        inputEl.addEventListener('change', handler);
+      }
+    });
+
+    const editInputIds = ['editOjtName', 'editOjtEmail', 'editOjtPhone', 'editOjtTrainingType', 'editOjtStartDate', 'editOjtEndDate'];
     editInputIds.forEach(id => {
       const inputEl = document.getElementById(id);
       if (inputEl) {

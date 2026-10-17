@@ -35,23 +35,28 @@
   async function updateReportStatus(reportId, newStatus, onComplete) {
     const confirmFn = global.showConfirmModal || (typeof window !== 'undefined' ? window.showConfirmModal : null);
     let confirmed = false;
+    const isResolved = newStatus === 'Resolved';
+    const isOngoingRepair = newStatus === 'In Progress' || newStatus === 'Ongoing Repair';
+    const displayStatus = isOngoingRepair ? 'Ongoing Repair' : newStatus;
 
     if (typeof confirmFn === 'function') {
-      const isResolved = newStatus === 'Resolved';
       confirmed = await confirmFn({
-        title: isResolved ? 'Mark Issue Resolved' : 'Update Ticket Status',
+        title: isResolved ? 'Mark Issue Resolved' : (isOngoingRepair ? 'Start Repair' : 'Update Ticket Status'),
         message: isResolved
           ? `Mark the reported issue for Ticket LS-TKT-${reportId} as resolved?`
-          : `Are you sure you want to set Ticket LS-TKT-${reportId} status to '${newStatus}'?`,
-        confirmText: isResolved ? 'Mark Resolved' : 'Update Status',
+          : (isOngoingRepair
+            ? `Mark Ticket LS-TKT-${reportId} as Ongoing Repair to indicate repair work has started?`
+            : `Are you sure you want to set Ticket LS-TKT-${reportId} status to '${displayStatus}'?`),
+        confirmText: isResolved ? 'Mark Resolved' : (isOngoingRepair ? 'Start Repair' : 'Update Status'),
         cancelText: 'Cancel',
         isDestructive: false
       });
     } else {
-      const isResolved = newStatus === 'Resolved';
       confirmed = confirm(isResolved
         ? `Mark the reported issue for Ticket LS-TKT-${reportId} as resolved?`
-        : `Set Ticket LS-TKT-${reportId} status to '${newStatus}'?`);
+        : (isOngoingRepair
+          ? `Mark Ticket LS-TKT-${reportId} as Ongoing Repair?`
+          : `Set Ticket LS-TKT-${reportId} status to '${displayStatus}'?`));
     }
 
     if (!confirmed) return;
@@ -82,7 +87,9 @@
       if (typeof toastFn === 'function') {
         const toastMsg = (newStatus === 'Resolved')
           ? `The reported issue for Ticket LS-TKT-${reportId} has been marked as resolved.`
-          : `Ticket LS-TKT-${reportId} status updated to ${newStatus}`;
+          : (isOngoingRepair
+            ? `Ticket LS-TKT-${reportId} has been marked as Ongoing Repair.`
+            : `Ticket LS-TKT-${reportId} status updated to ${displayStatus}`);
         toastFn(toastMsg, 'success');
       }
 

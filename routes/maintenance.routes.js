@@ -4,7 +4,7 @@ const express = require('express');
 const router = express.Router();
 const maintenanceController = require('../controllers/maintenance.controller');
 const reportsController = require('../controllers/reports.controller');
-const { requireAuth, requireRole, ADMIN_ROLES, TICKET_UPDATE_ROLES, IT_HEAD_ROLES, IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
+const { requireAuth, requireRole, ADMIN_ROLES, TICKET_UPDATE_ROLES, TICKET_DELETE_ROLES, IT_HEAD_ROLES, IT_DEPT_HEAD_EXCLUSIVE_ROLES } = require('../middleware/auth');
 const { publicPCReportLimiter, pcDuplicateReportLimiter, studentVerifyLimiter } = require('../middleware/rateLimiter');
 
 // Room Status Activity Log PDF Report — Department Head Only
@@ -17,6 +17,6 @@ router.get('/pc-info', maintenanceController.getPCInfo);
 router.get('/', requireAuth, maintenanceController.getAllReports);
 router.post('/:reportId/follow-up', requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES), maintenanceController.followUpReport);
 router.put('/:reportId/status', requireRole(TICKET_UPDATE_ROLES), maintenanceController.updateReportStatus);
-router.delete('/:reportId', requireRole(ADMIN_ROLES), maintenanceController.deleteReport);
+router.delete('/:reportId', requireRole(TICKET_DELETE_ROLES), maintenanceController.deleteReport);
 
 module.exports = router;

@@ -165,6 +165,35 @@ function validatePhone(phone) {
     return { value: cleanPhone };
 }
 
+const VALID_TRAINING_TYPES = ['Internship', 'Work Immersion'];
+
+/**
+ * Validates Training Type category (Internship or Work Immersion).
+ * @param {string} trainingType
+ * @param {boolean} [isRequired=true]
+ * @returns {{ value?: string, error?: string }}
+ */
+function validateTrainingType(trainingType, isRequired = true) {
+    if (trainingType === undefined || trainingType === null || trainingType === '') {
+        if (isRequired) {
+            return { error: 'Training type is required. Please select either "Internship" or "Work Immersion".' };
+        }
+        return { value: null };
+    }
+
+    if (typeof trainingType !== 'string') {
+        return { error: 'Invalid training type. Allowed values are "Internship" or "Work Immersion".' };
+    }
+
+    const clean = trainingType.trim();
+    const matched = VALID_TRAINING_TYPES.find(t => t.toLowerCase() === clean.toLowerCase());
+    if (!matched) {
+        return { error: 'Invalid training type. Allowed values are "Internship" or "Work Immersion".' };
+    }
+
+    return { value: matched };
+}
+
 /**
  * Checks that the target user exists and has Role = 'OJT'.
  * Returns 404 if not found, 403 if target has any role other than 'OJT'.
@@ -196,6 +225,7 @@ async function verifyTargetIsOjt(userId) {
  */
 function enrichOjtRecord(user) {
     const expired = isOjtExpired(user.OJT_End_Date);
+    const rawType = user.Training_Type || user.trainingType || null;
     return {
         User_ID: user.User_ID,
         Name: user.Name,
@@ -206,6 +236,8 @@ function enrichOjtRecord(user) {
         profilePhoto: user.Profile_Photo || user.profilePhoto || null,
         OJT_Start_Date: user.OJT_Start_Date,
         OJT_End_Date: user.OJT_End_Date,
+        Training_Type: rawType,
+        trainingType: rawType,
         Phone: user.Phone,
         Updated_At: user.Updated_At,
         isExpired: expired,
@@ -246,43 +278,51 @@ async function createOjt(reqBody) {
     const { name, email, phone } = reqBody;
     const startDate = reqBody.startDate || reqBody.ojtStartDate || reqBody.OJT_Start_Date;
     const endDate = reqBody.endDate || reqBody.ojtEndDate || reqBody.OJT_End_Date;
+    const rawType = reqBody.trainingType !== undefined ? reqBody.trainingType : (reqBody.Training_Type !== undefined ? reqBody.Training_Type : reqBody.training_type);
 
-    // 1. Validate Name
+    // 1. Validate Training Type (required on creation)
+    const typeResult = validateTrainingType(rawType, true);
+    if (typeResult.error) {
+        return { status: 400, error: typeResult.error };
+    }
+
+    // 2. Validate Name
     const nameResult = await validateName(name, 0);
     if (nameResult.error) {
         return { status: 400, error: nameResult.error };
     }
 
-    // 2. Validate Email
+    // 3. Validate Email
     const emailResult = await validateEmail(email, 0);
     if (emailResult.error) {
         return { status: 400, error: emailResult.error };
     }
 
-    // 3. Validate Dates
+    // 4. Validate Dates
     const dateResult = validateDates(startDate, endDate);
     if (dateResult.error) {
         return { status: 400, error: dateResult.error };
     }
 
-    // 4. Validate Phone
+    // 5. Validate Phone
     const phoneResult = validatePhone(phone);
     if (phoneResult.error) {
         return { status: 400, error: phoneResult.error };
     }
 
-    // 5. Generate secure temporary password & hash
+    // 6. Generate secure temporary password & hash
     const generatedPassword = generateSecureTemporaryPassword(12);
     const passwordHash = await bcrypt.hash(generatedPassword, SALT_ROUNDS);
     const qrString = `LABSYNC-OJT-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
-    // 6. Insert into database (Role='OJT', Status='ACTIVE' enforced server-side)
+    // 7. Insert into database (Role='OJT', Status='ACTIVE' enforced server-side)
     const [result] = await ojtRepository.insertOjt({
         name: nameResult.value,
         email: emailResult.value,
         passwordHash,
         startDate: dateResult.startDate,
         endDate: dateResult.endDate,
+        trainingType: typeResult.value,
         phone: phoneResult.value,
         qrString
     });
@@ -313,37 +353,45 @@ async function updateOjt(userId, reqBody) {
     const { name, email, phone } = reqBody;
     const startDate = reqBody.startDate || reqBody.ojtStartDate || reqBody.OJT_Start_Date;
     const endDate = reqBody.endDate || reqBody.ojtEndDate || reqBody.OJT_End_Date;
+    const rawType = reqBody.trainingType !== undefined ? reqBody.trainingType : (reqBody.Training_Type !== undefined ? reqBody.Training_Type : reqBody.training_type);
 
-    // 1. Validate Name
+    // 1. Validate Training Type (required on update per requirement 4)
+    const typeResult = validateTrainingType(rawType, true);
+    if (typeResult.error) {
+        return { status: 400, error: typeResult.error };
+    }
+
+    // 2. Validate Name
     const nameResult = await validateName(name, Number(userId));
     if (nameResult.error) {
         return { status: 400, error: nameResult.error };
     }
 
-    // 2. Validate Email
+    // 3. Validate Email
     const emailResult = await validateEmail(email, Number(userId));
     if (emailResult.error) {
         return { status: 400, error: emailResult.error };
     }
 
-    // 3. Validate Dates
+    // 4. Validate Dates
     const dateResult = validateDates(startDate, endDate);
     if (dateResult.error) {
         return { status: 400, error: dateResult.error };
     }
 
-    // 4. Validate Phone
+    // 5. Validate Phone
     const phoneResult = validatePhone(phone);
     if (phoneResult.error) {
         return { status: 400, error: phoneResult.error };
     }
 
-    // 5. Update Record
+    // 6. Update Record
     await ojtRepository.updateOjt(Number(userId), {
         name: nameResult.value,
         email: emailResult.value,
         startDate: dateResult.startDate,
         endDate: dateResult.endDate,
+        trainingType: typeResult.value,
         phone: phoneResult.value
     });
 
@@ -419,5 +467,7 @@ module.exports = {
     createOjt,
     updateOjt,
     updateStatus,
-    resetPassword
+    resetPassword,
+    validateTrainingType,
+    VALID_TRAINING_TYPES
 };

@@ -89,10 +89,11 @@ graph TD
 In the backend implementation ([middleware/auth.js](file:///c:/Users/andre/Downloads/LabSync/middleware/auth.js#L8-L16)), roles are grouped into distinct authorization arrays:
 * `IT_DEPT_HEAD_EXCLUSIVE_ROLES = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head']`: Functions strictly reserved for the department head (leadership transfer, MIS creation/deactivation, official schedule finalization, key request approvals, report follow-ups).
 * `IT_HEAD_ROLES = ['IT Dept. Head', 'IT Head', 'IT Dept Head', 'Department Head', 'Program Coordinator']`: Broad administrative access allowing dashboard visualization, working draft schedule saves, and faculty management.
-* `ADMIN_ROLES = [...IT_HEAD_ROLES, 'MIS Staff']`: Administrative operations including ticket deletion and high-level inventory inspection.
+* `ADMIN_ROLES = [...IT_HEAD_ROLES, 'MIS Staff']`: General administrative operations and settings inspection.
+* `TICKET_DELETE_ROLES = [...IT_DEPT_HEAD_EXCLUSIVE_ROLES, ...MIS_STAFF_ROLES]`: Defect ticket deletion restricted strictly to IT Department Head and MIS Staff (Program Coordinator, OJT, and Faculty are forbidden).
 * `MIS_STAFF_ROLES = ['MIS Staff']`: Custodial lead operations, hardware registration, and OJT lifecycle management.
 * `OJT_ROLES = ['OJT']`: Intern technician operations.
-* `TICKET_UPDATE_ROLES = [...ADMIN_ROLES, 'OJT']`: Repair ticket servicing and resolution attribution.
+* `TICKET_UPDATE_ROLES = [...MIS_STAFF_ROLES, ...OJT_ROLES]`: Dedicated repair ticket servicing and resolution attribution restricted exclusively to maintenance technicians (MIS Staff and OJT Interns); IT Department Head follows up on unresolved reports, while Program Coordinator and Faculty remain read-only.
 * `KEY_TRANSFER_ROLES = ['Faculty', ...IT_HEAD_ROLES]`: Key borrowing, classroom claiming, and advance reservation requests.
 * `KEY_BOX_ACCESS_ROLES = ['Faculty', ...IT_HEAD_ROLES, ...MIS_STAFF_ROLES]`: Electronic key-box withdrawal via personal QR credentials.
 
@@ -486,8 +487,9 @@ The following matrix provides an authoritative, code-verified comparison of capa
 | **Print Finalized Schedule** | ✅ Allowed | ✅ Allowed | ✅ Allowed | ❌ Forbidden | ✅ Allowed |
 | **Print Unfinalized Draft Schedule** | ❌ Blocked | ❌ Blocked | ❌ Blocked | ❌ Forbidden | ❌ Blocked |
 | **Execute PC Report Follow-Up** | ✅ Allowed | ❌ Forbidden | ❌ Forbidden | ❌ Forbidden | ❌ Forbidden |
-| **Inspect / Update Workstation Defect Tickets** | ✅ Allowed | ✅ Allowed | ✅ Allowed | ✅ Allowed | ⚠️ Read-Only |
-| **Delete PC Defect Tickets** | ✅ Allowed | ✅ Allowed | ✅ Allowed | ❌ Forbidden | ❌ Forbidden |
+| **Inspect / View PC Defect Reports** | ✅ Allowed | ✅ Allowed | ✅ Allowed | ✅ Allowed | ✅ Allowed |
+| **Update PC Report Status (Ongoing Repair / Resolved)** | ❌ Forbidden | ❌ Forbidden | ✅ Allowed | ✅ Allowed | ❌ Forbidden |
+| **Delete PC Defect Tickets** | ✅ Allowed | ❌ Forbidden | ✅ Allowed | ❌ Forbidden | ❌ Forbidden |
 | **Approve / Reject Faculty 2nd-Key Requests** | ✅ Allowed | ❌ Forbidden | ❌ Forbidden | ❌ Forbidden | ❌ Forbidden |
 | **Submit Advance 2nd-Key Reservation Request** | ✅ Allowed | ✅ Allowed | ❌ Forbidden | ❌ Forbidden | ✅ Allowed |
 | **Withdraw Key from Physical Key Box via QR** | ✅ Allowed | ✅ Allowed | ✅ Allowed | ❌ Forbidden | ✅ Allowed |
@@ -967,6 +969,30 @@ TEST SUITE RUNNER EXECUTION SUMMARY
 TOTAL: 147 AUTOMATED VERIFICATION CHECKS EXECUTED — 147 PASSED (0 FAILURES)
 ========================================================================================
 ```
+
+---
+
+## XVIII. PC Reports Quick Status Filters (Pending & Ongoing Repair)
+
+### A. Context & Purpose
+To streamline PC defect inspection across the IT Department Head, Program Coordinator, and Faculty roles, dedicated **Quick Status Filter** buttons (`Pending` and `Ongoing Repair`) have been added directly to the PC Reports interface.
+
+### B. Architectural & UI Integration
+1. **Components & Layout**:
+   - `it-head-pc-reports.html` and `faculty-pc-reports.html`: Added `.reports-quick-filters` with `#quickFilterPending`, `#quickFilterOngoing`, and `#quickFilterClear`.
+   - `css/components/report-cards.css`: Added styles for `.reports-quick-filters`, `.btn-quick-filter`, colored indicator dots, active focus rings, hover styles, dark mode adaptations, and mobile responsiveness.
+2. **Behavior & State Synchronization**:
+   - `js/reports/report.controller.js`:
+     - Added `setQuickStatusFilter(targetStatus)` and `clearStatusFilter()`.
+     - Integrated single-status toggle: clicking an active status button deselects it and restores all reports.
+     - Bidirectional sync with Filter dropdown `#filterStatus` and toolbar pills.
+     - Redundant active filter chips bar and filter badge counter are decoupled from status filtering so selecting Pending/Ongoing Repair relies cleanly on the toolbar pills without cluttering the UI with a secondary active filter bar.
+     - Preserves all other active filters (search query, room, PC number, section, date range).
+     - Excludes resolved tickets from Pending and Ongoing views.
+3. **Role Security**:
+   - Strictly client-side view enhancement; zero PUT/POST/DELETE network requests.
+   - IT Department Head retains exclusive Follow Up capabilities on unresolved tickets.
+   - Program Coordinator and Faculty remain 100% read-only.
 
 ---
 *End of Documentation — File generated for Capstone Documentation updates at `docs/NEW-IMPLEMENTATION-UPDATES.md`.*

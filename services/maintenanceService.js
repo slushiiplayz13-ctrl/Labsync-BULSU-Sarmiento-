@@ -324,7 +324,11 @@ async function submitReport(reqBody = {}) {
 
 async function getAllReports() {
     const [reports] = await maintenanceRepository.findAllMaintenanceIssues();
-    return { status: 200, data: reports };
+    const enriched = (reports || []).map(r => ({
+        ...r,
+        Display_Status: (r.Status === 'In Progress' || r.Status === 'Ongoing Repair') ? 'Ongoing Repair' : r.Status
+    }));
+    return { status: 200, data: enriched };
 }
 
 async function updateReportStatus(reportId, status, actor = {}) {
@@ -333,9 +337,19 @@ async function updateReportStatus(reportId, status, actor = {}) {
         return { status: 400, error: 'Invalid report ID. Must be a positive integer.' };
     }
 
+    if (!status || typeof status !== 'string') {
+        return { status: 400, error: `Invalid status: '${status}'. Allowed values: Pending, In Progress, Ongoing Repair, Resolved.` };
+    }
+
+    const trimmedStatus = status.trim();
+    let normalizedStatus = trimmedStatus;
+    if (trimmedStatus.toLowerCase() === 'ongoing repair' || trimmedStatus.toLowerCase() === 'in progress') {
+        normalizedStatus = 'In Progress';
+    }
+
     const ALLOWED_STATUSES = ['Pending', 'In Progress', 'Resolved'];
-    if (!status || typeof status !== 'string' || !ALLOWED_STATUSES.includes(status)) {
-        return { status: 400, error: `Invalid status: '${status}'. Allowed values: ${ALLOWED_STATUSES.join(', ')}.` };
+    if (!ALLOWED_STATUSES.includes(normalizedStatus)) {
+        return { status: 400, error: `Invalid status: '${status}'. Allowed values: Pending, In Progress, Ongoing Repair, Resolved.` };
     }
 
     const txResult = await maintenanceRepository.withTransaction(async (connection) => {
@@ -361,13 +375,14 @@ async function updateReportStatus(reportId, status, actor = {}) {
         const currentIssue = issues[0];
 
         // Idempotency guard: Retrying or re-submitting an already-resolved issue without a genuine transition
-        if (previousStatus === 'Resolved' && status === 'Resolved') {
+        if (previousStatus === 'Resolved' && normalizedStatus === 'Resolved') {
             return {
                 status: 200,
                 message: `The reported issue "${currentIssue.Issue_Type}" is already marked as resolved.`,
                 issueId: actualIssueId,
                 previousStatus,
-                newStatus: status,
+                newStatus: normalizedStatus,
+                displayStatus: 'Resolved',
                 noTransition: true,
                 issueType: currentIssue.Issue_Type,
                 pcNumber: currentIssue.PC_Number,
@@ -375,11 +390,43 @@ async function updateReportStatus(reportId, status, actor = {}) {
             };
         }
 
-        const resolverUserId = (status === 'Resolved') ? (actor && actor.userId ? actor.userId : null) : null;
+        // Idempotency guard for In Progress / Ongoing Repair
+        if (previousStatus === 'In Progress' && normalizedStatus === 'In Progress') {
+            return {
+                status: 200,
+                message: `The reported issue "${currentIssue.Issue_Type}" is already undergoing repair.`,
+                issueId: actualIssueId,
+                previousStatus,
+                newStatus: normalizedStatus,
+                displayStatus: 'Ongoing Repair',
+                noTransition: true,
+                issueType: currentIssue.Issue_Type,
+                pcNumber: currentIssue.PC_Number,
+                roomNumber: currentIssue.Room_Number
+            };
+        }
+
+        // Prevent invalid transition: Cannot revert an already-resolved ticket back to Pending or In Progress
+        if (previousStatus === 'Resolved' && normalizedStatus !== 'Resolved') {
+            return {
+                status: 400,
+                error: 'Cannot change status of an already resolved report.'
+            };
+        }
+
+        // Prevent reverting from In Progress / Ongoing Repair back to Pending
+        if (previousStatus === 'In Progress' && normalizedStatus === 'Pending') {
+            return {
+                status: 400,
+                error: 'Cannot revert a report undergoing repair back to Pending.'
+            };
+        }
+
+        const resolverUserId = (normalizedStatus === 'Resolved') ? (actor && actor.userId ? actor.userId : null) : null;
 
         // 3. Update issue status and resolver
-        await maintenanceRepository.updateMaintenanceIssueStatus(actualIssueId, status, resolverUserId, connection);
-        await maintenanceRepository.updateLinkedStudentReportsStatus(actualIssueId, status, connection);
+        await maintenanceRepository.updateMaintenanceIssueStatus(actualIssueId, normalizedStatus, resolverUserId, connection);
+        await maintenanceRepository.updateLinkedStudentReportsStatus(actualIssueId, normalizedStatus, connection);
 
         // 4. Update PC condition if applicable
         const pcId = currentIssue.PC_ID;
@@ -394,16 +441,20 @@ async function updateReportStatus(reportId, status, actor = {}) {
             await labRepository.updateConditionStatus(pcId, 'Under Maintenance', connection);
         }
 
-        const successMessage = (status === 'Resolved')
+        const displayStatus = normalizedStatus === 'In Progress' ? 'Ongoing Repair' : normalizedStatus;
+        const successMessage = (normalizedStatus === 'Resolved')
             ? `The reported issue "${currentIssue.Issue_Type}" has been marked as resolved.`
-            : `Report status updated to ${status} successfully.`;
+            : (normalizedStatus === 'In Progress')
+                ? `The reported issue "${currentIssue.Issue_Type}" has been marked as undergoing repair.`
+                : `Report status updated to ${displayStatus} successfully.`;
 
         return {
             status: 200,
             message: successMessage,
             issueId: actualIssueId,
             previousStatus,
-            newStatus: status,
+            newStatus: normalizedStatus,
+            displayStatus,
             issueType: currentIssue.Issue_Type,
             pcNumber: currentIssue.PC_Number,
             roomNumber: currentIssue.Room_Number,

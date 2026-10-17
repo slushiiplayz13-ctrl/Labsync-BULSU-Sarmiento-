@@ -200,12 +200,21 @@
 
       let actionsHtml = '';
       if (report.Status !== 'Resolved') {
+        const isOngoingRepair = report.Status === 'In Progress' || report.Status === 'Ongoing Repair';
+        const actionBtnHtml = !isOngoingRepair ? `
+          <button type="button" class="btn-start-repair" data-action="start-repair" data-report-id="${report.Report_ID}" title="Mark as Ongoing Repair" aria-label="Mark ticket LS-TKT-${report.Report_ID} as Ongoing Repair">
+            <i data-lucide="wrench" style="width:14px;height:14px;"></i> Start Repair
+          </button>
+        ` : `
+          <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket" data-report-id="${report.Report_ID}">
+            <i data-lucide="check" style="width:14px;height:14px;"></i> Mark Resolved
+          </button>
+        `;
+
         actionsHtml = `
           <div class="table-actions-cluster">
             ${viewInfoBtnHtml}
-            <button type="button" class="btn-resolve-ticket" data-action="resolve-ticket" data-report-id="${report.Report_ID}">
-              <i data-lucide="check" style="width:14px;height:14px;"></i> Mark Resolved
-            </button>
+            ${actionBtnHtml}
           </div>
         `;
       } else {
@@ -341,6 +350,11 @@
           <td class="col-issues">
             <div class="ticket-badge-group">
               ${issueBadges}
+              ${(report.Status === 'In Progress' || report.Status === 'Ongoing Repair') ? `
+                <span class="status-badge ongoing-repair" style="background:#EFF6FF; color:#2563EB; border:1.5px solid #BFDBFE; font-size:12.5px; font-weight:700; padding:4px 10px; border-radius:9999px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;" title="Issue is actively undergoing repair">
+                  <i data-lucide="wrench" style="width:12px;height:12px;"></i> Ongoing Repair
+                </span>
+              ` : ''}
               ${report.Follow_Up_Count > 0 && report.Status !== 'Resolved' ? `
                 <span class="admin-followup-chip" style="background:#FEF3C7; color:#B45309; border:1.5px solid #FCD34D; font-size:13px; font-weight:700; padding:5px 12px; border-radius:9999px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;" title="Followed up by IT Dept. Head (${report.Follow_Up_Count}x)">
                   <i data-lucide="bell-ring" style="width:13px;height:13px;"></i> Admin Follow-Up${report.Follow_Up_Count > 1 ? ` • ${report.Follow_Up_Count}x` : ''}

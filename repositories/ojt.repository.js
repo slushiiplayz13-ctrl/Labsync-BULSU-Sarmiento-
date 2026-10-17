@@ -24,6 +24,7 @@ async function findAll(executor = db) {
             Profile_Photo, 
             DATE_FORMAT(OJT_Start_Date, '%Y-%m-%d') AS OJT_Start_Date, 
             DATE_FORMAT(OJT_End_Date, '%Y-%m-%d') AS OJT_End_Date, 
+            Training_Type,
             Phone, 
             Updated_At 
          FROM users 
@@ -47,6 +48,7 @@ async function findById(userId, executor = db) {
             Profile_Photo, 
             DATE_FORMAT(OJT_Start_Date, '%Y-%m-%d') AS OJT_Start_Date, 
             DATE_FORMAT(OJT_End_Date, '%Y-%m-%d') AS OJT_End_Date, 
+            Training_Type,
             Phone, 
             Updated_At 
          FROM users 
@@ -70,7 +72,7 @@ async function findUserRoleAndStatus(userId, executor = db) {
  * Inserts a new OJT user record.
  * Role is hardcoded to 'OJT' and Status to 'ACTIVE'.
  */
-async function insertOjt({ name, email, passwordHash, startDate, endDate, phone = null, qrString }, executor = db) {
+async function insertOjt({ name, email, passwordHash, startDate, endDate, trainingType = null, phone = null, qrString }, executor = db) {
     return executor.query(
         `INSERT INTO users (
             Name, 
@@ -80,11 +82,12 @@ async function insertOjt({ name, email, passwordHash, startDate, endDate, phone 
             Password, 
             OJT_Start_Date, 
             OJT_End_Date, 
+            Training_Type,
             Phone, 
             ID_QR_String, 
             Has_Completed_Tutorial
-         ) VALUES (?, ?, 'OJT', 'ACTIVE', ?, ?, ?, ?, ?, 0)`,
-        [name, email, passwordHash, startDate, endDate, phone, qrString]
+         ) VALUES (?, ?, 'OJT', 'ACTIVE', ?, ?, ?, ?, ?, ?, 0)`,
+        [name, email, passwordHash, startDate, endDate, trainingType, phone, qrString]
     );
 }
 
@@ -92,17 +95,18 @@ async function insertOjt({ name, email, passwordHash, startDate, endDate, phone 
  * Updates profile details and internship dates for an OJT account.
  * Scoped strictly to User_ID AND Role = 'OJT'.
  */
-async function updateOjt(userId, { name, email, startDate, endDate, phone = null }, executor = db) {
+async function updateOjt(userId, { name, email, startDate, endDate, trainingType = null, phone = null }, executor = db) {
     return executor.query(
         `UPDATE users 
          SET Name = ?, 
              Email = ?, 
              OJT_Start_Date = ?, 
              OJT_End_Date = ?, 
+             Training_Type = ?,
              Phone = ?, 
              Updated_At = NOW() 
          WHERE User_ID = ? AND Role = 'OJT'`,
-        [name, email, startDate, endDate, phone, userId]
+        [name, email, startDate, endDate, trainingType, phone, userId]
     );
 }
 

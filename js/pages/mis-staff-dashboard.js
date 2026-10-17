@@ -88,7 +88,7 @@
         roomIssueMap.set(normKey, entry);
       }
 
-      if (status === 'in progress') {
+      if (status === 'in progress' || status === 'ongoing repair') {
         entry.inProgress += 1;
       } else {
         entry.pending += 1;
@@ -122,7 +122,7 @@
         badgeText = `${activeCount} Active Issue${activeCount !== 1 ? 's' : ''}`;
         const parts = [];
         if (entry.pending > 0) parts.push(`${entry.pending} Pending`);
-        if (entry.inProgress > 0) parts.push(`${entry.inProgress} In Progress`);
+        if (entry.inProgress > 0) parts.push(`${entry.inProgress} Ongoing Repair`);
         subtext = parts.join(' • ') || 'Urgent attention required';
       } else if (activeCount > 0) {
         statusClass = 'has-issues status-attention';
@@ -131,7 +131,7 @@
         badgeText = `${activeCount} Active Issue${activeCount !== 1 ? 's' : ''}`;
         const parts = [];
         if (entry.pending > 0) parts.push(`${entry.pending} Pending`);
-        if (entry.inProgress > 0) parts.push(`${entry.inProgress} In Progress`);
+        if (entry.inProgress > 0) parts.push(`${entry.inProgress} Ongoing Repair`);
         subtext = parts.join(' • ') || 'Needs attention';
       }
 

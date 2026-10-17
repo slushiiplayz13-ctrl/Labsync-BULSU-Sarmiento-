@@ -110,9 +110,13 @@ async function updateReportStatus(req, res, next) {
 
         if (!result.noTransition) {
             const pcFormatted = String(result.pcNumber || '').padStart(2, '0');
-            const auditMsg = (status === 'Resolved')
+            const newStatus = result.newStatus;
+            const displayStatus = result.displayStatus || (newStatus === 'In Progress' ? 'Ongoing Repair' : newStatus);
+            const auditMsg = (newStatus === 'Resolved')
                 ? `Resolved reported issue: ${result.issueType || 'Hardware Issue'} — PC-${pcFormatted}, Room ${result.roomNumber || 'N/A'}.`
-                : `Status changed from ${result.previousStatus} to ${status}`;
+                : (newStatus === 'In Progress')
+                    ? `Status changed from ${result.previousStatus} to Ongoing Repair`
+                    : `Status changed from ${result.previousStatus} to ${newStatus}`;
 
             await auditService.logSecurityEvent({
                 req,
@@ -121,7 +125,8 @@ async function updateReportStatus(req, res, next) {
                 resourceId: result.issueId || reportId,
                 details: {
                     previousStatus: result.previousStatus,
-                    newStatus: status,
+                    newStatus: result.newStatus,
+                    displayStatus,
                     issueType: result.issueType,
                     pcNumber: result.pcNumber,
                     roomNumber: result.roomNumber,
@@ -137,6 +142,7 @@ async function updateReportStatus(req, res, next) {
             issueId: result.issueId,
             previousStatus: result.previousStatus,
             newStatus: result.newStatus,
+            displayStatus: result.displayStatus || (result.newStatus === 'In Progress' ? 'Ongoing Repair' : result.newStatus),
             issueType: result.issueType,
             pcNumber: result.pcNumber,
             roomNumber: result.roomNumber,
