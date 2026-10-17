@@ -1094,10 +1094,10 @@ html.high-contrast .status-badge.resolved .status-dot {
 
 /* ─── Completed Tickets History Modal Styles ─────────────────────── */
 .completed-modal-container {
-  width: 990px !important;
-  max-width: 92vw !important;
-  height: 640px !important;
-  max-height: 82vh !important;
+  width: 1080px !important;
+  max-width: 94vw !important;
+  height: 680px !important;
+  max-height: 85vh !important;
   border-radius: 20px !important;
   overflow: hidden !important;
   display: flex !important;

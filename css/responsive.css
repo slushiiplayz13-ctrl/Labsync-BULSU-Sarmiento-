@@ -995,8 +995,8 @@
   }
 
   body[data-page="pc-reports"] .completed-modal-container {
-    max-width: 86vw !important;
-    max-height: 80vh !important;
+    max-width: 94vw !important;
+    max-height: 85vh !important;
   }
 
   body[data-page="pc-reports"] #dynamicReportsList {
@@ -1737,6 +1737,9 @@
     padding: 0 8px !important;
   }
 }
+
+/* ─── Completed Tickets & Modals Responsive Adaptations (Max Width: 640px) ── */
+@media (max-width: 640px) {
 
   /* Completed Tickets Modal & Card Mobile Responsive Adaptations */
   #completedTicketsModal {
