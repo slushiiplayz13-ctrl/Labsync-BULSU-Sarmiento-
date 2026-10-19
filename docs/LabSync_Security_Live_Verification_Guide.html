@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LabSync — Security Features Live Verification & Testing Guide</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm 10mm 12mm 10mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 8.5pt;
+      line-height: 1.35;
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 20px;
+    }
+    .page-container {
+      max-width: 210mm;
+      margin: 0 auto;
+    }
+    .sheet {
+      background: #ffffff;
+      padding: 16mm 14mm;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      border-radius: 4px;
+    }
+    @media print {
+      body {
+        background: none;
+        padding: 0;
+      }
+      .sheet {
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        page-break-after: always;
+      }
+      .sheet:last-child {
+        page-break-after: avoid;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    /* Toolbar */
+    .toolbar {
+      max-width: 210mm;
+      margin: 0 auto 15px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+    }
+    .toolbar h2 {
+      margin: 0;
+      font-size: 11pt;
+      font-weight: 600;
+    }
+    .toolbar button {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 8px 18px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 9pt;
+      transition: background 0.2s;
+    }
+    .toolbar button:hover {
+      background: #1d4ed8;
+    }
+
+    /* Header */
+    .header {
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    .header-badge {
+      display: inline-block;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 7pt;
+      font-weight: 7pt;
+      font-weight: bold;
+      padding: 2px 7px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 14pt;
+      color: #0f172a;
+      font-weight: 800;
+    }
+    .header-sub {
+      font-size: 8.5pt;
+      color: #475569;
+      margin-top: 3px;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 10px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 6px 10px;
+      border-radius: 4px;
+      margin-top: 8px;
+      font-size: 7.8pt;
+    }
+    .meta-grid strong {
+      color: #0f172a;
+    }
+
+    /* Category banner */
+    .category-title {
+      font-size: 9pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #1e3a8a;
+      background: #eff6ff;
+      border-left: 4px solid #2563eb;
+      padding: 4px 8px;
+      margin: 12px 0 8px 0;
+    }
+
+    /* Test Card */
+    .test-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      margin-bottom: 8px;
+      background: #ffffff;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+    .test-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      padding: 5px 8px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .test-num {
+      display: inline-block;
+      background: #0f172a;
+      color: #fff;
+      font-weight: bold;
+      font-size: 7pt;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-right: 6px;
+    }
+    .test-num.num-add {
+      background: #059669;
+    }
+    .test-num.num-remove {
+      background: #dc2626;
+    }
+    .test-name {
+      font-weight: bold;
+      font-size: 8.2pt;
+      color: #0f172a;
+      flex: 1;
+    }
+    .badge {
+      font-size: 6.8pt;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .badge-retain { background: #e0f2fe; color: #0369a1; }
+    .badge-add { background: #d1fae5; color: #047857; }
+    .badge-remove { background: #fee2e2; color: #b91c1c; }
+
+    .test-body {
+      padding: 6px 9px;
+      font-size: 7.8pt;
+    }
+    .field-row {
+      margin-bottom: 3px;
+      display: flex;
+    }
+    .field-label {
+      font-weight: bold;
+      color: #475569;
+      width: 105px;
+      flex-shrink: 0;
+      font-size: 7.5pt;
+    }
+    .field-val {
+      flex: 1;
+      color: #0f172a;
+    }
+    .code-box {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 7.2pt;
+      display: inline-block;
+      margin-top: 1px;
+    }
+    .expected-box {
+      background: #f0fdf4;
+      border-left: 3px solid #16a34a;
+      padding: 3px 6px;
+      margin-top: 2px;
+      font-size: 7.5pt;
+      color: #14532d;
+    }
+    .speech-box {
+      background: #fffbeb;
+      border-left: 3px solid #d97706;
+      padding: 3px 6px;
+      margin-top: 2px;
+      font-size: 7.3pt;
+      color: #78350f;
+      font-style: italic;
+    }
+    .url-link {
+      color: #2563eb;
+      font-family: monospace;
+      font-size: 7.4pt;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen Toolbar -->
+  <div class="toolbar no-print">
+    <div>
+      <h2>LabSync — Live Security Verification Test Guide</h2>
+      <div style="font-size: 8pt; color: #94a3b8;">Rehearsal testing manual for groupmates on Railway deployment</div>
+    </div>
+    <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+  </div>
+
+  <div class="page-container">
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- SHEET 1: Items 1 to 6                                           -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="sheet">
+      <div class="header">
+        <h1>LabSync: Live System Security Verification Guide</h1>
+        <div class="header-sub">Group Demonstration &amp; Examination Testing Script for Live Deployed Application</div>
+        <div class="meta-grid" style="grid-template-columns: 1fr;">
+          <div>
+            <strong>Live Railway Deployment:</strong>
+            <span class="url-link">https://labsync-bulsu-sarmiento-production.up.railway.app</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="category-title">Category A: Login and Account Security</div>
+
+      <!-- Item 1 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#1</span>
+          <span class="test-name">Account Provisioning, Session Checks &amp; Public Kiosk Access</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Target URL:</span>
+            <span class="field-val url-link">/api/schedules/save &nbsp;|&nbsp; /public/report.html</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Open an Incognito/Private window.<br>
+              2. Paste <code>https://labsync-bulsu-sarmiento-production.up.railway.app/api/schedules/save</code> directly into the address bar.<br>
+              3. Next, open <code>/public/report.html</code> in the same incognito window.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Protected API returns <code>HTTP 401 Unauthorized</code> (access blocked). Meanwhile, the student fault-report page opens cleanly without requiring any login.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "Our server requires sessions on staff routes, but public student fault reporting is intentionally accessible so students at kiosks aren't blocked by login."
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 2 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#2</span>
+          <span class="test-name">Credential Recovery: 32-Byte Cryptographic Tokens &amp; 1-Hour Expiry</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Target URL:</span>
+            <span class="field-val url-link">/recover-password.html</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Open <code>/recover-password.html</code> and enter a test email address.<br>
+              2. Submit the form, then open the Railway MySQL database <code>users</code> table.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> The screen displays a generic confirmation message (preventing email enumeration). In MySQL, <code>Reset_Token</code> stores only a 64-character SHA-256 hash, and <code>Reset_Token_Expiry</code> is set to exactly 1 hour. Once reset, it clears to <code>NULL</code>.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "We generate 32 random bytes, store only the SHA-256 hash in MySQL with a 1-hour expiration, and reset it to NULL upon single use."
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 3 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#3</span>
+          <span class="test-name">Secure Password Handling: bcrypt with 12 Salt Rounds</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Verification:</span>
+            <span class="field-val">Railway MySQL Console / phpMyAdmin / DBeaver</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Open Railway MySQL Query tab and run: <code class="code-box">SELECT Email, Password FROM users LIMIT 3;</code><br>
+              2. Inspect the password column string format.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Every password begins with <code>$2b$12$...</code>. This proves standard Modular Crypt Format using bcrypt at 12 salt rounds. Plaintext is never stored.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "We use bcrypt (^6.0.0) with BCRYPT_SALT_ROUNDS = 12. Plaintext passwords are never saved, and hashes are omitted from all API outputs."
+          </div>
+        </div>
+      </div>
+
+      <div class="category-title">Category B: Session Security</div>
+
+      <!-- Item 4 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#4</span>
+          <span class="test-name">Session Fixation Defense: ID Regeneration on Login &amp; Logout Destroy</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Target URL:</span>
+            <span class="field-val url-link">/login.html &nbsp;|&nbsp; DevTools Application &gt; Cookies</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Press <code>F12</code> &gt; <strong>Application</strong> &gt; <strong>Cookies</strong> &gt; note the <code>connect.sid</code> value.<br>
+              2. Log in with your MIS or Faculty account.<br>
+              3. Check <code>connect.sid</code> again. Then click <strong>Logout</strong>.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> The <code>connect.sid</code> cookie value changes completely after login (preventing fixation). After logout, the cookie is deleted and destroyed on the server.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "Our auth controller runs req.session.regenerate() upon successful authentication and req.session.destroy() upon logout."
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 5 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#5</span>
+          <span class="test-name">Cookie Protection: HttpOnly, Secure &amp; SameSite Flags</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Verification:</span>
+            <span class="field-val">Browser DevTools Console &amp; Application tab</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. In DevTools Cookies tab, check the columns for <code>connect.sid</code>.<br>
+              2. Switch to the <strong>Console</strong> tab and run: <code class="code-box">console.log(document.cookie);</code>
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> DevTools shows <code>HttpOnly = ✓</code>, <code>Secure = ✓</code>, and <code>SameSite = Lax</code>. The console prints an empty string or omits <code>connect.sid</code> (XSS theft blocked).
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "Our session cookies have HttpOnly and Secure flags enabled, meaning malicious JavaScript cannot steal user session tokens."
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 6 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#6</span>
+          <span class="test-name">Session Lifecycle: 10-Minute Rolling Inactivity Timeout &amp; HSTS</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Verification:</span>
+            <span class="field-val">DevTools Network Headers &amp; Idle State Test</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. In DevTools Network tab, inspect any response header for <code>Strict-Transport-Security</code>.<br>
+              2. Log in to dashboard, remain inactive for &gt;10 minutes, then click any action.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Response header contains <code>Strict-Transport-Security: max-age=15552000</code>. After 10 minutes of inactivity, API returns <code>401 SESSION_EXPIRED</code>.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "We enforce 180-day HSTS for transport security and a 10-minute idle inactivity timeout in auth middleware to prevent unattended station takeovers."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- SHEET 2: Items 7 to 13                                          -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="sheet">
+      <div class="category-title">Category C: Access Control</div>
+
+      <!-- Item 7 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#7</span>
+          <span class="test-name">Role-Based Access Control (RBAC): Faculty, IT Head, MIS &amp; OJT</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Verification:</span>
+            <span class="field-val">Browser DevTools Console (as Faculty)</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Log in with a <strong>Faculty</strong> account.<br>
+              2. In DevTools Console, execute an administrative call:<br>
+              <code class="code-box">fetch('/api/mis-staff', { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' }).then(r =&gt; alert('Status: ' + r.status));</code>
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Alert shows <code>Status: 403</code> Forbidden. The server checks the live database role on every request and blocks unauthorized privilege escalation.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "Our requireRole middleware queries live MySQL data on every single API request, rejecting unauthorized roles with HTTP 403."
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 8 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#8</span>
+          <span class="test-name">Privileged Actions vs. Public Reporting Separation</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Target URL:</span>
+            <span class="field-val url-link">/public/report.html vs. /api/faculty</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Submit a valid fault report on <code>/public/report.html</code> without logging in.<br>
+              2. In the same unauthenticated browser, try calling: <code class="code-box">fetch('/api/faculty/add', { method: 'POST' }).then(r =&gt; alert('Status: ' + r.status));</code>
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Public fault report succeeds. Administrative call returns <code>Status: 401 Unauthorized</code>. Proves strict segregation between public and admin routes.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "We keep student kiosks public to eliminate reporting friction, while all administrative management routes strictly enforce sessions and roles."
+          </div>
+        </div>
+      </div>
+
+      <div class="category-title">Category D: Input and Query Security</div>
+
+      <!-- Item 9 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#9</span>
+          <span class="test-name">Input Validation &amp; ACID Transactions (withTransaction)</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Verification:</span>
+            <span class="field-val">Fault Report Form &amp; Automated Test Script</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. In terminal, run: <code class="code-box">node tests/test-submit-pc-report-validation.js</code><br>
+              2. Or on <code>/public/report.html</code>, try submitting with empty issue description or invalid room numbers.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Test suite passes all validation checks. Backend returns <code>HTTP 400 Bad Request</code>. Operations use database transactions so incomplete submissions roll back completely.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "We validate all inputs on the backend with regex and enums, and wrap multi-step operations in database transactions to maintain ACID consistency."
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 10 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#10</span>
+          <span class="test-name">SQL Injection Defense: 100% Parameterized Queries</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Target URL:</span>
+            <span class="field-val url-link">/login.html</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. On login page, enter email: <code class="code-box">' OR '1'='1' --</code> and any password.<br>
+              2. Click <strong>Sign In</strong>.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Rejects with "Invalid email or password" (HTTP 401). No SQL syntax errors or data dumps. mysql2 treats input strictly as literal string values via <code>?</code> placeholders.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "Every query across all repositories uses parameterized queries with question-mark placeholders, eliminating SQL injection by design."
+          </div>
+        </div>
+      </div>
+
+      <div class="category-title">Category E: Data Protection and Privacy</div>
+
+      <!-- Item 11 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#11</span>
+          <span class="test-name">Sensitive Secret Protection: Git Exclusions &amp; Railway Variables</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Verification:</span>
+            <span class="field-val">Git Terminal &amp; Railway Environment Tab</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. In VS Code terminal, run: <code class="code-box">git ls-files .env LabSync_ESP32/secrets.h</code><br>
+              2. Open Railway Dashboard &gt; <strong>Variables</strong> tab.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Git command prints nothing (confirming secret files are untracked). Railway Variables tab proves production secrets are injected securely via cloud runtime environment.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "Credentials and IoT secrets are excluded from version control via .gitignore and injected strictly through environment variables."
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 12 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#12</span>
+          <span class="test-name">Data Minimization &amp; Automated 1-Year Log Retention Purge</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Verification:</span>
+            <span class="field-val">Automated Test Script: <code class="code-box">node tests/test-retention.js</code></span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Run the retention test in terminal.<br>
+              2. Inspect error response by hitting an invalid API route: <code>/api/invalid-test</code>.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Test passes, verifying that records older than 1 calendar year are pruned automatically. Production error handler returns generic "Not Found" without leaking database tables.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "Our activityRetentionService automatically purges occupancy records older than 1 calendar year, and our production error handler suppresses database schemas."
+          </div>
+        </div>
+      </div>
+
+      <div class="category-title">Category F: Device and Message Security</div>
+
+      <!-- Item 13 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#13</span>
+          <span class="test-name">ESP32 Device Token Authentication &amp; Authorized Rooms</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Verification:</span>
+            <span class="field-val">cURL or Postman Terminal Test</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              Send a forged IoT event without bearer token:<br>
+              <code class="code-box">curl -X POST https://labsync-bulsu-sarmiento-production.up.railway.app/api/occupancy/log -H "Content-Type: application/json" -d "{\"test\":true}"</code>
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Server rejects with <code>HTTP 401 Unauthorized</code> (or 403 for unauthorized room). Only the physical ESP32 sending the registered Bearer token is allowed.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "The ESP32 uses Bearer tokens verified against iot_devices, and authorizedRooms ensures devices can only report for their assigned rooms."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- SHEET 3: Items 14 to 18 + Additions A1, A2                      -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="sheet">
+      <!-- Item 14 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#14</span>
+          <span class="test-name">Hardware Resilience: 40-ms Sensor Debounce &amp; 15-s Heartbeat</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Verification:</span>
+            <span class="field-val">Arduino Serial Monitor (115200 baud) &amp; Automated Firmware Tests</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Connect ESP32 to USB and open Serial Monitor.<br>
+              2. Or run automated firmware tests: <code class="code-box">node tests/test-firmware-heartbeat-starvation.js</code>
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Firmware logs <code>[NetWorker Heartbeat] ✔ Success: HTTP 200 ... FreeHeap: ...</code> every 15 seconds. Pulling a key triggers 40ms debounce with 16-sample ADC averaging.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "Our firmware uses 40ms debouncing with 16-sample ADC averaging to filter contact noise on physical keys, and transmits telemetry every 15s."
+          </div>
+        </div>
+      </div>
+
+      <div class="category-title">Category G: Audit Logging and Safe Errors</div>
+
+      <!-- Item 15 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#15</span>
+          <span class="test-name">Dual Security Audit Trail: occupancy_log + audit_logs</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Target URL:</span>
+            <span class="field-val url-link">/mis-logs.html &nbsp;|&nbsp; Physical ESP32 Dock</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Pull a physical key from slot 203 or 204 on the ESP32 dock without scanning a faculty QR.<br>
+              2. Open <code>/mis-logs.html</code> in the MIS dashboard and refresh.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> An immediate record appears showing <code>UNAUTHORIZED_REMOVAL</code> with exact timestamp, room number, and device ID. No deletion endpoints exist.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "We maintain forensic accountability via occupancy_log for hardware key actions and audit_logs for administrative/login events."
+          </div>
+        </div>
+      </div>
+
+      <div class="category-title">Category H: Availability, Backup and Recovery</div>
+
+      <!-- Item 16 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#16</span>
+          <span class="test-name">Service Continuity: MySQL Connection Pooling &amp; Health Probes</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Target URL:</span>
+            <span class="field-val url-link">/api/health &nbsp;|&nbsp; /api/health/db</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Open <code>https://labsync-bulsu-sarmiento-production.up.railway.app/api/health</code> in browser.<br>
+              2. Next open <code>/api/health/db</code>.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Both return <code>HTTP 200 {"status":"ok","database":"connected"}</code> with live server uptime. Proves connection pool is healthy and active.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "We use a 10-connection pool to prevent database socket exhaustion, while cloud uptime is managed by Railway."
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 17 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#17</span>
+          <span class="test-name">Backup and Recovery Controls: Reclassified to Cloud Platform</span>
+          <span class="badge badge-remove">REMOVE FROM CODE</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Verification:</span>
+            <span class="field-val">Railway Project Console &gt; MySQL Service &gt; Backups tab</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Log in to Railway project dashboard.<br>
+              2. Click on the <strong>MySQL</strong> service card &gt; open the <strong>Backups</strong> tab.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Displays automated daily cloud volume snapshots and restore points. Proves backups exist at the cloud infrastructure layer rather than app code.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "We removed backups from our application codebase because we don't write custom cron scripts; backups are handled automatically by Railway cloud volume snapshots."
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 18 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num">#18</span>
+          <span class="test-name">Dashboard Auto-Refresh: 3-Second Polling &amp; Heartbeat Telemetry</span>
+          <span class="badge badge-retain">RETAIN</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Target URL:</span>
+            <span class="field-val url-link">/mis-keys.html &nbsp;|&nbsp; DevTools Network Tab</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Open <code>/mis-keys.html</code>, press <code>F12</code> &gt; <strong>Network</strong> tab &gt; filter by <code>Fetch/XHR</code>.<br>
+              2. Watch requests appear every 3 seconds to <code>/api/keys</code>.<br>
+              3. Lift a key from the dock: card status updates in 3 seconds automatically.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Network log confirms polling every 3000ms. Dashboard cards reflect physical key state changes in real time without refreshing the page.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "3-second polling is an interface refresh loop so staff see live key movements, while hardware diagnostics are passively reported via ESP32 heartbeat telemetry."
+          </div>
+        </div>
+      </div>
+
+      <div class="category-title" style="color: #065f46; background: #ecfdf5; border-left-color: #059669;">
+        Additional Security Features (Selected Additions)
+      </div>
+
+      <!-- Item A1 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num num-add">A1</span>
+          <span class="test-name">Student ID QR Cryptographic Verification &amp; Replay Prevention</span>
+          <span class="badge badge-add">ADD</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Target URL:</span>
+            <span class="field-val url-link">/public/report.html</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. Scan a BulSU Student ID barcode/QR to generate a verification session.<br>
+              2. Complete and submit the fault report (succeeds).<br>
+              3. Immediately attempt to submit a second report with that identical capture session.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> Second submission returns <code>HTTP 403 Forbidden: Student ID verification session has already been used</code>. Proves single-use nonce consumption prevents replay.
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "We generate ephemeral HMAC SHA-256 tokens with a 16-byte random nonce and 10-minute expiry; tokens are atomically marked Used_At = NOW() in MySQL upon submission, preventing replay."
+          </div>
+        </div>
+      </div>
+
+      <!-- Item A2 -->
+      <div class="test-card">
+        <div class="test-header">
+          <span class="test-num num-add">A2</span>
+          <span class="test-name">API Rate Limiting &amp; Anti-Spam Abuse Controls</span>
+          <span class="badge badge-add">ADD</span>
+        </div>
+        <div class="test-body">
+          <div class="field-row">
+            <span class="field-label">Target URL:</span>
+            <span class="field-val url-link">/login.html</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">How to Test:</span>
+            <span class="field-val">
+              1. On login page, type a wrong password.<br>
+              2. Click <strong>Sign In</strong> rapidly 11 times.
+            </span>
+          </div>
+          <div class="expected-box">
+            <strong>Expected Result:</strong> On the 11th click, the server returns <code>HTTP 429 Too Many Requests: "Too many login attempts. Please try again after 15 minutes."</code>
+          </div>
+          <div class="speech-box">
+            <strong>What to say:</strong> "We use express-rate-limit to enforce tiered request throttlers on login, password recovery, and student reports, blocking automated brute-force abuse."
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT403-P | Group Pre-Examination Activity — Capstone 36 (LabSync)</title>
+  <style>
+    /* ─── PRINT & PAGE SETUP (LANDSCAPE) ────────────────────────── */
+    @page {
+      size: A4 landscape;
+      margin: 9mm 10mm 9mm 10mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 8.5pt;
+      line-height: 1.25;
+      color: #000;
+      background: #f1f5f9;
+      margin: 0;
+      padding: 15px;
+    }
+    .page-sheet {
+      background: #fff;
+      width: 277mm;
+      min-height: 188mm;
+      margin: 0 auto 20px auto;
+      padding: 9mm 10mm;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      position: relative;
+      page-break-after: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .page-sheet:last-child {
+      page-break-after: avoid;
+    }
+    @media print {
+      body {
+        background: none;
+        padding: 0;
+      }
+      .page-sheet {
+        width: 100%;
+        min-height: auto;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        page-break-after: always;
+      }
+      .page-sheet:last-child {
+        page-break-after: avoid;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    /* ─── ACTION TOOLBAR (FOR BROWSER VIEW) ──────────────────────── */
+    .toolbar {
+      width: 277mm;
+      margin: 0 auto 12px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 9.5pt;
+    }
+    .toolbar button {
+      background: #1ebbd7;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toolbar button:hover {
+      background: #17a2bc;
+    }
+
+    /* ─── DOCUMENT HEADER ────────────────────────────────────────── */
+    .doc-header {
+      margin-bottom: 5px;
+    }
+    .doc-title-top {
+      font-size: 10pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .doc-title-sub {
+      font-size: 10.5pt;
+      font-weight: bold;
+      margin-top: 1px;
+    }
+    .doc-capstone-id {
+      font-size: 8.5pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-top: 1px;
+      color: #111;
+    }
+
+    /* ─── INFO BOXES ─────────────────────────────────────────────── */
+    .info-container {
+      display: flex;
+      border: 1px solid #000;
+      margin-bottom: 5px;
+    }
+    .info-box-left {
+      flex: 1.35;
+      border-right: 1px solid #000;
+      padding: 3px 6px;
+    }
+    .info-box-right {
+      flex: 1;
+      padding: 3px 6px;
+    }
+    .info-header {
+      font-weight: bold;
+      font-size: 8.2pt;
+      margin-bottom: 2px;
+    }
+    .info-row {
+      font-size: 7.8pt;
+      margin-bottom: 1px;
+    }
+
+    /* ─── INSTRUCTIONS ───────────────────────────────────────────── */
+    .instructions-block {
+      margin-bottom: 5px;
+      font-size: 7.6pt;
+      line-height: 1.25;
+    }
+    .instructions-title {
+      font-weight: bold;
+      margin-bottom: 1px;
+      font-size: 8pt;
+    }
+    .instructions-block ol {
+      margin: 1px 0 2px 16px;
+      padding: 0;
+    }
+    .instructions-block li {
+      margin-bottom: 1px;
+    }
+    .inventory-intro {
+      font-size: 7.3pt;
+      margin-top: 3px;
+      margin-bottom: 4px;
+      color: #222;
+      line-height: 1.2;
+    }
+    .inventory-intro-title {
+      font-weight: bold;
+      font-size: 7.8pt;
+      color: #000;
+    }
+
+    /* ─── MAIN SECURITY TABLE ────────────────────────────────────── */
+    table.sec-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #000;
+      font-size: 7.1pt;
+    }
+    table.sec-table th, 
+    table.sec-table td {
+      border: 1px solid #000;
+      padding: 2.8px 4px;
+      vertical-align: top;
+      line-height: 1.22;
+    }
+    table.sec-table th {
+      background: #f8fafc;
+      font-weight: bold;
+      text-align: left;
+      font-size: 7.1pt;
+    }
+    table.sec-table tr.category-row td {
+      background: #ffffff;
+      font-weight: bold;
+      font-size: 7.3pt;
+      text-transform: uppercase;
+      padding: 2.2px 4px;
+      letter-spacing: 0.3px;
+      border-top: 1.5px solid #000;
+      border-bottom: 1.5px solid #000;
+    }
+
+    /* Column widths */
+    .col-num { width: 3%; text-align: center; font-weight: bold; }
+    .col-feature { width: 22%; }
+    .col-decision { width: 7.5%; text-align: center; font-weight: bold; }
+    .col-reason { width: 35.5%; }
+    .col-test { width: 22%; }
+    .col-instructor { width: 5%; text-align: center; }
+    .col-exam { width: 5%; text-align: center; }
+
+    .tag-retain {
+      color: #0369a1;
+      font-weight: bold;
+    }
+    .tag-remove {
+      color: #b91c1c;
+      font-weight: bold;
+    }
+    .tag-add {
+      color: #047857;
+      font-weight: bold;
+    }
+
+    /* ─── BOTTOM REVIEW FLAGS & RUBRIC (PAGE 8) ──────────────────── */
+    .review-flags-box {
+      border: 1px solid #000;
+      padding: 3.5px 5px;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      font-size: 6.7pt;
+      line-height: 1.2;
+      background: #fafafa;
+    }
+    .review-flags-box strong {
+      font-size: 6.9pt;
+    }
+
+    table.rubric-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #000;
+      font-size: 6.9pt;
+      margin-top: 3px;
+    }
+    table.rubric-table th,
+    table.rubric-table td {
+      border: 1px solid #000;
+      padding: 2px 4px;
+      vertical-align: top;
+      line-height: 1.15;
+    }
+    table.rubric-table th {
+      background: #f1f5f9;
+      font-weight: bold;
+      font-size: 7pt;
+    }
+    .rubric-title {
+      font-weight: bold;
+      font-size: 7.6pt;
+      margin-top: 3px;
+      margin-bottom: 1px;
+    }
+    .rubric-note {
+      font-size: 6.7pt;
+      font-style: italic;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen Toolbar for Printing & Exporting -->
+  <div class="toolbar no-print">
+    <div>
+      <strong>LabSync Capstone 36</strong> — Security Feature Finalization &amp; Change Review
+    </div>
+    <div>
+      <button onclick="window.print()">🖨️ Print / Save as PDF (Landscape)</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 1                                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-sheet">
+    <div class="doc-header">
+      <div class="doc-title-top">IT403-P | GROUP PRE-EXAMINATION ACTIVITY | 30 POINTS</div>
+      <div class="doc-title-sub">Security Feature Finalization &amp; Change Review</div>
+      <div class="doc-capstone-id">CAPSTONE 36 OF 38 — LabSync</div>
+    </div>
+
+    <div class="info-container">
+      <div class="info-box-left">
+        <div class="info-header">Capstone information</div>
+        <div class="info-row">
+          <strong>Capstone title:</strong> LabSync: An IoT-Based IT Laboratory Availability and Equipment Monitoring System Using QR Codes at Bulacan State University – Sarmiento Campus
+        </div>
+        <div class="info-row" style="margin-top: 3px;">
+          <strong>Date:</strong> 10/18/2026
+        </div>
+      </div>
+      <div class="info-box-right">
+        <div class="info-header">Group information</div>
+        <div class="info-row">
+          <strong>Group / Section:</strong> GROUP 3 – BSIT 4E2
+        </div>
+        <div class="info-row" style="margin-top: 3px;">
+          <strong>Group leader:</strong> Gabito, Andrei A.
+        </div>
+      </div>
+    </div>
+
+    <div class="instructions-block">
+      <div class="instructions-title">Activity purpose and instructions</div>
+      <div>Review the original security-feature proposal and finalize the security controls to be examined. This activity is graded separately (30 points); the final examination remains 100 points.</div>
+      <ol>
+        <li><strong>List and classify.</strong> Include every originally proposed security feature and any new requested feature. Mark each as RETAIN, REMOVE, or ADD.</li>
+        <li><strong>Justify and verify.</strong> Give a brief reason for every decision, particularly additions and removals. Describe a practical verification test or evidence reference.</li>
+        <li><strong>Obtain approval.</strong> The instructor marks INCLUDE or EXCLUDE for each feature. An unapproved removal remains required; an unapproved addition is not assessed.</li>
+      </ol>
+    </div>
+
+    <div class="inventory-intro">
+      <span class="inventory-intro-title">Consolidated security feature inventory and revision requests</span><br>
+      Prelisted entries summarize previously proposed controls for review; they are NOT confirmed implemented or approved. Mark each RETAIN or REMOVE and justify the decision. Use the ADD rows for new features. Any entry marked [CONFIRM SCOPE] needs clarification before instructor approval.
+    </div>
+
+    <table class="sec-table">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th class="col-feature">Security feature / control</th>
+          <th class="col-decision">Student decision<br>Retain / Remove / Add</th>
+          <th class="col-reason">Reason / justification for the decision</th>
+          <th class="col-test">Planned live test or evidence reference</th>
+          <th class="col-instructor">Instructor decision<br>Include / Exclude</th>
+          <th class="col-exam">Final exam result<br>Pass / Fail / Retest</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- CATEGORY A -->
+        <tr class="category-row">
+          <td colspan="7">LOGIN AND ACCOUNT SECURITY</td>
+        </tr>
+        <tr>
+          <td class="col-num">1</td>
+          <td class="col-feature">
+            <strong>Account provisioning and status checks:</strong> Server authentication through express-session/requireAuth.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature.</strong> In our system, <code>express-session</code> verifies every staff route on the server side. During login, our <code>authService.js</code> checks if the user account is active (<code>Is_Active = 1</code>) and verifies whether an OJT student's internship has concluded. In addition, our <code>requireRole</code> middleware checks the database on every request so deactivated users are immediately cut off. We also clarify that public student PC fault reporting is intentionally exempt from login sessions so students can easily report broken PCs at lab kiosks without needing an account.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. Open a new Incognito window and try navigating directly to any protected staff page (e.g. <code>/mis-keys.html</code> or <code>/faculty-management.html</code>); observe that the server immediately blocks access and redirects back to the login screen with an unauthorized warning.<br>
+            2. Log in as an active staff user, then have an administrator deactivate that account in Faculty Management; clicking any dashboard button immediately ends the session and displays an "Account Deactivated" security alert.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 2                                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-sheet">
+    <table class="sec-table">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th class="col-feature">Security feature / control</th>
+          <th class="col-decision">Student decision<br>Retain / Remove / Add</th>
+          <th class="col-reason">Reason / justification for the decision</th>
+          <th class="col-test">Planned live test or evidence reference</th>
+          <th class="col-instructor">Instructor decision<br>Include / Exclude</th>
+          <th class="col-exam">Final exam result<br>Pass / Fail / Retest</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-num">2</td>
+          <td class="col-feature">
+            <strong>Credential recovery and updates:</strong> cryptographically random 32-byte reset tokens with expiry.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature.</strong> For self-service password recovery, our backend generates a cryptographically secure 32-byte random token using <code>crypto.randomBytes(32)</code>. To protect our database, we only save the SHA-256 hash of the token in the <code>users</code> table with a strict 1-hour expiration. Once used, the token is reset to <code>NULL</code> so it cannot be reused, and our API returns a generic success message so an attacker cannot enumerate valid school emails.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. On the login page, click "Forgot Password?", enter a registered BulSU faculty email, and click Send. Open the email to confirm receipt of a secure recovery link containing a 64-character hexadecimal token.<br>
+            2. Click the link and enter a new password to successfully reset your account. Then, immediately click the exact same recovery link again; observe that the system rejects the request as expired or already consumed (single-use token guarantee).
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+        <tr>
+          <td class="col-num">3</td>
+          <td class="col-feature">
+            <strong>Secure password handling:</strong> password hashes identified as assets, with no algorithm specified.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature and specify our exact algorithm as bcrypt with 12 salt rounds.</strong> This resolves our instructor's review flag regarding the unspecified algorithm. In our <code>authService.js</code>, passwords are never stored in plaintext; we hash them using the <code>bcrypt</code> library (^6.0.0) with salt cost factor 12 (<code>BCRYPT_SALT_ROUNDS = 12</code>). Password hashes are strictly excluded from all API responses and audit logs across all user roles.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. Open phpMyAdmin or run a query on the MySQL <code>users</code> table to visually inspect password records; confirm they are stored as one-way hashed strings starting with <code>$2b$12$</code> (identifying bcrypt with 12 salt rounds) rather than plain text.<br>
+            2. On the login screen, enter the correct password to demonstrate successful sign-in; then change a single letter in the password and re-submit to demonstrate that bcrypt verification safely rejects the attempt with "Invalid credentials".
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+
+        <!-- CATEGORY B -->
+        <tr class="category-row">
+          <td colspan="7">SESSION SECURITY</td>
+        </tr>
+        <tr>
+          <td class="col-num">4</td>
+          <td class="col-feature">
+            <strong>Session identifiers and renewal:</strong> Server session checks.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature to prevent session fixation and hijacking.</strong> Whenever a user logs in successfully, our <code>auth.controller.js</code> runs <code>req.session.regenerate()</code> to issue a brand new session ID. When logging out via <code>POST /api/logout</code>, our backend explicitly runs <code>req.session.destroy()</code> and clears the <code>connect.sid</code> cookie, ensuring old or stolen session IDs cannot be used to access protected data.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. In Google Chrome or Edge, press F12, open the Application tab, select Cookies, and check the current <code>connect.sid</code> cookie value before logging in.<br>
+            2. Enter credentials and click Sign In; observe in DevTools that <code>connect.sid</code> instantly regenerates to a brand-new alphanumeric ID (stopping session fixation attacks).<br>
+            3. Click "Log Out" in the top bar; observe that <code>connect.sid</code> is completely deleted from the browser, and clicking the browser Back button will not reopen the dashboard.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 3                                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-sheet">
+    <table class="sec-table">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th class="col-feature">Security feature / control</th>
+          <th class="col-decision">Student decision<br>Retain / Remove / Add</th>
+          <th class="col-reason">Reason / justification for the decision</th>
+          <th class="col-test">Planned live test or evidence reference</th>
+          <th class="col-instructor">Instructor decision<br>Include / Exclude</th>
+          <th class="col-exam">Final exam result<br>Pass / Fail / Retest</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-num">5</td>
+          <td class="col-feature">
+            <strong>Session and cookie protection:</strong> protected Secure/HttpOnly cookies; client auth guards as supplemental interface checks.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature.</strong> In our <code>server.js</code>, session cookies are configured with <code>httpOnly: true</code> (so client scripts cannot steal them via XSS) and <code>sameSite: 'lax'</code>. On our live Railway deployment, we enable <code>secure: true</code> with reverse proxy support. We clarify that our client-side <code>auth-check.js</code> is only an anti-flash UI guard to prevent unauthorized page rendering, while our Express backend independently verifies every API call.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. While signed in, open the browser DevTools Console (F12) and type <code>document.cookie</code> then press Enter. Notice that <code>connect.sid</code> is completely blank/hidden from JavaScript, proving malicious XSS scripts cannot steal the session cookie.<br>
+            2. In the DevTools Application &gt; Cookies tab, verify that the <code>HttpOnly</code>, <code>Secure</code> (HTTPS), and <code>SameSite=Lax</code> columns all show checkmarks.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+        <tr>
+          <td class="col-num">6</td>
+          <td class="col-feature">
+            <strong>Session expiry and revocation:</strong> HTTPS/TLS for sensitive traffic.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature.</strong> We set a 10-minute inactivity timeout in our <code>auth.js</code> middleware so that if a user leaves the computer unattended, the session is destroyed (background polling with <code>X-Background-Poll: true</code> is ignored so it does not falsely keep the session alive). We also enforce a 24-hour max cookie lifetime, and our production Railway deployment enforces HTTPS/TLS with 180-day HSTS security headers.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. Log in to the MIS dashboard and leave the computer untouched for 10 minutes (simulating leaving a lab PC unattended). Click any navigation link or table action; the system automatically terminates the session and returns you to the login screen with a "Session Expired" notification.<br>
+            2. Click the padlock icon in the browser address bar to verify the active SSL/TLS certificate and HSTS encryption enforcing secure HTTPS connections.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+
+        <!-- CATEGORY C -->
+        <tr class="category-row">
+          <td colspan="7">ACCESS CONTROL</td>
+        </tr>
+        <tr>
+          <td class="col-num">7</td>
+          <td class="col-feature">
+            <strong>Role-based authorization:</strong> Faculty, IT Head and MIS Staff RBAC; protected API checks.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature.</strong> Our backend enforces role-based access control across our 4 system roles: IT Head / Program Coordinator, MIS Staff, Faculty, and OJT. Our <code>requireRole</code> middleware checks the database on every request to confirm the user's live role. Key reservations for a 2nd room can only be approved by the IT Head. OJT accounts are blocked from managing keys or withdrawing physical keys. If someone bypasses the UI and calls an API directly, our server returns HTTP 403.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. Log in with a Faculty account: observe that administrative menus (such as MIS Staff and Master Schedule Locks) are completely hidden from the sidebar.<br>
+            2. Type the URL <code>mis-staff.html</code> directly in the address bar; the server immediately blocks the page and displays "Access Forbidden (HTTP 403)".<br>
+            3. Sign in as an OJT account to confirm that physical laboratory key dispatch controls and sensitive administrative actions are disabled.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 4                                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-sheet">
+    <table class="sec-table">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th class="col-feature">Security feature / control</th>
+          <th class="col-decision">Student decision<br>Retain / Remove / Add</th>
+          <th class="col-reason">Reason / justification for the decision</th>
+          <th class="col-test">Planned live test or evidence reference</th>
+          <th class="col-instructor">Instructor decision<br>Include / Exclude</th>
+          <th class="col-exam">Final exam result<br>Pass / Fail / Retest</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-num">8</td>
+          <td class="col-feature">
+            <strong>Privileged actions and account governance:</strong> public student fault-reporting flow; restricted account and schedule management.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature.</strong> We separate public student fault reporting from privileged staff functions. Students can report broken PCs on public endpoints protected by rate limiting and a 30-minute student cooldown. All administrative features (managing faculty, creating accounts, locking schedules) strictly require IT Head or MIS Staff roles. We also disable hard deletion of staff accounts so our audit history is never broken.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. On a public lab kiosk or mobile phone, open the student fault reporting form without logging in; verify that scanning a PC QR code and submitting a hardware issue succeeds without prompting for a staff login.<br>
+            2. Open an Incognito window and attempt to access <code>faculty-management.html</code> or delete a maintenance report; observe that the server blocks the action with HTTP 401 Unauthorized, proving public and administrative privileges are strictly isolated.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+
+        <!-- CATEGORY D -->
+        <tr class="category-row">
+          <td colspan="7">INPUT AND QUERY SECURITY</td>
+        </tr>
+        <tr>
+          <td class="col-num">9</td>
+          <td class="col-feature">
+            <strong>Input validation and safe transaction processing:</strong> Server validation of public-form data; frontend validation and clear form labels.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature.</strong> In our backend services, we validate all incoming form data, including laboratory room numbers, PC numbers, allowed issue categories, and text lengths. For multi-step actions like submitting a maintenance report or transferring key custody, we wrap them in database transactions (<code>withTransaction</code>) so that if any single step fails, the entire operation safely rolls back.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. Open the PC fault report form and attempt to submit with required fields left blank or an impossible PC number (e.g., PC-999); observe immediate red client-side validation banners preventing submission.<br>
+            2. Inspect the network response to confirm that our server also validates input independently, returning HTTP 400 Bad Request if invalid payload data is sent, preventing any corrupted records in MySQL.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+        <tr>
+          <td class="col-num">10</td>
+          <td class="col-feature">
+            <strong>Database and injection protections:</strong> parameterized queries and least-privilege database access.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature.</strong> All SQL queries in our repositories use parameterized queries (<code>?</code> placeholders) through <code>mysql2</code>, completely preventing SQL injection by treating all inputs strictly as data values. We keep our database credentials secure in our private <code>.env</code> file, and table structures are managed cleanly during startup through <code>migrate.js</code>.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            On the login form or dashboard search input, type standard SQL injection strings such as <code>' OR '1'='1</code> or <code>admin'--</code> and submit. Observe that the database treats the input strictly as literal string text, returning "Invalid email or password" or "No records found" with zero SQL syntax errors and without bypassing authentication.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 5                                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-sheet">
+    <table class="sec-table">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th class="col-feature">Security feature / control</th>
+          <th class="col-decision">Student decision<br>Retain / Remove / Add</th>
+          <th class="col-reason">Reason / justification for the decision</th>
+          <th class="col-test">Planned live test or evidence reference</th>
+          <th class="col-instructor">Instructor decision<br>Include / Exclude</th>
+          <th class="col-exam">Final exam result<br>Pass / Fail / Retest</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- CATEGORY E -->
+        <tr class="category-row">
+          <td colspan="7">DATA PROTECTION AND PRIVACY</td>
+        </tr>
+        <tr>
+          <td class="col-num">11</td>
+          <td class="col-feature">
+            <strong>Sensitive data encryption and key protection:</strong> Protected .env database/email secrets excluded from version control.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature.</strong> We protect all our system secrets by loading database passwords, session secrets, and IoT device tokens strictly from environment variables. We placed <code>.env</code> and <code>LabSync_ESP32/secrets.h</code> in <code>.gitignore</code> so they are never committed to GitHub. Our <code>validateProductionConfig()</code> halts server startup if required secrets are missing, and our audit logger automatically strips secret tokens.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. Open our public GitHub repository in a browser and verify that <code>.env</code> and <code>LabSync_ESP32/secrets.h</code> do not exist in the file tree, proving credentials are never committed.<br>
+            2. Open the Railway live project dashboard and click on the "Variables" tab to show that database passwords and session encryption keys are securely injected into the container environment at runtime.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+        <tr>
+          <td class="col-num">12</td>
+          <td class="col-feature">
+            <strong>Personal-data minimization and lifecycle:</strong> no sensitive details in URLs, logs or errors.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature.</strong> In production, our <code>errorHandler.js</code> returns a generic <code>"Internal server error"</code> to the client, preventing stack traces or database schema leaks. For privacy compliance, our <code>activityRetentionService.js</code> runs a daily background task that automatically deletes <code>occupancy_log</code> records older than 1 calendar year using indexed SQL queries.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. In the browser, navigate to an invalid route or deliberately trigger a server error; observe that the screen displays a safe, generic error message without revealing internal source code paths, SQL queries, or server stack traces.<br>
+            2. Open the Activity Log table on the MIS dashboard to show that historical log records older than 1 calendar year are automatically cleaned up in accordance with privacy compliance.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+
+        <!-- CATEGORY F -->
+        <tr class="category-row">
+          <td colspan="7">DEVICE AND MESSAGE SECURITY</td>
+        </tr>
+        <tr>
+          <td class="col-num">13</td>
+          <td class="col-feature">
+            <strong>Device identity and authorized association:</strong> Authenticated JSON payloads with device security tokens in stakeholder responsibilities.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature.</strong> Our ESP32 key dock connects to our backend using an <code>Authorization: Bearer &lt;token&gt;</code> header. When IoT authentication is enabled, <code>requireIoTAuth</code> checks the token against our <code>iot_devices</code> table. In addition, our backend checks <code>authorizedRooms</code> to make sure the device can only report key events for its designated laboratory room (Lab 203 and 204), rejecting other rooms with HTTP 403.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. Power on the physical ESP32 key dock; observe on the OLED display and serial output that it performs an authenticated handshake with the Railway server using its pre-registered Bearer token.<br>
+            2. Demonstrate server enforcement by showing that any request sent with an invalid device token or targeting an unauthorized laboratory room returns HTTP 401 Unauthorized or HTTP 403 <code>IOT_UNAUTHORIZED_ROOM</code>.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 6                                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-sheet">
+    <table class="sec-table">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th class="col-feature">Security feature / control</th>
+          <th class="col-decision">Student decision<br>Retain / Remove / Add</th>
+          <th class="col-reason">Reason / justification for the decision</th>
+          <th class="col-test">Planned live test or evidence reference</th>
+          <th class="col-instructor">Instructor decision<br>Include / Exclude</th>
+          <th class="col-exam">Final exam result<br>Pass / Fail / Retest</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-num">14</td>
+          <td class="col-feature">
+            <strong>Hardware resilience and monitoring:</strong> campus Wi-Fi; 100-ms sensor debouncing; Wi-Fi reconnection and hardware heartbeats.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature with our actual hardware parameters.</strong> In our ESP32 firmware, we use a <strong>40-millisecond debounce</strong> (<code>delay(40)</code>) with 16-sample ADC averaging on pins D32 and D33. This filters out electrical contact noise when physical keys are pulled or inserted. The ESP32 sends a telemetry heartbeat every 15 seconds, automatically reconnects to Wi-Fi if the signal drops, and saves up to 16 pending security alerts in NVS flash memory.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. At the physical key dock, rapidly insert or pull a key; observe that the 40ms ADC debouncing smoothly registers clean state transitions without false duplicate key triggers.<br>
+            2. Turn off the lab Wi-Fi hotspot; observe the ESP32 enter automatic reconnection mode while safely buffering event logs in non-volatile flash memory, then syncing them immediately when Wi-Fi reconnects.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+
+        <!-- CATEGORY G -->
+        <tr class="category-row">
+          <td colspan="7">AUDIT LOGGING AND SAFE ERRORS</td>
+        </tr>
+        <tr>
+          <td class="col-num">15</td>
+          <td class="col-feature">
+            <strong>Security and activity audit trail:</strong> occupancy_log for QR/key events; activity feed plus login, authorization, validation and administrative security events.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature for complete accountability.</strong> We built a dual-table logging system: <code>occupancy_log</code> records physical key events (<code>Key Taken</code>, <code>Key Returned</code>, <code>UNAUTHORIZED</code>, <code>WRONG_SLOT</code>), while <code>audit_logs</code> records administrative events (<code>LOGIN</code>, <code>LOGOUT</code>, <code>PASSWORD_RESET</code>, <code>IOT_AUTH_FAILURE</code>, schedule changes) with user IDs, IP addresses, and timestamps. We have no delete endpoints for these tables.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. At the physical ESP32 dock, pull a laboratory key without scanning a faculty QR authorization; the dock buzzer immediately sounds an audible alarm.<br>
+            2. Open the MIS Staff "Activity Logs" page on screen; observe the new entry showing <code>IOT_UNAUTHORIZED_KEY_REMOVAL</code> with the exact timestamp, room number, slot index, and flagged alert badge.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+
+        <!-- CATEGORY H -->
+        <tr class="category-row">
+          <td colspan="7">AVAILABILITY BACKUP AND RECOVERY</td>
+        </tr>
+        <tr>
+          <td class="col-num">16</td>
+          <td class="col-feature">
+            <strong>Service continuity and availability:</strong> MySQL2 connection pooling and asynchronous error handling.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature with clarified scope.</strong> As our instructor noted, connection pooling and error handling manage resources and keep our application running smoothly—they do not guarantee 99.9% cloud uptime (which is managed by Railway). Our backend uses a 10-connection MySQL pool with keep-alive, centralized async error middleware to prevent server crashes, and <code>/api/health</code> and <code>/api/health/db</code> endpoints to monitor operational status.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            Open any web browser and visit <code>https://labsync-bulsu-sarmiento-production.up.railway.app/api/health</code> and <code>/api/health/db</code>. Observe that the server immediately returns a clean JSON health badge: <code>{"status":"ok", "database":"connected"}</code>, proving operational uptime and active MySQL connection pool health.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 7                                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-sheet">
+    <table class="sec-table">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th class="col-feature">Security feature / control</th>
+          <th class="col-decision">Student decision<br>Retain / Remove / Add</th>
+          <th class="col-reason">Reason / justification for the decision</th>
+          <th class="col-test">Planned live test or evidence reference</th>
+          <th class="col-instructor">Instructor decision<br>Include / Exclude</th>
+          <th class="col-exam">Final exam result<br>Pass / Fail / Retest</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-num">17</td>
+          <td class="col-feature">
+            <strong>Backup and recovery controls:</strong> regular backups.
+          </td>
+          <td class="col-decision tag-remove">REMOVE</td>
+          <td class="col-reason">
+            <strong>We decided to remove this from our software code requirements and reclassify it as cloud platform infrastructure.</strong> In our codebase audit, we verified that our repository does not have automated backup scripts or cron jobs in the application code. Instead, automated database snapshots and point-in-time recovery are managed by Railway's cloud infrastructure. Removing this from the code scope keeps our capstone implementation accurate and honest.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            Log in to the Railway cloud platform dashboard (railway.app) and open the LabSync MySQL service. Click the "Backups" tab to show the active automated volume snapshot timeline, automated daily backup schedule, and one-click database restore capability.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+        <tr>
+          <td class="col-num">18</td>
+          <td class="col-feature">
+            <strong>Secure maintenance and operational checks:</strong> three-second dashboard polling and hardware diagnostics.
+          </td>
+          <td class="col-decision tag-retain">RETAIN</td>
+          <td class="col-reason">
+            <strong>We retain this feature with clarified wording.</strong> The 3-second polling on our MIS keys dashboard is an interface auto-refresh so staff can monitor live key custody without refreshing the page. Our hardware diagnostics consist of passive telemetry sent by our ESP32 (slot states, free heap memory, and online status via <code>/api/occupancy/heartbeat</code>), rather than active hardware self-test commands.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            Open <code>mis-keys.html</code> on the MIS dashboard in a browser. At the physical dock, take or return a laboratory key; without touching or refreshing the browser, watch the key status card on the screen automatically change between "Available" and "In Use" within 3 seconds, driven by live background polling.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+
+        <!-- ADDITIONAL FEATURES -->
+        <tr class="category-row">
+          <td colspan="7">ADDITIONAL SECURITY FEATURES (OPTIONAL — COMPLETE ONLY IF PROPOSING ADDITIONS)</td>
+        </tr>
+        <tr>
+          <td class="col-num">A1</td>
+          <td class="col-feature">
+            <strong>Student ID QR Cryptographic Verification &amp; Replay Protection:</strong> Ephemeral HMAC SHA-256 capture tokens with single-use nonce consumption.
+          </td>
+          <td class="col-decision tag-add">ADD</td>
+          <td class="col-reason">
+            <strong>We are adding this feature to directly solve our instructor's review flag regarding QR token expiry and replay prevention.</strong> In <code>studentVerificationService.js</code>, when a student scans their physical BulSU ID barcode/QR, our server creates an ephemeral token signed with HMAC SHA-256 containing a 16-byte random nonce, 10-minute expiry, and room binding. Upon submitting the report, our database atomically marks the token as used (<code>Used_At = NOW()</code>) inside a transaction, preventing any replay or reuse.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. At the student kiosk, scan a valid BulSU student ID barcode to unlock the PC fault reporting form, fill in the problem details, and click Submit (report succeeds).<br>
+            2. Click the browser Back button and attempt to submit a second report using the exact same session; observe that the system immediately intercepts the submission and displays: "Student ID verification session has already been used" (replay attack blocked).
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 8                                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-sheet">
+    <table class="sec-table">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th class="col-feature">Security feature / control</th>
+          <th class="col-decision">Student decision<br>Retain / Remove / Add</th>
+          <th class="col-reason">Reason / justification for the decision</th>
+          <th class="col-test">Planned live test or evidence reference</th>
+          <th class="col-instructor">Instructor decision<br>Include / Exclude</th>
+          <th class="col-exam">Final exam result<br>Pass / Fail / Retest</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-num">A2</td>
+          <td class="col-feature">
+            <strong>API Rate Limiting &amp; Anti-Spam Abuse Controls:</strong> Tiered request-rate throttlers for login, recovery, and public student reports.
+          </td>
+          <td class="col-decision tag-add">ADD</td>
+          <td class="col-reason">
+            <strong>We are adding this feature to protect our system against brute-force login attacks and spam on public endpoints.</strong> Using <code>express-rate-limit</code>, we implemented throttlers for: login (10 attempts / 15m), password recovery (5 attempts / 15m), public student reports (5 reports / 10m per IP), PC duplicate reports (1 report / 1m per PC), and student verification (60 requests / 10m). This stops automated abuse while keeping normal usage smooth.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            On the staff login page (<code>login.html</code>), enter incorrect credentials and click the "Sign In" button rapidly 11 times. On the 11th click, the system locks further attempts and displays a red warning banner: "Too many login attempts. Please try again after 15 minutes" (HTTP 429 rate limit protection).
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+        <tr>
+          <td class="col-num">A3</td>
+          <td class="col-feature">
+            <strong>Non-Volatile (NVS) Hardware Security Alert Persistence &amp; Power-Cycle Resilience:</strong> Flash incident latching across power loss.
+          </td>
+          <td class="col-decision tag-add">ADD</td>
+          <td class="col-reason">
+            <strong>We are adding this feature to eliminate a physical tamper vulnerability where pulling the power plug clears security alarms.</strong> In <code>LabSync_ESP32.ino</code>, unauthorized key removals and wrong-slot incidents are latched into ESP32 Preferences flash storage (<code>labsync_sec</code> namespace). If an intruder disconnects the power during an alert, our firmware immediately restores the alarm state upon boot and transmits the pending alert queue once Wi-Fi reconnects.
+          </td>
+          <td class="col-test">
+            <strong>Planned Live Test:</strong><br>
+            1. Trigger an unauthorized key alarm by pulling a laboratory key from the dock without scanning; observe the onboard alarm buzzer sound.<br>
+            2. Unplug the ESP32 dock's power cable (simulating cutting power to clear an alarm), wait 5 seconds, and plug it back in; observe that the firmware immediately reads flash memory on boot, restores the alarm buzzer, and syncs the buffered security alert to the MIS dashboard upon Wi-Fi reconnection.
+          </td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+        <tr>
+          <td class="col-num">A4</td>
+          <td class="col-feature"></td>
+          <td class="col-decision"></td>
+          <td class="col-reason"></td>
+          <td class="col-test"></td>
+          <td class="col-instructor"></td>
+          <td class="col-exam"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="review-flags-box">
+      <div style="margin-bottom: 3px;">
+        <strong>Instructor review flags (clarify before approval):</strong> “All routes” require sessions conflicts with the public student fault-report flow. Specify the public endpoints and their validation/abuse controls. Client auth-check.js does not replace server authorization. Polling/connection pools do not guarantee high uptime. QR token uniqueness is not proof of expiry or replay prevention. Do not add electronic locks: the stated device monitors physical keys. Source wording includes password hashes, but does not identify bcrypt despite a bcrypt-related reference.
+      </div>
+      <div style="margin-top: 3px; padding-top: 3px; border-top: 1px dashed #999; font-size: 6.7pt; line-height: 1.25;">
+        <strong>Our Capstone Group Clarifications:</strong>
+        <ol style="margin: 2px 0 0 14px; padding: 0;">
+          <li><strong>Public endpoints vs. sessions:</strong> In our system, staff routes require sessions, while student fault reporting is intentionally public at kiosks (<code>/verify-student-id</code>, <code>/student-cooldown</code>, <code>/submit</code>, <code>/pc-info</code>) with IP rate limiting (5 / 10m), PC cooldown (1 / 1m), and MySQL student cooldown (30m).</li>
+          <li><strong>Client auth-check.js vs. server auth:</strong> <code>auth-check.js</code> is only a client-side anti-flash visual redirect. Our Express server independently validates active session roles on every API request via <code>requireAuth</code> and <code>requireRole</code>.</li>
+          <li><strong>Polling and connection pools:</strong> 3-second polling is an interface refresh mechanism, and connection pooling manages MySQL resources. Infrastructure 99.9% uptime is managed by Railway.</li>
+          <li><strong>QR expiry &amp; replay prevention:</strong> Scanning student ID QR codes generates ephemeral HMAC SHA-256 tokens with 16-byte random nonces and 10-minute expiry; tokens are atomically marked <code>Used_At = NOW()</code> in MySQL upon submission, preventing replay.</li>
+          <li><strong>Physical keys (no electronic locks):</strong> LabSync is an IoT physical key monitoring dock using ADC resistor dividers on pins D32/D33. Unauthorized key removal sounds an onboard buzzer and logs an alert. No electronic locks or solenoids are added.</li>
+          <li><strong>Password hashing algorithm:</strong> Passwords are hashed using <strong>bcrypt</strong> (^6.0.0) with <strong>12 salt rounds</strong> (<code>BCRYPT_SALT_ROUNDS = 12</code>) in <code>authService.js</code>. Stored hashes use standard <code>$2b$12$...</code> format.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="rubric-title">Activity assessment rubric - 30 points</div>
+    <table class="rubric-table">
+      <thead>
+        <tr>
+          <th style="width: 25%;">Criterion</th>
+          <th style="width: 55%;">Assessment standard</th>
+          <th style="width: 10%; text-align: center;">Max</th>
+          <th style="width: 10%; text-align: center;">Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Completeness and Accuracy of Feature Inventory</strong></td>
+          <td>Lists the original controls accurately and correctly identifies retained, removed, and added features.</td>
+          <td style="text-align: center;">10</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><strong>Quality of Justifications</strong></td>
+          <td>Provides clear and defensible reasons for each decision, especially requested additions or removals.</td>
+          <td style="text-align: center;">10</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><strong>Security Relevance and Technical Feasibility</strong></td>
+          <td>Decisions align with capstone scope and identify controls that are appropriate and achievable.</td>
+          <td style="text-align: center;">5</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><strong>Clarity and Verification Readiness</strong></td>
+          <td>Features are distinct, clearly described, and supported by a practical test or evidence reference.</td>
+          <td style="text-align: center;">5</td>
+          <td></td>
+        </tr>
+        <tr style="font-weight: bold; background: #f8fafc;">
+          <td colspan="2">TOTAL</td>
+          <td style="text-align: center;">30</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="rubric-note">Assess the quality of the review—not the quantity of feature changes. No additions or removals are required to earn full credit.</div>
+  </div>
+
+</body>
+</html>
