@@ -348,7 +348,7 @@
           </td>
           <td class="col-decision tag-retain">RETAIN</td>
           <td class="col-reason">
-            <strong>We retain this feature.</strong> In our system, <code>express-session</code> verifies every staff route on the server side. During login, our <code>authService.js</code> checks if the user account is active (<code>Is_Active = 1</code>) and verifies whether an OJT student's internship has concluded. In addition, our <code>requireRole</code> middleware checks the database on every request so deactivated users are immediately cut off. We also clarify that public student PC fault reporting is intentionally exempt from login sessions so students can easily report broken PCs at lab kiosks without needing an account.
+            <strong>We retain this feature.</strong> In our system, <code>express-session</code> verifies every staff route on the server side. During login, our <code>authService.js</code> checks if the user account is active (<code>Is_Active = 1</code>) and verifies whether an OJT student's internship has concluded. In addition, our <code>requireRole</code> middleware checks the database on every request so deactivated users are immediately cut off. We also clarify that public student PC fault reporting is intentionally exempt from login sessions so students can easily report broken PCs directly from their mobile phones or browsers without needing an account.
           </td>
           <td class="col-test">
             <strong>Planned Live Test:</strong><br>
@@ -546,7 +546,7 @@
           </td>
           <td class="col-test">
             <strong>Planned Live Test:</strong><br>
-            1. On a public lab kiosk or mobile phone, open the student fault reporting form without logging in; verify that scanning a PC QR code and submitting a hardware issue succeeds without prompting for a staff login.<br>
+            1. On a mobile phone or browser, open the student fault reporting form (<code>submit-pc-report.html</code>) without logging in; verify that scanning a PC QR code and submitting a hardware issue succeeds without prompting for a staff login.<br>
             2. Open an Incognito window and attempt to access <code>faculty-management.html</code> or delete a maintenance report; observe that the server blocks the action with HTTP 401 Unauthorized, proving public and administrative privileges are strictly isolated.
           </td>
           <td class="col-instructor"></td>
@@ -780,12 +780,9 @@
           </td>
           <td class="col-decision tag-remove">REMOVE</td>
           <td class="col-reason">
-            <strong>We decided to remove this from our software code requirements and reclassify it as cloud platform infrastructure.</strong> In our codebase audit, we verified that our repository does not have automated backup scripts or cron jobs in the application code. Instead, automated database snapshots and point-in-time recovery are managed by Railway's cloud infrastructure. Removing this from the code scope keeps our capstone implementation accurate and honest.
+            <strong>We decided to remove this feature.</strong> Our system currently does not have automated database backup scripts or scheduled cron tasks built into the application. In addition, automated backups on our cloud hosting platform (Railway) require a paid Pro tier upgrade, and our active deployment currently does not have automated backups enabled. Removing this ensures our project scope remains completely honest and accurate with what our system currently supports.
           </td>
-          <td class="col-test">
-            <strong>Planned Live Test:</strong><br>
-            Log in to the Railway cloud platform dashboard (railway.app) and open the LabSync MySQL service. Click the "Backups" tab to show the active automated volume snapshot timeline, automated daily backup schedule, and one-click database restore capability.
-          </td>
+          <td class="col-test"></td>
           <td class="col-instructor"></td>
           <td class="col-exam"></td>
         </tr>
@@ -821,7 +818,7 @@
           </td>
           <td class="col-test">
             <strong>Planned Live Test:</strong><br>
-            1. At the student kiosk, scan a valid BulSU student ID barcode to unlock the PC fault reporting form, fill in the problem details, and click Submit (report succeeds).<br>
+            1. Open the PC fault reporting form (<code>submit-pc-report.html</code>) on a mobile phone or browser, scan a valid BulSU student ID barcode to unlock the report form, fill in the problem details, and click Submit (report succeeds).<br>
             2. Click the browser Back button and attempt to submit a second report using the exact same session; observe that the system immediately intercepts the submission and displays: "Student ID verification session has already been used" (replay attack blocked).
           </td>
           <td class="col-instructor"></td>

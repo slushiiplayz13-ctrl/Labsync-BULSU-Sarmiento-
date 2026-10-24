@@ -344,9 +344,9 @@
         <div class="help-feature-card theme-green">
           <div class="help-feat-title">
             <i data-lucide="user-cog"></i>
-            Account Settings
+            Settings &amp; Tools
           </div>
-          <p class="help-feat-desc">Manage your profile, password, and QR code from your account.</p>
+          <p class="help-feat-desc">Manage your profile, password, QR code, and administrative system tools.</p>
         </div>`;
     }
 

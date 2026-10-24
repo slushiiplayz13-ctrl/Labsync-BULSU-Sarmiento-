@@ -60,6 +60,36 @@
   }
 
   /**
+   * Safely loads and opens the Database Backup & Recovery modal.
+   */
+  function openBackupRecoverySafely() {
+    let user = null;
+    try {
+      const rawUser = JSON.parse(sessionStorage.getItem('labsync_user') || localStorage.getItem('user') || 'null');
+      user = (rawUser && (rawUser.user || rawUser)) || null;
+    } catch (e) {}
+    const role = user ? (user.role || user.Role || '') : '';
+    const clean = String(role).trim().toLowerCase();
+    if (clean.includes('coordinator') || clean.includes('mis') || clean.includes('ojt') || clean.includes('faculty') || clean.includes('student')) {
+      console.warn('[SidebarNav] Backup & Recovery is restricted exclusively to the IT Department Head.');
+      return;
+    }
+
+    if (typeof global.openBackupRecoveryModal === 'function') {
+      global.openBackupRecoveryModal();
+    } else {
+      const script = document.createElement('script');
+      script.src = 'js/components/backup/backup-recovery.modal.js';
+      script.onload = () => {
+        if (typeof global.openBackupRecoveryModal === 'function') {
+          global.openBackupRecoveryModal();
+        }
+      };
+      document.body.appendChild(script);
+    }
+  }
+
+  /**
    * Toggles the floating quick navigation menu for Admin Panel (Master Schedule & Faculty Management).
    * @param {Event} event
    * @param {HTMLElement} btnEl
@@ -374,5 +404,6 @@
   global.toggleAdminMenu = toggleAdminMenu;
   global.initSidebarTooltips = initSidebarTooltips;
   global.safeNavigate = safeNavigate;
+  global.openBackupRecoverySafely = openBackupRecoverySafely;
 
 })(typeof window !== 'undefined' ? window : this);

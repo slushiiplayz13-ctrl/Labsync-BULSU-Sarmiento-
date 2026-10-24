@@ -52,7 +52,13 @@ app.use(cors({
 app.put(['/api/user/update', '/api/user/profile', '/api/users/update', '/api/users/profile'], express.json({ limit: '10mb' }));
 
 // Conservative global body limits for all other endpoints (prevents large-body DoS attacks)
-app.use(express.json({ limit: '1mb' }));
+app.use((req, res, next) => {
+    const reqPath = (req.originalUrl || req.path || '').split('?')[0].replace(/\/+$/, '');
+    if (reqPath === '/api/admin/backups/restore') {
+        return next();
+    }
+    express.json({ limit: '1mb' })(req, res, next);
+});
 app.use(express.urlencoded({ limit: '1mb', extended: true }));
 
 // Session configuration

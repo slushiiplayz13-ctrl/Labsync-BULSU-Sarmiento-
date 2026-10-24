@@ -20,9 +20,9 @@
       profileMenu.id = 'profile-menu';
       profileMenu.className = 'profile-menu';
       profileMenu.innerHTML = `
-        <button type="button" id="profile-menu-account-btn" class="profile-menu-item">
+        <button type="button" id="profile-menu-account-btn" class="profile-menu-item" aria-label="Settings & Tools" title="Settings & Tools">
           <i data-lucide="user-cog" style="width:16px;height:16px;"></i>
-          Account Settings
+          Settings &amp; Tools
         </button>
         <div class="profile-menu-item profile-dark-mode-toggle" id="profile-dark-mode-item" role="button" tabindex="0">
           <div class="profile-dark-mode-left">

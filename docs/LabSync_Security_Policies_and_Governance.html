@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IT 403P Capstone Security Policy Package &bull; Andrei A. Gabito (G03)</title>
+  <style>
+    /* ─── PAGE & PRINT CONFIGURATION ────────────────────────── */
+    @page {
+      size: A4 portrait;
+      margin: 14mm 13mm 14mm 13mm;
+      @bottom-left {
+        content: "BulSU Sarmiento Campus \2022  IT 403P: Information Assurance & Security";
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        font-size: 7pt;
+        color: #64748b;
+      }
+      @bottom-right {
+        content: "Andrei A. Gabito (G03) \2022  Page " counter(page);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        font-size: 7pt;
+        color: #64748b;
+      }
+    }
+    
+    @page:first {
+      margin: 14mm;
+      @bottom-left {
+        content: "";
+      }
+      @bottom-right {
+        content: "";
+      }
+    }
+    
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 8.4pt;
+      line-height: 1.33;
+      color: #1e293b;
+      background: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+    
+    /* ─── COVER PAGE ────────────────────────────────────────── */
+    .cover-page {
+      min-height: 250mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 3px double #1e3a8a;
+      padding: 16mm 14mm;
+      background: #ffffff;
+    }
+    
+    .cover-header {
+      text-align: center;
+    }
+    
+    .univ-logo-text {
+      font-size: 15pt;
+      font-weight: 900;
+      color: #1e3a8a;
+      letter-spacing: 0.5px;
+    }
+    
+    .campus-text {
+      font-size: 9pt;
+      font-weight: 600;
+      color: #475569;
+      margin-top: 2px;
+      letter-spacing: 0.3px;
+    }
+    
+    .dept-text {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 6px;
+    }
+    
+    .course-badge {
+      display: inline-block;
+      font-size: 9.5pt;
+      font-weight: 700;
+      background: #eff6ff;
+      color: #1e40af;
+      padding: 4px 14px;
+      border-radius: 4px;
+      border: 1px solid #bfdbfe;
+      margin-top: 8px;
+    }
+    
+    .ay-text {
+      font-size: 8.5pt;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    
+    .cover-title-box {
+      text-align: center;
+      margin: 8mm 0;
+      padding: 7mm 6mm;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid #cbd5e1;
+      border-left: 6px solid #1e3a8a;
+      border-radius: 4px;
+    }
+    
+    .activity-label {
+      font-size: 8pt;
+      font-weight: 700;
+      color: #2563eb;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    
+    .cover-title {
+      font-size: 17pt;
+      font-weight: 900;
+      color: #0f172a;
+      margin: 0;
+      line-height: 1.2;
+    }
+    
+    .cover-subtitle {
+      font-size: 13pt;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin-top: 5px;
+    }
+    
+    .cover-subtext {
+      font-size: 10pt;
+      font-weight: 600;
+      color: #334155;
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+    
+    .cover-standard {
+      font-size: 8.5pt;
+      font-weight: 600;
+      color: #059669;
+      margin-top: 8px;
+    }
+    
+    .cover-meta-card {
+      margin: 4mm 0;
+    }
+    
+    .meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8.5pt;
+    }
+    
+    .meta-table td {
+      padding: 6px 10px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .meta-label {
+      width: 32%;
+      font-weight: 700;
+      color: #334155;
+      background: #f8fafc;
+    }
+    
+    .meta-val {
+      width: 68%;
+      color: #0f172a;
+    }
+    
+    .cover-footer {
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 4mm;
+    }
+    
+    .confidential-badge {
+      font-size: 7.5pt;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 0.8px;
+    }
+    
+    /* ─── POLICY CONTAINERS & HEADINGS ────────────────────────── */
+    .policy-section {
+      margin-bottom: 12px;
+    }
+    
+    .policy-divider {
+      border: 0;
+      border-top: 2px dashed #cbd5e1;
+      margin: 14px 0 12px 0;
+      page-break-after: avoid;
+    }
+    
+    h2.policy-heading {
+      font-size: 10.5pt;
+      font-weight: 800;
+      color: #1e3a8a;
+      background: #f8fafc;
+      border-left: 5px solid #1e3a8a;
+      border-bottom: 1px solid #cbd5e1;
+      padding: 5px 8px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+    
+    h3.sub-heading {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #0f172a;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 2px;
+      margin-top: 8px;
+      margin-bottom: 3px;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+    
+    h4.sub-sub-heading {
+      font-size: 8.2pt;
+      font-weight: 700;
+      color: #334155;
+      margin-top: 6px;
+      margin-bottom: 2px;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+    
+    p.doc-p {
+      margin: 0 0 4px 0;
+      text-align: justify;
+    }
+    
+    .divider {
+      border: 0;
+      border-top: 1px solid #e2e8f0;
+      margin: 6px 0;
+    }
+    
+    ul.doc-list {
+      margin: 2px 0 4px 0;
+      padding-left: 16px;
+    }
+    
+    ul.doc-list li {
+      margin-bottom: 1.5px;
+      text-align: justify;
+    }
+    
+    /* ─── RISK CARD ─────────────────────────────────────────── */
+    .risk-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #2563eb;
+      border-radius: 3px;
+      padding: 4px 7px;
+      margin-bottom: 5px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    
+    .risk-title {
+      font-size: 8pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 2px;
+    }
+    
+    .risk-num {
+      color: #1e3a8a;
+      font-weight: 800;
+    }
+    
+    ul.risk-list {
+      margin: 1px 0 2px 0;
+      padding-left: 14px;
+      font-size: 7.7pt;
+      line-height: 1.26;
+    }
+    
+    ul.risk-list li {
+      margin-bottom: 1px;
+      text-align: justify;
+    }
+    
+    /* ─── CLAUSE BLOCK ──────────────────────────────────────── */
+    .clause-block {
+      margin-bottom: 5px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    
+    .numbered-clause {
+      display: flex;
+      margin-bottom: 1px;
+      text-align: justify;
+    }
+    
+    .clause-num {
+      font-weight: 700;
+      color: #1e3a8a;
+      min-width: 18px;
+    }
+    
+    .clause-body {
+      flex: 1;
+    }
+    
+    .clause-status {
+      margin-left: 18px;
+      font-size: 7.4pt;
+      color: #475569;
+      line-height: 1.25;
+    }
+    
+    .numbered-item {
+      display: flex;
+      margin-bottom: 2px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+      text-align: justify;
+    }
+    
+    .item-num {
+      font-weight: 700;
+      color: #334155;
+      min-width: 18px;
+    }
+    
+    .item-body {
+      flex: 1;
+    }
+    
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 7pt;
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 1px 3px;
+      border-radius: 3px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    pre {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 5px;
+      border-radius: 4px;
+      font-size: 7pt;
+      line-height: 1.22;
+      overflow-x: hidden;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    /* ─── TABLES ────────────────────────────────────────────── */
+    .table-wrapper {
+      width: 100%;
+      margin: 4px 0 6px 0;
+      overflow: hidden;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    
+    table.data-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 7.2pt;
+      line-height: 1.24;
+      table-layout: fixed;
+    }
+    
+    table.data-table th, table.data-table td {
+      padding: 3px 6px;
+      border-bottom: 1px solid #cbd5e1;
+      border-right: 1px solid #cbd5e1;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      vertical-align: top;
+    }
+    
+    table.data-table th:first-child, table.data-table td:first-child {
+      border-left: 1px solid #cbd5e1;
+    }
+    
+    table.data-table thead tr:first-child th {
+      border-top: 1px solid #cbd5e1;
+      background: #0f172a;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 7.2pt;
+      text-align: left;
+    }
+    
+    table.data-table thead {
+      display: table-header-group;
+    }
+    
+    table.data-table tr {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    
+    table.data-table tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    
+    table.policy-meta-table td:first-child {
+      background: #f1f5f9;
+      font-weight: 700;
+      color: #334155;
+      width: 25%;
+    }
+    
+    table.policy-meta-table td:last-child {
+      width: 75%;
+    }
+    
+    /* ─── BADGES ────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      font-size: 6.2pt;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+      line-height: 1.2;
+      text-align: center;
+    }
+    
+    .badge-critical, .badge-high, .badge-medium, .badge-low {
+      white-space: nowrap !important;
+      font-size: 6pt;
+    }
+    
+    .badge-critical {
+      background: #991b1b;
+      color: #ffffff;
+    }
+    
+    .badge-high {
+      background: #c2410c;
+      color: #ffffff;
+    }
+    
+    .badge-medium {
+      background: #b45309;
+      color: #ffffff;
+    }
+    
+    .badge-low {
+      background: #1d4ed8;
+      color: #ffffff;
+    }
+    
+    .badge-implemented {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+      white-space: normal;
+    }
+    
+    .badge-partially {
+      background: #fffbeb;
+      color: #b45309;
+      border: 1px solid #fde68a;
+      white-space: normal;
+    }
+    
+    .badge-missing {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+      white-space: normal;
+    }
+    
+    .badge-proposed {
+      background: #faf5ff;
+      color: #6b21a8;
+      border: 1px solid #e9d5ff;
+      white-space: normal;
+    }
+  </style>
+</head>
+<body>
+  
+    <div class="cover-page">
+      <div class="cover-header">
+        <div class="univ-logo-text">BULACAN STATE UNIVERSITY</div>
+        <div class="campus-text">SARMIENTO CAMPUS &bull; CITY OF SAN JOSE DEL MONTE, BULACAN</div>
+        <div class="dept-text">DEPARTMENT OF INFORMATION TECHNOLOGY</div>
+        <div class="course-badge">IT 403P: INFORMATION ASSURANCE AND SECURITY</div>
+        <div class="ay-text">Academic Year 2026&ndash;2027 | First Semester</div>
+      </div>
+      
+      <div class="cover-title-box">
+        <div class="activity-label">CAPSTONE SECURITY POLICY WRITING ACTIVITY</div>
+        <h1 class="cover-title">CAPSTONE SECURITY POLICY PACKAGE</h1>
+        <div class="cover-subtitle">Security Policies and Governance</div>
+        <div class="cover-subtext">LabSync: An IoT-Based IT Laboratory Availability and Equipment Monitoring System</div>
+        <div class="cover-standard">Governing Framework: NIST Cybersecurity Framework (CSF) 2.0 Alignment</div>
+      </div>
+      
+      <div class="cover-meta-card">
+        <table class="meta-table">
+          <tr>
+            <td class="meta-label">Course & Activity</td>
+            <td class="meta-val">IT 403P &bull; Capstone Security Policy Writing (Security Policies and Governance)</td>
+          </tr>
+          <tr>
+            <td class="meta-label">Author / Student</td>
+            <td class="meta-val"><strong>Andrei A. Gabito</strong></td>
+          </tr>
+          <tr>
+            <td class="meta-label">Capstone Group & Section</td>
+            <td class="meta-val"><strong>Group 3 (G03) &bull; BSIT 4E2</strong></td>
+          </tr>
+          <tr>
+            <td class="meta-label">Target System</td>
+            <td class="meta-val">LabSync Laboratory Availability, Equipment Monitoring, and Key Tracking System</td>
+          </tr>
+          <tr>
+            <td class="meta-label">Institutional Scope</td>
+            <td class="meta-val">BulSU Sarmiento Campus IT Laboratories (Building 2, Rooms 201&ndash;206, 303&ndash;304)</td>
+          </tr>
+          <tr>
+            <td class="meta-label">Document Version</td>
+            <td class="meta-val">Version 1.3 &bull; Academic Submission</td>
+          </tr>
+          <tr>
+            <td class="meta-label">Proposed Effectivity Date</td>
+            <td class="meta-val">November 1, 2026 (Subject to institutional approval)</td>
+          </tr>
+          <tr>
+            <td class="meta-label">Submission Date</td>
+            <td class="meta-val">October 2026</td>
+          </tr>
+        </table>
+      </div>
+      
+      <div class="cover-footer">
+        <div class="confidential-badge">ACADEMIC SUBMISSION &bull; DEPARTMENT OF INFORMATION TECHNOLOGY</div>
+      </div>
+    </div>
+    <div class="page-break"></div>
+    
+<div class="policy-section"><h2 class="policy-heading" id="policy-1">POLICY 1: ACCOUNT LIFECYCLE, AUTHENTICATION, AND ROLE-BASED PRIVILEGE MANAGEMENT</h2>
+<div class="table-wrapper"><table class="data-table policy-meta-table">
+<colgroup>
+          <col style="width: 25%;">
+          <col style="width: 75%;">
+        </colgroup>
+<thead><tr>
+<th>Policy Specification Parameter</th>
+<th>Policy Details</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Policy Title</strong></td>
+<td>Account Lifecycle, Authentication, and Role-Based Privilege Management Policy</td>
+</tr>
+<tr>
+<td><strong>Policy Version</strong></td>
+<td>Version 1.3 (Academic Submission)</td>
+</tr>
+<tr>
+<td><strong>Proposed Effectivity Date</strong></td>
+<td>November 1, 2026 (Subject to institutional approval)</td>
+</tr>
+<tr>
+<td><strong>Policy Owner</strong></td>
+<td>MIS Staff (Operational Lead)</td>
+</tr>
+<tr>
+<td><strong>Approving Role</strong></td>
+<td>IT Department Head</td>
+</tr>
+<tr>
+<td><strong>Target Components</strong></td>
+<td><code>routes/auth.routes.js</code>, <code>routes/mis.routes.js</code>, <code>routes/ojt.routes.js</code>, <code>routes/faculty.routes.js</code>, <code>middleware/auth.js</code></td>
+</tr>
+<tr>
+<td><strong>Addressed Risks</strong></td>
+<td><strong>R3</strong> (Session Hijacking), <strong>R5</strong> (Audit Trail Truncation), <strong>R11</strong> (Administrative Role Boundary Blur)</td>
+</tr>
+</tbody></table></div>
+<h3 class="sub-heading">Part 1 — Policy Identity and Purpose</h3>
+<p class="doc-p">The purpose of this policy is to restrict access to LabSync administrative, academic, and maintenance modules strictly to authorized personnel according to the principle of least privilege, enforce uniform session termination across shared laboratory workstations, guarantee cryptographic credential protection, and eliminate audit trail fragmentation caused by permanent account deletion. This policy aligns with the <strong>NIST Cybersecurity Framework (CSF) 2.0</strong> functions <em>GOVERN (GV.PO-01)</em>, <em>PROTECT (PR.AA-01, PR.AA-02)</em>, and <em>IDENTIFY (ID.AM-03)</em>.</p>
+<h3 class="sub-heading">Part 2 — Scope and Context</h3>
+<ul class="doc-list">
+<li><strong>System Components Covered:</strong> User authentication, password hashing, password reset workflows, session serialization, database role verification, account provisioning, role updates, and account deactivation in <code>routes/auth.routes.js</code>, <code>routes/mis.routes.js</code>, <code>routes/ojt.routes.js</code>, <code>routes/faculty.routes.js</code>, and <code>middleware/auth.js</code>.</li>
+<li><strong>Users and Roles Covered:</strong> IT Department Head (<code>IT_DEPT_HEAD_EXCLUSIVE_ROLES</code>), Program Coordinator (<code>IT_HEAD_ROLES</code>), MIS Staff (<code>MIS_STAFF_ROLES</code>), Faculty (<code>KEY_TRANSFER_ROLES</code>), and On-the-Job Trainees (<code>OJT_ROLES</code>).</li>
+<li><strong>Information Covered:</strong> User profile records, bcrypt password hashes (<code>$2b$12$...</code>), session state identifiers (<code>connect.sid</code>), and password recovery hashes.</li>
+<li><strong>Exclusions & Assumptions:</strong> Does not govern unauthenticated public student PC reporting (governed by Policy 2) or IoT microcontroller tokens (governed by Policy 4). Assumes the application executes behind an edge reverse proxy terminating TLS 1.3.</li>
+</ul>
+<h3 class="sub-heading">Part 3 — Risk Basis</h3>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">1.</span> <strong>Risk R3 — Administrative Session Hijacking on Unattended Workstations:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Administrative and Faculty active sessions.</li>
+<li><em>Threat:</em> Opportunistic unauthorized access on shared campus laboratory workstations.</li>
+<li><em>Weakness:</em> <code>middleware/auth.js:24</code> exempts <code>rememberMe</code> sessions from the 10-minute inactivity timeout.</li>
+<li><em>Consequence:</em> An unauthorized user can perform administrative actions without entering credentials.</li>
+<li><em>Existing Safeguards:</em> 10-minute idle logout for non-remembered sessions; live MySQL role check on every request.</li>
+<li><em>Ratings:</em> Likelihood = Medium, Impact = High, Priority = <strong><span class="badge badge-high">HIGH</span></strong>.</li>
+<li><em>Rating Rationale:</em> Laboratory PCs are shared by hundreds of students daily; persistent sessions create an immediate opening for account hijacking.</li>
+<li><em>Linked Clauses:</em> Clause 1.3, Clause 1.6.</li>
+</ul>
+</div>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">2.</span> <strong>Risk R5 — Historical Audit Trail Truncation via Faculty Account Deletion:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Key custody logs (<code>occupancy_log</code>) and maintenance records (<code>maintenance</code>).</li>
+<li><em>Threat:</em> Administrative deletion of former faculty members.</li>
+<li><em>Weakness:</em> <code>routes/faculty.routes.js:11</code> permits permanent SQL <code>DELETE</code>, setting <code>User_ID = NULL</code> in dependent tables.</li>
+<li><em>Consequence:</em> Historical key checkouts and repair reports lose foreign-key association with instructors.</li>
+<li><em>Existing Safeguards:</em> Hard deletion blocked for MIS Staff and OJT accounts; active IT Head protected.</li>
+<li><em>Ratings:</em> Likelihood = Medium, Impact = Medium, Priority = <strong><span class="badge badge-medium">MEDIUM</span></strong>.</li>
+<li><em>Rating Rationale:</em> Instructor turnover is routine, and cascading <code>NULL</code> updates degrade accountability.</li>
+<li><em>Linked Clauses:</em> Clause 1.5.</li>
+</ul>
+</div>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">3.</span> <strong>Risk R11 — Administrative Role Boundary Blur & Unauthorized Privilege Elevation:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Administrative configuration routes, user provisioning, and key approval workflows.</li>
+<li><em>Threat:</em> Privilege elevation through inappropriate role elevation or overly broad route access.</li>
+<li><em>Weakness:</em> Shared administration between IT Head and Program Coordinator requires explicit role boundaries.</li>
+<li><em>Consequence:</em> Secondary key approvals or core role modifications performed by non-executive staff.</li>
+<li><em>Existing Safeguards:</em> Code-level separation of <code>IT_DEPT_HEAD_EXCLUSIVE_ROLES</code> from <code>IT_HEAD_ROLES</code> in <code>middleware/auth.js:8-9</code>.</li>
+<li><em>Ratings:</em> Likelihood = Low, Impact = High, Priority = <strong><span class="badge badge-medium">MEDIUM</span></strong>.</li>
+<li><em>Rating Rationale:</em> Route middleware enforces checks, but institutional policy must govern role creation and tier separation.</li>
+<li><em>Linked Clauses:</em> Clause 1.2, Clause 1.4.</li>
+</ul>
+</div>
+<h3 class="sub-heading">Part 4 — Mandatory Policy Clauses</h3>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">1.</span> <div class="clause-body"><strong>Clause 1.1 — Cryptographic Password Storage Standard:</strong> The application backend must hash all user passwords using <code>bcrypt</code> with a minimum work factor of 12 salt rounds (<code>BCRYPT_SALT_ROUNDS = 12</code>) prior to database insertion. Plaintext passwords must never be stored, logged, transmitted, or serialized.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>services/authService.js:21-25</code>; <code>repositories/user.repository.js:48</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">2.</span> <div class="clause-body"><strong>Clause 1.2 — Role-Based Administrative Boundaries:</strong> Administrative permissions must strictly follow established role tiers. Only the IT Department Head shall approve secondary key requests or export official Room Status PDF reports. Program Coordinators may manage academic schedules and provision MIS Staff accounts, but are strictly excluded from secondary key approvals. MIS Staff manage physical keys and supervise OJT accounts. OJT Trainees are restricted to viewing schedules and updating ticket statuses.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>middleware/auth.js:8-16</code>; <code>routes/keys.routes.js:38</code>; <code>routes/mis.routes.js:47-55</code>; <code>routes/ojt.routes.js:26</code>; Test Executed: <code>tests/test-mis-authorization-gaps.js</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">3.</span> <div class="clause-body"><strong>Clause 1.3 — Universal Session Inactivity Expiration:</strong> Every authenticated web session must terminate automatically after exactly 10 minutes of user inactivity (<code>INACTIVITY_TIMEOUT_MS = 600000</code>). To prevent session hijacking on shared laboratory computers, the <code>rememberMe</code> idle timeout exemption in <code>middleware/auth.js:24</code> must be removed in production code.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-partially">Partially implemented</span> (Static Inspection: 10-minute idle check active in <code>middleware/auth.js:20-50</code>; <code>rememberMe</code> exemption requires removal; Test Executed: <code>tests/test-mis-authorization-gaps.js</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">4.</span> <div class="clause-body"><strong>Clause 1.4 — Automated OJT Account Lifecycle Enforcement:</strong> Every provisioned OJT account must possess an authoritative expiration date (<code>users.OJT_End_Date</code>). The application must re-verify this date on every privileged request using <code>isOjtExpired()</code>. As soon as the server date exceeds the end date, sessions must be terminated immediately with HTTP 401 <code>OJT_EXPIRED</code>.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>middleware/auth.js:98-105</code>; <code>services/authService.js:55-77</code>; Test Executed: <code>tests/test-mis-authorization-gaps.js</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">5.</span> <div class="clause-body"><strong>Clause 1.5 — Universal Prohibition of Permanent Account Deletion:</strong> Permanent deletion of user accounts via SQL <code>DELETE</code> is prohibited across all user tiers. Account offboarding must be executed solely by setting <code>users.Status = 'DEACTIVATED'</code>. The existing <code>DELETE /api/faculty/:userId</code> route must be refactored to status deactivation to prevent cascading <code>NULL</code> updates in audit and maintenance records.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-partially">Partially implemented</span> (Static Inspection: Deactivation enforced for MIS Staff and OJT; requires refactoring on Faculty routes in <code>routes/faculty.routes.js:11</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">6.</span> <div class="clause-body"><strong>Clause 1.6 — Authoritative Live State Re-Verification:</strong> The application must re-query the MySQL database on every privileged request within <code>requireRole()</code>. If an account is marked <code>Status = 'DEACTIVATED'</code>, the server must immediately destroy the session, clear the session cookie, and return HTTP 401 <code>ACCOUNT_DEACTIVATED</code>.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>middleware/auth.js:80-96</code>; Test Executed: <code>tests/test-mis-authorization-gaps.js</code>).</div>
+</div>
+<h3 class="sub-heading">Part 5 — Roles and Enforcement</h3>
+<ul class="doc-list">
+<li><strong>Policy Approver:</strong> IT Department Head.</li>
+<li><strong>Technical Implementer:</strong> MIS Staff (Operational Lead).</li>
+<li><strong>Awareness & Communication:</strong> MIS Staff must brief all newly onboarded faculty and OJT trainees on session security during orientation.</li>
+<li><strong>Compliance Monitoring:</strong> MIS Staff must review the user directory monthly to confirm that expired OJT accounts are deactivated.</li>
+<li><strong>Violation Handling:</strong> Suspected policy violations, unauthorized access attempts (logged under <code>MIS_ACCESS_DENIED</code>), or credential sharing must be documented and referred to the IT Department Head for review under applicable university policies. Disciplinary action must follow established institutional procedures.</li>
+<li><strong>Exceptions:</strong> Temporary privilege extensions must be submitted in writing and require formal approval by the IT Department Head.</li>
+</ul>
+<hr class="divider" />
+</div><div class="policy-divider"></div><div class="policy-section"><h2 class="policy-heading" id="policy-2">POLICY 2: STUDENT IDENTITY CAPTURE, PRIVACY PROTECTION, AND PC MAINTENANCE REPORTING</h2>
+<div class="table-wrapper"><table class="data-table policy-meta-table">
+<colgroup>
+          <col style="width: 25%;">
+          <col style="width: 75%;">
+        </colgroup>
+<thead><tr>
+<th>Policy Specification Parameter</th>
+<th>Policy Details</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Policy Title</strong></td>
+<td>Student Identity Capture, Privacy Protection, and PC Maintenance Reporting Policy</td>
+</tr>
+<tr>
+<td><strong>Policy Version</strong></td>
+<td>Version 1.3 (Academic Submission)</td>
+</tr>
+<tr>
+<td><strong>Proposed Effectivity Date</strong></td>
+<td>November 1, 2026 (Subject to institutional approval)</td>
+</tr>
+<tr>
+<td><strong>Policy Owner</strong></td>
+<td>MIS Staff (Laboratory Maintenance In-Charge)</td>
+</tr>
+<tr>
+<td><strong>Approving Role</strong></td>
+<td>IT Department Head</td>
+</tr>
+<tr>
+<td><strong>Target Components</strong></td>
+<td><code>routes/maintenance.routes.js</code>, <code>services/studentVerificationService.js</code>, <code>repositories/maintenance.repository.js</code></td>
+</tr>
+<tr>
+<td><strong>Addressed Risks</strong></td>
+<td><strong>R4</strong> (Student Data Exposure), <strong>R9</strong> (Public Ticket Flooding), <strong>R12</strong> (Workstation Identity & Token Replay)</td>
+</tr>
+</tbody></table></div>
+<h3 class="sub-heading">Part 1 — Policy Identity and Purpose</h3>
+<p class="doc-p">The purpose of this policy is to provide an unauthenticated, friction-free fault reporting workflow for students on laboratory workstations while guaranteeing that student personal data is handled with appropriate access control and privacy protections, preventing report replay attacks, and eliminating internal exposure of student identification numbers. This policy aligns with <strong>NIST CSF 2.0</strong> functions <em>PROTECT (PR.DS-01, PR.DS-02, PR.AA-05)</em> and <em>IDENTIFY (ID.AM-02)</em>.</p>
+<h3 class="sub-heading">Part 2 — Scope and Context</h3>
+<ul class="doc-list">
+<li><strong>System Components Covered:</strong> Student ID QR scanning, capture token generation, workstation binding, submission throttling, report status transitions, and ticket resolution attribution in <code>routes/maintenance.routes.js</code>, <code>services/studentVerificationService.js</code>, and <code>repositories/maintenance.repository.js</code>.</li>
+<li><strong>Users and Roles Covered:</strong> Students / Public Laboratory Visitors, OJT Technicians, MIS Staff, Faculty, and IT Department Head.</li>
+<li><strong>Information Covered:</strong> Student Full Names, BulSU Student Numbers, PC hardware numbers, laboratory room numbers, component fault categories, and student remarks.</li>
+<li><strong>Exclusions & Assumptions:</strong> Applies to fault reports submitted via <code>submit-pc-report.html</code>. Assumes student ID QR codes are data-bearing text representations (barcodes or JSON strings) rather than cryptographic public-key credentials. Legal classification of personal data is subject to confirmation by the university Data Protection Officer (DPO).</li>
+</ul>
+<h3 class="sub-heading">Part 3 — Risk Basis</h3>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">1.</span> <strong>Risk R4 — Internal Student Identifier Exposure Across Non-Admin Roles:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Student Names, University Student Numbers.</li>
+<li><em>Threat:</em> Authenticated non-administrative users viewing or harvesting personal data.</li>
+<li><em>Weakness:</em> <code>routes/maintenance.routes.js:17</code> returns unmasked student numbers to all roles via <code>GET /api/reports</code>.</li>
+<li><em>Consequence:</em> Bulk exposure of student identification numbers across faculty and student intern accounts.</li>
+<li><em>Existing Safeguards:</em> Ephemeral HMAC capture tokens; database-backed student cooldowns.</li>
+<li><em>Ratings:</em> Likelihood = High, Impact = Medium, Priority = <strong><span class="badge badge-high">HIGH</span></strong>.</li>
+<li><em>Rating Rationale:</em> Any logged-in OJT intern or faculty member can view all student numbers via the network tab.</li>
+<li><em>Linked Clauses:</em> Clause 2.4.</li>
+</ul>
+</div>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">2.</span> <strong>Risk R9 — Public Ticket Flooding & Denial of Maintenance Service:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> PC maintenance queue and laboratory technician availability.</li>
+<li><em>Threat:</em> Malicious script submitting hundreds of falsified PC hardware tickets.</li>
+<li><em>Weakness:</em> Public availability of reporting endpoints without login requirement.</li>
+<li><em>Consequence:</em> Legitimate hardware issues buried under spam tickets; automated notification spam.</li>
+<li><em>Existing Safeguards:</em> Multi-tiered IP rate limits; per-PC cooldown; 30-minute student number cooldown.</li>
+<li><em>Ratings:</em> Likelihood = Low, Impact = Medium, Priority = <strong><span class="badge badge-low">LOW</span></strong>.</li>
+<li><em>Rating Rationale:</em> Multi-tiered rate limits and database-backed cooldowns are currently active in code.</li>
+<li><em>Linked Clauses:</em> Clause 2.3, Clause 2.5.</li>
+</ul>
+</div>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">3.</span> <strong>Risk R12 — Workstation Binding Manipulation, Session Token Replay & Fallback Secret Exposure:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Workstation condition integrity (<code>lab_units.Condition_Status</code>) and student verification token authenticity.</li>
+<li><em>Threat:</em> Re-submitting an intercepted student QR token from an offsite browser or forging HMAC capture tokens using default secrets.</li>
+<li><em>Weakness:</em> Decoupled web forms risk token replay if lacking server-side nonce state. In development configurations, <code>config/app.config.js:13</code> defaults <code>SESSION_SECRET</code> to <code>'labsync-secret-key-change-in-production'</code>, which <code>services/studentVerificationService.js:25, 30</code> imports for HMAC signing (with a secondary fallback <code>'labsync-student-identity-capture-secret-2026'</code>). If run outside production, tokens could be forged using this default. However, when correctly configured (<code>NODE_ENV === 'production'</code>), <code>validateProductionConfig()</code> (<code>server.js:31</code>; <code>config/app.config.js:83-85</code>) strictly halts startup if secrets are missing or default.</li>
+<li><em>Consequence:</em> Workstation maintenance statuses manipulated without physical presence; unauthorized or forged hardware fault reports injected into the queue.</li>
+<li><em>Existing Safeguards:</em> 10-minute token expiration (<code>TOKEN_TTL_MS = 600000</code>); strict workstation Room and PC binding; atomic single-use nonce consumption in ACID transactions (<code>student_verification_sessions</code>); fail-fast production startup validation.</li>
+<li><em>Ratings:</em> Likelihood = Low, Impact = Medium, Priority = <strong><span class="badge badge-low">LOW</span></strong>.</li>
+<li><em>Rating Rationale:</em> When production mode is correctly configured, fail-fast validation guarantees that missing or default secrets prevent startup; 10-minute TTL, room/PC binding, and atomic nonce invalidation mitigate token replay.</li>
+<li><em>Linked Clauses:</em> Clause 2.1, Clause 2.2.</li>
+</ul>
+</div>
+<h3 class="sub-heading">Part 4 — Mandatory Policy Clauses</h3>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">1.</span> <div class="clause-body"><strong>Clause 2.1 — Ephemeral Student ID Token Integrity & Workstation Binding:</strong> Scanning a physical BulSU student ID card must generate a server-side signed HMAC SHA-256 capture token binding the extracted Student Name and Student Number strictly to the physical Room Number and PC Number scanned, valid for 10 minutes (<code>TOKEN_TTL_MS = 600000</code>). The HMAC verifies server token integrity and workstation binding; it does not cryptographically authenticate the physical student card itself. The service imports <code>SESSION_SECRET</code> from <code>config/app.config.js:13</code>. In production deployments (<code>NODE_ENV=production</code>), <code>validateProductionConfig()</code> halts startup if <code>SESSION_SECRET</code> is unset or default, ensuring a secure runtime secret is enforced.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>services/studentVerificationService.js:228-270</code>; <code>config/app.config.js:83-85</code>; <code>server.js:31</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">2.</span> <div class="clause-body"><strong>Clause 2.2 — Atomic Replay Defense & Database Nonce Invalidation:</strong> Every verification token must contain a 16-byte random cryptographic nonce recorded in <code>student_verification_sessions</code>. Upon report submission, the database must atomically record <code>Used_At = NOW()</code> within an ACID transaction. Any subsequent submission attempt using a consumed token must be rejected with HTTP 400 stating <em>"Student ID verification session has already been used"</em>.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>services/studentVerificationService.js:368-372</code>; <code>database/migrations/022_create_student_verification_sessions.sql</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">3.</span> <div class="clause-body"><strong>Clause 2.3 — Tiered Anti-Spam Rate Limiting Architecture:</strong> The application backend must enforce multi-layered request throttling across public reporting endpoints: maximum 60 ID verifications per 10 minutes per IP (<code>studentVerifyLimiter</code>), maximum 5 report submissions per 10 minutes per IP (<code>publicPCReportLimiter</code>), and a 1-minute cooldown per IP + Room + PC combination (<code>pcDuplicateReportLimiter</code>).  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>middleware/rateLimiter.js:80-132</code>; <code>routes/maintenance.routes.js:13-15</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">4.</span> <div class="clause-body"><strong>Clause 2.4 — Student Number Privacy Protection and Role-Based Masking:</strong> Student identification numbers and full names constitute personal data requiring appropriate access control. The <code>GET /api/reports</code> endpoint must inspect the caller's session role: IT Department Head and MIS Staff shall view full student numbers for administrative verification; Faculty and OJT Trainee responses must mask student numbers (e.g., <code>2023-****-01</code>) to prevent internal data harvesting.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-proposed">Proposed policy control</span> (Static Inspection: Currently returns unmasked student numbers to all roles in <code>repositories/maintenance.repository.js:127</code>; requires masking logic in service tier).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">5.</span> <div class="clause-body"><strong>Clause 2.5 — Authoritative Student Cooldown Enforcement:</strong> To prevent denial of service through rotating IP addresses, the system must enforce a 30-minute submission cooldown keyed directly to the student number in MySQL (<code>student_report_cooldowns</code>). Re-submissions within 30 minutes must be rejected with HTTP 429 indicating remaining seconds.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>repositories/maintenance.repository.js:628-669</code>; <code>database/migrations/027_create_student_report_cooldowns.sql</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">6.</span> <div class="clause-body"><strong>Clause 2.6 — Maintenance Report Deletion and Resolution Accountability:</strong> Only <code>TICKET_DELETE_ROLES</code> (IT Department Head and MIS Staff) are authorized to delete maintenance reports. Resolving an issue must record the authenticated technician's user ID, role, and timestamp in <code>maintenance_issues.Resolved_By_User_ID</code>. Deletion attribution is preserved by logging an audit event in <code>audit_logs</code> under the exact action <code>TICKET_DELETE</code>.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>routes/maintenance.routes.js:19-20</code>; <code>controllers/maintenance.controller.js:204-210</code>; <code>repositories/maintenance.repository.js:147, 172-175</code>).</div>
+</div>
+<h3 class="sub-heading">Part 5 — Roles and Enforcement</h3>
+<ul class="doc-list">
+<li><strong>Policy Approver:</strong> IT Department Head.</li>
+<li><strong>Technical Implementer:</strong> MIS Staff (Laboratory Maintenance In-Charge).</li>
+<li><strong>Awareness & Communication:</strong> A privacy advisory must appear on <code>submit-pc-report.html</code> explaining that student numbers are captured solely for repair verification under university policy.</li>
+<li><strong>Compliance Monitoring:</strong> MIS Staff must review open tickets weekly to ensure repair attribution is documented.</li>
+<li><strong>Violation Handling:</strong> Suspected report falsification or ticket abuse must be documented and referred to the IT Department Head for review under applicable university policies. Any disciplinary action must follow established institutional procedures.</li>
+<li><strong>Exceptions:</strong> Manual paper-based fault reporting is permitted during total network outages, subject to post-restoration logging by MIS Staff.</li>
+</ul>
+<hr class="divider" />
+</div><div class="policy-divider"></div><div class="policy-section"><h2 class="policy-heading" id="policy-3">POLICY 3: PHYSICAL LABORATORY KEY ACCOUNTABILITY, CUSTODY TRANSFER, AND ANTI-TAMPER</h2>
+<div class="table-wrapper"><table class="data-table policy-meta-table">
+<colgroup>
+          <col style="width: 25%;">
+          <col style="width: 75%;">
+        </colgroup>
+<thead><tr>
+<th>Policy Specification Parameter</th>
+<th>Policy Details</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Policy Title</strong></td>
+<td>Physical Laboratory Key Accountability, Custody Transfer, and Anti-Tamper Policy</td>
+</tr>
+<tr>
+<td><strong>Policy Version</strong></td>
+<td>Version 1.3 (Academic Submission)</td>
+</tr>
+<tr>
+<td><strong>Proposed Effectivity Date</strong></td>
+<td>November 1, 2026 (Subject to institutional approval)</td>
+</tr>
+<tr>
+<td><strong>Policy Owner</strong></td>
+<td>MIS Staff (Key Custodian)</td>
+</tr>
+<tr>
+<td><strong>Approving Role</strong></td>
+<td>IT Department Head</td>
+</tr>
+<tr>
+<td><strong>Target Components</strong></td>
+<td><code>routes/keys.routes.js</code>, <code>services/iot/occupancy.service.js</code>, <code>LabSync_ESP32/LabSync_ESP32.ino</code></td>
+</tr>
+<tr>
+<td><strong>Addressed Risks</strong></td>
+<td><strong>R6</strong> (Uncalibrated Sensing Slots), <strong>R7</strong> (No Mechanical Lock), <strong>R8</strong> (Unrecorded Peer Handoffs)</td>
+</tr>
+</tbody></table></div>
+<h3 class="sub-heading">Part 1 — Policy Identity and Purpose</h3>
+<p class="doc-p">The purpose of this policy is to maintain an unbroken, verifiable chain of custody over physical IT laboratory keys, govern peer-to-peer faculty key handoffs, restrict secondary key loans exclusively to department-head approval, enforce physical tamper alerting at key docks, and establish clear operational boundaries for analog key sensing. This policy aligns with <strong>NIST CSF 2.0</strong> functions <em>PROTECT (PR.PS-01)</em>, <em>DETECT (DE.CM-01)</em>, and <em>RESPOND (RS.MA-01)</em>.</p>
+<h3 class="sub-heading">Part 2 — Scope and Context</h3>
+<ul class="doc-list">
+<li><strong>System Components Covered:</strong> Physical key slot sensing, analog multiplexer reading, buzzer alarming, faculty QR authorization, peer-to-peer custody handoffs, secondary key approvals, and physical audit logging in <code>routes/keys.routes.js</code> and <code>LabSync_ESP32.ino</code>.</li>
+<li><strong>Users and Roles Covered:</strong> Faculty, IT Department Head, MIS Staff, and physical ESP32 Key Box hardware.</li>
+<li><strong>Information Covered:</strong> Physical key inventory IDs, QR tag tokens, room availability states (<code>laboratories.Key_Status</code>), and occupancy log records (<code>occupancy_log</code>).</li>
+<li><strong>Exclusions & Assumptions:</strong> The physical key dock monitors presence via analog resistor voltage dividers; it <strong>does NOT contain solenoid locks or physical locking mechanisms</strong> that mechanically prevent key extraction. Active automated sensing is currently operational for Rooms 203 and 204 only; slots for Rooms 201, 202, 205, 206, 303, and 304 are planned slots pending calibration.</li>
+</ul>
+<h3 class="sub-heading">Part 3 — Risk Basis</h3>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">1.</span> <strong>Risk R7 — Physical Key Extraction Without Mechanical Locking Solenoids:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Physical laboratory keys and facility security.</li>
+<li><em>Threat:</em> An individual pulling a laboratory key from the dock without prior web authorization.</li>
+<li><em>Weakness:</em> The key dock frame is an open physical monitoring slot system without mechanical solenoids or physical latches.</li>
+<li><em>Consequence:</em> The dock cannot physically lock keys in place; it can only detect removal and sound an audible alarm for calibrated slots.</li>
+<li><em>Existing Safeguards:</em> Active piezo buzzer alarm (GPIO25) and NVS incident latching for calibrated slots (Rooms 203 and 204); audit event dispatch.</li>
+<li><em>Ratings:</em> Likelihood = Medium, Impact = High, Priority = <strong><span class="badge badge-high">HIGH</span></strong>.</li>
+<li><em>Rating Rationale:</em> Because keys can be physically pulled at any time, immediate audible alarming and rapid incident logging are the primary deterrents.</li>
+<li><em>Linked Clauses:</em> Clause 3.1, Clause 3.4.</li>
+</ul>
+</div>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">2.</span> <strong>Risk R6 — Key Misattribution & Alarm Failure in Uncalibrated Slots:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Laboratory key inventory and real-time room availability status.</li>
+<li><em>Threat:</em> Keys placed in or pulled from uncalibrated dock slots fail to update state or trigger alarms.</li>
+<li><em>Weakness:</em> Resistor voltage calibration in <code>LabSync_ESP32.ino:871-896</code> is implemented for Rooms 203 and 204 only; the remaining six rooms evaluate to <code>KEY_NONE</code>.</li>
+<li><em>Consequence:</em> Physical key movements for Rooms 201, 202, 205, 206, 303, and 304 are not tracked, and unauthorized removals from these slots do not trigger automated alarms.</li>
+<li><em>Existing Safeguards:</em> 16-sample ADC averaging and 40ms debounce active on calibrated slots (Rooms 203 and 204).</li>
+<li><em>Ratings:</em> Likelihood = Medium, Impact = Medium, Priority = <strong><span class="badge badge-medium">MEDIUM</span></strong>.</li>
+<li><em>Rating Rationale:</em> While 8-channel multiplexer hardware exists, firmware only calibrates 2 rooms; relying on uncalibrated slots creates silent tracking failures.</li>
+<li><em>Linked Clauses:</em> Clause 3.4, Clause 3.5.</li>
+</ul>
+</div>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">3.</span> <strong>Risk R8 — Chain-of-Custody Loss via Unregistered Peer Transfers:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Chain of custody accountability records (<code>occupancy_log</code>).</li>
+<li><em>Threat:</em> Instructor A handing a laboratory key directly to Instructor B without logging the transaction.</li>
+<li><em>Weakness:</em> Informal faculty handoffs in hallways between consecutive class periods during hurried class changeovers.</li>
+<li><em>Consequence:</em> Inability to identify responsible personnel if equipment is damaged or missing during a subsequent class.</li>
+<li><em>Existing Safeguards:</em> <code>POST /api/keys/transfer</code> endpoint requiring recipient QR scan (<code>routes/keys.routes.js:19</code>).</li>
+<li><em>Ratings:</em> Likelihood = Medium, Impact = Medium, Priority = <strong><span class="badge badge-medium">MEDIUM</span></strong>.</li>
+<li><em>Rating Rationale:</em> Routine human behavior in high-traffic corridors makes direct handoffs common; post-facto reminders cannot prevent unregistered transfers.</li>
+<li><em>Linked Clauses:</em> Clause 3.3.</li>
+</ul>
+</div>
+<h3 class="sub-heading">Part 4 — Mandatory Policy Clauses</h3>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">1.</span> <div class="clause-body"><strong>Clause 3.1 — Mandatory Authorized Retrieval Standard:</strong> Physical laboratory keys must be retrieved from the dock only after presenting an authorized faculty QR code. An instructor may withdraw only the key assigned to their scheduled class period. For calibrated slots (Rooms 203 and 204), unauthorized physical removal triggers an audible alarm and tamper event; however, because the dock lacks mechanical locking solenoids, it cannot physically lock keys in place. Uncalibrated rooms (201, 202, 205, 206, 303, and 304) must be managed through manual key custody procedures.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-partially">Partially implemented</span> (Static Inspection: QR authorization verified in <code>routes/keys.routes.js:16</code>; hardware extraction sensing operational for Rooms 203 and 204 only).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">2.</span> <div class="clause-body"><strong>Clause 3.2 — Department Head Exclusive Approval for Secondary Keys:</strong> Faculty requiring simultaneous custody of a second laboratory key must submit a formal request via <code>POST /api/keys/request-additional</code>. Approval authority is restricted exclusively to the IT Department Head. The system rejects key-claim attempts for secondary keys unless an approved record exists in MySQL.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>routes/keys.routes.js:37-41</code>; <code>controllers/key-authorization.controller.js:50</code>; Test Executed: <code>tests/test-mis-authorization-gaps.js</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">3.</span> <div class="clause-body"><strong>Clause 3.3 — Mandatory Registration of Peer Key Transfers:</strong> When laboratory custody is transferred directly between instructors without returning the key to the dock, the receiving instructor must immediately scan the physical key QR tag and execute <code>POST /api/keys/transfer</code>. Key custody legally remains assigned to the original borrower until the transfer commits in MySQL.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>routes/keys.routes.js:19</code>; <code>controllers/keys.controller.js:80</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">4.</span> <div class="clause-body"><strong>Clause 3.4 — Audible Alarming and Security Incident Latching:</strong> The physical key dock monitors key presence via analog resistor voltage dividers and <strong>does not contain mechanical locking solenoids or latches</strong>; it detects and alarms upon extraction but cannot physically block key removal. For currently calibrated and supported slots (<strong>Rooms 203 and 204</strong>), unauthorized physical key withdrawal without prior web QR authorization immediately triggers the onboard active piezo buzzer (GPIO25), displays an unauthorized alert on the LCD, dispatches an <code>Unauthorized Removal</code> device telemetry alert (<code>keyEvent: 'Unauthorized Removal'</code>), which the backend records under audit action <code>IOT_UNAUTHORIZED_KEY_REMOVAL</code> and occupancy method <code>UNAUTHORIZED</code>, and latches the alarm in Non-Volatile Storage (NVS). The remaining six planned slots (Rooms 201, 202, 205, 206, 303, and 304) cannot reliably trigger extraction alarms until their resistor dividers are calibrated and verified. Power loss silences the physical buzzer, but upon reboot, firmware inspects NVS and resumes alarming for latched incidents.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-partially">Partially implemented</span> (Static Inspection & Physical Verification: Calibrated and verified for Rooms 203 & 204 in <code>LabSync_ESP32.ino:715-728, 871-896</code>; remaining six rooms evaluate to <code>KEY_NONE</code> pending calibration).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">5.</span> <div class="clause-body"><strong>Clause 3.5 — Active Operational Scope & Hardware Calibration Boundary:</strong> Automated key sensing is restricted strictly to currently calibrated slots (Rooms 203 and 204). Slots 201, 202, 205, 206, 303, and 304 represent planned expansion and must be designated as "Pending Hardware Calibration" in system documentation. Until voltage thresholds are measured and programmed into <code>detectKeyType()</code>, keys for these six rooms must be issued and logged manually by MIS Staff.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-partially">Partially implemented</span> (Static Inspection: <code>LabSync_ESP32.ino:871-896</code> actively calibrates Rooms 203 and 204; remaining six slots evaluate to <code>KEY_NONE</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">6.</span> <div class="clause-body"><strong>Clause 3.6 — Daily Physical Key Reconciliation Audit:</strong> At the close of daily campus operations (8:00 PM), MIS Staff must inspect the physical key dock against the live LabSync dashboard. Any key marked "Absent" without an active class schedule or authorized reservation must be flagged as "MISSING", initiating immediate administrative inquiry.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-proposed">Proposed policy control</span> (Static Inspection: Dashboard displays live state via 3-second polling; operational shift checklist required).</div>
+</div>
+<h3 class="sub-heading">Part 5 — Roles and Enforcement</h3>
+<ul class="doc-list">
+<li><strong>Policy Approver:</strong> IT Department Head.</li>
+<li><strong>Technical Implementer:</strong> MIS Staff (Key Custodian).</li>
+<li><strong>Awareness & Communication:</strong> The IT Department Head must distribute key custody guidelines to all teaching faculty at the start of each semester.</li>
+<li><strong>Compliance Monitoring:</strong> MIS Staff must monitor live key statuses during class transitions.</li>
+<li><strong>Violation Handling:</strong> Suspected key retention violations or unregistered transfers must be documented and referred to the IT Department Head for review under applicable university policies. Any disciplinary action must follow established institutional procedures.</li>
+<li><strong>Exceptions:</strong> Emergency laboratory access by campus security or fire personnel during crises is exempt from web pre-authorization, subject to post-incident manual logging.</li>
+</ul>
+<hr class="divider" />
+</div><div class="policy-divider"></div><div class="policy-section"><h2 class="policy-heading" id="policy-4">POLICY 4: IOT DEVICE SECURITY, NETWORK PROTECTION, AND SECURITY EVENT HANDLING</h2>
+<div class="table-wrapper"><table class="data-table policy-meta-table">
+<colgroup>
+          <col style="width: 25%;">
+          <col style="width: 75%;">
+        </colgroup>
+<thead><tr>
+<th>Policy Specification Parameter</th>
+<th>Policy Details</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Policy Title</strong></td>
+<td>IoT Device Security, Network Protection, and Security Event Handling Policy</td>
+</tr>
+<tr>
+<td><strong>Policy Version</strong></td>
+<td>Version 1.3 (Academic Submission)</td>
+</tr>
+<tr>
+<td><strong>Proposed Effectivity Date</strong></td>
+<td>November 1, 2026 (Subject to institutional approval)</td>
+</tr>
+<tr>
+<td><strong>Policy Owner</strong></td>
+<td>MIS Technical Staff / Embedded Lead (Proposed Role, Subject to Approval)</td>
+</tr>
+<tr>
+<td><strong>Approving Role</strong></td>
+<td>IT Department Head</td>
+</tr>
+<tr>
+<td><strong>Target Components</strong></td>
+<td><code>middleware/iotAuth.js</code>, <code>routes/iot.routes.js</code>, <code>LabSync_ESP32/LabSync_ESP32.ino</code>, database table <code>iot_devices</code></td>
+</tr>
+<tr>
+<td><strong>Addressed Risks</strong></td>
+<td><strong>R1</strong> (Insecure TLS), <strong>R13</strong> (Wi-Fi Credential Exposure), <strong>R14</strong> (NVS Alert Queue Buffer Limit)</td>
+</tr>
+</tbody></table></div>
+<h3 class="sub-heading">Part 1 — Policy Identity and Purpose</h3>
+<p class="doc-p">The purpose of this policy is to safeguard communication between physical ESP32 key boxes and the cloud backend against eavesdropping, token theft, and status falsification, mandate cryptographic device authentication, eliminate hardcoded network secrets from version control, and enforce power-cycle incident resilience. This policy aligns with <strong>NIST CSF 2.0</strong> functions <em>PROTECT (PR.DS-02, PR.AA-01)</em> and <em>DETECT (DE.CM-01)</em>.</p>
+<h3 class="sub-heading">Part 2 — Scope and Context</h3>
+<ul class="doc-list">
+<li><strong>System Components Covered:</strong> ESP32 firmware compilation, Bearer token authentication, SHA-256 device hashing, room authorization validation, telemetry heartbeats, Wi-Fi reconnection loops, and FreeRTOS task scheduling in <code>middleware/iotAuth.js</code>, <code>routes/iot.routes.js</code>, and <code>LabSync_ESP32.ino</code>.</li>
+<li><strong>Users and Roles Covered:</strong> Embedded Hardware Developers, Network Administrators, MIS Staff, and physical ESP32 microcontrollers.</li>
+<li><strong>Information Covered:</strong> IoT Device Bearer tokens, token hashes, hardware MAC addresses, Wi-Fi network credentials, telemetry heartbeat JSON payloads, and ADC sensor readings.</li>
+<li><strong>Exclusions & Assumptions:</strong> Applies to microcontrollers deployed in IT laboratories; does not govern client browser connections. Assumes microcontrollers connect via campus Wi-Fi infrastructure.</li>
+</ul>
+<h3 class="sub-heading">Part 3 — Risk Basis</h3>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">1.</span> <strong>Risk R1 — Microcontroller Telemetry Interception via Insecure TLS:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Real-time key status events, authorization requests, and device bearer tokens.</li>
+<li><em>Threat:</em> Man-in-the-Middle (MitM) interception on the local campus network.</li>
+<li><em>Weakness:</em> <code>LabSync_ESP32.ino</code> calls <code>client.setInsecure()</code> across lines 1045, 1093, 1146, and 1241.</li>
+<li><em>Consequence:</em> An attacker can spoof "Key Returned" events while keys are stolen or extract device tokens.</li>
+<li><em>Existing Safeguards:</em> Server checks SHA-256 token hash; NVS flash incident latching.</li>
+<li><em>Ratings:</em> Likelihood = Medium, Impact = High, Priority = <strong><span class="badge badge-high">HIGH</span></strong>.</li>
+<li><em>Rating Rationale:</em> Disabling certificate validation allows simple ARP poisoning tools to intercept HTTPS traffic.</li>
+<li><em>Linked Clauses:</em> Clause 4.1.</li>
+</ul>
+</div>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">2.</span> <strong>Risk R13 — Version Control Exposure of Campus Laboratory Wi-Fi Credentials:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Campus Laboratory Wi-Fi network security and subnet isolation.</li>
+<li><em>Threat:</em> Unauthorized network access via credentials committed to shared/public repositories.</li>
+<li><em>Weakness:</em> <code>LabSync_ESP32.ino:33-34</code> hardcodes the Wi-Fi <code>ssid</code> and <code>password</code> in a tracked Git file across commit history.</li>
+<li><em>Consequence:</em> Unauthorized individuals obtain local laboratory network credentials from repository history.</li>
+<li><em>Existing Safeguards:</em> <code>secrets.h</code> used for device token; <code>.env</code> excluded from version control via <code>.gitignore</code>.</li>
+<li><em>Ratings:</em> Likelihood = Medium, Impact = Medium, Priority = <strong><span class="badge badge-medium">MEDIUM</span></strong>.</li>
+<li><em>Rating Rationale:</em> Committing plaintext Wi-Fi credentials creates an ongoing exposure if repository access expands.</li>
+<li><em>Linked Clauses:</em> Clause 4.2.</li>
+</ul>
+</div>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">3.</span> <strong>Risk R14 — Microcontroller NVS Alert Queue Buffer Overflow During Extended Disconnection:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Physical tamper alerts (<code>Unauthorized Removal</code>).</li>
+<li><em>Threat:</em> Offline alert buffer overflow during prolonged power or network outages.</li>
+<li><em>Weakness:</em> ESP32 NVS persistent queue capacity is bounded to 16 alerts (12 persistent + 4 overflow) in flash memory.</li>
+<li><em>Consequence:</em> If more than 16 alert events occur during an extended offline period, older un-synced alerts may be lost.</li>
+<li><em>Existing Safeguards:</em> Non-volatile storage (<code>Preferences.h</code>) persistence across reboots for up to 16 events.</li>
+<li><em>Ratings:</em> Likelihood = Low, Impact = Medium, Priority = <strong><span class="badge badge-low">LOW</span></strong>.</li>
+<li><em>Rating Rationale:</em> Verified locally via <code>tests/test-firmware-power-cycle-security.js</code> Scenarios 15 & 16; buffer overflow requires prolonged outage combined with repeated tampering.</li>
+<li><em>Linked Clauses:</em> Clause 4.4.</li>
+</ul>
+</div>
+<h3 class="sub-heading">Part 4 — Mandatory Policy Clauses</h3>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">1.</span> <div class="clause-body"><strong>Clause 4.1 — Mandatory Transport Layer Security & Certificate Validation:</strong> Microcontroller firmware transmitting telemetry over HTTPS must validate the server's X.509 certificate against an embedded Root CA certificate (ISRG Root X1). The use of <code>client.setInsecure()</code> is strictly prohibited in production firmware builds. Firmware compilation scripts must inject the CA certificate header prior to binary deployment.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-missing">Missing / not implemented</span> (Static Inspection: Currently calls <code>client.setInsecure()</code> at lines 1045, 1093, 1146, 1241 in <code>LabSync_ESP32.ino</code>; requires remediation).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">2.</span> <div class="clause-body"><strong>Clause 4.2 — Firmware Credential Segregation Standard:</strong> Microcontroller network and device credentials must be loaded via local secrets header files (e.g., <code>LabSync_ESP32/secrets.h</code>) that are strictly excluded from version control via <code>.gitignore</code>. Hardcoding Wi-Fi SSIDs, passwords, or tokens in tracked firmware source files is prohibited. Previously committed credentials must be treated as compromised; the physical router password must be rotated and Git commit history sanitized.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-partially">Partially implemented</span> (Static Inspection: Device token externalized to <code>secrets.h</code>; Wi-Fi credentials hardcoded at lines 33–34 require remediation).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">3.</span> <div class="clause-body"><strong>Clause 4.3 — Cryptographic Device Authentication & Room Scoping:</strong> Every deployed microcontroller must authenticate via an <code>Authorization: Bearer <token></code> HTTP header. The backend (<code>middleware/iotAuth.js</code>) must hash incoming tokens with SHA-256 and match them against <code>iot_devices.Token_Hash</code>. The server must verify that the requested room exists in <code>iot_devices.Authorized_Rooms</code>. Requests targeting unauthorized rooms must be rejected with HTTP 403, and the security incident recorded in <code>audit_logs</code>.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>middleware/iotAuth.js:37-41, 93-103</code>; <code>services/iot/occupancy.service.js:47-61</code>; <code>database/migrations/010_create_iot_devices.sql</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">4.</span> <div class="clause-body"><strong>Clause 4.4 — Power-Cycle Incident Persistence (NVS Flash Latching):</strong> Security incidents (unauthorized removals, wrong-slot insertions) and pending offline alerts must be latched in Non-Volatile Storage (NVS) flash memory using <code><Preferences.h></code> under the <code>"labsync_sec"</code> namespace. Upon boot, firmware must inspect flash storage, immediately restore alarm states, and transmit queued events (up to the 16-event queue limit) once Wi-Fi connects.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>LabSync_ESP32.ino:42-56, 1936-2008</code>; Test Executed: <code>tests/test-firmware-power-cycle-security.js</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">5.</span> <div class="clause-body"><strong>Clause 4.5 — Elimination of Unauthenticated Development Fallbacks:</strong> In all staging and production environments, <code>ENFORCE_IOT_AUTH = true</code> must be enforced. Development fallback branches in <code>middleware/iotAuth.js:42-57</code> that accept unauthenticated payloads based on plain <code>deviceId</code> strings must be permanently disabled.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-proposed">Proposed policy control</span> (Static Inspection: Currently permits unauthenticated fallback when <code>IS_PRODUCTION</code> is false in <code>middleware/iotAuth.js:42-57</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">6.</span> <div class="clause-body"><strong>Clause 4.6 — Telemetry Heartbeat & Dead-Man Monitoring:</strong> Microcontrollers must transmit an authenticated heartbeat (<code>/api/occupancy/heartbeat</code>) every 15 seconds. If the backend fails to receive a heartbeat for more than <strong>60 seconds</strong> (<code>OFFLINE_THRESHOLD_MS = 60 * 1000</code>), the system must flag the key dock as "OFFLINE", prompting physical inspection by MIS Staff.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>LabSync_ESP32.ino:1139-1221</code>; <code>services/iot/iot.config.js:8</code>; <code>services/iot/device-state.service.js:52-56</code>; <code>tests/test-iot-heartbeat-inactivity.js:26</code>).</div>
+</div>
+<h3 class="sub-heading">Part 5 — Roles and Enforcement</h3>
+<ul class="doc-list">
+<li><strong>Policy Approver:</strong> IT Department Head.</li>
+<li><strong>Technical Implementer:</strong> MIS Technical Staff / Embedded Lead (Proposed Role, Subject to Approval).</li>
+<li><strong>Awareness & Communication:</strong> Firmware developers must receive training on credential segregation and secure flashing practices.</li>
+<li><strong>Compliance Monitoring:</strong> MIS Staff must review device <code>Last_Seen</code> timestamps daily to identify disconnected hardware.</li>
+<li><strong>Violation Handling:</strong> Suspected device tampering or packet forgery must be documented and referred to the IT Department Head for review under applicable university policies. Compromised device tokens must be immediately revoked (<code>Is_Active = 0</code>) in <code>iot_devices</code>.</li>
+<li><strong>Exceptions:</strong> Temporary use of USB-serial logging for firmware debugging is permitted in the development lab but strictly prohibited on units deployed in classrooms.</li>
+</ul>
+<hr class="divider" />
+</div><div class="policy-divider"></div><div class="policy-section"><h2 class="policy-heading" id="policy-5">POLICY 5: BACKUP, RECOVERY, EXTERNAL NOTIFICATIONS, AND LOG MANAGEMENT</h2>
+<div class="table-wrapper"><table class="data-table policy-meta-table">
+<colgroup>
+          <col style="width: 25%;">
+          <col style="width: 75%;">
+        </colgroup>
+<thead><tr>
+<th>Policy Specification Parameter</th>
+<th>Policy Details</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Policy Title</strong></td>
+<td>Backup, Recovery, External Notifications, and Log Management Policy</td>
+</tr>
+<tr>
+<td><strong>Policy Version</strong></td>
+<td>Version 1.3 (Academic Submission)</td>
+</tr>
+<tr>
+<td><strong>Proposed Effectivity Date</strong></td>
+<td>November 1, 2026 (Subject to institutional approval)</td>
+</tr>
+<tr>
+<td><strong>Policy Owner</strong></td>
+<td>MIS Staff / System Administrator</td>
+</tr>
+<tr>
+<td><strong>Approving Role</strong></td>
+<td>IT Department Head</td>
+</tr>
+<tr>
+<td><strong>Target Components</strong></td>
+<td><code>database/</code>, <code>services/activityRetentionService.js</code>, <code>server.js</code>, <code>config/app.config.js</code>, <code>services/email/email.transport.js</code></td>
+</tr>
+<tr>
+<td><strong>Addressed Risks</strong></td>
+<td><strong>R2</strong> (Missing Backups), <strong>R10</strong> (Email Webhook Failure), <strong>R15</strong> (Database Storage Bloat & Audit Log Accumulation)</td>
+</tr>
+</tbody></table></div>
+<h3 class="sub-heading">Part 1 — Policy Identity and Purpose</h3>
+<p class="doc-p">The purpose of this policy is to establish robust operational baselines governing runtime secret configuration, production error suppression, automated historical data pruning, scheduled logical database backups, and verifiable disaster recovery procedures to prevent catastrophic data loss. This policy aligns with <strong>NIST CSF 2.0</strong> functions <em>RECOVER (RC.RP-01)</em>, <em>PROTECT (PR.DS-11)</em>, and <em>GOVERN (GV.PO-01)</em>.</p>
+<h3 class="sub-heading">Part 2 — Scope and Context</h3>
+<ul class="doc-list">
+<li><strong>System Components Covered:</strong> Environment variable injection, centralized error handling, Google Apps Script webhook relay, MySQL connection pooling, database migrations, physical log pruning, and database dumps within <code>database/</code>, <code>services/activityRetentionService.js</code>, <code>server.js</code>, and <code>config/app.config.js</code>.</li>
+<li><strong>Users and Roles Covered:</strong> Database Administrators, DevOps/Hosting Engineers, and MIS Staff.</li>
+<li><strong>Information Covered:</strong> MySQL schemas, <code>.env</code> configuration files, database credentials, session secrets, <code>occupancy_log</code> archives, and <code>audit_logs</code>.</li>
+<li><strong>Exclusions & Assumptions:</strong> Covers application and database operational continuity; does not cover physical building utilities (campus electrical power grid). Assumes hosting on containerized cloud infrastructure (Railway). The application repository contains no automated logical backup scripts; actual Railway backup availability, eligibility, and enablement must be confirmed directly in the active project dashboard.</li>
+</ul>
+<h3 class="sub-heading">Part 3 — Risk Basis</h3>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">1.</span> <strong>Risk R2 — Catastrophic Data Loss Due to Missing Application Backup Mechanisms:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Entire MySQL relational database (all tables managed by migration scripts).</li>
+<li><em>Threat:</em> Cloud volume corruption, hosting termination, or accidental database dropping.</li>
+<li><em>Weakness:</em> The application repository contains zero automated logical backup scripts; actual Railway cloud volume backup availability, eligibility, and enablement must be confirmed in the active project dashboard.</li>
+<li><em>Consequence:</em> Total and permanent loss of academic laboratory records and key accountability logs.</li>
+<li><em>Existing Safeguards:</em> MySQL2 pooled connection handling; non-destructive deactivation for administrative accounts.</li>
+<li><em>Ratings:</em> Likelihood = High, Impact = High, Priority = <strong><span class="badge badge-critical">CRITICAL</span></strong>.</li>
+<li><em>Rating Rationale:</em> Operating a production academic system without verified backups is an unacceptable single point of failure.</li>
+<li><em>Linked Clauses:</em> Clause 5.4, Clause 5.5.</li>
+</ul>
+</div>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">2.</span> <strong>Risk R10 — Transactional Email Relay Failure via Quota Exhaustion:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> Password recovery tokens and faculty key notification dispatches.</li>
+<li><em>Threat:</em> Gmail daily quota exhaustion or execution timeout on the Google Apps Script Web App relay.</li>
+<li><em>Weakness:</em> Unverified external configuration on Google Apps Script infrastructure.</li>
+<li><em>Consequence:</em> Faculty and staff locked out during password recovery due to undelivered reset links; critical security notices fail to dispatch.</li>
+<li><em>Existing Safeguards:</em> 12-second HTTP abort timeout; rate limiting on password recovery requests.</li>
+<li><em>Ratings:</em> Likelihood = Low, Impact = Medium, Priority = <strong><span class="badge badge-low">LOW</span></strong>.</li>
+<li><em>Rating Rationale:</em> Modest academic email volume makes quota hits infrequent, but delivery failure directly blocks self-service account recovery and delays incident alerting.</li>
+<li><em>Linked Clauses:</em> Clause 5.3.</li>
+</ul>
+</div>
+<div class="risk-card"><div class="risk-title"><span class="risk-num">3.</span> <strong>Risk R15 — Database Storage Growth & Query Degradation via Unpruned Audit Logs:</strong></div>
+<ul class="risk-list">
+<li><em>Asset:</em> MySQL storage volume capacity and query index performance.</li>
+<li><em>Threat:</em> Gradual accumulation of audit event logs over multi-year operational lifecycles.</li>
+<li><em>Weakness:</em> Microcontroller telemetry heartbeats do not create rows (they mutate <code>laboratories.Last_Seen</code> in-place). However, while <code>occupancy_log</code> is actively protected by automated daily 1-year pruning, <code>audit_logs</code> has no automated pruning or archiving mechanism in application code and is not technically immutable or append-only.</li>
+<li><em>Consequence:</em> Long-term query degradation in audit trail retrieval and container storage bloat over extended multi-year operation.</li>
+<li><em>Existing Safeguards:</em> Heartbeats update in-place without row creation; automated daily 1-year cutoff pruning via indexed SQL deletion for <code>occupancy_log</code> (<code>services/activityRetentionService.js:22-90</code>).</li>
+<li><em>Ratings:</em> Likelihood = Low, Impact = Low, Priority = <strong><span class="badge badge-low">LOW</span></strong>.</li>
+<li><em>Rating Rationale:</em> Heartbeats do not expand database rows. Active 1-year pruning prevents <code>occupancy_log</code> bloat; <code>audit_logs</code> growth is bounded by relatively low administrative and security event volumes.</li>
+<li><em>Linked Clauses:</em> Clause 5.2.</li>
+</ul>
+</div>
+<h3 class="sub-heading">Part 4 — Mandatory Policy Clauses</h3>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">1.</span> <div class="clause-body"><strong>Clause 5.1 — Strict Secret Segregation & Version Control Hygiene:</strong> Backend credentials (database passwords, <code>SESSION_SECRET</code>, and <code>EMAIL_WEBHOOK_SECRET</code>) must be loaded strictly through protected runtime environment variables. All production configuration files (<code>.env</code>) must remain in <code>.gitignore</code>. Production startup must halt immediately via <code>validateProductionConfig()</code> (<code>server.js:31</code>; <code>config/app.config.js:83-85</code>) if required secrets are missing or default placeholders, ensuring default secrets cannot be used by web sessions or student verification HMAC tokens in production.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>server.js:31, 40-42</code>; <code>.gitignore:1-15</code>; <code>config/app.config.js:40-60, 83-85</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">2.</span> <div class="clause-body"><strong>Clause 5.2 — Automated Physical Log Retention & 1-Year Pruning:</strong> Physical room occupancy and key event records in <code>occupancy_log</code> must be retained for exactly one calendar year to satisfy academic audit requirements. Records exceeding the 365-day cutoff must be pruned daily via indexed SQL deletion (<code>activityRetentionService.js</code>) without loading records into Node.js heap memory. Telemetry heartbeats execute in-place updates (<code>Last_Seen = NOW()</code>) without row growth. Automated pruning or archiving of <code>audit_logs</code> was not found in reviewed application code; periodic archiving of <code>audit_logs</code> is designated as a proposed governance control.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>services/activityRetentionService.js:22-90</code>; <code>services/iot/heartbeat.service.js:54</code>; <code>database/migrations/015_add_occupancy_log_access_time_index.sql</code>).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">3.</span> <div class="clause-body"><strong>Clause 5.3 — Transactional Email Webhook Security & Timeout Protection:</strong> Outbound email dispatches via the Google Apps Script webhook relay must enforce HTTPS transmission, a 12-second abort timeout (<code>timeoutMs = 12000</code>), and shared secret authentication (<code>EMAIL_WEBHOOK_SECRET</code>) passed in both headers and JSON payload. Live receiver-side script properties must be verified annually on <code>script.google.com</code>. Failure of email relay suppresses self-service password recovery and critical security dispatches.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-partially">Partially implemented</span> (Static Inspection: Backend sending verified in <code>services/email/email.transport.js:100-138</code>; Google Apps Script receiver property configuration is an unverified external setting).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">4.</span> <div class="clause-body"><strong>Clause 5.4 — Mandatory Logical Database Backup Schedule:</strong> To resolve the absence of application backup code in the reviewed repository, the database administrator must configure a scheduled daily logical backup (<code>mysqldump</code>) of all MySQL database tables. Backup archives must be encrypted with AES-256 and transmitted offsite to secure institutional storage (BulSU Google Drive; Target RPO &le; 24 hours, RTO &le; 2 hours). Actual Railway cloud volume backup availability, eligibility, and enablement must be confirmed in the active project dashboard. Automated offsite logical backups remain a proposed control until demonstrably implemented.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-missing">Missing / not implemented</span> (Static Inspection: The application repository contains zero automated logical backup scripts; live Railway volume backup availability must be confirmed in the project dashboard; automated offsite backups are proposed).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">5.</span> <div class="clause-body"><strong>Clause 5.5 — Semesterly Disaster Recovery Restoration Simulation:</strong> The MIS technical team must execute a documented disaster recovery simulation once per academic semester. The test must restore the most recent logical backup archive to an isolated staging database and verify row-count parity across users, keys, schedules, and maintenance records. This procedure is a proposed policy requirement and has not yet been conducted on live systems.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-proposed">Proposed policy control</span> (Requires formal adoption in MIS semester operational calendar).</div>
+</div>
+<div class="clause-block"><div class="numbered-clause"><span class="clause-num">6.</span> <div class="clause-body"><strong>Clause 5.6 — Safe Production Error Suppression:</strong> Centralized error handling middleware (<code>middleware/errorHandler.js</code>) must suppress raw database errors, SQL syntax strings, and server stack traces in production environments, returning generic HTTP 500 JSON responses (<code>"Internal server error"</code>) to prevent reconnaissance.  </div></div>
+<div class="clause-status"><em>Implementation Status:</em> <span class="badge badge-implemented">Implemented &mdash; evidence verified</span> (Static Inspection: <code>middleware/errorHandler.js:15-35</code>).</div>
+</div>
+<h3 class="sub-heading">Part 5 — Roles and Enforcement</h3>
+<ul class="doc-list">
+<li><strong>Policy Approver:</strong> IT Department Head.</li>
+<li><strong>Technical Implementer:</strong> MIS Staff / System Administrator.</li>
+<li><strong>Awareness & Communication:</strong> Development team members must review the <code>.gitignore</code> policy prior to receiving Git commit access.</li>
+<li><strong>Compliance Monitoring:</strong> MIS Staff must inspect daily backup execution logs and storage quotas once implemented.</li>
+<li><strong>Violation Handling:</strong> Suspected configuration compromises or accidental credential commits must be documented and referred to the IT Department Head for review under applicable university policies. Exposed credentials must be rotated immediately.</li>
+<li><strong>Exceptions:</strong> Emergency manual database schema adjustments during outages must be executed within transactional wrappers and backfilled into sequential migration files within 24 hours.</li>
+</ul>
+</div>
+</body>
+</html>
