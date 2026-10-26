@@ -30,6 +30,20 @@
     }
   }
 
+  function escapeHtml(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str.replace(/[&<>"']/g, function (m) {
+      switch (m) {
+        case '&': return '&amp;';
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '"': return '&quot;';
+        case "'": return '&#39;';
+        default: return m;
+      }
+    });
+  }
+
   async function openBackupRecoveryModal() {
     let user = null;
     try {
@@ -150,12 +164,22 @@
 
             <div id="restoreControlsContainer" style="display: flex; flex-direction: column; gap: 12px;">
               <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark, #0F172A); margin-bottom: 4px;">Select Backup Archive (.sql.gz or .sql):</label>
-                <input type="file" id="restoreFileInput" accept=".gz,.sql,.sql.gz" style="
+                <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark, #0F172A); margin-bottom: 4px;">Select Backup Archive (.sql.gz):</label>
+                <input type="file" id="restoreFileInput" accept=".sql.gz,.gz" style="
                   width: 100%; padding: 8px; border: 1px dashed var(--border-light, #cbd5e1);
                   border-radius: 8px; background: var(--bg-white, #ffffff); font-size: 12.5px;
                   box-sizing: border-box; cursor: pointer;
                 " />
+              </div>
+
+              <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-dark, #0F172A); margin-bottom: 4px;">Expected SHA-256 Checksum:</label>
+                <input type="text" id="restoreChecksumInput" placeholder="Auto-captured on backup download, or paste from metadata" style="
+                  width: 100%; padding: 8px 12px; border: 1px solid var(--border-light, #cbd5e1);
+                  border-radius: 8px; background: var(--bg-white, #ffffff); font-size: 12px;
+                  box-sizing: border-box; font-family: monospace; color: var(--text-dark, #0F172A);
+                " />
+                <span style="font-size: 11px; color: var(--text-light, #64748B); display: block; margin-top: 2px;">Preserved independently of archive and verified before executing any restoration SQL.</span>
               </div>
 
               <div>
@@ -203,6 +227,46 @@
     // Populate Status Metadata
     await loadBackupStatus(modal);
 
+    // Bind file selection handler to auto-associate checksum for the exact selected archive
+    const fileInput = modal.querySelector('#restoreFileInput');
+    const checksumInput = modal.querySelector('#restoreChecksumInput');
+
+    if (checksumInput) {
+      checksumInput.addEventListener('input', () => {
+        modal._checksumUserEdited = true;
+        // Clean pasted input if format is "hash  filename" (standard .sha256 format)
+        const val = checksumInput.value.trim();
+        const hashMatch = val.match(/\b([a-fA-F0-9]{64})\b/);
+        if (hashMatch && val.length > 64) {
+          checksumInput.value = hashMatch[1].toLowerCase();
+        }
+      });
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener('change', () => {
+        if (!fileInput.files || fileInput.files.length === 0) return;
+        const selectedFile = fileInput.files[0];
+
+        // Do not overwrite if the administrator manually entered a checksum
+        if (modal._checksumUserEdited && checksumInput && checksumInput.value.trim()) return;
+
+        // Associate with checksum specifically recorded for THIS archive
+        const mapped = (modal._backupChecksumMap && modal._backupChecksumMap[selectedFile.name]) ||
+                       sessionStorage.getItem('labsync_chk_' + selectedFile.name);
+
+        if (checksumInput) {
+          if (mapped) {
+            checksumInput.value = mapped;
+          } else {
+            // Never assign an unrelated latest backup checksum to an older/different archive
+            checksumInput.value = '';
+            checksumInput.placeholder = `Paste SHA-256 for ${selectedFile.name} (from .sha256 file)`;
+          }
+        }
+      });
+    }
+
     // Bind Backup Download Handler
     const backupBtn = modal.querySelector('#btnTriggerBackup');
     if (backupBtn) {
@@ -222,6 +286,19 @@
       if (!res.ok) throw new Error('Status query failed');
       const data = await res.json();
 
+      // Cache mapping of filenames to checksums for accurate archive association
+      modal._backupChecksumMap = modal._backupChecksumMap || {};
+      if (data.latestBackup && data.latestBackup.Filename && data.latestBackup.Checksum_SHA256) {
+        modal._backupChecksumMap[data.latestBackup.Filename] = data.latestBackup.Checksum_SHA256;
+      }
+      if (Array.isArray(data.recentBackups)) {
+        data.recentBackups.forEach(b => {
+          if (b.Filename && b.Checksum_SHA256) {
+            modal._backupChecksumMap[b.Filename] = b.Checksum_SHA256;
+          }
+        });
+      }
+
       const banner = modal.querySelector('#backupEnvBanner');
       const bannerText = modal.querySelector('#backupBannerText');
       const bannerIcon = modal.querySelector('#backupBannerIcon');
@@ -234,11 +311,22 @@
       if (metaActiveDb) metaActiveDb.textContent = data.activeDatabase || 'unknown';
       if (metaTooling) metaTooling.textContent = data.toolingAvailable ? (data.toolingVersion ? data.toolingVersion.split(' ')[0] : 'Available') : 'Missing CLI';
       if (metaLastBackup && data.latestBackup) {
-        metaLastBackup.innerHTML = `
-          <strong>${data.latestBackup.Filename}</strong> (${formatBytes(data.latestBackup.File_Size_Bytes)})<br/>
-          <span style="font-size:11px;color:var(--text-light);">${formatDate(data.latestBackup.Created_At)}</span><br/>
-          <span style="font-size:10px;font-family:monospace;color:#64748b;">SHA-256: ${data.latestBackup.Checksum_SHA256 ? data.latestBackup.Checksum_SHA256.slice(0, 16) + '...' : 'N/A'}</span>
-        `;
+        if (data.latestBackup.Status === 'FAILED') {
+          const safeError = data.latestBackup.Error_Message
+            ? escapeHtml(data.latestBackup.Error_Message.slice(0, 180))
+            : 'Generation failed';
+          metaLastBackup.innerHTML = `
+            <span style="color:#dc2626;font-weight:600;">Failed Backup</span><br/>
+            <span style="font-size:11px;color:var(--text-light);">${formatDate(data.latestBackup.Created_At)}</span><br/>
+            <span style="font-size:11px;color:#ef4444;display:block;margin-top:2px;word-break:break-word;" title="${escapeHtml(data.latestBackup.Error_Message || '')}">Reason: ${safeError}</span>
+          `;
+        } else {
+          metaLastBackup.innerHTML = `
+            <strong>${escapeHtml(data.latestBackup.Filename)}</strong> (${formatBytes(data.latestBackup.File_Size_Bytes)})<br/>
+            <span style="font-size:11px;color:var(--text-light);">${formatDate(data.latestBackup.Created_At)}</span><br/>
+            <span style="font-size:10px;font-family:monospace;color:#64748b;">SHA-256: ${data.latestBackup.Checksum_SHA256 ? data.latestBackup.Checksum_SHA256.slice(0, 16) + '...' : 'N/A'}</span>
+          `;
+        }
       }
 
       if (data.isProduction) {
@@ -305,13 +393,28 @@
 
       if (!response.ok) {
         const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson.error || errJson.details || `Server responded with ${response.status}`);
+        const errorMsg = errJson.details || errJson.error || `Server responded with ${response.status}`;
+        throw new Error(errorMsg);
       }
 
       const contentDisposition = response.headers.get('Content-Disposition') || '';
       let filename = 'labsync_backup.sql.gz';
       const match = contentDisposition.match(/filename="?([^"]+)"?/);
       if (match && match[1]) filename = match[1];
+
+      const backupChecksum = response.headers.get('x-backup-checksum') || '';
+      if (backupChecksum) {
+        // Retain exact archive-to-checksum association in session and memory
+        sessionStorage.setItem('labsync_chk_' + filename, backupChecksum);
+        modal._backupChecksumMap = modal._backupChecksumMap || {};
+        modal._backupChecksumMap[filename] = backupChecksum;
+
+        const fileInput = modal.querySelector('#restoreFileInput');
+        const checksumInput = modal.querySelector('#restoreChecksumInput');
+        if (checksumInput && !modal._checksumUserEdited && (!fileInput || !fileInput.files || fileInput.files.length === 0 || fileInput.files[0].name === filename)) {
+          checksumInput.value = backupChecksum;
+        }
+      }
 
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
@@ -323,9 +426,23 @@
       a.remove();
       window.URL.revokeObjectURL(downloadUrl);
 
+      // Download companion .sha256 checksum file to preserve digest independently of browser session
+      if (backupChecksum) {
+        const sha256Content = `${backupChecksum}  ${filename}\n`;
+        const shaBlob = new Blob([sha256Content], { type: 'text/plain;charset=utf-8' });
+        const shaUrl = window.URL.createObjectURL(shaBlob);
+        const shaLink = document.createElement('a');
+        shaLink.href = shaUrl;
+        shaLink.download = `${filename}.sha256`;
+        document.body.appendChild(shaLink);
+        shaLink.click();
+        shaLink.remove();
+        window.URL.revokeObjectURL(shaUrl);
+      }
+
       if (statusEl) {
         statusEl.style.color = '#16a34a';
-        statusEl.textContent = `✔ Download complete: ${filename} (${formatBytes(blob.size)})`;
+        statusEl.textContent = `✔ Download complete: ${filename} & ${filename}.sha256 (${formatBytes(blob.size)})`;
       }
       await loadBackupStatus(modal);
     } catch (err) {
@@ -342,11 +459,34 @@
   async function triggerSandboxRestore(modal) {
     const btn = modal.querySelector('#btnTriggerRestore');
     const fileInput = modal.querySelector('#restoreFileInput');
+    const checksumInput = modal.querySelector('#restoreChecksumInput');
     const passwordInput = modal.querySelector('#restorePasswordInput');
     const statusEl = modal.querySelector('#restoreActionStatus');
 
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
       alert('Please select a backup archive file to restore.');
+      return;
+    }
+
+    const file = fileInput.files[0];
+    if (!file.name.endsWith('.sql.gz') && !file.name.endsWith('.gz')) {
+      alert('Invalid archive format. Only verified .sql.gz backup archives are supported for restoration.');
+      return;
+    }
+
+    let expectedChecksum = (checksumInput ? checksumInput.value.trim() : '') ||
+                           (modal._backupChecksumMap && modal._backupChecksumMap[file.name]) ||
+                           sessionStorage.getItem('labsync_chk_' + file.name) || '';
+
+    // Extract exact 64-character hex if user pasted the entire .sha256 line ("hash  filename")
+    const hashMatch = expectedChecksum.match(/\b([a-fA-F0-9]{64})\b/);
+    if (hashMatch) {
+      expectedChecksum = hashMatch[1].toLowerCase();
+    }
+
+    if (!expectedChecksum || !/^[a-fA-F0-9]{64}$/.test(expectedChecksum)) {
+      alert(`Valid 64-character SHA-256 checksum is required for ${file.name}.\nPlease enter the digest from its companion .sha256 file.`);
+      if (checksumInput) checksumInput.focus();
       return;
     }
 
@@ -357,7 +497,6 @@
       return;
     }
 
-    const file = fileInput.files[0];
     if (!confirm(`CAUTION: This will overwrite tables in the isolated test sandbox with the contents of ${file.name}.\n\nAre you sure you want to proceed?`)) {
       return;
     }
@@ -377,7 +516,8 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/gzip',
-          'X-Confirm-Password': encodeURIComponent(password)
+          'X-Confirm-Password': encodeURIComponent(password),
+          'X-Backup-Checksum': expectedChecksum
         },
         body: file
       });

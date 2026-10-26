@@ -17,6 +17,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const zlib = require('zlib');
 const bcrypt = require('bcrypt');
 const mysql = require('mysql2/promise');
@@ -38,6 +39,213 @@ async function runBackupRecoveryTests() {
         assert.ok(tooling.dumpCmd, 'Dump command path must be resolved');
         assert.ok(tooling.version, 'Client version string must be returned');
         console.log('✔ PASS: Database CLI dump utility verified successfully:', tooling.version);
+
+        // ─── 1B. SECURE OPTION FILE & SANITIZED ERROR DIAGNOSTICS ────────────
+        console.log('\n--- 1B. Testing Secure Option File Creation & Error Sanitization ---');
+        const testCreds = {
+            host: '127.0.0.1',
+            port: 3306,
+            user: 'testuser',
+            password: 'Super"Secret#123;pass\\word'
+        };
+        const { tempDir: testTempDir, configPath: testConfigPath } = backupService.createSecureClientConfigFile(testCreds);
+        try {
+            assert.ok(fs.existsSync(testConfigPath), 'Config file must exist on disk');
+            const cnfContent = fs.readFileSync(testConfigPath, 'utf8');
+            assert.ok(cnfContent.includes('[client]'), 'Option file must include [client]');
+            assert.ok(cnfContent.includes('[mariadb-dump]'), 'Option file must include [mariadb-dump]');
+            assert.ok(cnfContent.includes('[mysqldump]'), 'Option file must include [mysqldump]');
+            assert.ok(cnfContent.includes('[mariadb]'), 'Option file must include [mariadb]');
+            assert.ok(cnfContent.includes('[mysql]'), 'Option file must include [mysql]');
+            assert.ok(cnfContent.includes('user = "testuser"'), 'User must be written');
+            assert.ok(!cnfContent.includes('Super"Secret#123;pass\\word\n'), 'Raw unescaped quotes must not corrupt file');
+        } finally {
+            backupService.cleanupSecureTempDir(testTempDir);
+            assert.strictEqual(fs.existsSync(testTempDir), false, 'Temp dir must be cleaned up');
+        }
+        console.log('✔ PASS: Secure option file creation and multi-client group compatibility verified.');
+
+        // Verify sanitizeErrorMessage
+        const rawErrorMsg = 'mysqldump: Access denied for user "root" identified by "secret_pass_123" with password="secret_pass_123"';
+        const sanitized = backupService.sanitizeErrorMessage(rawErrorMsg);
+        assert.ok(!sanitized.includes('secret_pass_123'), 'Sanitized error must not contain password');
+        assert.ok(sanitized.includes('[REDACTED]'), 'Sanitized error must show [REDACTED]');
+        console.log('✔ PASS: Sensitive credential sanitization in error messages verified:', sanitized);
+
+        // ─── 1C. ARCHIVE INTEGRITY & SQL COMPLETION MARKER VERIFICATION ─────
+        console.log('\n--- 1C. Testing Archive Integrity & SQL Completion Marker Verification ---');
+        const osTmp = require('os').tmpdir();
+
+        // 1C.1: Valid archive with standard trailer marker
+        const validSql = '-- MariaDB dump 10.19\nCREATE TABLE test_tab (id INT);\n-- Dump completed on 2026-10-26 12:00:00\n';
+        const validArchive = path.join(osTmp, `valid_test_${Date.now()}.sql.gz`);
+        fs.writeFileSync(validArchive, zlib.gzipSync(Buffer.from(validSql, 'utf8')));
+
+        try {
+            const validResult = await backupService.verifyBackupArchiveIntegrity(validArchive);
+            assert.ok(validResult.fileSizeBytes > 0, 'Valid archive must report file size');
+            assert.strictEqual(typeof validResult.checksumSha256, 'string', 'Valid archive must calculate SHA-256');
+            assert.strictEqual(validResult.checksumSha256.length, 64, 'SHA-256 must be 64-char hex string');
+            console.log('✔ PASS: Valid archive containing standard completion marker passes verification.');
+        } finally {
+            try { fs.unlinkSync(validArchive); } catch (_) { }
+        }
+
+        // 1C.2: Truncated archive missing completion marker must be strictly rejected
+        const truncatedSql = '-- MariaDB dump 10.19\nCREATE TABLE test_tab (id INT);\nINSERT INTO test_tab VALUES (1);\n';
+        const truncatedArchive = path.join(osTmp, `truncated_test_${Date.now()}.sql.gz`);
+        fs.writeFileSync(truncatedArchive, zlib.gzipSync(Buffer.from(truncatedSql, 'utf8')));
+
+        try {
+            let truncatedRejected = false;
+            try {
+                await backupService.verifyBackupArchiveIntegrity(truncatedArchive);
+            } catch (err) {
+                truncatedRejected = true;
+                assert.ok(
+                    err.message.includes('missing SQL completion marker (-- Dump completed)'),
+                    `Expected completion marker error, got: ${err.message}`
+                );
+            }
+            assert.strictEqual(truncatedRejected, true, 'Truncated archive lacking completion marker must be rejected');
+            console.log('✔ PASS: Truncated archive lacking completion marker rejected with error.');
+        } finally {
+            try { fs.unlinkSync(truncatedArchive); } catch (_) { }
+        }
+
+        // 1C.3: Archive with deceptive string "mariadb-dump" but missing "-- Dump completed" must be rejected
+        const deceptiveSql = '-- Header from mariadb-dump\nCREATE TABLE test (name VARCHAR(50));\n-- Truncated before completion\n';
+        const deceptiveArchive = path.join(osTmp, `deceptive_test_${Date.now()}.sql.gz`);
+        fs.writeFileSync(deceptiveArchive, zlib.gzipSync(Buffer.from(deceptiveSql, 'utf8')));
+
+        try {
+            let deceptiveRejected = false;
+            try {
+                await backupService.verifyBackupArchiveIntegrity(deceptiveArchive);
+            } catch (err) {
+                deceptiveRejected = true;
+                assert.ok(
+                    err.message.includes('missing SQL completion marker (-- Dump completed)'),
+                    `Expected completion marker error, got: ${err.message}`
+                );
+            }
+            assert.strictEqual(deceptiveRejected, true, 'Archive containing "mariadb-dump" without completion marker must be rejected');
+            console.log('✔ PASS: Deceptive archive containing tool name without completion marker strictly rejected.');
+        } finally {
+            try { fs.unlinkSync(deceptiveArchive); } catch (_) { }
+        }
+
+        // 1C.4: Empty (0-byte) archive must be rejected
+        const emptyArchive = path.join(osTmp, `empty_test_${Date.now()}.sql.gz`);
+        fs.writeFileSync(emptyArchive, Buffer.alloc(0));
+
+        try {
+            let emptyRejected = false;
+            try {
+                await backupService.verifyBackupArchiveIntegrity(emptyArchive);
+            } catch (err) {
+                emptyRejected = true;
+                assert.ok(err.message.includes('empty (0 bytes)'), `Expected empty file error, got: ${err.message}`);
+            }
+            assert.strictEqual(emptyRejected, true, 'Empty (0 bytes) archive must be rejected');
+            console.log('✔ PASS: Empty archive strictly rejected.');
+        } finally {
+            try { fs.unlinkSync(emptyArchive); } catch (_) { }
+        }
+
+        // ─── 1D. RESTORATION ARCHIVE FORMAT & SHA-256 INTEGRITY GUARDS ──────
+        console.log('\n--- 1D. Testing Restoration Archive Format & SHA-256 Integrity Guards ---');
+        const pre1dEnv = {
+            NODE_ENV: process.env.NODE_ENV,
+            DB_NAME: process.env.DB_NAME,
+            ALLOW_RESTORE_FOR_LOCAL_DEMO: process.env.ALLOW_RESTORE_FOR_LOCAL_DEMO,
+            RESTORE_TARGET_DATABASE: process.env.RESTORE_TARGET_DATABASE,
+            DB_RESTORE_USER: process.env.DB_RESTORE_USER,
+            DB_RESTORE_PASSWORD: process.env.DB_RESTORE_PASSWORD
+        };
+        process.env.NODE_ENV = 'development';
+        process.env.ALLOW_RESTORE_FOR_LOCAL_DEMO = 'true';
+        process.env.RESTORE_TARGET_DATABASE = 'labsync_test';
+        process.env.DB_NAME = 'labsync_test';
+        process.env.DB_RESTORE_USER = 'labsync_restore_test';
+        process.env.DB_RESTORE_PASSWORD = 'TestRestorePass_123!';
+
+        try {
+            // 1D.1: Raw .sql uncompressed file must be rejected with INVALID_ARCHIVE_FORMAT
+            const rawSqlFile = path.join(osTmp, `raw_format_test_${Date.now()}.sql`);
+            fs.writeFileSync(rawSqlFile, 'CREATE TABLE test (id INT);', 'utf8');
+            try {
+                let formatRejected = false;
+                try {
+                    await backupService.restoreToTestDatabase(rawSqlFile, {
+                        actorEmail: 'admin@test.local',
+                        isGzip: true
+                    });
+                } catch (err) {
+                    formatRejected = true;
+                    assert.ok(
+                        err.message.includes('INVALID_ARCHIVE_FORMAT') || err.code === 'INVALID_ARCHIVE_FORMAT',
+                        `Expected INVALID_ARCHIVE_FORMAT, got: ${err.message}`
+                    );
+                }
+                assert.strictEqual(formatRejected, true, 'Raw uncompressed SQL file must be rejected by restoreToTestDatabase');
+                console.log('✔ PASS: Non-gzip (.sql) archive format strictly rejected with INVALID_ARCHIVE_FORMAT.');
+            } finally {
+                try { fs.unlinkSync(rawSqlFile); } catch (_) { }
+            }
+
+            // 1D.2: Checksum mismatch must abort restoration before executing SQL
+            const fakeArchive = path.join(osTmp, `checksum_mismatch_test_${Date.now()}.sql.gz`);
+            fs.writeFileSync(fakeArchive, zlib.gzipSync(Buffer.from('-- Dump completed\n', 'utf8')));
+            try {
+                let checksumRejected = false;
+                try {
+                    await backupService.restoreToTestDatabase(fakeArchive, {
+                        actorEmail: 'admin@test.local',
+                        isGzip: true,
+                        expectedChecksum: '0000000000000000000000000000000000000000000000000000000000000000'
+                    });
+                } catch (err) {
+                    checksumRejected = true;
+                    assert.ok(
+                        err.message.includes('CHECKSUM_MISMATCH') || err.code === 'CHECKSUM_MISMATCH',
+                        `Expected CHECKSUM_MISMATCH error, got: ${err.message}`
+                    );
+                }
+                assert.strictEqual(checksumRejected, true, 'Archive with checksum mismatch must abort before restore');
+                console.log('✔ PASS: SHA-256 checksum mismatch strictly aborted before restore execution.');
+            } finally {
+                try { fs.unlinkSync(fakeArchive); } catch (_) { }
+            }
+
+            // 1D.3: Missing expected checksum must be strictly rejected with CHECKSUM_REQUIRED
+            const missingChecksumArchive = path.join(osTmp, `missing_chk_${Date.now()}.sql.gz`);
+            fs.writeFileSync(missingChecksumArchive, zlib.gzipSync(Buffer.from('-- Dump completed\n', 'utf8')));
+            try {
+                let missingRejected = false;
+                try {
+                    await backupService.restoreToTestDatabase(missingChecksumArchive, {
+                        actorEmail: 'admin@test.local',
+                        isGzip: true
+                    });
+                } catch (err) {
+                    missingRejected = true;
+                    assert.ok(
+                        err.message.includes('CHECKSUM_REQUIRED') || err.code === 'CHECKSUM_REQUIRED',
+                        `Expected CHECKSUM_REQUIRED error, got: ${err.message}`
+                    );
+                }
+                assert.strictEqual(missingRejected, true, 'Restoration without expected checksum must be rejected');
+                console.log('✔ PASS: Missing expected checksum strictly rejected with CHECKSUM_REQUIRED.');
+            } finally {
+                try { fs.unlinkSync(missingChecksumArchive); } catch (_) { }
+            }
+        } finally {
+            Object.keys(pre1dEnv).forEach(k => {
+                if (pre1dEnv[k] === undefined) delete process.env[k];
+                else process.env[k] = pre1dEnv[k];
+            });
+        }
 
         // ─── 2. PRODUCTION GUARD & FAIL-CLOSED SAFETY TESTS ──────────────────
         console.log('\n--- 2. Testing Production Safety Invariants (Fail-Closed) ---');
@@ -214,7 +422,8 @@ async function runBackupRecoveryTests() {
 
         const restoreResult = await backupService.restoreToTestDatabase(backupResult.tempFilePath, {
             actorEmail: 'admin.tester@labsync.test',
-            isGzip: true
+            isGzip: true,
+            expectedChecksum: backupResult.checksumSha256
         });
 
         assert.strictEqual(restoreResult.success, true, 'Restoration must report success');
@@ -255,6 +464,66 @@ async function runBackupRecoveryTests() {
         console.log(`   - Linked User ID: ${restored.User_ID} (Faculty: ${parentUsers[0].Name})`);
         console.log(`   - Linked Room ID: ${restored.Room_ID} (Room: ${parentRooms[0].Room_Number})`);
 
+        // ─── 8B. RESTORING OLDER BACKUP AFTER NEWER BACKUP CREATED ───────────
+        console.log('\n--- 8B. Restoring Older Backup After Newer Backup Created ---');
+        // Insert a second Canary schedule to create a distinct newer state
+        const [sched2Res] = await testDbConnection.query(
+            `INSERT INTO schedules (
+                User_ID, Room_ID, Subject_Name, Section,
+                Day_of_Week, Start_Time, End_Time, Academic_Year, Semester, Color_Theme
+             ) VALUES (?, ?, 'CANARY-NEWER-BACKUP', 'TEST-NEW', 'Tuesday', '13:00:00', '16:00:00', '2025-2026', '1st Semester', 'indigo')`,
+            [canaryUserId, canaryRoomId]
+        );
+        const canarySchedule2Id = sched2Res.insertId;
+
+        // Generate second (newer) backup
+        const newerBackupResult = await backupService.generateVerifiedBackupFile({
+            dbName: 'labsync_test'
+        });
+        assert.notStrictEqual(newerBackupResult.checksumSha256, backupResult.checksumSha256, 'Newer backup must have unique checksum');
+
+        try {
+            // Delete the older canary schedule record
+            await testDbConnection.query('DELETE FROM schedules WHERE Schedule_ID = ?', [canaryScheduleId]);
+
+            // Attempt 1: Attempt to restore older backup using the NEWER backup's checksum -> must be rejected!
+            let mismatchRejected = false;
+            try {
+                await backupService.restoreToTestDatabase(backupResult.tempFilePath, {
+                    actorEmail: 'admin.tester@labsync.test',
+                    isGzip: true,
+                    expectedChecksum: newerBackupResult.checksumSha256
+                });
+            } catch (err) {
+                mismatchRejected = true;
+                assert.ok(
+                    err.message.includes('CHECKSUM_MISMATCH') || err.code === 'CHECKSUM_MISMATCH',
+                    `Expected CHECKSUM_MISMATCH when pairing older backup with newer checksum, got: ${err.message}`
+                );
+            }
+            assert.strictEqual(mismatchRejected, true, 'Using newer checksum on older archive must be rejected');
+            console.log('✔ PASS: Restoring older archive with newer checksum strictly rejected with CHECKSUM_MISMATCH.');
+
+            // Attempt 2: Restore older backup using its OWN exact preserved checksum -> must succeed!
+            const olderRestoreResult = await backupService.restoreToTestDatabase(backupResult.tempFilePath, {
+                actorEmail: 'admin.tester@labsync.test',
+                isGzip: true,
+                expectedChecksum: backupResult.checksumSha256
+            });
+            assert.strictEqual(olderRestoreResult.success, true, 'Older backup restoration must succeed with exact checksum');
+
+            // Verify older canary schedule was restored
+            const [reRestored] = await testDbConnection.query(
+                'SELECT * FROM schedules WHERE Schedule_ID = ?',
+                [canaryScheduleId]
+            );
+            assert.strictEqual(reRestored.length, 1, 'Older canary schedule must be restored');
+            console.log('✔ PASS: Older backup successfully restored using its own exact preserved checksum.');
+        } finally {
+            if (newerBackupResult.cleanup) newerBackupResult.cleanup();
+            await testDbConnection.query('DELETE FROM schedules WHERE Schedule_ID = ?', [canarySchedule2Id]);
+        }
+
         // ─── 9. SANDBOX ESCAPE PREVENTION & SENTINEL ISOLATION TEST ──────────
         console.log('\n--- 9. Testing Privilege Boundary Isolation with Disposable Sentinel DB ---');
         const disposableDbName = `labsync_sentinel_${Date.now().toString().slice(-6)}`;
@@ -282,10 +551,12 @@ async function runBackupRecoveryTests() {
 
             let rejected = false;
             let caughtError = null;
+            const tempChecksum = crypto.createHash('sha256').update(gz).digest('hex');
             try {
                 await backupService.restoreToTestDatabase(tempFile, {
                     actorEmail,
-                    isGzip: true
+                    isGzip: true,
+                    expectedChecksum: tempChecksum
                 });
             } catch (err) {
                 rejected = true;
@@ -397,7 +668,8 @@ async function runBackupRecoveryTests() {
         try {
             await backupService.restoreToTestDatabase(corruptedFile, {
                 actorEmail: 'tester@labsync.test',
-                isGzip: true
+                isGzip: true,
+                expectedChecksum: '0000000000000000000000000000000000000000000000000000000000000000'
             });
         } catch (corruptErr) {
             corruptedFailedAsExpected = true;

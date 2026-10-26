@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,11 +10,13 @@
       size: A4 portrait;
       margin: 12mm 10mm 12mm 10mm;
     }
+
     * {
       box-sizing: border-box;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 8.5pt;
@@ -23,31 +26,37 @@
       margin: 0;
       padding: 20px;
     }
+
     .page-container {
       max-width: 210mm;
       margin: 0 auto;
     }
+
     .sheet {
       background: #ffffff;
       padding: 16mm 14mm;
       margin-bottom: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
       border-radius: 4px;
     }
+
     @media print {
       body {
         background: none;
         padding: 0;
       }
+
       .sheet {
         margin: 0;
         padding: 0;
         box-shadow: none;
         page-break-after: always;
       }
+
       .sheet:last-child {
         page-break-after: avoid;
       }
+
       .no-print {
         display: none !important;
       }
@@ -65,11 +74,13 @@
       padding: 12px 20px;
       border-radius: 8px;
     }
+
     .toolbar h2 {
       margin: 0;
       font-size: 11pt;
       font-weight: 600;
     }
+
     .toolbar button {
       background: #2563eb;
       color: #ffffff;
@@ -81,6 +92,7 @@
       font-size: 9pt;
       transition: background 0.2s;
     }
+
     .toolbar button:hover {
       background: #1d4ed8;
     }
@@ -91,6 +103,7 @@
       padding-bottom: 8px;
       margin-bottom: 12px;
     }
+
     .header-badge {
       display: inline-block;
       background: #0f172a;
@@ -104,17 +117,20 @@
       letter-spacing: 0.5px;
       margin-bottom: 4px;
     }
+
     .header h1 {
       margin: 0;
       font-size: 14pt;
       color: #0f172a;
       font-weight: 800;
     }
+
     .header-sub {
       font-size: 8.5pt;
       color: #475569;
       margin-top: 3px;
     }
+
     .meta-grid {
       display: grid;
       grid-template-columns: 1.5fr 1fr;
@@ -126,6 +142,7 @@
       margin-top: 8px;
       font-size: 7.8pt;
     }
+
     .meta-grid strong {
       color: #0f172a;
     }
@@ -152,6 +169,7 @@
       overflow: hidden;
       page-break-inside: avoid;
     }
+
     .test-header {
       display: flex;
       justify-content: space-between;
@@ -160,6 +178,7 @@
       padding: 5px 8px;
       border-bottom: 1px solid #e2e8f0;
     }
+
     .test-num {
       display: inline-block;
       background: #0f172a;
@@ -170,18 +189,22 @@
       border-radius: 3px;
       margin-right: 6px;
     }
+
     .test-num.num-add {
       background: #059669;
     }
+
     .test-num.num-remove {
       background: #dc2626;
     }
+
     .test-name {
       font-weight: bold;
       font-size: 8.2pt;
       color: #0f172a;
       flex: 1;
     }
+
     .badge {
       font-size: 6.8pt;
       font-weight: bold;
@@ -189,18 +212,32 @@
       border-radius: 3px;
       text-transform: uppercase;
     }
-    .badge-retain { background: #e0f2fe; color: #0369a1; }
-    .badge-add { background: #d1fae5; color: #047857; }
-    .badge-remove { background: #fee2e2; color: #b91c1c; }
+
+    .badge-retain {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .badge-add {
+      background: #d1fae5;
+      color: #047857;
+    }
+
+    .badge-remove {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
 
     .test-body {
       padding: 6px 9px;
       font-size: 7.8pt;
     }
+
     .field-row {
       margin-bottom: 3px;
       display: flex;
     }
+
     .field-label {
       font-weight: bold;
       color: #475569;
@@ -208,10 +245,12 @@
       flex-shrink: 0;
       font-size: 7.5pt;
     }
+
     .field-val {
       flex: 1;
       color: #0f172a;
     }
+
     .code-box {
       background: #0f172a;
       color: #e2e8f0;
@@ -222,6 +261,7 @@
       display: inline-block;
       margin-top: 1px;
     }
+
     .expected-box {
       background: #f0fdf4;
       border-left: 3px solid #16a34a;
@@ -230,6 +270,7 @@
       font-size: 7.5pt;
       color: #14532d;
     }
+
     .speech-box {
       background: #fffbeb;
       border-left: 3px solid #d97706;
@@ -239,6 +280,7 @@
       color: #78350f;
       font-style: italic;
     }
+
     .url-link {
       color: #2563eb;
       font-family: monospace;
@@ -247,6 +289,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- Screen Toolbar -->
@@ -293,15 +336,18 @@
             <span class="field-label">How to Test:</span>
             <span class="field-val">
               1. Open an Incognito/Private window.<br>
-              2. Paste <code>https://labsync-bulsu-sarmiento-production.up.railway.app/api/schedules/save</code> directly into the address bar.<br>
+              2. Paste <code>https://labsync-bulsu-sarmiento-production.up.railway.app/api/schedules/save</code>
+              directly into the address bar.<br>
               3. Next, open <code>/public/report.html</code> in the same incognito window.
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Protected API returns <code>HTTP 401 Unauthorized</code> (access blocked). Meanwhile, the student fault-report page opens cleanly without requiring any login.
+            <strong>Expected Result:</strong> Protected API returns <code>HTTP 401 Unauthorized</code> (access blocked).
+            Meanwhile, the student fault-report page opens cleanly without requiring any login.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "Our server requires sessions on staff routes, but public student fault reporting is intentionally accessible so students at kiosks aren't blocked by login."
+            <strong>What to say:</strong> "Our server requires sessions on staff routes, but public student fault
+            reporting is intentionally accessible so students at kiosks aren't blocked by login."
           </div>
         </div>
       </div>
@@ -326,10 +372,13 @@
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> The screen displays a generic confirmation message (preventing email enumeration). In MySQL, <code>Reset_Token</code> stores only a 64-character SHA-256 hash, and <code>Reset_Token_Expiry</code> is set to exactly 1 hour. Once reset, it clears to <code>NULL</code>.
+            <strong>Expected Result:</strong> The screen displays a generic confirmation message (preventing email
+            enumeration). In MySQL, <code>Reset_Token</code> stores only a 64-character SHA-256 hash, and
+            <code>Reset_Token_Expiry</code> is set to exactly 1 hour. Once reset, it clears to <code>NULL</code>.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "We generate 32 random bytes, store only the SHA-256 hash in MySQL with a 1-hour expiration, and reset it to NULL upon single use."
+            <strong>What to say:</strong> "We generate 32 random bytes, store only the SHA-256 hash in MySQL with a
+            1-hour expiration, and reset it to NULL upon single use."
           </div>
         </div>
       </div>
@@ -349,15 +398,18 @@
           <div class="field-row">
             <span class="field-label">How to Test:</span>
             <span class="field-val">
-              1. Open Railway MySQL Query tab and run: <code class="code-box">SELECT Email, Password FROM users LIMIT 3;</code><br>
+              1. Open Railway MySQL Query tab and run: <code
+                class="code-box">SELECT Email, Password FROM users LIMIT 3;</code><br>
               2. Inspect the password column string format.
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Every password begins with <code>$2b$12$...</code>. This proves standard Modular Crypt Format using bcrypt at 12 salt rounds. Plaintext is never stored.
+            <strong>Expected Result:</strong> Every password begins with <code>$2b$12$...</code>. This proves standard
+            Modular Crypt Format using bcrypt at 12 salt rounds. Plaintext is never stored.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "We use bcrypt (^6.0.0) with BCRYPT_SALT_ROUNDS = 12. Plaintext passwords are never saved, and hashes are omitted from all API outputs."
+            <strong>What to say:</strong> "We use bcrypt (^6.0.0) with BCRYPT_SALT_ROUNDS = 12. Plaintext passwords are
+            never saved, and hashes are omitted from all API outputs."
           </div>
         </div>
       </div>
@@ -379,16 +431,19 @@
           <div class="field-row">
             <span class="field-label">How to Test:</span>
             <span class="field-val">
-              1. Press <code>F12</code> &gt; <strong>Application</strong> &gt; <strong>Cookies</strong> &gt; note the <code>connect.sid</code> value.<br>
+              1. Press <code>F12</code> &gt; <strong>Application</strong> &gt; <strong>Cookies</strong> &gt; note the
+              <code>connect.sid</code> value.<br>
               2. Log in with your MIS or Faculty account.<br>
               3. Check <code>connect.sid</code> again. Then click <strong>Logout</strong>.
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> The <code>connect.sid</code> cookie value changes completely after login (preventing fixation). After logout, the cookie is deleted and destroyed on the server.
+            <strong>Expected Result:</strong> The <code>connect.sid</code> cookie value changes completely after login
+            (preventing fixation). After logout, the cookie is deleted and destroyed on the server.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "Our auth controller runs req.session.regenerate() upon successful authentication and req.session.destroy() upon logout."
+            <strong>What to say:</strong> "Our auth controller runs req.session.regenerate() upon successful
+            authentication and req.session.destroy() upon logout."
           </div>
         </div>
       </div>
@@ -409,14 +464,18 @@
             <span class="field-label">How to Test:</span>
             <span class="field-val">
               1. In DevTools Cookies tab, check the columns for <code>connect.sid</code>.<br>
-              2. Switch to the <strong>Console</strong> tab and run: <code class="code-box">console.log(document.cookie);</code>
+              2. Switch to the <strong>Console</strong> tab and run: <code
+                class="code-box">console.log(document.cookie);</code>
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> DevTools shows <code>HttpOnly = ✓</code>, <code>Secure = ✓</code>, and <code>SameSite = Lax</code>. The console prints an empty string or omits <code>connect.sid</code> (XSS theft blocked).
+            <strong>Expected Result:</strong> DevTools shows <code>HttpOnly = ✓</code>, <code>Secure = ✓</code>, and
+            <code>SameSite = Lax</code>. The console prints an empty string or omits <code>connect.sid</code> (XSS theft
+            blocked).
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "Our session cookies have HttpOnly and Secure flags enabled, meaning malicious JavaScript cannot steal user session tokens."
+            <strong>What to say:</strong> "Our session cookies have HttpOnly and Secure flags enabled, meaning malicious
+            JavaScript cannot steal user session tokens."
           </div>
         </div>
       </div>
@@ -441,10 +500,13 @@
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Response header contains <code>Strict-Transport-Security: max-age=15552000</code>. After 10 minutes of inactivity, API returns <code>401 SESSION_EXPIRED</code>.
+            <strong>Expected Result:</strong> Response header contains
+            <code>Strict-Transport-Security: max-age=15552000</code>. After 10 minutes of inactivity, API returns
+            <code>401 SESSION_EXPIRED</code>.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "We enforce 180-day HSTS for transport security and a 10-minute idle inactivity timeout in auth middleware to prevent unattended station takeovers."
+            <strong>What to say:</strong> "We enforce 180-day HSTS for transport security and a 10-minute idle
+            inactivity timeout in auth middleware to prevent unattended station takeovers."
           </div>
         </div>
       </div>
@@ -473,14 +535,17 @@
             <span class="field-val">
               1. Log in with a <strong>Faculty</strong> account.<br>
               2. In DevTools Console, execute an administrative call:<br>
-              <code class="code-box">fetch('/api/mis-staff', { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' }).then(r =&gt; alert('Status: ' + r.status));</code>
+              <code
+                class="code-box">fetch('/api/mis-staff', { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' }).then(r =&gt; alert('Status: ' + r.status));</code>
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Alert shows <code>Status: 403</code> Forbidden. The server checks the live database role on every request and blocks unauthorized privilege escalation.
+            <strong>Expected Result:</strong> Alert shows <code>Status: 403</code> Forbidden. The server checks the live
+            database role on every request and blocks unauthorized privilege escalation.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "Our requireRole middleware queries live MySQL data on every single API request, rejecting unauthorized roles with HTTP 403."
+            <strong>What to say:</strong> "Our requireRole middleware queries live MySQL data on every single API
+            request, rejecting unauthorized roles with HTTP 403."
           </div>
         </div>
       </div>
@@ -501,14 +566,17 @@
             <span class="field-label">How to Test:</span>
             <span class="field-val">
               1. Submit a valid fault report on <code>/public/report.html</code> without logging in.<br>
-              2. In the same unauthenticated browser, try calling: <code class="code-box">fetch('/api/faculty/add', { method: 'POST' }).then(r =&gt; alert('Status: ' + r.status));</code>
+              2. In the same unauthenticated browser, try calling: <code
+                class="code-box">fetch('/api/faculty/add', { method: 'POST' }).then(r =&gt; alert('Status: ' + r.status));</code>
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Public fault report succeeds. Administrative call returns <code>Status: 401 Unauthorized</code>. Proves strict segregation between public and admin routes.
+            <strong>Expected Result:</strong> Public fault report succeeds. Administrative call returns
+            <code>Status: 401 Unauthorized</code>. Proves strict segregation between public and admin routes.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "We keep student kiosks public to eliminate reporting friction, while all administrative management routes strictly enforce sessions and roles."
+            <strong>What to say:</strong> "We keep student kiosks public to eliminate reporting friction, while all
+            administrative management routes strictly enforce sessions and roles."
           </div>
         </div>
       </div>
@@ -531,14 +599,18 @@
             <span class="field-label">How to Test:</span>
             <span class="field-val">
               1. In terminal, run: <code class="code-box">node tests/test-submit-pc-report-validation.js</code><br>
-              2. Or on <code>/public/report.html</code>, try submitting with empty issue description or invalid room numbers.
+              2. Or on <code>/public/report.html</code>, try submitting with empty issue description or invalid room
+              numbers.
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Test suite passes all validation checks. Backend returns <code>HTTP 400 Bad Request</code>. Operations use database transactions so incomplete submissions roll back completely.
+            <strong>Expected Result:</strong> Test suite passes all validation checks. Backend returns
+            <code>HTTP 400 Bad Request</code>. Operations use database transactions so incomplete submissions roll back
+            completely.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "We validate all inputs on the backend with regex and enums, and wrap multi-step operations in database transactions to maintain ACID consistency."
+            <strong>What to say:</strong> "We validate all inputs on the backend with regex and enums, and wrap
+            multi-step operations in database transactions to maintain ACID consistency."
           </div>
         </div>
       </div>
@@ -563,10 +635,12 @@
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Rejects with "Invalid email or password" (HTTP 401). No SQL syntax errors or data dumps. mysql2 treats input strictly as literal string values via <code>?</code> placeholders.
+            <strong>Expected Result:</strong> Rejects with "Invalid email or password" (HTTP 401). No SQL syntax errors
+            or data dumps. mysql2 treats input strictly as literal string values via <code>?</code> placeholders.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "Every query across all repositories uses parameterized queries with question-mark placeholders, eliminating SQL injection by design."
+            <strong>What to say:</strong> "Every query across all repositories uses parameterized queries with
+            question-mark placeholders, eliminating SQL injection by design."
           </div>
         </div>
       </div>
@@ -593,10 +667,12 @@
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Git command prints nothing (confirming secret files are untracked). Railway Variables tab proves production secrets are injected securely via cloud runtime environment.
+            <strong>Expected Result:</strong> Git command prints nothing (confirming secret files are untracked).
+            Railway Variables tab proves production secrets are injected securely via cloud runtime environment.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "Credentials and IoT secrets are excluded from version control via .gitignore and injected strictly through environment variables."
+            <strong>What to say:</strong> "Credentials and IoT secrets are excluded from version control via .gitignore
+            and injected strictly through environment variables."
           </div>
         </div>
       </div>
@@ -611,7 +687,8 @@
         <div class="test-body">
           <div class="field-row">
             <span class="field-label">Verification:</span>
-            <span class="field-val">Automated Test Script: <code class="code-box">node tests/test-retention.js</code></span>
+            <span class="field-val">Automated Test Script: <code
+                class="code-box">node tests/test-retention.js</code></span>
           </div>
           <div class="field-row">
             <span class="field-label">How to Test:</span>
@@ -621,10 +698,12 @@
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Test passes, verifying that records older than 1 calendar year are pruned automatically. Production error handler returns generic "Not Found" without leaking database tables.
+            <strong>Expected Result:</strong> Test passes, verifying that records older than 1 calendar year are pruned
+            automatically. Production error handler returns generic "Not Found" without leaking database tables.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "Our activityRetentionService automatically purges occupancy records older than 1 calendar year, and our production error handler suppresses database schemas."
+            <strong>What to say:</strong> "Our activityRetentionService automatically purges occupancy records older
+            than 1 calendar year, and our production error handler suppresses database schemas."
           </div>
         </div>
       </div>
@@ -647,14 +726,17 @@
             <span class="field-label">How to Test:</span>
             <span class="field-val">
               Send a forged IoT event without bearer token:<br>
-              <code class="code-box">curl -X POST https://labsync-bulsu-sarmiento-production.up.railway.app/api/occupancy/log -H "Content-Type: application/json" -d "{\"test\":true}"</code>
+              <code
+                class="code-box">curl -X POST https://labsync-bulsu-sarmiento-production.up.railway.app/api/occupancy/log -H "Content-Type: application/json" -d "{\"test\":true}"</code>
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Server rejects with <code>HTTP 401 Unauthorized</code> (or 403 for unauthorized room). Only the physical ESP32 sending the registered Bearer token is allowed.
+            <strong>Expected Result:</strong> Server rejects with <code>HTTP 401 Unauthorized</code> (or 403 for
+            unauthorized room). Only the physical ESP32 sending the registered Bearer token is allowed.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "The ESP32 uses Bearer tokens verified against iot_devices, and authorizedRooms ensures devices can only report for their assigned rooms."
+            <strong>What to say:</strong> "The ESP32 uses Bearer tokens verified against iot_devices, and
+            authorizedRooms ensures devices can only report for their assigned rooms."
           </div>
         </div>
       </div>
@@ -680,14 +762,18 @@
             <span class="field-label">How to Test:</span>
             <span class="field-val">
               1. Connect ESP32 to USB and open Serial Monitor.<br>
-              2. Or run automated firmware tests: <code class="code-box">node tests/test-firmware-heartbeat-starvation.js</code>
+              2. Or run automated firmware tests: <code
+                class="code-box">node tests/test-firmware-heartbeat-starvation.js</code>
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Firmware logs <code>[NetWorker Heartbeat] ✔ Success: HTTP 200 ... FreeHeap: ...</code> every 15 seconds. Pulling a key triggers 40ms debounce with 16-sample ADC averaging.
+            <strong>Expected Result:</strong> Firmware logs
+            <code>[NetWorker Heartbeat] ✔ Success: HTTP 200 ... FreeHeap: ...</code> every 15 seconds. Pulling a key
+            triggers 40ms debounce with 16-sample ADC averaging.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "Our firmware uses 40ms debouncing with 16-sample ADC averaging to filter contact noise on physical keys, and transmits telemetry every 15s."
+            <strong>What to say:</strong> "Our firmware uses 40ms debouncing with 16-sample ADC averaging to filter
+            contact noise on physical keys, and transmits telemetry every 15s."
           </div>
         </div>
       </div>
@@ -714,10 +800,12 @@
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> An immediate record appears showing <code>UNAUTHORIZED_REMOVAL</code> with exact timestamp, room number, and device ID. No deletion endpoints exist.
+            <strong>Expected Result:</strong> An immediate record appears showing <code>UNAUTHORIZED_REMOVAL</code> with
+            exact timestamp, room number, and device ID. No deletion endpoints exist.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "We maintain forensic accountability via occupancy_log for hardware key actions and audit_logs for administrative/login events."
+            <strong>What to say:</strong> "We maintain forensic accountability via occupancy_log for hardware key
+            actions and audit_logs for administrative/login events."
           </div>
         </div>
       </div>
@@ -744,10 +832,12 @@
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Both return <code>HTTP 200 {"status":"ok","database":"connected"}</code> with live server uptime. Proves connection pool is healthy and active.
+            <strong>Expected Result:</strong> Both return <code>HTTP 200 {"status":"ok","database":"connected"}</code>
+            with live server uptime. Proves connection pool is healthy and active.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "We use a 10-connection pool to prevent database socket exhaustion, while cloud uptime is managed by Railway."
+            <strong>What to say:</strong> "We use a 10-connection pool to prevent database socket exhaustion, while
+            cloud uptime is managed by Railway."
           </div>
         </div>
       </div>
@@ -772,10 +862,12 @@
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Displays automated daily cloud volume snapshots and restore points. Proves backups exist at the cloud infrastructure layer rather than app code.
+            <strong>Expected Result:</strong> Displays automated daily cloud volume snapshots and restore points. Proves
+            backups exist at the cloud infrastructure layer rather than app code.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "We removed backups from our application codebase because we don't write custom cron scripts; backups are handled automatically by Railway cloud volume snapshots."
+            <strong>What to say:</strong> "We removed backups from our application codebase because we don't write
+            custom cron scripts; backups are handled automatically by Railway cloud volume snapshots."
           </div>
         </div>
       </div>
@@ -795,16 +887,19 @@
           <div class="field-row">
             <span class="field-label">How to Test:</span>
             <span class="field-val">
-              1. Open <code>/mis-keys.html</code>, press <code>F12</code> &gt; <strong>Network</strong> tab &gt; filter by <code>Fetch/XHR</code>.<br>
+              1. Open <code>/mis-keys.html</code>, press <code>F12</code> &gt; <strong>Network</strong> tab &gt; filter
+              by <code>Fetch/XHR</code>.<br>
               2. Watch requests appear every 3 seconds to <code>/api/keys</code>.<br>
               3. Lift a key from the dock: card status updates in 3 seconds automatically.
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Network log confirms polling every 3000ms. Dashboard cards reflect physical key state changes in real time without refreshing the page.
+            <strong>Expected Result:</strong> Network log confirms polling every 3000ms. Dashboard cards reflect
+            physical key state changes in real time without refreshing the page.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "3-second polling is an interface refresh loop so staff see live key movements, while hardware diagnostics are passively reported via ESP32 heartbeat telemetry."
+            <strong>What to say:</strong> "3-second polling is an interface refresh loop so staff see live key
+            movements, while hardware diagnostics are passively reported via ESP32 heartbeat telemetry."
           </div>
         </div>
       </div>
@@ -834,10 +929,13 @@
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> Second submission returns <code>HTTP 403 Forbidden: Student ID verification session has already been used</code>. Proves single-use nonce consumption prevents replay.
+            <strong>Expected Result:</strong> Second submission returns
+            <code>HTTP 403 Forbidden: Student ID verification session has already been used</code>. Proves single-use
+            nonce consumption prevents replay.
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "We generate ephemeral HMAC SHA-256 tokens with a 16-byte random nonce and 10-minute expiry; tokens are atomically marked Used_At = NOW() in MySQL upon submission, preventing replay."
+            <strong>What to say:</strong> "We generate ephemeral HMAC SHA-256 tokens with a 16-byte random nonce and
+            10-minute expiry; tokens are atomically marked Used_At = NOW() in MySQL upon submission, preventing replay."
           </div>
         </div>
       </div>
@@ -862,10 +960,12 @@
             </span>
           </div>
           <div class="expected-box">
-            <strong>Expected Result:</strong> On the 11th click, the server returns <code>HTTP 429 Too Many Requests: "Too many login attempts. Please try again after 15 minutes."</code>
+            <strong>Expected Result:</strong> On the 11th click, the server returns
+            <code>HTTP 429 Too Many Requests: "Too many login attempts. Please try again after 15 minutes."</code>
           </div>
           <div class="speech-box">
-            <strong>What to say:</strong> "We use express-rate-limit to enforce tiered request throttlers on login, password recovery, and student reports, blocking automated brute-force abuse."
+            <strong>What to say:</strong> "We use express-rate-limit to enforce tiered request throttlers on login,
+            password recovery, and student reports, blocking automated brute-force abuse."
           </div>
         </div>
       </div>
@@ -875,4 +975,5 @@
   </div>
 
 </body>
+
 </html>

@@ -121,6 +121,37 @@ function isProductionEnvironment() {
 }
 
 /**
+ * Sanitizes error strings to remove credentials, passwords, and sensitive tokens
+ * before recording to database history, console logs, or client responses.
+ * @param {string} msg
+ * @returns {string}
+ */
+function sanitizeErrorMessage(msg) {
+    if (!msg || typeof msg !== 'string') return 'Unknown error';
+    let clean = msg;
+
+    // Redact active configured passwords if present
+    const passwordsToRedact = [
+        process.env.DB_PASSWORD,
+        process.env.MYSQLPASSWORD,
+        process.env.DB_RESTORE_PASSWORD
+    ].filter(p => typeof p === 'string' && p.trim().length > 1);
+
+    for (const secret of passwordsToRedact) {
+        clean = clean.split(secret).join('[REDACTED]');
+    }
+
+    // Redact common CLI and SQL password patterns
+    clean = clean.replace(/password\s*=\s*["'][^"']*["']/gi, 'password="[REDACTED]"');
+    clean = clean.replace(/password\s*=\s*\S+/gi, 'password=[REDACTED]');
+    clean = clean.replace(/identified\s+by\s+['"][^'"]*['"]/gi, 'IDENTIFIED BY "[REDACTED]"');
+    clean = clean.replace(/-(?:p|password=)\S+/gi, '-p[REDACTED]');
+    clean = clean.replace(/using password:\s*(?:YES|NO)/gi, 'using password: [PROTECTED]');
+
+    return clean.slice(0, 1000).trim();
+}
+
+/**
  * Creates an ephemeral MySQL client option file (.cnf) with strict 0600 permissions.
  * Never exposes passwords via process arguments or unencrypted global environments.
  * @param {object} creds
@@ -133,6 +164,30 @@ function createSecureClientConfigFile({ host, port, user, password }) {
 
     const configContent = [
         '[client]',
+        `host = "${host}"`,
+        `port = ${port || 3306}`,
+        `user = "${user || 'root'}"`,
+        `password = "${escapedPassword}"`,
+        '',
+        '[mariadb-dump]',
+        `host = "${host}"`,
+        `port = ${port || 3306}`,
+        `user = "${user || 'root'}"`,
+        `password = "${escapedPassword}"`,
+        '',
+        '[mysqldump]',
+        `host = "${host}"`,
+        `port = ${port || 3306}`,
+        `user = "${user || 'root'}"`,
+        `password = "${escapedPassword}"`,
+        '',
+        '[mariadb]',
+        `host = "${host}"`,
+        `port = ${port || 3306}`,
+        `user = "${user || 'root'}"`,
+        `password = "${escapedPassword}"`,
+        '',
+        '[mysql]',
         `host = "${host}"`,
         `port = ${port || 3306}`,
         `user = "${user || 'root'}"`,
@@ -157,6 +212,57 @@ function cleanupSecureTempDir(tempDir) {
 }
 
 /**
+ * Verifies that a generated backup archive is non-empty, computes its cryptographic
+ * SHA-256 checksum, and strictly verifies that the decompressed SQL stream ends with
+ * a standard MySQL/MariaDB completion marker (`-- Dump completed`).
+ *
+ * @param {string} archiveFilePath
+ * @returns {Promise<{ fileSizeBytes: number, checksumSha256: string }>}
+ */
+async function verifyBackupArchiveIntegrity(archiveFilePath) {
+    const stats = fs.statSync(archiveFilePath);
+    if (stats.size === 0) {
+        throw new Error('Generated backup archive is empty (0 bytes).');
+    }
+
+    // 1. Calculate SHA-256 checksum on the intact archive
+    const checksumSha256 = await new Promise((resolve, reject) => {
+        const hash = crypto.createHash('sha256');
+        const stream = fs.createReadStream(archiveFilePath);
+        stream.on('error', reject);
+        stream.on('data', chunk => hash.update(chunk));
+        stream.on('end', () => resolve(hash.digest('hex')));
+    });
+
+    // 2. Decompress and verify standard SQL completion signature in trailer
+    await new Promise((resolve, reject) => {
+        const verifyStream = fs.createReadStream(archiveFilePath).pipe(zlib.createGunzip());
+        let tailBuffer = '';
+        verifyStream.on('data', (chunk) => {
+            const text = chunk.toString('utf8');
+            tailBuffer = (tailBuffer + text).slice(-4096); // Retain last 4KB
+        });
+        verifyStream.on('error', (err) => {
+            reject(new Error(`Archive integrity verification failed (corrupt gzip): ${err.message}`));
+        });
+        verifyStream.on('end', () => {
+            // Strictly match standard MySQL and MariaDB dump completion trailer:
+            // e.g. "-- Dump completed on 2026-10-26 16:58:57" or "-- Dump completed"
+            const hasCompletionMarker = /--\s+Dump completed/i.test(tailBuffer);
+            if (!hasCompletionMarker) {
+                return reject(new Error('Archive verification failed: missing SQL completion marker (-- Dump completed). The dump may be truncated or incomplete.'));
+            }
+            resolve();
+        });
+    });
+
+    return {
+        fileSizeBytes: stats.size,
+        checksumSha256
+    };
+}
+
+/**
  * Generates a verified compressed backup (.sql.gz) in a private staging location.
  * Does NOT stream to the client until the dump process completes with exit code 0
  * and archive integrity (size, SHA-256 digest, and trailer) is verified.
@@ -171,11 +277,11 @@ async function generateVerifiedBackupFile(options = {}) {
         throw new Error(tooling.error || 'Database dump utility is unavailable.');
     }
 
-    const host = process.env.DB_HOST || 'localhost';
-    const port = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306;
-    const user = process.env.DB_USER || 'root';
-    const password = process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : '';
-    const dbName = options.dbName || process.env.DB_NAME || 'labsync';
+    const host = process.env.DB_HOST || process.env.MYSQLHOST || 'localhost';
+    const port = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : (process.env.MYSQLPORT ? parseInt(process.env.MYSQLPORT, 10) : 3306);
+    const user = process.env.DB_USER || process.env.MYSQLUSER || 'root';
+    const password = process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : (process.env.MYSQLPASSWORD !== undefined ? process.env.MYSQLPASSWORD : '');
+    const dbName = options.dbName || process.env.DB_NAME || process.env.MYSQLDATABASE || 'labsync';
 
     // Count tables in the database before dumping for metadata logging
     let tableCount = 0;
@@ -194,18 +300,21 @@ async function generateVerifiedBackupFile(options = {}) {
     const { tempDir, configPath } = createSecureClientConfigFile({ host, port, user, password });
     const tempArchiveFile = path.join(tempDir, filename);
 
-    // Explicitly cross-compatible CLI flags (avoids --set-gtid-purged or --column-statistics)
+    // Cross-compatible CLI flags:
+    // Omit --routines (fails on MySQL 8.0 because mysql.proc does not exist)
+    // Omit --events (fails on cloud databases lacking global EVENT privilege)
+    // Add --no-tablespaces (prevents PROCESS privilege errors on MySQL 5.7.31+ / 8.0+)
+    // Include --triggers explicitly to preserve database triggers
     const dumpArgs = [
         `--defaults-extra-file=${configPath}`,
         '--single-transaction',
         '--quick',
         '--skip-lock-tables',
+        '--no-tablespaces',
+        '--triggers',
         '--hex-blob',
         '--max-allowed-packet=64M',
         '--default-character-set=utf8mb4',
-        '--routines',
-        '--events',
-        '--triggers',
         '--add-drop-table',
         dbName
     ];
@@ -246,7 +355,9 @@ async function generateVerifiedBackupFile(options = {}) {
                     settled = true;
                     clearTimeout(timeoutTimer);
                     if (dumpExitCode !== 0) {
-                        return reject(new Error(`Dump process exited with code ${dumpExitCode}: ${stdErrOutput || 'Unknown error'}`));
+                        const sanitizedStderr = sanitizeErrorMessage(stdErrOutput);
+                        console.error(`[BackupService] Database dump process failed: exitCode=${dumpExitCode} stderr="${sanitizedStderr}"`);
+                        return reject(new Error(`Dump process exited with code ${dumpExitCode}: ${sanitizedStderr || 'Unknown error'}`));
                     }
                     resolve();
                 }
@@ -261,7 +372,9 @@ async function generateVerifiedBackupFile(options = {}) {
                 settled = true;
                 gzip.destroy();
                 outStream.destroy();
-                reject(new Error(`Dump process spawn error: ${err.message}`));
+                const sanitizedSpawnErr = sanitizeErrorMessage(err.message);
+                console.error(`[BackupService] Database dump spawn error: ${sanitizedSpawnErr}`);
+                reject(new Error(`Dump process spawn error: ${sanitizedSpawnErr}`));
             });
 
             dumpProc.on('close', (code) => {
@@ -290,44 +403,13 @@ async function generateVerifiedBackupFile(options = {}) {
             dumpProc.stdout.pipe(gzip).pipe(outStream);
         });
 
-        // Verify generated archive size
-        const stats = fs.statSync(tempArchiveFile);
-        if (stats.size === 0) {
-            throw new Error('Generated backup archive is empty (0 bytes).');
-        }
-
-        // Calculate cryptographic digest on the completed, intact archive
-        const checksumSha256 = await new Promise((resolve, reject) => {
-            const hash = crypto.createHash('sha256');
-            const stream = fs.createReadStream(tempArchiveFile);
-            stream.on('error', reject);
-            stream.on('data', chunk => hash.update(chunk));
-            stream.on('end', () => resolve(hash.digest('hex')));
-        });
-
-        // Verify decompressed stream trailer contains standard completion signature
-        await new Promise((resolve, reject) => {
-            const verifyStream = fs.createReadStream(tempArchiveFile).pipe(zlib.createGunzip());
-            let tailBuffer = '';
-            verifyStream.on('data', (chunk) => {
-                const text = chunk.toString('utf8');
-                tailBuffer = (tailBuffer + text).slice(-1024); // Keep last 1KB
-            });
-            verifyStream.on('error', (err) => {
-                reject(new Error(`Archive integrity verification failed (corrupt gzip): ${err.message}`));
-            });
-            verifyStream.on('end', () => {
-                if (!tailBuffer.includes('-- Dump completed') && !tailBuffer.includes('Dump completed') && !tailBuffer.includes('mariadb-dump') && !tailBuffer.includes('mysqldump')) {
-                    console.warn('[BackupService] Warning: Standard SQL trailer marker not detected in tail buffer.');
-                }
-                resolve();
-            });
-        });
+        // Verify archive integrity (size, SHA-256 digest, and strict SQL completion marker)
+        const { fileSizeBytes, checksumSha256 } = await verifyBackupArchiveIntegrity(tempArchiveFile);
 
         return {
             tempFilePath: tempArchiveFile,
             filename,
-            fileSizeBytes: stats.size,
+            fileSizeBytes,
             checksumSha256,
             tableCount,
             cleanup: () => cleanupSecureTempDir(tempDir)
@@ -363,7 +445,8 @@ async function streamBackupToResponse(req, res) {
             'Pragma': 'no-cache',
             'Expires': '0',
             'X-Content-Type-Options': 'nosniff',
-            'X-Backup-Checksum': backupFile.checksumSha256
+            'X-Backup-Checksum': backupFile.checksumSha256,
+            'Access-Control-Expose-Headers': 'Content-Disposition, X-Backup-Checksum'
         });
 
         const fileStream = fs.createReadStream(backupFile.tempFilePath);
@@ -433,19 +516,24 @@ async function streamBackupToResponse(req, res) {
     } catch (err) {
         if (backupFile && backupFile.cleanup) backupFile.cleanup();
 
+        const sanitizedErr = sanitizeErrorMessage(err.message);
+        console.error(`[BackupService] Backup generation failed: operation=streamBackupToResponse error="${sanitizedErr}" actor=${actorEmail} ip=${ipAddress}`);
+
         try {
             await pool.query(
                 `INSERT INTO backup_history (
                     Filename, Trigger_Type, Status, Error_Message, Executed_By_Email, IP_Address
                  ) VALUES ('failed_backup', 'MANUAL', 'FAILED', ?, ?, ?)`,
-                [err.message.slice(0, 1000), actorEmail, ipAddress]
+                [sanitizedErr.slice(0, 1000), actorEmail, ipAddress]
             );
-        } catch (_) { }
+        } catch (dbErr) {
+            console.error('[BackupService] Failed to record backup failure to backup_history:', dbErr.message);
+        }
 
         if (!res.headersSent) {
             res.status(500).json({
-                error: 'Backup generation failed',
-                details: err.message,
+                error: sanitizedErr || 'Backup generation failed',
+                details: sanitizedErr || 'Backup generation failed',
                 code: 'BACKUP_FAILED'
             });
         }
@@ -536,6 +624,48 @@ async function restoreToTestDatabase(sqlSource, options = {}) {
         '--default-character-set=utf8mb4',
         restoreConfig.database
     ];
+
+    // 1. Verify archive format (gzip magic bytes) if reading from a file path
+    const isGzip = options.isGzip !== false;
+    if (typeof sqlSource === 'string' && isGzip) {
+        const stats = fs.statSync(sqlSource);
+        if (stats.size < 2) {
+            const err = new Error('INVALID_ARCHIVE_FORMAT: Uploaded backup archive is invalid or empty.');
+            err.code = 'INVALID_ARCHIVE_FORMAT';
+            throw err;
+        }
+        const magic = Buffer.alloc(2);
+        const fd = fs.openSync(sqlSource, 'r');
+        fs.readSync(fd, magic, 0, 2, 0);
+        fs.closeSync(fd);
+        if (magic[0] !== 0x1f || magic[1] !== 0x8b) {
+            const err = new Error('INVALID_ARCHIVE_FORMAT: Expected a gzip-compressed backup archive (.sql.gz).');
+            err.code = 'INVALID_ARCHIVE_FORMAT';
+            throw err;
+        }
+    }
+
+    // 2. Require and verify SHA-256 integrity against expectedChecksum
+    if (!options.expectedChecksum || typeof options.expectedChecksum !== 'string' || !options.expectedChecksum.trim()) {
+        const err = new Error('CHECKSUM_REQUIRED: Expected archive SHA-256 checksum is required to verify backup integrity before restoration.');
+        err.code = 'CHECKSUM_REQUIRED';
+        throw err;
+    }
+
+    if (typeof sqlSource === 'string') {
+        const actualChecksum = await new Promise((resolve, reject) => {
+            const hash = crypto.createHash('sha256');
+            const stream = fs.createReadStream(sqlSource);
+            stream.on('error', reject);
+            stream.on('data', chunk => hash.update(chunk));
+            stream.on('end', () => resolve(hash.digest('hex')));
+        });
+        if (actualChecksum.toLowerCase() !== String(options.expectedChecksum).trim().toLowerCase()) {
+            const err = new Error(`CHECKSUM_MISMATCH: Uploaded archive SHA-256 digest (${actualChecksum}) does not match expected checksum (${options.expectedChecksum}). Restoration aborted.`);
+            err.code = 'CHECKSUM_MISMATCH';
+            throw err;
+        }
+    }
 
     try {
         await new Promise((resolve, reject) => {
@@ -696,31 +826,44 @@ async function getBackupStatus() {
     const tooling = await verifyDatabaseTooling();
 
     let latestBackup = null;
+    let recentBackups = [];
     try {
         const [rows] = await pool.query(
-            'SELECT Backup_ID, Filename, Status, File_Size_Bytes, Table_Count, Checksum_SHA256, Created_At FROM backup_history ORDER BY Created_At DESC LIMIT 1'
+            'SELECT Backup_ID, Filename, Status, File_Size_Bytes, Table_Count, Checksum_SHA256, Error_Message, Created_At FROM backup_history ORDER BY Created_At DESC LIMIT 1'
         );
         if (rows && rows.length > 0) {
-            latestBackup = rows[0];
+            latestBackup = {
+                ...rows[0],
+                Error_Message: rows[0].Error_Message ? sanitizeErrorMessage(rows[0].Error_Message) : null
+            };
         }
-    } catch (_) { }
+        const [recentRows] = await pool.query(
+            'SELECT Filename, Checksum_SHA256 FROM backup_history WHERE Status = "SUCCESS" AND Checksum_SHA256 IS NOT NULL ORDER BY Created_At DESC LIMIT 20'
+        );
+        recentBackups = recentRows || [];
+    } catch (err) {
+        console.error('[BackupService] Failed to fetch latest backup status from backup_history:', err.message);
+    }
 
     return {
         isProduction: isProd,
         restoreAvailable: !isProd && process.env.ALLOW_RESTORE_FOR_LOCAL_DEMO === 'true',
         toolingAvailable: tooling.available,
         toolingVersion: tooling.version,
-        activeDatabase: process.env.DB_NAME || 'labsync',
+        activeDatabase: process.env.DB_NAME || process.env.MYSQLDATABASE || 'labsync',
         targetRestoreDatabase: process.env.RESTORE_TARGET_DATABASE || 'labsync_test',
-        latestBackup
+        latestBackup,
+        recentBackups
     };
 }
 
 module.exports = {
+    sanitizeErrorMessage,
     verifyDatabaseTooling,
     isProductionEnvironment,
     createSecureClientConfigFile,
     cleanupSecureTempDir,
+    verifyBackupArchiveIntegrity,
     generateVerifiedBackupFile,
     streamBackupToResponse,
     getVerifiedRestoreConfig,

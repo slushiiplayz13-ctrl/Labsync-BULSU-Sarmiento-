@@ -48,33 +48,98 @@ const char* defaultScanRoom = "203";
 // Device Authentication Credential (loaded from secrets header)
 const char* deviceToken = IOT_DEVICE_TOKEN;
 
-// Key Slots Configuration
-#define KEY_PIN_203 32 // D32 -> Slot 203 (Expects Key 203: ~1800 ADC)
-#define KEY_PIN_204 33 // D33 -> Slot 204 (Expects Key 204: ~0 ADC)
+// ==============================================================
+// 74HC4051 8-Channel Analog Multiplexer Hardware Configuration
+// ==============================================================
+#define MUX_SIG_PIN 34 // Common Z pin connected to ESP32 ADC1 (GPIO34, input-only)
+#define MUX_S0_PIN  26 // Channel address select bit 0 (S0)
+#define MUX_S1_PIN  27 // Channel address select bit 1 (S1)
+#define MUX_S2_PIN  14 // Channel address select bit 2 (S2)
+
+// Multiplexer Channel Assignments:
+// Channel 0 (Y0): Room 201 (220 Ohm Key)
+// Channel 1 (Y1): Room 202 (1k Ohm Key)
+// Channel 2 (Y2): Room 203 (10k Ohm Key: ~1850-2050 ADC)
+// Channel 3 (Y3): Room 204 (2.2k Ohm Key: ~738 ADC / 0 Ohm legacy)
+// Channel 4 (Y4): Room 205 (3.3k Ohm Key)
+// Channel 5 (Y5): Room 206 (4.7k Ohm Key)
+// Channel 6 (Y6): Room 303 (6.8k Ohm Key)
+// Channel 7 (Y7): Room 304 (20k Ohm Key)
+#define MUX_CH_201 0
+#define MUX_CH_202 1
+#define MUX_CH_203 2
+#define MUX_CH_204 3
+#define MUX_CH_205 4
+#define MUX_CH_206 5
+#define MUX_CH_303 6
+#define MUX_CH_304 7
+
+// Legacy pin aliases mapped to multiplexer channels for backwards compatibility
+#define KEY_PIN_203 MUX_CH_203
+#define KEY_PIN_204 MUX_CH_204
 
 enum KeyType {
-  KEY_NONE = 0,   // Empty Slot (> 2900)
-  KEY_204 = 1,    // 0 Ohm Direct Wire Key (0 - 600)
-  KEY_203 = 2     // 10k Ohm Resistor Key (1000 - 2750)
+  KEY_NONE = 0,   // Empty Slot (> 2900 ADC)
+  KEY_204  = 1,   // Room 204 Key: 2.2k Ohm (550-900 ADC) or 0 Ohm wire (<40 ADC)
+  KEY_203  = 2,   // Room 203 Key: 10k Ohm Resistor Key (1850-2250 ADC)
+  KEY_201  = 3,   // Room 201 Key: 220 Ohm Resistor Key (40-190 ADC)
+  KEY_202  = 4,   // Room 202 Key: 1k Ohm Resistor Key (260-500 ADC)
+  KEY_205  = 5,   // Room 205 Key: 3.3k Ohm Resistor Key (930-1150 ADC)
+  KEY_206  = 6,   // Room 206 Key: 4.7k Ohm Resistor Key (1180-1480 ADC)
+  KEY_303  = 7,   // Room 303 Key: 6.8k Ohm Resistor Key (1520-1800 ADC)
+  KEY_304  = 8    // Room 304 Key: 20k Ohm Resistor Key (2500-2850 ADC)
 };
 
+// Slot States for all 8 rooms
+KeyType lastSlotState201 = KEY_NONE;
+KeyType lastSlotState202 = KEY_NONE;
 KeyType lastSlotState203 = KEY_NONE;
 KeyType lastSlotState204 = KEY_NONE;
+KeyType lastSlotState205 = KEY_NONE;
+KeyType lastSlotState206 = KEY_NONE;
+KeyType lastSlotState303 = KEY_NONE;
+KeyType lastSlotState304 = KEY_NONE;
 
-// Unauthorized & Wrong Key Status Flags (Tracked per slot so both keys report independently)
+// Unauthorized & Wrong Key Status Flags (Tracked per slot so each room reports independently)
+bool isUnauthorized201 = false;
+bool isUnauthorized202 = false;
 bool isUnauthorized203 = false;
 bool isUnauthorized204 = false;
+bool isUnauthorized205 = false;
+bool isUnauthorized206 = false;
+bool isUnauthorized303 = false;
+bool isUnauthorized304 = false;
+
+bool isWrongKey201 = false;
+bool isWrongKey202 = false;
 bool isWrongKey203 = false;
 bool isWrongKey204 = false;
+bool isWrongKey205 = false;
+bool isWrongKey206 = false;
+bool isWrongKey303 = false;
+bool isWrongKey304 = false;
 
 // Maximum audible duration for security alarm (30 seconds)
 const unsigned long SECURITY_ALARM_MAX_DURATION_MS = 30000;
 
 // Per-slot audible alarm start timestamps (0 = inactive / stopped)
+unsigned long unauthorizedAlarmStarted201 = 0;
+unsigned long unauthorizedAlarmStarted202 = 0;
 unsigned long unauthorizedAlarmStarted203 = 0;
 unsigned long unauthorizedAlarmStarted204 = 0;
+unsigned long unauthorizedAlarmStarted205 = 0;
+unsigned long unauthorizedAlarmStarted206 = 0;
+unsigned long unauthorizedAlarmStarted303 = 0;
+unsigned long unauthorizedAlarmStarted304 = 0;
+
+unsigned long wrongKeyAlarmStarted201 = 0;
+unsigned long wrongKeyAlarmStarted202 = 0;
 unsigned long wrongKeyAlarmStarted203 = 0;
 unsigned long wrongKeyAlarmStarted204 = 0;
+unsigned long wrongKeyAlarmStarted205 = 0;
+unsigned long wrongKeyAlarmStarted206 = 0;
+unsigned long wrongKeyAlarmStarted303 = 0;
+unsigned long wrongKeyAlarmStarted304 = 0;
 
 // Thread-safe NVS mutex helpers & persistence routines
 bool takeNvsMutex(TickType_t timeout = pdMS_TO_TICKS(200)) {
@@ -98,6 +163,12 @@ void persistIncidentState(const char* room, bool isUnauth, bool isWrong) {
     } else if (strcmp(room, "204") == 0) {
       prefs.putBool("unauth204", isUnauth);
       prefs.putBool("wrong204", isWrong);
+    } else {
+      char keyU[16], keyW[16];
+      snprintf(keyU, sizeof(keyU), "unauth%s", room);
+      snprintf(keyW, sizeof(keyW), "wrong%s", room);
+      prefs.putBool(keyU, isUnauth);
+      prefs.putBool(keyW, isWrong);
     }
     prefs.end();
   }
@@ -690,6 +761,12 @@ void showUnauthorizedScreen() {
   if (isUnauthorized203 && isUnauthorized204) l2 = "RETURN 203 & 204";
   else if (isUnauthorized203) l2 = "RETURN KEY 203! ";
   else if (isUnauthorized204) l2 = "RETURN KEY 204! ";
+  else if (isUnauthorized201) l2 = "RETURN KEY 201! ";
+  else if (isUnauthorized202) l2 = "RETURN KEY 202! ";
+  else if (isUnauthorized205) l2 = "RETURN KEY 205! ";
+  else if (isUnauthorized206) l2 = "RETURN KEY 206! ";
+  else if (isUnauthorized303) l2 = "RETURN KEY 303! ";
+  else if (isUnauthorized304) l2 = "RETURN KEY 304! ";
   safeLcdPrint("! UNAUTHORIZED !", l2);
 }
 
@@ -698,6 +775,12 @@ void showWrongKeyScreen() {
   if (isWrongKey203 && isWrongKey204) l2 = "Slots 203 & 204!";
   else if (isWrongKey203) l2 = "Slot 203 Wrong! ";
   else if (isWrongKey204) l2 = "Slot 204 Wrong! ";
+  else if (isWrongKey201) l2 = "Slot 201 Wrong! ";
+  else if (isWrongKey202) l2 = "Slot 202 Wrong! ";
+  else if (isWrongKey205) l2 = "Slot 205 Wrong! ";
+  else if (isWrongKey206) l2 = "Slot 206 Wrong! ";
+  else if (isWrongKey303) l2 = "Slot 303 Wrong! ";
+  else if (isWrongKey304) l2 = "Slot 304 Wrong! ";
   safeLcdPrint("WRONG KEY SLOT!", l2);
 }
 
@@ -746,21 +829,67 @@ String readScannedCode() {
   return "";
 }
 
-// Rapid ADC reading with 16-sample averaging (~800 microseconds)
-KeyType detectKeyType(int pin) {
+// ==============================================================
+// 74HC4051 Multiplexer Control & Sampling Routines
+// ==============================================================
+
+// Select multiplexer channel (0 through 7) via S0, S1, S2 address lines
+void selectMuxChannel(uint8_t channel) {
+  digitalWrite(MUX_S0_PIN, (channel & 0x01) ? HIGH : LOW);
+  digitalWrite(MUX_S1_PIN, (channel & 0x02) ? HIGH : LOW);
+  digitalWrite(MUX_S2_PIN, (channel & 0x04) ? HIGH : LOW);
+  delayMicroseconds(20); // 20µs settling delay for multiplexer switch and parasitic capacitance
+}
+
+// Select a channel on 74HC4051 and read 16-sample averaged analog value (~800µs)
+int readMuxChannel(uint8_t channel) {
+  if (channel > 7) return 4095;
+  selectMuxChannel(channel);
   long sum = 0;
   for (int i = 0; i < 16; i++) {
-    sum += analogRead(pin);
+    sum += analogRead(MUX_SIG_PIN);
     delayMicroseconds(50);
   }
-  int avgReading = sum / 16;
+  return (int)(sum / 16);
+}
+
+// Return human-readable key room name from KeyType
+String getKeyName(KeyType k) {
+  switch (k) {
+    case KEY_201: return "201";
+    case KEY_202: return "202";
+    case KEY_203: return "203";
+    case KEY_204: return "204";
+    case KEY_205: return "205";
+    case KEY_206: return "206";
+    case KEY_303: return "303";
+    case KEY_304: return "304";
+    default: return "Unknown";
+  }
+}
+
+// Rapid ADC reading with 16-sample averaging and calibrated key classification
+KeyType detectKeyType(int channel) {
+  int avgReading = readMuxChannel((uint8_t)channel);
 
   if (avgReading >= 2900) {
-    return KEY_NONE;
-  } else if (avgReading < 600) {
-    return KEY_204;
-  } else if (avgReading >= 1000 && avgReading <= 2750) {
-    return KEY_203;
+    return KEY_NONE; // Slot is Empty (pulled HIGH to 3.3V)
+  } else if (avgReading >= 40 && avgReading <= 190) {
+    return KEY_201;  // 220 Ohm Key (Room 201)
+  } else if (avgReading >= 260 && avgReading <= 500) {
+    return KEY_202;  // 1k Ohm Key (Room 202)
+  } else if (avgReading < 40 || (avgReading >= 550 && avgReading <= 900)) {
+    return KEY_204;  // 2.2k Ohm Key (Room 204) / 0 Ohm direct wire fallback
+  } else if (avgReading >= 930 && avgReading <= 1150) {
+    return KEY_205;  // 3.3k Ohm Key (Room 205)
+  } else if (avgReading >= 1180 && avgReading <= 1480) {
+    return KEY_206;  // 4.7k Ohm Key (Room 206)
+  } else if (avgReading >= 1520 && avgReading <= 1800) {
+    return KEY_303;  // 6.8k Ohm Key (Room 303)
+  } else if (avgReading >= 1850 && avgReading <= 2250) {
+    return KEY_203;  // 10k Ohm Key (Room 203)
+  } else if (avgReading >= 2500 && avgReading <= 2850) {
+    return KEY_304;  // 20k Ohm Key (Room 304)
   }
 
   return KEY_NONE;
@@ -1032,9 +1161,22 @@ bool sendHeartbeatHttp() {
   key204Present = slotTargetState204;
   portEXIT_CRITICAL(&stateMux);
 
+  bool k201 = (lastSlotState201 != KEY_NONE);
+  bool k202 = (lastSlotState202 != KEY_NONE);
+  bool k205 = (lastSlotState205 != KEY_NONE);
+  bool k206 = (lastSlotState206 != KEY_NONE);
+  bool k303 = (lastSlotState303 != KEY_NONE);
+  bool k304 = (lastSlotState304 != KEY_NONE);
+
   String jsonPayload = "{\"deviceId\":\"ESP32-KeyBox\",\"rooms\":[\"203\",\"204\"],\"slots\":{\"203\":" +
                       String(key203Present ? "true" : "false") + ",\"204\":" +
-                      String(key204Present ? "true" : "false") + "}}";
+                      String(key204Present ? "true" : "false") +
+                      ",\"201\":" + String(k201 ? "true" : "false") +
+                      ",\"202\":" + String(k202 ? "true" : "false") +
+                      ",\"205\":" + String(k205 ? "true" : "false") +
+                      ",\"206\":" + String(k206 ? "true" : "false") +
+                      ",\"303\":" + String(k303 ? "true" : "false") +
+                      ",\"304\":" + String(k304 ? "true" : "false") + "}}";
 
   unsigned long httpStart = millis();
   int code = http.POST(jsonPayload);
@@ -1600,14 +1742,14 @@ void sendSecurityAlertToServer(String room, String alertType) {
 }
 
 // Non-blocking Key slot transition monitor (Runs on Core 1 in loop())
-void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expectedKey,
+void handleKeySlot(int channel, KeyType &lastState, String slotRoom, KeyType expectedKey,
                   bool &isUnauth, bool &isWrong,
                   unsigned long &unauthAlarmStarted, unsigned long &wrongAlarmStarted) {
-  KeyType candidateState = detectKeyType(pin);
+  KeyType candidateState = detectKeyType(channel);
   
   if (candidateState != lastState) {
     delay(40); // 40ms fast debounce (rejects contact friction while responding instantly)
-    KeyType verifyState = detectKeyType(pin);
+    KeyType verifyState = detectKeyType(channel);
     
     if (candidateState == verifyState) {
       KeyType oldState = lastState;
@@ -1619,7 +1761,7 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
       if (verifyState != KEY_NONE && verifyState != expectedKey) {
         isWrong = true;
         wrongAlarmStarted = millis(); // Start audible timer for wrong key
-        String insertedKeyName = (verifyState == KEY_203) ? "203" : "204";
+        String insertedKeyName = getKeyName(verifyState);
         Serial.printf("❌ WRONG KEY SLOT! Key %s inserted into Slot %s\n", insertedKeyName.c_str(), slotRoom.c_str());
         char wrongEvtId[32] = "";
         snprintf(wrongEvtId, sizeof(wrongEvtId), "%s-wrong-%lu", slotRoom.c_str(), millis());
@@ -1671,10 +1813,17 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
           wrongAlarmStarted = 0;
           persistIncidentState(slotRoom.c_str(), isUnauth, false);
           triggerBuzzer(60, 1);
-          bool anyAlarmRemaining = isUnauthorized203 || isUnauthorized204 || isWrongKey203 || isWrongKey204;
+          bool anyAlarmRemaining = isUnauthorized203 || isUnauthorized204 || isWrongKey203 || isWrongKey204 ||
+                                   isUnauthorized201 || isUnauthorized202 || isUnauthorized205 || isUnauthorized206 ||
+                                   isUnauthorized303 || isUnauthorized304 || isWrongKey201 || isWrongKey202 ||
+                                   isWrongKey205 || isWrongKey206 || isWrongKey303 || isWrongKey304;
           if (anyAlarmRemaining) {
-            if (isUnauthorized203 || isUnauthorized204) showUnauthorizedScreen();
-            else showWrongKeyScreen();
+            if (isUnauthorized203 || isUnauthorized204 || isUnauthorized201 || isUnauthorized202 ||
+                isUnauthorized205 || isUnauthorized206 || isUnauthorized303 || isUnauthorized304) {
+              showUnauthorizedScreen();
+            } else {
+              showWrongKeyScreen();
+            }
           } else {
             safeLcdPrint("Key Removed", "System Ready");
             lcdRevertAt = millis() + 1000;
@@ -1707,6 +1856,9 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
           unauthAlarmStarted = millis(); // Start audible alarm timer
 
           // Update local slot tracking for heartbeat telemetry without queuing redundant Key Taken
+          char unauthEvtId[32] = "";
+          snprintf(unauthEvtId, sizeof(unauthEvtId), "%s-%lu", slotRoom.c_str(), millis());
+
           portENTER_CRITICAL(&stateMux);
           if (slotRoom == "203") {
             slotTargetState203 = false;
@@ -1723,7 +1875,7 @@ void handleKeySlot(int pin, KeyType &lastState, String slotRoom, KeyType expecte
           }
           portEXIT_CRITICAL(&stateMux);
 
-          const char* curEvtId = (slotRoom == "203") ? alertUnauthEventId203 : alertUnauthEventId204;
+          const char* curEvtId = (slotRoom == "203") ? alertUnauthEventId203 : (slotRoom == "204" ? alertUnauthEventId204 : unauthEvtId);
           persistIncidentState(slotRoom.c_str(), true, isWrong);
           persistPendingAlert(slotRoom.c_str(), true, "Unauthorized Removal", curEvtId);
           dispatchSecurityAlertAsync(slotRoom.c_str(), "Unauthorized Removal", curEvtId);
@@ -1746,8 +1898,16 @@ void setup() {
 
   nvsMutex = xSemaphoreCreateMutex();
 
-  analogSetPinAttenuation(KEY_PIN_203, ADC_11db);
-  analogSetPinAttenuation(KEY_PIN_204, ADC_11db);
+  // 74HC4051 Multiplexer Control Pins Initialization
+  pinMode(MUX_S0_PIN, OUTPUT);
+  pinMode(MUX_S1_PIN, OUTPUT);
+  pinMode(MUX_S2_PIN, OUTPUT);
+  digitalWrite(MUX_S0_PIN, LOW);
+  digitalWrite(MUX_S1_PIN, LOW);
+  digitalWrite(MUX_S2_PIN, LOW);
+
+  // Configure ADC pin (GPIO34 -> Multiplexer Common Z)
+  analogSetPinAttenuation(MUX_SIG_PIN, ADC_11db);
   analogReadResolution(12);
   delay(50);
 
@@ -1759,6 +1919,14 @@ void setup() {
   KeyType vBoot204 = detectKeyType(KEY_PIN_204);
   lastSlotState203 = (boot203 == vBoot203) ? boot203 : detectKeyType(KEY_PIN_203);
   lastSlotState204 = (boot204 == vBoot204) ? boot204 : detectKeyType(KEY_PIN_204);
+
+  // Startup read for remaining multiplexer channels
+  lastSlotState201 = detectKeyType(MUX_CH_201);
+  lastSlotState202 = detectKeyType(MUX_CH_202);
+  lastSlotState205 = detectKeyType(MUX_CH_205);
+  lastSlotState206 = detectKeyType(MUX_CH_206);
+  lastSlotState303 = detectKeyType(MUX_CH_303);
+  lastSlotState304 = detectKeyType(MUX_CH_304);
 
   portENTER_CRITICAL(&stateMux);
   slotTargetState203 = (lastSlotState203 != KEY_NONE);
@@ -2097,23 +2265,32 @@ void setup() {
   );
 
   if (lcdDetected) {
-    if (isUnauthorized203 || isUnauthorized204) {
+    if (isUnauthorized203 || isUnauthorized204 || isUnauthorized201 || isUnauthorized202 ||
+        isUnauthorized205 || isUnauthorized206 || isUnauthorized303 || isUnauthorized304) {
       showUnauthorizedScreen();
-    } else if (isWrongKey203 || isWrongKey204) {
+    } else if (isWrongKey203 || isWrongKey204 || isWrongKey201 || isWrongKey202 ||
+               isWrongKey205 || isWrongKey206 || isWrongKey303 || isWrongKey304) {
       showWrongKeyScreen();
     } else {
       showReadyScreen();
     }
   }
 
-  if (isUnauthorized203 || isUnauthorized204 || isWrongKey203 || isWrongKey204) {
+  if (isUnauthorized203 || isUnauthorized204 || isWrongKey203 || isWrongKey204 ||
+      isUnauthorized201 || isUnauthorized202 || isUnauthorized205 || isUnauthorized206 ||
+      isUnauthorized303 || isUnauthorized304 || isWrongKey201 || isWrongKey202 ||
+      isWrongKey205 || isWrongKey206 || isWrongKey303 || isWrongKey304) {
     buzzerOn();
   }
 }
 
 // Main Hardware Monitoring Loop (Runs on Core 1)
 void loop() {
-  bool alarmActive = (isUnauthorized203 || isUnauthorized204 || isWrongKey203 || isWrongKey204);
+  bool anyUnauth = isUnauthorized201 || isUnauthorized202 || isUnauthorized203 || isUnauthorized204 ||
+                   isUnauthorized205 || isUnauthorized206 || isUnauthorized303 || isUnauthorized304;
+  bool anyWrong  = isWrongKey201 || isWrongKey202 || isWrongKey203 || isWrongKey204 ||
+                   isWrongKey205 || isWrongKey206 || isWrongKey303 || isWrongKey304;
+  bool alarmActive = (isUnauthorized203 || isUnauthorized204 || isWrongKey203 || isWrongKey204 || anyUnauth || anyWrong);
 
   // 1. GM65 Scanner Detection with state machine and lock
   String scannedCode = readScannedCode();
@@ -2166,7 +2343,8 @@ void loop() {
         clearSerialBuffer();
 
         // Handle retroactive authorization if alarm was active
-        if (isUnauthorized203 || isUnauthorized204) {
+        if (isUnauthorized203 || isUnauthorized204 || isUnauthorized201 || isUnauthorized202 ||
+            isUnauthorized205 || isUnauthorized206 || isUnauthorized303 || isUnauthorized304) {
           if (isUnauthorized204 && !isUnauthorized203) {
             isUnauthorized204 = false;
             unauthorizedAlarmStarted204 = 0;
@@ -2187,6 +2365,13 @@ void loop() {
             dispatchKeyStatusAsync("204", false);
             dispatchKeyStatusAsync("203", false);
           }
+          if (isUnauthorized201) { isUnauthorized201 = false; unauthorizedAlarmStarted201 = 0; persistIncidentState("201", false, isWrongKey201); dispatchKeyStatusAsync("201", false); }
+          if (isUnauthorized202) { isUnauthorized202 = false; unauthorizedAlarmStarted202 = 0; persistIncidentState("202", false, isWrongKey202); dispatchKeyStatusAsync("202", false); }
+          if (isUnauthorized205) { isUnauthorized205 = false; unauthorizedAlarmStarted205 = 0; persistIncidentState("205", false, isWrongKey205); dispatchKeyStatusAsync("205", false); }
+          if (isUnauthorized206) { isUnauthorized206 = false; unauthorizedAlarmStarted206 = 0; persistIncidentState("206", false, isWrongKey206); dispatchKeyStatusAsync("206", false); }
+          if (isUnauthorized303) { isUnauthorized303 = false; unauthorizedAlarmStarted303 = 0; persistIncidentState("303", false, isWrongKey303); dispatchKeyStatusAsync("303", false); }
+          if (isUnauthorized304) { isUnauthorized304 = false; unauthorizedAlarmStarted304 = 0; persistIncidentState("304", false, isWrongKey304); dispatchKeyStatusAsync("304", false); }
+
           portENTER_CRITICAL(&authMux);
           isAuthorized = false;
           qrAuthState = QR_AUTH_IDLE;
@@ -2204,16 +2389,35 @@ void loop() {
     }
   }
 
-  // 2. Multi-Slot Key Monitoring: BOTH slots are checked on Core 1 without network delay!
+  // 2. Multi-Slot Key Monitoring: All 8 channels checked on Core 1 via Multiplexer!
+  handleKeySlot(MUX_CH_201, lastSlotState201, "201", KEY_201, isUnauthorized201, isWrongKey201, unauthorizedAlarmStarted201, wrongKeyAlarmStarted201);
+  handleKeySlot(MUX_CH_202, lastSlotState202, "202", KEY_202, isUnauthorized202, isWrongKey202, unauthorizedAlarmStarted202, wrongKeyAlarmStarted202);
   handleKeySlot(KEY_PIN_203, lastSlotState203, "203", KEY_203, isUnauthorized203, isWrongKey203, unauthorizedAlarmStarted203, wrongKeyAlarmStarted203);
   handleKeySlot(KEY_PIN_204, lastSlotState204, "204", KEY_204, isUnauthorized204, isWrongKey204, unauthorizedAlarmStarted204, wrongKeyAlarmStarted204);
+  handleKeySlot(MUX_CH_205, lastSlotState205, "205", KEY_205, isUnauthorized205, isWrongKey205, unauthorizedAlarmStarted205, wrongKeyAlarmStarted205);
+  handleKeySlot(MUX_CH_206, lastSlotState206, "206", KEY_206, isUnauthorized206, isWrongKey206, unauthorizedAlarmStarted206, wrongKeyAlarmStarted206);
+  handleKeySlot(MUX_CH_303, lastSlotState303, "303", KEY_303, isUnauthorized303, isWrongKey303, unauthorizedAlarmStarted303, wrongKeyAlarmStarted303);
+  handleKeySlot(MUX_CH_304, lastSlotState304, "304", KEY_304, isUnauthorized304, isWrongKey304, unauthorizedAlarmStarted304, wrongKeyAlarmStarted304);
 
   // 3. Alarm Buzzer Sounding (Non-blocking: 70ms on, 50ms off with 30s auto-stop)
+  bool audible201 = (isUnauthorized201 && (millis() - unauthorizedAlarmStarted201 < SECURITY_ALARM_MAX_DURATION_MS)) ||
+                    (isWrongKey201 && (millis() - wrongKeyAlarmStarted201 < SECURITY_ALARM_MAX_DURATION_MS));
+  bool audible202 = (isUnauthorized202 && (millis() - unauthorizedAlarmStarted202 < SECURITY_ALARM_MAX_DURATION_MS)) ||
+                    (isWrongKey202 && (millis() - wrongKeyAlarmStarted202 < SECURITY_ALARM_MAX_DURATION_MS));
   bool audible203 = (isUnauthorized203 && (millis() - unauthorizedAlarmStarted203 < SECURITY_ALARM_MAX_DURATION_MS)) ||
                     (isWrongKey203 && (millis() - wrongKeyAlarmStarted203 < SECURITY_ALARM_MAX_DURATION_MS));
   bool audible204 = (isUnauthorized204 && (millis() - unauthorizedAlarmStarted204 < SECURITY_ALARM_MAX_DURATION_MS)) ||
                     (isWrongKey204 && (millis() - wrongKeyAlarmStarted204 < SECURITY_ALARM_MAX_DURATION_MS));
-  bool shouldSoundAlarm = audible203 || audible204;
+  bool audible205 = (isUnauthorized205 && (millis() - unauthorizedAlarmStarted205 < SECURITY_ALARM_MAX_DURATION_MS)) ||
+                    (isWrongKey205 && (millis() - wrongKeyAlarmStarted205 < SECURITY_ALARM_MAX_DURATION_MS));
+  bool audible206 = (isUnauthorized206 && (millis() - unauthorizedAlarmStarted206 < SECURITY_ALARM_MAX_DURATION_MS)) ||
+                    (isWrongKey206 && (millis() - wrongKeyAlarmStarted206 < SECURITY_ALARM_MAX_DURATION_MS));
+  bool audible303 = (isUnauthorized303 && (millis() - unauthorizedAlarmStarted303 < SECURITY_ALARM_MAX_DURATION_MS)) ||
+                    (isWrongKey303 && (millis() - wrongKeyAlarmStarted303 < SECURITY_ALARM_MAX_DURATION_MS));
+  bool audible304 = (isUnauthorized304 && (millis() - unauthorizedAlarmStarted304 < SECURITY_ALARM_MAX_DURATION_MS)) ||
+                    (isWrongKey304 && (millis() - wrongKeyAlarmStarted304 < SECURITY_ALARM_MAX_DURATION_MS));
+  bool shouldSoundAlarm = audible201 || audible202 || audible203 || audible204 ||
+                          audible205 || audible206 || audible303 || audible304;
 
   if (shouldSoundAlarm) {
     unsigned long cycle = millis() % 120;
@@ -2227,9 +2431,11 @@ void loop() {
   if (lcdRevertAt > 0 && millis() >= lcdRevertAt) {
     lcdRevertAt = 0;
     clearSerialBuffer();
-    if (isUnauthorized203 || isUnauthorized204) {
+    if (isUnauthorized203 || isUnauthorized204 || isUnauthorized201 || isUnauthorized202 ||
+        isUnauthorized205 || isUnauthorized206 || isUnauthorized303 || isUnauthorized304) {
       showUnauthorizedScreen();
-    } else if (isWrongKey203 || isWrongKey204) {
+    } else if (isWrongKey203 || isWrongKey204 || isWrongKey201 || isWrongKey202 ||
+               isWrongKey205 || isWrongKey206 || isWrongKey303 || isWrongKey304) {
       showWrongKeyScreen();
     } else if (!isAuthorized && qrAuthState == QR_AUTH_IDLE) {
       showReadyScreen();

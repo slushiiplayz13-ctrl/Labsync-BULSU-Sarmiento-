@@ -131,6 +131,24 @@ async function restoreTestSandbox(req, res, next) {
                 code: 'EMPTY_ARCHIVE'
             });
         }
+        if (stats.size < 2) {
+            return res.status(400).json({
+                error: 'Uploaded backup archive is invalid or truncated.',
+                code: 'INVALID_ARCHIVE_FORMAT'
+            });
+        }
+
+        // Verify gzip magic bytes (0x1F, 0x8B) to ensure valid .sql.gz format
+        const headerBytes = Buffer.alloc(2);
+        const fd = fs.openSync(tempUploadedArchive, 'r');
+        fs.readSync(fd, headerBytes, 0, 2, 0);
+        fs.closeSync(fd);
+        if (headerBytes[0] !== 0x1f || headerBytes[1] !== 0x8b) {
+            return res.status(400).json({
+                error: 'Invalid archive format. Only gzip-compressed backup archives (.sql.gz) are supported for restoration.',
+                code: 'INVALID_ARCHIVE_FORMAT'
+            });
+        }
 
         // 5. Compute SHA-256 checksum across the complete uploaded archive for integrity verification
         const archiveChecksum = await new Promise((resolve, reject) => {
@@ -141,11 +159,30 @@ async function restoreTestSandbox(req, res, next) {
             stream.on('end', () => resolve(hash.digest('hex')));
         });
 
-        // 6. Optional header checksum validation if provided by client (verifies integrity against corruption)
+        // 6. Verify SHA-256 integrity against the original checksum
         const expectedChecksum = req.headers['x-backup-checksum'] || (req.body && req.body.checksum);
-        if (expectedChecksum && String(expectedChecksum).toLowerCase() !== archiveChecksum.toLowerCase()) {
+        if (!expectedChecksum) {
             return res.status(400).json({
-                error: 'Uploaded archive SHA-256 integrity check failed. The archive digest did not match the provided checksum.',
+                error: 'Archive integrity verification failed: Original SHA-256 checksum is required (X-Backup-Checksum header).',
+                code: 'CHECKSUM_REQUIRED'
+            });
+        }
+
+        if (String(expectedChecksum).trim().toLowerCase() !== archiveChecksum.toLowerCase()) {
+            await auditService.logSecurityEvent({
+                req,
+                action: 'DATABASE_RESTORE_ATTEMPT_FAILED',
+                resourceType: 'DATABASE',
+                details: {
+                    reason: 'SHA-256 checksum mismatch',
+                    expectedChecksum,
+                    actualChecksum: archiveChecksum
+                },
+                result: 'DENIED'
+            });
+
+            return res.status(400).json({
+                error: 'Uploaded archive SHA-256 integrity check failed. The archive digest did not match the original checksum. Restoration aborted.',
                 expectedChecksum,
                 actualChecksum: archiveChecksum,
                 code: 'CHECKSUM_MISMATCH'
@@ -156,6 +193,7 @@ async function restoreTestSandbox(req, res, next) {
         const result = await backupService.restoreToTestDatabase(tempUploadedArchive, {
             actorEmail,
             isGzip: true,
+            expectedChecksum,
             archiveChecksum
         });
 
@@ -170,7 +208,7 @@ async function restoreTestSandbox(req, res, next) {
         if (err.code === 'RESTORE_BLOCKED_ON_PRODUCTION') {
             return res.status(403).json({ error: err.message, code: err.code });
         }
-        if (err.code === 'RESTORE_NOT_AUTHORIZED' || err.code === 'INVALID_RESTORE_TARGET' || err.code === 'RESTORE_CREDENTIALS_MISSING') {
+        if (err.code === 'RESTORE_NOT_AUTHORIZED' || err.code === 'INVALID_RESTORE_TARGET' || err.code === 'RESTORE_CREDENTIALS_MISSING' || err.code === 'CHECKSUM_MISMATCH' || err.code === 'INVALID_ARCHIVE_FORMAT' || err.code === 'CHECKSUM_REQUIRED') {
             return res.status(400).json({ error: err.message, code: err.code });
         }
         return next(err);
