@@ -17,12 +17,25 @@ const IGNORABLE_ERROR_CODES = [
     1826                         // Duplicate foreign key constraint name
 ];
 
-async function runSingleStatement(statement, filename) {
+const SCHEMA_BACKUP_LOCK_NAME = 'labsync_schema_backup_lock';
+const LOCK_TIMEOUT_SECONDS = 10;
+
+async function runSingleStatement(connOrStatement, statementOrFilename, maybeFilename) {
+    let conn = db;
+    let statement = connOrStatement;
+    let filename = statementOrFilename;
+
+    if (connOrStatement && typeof connOrStatement.query === 'function' && typeof statementOrFilename === 'string') {
+        conn = connOrStatement;
+        statement = statementOrFilename;
+        filename = maybeFilename || 'statement';
+    }
+
     const cleanSql = statement.trim();
     if (!cleanSql) return;
 
     try {
-        await db.query(cleanSql);
+        await conn.query(cleanSql);
     } catch (err) {
         const isDuplicateFk = err.code === 'ER_CANT_CREATE_TABLE' && 
             (err.message.includes('121') || err.message.includes('Duplicate'));
@@ -47,17 +60,46 @@ async function runMigrations() {
         .filter(file => file.endsWith('.sql'))
         .sort();
 
-    for (const file of files) {
-        const filePath = path.join(migrationsDir, file);
-        const sqlContent = fs.readFileSync(filePath, 'utf8');
-        const statements = sqlContent.split(';').map(s => s.trim()).filter(s => s.length > 0);
+    const conn = await db.getConnection();
+    let lockAcquired = false;
 
-        for (const stmt of statements) {
-            await runSingleStatement(stmt, file);
+    try {
+        const [lockRows] = await conn.query(
+            'SELECT GET_LOCK(?, ?) AS lockAcquired',
+            [SCHEMA_BACKUP_LOCK_NAME, LOCK_TIMEOUT_SECONDS]
+        );
+
+        if (!lockRows || !lockRows[0] || lockRows[0].lockAcquired !== 1) {
+            throw new Error(`Failed to acquire migration lock '${SCHEMA_BACKUP_LOCK_NAME}' within ${LOCK_TIMEOUT_SECONDS}s. Another backup or migration may be in progress.`);
         }
-    }
+        lockAcquired = true;
 
-    console.log('[migrate] Database migrations execution completed.');
+        for (const file of files) {
+            const filePath = path.join(migrationsDir, file);
+            const sqlContent = fs.readFileSync(filePath, 'utf8');
+            const statements = sqlContent.split(';').map(s => s.trim()).filter(s => s.length > 0);
+
+            for (const stmt of statements) {
+                await runSingleStatement(conn, stmt, file);
+            }
+        }
+
+        console.log('[migrate] Database migrations execution completed.');
+    } finally {
+        if (lockAcquired) {
+            try {
+                await conn.query('SELECT RELEASE_LOCK(?)', [SCHEMA_BACKUP_LOCK_NAME]);
+            } catch (releaseErr) {
+                console.warn('[migrate] Warning: Error releasing advisory lock:', releaseErr.message);
+            }
+        }
+        conn.release();
+    }
 }
 
-module.exports = { runMigrations };
+module.exports = {
+    runMigrations,
+    runSingleStatement,
+    SCHEMA_BACKUP_LOCK_NAME,
+    LOCK_TIMEOUT_SECONDS
+};

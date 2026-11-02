@@ -120,6 +120,30 @@ const studentVerifyLimiter = rateLimit({
     }
 });
 
+// 9. Backup Creation Rate Limiter (Protection against excessive backup generation / I/O exhaustion: 5 requests / 15 minutes per IP)
+const backupCreateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 attempts per window
+    standardHeaders: true,
+    legacyHeaders: false,
+    statusCode: 429,
+    message: {
+        error: 'Too many backup requests. Please try again after 15 minutes.'
+    }
+});
+
+// 10. Database Restoration Rate Limiter (Protection against excessive restoration attempts / resource exhaustion: 5 requests / 15 minutes per IP)
+const backupRestoreLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 attempts per window
+    standardHeaders: true,
+    legacyHeaders: false,
+    statusCode: 429,
+    message: {
+        error: 'Too many restoration attempts. Please try again after 15 minutes.'
+    }
+});
+
 module.exports = {
     loginLimiter,
     passwordRecoveryLimiter,
@@ -128,7 +152,9 @@ module.exports = {
     publicReportLimiter,
     publicPCReportLimiter,
     pcDuplicateReportLimiter,
-    studentVerifyLimiter
+    studentVerifyLimiter,
+    backupCreateLimiter,
+    backupRestoreLimiter
 };
 
 
