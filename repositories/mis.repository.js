@@ -155,7 +155,7 @@ async function withLifecycleLockAndTransaction(workFn) {
             [MIS_LIFECYCLE_LOCK_NAME, MIS_LIFECYCLE_LOCK_TIMEOUT_SECONDS]
         );
         const lockStatus = lockRows && lockRows[0] ? lockRows[0].lock_status : null;
-        if (lockStatus !== 1) {
+        if (Number(lockStatus) !== 1) {
             return {
                 lockFailed: true,
                 error: 'Could not obtain active MIS Staff lifecycle lock. Please try again in a few moments.'

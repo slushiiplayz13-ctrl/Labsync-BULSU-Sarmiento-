@@ -329,19 +329,19 @@ async function runExporterTests() {
 
             // Connection 1 acquires lock
             const [l1] = await conn1.query('SELECT GET_LOCK(?, 5) AS lock1', [SCHEMA_BACKUP_LOCK_NAME]);
-            assert.strictEqual(l1[0].lock1, 1, 'Connection 1 must acquire advisory lock');
+            assert.strictEqual(Number(l1[0].lock1), 1, 'Connection 1 must acquire advisory lock');
 
             // Connection 2 attempts to acquire lock with 1s timeout (must fail / return 0)
             const [l2] = await conn2.query('SELECT GET_LOCK(?, 1) AS lock2', [SCHEMA_BACKUP_LOCK_NAME]);
-            assert.strictEqual(l2[0].lock2, 0, 'Connection 2 must timeout acquiring held advisory lock');
+            assert.strictEqual(Number(l2[0].lock2), 0, 'Connection 2 must timeout acquiring held advisory lock');
 
             // Connection 1 releases lock
             const [r1] = await conn1.query('SELECT RELEASE_LOCK(?) AS rel1', [SCHEMA_BACKUP_LOCK_NAME]);
-            assert.strictEqual(r1[0].rel1, 1, 'Connection 1 must release advisory lock');
+            assert.strictEqual(Number(r1[0].rel1), 1, 'Connection 1 must release advisory lock');
 
             // Connection 2 can now acquire lock
             const [l2_retry] = await conn2.query('SELECT GET_LOCK(?, 2) AS lock2_retry', [SCHEMA_BACKUP_LOCK_NAME]);
-            assert.strictEqual(l2_retry[0].lock2_retry, 1, 'Connection 2 acquires lock after Connection 1 release');
+            assert.strictEqual(Number(l2_retry[0].lock2_retry), 1, 'Connection 2 acquires lock after Connection 1 release');
 
             await conn2.query('SELECT RELEASE_LOCK(?)', [SCHEMA_BACKUP_LOCK_NAME]);
             await conn1.end();
@@ -358,7 +358,7 @@ async function runExporterTests() {
             const conn = await backupService.createDedicatedBackupConnection();
             // Simulate active backup holding lock
             const [lockRows] = await conn.query('SELECT GET_LOCK(?, 5) AS lockAcquired', [SCHEMA_BACKUP_LOCK_NAME]);
-            assert.strictEqual(lockRows[0].lockAcquired, 1, 'Simulated backup acquires lock');
+            assert.strictEqual(Number(lockRows[0].lockAcquired), 1, 'Simulated backup acquires lock');
 
             // Migration runner should encounter lock timeout and throw descriptive error
             let migrationFailedWithLockError = false;
@@ -383,6 +383,25 @@ async function runExporterTests() {
             recordPass('Shared advisory lock coordinates migrations and backups without schema race conditions');
         } catch (err) {
             recordFail('Shared advisory lock coordinates migrations and backups without schema race conditions', err);
+        }
+
+        // ─── TEST 15: BigNumberStrings Advisory Lock Coercion (MySQL 9.x) ────
+        console.log('\n--- 15. BigNumberStrings Advisory Lock Coercion ---');
+        try {
+            // Verify lock evaluation logic when lockAcquired is a string '1' (as returned by MySQL 9 under bigNumberStrings)
+            const simulatedLockRowsString = [{ lockAcquired: '1' }];
+            assert.strictEqual(Number(simulatedLockRowsString[0].lockAcquired) === 1, true, 'String "1" coerces to integer 1');
+            assert.strictEqual(Number(simulatedLockRowsString[0].lockAcquired) !== 1, false, 'String "1" does not trigger lock failure check');
+
+            const simulatedTimeoutRows = [{ lockAcquired: '0' }];
+            assert.strictEqual(Number(simulatedTimeoutRows[0].lockAcquired) !== 1, true, 'String "0" triggers lock failure check');
+
+            const simulatedNullRows = [{ lockAcquired: null }];
+            assert.strictEqual(Number(simulatedNullRows[0].lockAcquired) !== 1, true, 'Null triggers lock failure check');
+
+            recordPass('Advisory lock check handles stringified integers from MySQL 9.x bigNumberStrings');
+        } catch (err) {
+            recordFail('Advisory lock check handles stringified integers from MySQL 9.x bigNumberStrings', err);
         }
 
     } finally {

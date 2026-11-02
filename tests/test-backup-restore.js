@@ -15,7 +15,7 @@
  * 7. Incompatible MySQL 9 collation rejection (utf8mb4_0900_ai_ci 400)
  * 8. Native client process safety (shell: false, arguments, Windows ACLs, temp option file cleanup)
  * 9. Real isolated restoration into labsync_test with exit code 0
- * 10. Restoration rate limiter enforcement (5 attempts / 15 min -> 429)
+ * 10. Restoration rate limiter enforcement (3 attempts / 1 hour -> 429)
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -131,10 +131,14 @@ async function runRestoreTests() {
 
         // ─── TEST 2: Role Authorization Exclusivity (HTTP 403) ────────────────
         console.log('\n--- 2. Testing Role Authorization Exclusivity ---');
+        const [facUsers] = await pool.query("SELECT User_ID, Email FROM users WHERE Role = 'Faculty' AND Status != 'DEACTIVATED' LIMIT 1");
+        const facultyId = facUsers[0] ? facUsers[0].User_ID : 743;
+        const facultyEmail = facUsers[0] ? facUsers[0].Email : 'charljayesplana@gmail.com';
+
         const rolesToTest = [
             { userId: 3, role: 'Program Coordinator', email: 'faculty@labsync.com' },
             { userId: 2, role: 'MIS Staff', email: 'mis@labsync.com' },
-            { userId: 583, role: 'Faculty', email: 'andreigabito135@gmail.com' },
+            { userId: facultyId, role: 'Faculty', email: facultyEmail },
             { userId: 379, role: 'Student', email: 'student@bulsu.edu.ph' },
             { userId: 256, role: 'OJT', email: 'slushiiplayz13@gmail.com' }
         ];
@@ -441,8 +445,8 @@ async function runRestoreTests() {
         console.log('\n--- 11. Testing Restoration Rate Limiter (HTTP 429) ---');
         resetRestoreRateLimit();
         try {
-            // Send 5 rapid requests to exhaust the 5-attempt quota
-            for (let i = 1; i <= 5; i++) {
+            // Send 3 rapid requests to exhaust the 3-attempt quota
+            for (let i = 1; i <= 3; i++) {
                 await fetch(`${baseUrl}/api/admin/backups/restore`, {
                     method: 'POST',
                     headers: {
@@ -452,7 +456,7 @@ async function runRestoreTests() {
                 });
             }
 
-            // The 6th request must be rejected with HTTP 429 Too Many Requests
+            // The 4th request must be rejected with HTTP 429 Too Many Requests
             const rateLimitedRes = await fetch(`${baseUrl}/api/admin/backups/restore`, {
                 method: 'POST',
                 headers: {
@@ -461,10 +465,10 @@ async function runRestoreTests() {
                 }
             });
 
-            assert.strictEqual(rateLimitedRes.status, 429, '6th request must receive HTTP 429');
-            recordPass('Restoration rate limiter strictly enforces 5 attempts per window (HTTP 429)');
+            assert.strictEqual(rateLimitedRes.status, 429, '4th request must receive HTTP 429');
+            recordPass('Restoration rate limiter strictly enforces 3 attempts per 1-hour window (HTTP 429)');
         } catch (err) {
-            recordFail('Restoration rate limiter strictly enforces 5 attempts per window (HTTP 429)', err);
+            recordFail('Restoration rate limiter strictly enforces 3 attempts per 1-hour window (HTTP 429)', err);
         }
 
     } finally {

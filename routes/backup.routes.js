@@ -56,4 +56,36 @@ router.post(
     backupController.restoreTestSandbox
 );
 
+// ─── Online Recovery Sandbox Endpoints (Exclusively IT Dept Head) ─────────────
+
+// GET /api/admin/backups/recovery/status — Recovery sandbox reachability & latest summary
+router.get(
+    '/recovery/status',
+    requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES),
+    backupController.getRecoveryStatus
+);
+
+// POST /api/admin/backups/recovery/restore — Dedicated Online Recovery Sandbox restoration
+router.post(
+    '/recovery/restore',
+    requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES),
+    backupRestoreLimiter,
+    restoreRawParser,
+    restoreJsonParser,
+    backupController.restoreOnlineRecoverySandbox
+);
+
+// GET & POST /api/admin/backups/recovery/compare — Demonstration room comparison between production & sandbox
+router.get(
+    '/recovery/compare',
+    requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES),
+    backupController.compareDemonstrationRecord
+);
+
+router.post(
+    '/recovery/compare',
+    requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES),
+    backupController.compareDemonstrationRecord
+);
+
 module.exports = router;

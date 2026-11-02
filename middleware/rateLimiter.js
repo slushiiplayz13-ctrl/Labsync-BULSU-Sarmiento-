@@ -120,27 +120,27 @@ const studentVerifyLimiter = rateLimit({
     }
 });
 
-// 9. Backup Creation Rate Limiter (Protection against excessive backup generation / I/O exhaustion: 5 requests / 15 minutes per IP)
+// 9. Backup Creation Rate Limiter (Protection against excessive backup generation / I/O exhaustion: 5 requests / 1 hour per IP)
 const backupCreateLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 60 * 60 * 1000, // 1 hour
     max: 5, // 5 attempts per window
     standardHeaders: true,
     legacyHeaders: false,
     statusCode: 429,
     message: {
-        error: 'Too many backup requests. Please try again after 15 minutes.'
+        error: 'Too many backup requests. Please try again after 1 hour.'
     }
 });
 
-// 10. Database Restoration Rate Limiter (Protection against excessive restoration attempts / resource exhaustion: 5 requests / 15 minutes per IP)
+// 10. Database Restoration Rate Limiter (Protection against excessive restoration attempts / resource exhaustion: 3 requests / 1 hour per IP)
 const backupRestoreLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // 5 attempts per window
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // 3 attempts per window
     standardHeaders: true,
     legacyHeaders: false,
     statusCode: 429,
     message: {
-        error: 'Too many restoration attempts. Please try again after 15 minutes.'
+        error: 'Too many restoration attempts. Please try again after 1 hour.'
     }
 });
 

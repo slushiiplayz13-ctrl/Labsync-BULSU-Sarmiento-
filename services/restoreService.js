@@ -216,7 +216,7 @@ function cleanupSecureTempDir(tempDir) {
  * @param {string} expectedChecksum
  * @returns {Promise<{ valid: boolean, checksum: string, decompressedBytes: number }>}
  */
-async function validateRestoreArchive(archivePath, expectedChecksum) {
+async function validateRestoreArchive(archivePath, expectedChecksum, options = {}) {
     // 1. Expected checksum format validation
     if (!expectedChecksum || typeof expectedChecksum !== 'string') {
         const err = new Error('Archive integrity verification failed: SHA-256 checksum is required (X-Backup-Checksum header).');
@@ -342,12 +342,14 @@ async function validateRestoreArchive(archivePath, expectedChecksum) {
                 }
             }
 
-            // Check incompatible MySQL 9 collations
-            for (const colRegex of INCOMPATIBLE_COLLATIONS) {
-                if (colRegex.test(text)) {
-                    const err = new Error('Restoration rejected: Archive contains MySQL 9-specific collation (utf8mb4_0900_ai_ci) which is incompatible with local MariaDB 10.4 sandbox.');
-                    err.code = 'INCOMPATIBLE_COLLATION';
-                    return fail(err);
+            // Check incompatible MySQL 9 collations (when targeting local MariaDB sandbox)
+            if (!options.allowMySQL9Collations) {
+                for (const colRegex of INCOMPATIBLE_COLLATIONS) {
+                    if (colRegex.test(text)) {
+                        const err = new Error('Restoration rejected: Archive contains MySQL 9-specific collation (utf8mb4_0900_ai_ci) which is incompatible with local MariaDB 10.4 sandbox.');
+                        err.code = 'INCOMPATIBLE_COLLATION';
+                        return fail(err);
+                    }
                 }
             }
         });

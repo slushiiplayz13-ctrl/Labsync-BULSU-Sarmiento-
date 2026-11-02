@@ -366,11 +366,17 @@
     contentEl.style.display = 'flex';
 
     const isProd = Boolean(status.isProduction);
+    const recoverySandbox = status.recoverySandbox || {};
+    const isRecoveryConfigured = Boolean(recoverySandbox.configured);
+    const showRecoveryForm = !isProd || isRecoveryConfigured;
     const dbEngine = status.databaseEngine || 'MySQL';
     const dbVersion = status.databaseVersion || 'Unknown';
     const tableCount = status.baseTableCount || 0;
     const latest = status.latestBackup || null;
     const recent = status.recentBackups || [];
+
+    const targetLabel = isRecoveryConfigured ? 'Online Recovery Sandbox' : (isProd ? 'Locked (Production)' : 'labsync_test (Sandbox)');
+    const targetColor = isRecoveryConfigured ? '#10B981' : (isProd ? '#EF4444' : 'var(--primary-teal, #1EBBD7)');
 
     contentEl.innerHTML = `
       <!-- System Overview Banner -->
@@ -393,8 +399,8 @@
         </div>
         <div style="background: var(--bg-card, #F8FAFC); border: 1px solid var(--border-light, #E2E8F0); border-radius: 12px; padding: 14px 16px;">
           <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-mid, #64748B); margin-bottom: 4px;">Restoration Target</div>
-          <div id="backup-overview-target" style="font-size: 14px; font-weight: 700; color: ${isProd ? '#EF4444' : 'var(--primary-teal, #1EBBD7)'};">
-            ${isProd ? 'Locked (Production)' : 'labsync_test (Sandbox)'}
+          <div id="backup-overview-target" style="font-size: 14px; font-weight: 700; color: ${targetColor};">
+            ${targetLabel}
           </div>
         </div>
         <div style="background: var(--bg-card, #F8FAFC); border: 1px solid var(--border-light, #E2E8F0); border-radius: 12px; padding: 14px 16px;">
@@ -471,15 +477,15 @@
       ">
         <div>
           <h3 style="margin: 0 0 3px 0; font-size: 16px; font-weight: 700; color: var(--text-dark, #0F172A); display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="refresh-cw" style="width: 17px; height: 17px; color: ${isProd ? '#94A3B8' : '#F59E0B'};"></i>
-            Isolated Sandbox Recovery
+            <i data-lucide="refresh-cw" style="width: 17px; height: 17px; color: ${isRecoveryConfigured ? '#10B981' : (isProd ? '#94A3B8' : '#F59E0B')};"></i>
+            ${isRecoveryConfigured ? 'Online Recovery Sandbox' : 'Isolated Sandbox Recovery'}
           </h3>
           <p style="margin: 0; font-size: 12.5px; color: var(--text-mid, #64748B);">
-            Restores a verified <code style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">.sql.gz</code> archive strictly into the isolated local <code style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">labsync_test</code> database.
+            ${isRecoveryConfigured ? 'Restores a verified <code style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">.sql.gz</code> archive strictly into the isolated <strong>Online Recovery Sandbox</strong> database. Live production is never modified.' : 'Restores a verified <code style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">.sql.gz</code> archive strictly into the isolated local <code style="background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">labsync_test</code> database.'}
           </p>
         </div>
 
-        ${isProd ? `
+        ${!showRecoveryForm ? `
           <!-- Production Lockout Warning Banner -->
           <div style="
             background: rgba(239, 68, 68, 0.08);
@@ -501,19 +507,19 @@
             </div>
           </div>
         ` : `
-          <!-- Local Sandbox Environment Guidance -->
+          <!-- Sandbox Environment Guidance -->
           <div style="
-            background: rgba(245, 158, 11, 0.08);
-            border: 1.5px solid rgba(245, 158, 11, 0.25);
+            background: ${isRecoveryConfigured ? 'rgba(16, 185, 129, 0.08)' : 'rgba(245, 158, 11, 0.08)'};
+            border: 1.5px solid ${isRecoveryConfigured ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'};
             border-radius: 12px;
             padding: 14px 16px;
             display: flex;
             align-items: flex-start;
             gap: 12px;
           ">
-            <i data-lucide="info" style="width: 19px; height: 19px; color: #D97706; flex-shrink: 0; margin-top: 2px;"></i>
+            <i data-lucide="${isRecoveryConfigured ? 'shield-check' : 'info'}" style="width: 19px; height: 19px; color: ${isRecoveryConfigured ? '#059669' : '#D97706'}; flex-shrink: 0; margin-top: 2px;"></i>
             <div style="font-size: 12.5px; color: var(--text-dark, #0F172A); line-height: 1.45;">
-              <strong>Sandbox Isolation Invariants:</strong> The uploaded archive is verified and restored into the local <code>labsync_test</code> database only. The main <code>labsync</code> database is never modified or overwritten. Re-authentication with your administrator password is required.
+              ${isRecoveryConfigured ? '<strong>Online Recovery Sandbox Invariants:</strong> The uploaded archive is verified and restored strictly into the dedicated Railway recovery database. The live production database will never be overwritten. Re-authentication with your administrator password is required.' : '<strong>Sandbox Isolation Invariants:</strong> The uploaded archive is verified and restored into the local <code>labsync_test</code> database only. The main <code>labsync</code> database is never modified or overwritten. Re-authentication with your administrator password is required.'}
             </div>
           </div>
 
@@ -647,7 +653,7 @@
                 type="submit"
                 id="btn-execute-restore"
                 style="
-                  background: #D97706;
+                  background: ${isRecoveryConfigured ? '#059669' : '#D97706'};
                   color: #FFFFFF;
                   border: none;
                   border-radius: 10px;
@@ -658,16 +664,19 @@
                   display: inline-flex;
                   align-items: center;
                   gap: 8px;
-                  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3);
+                  box-shadow: 0 4px 14px ${isRecoveryConfigured ? 'rgba(5, 150, 105, 0.3)' : 'rgba(217, 119, 6, 0.3)'};
                   transition: all 0.15s ease;
                 "
               >
                 <i data-lucide="rotate-ccw" style="width: 16px; height: 16px;"></i>
-                <span>Restore into Sandbox</span>
+                <span>${isRecoveryConfigured ? 'Restore into Online Sandbox' : 'Restore into Sandbox'}</span>
               </button>
             </div>
           </form>
         `}
+
+        <!-- Recovery Verification Screen & Demonstration Tool Panel -->
+        <div id="recovery-verification-panel" style="display: none;"></div>
       </div>
     `;
 
@@ -677,8 +686,11 @@
 
     // Attach Event Listeners
     setupBackupAction(modalEl);
-    if (!isProd) {
-      setupRestoreAction(modalEl);
+    if (showRecoveryForm) {
+      setupRestoreAction(modalEl, isRecoveryConfigured);
+    }
+    if (recoverySandbox && recoverySandbox.latestRecovery) {
+      renderRecoveryVerification(modalEl, recoverySandbox.latestRecovery);
     }
   }
 
@@ -694,6 +706,10 @@
     createBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       createBtn.disabled = true;
+      if (resultContainer) {
+        resultContainer.style.display = 'none';
+        resultContainer.innerHTML = '';
+      }
       const originalHtml = createBtn.innerHTML;
       createBtn.innerHTML = `
         <i data-lucide="loader-2" class="spin" style="width: 16px; height: 16px; animation: spin 1s linear infinite;"></i>
@@ -704,22 +720,40 @@
       }
 
       try {
-        const res = await fetch('/api/admin/backups/create', {
-          method: 'POST',
-          credentials: 'include'
-        });
+        let res;
+        try {
+          res = await fetch('/api/admin/backups/create', {
+            method: 'POST',
+            credentials: 'include'
+          });
+        } catch (fetchErr) {
+          throw new Error('Network error: Unable to connect to the server. Please check your network connection.');
+        }
 
         if (!res.ok) {
           let errMsg = `Backup creation failed (HTTP ${res.status})`;
-          try {
-            const errJson = await res.json();
-            errMsg = errJson.error || errMsg;
-          } catch (_) {}
+          if (res.status === 401) {
+            errMsg = 'Session expired or unauthenticated. Please refresh and log in as IT Department Head.';
+          } else if (res.status === 403) {
+            errMsg = 'Access denied. Only the IT Department Head is authorized to generate database backups.';
+          } else if (res.status === 429) {
+            errMsg = 'Backup rate limit reached. Please wait a few moments before requesting another backup.';
+          } else {
+            try {
+              const errJson = await res.json();
+              if (errJson && typeof errJson.error === 'string' && errJson.error.trim()) {
+                errMsg = errJson.error.trim();
+              }
+            } catch (_) {}
+          }
           throw new Error(errMsg);
         }
 
-        // 1. Extract SHA-256 Checksum header
-        const checksumSha256 = res.headers.get('x-backup-checksum') || '';
+        // 1. Extract and validate SHA-256 Checksum header
+        const checksumSha256 = (res.headers.get('x-backup-checksum') || '').trim();
+        if (!checksumSha256 || !/^[0-9a-fA-F]{64}$/.test(checksumSha256)) {
+          throw new Error('Archive integrity check failed: Missing or invalid SHA-256 checksum from server.');
+        }
 
         // 2. Extract filename from Content-Disposition header safely
         let filename = `labsync_backup_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.sql.gz`;
@@ -732,8 +766,17 @@
         }
 
         // 3. Receive archive blob
-        const blob = await res.blob();
-        const fileSizeBytes = blob.size;
+        let blob;
+        try {
+          blob = await res.blob();
+        } catch (blobErr) {
+          throw new Error('Download interrupted: Failed to receive the complete backup archive.');
+        }
+
+        const fileSizeBytes = blob ? blob.size : 0;
+        if (!blob || fileSizeBytes === 0) {
+          throw new Error('Archive download failed: Received empty backup file from server.');
+        }
 
         // 4. Trigger primary single download for .sql.gz
         const blobUrl = window.URL.createObjectURL(blob);
@@ -890,6 +933,35 @@
         // Refresh status to update table history
         await loadBackupStatus(modalEl);
       } catch (err) {
+        const errorText = escapeHtml(err.message || 'Backup generation failed');
+        if (resultContainer) {
+          resultContainer.style.display = 'block';
+          resultContainer.innerHTML = `
+            <div style="
+              background: rgba(239, 68, 68, 0.08);
+              border: 1.5px solid rgba(239, 68, 68, 0.25);
+              border-radius: 12px;
+              padding: 14px 16px;
+              display: flex;
+              align-items: flex-start;
+              gap: 12px;
+            ">
+              <i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: #DC2626; flex-shrink: 0; margin-top: 1px;"></i>
+              <div style="flex: 1;">
+                <div style="font-weight: 700; color: #DC2626; font-size: 13.5px; margin-bottom: 2px;">
+                  Backup Export Failed
+                </div>
+                <div style="font-size: 12.5px; color: #7F1D1D; line-height: 1.4;">
+                  ${errorText}
+                </div>
+              </div>
+            </div>
+          `;
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons({ root: resultContainer });
+          }
+        }
+
         if (global.showToast) {
           global.showToast(err.message || 'Backup generation failed', 'error');
         } else {
@@ -906,10 +978,233 @@
   }
 
   /**
+   * Renders the Recovery Verification & Demonstration Comparison Screen.
+   * @param {HTMLElement} modalEl
+   * @param {object} summary
+   */
+  function renderRecoveryVerification(modalEl, summary) {
+    const panel = modalEl.querySelector('#recovery-verification-panel');
+    if (!panel || !summary) return;
+
+    panel.style.display = 'block';
+
+    const isSuccess = summary.status === 'SUCCESS';
+    const targetLabel = summary.targetLabel || 'Recovery Sandbox';
+    const restoredAt = formatDate(summary.restoredAt);
+    const tableCount = summary.tableCount || 0;
+    const recordCounts = summary.recordCounts || {};
+    const checksum = summary.checksumSha256 || 'Verified';
+
+    panel.innerHTML = `
+      <div style="
+        margin-top: 8px;
+        background: var(--bg-card, #F8FAFC);
+        border: 1.5px solid ${isSuccess ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'};
+        border-radius: 14px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      ">
+        <!-- Header -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 34px; height: 34px; border-radius: 10px; background: ${isSuccess ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="${isSuccess ? 'shield-check' : 'alert-octagon'}" style="width: 20px; height: 20px; color: ${isSuccess ? '#16A34A' : '#EF4444'};"></i>
+            </div>
+            <div>
+              <h4 style="margin: 0; font-size: 14.5px; font-weight: 700; color: var(--text-dark, #0F172A);">
+                Recovery Verification & Snapshot Audit
+              </h4>
+              <div style="font-size: 12px; color: var(--text-mid, #64748B);">
+                Target: <strong style="color: ${isSuccess ? '#16A34A' : '#EF4444'};">${escapeHtml(targetLabel)}</strong> | Restored: ${escapeHtml(restoredAt)}
+              </div>
+            </div>
+          </div>
+          <span style="display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 700; background: ${isSuccess ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${isSuccess ? '#15803D' : '#B91C1C'};">
+            ${isSuccess ? 'VERIFIED SUCCESS' : 'RESTORATION FAILED'}
+          </span>
+        </div>
+
+        <!-- Metrics Overview Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+          <div style="background: #FFFFFF; border: 1px solid var(--border-light, #E2E8F0); border-radius: 10px; padding: 10px 12px;">
+            <div style="font-size: 11px; font-weight: 600; color: var(--text-mid, #64748B); text-transform: uppercase;">Restored Tables</div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-dark, #0F172A); margin-top: 2px;">${escapeHtml(String(tableCount))}</div>
+          </div>
+          ${Object.entries(recordCounts).map(([tbl, cnt]) => `
+            <div style="background: #FFFFFF; border: 1px solid var(--border-light, #E2E8F0); border-radius: 10px; padding: 10px 12px;">
+              <div style="font-size: 11px; font-weight: 600; color: var(--text-mid, #64748B); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(tbl)}">${escapeHtml(tbl)}</div>
+              <div style="font-size: 15px; font-weight: 700; color: var(--text-dark, #0F172A); margin-top: 2px;">${escapeHtml(String(cnt))}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Checksum Verification Row -->
+        <div style="font-size: 11.5px; color: var(--text-mid, #64748B); font-family: ui-monospace, SFMono-Regular, monospace; background: #FFFFFF; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-light, #E2E8F0); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          SHA-256 Digest: <strong>${escapeHtml(checksum)}</strong>
+        </div>
+
+        <!-- Demonstration Room Comparison Tool -->
+        <div style="border-top: 1px solid var(--border-light, #E2E8F0); padding-top: 14px;">
+          <div style="font-size: 13px; font-weight: 700; color: var(--text-dark, #0F172A); margin-bottom: 2px;">
+            Demonstration Proof: Verify Snapshot Isolation
+          </div>
+          <p style="margin: 0 0 10px 0; font-size: 12px; color: var(--text-mid, #64748B); line-height: 1.4;">
+            Search for a room created in live production <em>after</em> the backup (e.g. <code>RESTORE-DEMO-999</code> or <code>999</code>). Proof is established when the record exists in live production but is absent in the restored sandbox snapshot.
+          </p>
+
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input
+              type="text"
+              id="recovery-demo-room-input"
+              placeholder="Enter room number (e.g. RESTORE-DEMO-999 or 999)"
+              style="
+                flex: 1;
+                padding: 9px 12px;
+                border: 1.5px solid var(--border-light, #E2E8F0);
+                border-radius: 8px;
+                font-size: 12.5px;
+                background: #FFFFFF;
+                color: var(--text-dark, #0F172A);
+              "
+            />
+            <button
+              type="button"
+              id="btn-compare-demo-room"
+              style="
+                padding: 9px 16px;
+                background: var(--primary-teal, #1EBBD7);
+                color: #FFFFFF;
+                border: none;
+                border-radius: 8px;
+                font-size: 12.5px;
+                font-weight: 600;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                white-space: nowrap;
+              "
+            >
+              <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+              <span>Compare with Production</span>
+            </button>
+          </div>
+
+          <!-- Comparison Result Output -->
+          <div id="recovery-demo-comparison-result" style="margin-top: 10px;"></div>
+        </div>
+      </div>
+    `;
+
+    if (global.lucide && typeof global.lucide.createIcons === 'function') {
+      global.lucide.createIcons({ root: panel });
+    }
+
+    // Attach listener to Compare button
+    const compareBtn = panel.querySelector('#btn-compare-demo-room');
+    const roomInput = panel.querySelector('#recovery-demo-room-input');
+    const compResultContainer = panel.querySelector('#recovery-demo-comparison-result');
+
+    if (compareBtn && roomInput && compResultContainer) {
+      compareBtn.addEventListener('click', async () => {
+        const query = (roomInput.value || '').trim();
+        if (!query) {
+          if (global.showToast) global.showToast('Please enter a room number to compare.', 'warning');
+          return;
+        }
+
+        compareBtn.disabled = true;
+        compareBtn.innerHTML = `<span>Comparing...</span>`;
+
+        try {
+          const res = await fetch(`/api/admin/backups/recovery/compare?room=${encodeURIComponent(query)}`, {
+            method: 'GET',
+            credentials: 'include'
+          });
+
+          const comp = await res.json().catch(() => ({}));
+
+          if (!res.ok) {
+            throw new Error(comp.error || `Comparison failed with HTTP ${res.status}`);
+          }
+
+          const isProven = comp.demonstrationStatus === 'DEMONSTRATION_PROVEN';
+
+          compResultContainer.innerHTML = `
+            <div style="background: #FFFFFF; border: 1.5px solid ${isProven ? 'rgba(34, 197, 94, 0.4)' : 'rgba(245, 158, 11, 0.4)'}; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                <span style="font-size: 13px; font-weight: 700; color: var(--text-dark, #0F172A);">
+                  Comparison Query: <code>${escapeHtml(comp.query)}</code>
+                </span>
+                <span style="font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: ${isProven ? 'rgba(34, 197, 94, 0.12)' : 'rgba(245, 158, 11, 0.12)'}; color: ${isProven ? '#15803D' : '#B45309'};">
+                  ${isProven ? 'DEMONSTRATION VERIFIED' : escapeHtml(comp.demonstrationStatus)}
+                </span>
+              </div>
+
+              <!-- Side by Side Cards -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <!-- Production Card -->
+                <div style="background: var(--bg-card, #F8FAFC); border: 1px solid var(--border-light, #E2E8F0); border-radius: 8px; padding: 10px 12px;">
+                  <div style="font-size: 11px; font-weight: 600; color: var(--text-mid, #64748B); text-transform: uppercase;">
+                    ${escapeHtml(comp.production.label)}
+                  </div>
+                  <div style="font-size: 13.5px; font-weight: 700; color: ${comp.production.exists ? '#15803D' : '#64748B'}; margin-top: 2px;">
+                    ${comp.production.exists ? '✓ Record Exists (Found)' : '✗ Not Found'}
+                  </div>
+                  ${comp.production.roomNumber ? `
+                    <div style="font-size: 11.5px; color: var(--text-mid, #64748B); margin-top: 2px;">
+                      Room: <strong>${escapeHtml(comp.production.roomNumber)}</strong> (${escapeHtml(comp.production.building || 'Main')})
+                    </div>
+                  ` : ''}
+                </div>
+
+                <!-- Recovery Sandbox Card -->
+                <div style="background: var(--bg-card, #F8FAFC); border: 1px solid var(--border-light, #E2E8F0); border-radius: 8px; padding: 10px 12px;">
+                  <div style="font-size: 11px; font-weight: 600; color: var(--text-mid, #64748B); text-transform: uppercase;">
+                    ${escapeHtml(comp.recoverySandbox.label)}
+                  </div>
+                  <div style="font-size: 13.5px; font-weight: 700; color: ${comp.recoverySandbox.exists ? '#B45309' : '#15803D'}; margin-top: 2px;">
+                    ${comp.recoverySandbox.exists ? 'Record Exists in Snapshot' : '✓ Record Absent (Snapshot Restored)'}
+                  </div>
+                  ${comp.recoverySandbox.roomNumber ? `
+                    <div style="font-size: 11.5px; color: var(--text-mid, #64748B); margin-top: 2px;">
+                      Room: <strong>${escapeHtml(comp.recoverySandbox.roomNumber)}</strong>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+
+              <!-- Explanation Text -->
+              <div style="font-size: 12px; color: ${isProven ? '#15803D' : 'var(--text-dark, #0F172A)'}; line-height: 1.45; background: ${isProven ? 'rgba(34, 197, 94, 0.05)' : 'transparent'}; padding: 6px 8px; border-radius: 6px;">
+                ${escapeHtml(comp.explanation)}
+              </div>
+            </div>
+          `;
+        } catch (err) {
+          compResultContainer.innerHTML = `
+            <div style="color: #EF4444; font-size: 12px;">
+              Comparison error: ${escapeHtml(err.message)}
+            </div>
+          `;
+        } finally {
+          compareBtn.disabled = false;
+          compareBtn.innerHTML = `<i data-lucide="search" style="width: 14px; height: 14px;"></i><span>Compare with Production</span>`;
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons({ root: compareBtn });
+          }
+        }
+      });
+    }
+  }
+
+  /**
    * Sets up the Sandbox Recovery form, file loaders, password toggles, and execution flow.
    * @param {HTMLElement} modalEl
+   * @param {boolean} [isOnlineRecovery=false]
    */
-  function setupRestoreAction(modalEl) {
+  function setupRestoreAction(modalEl, isOnlineRecovery = false) {
     const form = modalEl.querySelector('#sandbox-restore-form');
     const fileInput = modalEl.querySelector('#restore-file-input');
     const fileInfo = modalEl.querySelector('#restore-file-info');
@@ -1010,19 +1305,20 @@
 
       // Restore confirmation prompt
       let confirmed = false;
+      const targetDbName = isOnlineRecovery ? 'Online Recovery Sandbox' : 'labsync_test';
       const confirmFn = global.showConfirmModal || (typeof window !== 'undefined' ? window.showConfirmModal : null);
       if (typeof confirmFn === 'function') {
         confirmed = await confirmFn({
-          title: 'Confirm Sandbox Database Restoration',
-          message: `Restore archive "${file.name}" into the isolated local "labsync_test" database? The main "labsync" database will not be altered.`,
-          confirmText: 'Restore Sandbox',
+          title: isOnlineRecovery ? 'Confirm Online Recovery Restoration' : 'Confirm Sandbox Database Restoration',
+          message: `Restore archive "${file.name}" into the isolated "${targetDbName}" database? The main "labsync" database will not be altered.`,
+          confirmText: isOnlineRecovery ? 'Restore Online Sandbox' : 'Restore Sandbox',
           cancelText: 'Cancel',
           icon: 'rotate-ccw',
           isDestructive: true
         });
       } else {
         confirmed = window.confirm(
-          `Confirm Database Restoration:\n\nRestore archive "${file.name}" into the isolated local "labsync_test" sandbox?\n\nThe main "labsync" database will NOT be altered.`
+          `Confirm Database Restoration:\n\nRestore archive "${file.name}" into the isolated "${targetDbName}" database?\n\nThe main "labsync" database will NOT be altered.`
         );
       }
 
@@ -1045,7 +1341,7 @@
         statusMsgContainer.innerHTML = `
           <div style="background: rgba(245, 158, 11, 0.1); border: 1.5px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #92400E; display: flex; align-items: center; gap: 10px;">
             <i data-lucide="loader-2" class="spin" style="width: 18px; height: 18px; animation: spin 1s linear infinite; flex-shrink: 0;"></i>
-            <span>Executing native sandbox restore into <strong>labsync_test</strong>. Please do not close this window...</span>
+            <span>Executing ${isOnlineRecovery ? 'online recovery into <strong>Online Recovery Sandbox</strong>' : 'native sandbox restore into <strong>labsync_test</strong>'}. Please do not close this window...</span>
           </div>
         `;
         if (global.lucide && typeof global.lucide.createIcons === 'function') {
@@ -1054,13 +1350,15 @@
       }
 
       try {
-        const response = await fetch('/api/admin/backups/restore', {
+        const endpoint = isOnlineRecovery ? '/api/admin/backups/recovery/restore' : '/api/admin/backups/restore';
+        const response = await fetch(endpoint, {
           method: 'POST',
           credentials: 'include',
           headers: {
             'Content-Type': 'application/gzip',
             'X-Confirm-Password': encodeURIComponent(password),
-            'X-Backup-Checksum': checksum.toLowerCase()
+            'X-Backup-Checksum': checksum.toLowerCase(),
+            'X-Backup-Filename': encodeURIComponent(file.name)
           },
           body: file
         });
@@ -1074,6 +1372,18 @@
           throw new Error(data.error || `Restoration failed with HTTP ${response.status}`);
         }
 
+        const summary = data.summary || {
+          status: 'SUCCESS',
+          targetLabel: isOnlineRecovery ? 'Online Recovery Sandbox' : 'Local Test Sandbox',
+          targetDatabase: data.targetDatabase || (isOnlineRecovery ? 'Online Recovery Sandbox' : 'labsync_test'),
+          restoredAt: data.restoredAt,
+          checksumSha256: checksum.toLowerCase(),
+          filename: file.name
+        };
+
+        // Render verification panel
+        renderRecoveryVerification(modalEl, summary);
+
         // Successful restoration feedback
         if (statusMsgContainer) {
           statusMsgContainer.style.display = 'block';
@@ -1085,7 +1395,7 @@
                   Sandbox Restoration Completed Successfully
                 </div>
                 <div style="font-size: 12.5px; color: var(--text-dark, #0F172A);">
-                  Target database: <strong>${escapeHtml(data.targetDatabase || 'labsync_test')}</strong> | Restored at: ${escapeHtml(formatDate(data.restoredAt))}
+                  Target database: <strong>${escapeHtml(summary.targetDatabase || data.targetDatabase || 'labsync_test')}</strong> | Restored at: ${escapeHtml(formatDate(summary.restoredAt || data.restoredAt))}
                 </div>
               </div>
             </div>
@@ -1096,7 +1406,7 @@
         }
 
         if (global.showToast) {
-          global.showToast('Database restoration into labsync_test completed successfully.', 'success');
+          global.showToast(isOnlineRecovery ? 'Database restored into Online Recovery Sandbox successfully.' : 'Database restoration into labsync_test completed successfully.', 'success');
         }
 
         // Reset file and checksum inputs

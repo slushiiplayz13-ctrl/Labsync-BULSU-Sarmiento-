@@ -130,13 +130,17 @@ async function runPhase5Suite() {
   const issueType = `CANARY_P5_${uniqueId % 10000}`;
   let canaryIssueId = null;
   let canaryReportId = null;
+  let targetPcId = 221;
 
   try {
-    // A1. Insert canary record into maintenance_issues (with foreign key to PC_ID 149 and STORED GENERATED column)
+    // Look up existing PC_ID from lab_units dynamically
+    const [unitRows] = await pool.query('SELECT PC_ID FROM lab_units ORDER BY PC_ID ASC LIMIT 1');
+    if (unitRows && unitRows[0] && unitRows[0].PC_ID) targetPcId = unitRows[0].PC_ID;
+    // A1. Insert canary record into maintenance_issues (with foreign key to targetPcId and STORED GENERATED column)
     const [issueRes] = await pool.query(
       `INSERT INTO maintenance_issues (PC_ID, Issue_Type, Status, Priority_Level, Created_At)
        VALUES (?, ?, 'Pending', 'High', NOW())`,
-      [149, issueType]
+      [targetPcId, issueType]
     );
     canaryIssueId = issueRes.insertId;
     assert.ok(canaryIssueId > 0, 'Canary Issue_ID must be generated');
@@ -146,14 +150,14 @@ async function runPhase5Suite() {
       'SELECT Active_Issue_Key FROM maintenance_issues WHERE Issue_ID = ?',
       [canaryIssueId]
     );
-    const expectedKey = `149:${issueType}`;
+    const expectedKey = `${targetPcId}:${issueType}`;
     assert.strictEqual(genRes[0].Active_Issue_Key, expectedKey, `Active_Issue_Key must be generated as "${expectedKey}"`);
 
     // A2. Insert canary record into maintenance (referencing canaryIssueId and User_ID 1)
     const [maintRes] = await pool.query(
       `INSERT INTO maintenance (PC_ID, Maintenance_Issue_ID, User_ID, Student_Name, Student_Number, Issue_Description, Date_Reported, Status, Priority_Level)
        VALUES (?, ?, 1, 'Canary Auditor', 'CANARY-PHASE5', ?, NOW(), 'Pending', 'High')`,
-      [149, canaryIssueId, canaryTag]
+      [targetPcId, canaryIssueId, canaryTag]
     );
     canaryReportId = maintRes.insertId;
     assert.ok(canaryReportId > 0, 'Canary Report_ID must be generated');
@@ -286,7 +290,7 @@ async function runPhase5Suite() {
     assert.strictEqual(recoveredReports.length, 1, 'Canary report must exist in labsync_test');
     const report = recoveredReports[0];
     assert.strictEqual(report.Report_ID, canaryReportId, 'Report_ID preserved');
-    assert.strictEqual(report.PC_ID, 149, 'PC_ID foreign key preserved');
+    assert.strictEqual(report.PC_ID, targetPcId, 'PC_ID foreign key preserved');
     assert.strictEqual(report.Maintenance_Issue_ID, canaryIssueId, 'Maintenance_Issue_ID foreign key preserved');
     assert.strictEqual(report.User_ID, 1, 'User_ID foreign key preserved');
     assert.strictEqual(report.Issue_Description, canaryTag, 'Canary tag preserved exactly');
@@ -299,10 +303,10 @@ async function runPhase5Suite() {
     assert.strictEqual(recoveredIssues.length, 1, 'Canary issue must exist in labsync_test');
     const issue = recoveredIssues[0];
     assert.strictEqual(issue.Issue_ID, canaryIssueId, 'Issue_ID preserved');
-    assert.strictEqual(issue.PC_ID, 149, 'PC_ID preserved');
+    assert.strictEqual(issue.PC_ID, targetPcId, 'PC_ID preserved');
     assert.strictEqual(issue.Issue_Type, issueType, 'Issue_Type preserved');
     // STORED GENERATED column verification
-    const expectedKey = `149:${issueType}`;
+    const expectedKey = `${targetPcId}:${issueType}`;
     assert.strictEqual(issue.Active_Issue_Key, expectedKey, `Generated column Active_Issue_Key recalculated as "${expectedKey}"`);
 
     // Verify all 22 base tables exist in labsync_test

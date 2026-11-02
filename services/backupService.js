@@ -336,7 +336,7 @@ async function generateVerifiedSqlBackup(options = {}) {
             [SCHEMA_BACKUP_LOCK_NAME, LOCK_TIMEOUT_SECONDS]
         );
 
-        if (!lockRows || !lockRows[0] || lockRows[0].lockAcquired !== 1) {
+        if (!lockRows || !lockRows[0] || Number(lockRows[0].lockAcquired) !== 1) {
             throw new Error(`Failed to acquire schema backup lock '${SCHEMA_BACKUP_LOCK_NAME}' within ${LOCK_TIMEOUT_SECONDS}s. Another backup or migration may be in progress.`);
         }
         lockAcquired = true;

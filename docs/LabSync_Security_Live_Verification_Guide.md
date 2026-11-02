@@ -226,14 +226,32 @@ This guide provides step-by-step instructions for demonstrating and verifying al
 
 ---
 
-### #17 Backup and Recovery Controls (REMOVE FROM CODE)
-* **Verification:** Railway Project Dashboard -> MySQL Service -> Backups Tab
-* **How to Test:**
-  1. Open Railway project dashboard.
-  2. Click on the MySQL database service -> open **Backups** tab.
+### #17 Database Backup & Disaster Recovery Controls (RETAIN & LIVE DEMO)
+* **Target Interface:** Account Settings → Administrative Tools → Backup & Recovery (IT Dept. Head Only)
+* **Target Endpoints:**
+  - `POST /api/admin/backups/create` (5 requests / 1 hour rate limit)
+  - `POST /api/admin/backups/recovery/restore` (3 attempts / 1 hour rate limit, password re-auth required)
+  - `GET /api/admin/backups/recovery/compare?room=...` (Demonstration Snapshot Isolation Proof)
+* **How to Test for the Professor:**
+  1. Log in as **IT Department Head** on the deployed Railway application.
+  2. Open **Account Settings** (top-right avatar) → **Backup & Recovery**.
+  3. Click **Create Backup**:
+     - System streams a compressed, topologically sorted `.sql.gz` archive.
+     - Displays the authoritative 64-character SHA-256 integrity digest and provides a one-click companion `.sha256` download.
+  4. Navigate to **Laboratory Management** in the deployed application and add a demonstration test room (e.g. Room Number: `999`, Building: `DEMO-BLDG`).
+  5. Return to **Account Settings → Backup & Recovery**:
+     - Upload the previously downloaded `.sql.gz` archive.
+     - Paste or load the SHA-256 checksum from the `.sha256` companion file.
+     - Re-authenticate with your administrator password.
+     - Click **Restore into Online Sandbox**.
+  6. Review the **Recovery Verification Screen**:
+     - Confirms table count and key record counts in the isolated **Online Recovery Sandbox**.
+     - In the **Demonstration Proof: Verify Snapshot Isolation** tool, enter `999` and click **Compare with Production**.
 * **Expected Result:**
-  * Displays automated daily cloud volume snapshots and point-in-time recovery points.
-* **What to say:** *"We removed backups from our application codebase because we don't write custom cron scripts; backups are handled automatically by Railway cloud volume snapshots."*
+  * **Current Production Database:** Room `999` exists (Found).
+  * **Online Recovery Sandbox:** Room `999` is absent (Snapshot Verified).
+  * System demonstrates point-in-time recovery into an isolated environment without overwriting live production!
+* **What to say:** *"LabSync implements defense-in-depth disaster recovery: logical MySQL 9.7.2 backups are verified cryptographically via SHA-256 and topologically sorted to preserve foreign keys. In accordance with security governance, direct restoration to the live production database is permanently locked out (HTTP 403). Instead, disaster recovery testing executes against a dedicated, isolated Online Recovery Sandbox, allowing us to empirically prove point-in-time recovery while live production continues operating without risk of data loss."*
 
 ---
 

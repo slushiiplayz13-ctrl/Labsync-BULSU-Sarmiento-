@@ -14,7 +14,7 @@
  * - Student: HTTP 403
  * - OJT: HTTP 403
  * - IT Department Head: HTTP 200 (Authorized)
- * - Backup creation rate limiter: Enforces 5 requests per 15-minute window (HTTP 429)
+ * - Backup creation rate limiter: Enforces 5 requests per 1-hour window (HTTP 429)
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -170,8 +170,10 @@ async function runAuthorizationTests() {
         // ─── TEST 5: Faculty Role Blocked (HTTP 403) ──────────────────────────
         console.log('\n--- 5. Faculty Excluded (HTTP 403) ---');
         try {
-            // User 583 is Faculty
-            const facultyCookie = await loginAs(583, 'Faculty', 'andreigabito135@gmail.com');
+            const [facRows] = await pool.query("SELECT User_ID, Email FROM users WHERE Role = 'Faculty' AND Status != 'DEACTIVATED' LIMIT 1");
+            const facultyId = facRows[0] ? facRows[0].User_ID : 743;
+            const facultyEmail = facRows[0] ? facRows[0].Email : 'charljayesplana@gmail.com';
+            const facultyCookie = await loginAs(facultyId, 'Faculty', facultyEmail);
 
             const statusRes = await fetch(`${baseUrl}/api/admin/backups/status`, {
                 headers: { Cookie: facultyCookie }
@@ -312,13 +314,13 @@ async function runAuthorizationTests() {
                 headers: { Cookie: itHeadCookie }
             });
 
-            assert.strictEqual(limitedRes.status, 429, '6th request within 15 minutes must receive HTTP 429');
+            assert.strictEqual(limitedRes.status, 429, '6th request within 1 hour must receive HTTP 429');
             const limitedJson = await limitedRes.json();
             assert.ok(limitedJson.error.includes('Too many backup requests'), 'Error message must reflect rate limit');
 
-            recordPass('Backup creation endpoint enforces 5 requests / 15 minutes limit (HTTP 429)');
+            recordPass('Backup creation endpoint enforces 5 requests / 1 hour limit (HTTP 429)');
         } catch (err) {
-            recordFail('Backup creation endpoint enforces 5 requests / 15 minutes limit (HTTP 429)', err);
+            recordFail('Backup creation endpoint enforces 5 requests / 1 hour limit (HTTP 429)', err);
         }
 
     } finally {

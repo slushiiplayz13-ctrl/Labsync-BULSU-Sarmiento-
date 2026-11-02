@@ -17,6 +17,7 @@ const bcrypt = require('bcrypt');
 const pool = require('../database/connection');
 const backupService = require('../services/backupService');
 const restoreService = require('../services/restoreService');
+const recoveryDatabaseService = require('../services/recoveryDatabaseService');
 const auditService = require('../services/auditService');
 
 /**
@@ -85,9 +86,15 @@ async function createBackup(req, res, next) {
             result: 'FAILURE'
         });
 
+        const isLockError = typeof genErr.message === 'string' && genErr.message.includes('schema backup lock');
+        const userFacingError = isLockError
+            ? 'Another database backup or schema migration is currently in progress. Please retry in a few moments.'
+            : 'Failed to generate database backup.';
+        const errorCode = isLockError ? 'BACKUP_LOCK_CONFLICT' : 'BACKUP_GENERATION_FAILED';
+
         return res.status(500).json({
-            error: 'Failed to generate database backup.',
-            code: 'BACKUP_GENERATION_FAILED'
+            error: userFacingError,
+            code: errorCode
         });
     }
 
@@ -169,7 +176,14 @@ async function createBackup(req, res, next) {
 async function getStatus(req, res, next) {
     try {
         const status = await backupService.getBackupStatus();
-        res.status(200).json(status);
+        let recoverySandbox = null;
+        try {
+            recoverySandbox = await recoveryDatabaseService.getRecoveryStatus();
+        } catch (_) {}
+        res.status(200).json({
+            ...status,
+            recoverySandbox
+        });
     } catch (err) {
         next(err);
     }
@@ -324,8 +338,188 @@ async function restoreTestSandbox(req, res, next) {
     }
 }
 
+/**
+ * Restores a backup archive into the isolated Online Recovery Sandbox database.
+ * Strictly gated by IT Department Head role, password re-authentication,
+ * and isolated target validation.
+ * POST /api/admin/backups/recovery/restore
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+async function restoreOnlineRecoverySandbox(req, res, next) {
+    const userId = req.session ? req.session.userId : null;
+    const actorEmail = req.session ? (req.session.userEmail || req.session.email || 'admin@labsync.local') : null;
+
+    if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // 1. Check recovery configuration presence
+    if (!recoveryDatabaseService.isRecoveryConfigured()) {
+        return res.status(400).json({
+            error: 'Online Recovery Sandbox database is not configured. Please configure RECOVERY_DB_HOST, RECOVERY_DB_USER, and RECOVERY_DB_NAME in environment variables.',
+            code: 'RECOVERY_NOT_CONFIGURED'
+        });
+    }
+
+    // 2. Extract and verify administrator confirmation password
+    const headerPassword = req.headers['x-confirm-password'] || req.headers['x-admin-password'];
+    let confirmPassword = headerPassword ? decodeURIComponent(headerPassword) : null;
+
+    if (!confirmPassword && req.body && typeof req.body === 'object' && req.body.confirmPassword) {
+        confirmPassword = req.body.confirmPassword;
+    }
+
+    if (!confirmPassword) {
+        return res.status(401).json({
+            error: 'Administrator password confirmation is required for restoration.',
+            code: 'PASSWORD_REQUIRED'
+        });
+    }
+
+    try {
+        const [users] = await pool.query('SELECT Password FROM users WHERE User_ID = ?', [userId]);
+        if (!users || users.length === 0 || !users[0].Password) {
+            return res.status(401).json({ error: 'User account not found or invalid' });
+        }
+
+        const isMatch = await bcrypt.compare(confirmPassword, users[0].Password);
+        if (!isMatch) {
+            await auditService.logSecurityEvent({
+                req,
+                action: 'ONLINE_RECOVERY_ATTEMPT_FAILED',
+                resourceType: 'DATABASE',
+                details: { reason: 'Incorrect administrator password' },
+                result: 'DENIED'
+            });
+
+            return res.status(401).json({
+                error: 'Invalid administrator password. Restoration aborted.',
+                code: 'INVALID_PASSWORD'
+            });
+        }
+    } catch (authErr) {
+        return next(authErr);
+    }
+
+    // 3. Verify SHA-256 Checksum header requirement
+    const expectedChecksum = req.headers['x-backup-checksum'] || (req.body && req.body.checksum);
+    if (!expectedChecksum) {
+        return res.status(400).json({
+            error: 'Archive integrity verification failed: Original SHA-256 checksum is required (X-Backup-Checksum header).',
+            code: 'CHECKSUM_REQUIRED'
+        });
+    }
+
+    // 4. Stream upload into ephemeral scratch file
+    const tempScratchDir = fs.mkdtempSync(path.join(os.tmpdir(), 'labsync-online-recovery-'));
+    const tempUploadedArchive = path.join(tempScratchDir, 'uploaded_online_restore.sql.gz');
+    const filename = req.headers['x-backup-filename'] || 'recovery-archive.sql.gz';
+
+    try {
+        await new Promise((resolve, reject) => {
+            const writeStream = fs.createWriteStream(tempUploadedArchive, { mode: 0o600 });
+            writeStream.on('error', reject);
+            writeStream.on('finish', resolve);
+
+            if (Buffer.isBuffer(req.body)) {
+                writeStream.end(req.body);
+            } else if (req.body && typeof req.body === 'object' && typeof req.body.sqlContent === 'string') {
+                writeStream.end(Buffer.from(req.body.sqlContent, 'utf8'));
+            } else {
+                req.pipe(writeStream);
+            }
+        });
+
+        // 5. Execute verified online recovery
+        const summary = await recoveryDatabaseService.executeOnlineRecovery(tempUploadedArchive, expectedChecksum, {
+            actorEmail,
+            filename
+        });
+
+        return res.status(200).json({
+            message: 'Database restoration into Online Recovery Sandbox completed successfully.',
+            code: 'RECOVERY_SUCCESS',
+            summary
+        });
+    } catch (err) {
+        if (err.code === 'CONCURRENT_RECOVERY_IN_PROGRESS') {
+            return res.status(409).json({ error: err.message, code: err.code });
+        }
+        if (err.code === 'RECOVERY_TARGETS_PRODUCTION' ||
+            err.code === 'RECOVERY_USES_PRODUCTION_USER' ||
+            err.code === 'ISOLATION_VERIFICATION_FAILED') {
+            return res.status(403).json({ error: err.message, code: err.code });
+        }
+        if (err.code === 'RECOVERY_NOT_CONFIGURED' ||
+            err.code === 'CHECKSUM_MISMATCH' ||
+            err.code === 'INVALID_ARCHIVE_FORMAT' ||
+            err.code === 'CHECKSUM_REQUIRED' ||
+            err.code === 'FORBIDDEN_SQL_STATEMENT' ||
+            err.code === 'INCOMPATIBLE_COLLATION' ||
+            err.code === 'RECOVERY_INCOMPLETE') {
+            return res.status(400).json({ error: err.message, code: err.code });
+        }
+        return next(err);
+    } finally {
+        try {
+            fs.rmSync(tempScratchDir, { recursive: true, force: true });
+        } catch (_) {}
+    }
+}
+
+/**
+ * Returns summary status of the Online Recovery Sandbox.
+ * GET /api/admin/backups/recovery/status
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+async function getRecoveryStatus(req, res, next) {
+    try {
+        const status = await recoveryDatabaseService.getRecoveryStatus();
+        res.status(200).json(status);
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * Compares laboratory/room records between live Production and the Online Recovery Sandbox.
+ * GET /api/admin/backups/recovery/compare?room=RESTORE-DEMO-999
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+async function compareDemonstrationRecord(req, res, next) {
+    try {
+        const roomQuery = req.query.room || (req.body && req.body.room);
+        if (!roomQuery) {
+            return res.status(400).json({
+                error: 'Query parameter "room" is required for comparison (e.g. ?room=RESTORE-DEMO-999).',
+                code: 'INVALID_QUERY'
+            });
+        }
+
+        const comparison = await recoveryDatabaseService.compareDemonstrationRecord(roomQuery);
+        res.status(200).json(comparison);
+    } catch (err) {
+        if (err.code === 'INVALID_QUERY') {
+            return res.status(400).json({ error: err.message, code: err.code });
+        }
+        next(err);
+    }
+}
+
 module.exports = {
     createBackup,
     getStatus,
-    restoreTestSandbox
+    restoreTestSandbox,
+    restoreOnlineRecoverySandbox,
+    getRecoveryStatus,
+    compareDemonstrationRecord
 };
