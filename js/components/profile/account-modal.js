@@ -41,6 +41,35 @@
   }
 
   /**
+   * Product Policy: Database Backup & Recovery is exclusively restricted to the IT Department Head.
+   * Program Coordinator, MIS Staff, Faculty, Students, and OJT are strictly excluded.
+   */
+  function isExclusiveItHeadRole(role) {
+    if (!role) return false;
+    const clean = String(role).trim().toLowerCase();
+    // Explicitly reject Program Coordinator or any coordinator variant
+    if (clean.includes('coordinator') || clean.includes('mis') || clean.includes('ojt') || clean.includes('faculty') || clean.includes('student')) {
+      return false;
+    }
+    // Accept canonical IT Department Head roles and known aliases
+    const itHeadAliases = [
+      'it dept. head',
+      'it dept head',
+      'it head',
+      'department head',
+      'it department head',
+      'it dept. head (administrator)',
+      'it dept head (administrator)',
+      'it head (administrator)',
+      'department head (administrator)'
+    ];
+    if (itHeadAliases.includes(clean)) {
+      return true;
+    }
+    return clean.includes('head');
+  }
+
+  /**
    * Synchronously reads cached user role from session/local storage or DOM to avoid visual flicker.
    */
   function getCachedUserRole() {
@@ -310,6 +339,18 @@
         if (qrPanel) qrPanel.style.display = 'none';
       }
 
+      // Role-aware Backup & Recovery: Available strictly to authorized IT Department Head (Super Admin)
+      const isItHead = isExclusiveItHeadRole(role);
+      const backupTabBtn = document.getElementById('tab-btn-backup');
+      const adminDivider = document.getElementById('settings-admin-divider');
+      if (isItHead) {
+        if (backupTabBtn) backupTabBtn.style.display = 'flex';
+        if (adminDivider) adminDivider.style.display = 'block';
+      } else {
+        if (backupTabBtn) backupTabBtn.style.display = 'none';
+        if (adminDivider) adminDivider.style.display = 'none';
+      }
+
       const qrSubtitle = document.getElementById('qr-code-subtitle');
       if (qrSubtitle) {
         const cleanRole = String(role || '').toLowerCase();
@@ -431,6 +472,7 @@
 
     const cachedRole = getCachedUserRole();
     const showQrInitial = isPersonalQrAllowed(cachedRole);
+    const showBackupInitial = isExclusiveItHeadRole(cachedRole);
 
     const modal = document.createElement('div');
     modal.id = 'account-settings-modal';
@@ -463,6 +505,15 @@
             <button type="button" class="settings-tab-btn" id="tab-btn-qrcode" data-tab="qrcode" style="${showQrInitial ? 'display: flex;' : 'display: none;'}">
               <i data-lucide="qr-code" style="width:18px;height:18px;"></i>
               <span>My QR Code</span>
+            </button>
+            <div id="settings-admin-divider" style="${showBackupInitial ? 'display: block;' : 'display: none;'} margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-light);">
+              <div id="settings-admin-heading" style="font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted, #94a3b8); padding: 0 12px 8px 12px; user-select: none;">
+                Administrative Tools
+              </div>
+            </div>
+            <button type="button" class="settings-tab-btn" id="tab-btn-backup" data-tab="backup" style="${showBackupInitial ? 'display: flex;' : 'display: none;'}">
+              <i data-lucide="database" style="width:18px;height:18px;"></i>
+              <span>Backup &amp; Recovery</span>
             </button>
           </div>
 
@@ -618,6 +669,29 @@
       btn.addEventListener('click', () => {
         const tab = btn.getAttribute('data-tab');
         if (tab) {
+          if (tab === 'backup') {
+            const activeRole = currentLoadedRole || getCachedUserRole();
+            if (!isExclusiveItHeadRole(activeRole)) {
+              console.warn('[AccountModal] Backup & Recovery is restricted exclusively to the IT Department Head.');
+              return;
+            }
+            closeModal();
+            if (typeof global.openBackupRecoveryModal === 'function') {
+              global.openBackupRecoveryModal();
+            } else if (typeof window.openBackupRecoveryModal === 'function') {
+              window.openBackupRecoveryModal();
+            } else {
+              const script = document.createElement('script');
+              script.src = 'js/components/backup/backup-recovery.modal.js';
+              script.onload = () => {
+                if (typeof global.openBackupRecoveryModal === 'function') {
+                  global.openBackupRecoveryModal();
+                }
+              };
+              document.body.appendChild(script);
+            }
+            return;
+          }
           if (tab === 'qrcode') {
             const activeRole = currentLoadedRole || getCachedUserRole();
             if (!isPersonalQrAllowed(activeRole)) return;

@@ -181,8 +181,9 @@
   }
 }
 
-/* ─── Tablet and Mobile Viewports (Max Width: 1024px) ───────────── */
-@media (max-width: 1024px) {
+/* ─── Tablet and Mobile Viewports (Max Width: 1024px OR Primary Coarse Pointer Touch Devices) ─── */
+@media (max-width: 1024px),
+       ((hover: none) and (pointer: coarse) and (max-width: 1366px)) {
   .dashboard-main-grid {
     grid-template-columns: 1fr !important;
     gap: 16px !important;

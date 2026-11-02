@@ -275,81 +275,184 @@ async function runFrontendTestSuite() {
     await new Promise(r => setTimeout(r, 1200));
 
     // ─── TEST 1: Role Filtering (Hidden for Unauthorized Roles) ───────────────
-    console.log('\n--- 1. Testing IT Head-Only Role Filtering on Admin Menu ---');
+    console.log('\n--- 1. Testing Role Filtering (Excluded for Unauthorized Roles) ---');
     try {
       resetRateLimits();
 
       // Test unauthorized role: Program Coordinator
-      await setBrowserUser(3, 'Program Coordinator', 'faculty@labsync.com');
-      // Trigger toggleAdminMenu
+      await setBrowserUser(3, 'Program Coordinator', 'coordinator@labsync.com');
+      // A: Verify Admin Menu does NOT have #admin-menu-backup-btn
       await evaluate(`(() => {
         const btn = document.querySelector('#sidebar-admin-btn');
         if (typeof toggleAdminMenu === 'function') toggleAdminMenu(null, btn);
       })()`);
       await new Promise(r => setTimeout(r, 300));
-
       const backupBtnExistsCoord = await evaluate(`Boolean(document.querySelector('#admin-menu-backup-btn'))`);
-      assert.strictEqual(backupBtnExistsCoord, false, 'Backup & Recovery button must NOT exist for Program Coordinator');
-
-      // Dismiss menu
+      assert.strictEqual(backupBtnExistsCoord, false, 'Backup & Recovery button must NOT exist in Admin Menu');
       await evaluate(`(() => { const m = document.querySelector('#admin-floating-menu'); if (m) m.remove(); })()`);
+
+      // B: Verify Account Settings does NOT show Backup & Recovery for Program Coordinator
+      await evaluate(`openAccountSettings();`);
+      await waitFor(`document.querySelector('#account-settings-modal')`);
+      await new Promise(r => setTimeout(r, 400));
+      const coordBackupTabVisible = await evaluate(`(() => {
+        const btn = document.querySelector('#tab-btn-backup');
+        return Boolean(btn && getComputedStyle(btn).display !== 'none');
+      })()`);
+      assert.strictEqual(coordBackupTabVisible, false, 'Backup & Recovery tab must NOT be visible for Program Coordinator in Account Settings');
+      await captureScreenshot('program-coordinator-hidden-backup.png');
+      await evaluate(`(() => { const m = document.querySelector('#account-settings-modal'); if (m) m.remove(); })()`);
 
       // Test unauthorized role: MIS Staff
       await setBrowserUser(2, 'MIS Staff', 'mis@labsync.com');
-      await evaluate(`(() => {
-        const btn = document.querySelector('#sidebar-admin-btn');
-        if (typeof toggleAdminMenu === 'function') toggleAdminMenu(null, btn);
+      await evaluate(`openAccountSettings();`);
+      await waitFor(`document.querySelector('#account-settings-modal')`);
+      await new Promise(r => setTimeout(r, 400));
+      const misBackupTabVisible = await evaluate(`(() => {
+        const btn = document.querySelector('#tab-btn-backup');
+        return Boolean(btn && getComputedStyle(btn).display !== 'none');
       })()`);
-      await new Promise(r => setTimeout(r, 300));
+      assert.strictEqual(misBackupTabVisible, false, 'Backup & Recovery tab must NOT be visible for MIS Staff in Account Settings');
+      await evaluate(`(() => { const m = document.querySelector('#account-settings-modal'); if (m) m.remove(); })()`);
 
-      const backupBtnExistsMIS = await evaluate(`Boolean(document.querySelector('#admin-menu-backup-btn'))`);
-      assert.strictEqual(backupBtnExistsMIS, false, 'Backup & Recovery button must NOT exist for MIS Staff');
+      // Test unauthorized role: Faculty
+      await setBrowserUser(4, 'Faculty', 'faculty@labsync.com');
+      await evaluate(`openAccountSettings();`);
+      await waitFor(`document.querySelector('#account-settings-modal')`);
+      await new Promise(r => setTimeout(r, 400));
+      const facultyBackupTabVisible = await evaluate(`(() => {
+        const btn = document.querySelector('#tab-btn-backup');
+        return Boolean(btn && getComputedStyle(btn).display !== 'none');
+      })()`);
+      assert.strictEqual(facultyBackupTabVisible, false, 'Backup & Recovery tab must NOT be visible for Faculty in Account Settings');
+      await evaluate(`(() => { const m = document.querySelector('#account-settings-modal'); if (m) m.remove(); })()`);
 
-      // Dismiss menu
-      await evaluate(`(() => { const m = document.querySelector('#admin-floating-menu'); if (m) m.remove(); })()`);
-
-      recordPass('Non-IT Head roles (Program Coordinator, MIS Staff) cannot see Backup & Recovery in Admin Menu');
+      recordPass('Non-IT Head roles (Program Coordinator, MIS Staff, Faculty) cannot see Backup & Recovery in Admin Menu or Account Settings');
     } catch (err) {
-      recordFail('Non-IT Head roles (Program Coordinator, MIS Staff) cannot see Backup & Recovery in Admin Menu', err);
+      recordFail('Non-IT Head roles (Program Coordinator, MIS Staff, Faculty) cannot see Backup & Recovery in Admin Menu or Account Settings', err);
     }
 
-    // ─── TEST 2: Admin Menu Navigation for IT Department Head ─────────────────
-    console.log('\n--- 2. Testing Admin Menu Navigation & Backup Item for IT Department Head ---');
+    // ─── TEST 2: Responsive Navigation & Account Settings Integration for IT Head ───
+    console.log('\n--- 2. Testing Responsive Navigation & Account Settings Integration for IT Head ---');
     try {
       resetRateLimits();
       // Set identity back to IT Department Head
       await setBrowserUser(1, 'IT Dept. Head', 'head@labsync.com');
       await new Promise(r => setTimeout(r, 200));
 
-      // Trigger toggleAdminMenu
-      await evaluate(`(() => {
+      // 1. Desktop Landscape Viewport (1440x900, Fine Pointer)
+      await sendCDP('Emulation.setTouchEmulationEnabled', { enabled: false });
+      await sendCDP('Emulation.setEmitTouchEventsForMouse', { enabled: false });
+      await sendCDP('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+      await new Promise(r => setTimeout(r, 400));
+      const isDesktopAdminHidden = await evaluate(`(() => {
         const btn = document.querySelector('#sidebar-admin-btn');
-        if (typeof toggleAdminMenu === 'function') toggleAdminMenu(null, btn);
+        return !btn || getComputedStyle(btn).display === 'none';
       })()`);
+      assert.strictEqual(isDesktopAdminHidden, true, 'Admin Menu button must be HIDDEN on desktop landscape layout');
+      await captureScreenshot('it-head-laptop-landscape.png');
+
+      // 2. Laptop Landscape Viewport (1366x768, Fine Pointer)
+      await sendCDP('Emulation.setDeviceMetricsOverride', { width: 1366, height: 768, deviceScaleFactor: 1, mobile: false });
+      await new Promise(r => setTimeout(r, 400));
+      const isLaptopAdminHidden = await evaluate(`(() => {
+        const btn = document.querySelector('#sidebar-admin-btn');
+        return !btn || getComputedStyle(btn).display === 'none';
+      })()`);
+      assert.strictEqual(isLaptopAdminHidden, true, 'Admin Menu button must be HIDDEN on laptop landscape layout');
+
+      // 3. Desktop Resized Window Viewport (1180x820, Fine Pointer)
+      await sendCDP('Emulation.setDeviceMetricsOverride', { width: 1180, height: 820, deviceScaleFactor: 1, mobile: false });
+      await new Promise(r => setTimeout(r, 400));
+      const isDesktop1180AdminHidden = await evaluate(`(() => {
+        const btn = document.querySelector('#sidebar-admin-btn');
+        return !btn || getComputedStyle(btn).display === 'none';
+      })()`);
+      assert.strictEqual(isDesktop1180AdminHidden, true, 'Admin Menu button must be HIDDEN on desktop window 1180x820 with fine pointer');
+
+      // 4. Tablet Landscape Viewport (1180x820, Coarse Pointer)
+      await sendCDP('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+      await sendCDP('Emulation.setEmitTouchEventsForMouse', { enabled: true, configuration: 'mobile' });
+      await sendCDP('Emulation.setDeviceMetricsOverride', { width: 1180, height: 820, deviceScaleFactor: 2, mobile: true });
+      await new Promise(r => setTimeout(r, 400));
+      const isTabletLandscapeAdminVisible = await evaluate(`(() => {
+        const btn = document.querySelector('#sidebar-admin-btn');
+        return Boolean(btn && getComputedStyle(btn).display === 'flex');
+      })()`);
+      assert.strictEqual(isTabletLandscapeAdminVisible, true, 'Admin Menu button must be AVAILABLE on tablet 1180x820 with coarse pointer');
+
+      // 5. Tablet Portrait Viewport (820x1180, Coarse Pointer)
+      await sendCDP('Emulation.setDeviceMetricsOverride', { width: 820, height: 1180, deviceScaleFactor: 2, mobile: true });
+      await new Promise(r => setTimeout(r, 400));
+      const isTabletAdminVisible = await evaluate(`(() => {
+        const btn = document.querySelector('#sidebar-admin-btn');
+        return Boolean(btn && getComputedStyle(btn).display === 'flex');
+      })()`);
+      assert.strictEqual(isTabletAdminVisible, true, 'Admin Menu button must remain AVAILABLE on tablet portrait viewport');
+      await captureScreenshot('tablet-navigation.png');
+
+      // 6. Mobile Portrait Viewport (390x844, Coarse Pointer)
+      await sendCDP('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
+      await new Promise(r => setTimeout(r, 400));
+      const isMobileAdminVisible = await evaluate(`(() => {
+        const btn = document.querySelector('#sidebar-admin-btn');
+        return Boolean(btn && getComputedStyle(btn).display === 'flex');
+      })()`);
+      assert.strictEqual(isMobileAdminVisible, true, 'Admin Menu button must remain AVAILABLE on mobile portrait viewport');
+      await captureScreenshot('mobile-portrait-navigation.png');
+
+      // 7. Mobile Landscape Viewport (844x390, Coarse Pointer)
+      await sendCDP('Emulation.setDeviceMetricsOverride', { width: 844, height: 390, deviceScaleFactor: 3, mobile: true });
+      await new Promise(r => setTimeout(r, 400));
+      const isMobileLandscapeAdminVisible = await evaluate(`(() => {
+        const btn = document.querySelector('#sidebar-admin-btn');
+        return Boolean(btn && getComputedStyle(btn).display === 'flex');
+      })()`);
+      assert.strictEqual(isMobileLandscapeAdminVisible, true, 'Admin Menu button must remain AVAILABLE on mobile landscape viewport');
+
+      // 8. Return to Desktop Viewport & Open Account Settings
+      await sendCDP('Emulation.setTouchEmulationEnabled', { enabled: false });
+      await sendCDP('Emulation.setEmitTouchEventsForMouse', { enabled: false });
+      await sendCDP('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
       await new Promise(r => setTimeout(r, 400));
 
-      const isMenuVisible = await evaluate(`Boolean(document.querySelector('#admin-floating-menu'))`);
-      assert.strictEqual(isMenuVisible, true, 'Admin floating menu must be visible');
+      await evaluate(`openAccountSettings();`);
+      await waitFor(`document.querySelector('#account-settings-modal')`);
+      await new Promise(r => setTimeout(r, 500));
 
-      const isBackupItemVisible = await evaluate(`Boolean(document.querySelector('#admin-menu-backup-btn'))`);
-      assert.strictEqual(isBackupItemVisible, true, 'Backup & Recovery item must be visible for IT Department Head');
+      const isAccountModalOpen = await evaluate(`Boolean(document.querySelector('#account-settings-modal'))`);
+      assert.strictEqual(isAccountModalOpen, true, 'Account Settings modal must be open');
+      await captureScreenshot('account-settings-opened.png');
 
-      await captureScreenshot('backup-admin-menu-open.png');
-      recordPass('Admin Menu opens on click and displays Backup & Recovery for IT Department Head');
+      const isBackupTabVisible = await evaluate(`(() => {
+        const btn = document.querySelector('#tab-btn-backup');
+        return Boolean(btn && getComputedStyle(btn).display !== 'none');
+      })()`);
+      assert.strictEqual(isBackupTabVisible, true, 'Backup & Recovery option must be visible inside Account Settings for IT Head');
+      await captureScreenshot('backup-option-in-account-settings.png');
+      await captureScreenshot('backup-admin-menu-open.png'); // Keep legacy file updated
+
+      recordPass('Admin Menu button is hidden on laptop/PC landscape; Backup & Recovery is accessible in Account Settings for IT Head');
     } catch (err) {
-      recordFail('Admin Menu opens on click and displays Backup & Recovery for IT Department Head', err);
+      recordFail('Admin Menu button is hidden on laptop/PC landscape; Backup & Recovery is accessible in Account Settings for IT Head', err);
     }
 
-    // ─── TEST 3: Modal Opening and Closing Lifecycle ─────────────────────────
-    console.log('\n--- 3. Testing Modal Opening and Closing Lifecycle ---');
+    // ─── TEST 3: Modal Opening from Account Settings and Closing Lifecycle ───────────
+    console.log('\n--- 3. Testing Modal Opening from Account Settings and Closing Lifecycle ---');
     try {
       resetRateLimits();
-      // Click Backup & Recovery in menu
-      await evaluate(`document.querySelector('#admin-menu-backup-btn').click();`);
+      // Click Backup & Recovery tab inside Account Settings
+      await evaluate(`document.querySelector('#tab-btn-backup').click();`);
       await new Promise(r => setTimeout(r, 500));
 
       let modalExists = await evaluate(`Boolean(document.querySelector('#backup-recovery-modal'))`);
-      assert.strictEqual(modalExists, true, 'Modal must open upon clicking Backup & Recovery');
+      assert.strictEqual(modalExists, true, 'Backup & Recovery modal must open upon clicking option in Account Settings');
+
+      // Verify Account Settings modal was closed
+      const accountSettingsClosed = await evaluate(`!document.querySelector('#account-settings-modal')`);
+      assert.strictEqual(accountSettingsClosed, true, 'Account Settings modal must be dismissed when Backup & Recovery opens');
+
+      await captureScreenshot('backup-modal-opened-from-settings.png');
 
       // Close via close button
       await evaluate(`document.querySelector('#backup-modal-close-btn').click();`);
@@ -368,9 +471,9 @@ async function runFrontendTestSuite() {
       modalExists = await evaluate(`Boolean(document.querySelector('#backup-recovery-modal'))`);
       assert.strictEqual(modalExists, false, 'Modal must close on pressing Escape key');
 
-      recordPass('Modal opening, button dismissal, and keyboard Escape dismissal operate cleanly');
+      recordPass('Modal opens from Account Settings, button dismissal, and keyboard Escape operate cleanly');
     } catch (err) {
-      recordFail('Modal opening, button dismissal, and keyboard Escape dismissal operate cleanly', err);
+      recordFail('Modal opens from Account Settings, button dismissal, and keyboard Escape operate cleanly', err);
     }
 
     // ─── TEST 4: Backup Status Loading & Metadata Rendering ──────────────────

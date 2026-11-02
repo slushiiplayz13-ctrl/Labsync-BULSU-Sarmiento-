@@ -194,4 +194,13 @@ html.dark-mode .mis-privilege-chip {
   border-color: var(--border-light) !important;
   color: var(--text-dark) !important;
 }
+/* ─── Administrative Tools Section Divider & Mobile Adaptation ─── */
+#settings-admin-divider {
+  transition: opacity 0.2s ease;
+}
 
+@media (max-width: 768px) {
+  #settings-admin-divider {
+    display: none !important;
+  }
+}

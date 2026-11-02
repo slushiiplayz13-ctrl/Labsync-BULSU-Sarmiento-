@@ -502,17 +502,19 @@ async function runPhase5Suite() {
     await sendCDP('Page.navigate', { url: `${baseUrl}/it-head-dashboard.html` });
     await new Promise(r => setTimeout(r, 1200));
 
-    // SCREENSHOT 1: IT Head Admin Menu with Backup & Recovery
+    // SCREENSHOT 1: IT Head Account Settings with Backup & Recovery Option
     resetRateLimits();
-    await evaluate(`(() => {
-      const btn = document.querySelector('#sidebar-admin-btn');
-      if (typeof toggleAdminMenu === 'function') toggleAdminMenu(null, btn);
-    })()`);
-    await new Promise(r => setTimeout(r, 400));
+    await evaluate(`openAccountSettings();`);
+    await waitFor(`document.querySelector('#account-settings-modal')`);
+    await new Promise(r => setTimeout(r, 500));
     await captureScreenshot('01-admin-menu-backup.png');
 
-    // SCREENSHOT 2: Backup & Recovery Modal Overview
-    await evaluate(`openBackupRecoveryModal();`);
+    // SCREENSHOT 2: Backup & Recovery Modal Overview (opened from Account Settings)
+    await evaluate(`(() => {
+      const b = document.querySelector('#tab-btn-backup');
+      if (b) b.click();
+      else if (typeof openBackupRecoveryModal === 'function') openBackupRecoveryModal();
+    })()`);
     await waitFor(`document.querySelector('#backup-modal-content') && document.querySelector('#backup-modal-content').style.display !== 'none'`);
     await captureScreenshot('02-backup-modal-overview.png');
 

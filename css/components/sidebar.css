@@ -226,7 +226,8 @@ body.role-ojt .sidebar-btn[aria-label*="OJT"] {
 }
 
 /* ─── Tablet and Mobile Viewports (Max Width: 1024px) ───────────── */
-@media (max-width: 1024px) {
+@media (max-width: 1024px),
+       ((hover: none) and (pointer: coarse) and (max-width: 1366px)) {
   .sidebar-btn.mobile-only-btn {
     display: flex !important;
   }

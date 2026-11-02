@@ -134,17 +134,6 @@
     const isMasterActive = window.location.pathname.includes('master-schedule.html') || window.location.pathname.includes('room-schedule-editor.html');
     const isFacultyActive = window.location.pathname.includes('faculty-management.html');
 
-    // Check if current user is IT Department Head (exclusive access for Backup & Recovery)
-    let isITHead = false;
-    try {
-      const cachedStr = sessionStorage.getItem('labsync_user') || localStorage.getItem('user');
-      if (cachedStr) {
-        const parsed = JSON.parse(cachedStr);
-        const userObj = parsed.user || parsed;
-        const role = String(userObj.role || userObj.Role || '').trim();
-        isITHead = (role === 'IT Dept. Head' || role === 'IT Head');
-      }
-    } catch (_) {}
 
     menu.innerHTML = `
       <button type="button" class="admin-menu-item ${isMasterActive ? 'active' : ''}" style="
@@ -191,30 +180,6 @@
         <i data-lucide="users" style="width:14px;height:14px;flex-shrink:0;color:${isFacultyActive ? 'var(--primary-teal)' : '#64748B'};"></i>
         <span>User Management</span>
       </button>
-      ${isITHead ? `
-        <button type="button" class="admin-menu-item" id="admin-menu-backup-btn" style="
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 7px 10px;
-          border: none;
-          background: transparent;
-          color: var(--text-dark, #0F172A);
-          font-size: 11.5px;
-          font-weight: 500;
-          border-radius: 8px;
-          cursor: pointer;
-          width: 100%;
-          text-align: left;
-          font-family: var(--font-body);
-          transition: all 0.15s;
-          white-space: nowrap;
-          box-sizing: border-box;
-        ">
-          <i data-lucide="database" style="width:14px;height:14px;flex-shrink:0;color:#64748B;"></i>
-          <span>Backup & Recovery</span>
-        </button>
-      ` : ''}
     `;
 
     document.body.appendChild(menu);
@@ -226,21 +191,6 @@
     const facultyItem = menu.querySelectorAll('.admin-menu-item')[1];
     if (facultyItem) {
       facultyItem.addEventListener('click', (e) => safeNavigate('faculty-management.html', e));
-    }
-    if (isITHead) {
-      const backupItem = menu.querySelector('#admin-menu-backup-btn');
-      if (backupItem) {
-        backupItem.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          menu.remove();
-          if (typeof global.openBackupRecoveryModal === 'function') {
-            global.openBackupRecoveryModal();
-          } else if (typeof window.openBackupRecoveryModal === 'function') {
-            window.openBackupRecoveryModal();
-          }
-        });
-      }
     }
 
     if (global.lucide && typeof global.lucide.createIcons === 'function') {
