@@ -19,6 +19,9 @@ const backupService = require('../services/backupService');
 const restoreService = require('../services/restoreService');
 const recoveryDatabaseService = require('../services/recoveryDatabaseService');
 const auditService = require('../services/auditService');
+const { isMaintenanceModeActive, getMaintenanceModeStatus, setMaintenanceMode } = require('../middleware/maintenanceMode');
+const activityRetentionService = require('../services/activityRetentionService');
+const keyReminderService = require('../services/keyReminderService');
 
 /**
  * Formats client IP address safely.
@@ -515,11 +518,159 @@ async function compareDemonstrationRecord(req, res, next) {
     }
 }
 
+/**
+ * Assesses the readiness of the candidate recovery database for Blue-Green promotion.
+ * GET /api/admin/backups/recovery/promotion-status
+ */
+async function getPromotionStatus(req, res, next) {
+    try {
+        const report = await recoveryDatabaseService.verifyPromotionReadiness();
+        res.status(200).json(report);
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * Returns current cutover maintenance mode status and comprehensive drain state.
+ * GET /api/admin/backups/maintenance-mode
+ */
+async function getMaintenanceMode(req, res) {
+    const baseStatus = getMaintenanceModeStatus();
+    const retentionJobRunning = Boolean(activityRetentionService.isRetentionRunning && activityRetentionService.isRetentionRunning());
+    const keyReminderJobRunning = Boolean(keyReminderService.isKeyReminderChecking && keyReminderService.isKeyReminderChecking());
+    const backgroundJobsDrained = !retentionJobRunning && !keyReminderJobRunning;
+    const activeMutationRequests = typeof baseStatus.activeMutationRequests === 'number'
+        ? baseStatus.activeMutationRequests
+        : 0;
+    const unresolvedOperations = typeof baseStatus.unresolvedOperations === 'number'
+        ? baseStatus.unresolvedOperations
+        : 0;
+    const mutationRequestsDrained = activeMutationRequests === 0 && unresolvedOperations === 0;
+    const cutoverDrained = backgroundJobsDrained && mutationRequestsDrained;
+
+    res.status(200).json({
+        ...baseStatus,
+        maintenanceMode: baseStatus.active,
+        activeMutationRequests,
+        unresolvedOperations,
+        retentionJobRunning,
+        keyReminderJobRunning,
+        backgroundJobsDrained,
+        mutationRequestsDrained,
+        cutoverDrained
+    });
+}
+
+/**
+ * Toggles cutover maintenance mode status. Strictly gated by IT Department Head role.
+ * POST /api/admin/backups/maintenance-mode
+ */
+async function toggleMaintenanceMode(req, res, next) {
+    try {
+        const { enabled } = req.body;
+        if (typeof enabled !== 'boolean') {
+            return res.status(400).json({
+                error: 'Field "enabled" must be a boolean (true or false).',
+                code: 'INVALID_MAINTENANCE_PAYLOAD'
+            });
+        }
+
+        if (!enabled && process.env.MAINTENANCE_MODE === 'true') {
+            return res.status(400).json({
+                success: false,
+                maintenanceMode: true,
+                error: 'Cannot disable Maintenance Mode via UI because it is enforced by Railway environment variable (MAINTENANCE_MODE=true). To resume ordinary operations, remove or set MAINTENANCE_MODE=false in Railway Variables and redeploy.',
+                code: 'ENVIRONMENT_DRIVEN_MAINTENANCE'
+            });
+        }
+
+        setMaintenanceMode(enabled);
+
+        const actorEmail = req.session ? (req.session.userEmail || req.session.email || null) : null;
+        await auditService.logSecurityEvent({
+            req,
+            actorEmail,
+            actorRole: 'IT Dept. Head',
+            action: enabled ? 'MAINTENANCE_MODE_ENABLED' : 'MAINTENANCE_MODE_DISABLED',
+            resourceType: 'SYSTEM_SETTINGS',
+            details: { enabled },
+            result: 'SUCCESS'
+        });
+
+        const baseStatus = getMaintenanceModeStatus();
+        const retentionJobRunning = Boolean(activityRetentionService.isRetentionRunning && activityRetentionService.isRetentionRunning());
+        const keyReminderJobRunning = Boolean(keyReminderService.isKeyReminderChecking && keyReminderService.isKeyReminderChecking());
+        const backgroundJobsDrained = !retentionJobRunning && !keyReminderJobRunning;
+        const activeMutationRequests = typeof baseStatus.activeMutationRequests === 'number'
+            ? baseStatus.activeMutationRequests
+            : 0;
+        const unresolvedOperations = typeof baseStatus.unresolvedOperations === 'number'
+            ? baseStatus.unresolvedOperations
+            : 0;
+        const mutationRequestsDrained = activeMutationRequests === 0 && unresolvedOperations === 0;
+        const cutoverDrained = backgroundJobsDrained && mutationRequestsDrained;
+
+        res.status(200).json({
+            success: true,
+            ...baseStatus,
+            maintenanceMode: isMaintenanceModeActive(),
+            activeMutationRequests,
+            unresolvedOperations,
+            retentionJobRunning,
+            keyReminderJobRunning,
+            backgroundJobsDrained,
+            mutationRequestsDrained,
+            cutoverDrained,
+            message: enabled
+                ? 'Maintenance Mode activated. New database writes are temporarily blocked.'
+                : 'Maintenance Mode deactivated. Normal application operations resumed.'
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * Records a completed promotion cutover event.
+ * POST /api/admin/backups/recovery/record-promotion
+ */
+async function recordPromotion(req, res, next) {
+    try {
+        const actorEmail = req.session ? (req.session.userEmail || req.session.email || null) : null;
+        const entry = recoveryDatabaseService.recordPromotionEvent({
+            ...req.body,
+            actorEmail
+        });
+
+        await auditService.logSecurityEvent({
+            req,
+            actorEmail,
+            actorRole: 'IT Dept. Head',
+            action: 'DATABASE_PROMOTION_RECORDED',
+            resourceType: 'DATABASE',
+            details: entry,
+            result: 'SUCCESS'
+        });
+
+        res.status(200).json({
+            success: true,
+            entry
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     createBackup,
     getStatus,
     restoreTestSandbox,
     restoreOnlineRecoverySandbox,
     getRecoveryStatus,
-    compareDemonstrationRecord
+    compareDemonstrationRecord,
+    getPromotionStatus,
+    getMaintenanceMode,
+    toggleMaintenanceMode,
+    recordPromotion
 };

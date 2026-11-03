@@ -200,69 +200,281 @@ To eliminate ongoing charges after completing the evaluation:
 
 ---
 
-## 5. Complete Step-by-Step Professor Demonstration Script
+## 5. Blue-Green Production Database Recovery & Promotion Architecture
 
-Follow this script to demonstrate the full Backup & Recovery lifecycle to your professor:
+LabSync implements **Blue-Green Database Recovery and Promotion** to allow administrators to safely promote a successfully restored recovery database so that the live deployed application uses the recovered snapshot as its active production database—**without overwriting or modifying the original production MySQL database.**
 
-### Step 1: Open Backup & Recovery
-1. Open your deployed Railway LabSync URL in your browser.
-2. Log in with the **IT Department Head** account.
-3. Click your profile avatar (top-right) → select **Account Settings**.
-4. In Account Settings, click **Backup & Recovery** under Administrative Tools.
-5. **Point out to the Professor**:
-   - The status chips show Engine: `MySQL (9.7.2)`, Base Tables: `22 base tables`.
-   - Restoration Target shows: `Online Recovery Sandbox` (Green badge).
-   - Point out that the live production database is isolated.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       Deployed LabSync Web Application                      │
+│                  (https://*.up.railway.app / Node.js Express)               │
+└──────────────────────┬───────────────────────────────┬──────────────────────┘
+                       │                               │
+       Standard Traffic (Before Promotion)   Disaster Recovery Sandbox
+                       │                               │
+                       ▼                               ▼
+       ┌───────────────────────────────┐ ┌────────────────────────────────────┐
+       │   BLUE: Original Production   │ │   GREEN: Recovered Candidate       │
+       │    MySQL 9.7.4 (Live Data)    │ │       MySQL 8.4.13 (Restored)      │
+       │                               │ │                                    │
+       │ • UUID: fb252566-c303-11f1... │ │ • UUID: df694bff-d6ae-11f1...      │
+       │ • Becomes read-only rollback  │ │ • Promoted to active production    │
+       │   copy after promotion        │ │ • Used by deployed application     │
+       │ • NEVER OVERWRITTEN           │ │ • Account: labsync_app             │
+       └───────────────────────────────┘ └────────────────────────────────────┘
+                       ▲                               │
+                       │     (After Cutover Switch)    │
+                       └───────────────────────────────┘
+```
 
-### Step 2: Create a Baseline Backup
-1. In the **Database Backup Export** section, click **Create Backup**.
-2. Wait 2–3 seconds while the system topologically sorts tables and streams the `.sql.gz` archive.
-3. The browser automatically downloads the file (e.g., `labsync_backup_2026-11-02_17-30-00.sql.gz`).
-4. **Point out to the Professor**:
-   - The verified 64-character SHA-256 hash displayed in the green success card.
-   - Click **Download .sha256** to save the cryptographic companion file.
-
-### Step 3: Create a Post-Backup Demonstration Record in Live Production
-1. In the sidebar, navigate to **Laboratories** (or Laboratory Management).
-2. Click **Add Laboratory / Room**.
-3. Create a demonstration room:
-   - **Room Number**: `999`
-   - **Building**: `DEMO-BLDG`
-   - **Status**: `Available`
-4. Save the room.
-5. Verify that Room `999` appears on the active laboratory list in the deployed website.
-
-### Step 4: Execute Restoration into the Online Recovery Sandbox
-1. Return to **Account Settings** → **Backup & Recovery**.
-2. Scroll to the **Online Recovery Sandbox** section.
-3. Click **Choose File** and select the `.sql.gz` backup archive downloaded in Step 2.
-4. Click **Load from .sha256 file** and select the `.sha256` file downloaded in Step 2 (or paste the SHA-256 hash).
-5. Enter your **IT Department Head password** in the re-authentication field.
-6. Click **Restore into Online Sandbox**.
-7. Confirm the modal dialog ("Restore archive into the isolated Online Recovery Sandbox?").
-8. The system executes isolation verification, table reset, statement execution, and row count verification.
-
-### Step 5: Verify Recovery & Prove Snapshot Isolation
-1. Review the **Recovery Verification & Snapshot Audit** panel:
-   - Status shows `VERIFIED SUCCESS`.
-   - Restored tables count shows `22 base tables`.
-   - Displays row counts for `laboratories`, `users`, `schedules`, etc.
-2. In the **Demonstration Proof: Verify Snapshot Isolation** tool:
-   - Type `999` into the room search field.
-   - Click **Compare with Production**.
-3. **Show the Professor the Result Cards**:
-   - **Current Production Database**: `✓ Record Exists (Found) — Room 999 (DEMO-BLDG)`
-   - **Online Recovery Sandbox**: `✓ Record Absent (Snapshot Restored)`
-   - **Demonstration Status**: `DEMONSTRATION VERIFIED`
-4. **Deliver the Closing Explanation**:
-   > *"Professor, this comparison provides cryptographic and empirical proof that:*
-   > 1. *The backup was successfully created and restored into our separate Railway recovery sandbox.*
-   > 2. *The restored sandbox accurately reflects the point-in-time snapshot prior to creating Room 999.*
-   > 3. *Our live production database was never overwritten or rolled back, and Room 999 remains completely intact in production."*
+### The Two Database Roles:
+1. **Blue (Original Production — MySQL 9.7.4)**:
+   - Server UUID: `fb252566-c303-11f1-9553-a2aa08ba6a31`
+   - Contains the live application database (`railway`).
+   - Remains completely untouched as an immutable previous-state copy.
+2. **Green (Recovered Database — MySQL 8.4.13)**:
+   - Railway Service: `LabSync-Recovery-Sandbox`
+   - Server UUID: `df694bff-d6ae-11f1-85d7-a2aaf5f6dd9c`
+   - Receives the restored logical backup archive.
+   - When promoted, becomes the active database serving the deployed application.
 
 ---
 
-## 6. Data Privacy, Retention, and Cleanup
+## 6. Runtime Application Account (`labsync_app`) Configuration
+
+Per LabSync security governance, the restoration account (`labsync_recovery`) is strictly restricted to DDL and insertion (`SELECT, INSERT, CREATE, DROP, ALTER, REFERENCES, LOCK TABLES`) and lacks `UPDATE` and `DELETE`.
+
+The normal deployed application requires a separate, non-root runtime account: **`labsync_app`**.
+
+### Database-Scoped Privileges for `labsync_app`:
+Execute the following SQL in the **Data** tab or query console of `LabSync-Recovery-Sandbox`:
+
+```sql
+-- 1. Create dedicated application runtime user (isolated to recovery database)
+CREATE USER IF NOT EXISTS 'labsync_app'@'%' IDENTIFIED BY '<STRONG_RUNTIME_PASSWORD>';
+
+-- 2. Grant exact least-privilege runtime DDL & DML permissions required for normal LabSync operations
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES ON `railway`.* TO 'labsync_app'@'%';
+
+-- 3. Apply privileges
+FLUSH PRIVILEGES;
+
+-- 4. Verify restricted privileges (must show strictly railway.* grants, zero global privileges)
+SHOW GRANTS FOR 'labsync_app'@'%';
+```
+
+> [!IMPORTANT]
+> **Strict Least-Privilege Rules for `labsync_app`:**
+> - Grant privileges strictly on `railway.*` (database-scoped).
+> - **8 Minimum Required Privileges**: `SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES`.
+> - **`DROP` is strictly excluded**: Zero application queries or migrations execute `DROP`. Omitting `DROP` prevents accidental schema destruction.
+> - **`LOCK TABLES` is strictly excluded**: Application locking uses connection-level `GET_LOCK()` / `RELEASE_LOCK()`, which do not require `LOCK TABLES`.
+> - Never grant global permissions (`ON *.*`).
+> - Never grant `SUPER`, `FILE`, `GRANT OPTION`, `SHUTDOWN`, or `REPLICATION` privileges.
+> - Never use `labsync_recovery` as the active application user.
+
+---
+
+## 7. Step-by-Step Blue-Green Recovery & Promotion Demonstration Script
+
+Follow this 12-step sequence for the complete professor evaluation:
+
+```
+Step 1: Create Backup
+   │
+   ▼
+Step 2: Download Archive (.sql.gz & .sha256)
+   │
+   ▼
+Step 3: Delete Demonstration Room in Live Production
+   │
+   ▼
+Step 4: Restore Earlier Archive into Online Recovery Sandbox
+   │
+   ▼
+Step 5: Verify Recovery (Deleted Room Exists in Recovered Snapshot!)
+   │
+   ▼
+Step 6: Provision `labsync_app` Account on Recovery Database
+   │
+   ▼
+Step 7: Enable Maintenance Mode in LabSync UI (Freezes Writes)
+   │
+   ▼
+Step 8: Update Railway Production Variables (DB_HOST, DB_USER, etc.)
+   │
+   ▼
+Step 9: Application Redeploys with Connection to Green
+   │
+   ▼
+Step 10: Verify Promoted Database is Active (UUID: df694bff...)
+   │
+   ▼
+Step 11: Disable Maintenance Mode (or Maintain Read-Only Demo)
+   │
+   ▼
+Step 12: Open Normal Room Management &rarr; Deleted Room Appears Again!
+```
+
+### Detailed Execution Steps:
+
+#### Step 1: Create a Production Backup
+1. Log in to the deployed LabSync website with your **IT Department Head** credentials.
+2. Click your profile avatar (top-right) → **Account Settings** → **Backup & Recovery**.
+3. Under **Database Backup Export**, click **Create Backup**.
+
+#### Step 2: Download Archive & Integrity Companion
+1. The browser downloads the compressed archive (e.g., `labsync_backup_2026-11-03_....sql.gz`).
+2. Click **Download .sha256** to save the companion verification checksum.
+
+#### Step 3: Delete a Demonstration Room in Live Production
+1. In the sidebar, navigate to **Laboratories** (Room Management).
+2. Note a target room (or create a dedicated room, e.g., `Room 301` or `Demo Lab`).
+3. Click **Delete Room** and confirm the deletion.
+4. Verify that the room is **no longer visible** in the normal Laboratory list.
+
+#### Step 4: Restore Earlier Archive into Online Recovery Sandbox
+1. Return to **Account Settings** → **Backup & Recovery**.
+2. Scroll to the **Online Recovery Sandbox** section.
+3. Select the `.sql.gz` archive and the companion `.sha256` file from Step 2.
+4. Enter your IT Department Head administrator password.
+5. Click **Restore into Online Sandbox** and confirm.
+6. The system restores all tables into `LabSync-Recovery-Sandbox`.
+
+#### Step 5: Verify Recovered Records & Compare
+1. Review the **Recovery Verification & Snapshot Audit** panel:
+   - Restored tables: Verified.
+   - Record counts: Verified.
+2. In the **Demonstration Proof: Verify Snapshot Isolation** tool, search for the room deleted in Step 3.
+3. Notice that the room is **Present in the Recovery Sandbox** (because the backup was taken before it was deleted)!
+
+#### Step 6: Verify Runtime Application Account
+Ensure the `labsync_app` account has been created on `LabSync-Recovery-Sandbox` with the 8 least-privilege database privileges (`SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES`) as described in Section 6.
+
+#### Step 7: Phase 1 — Pre-Arm Runtime Maintenance Mode & Deploy Environment Variable
+
+> [!IMPORTANT]
+> **Railway Deployment Overlap, Single Replica Assumption & Process-Local Toggle Rationale:**
+> 1. **Process-Local State:** The runtime maintenance toggle (`isMaintenanceActive`) and the in-flight mutation counter (`activeMutationRequests`) are stored in-memory within the specific running Node.js process.
+> 2. **Single Replica Requirement:** The pre-arming procedure assumes **strictly one Railway application replica**. Before initiating cutover, the administrator MUST navigate to **Railway Settings → Scale** on `Labsync-BULSU-Sarmiento-` and verify that `Replicas` is set to **1**. If multiple replicas are configured, do NOT proceed using only the process-local runtime toggle, as requests may land on unshielded instances; a shared state mechanism (such as Redis or centralized database flag) or another verified all-replica procedure would be required.
+> 3. **Configurable Deployment Overlap:** Railway utilizes rolling container restarts. When an environment variable change is deployed, Railway keeps the **previous deployment active** and serving live traffic while the **new deployment builds, initializes, and enters service**. Overlap duration and request draining behavior depend on Railway plan settings, container build times, restart policies, and healthcheck configurations—it must NEVER be assumed to have a fixed duration (such as 30 or 90 seconds).
+> 4. **Do Not Assume Healthchecks:** Do not assume a deployment healthcheck is pre-configured; the administrator must inspect actual service settings under Railway **Deployments → Healthcheck**.
+> 5. **Overlap Elimination via Pre-Arming:** Pre-arming runtime maintenance on the single running instance freezes all ordinary mutating requests (`HTTP 503`) and pauses background jobs *before* the Railway environment deployment is launched, ensuring zero data divergence regardless of how long the container overlap lasts.
+
+##### The 10-Step Definitive Blue-Green Cutover Sequence:
+1. **Activate Runtime Maintenance Mode**: Log in as IT Department Head and enable maintenance mode via the Backup modal toggle (or `POST /api/admin/backups/maintenance-mode` with `{"enabled": true}`). Ordinary mutating requests return `HTTP 503`.
+2. **Verify Cutover Drained State**: Query `GET /api/admin/backups/maintenance-mode` and verify `cutoverDrained === true`:
+   - `mutationRequestsDrained === true` (`activeMutationRequests === 0`: all in-flight ordinary mutating requests admitted before maintenance have completely settled on the server).
+   - `backgroundJobsDrained === true` (`retentionJobRunning === false` and `keyReminderJobRunning === false`: both background workers are confirmed idle).
+   *(CRITICAL: A client socket disconnect (`close`) does NOT automatically decrement or clear an operation while an underlying database write is still executing. The operation remains tracked as in-flight until server-side completion (`res.end`). `cutoverDrained` strictly remains `false` until all server-side operations settle).*
+   *(Permitted exempt administrative writes during maintenance: `POST /api/admin/backups/create` for point-in-time snapshot, `POST /api/admin/backups/recovery/restore` targeting only the isolated recovery database, cutover audit logs, and admin auth session endpoints).*
+3. **Create Final Production Backup**: Trigger `POST /api/admin/backups/create` to capture an untainted point-in-time snapshot of the frozen Blue database while ordinary mutations remain locked.
+4. **Verify Archive & SHA-256 Checksum**: Verify archive integrity against the companion `.sha256` checksum digest.
+5. **Restore Only into GREEN**: Upload and restore the verified backup strictly into the isolated Online Recovery Sandbox (`LabSync-Recovery-Sandbox`). Production restore remains permanently blocked.
+6. **Verify Recovered Database**: Verify restored table count, record counts, and schema elements via `GET /api/admin/backups/recovery/status` and `promotion-status`.
+7. **Deploy GREEN Connection with Environment-Driven Maintenance Active**: In Railway Variables for `Labsync-BULSU-Sarmiento-`, update database references to Green while maintaining `MAINTENANCE_MODE=true`:
+   ```env
+   DB_HOST=${{LabSync-Recovery-Sandbox.MYSQLHOST}}
+   DB_PORT=${{LabSync-Recovery-Sandbox.MYSQLPORT}}
+   DB_USER=labsync_app
+   DB_PASSWORD=<YOUR_LABSYNC_APP_PASSWORD>
+   DB_NAME=${{LabSync-Recovery-Sandbox.MYSQLDATABASE}}
+   PROD_SERVER_UUID=df694bff-d6ae-11f1-85d7-a2aaf5f6dd9c
+   MAINTENANCE_MODE=true
+   ```
+   Click **Deploy**. The new container initializes directly into environment-enforced maintenance mode.
+8. **Verify Active Database UUID**: After deployment is active and the previous container is removed, query `GET /api/admin/backups/recovery/promotion-status` or `/api/health/db` to verify that the active database UUID is `df694bff-d6ae-11f1-85d7-a2aaf5f6dd9c` (Green).
+9. **Verify Normal Application Functions**: Inspect Room Management, PC inventory, and schedules to confirm restored records appear cleanly in normal views.
+10. **Resume Ordinary Operations Only After Verification**: In Railway Variables, set `MAINTENANCE_MODE=false` (or remove the variable) and deploy to resume normal read-write operations.
+
+> [!NOTE]
+> **Session State Lifecycle Across Container Redeployment:**
+> LabSync uses Express in-memory session storage (`MemoryStore`). While user sessions remain active within the same running process during runtime maintenance mode, redeploying a container resets the in-memory session map. Users will be required to log in again after a Railway deployment. User accounts, bcrypt password hashes, and permissions stored in the MySQL database remain 100% intact and available independently of browser sessions.
+
+> [!CRITICAL]
+> **Two-Phase Deployment Requirement:**
+> Do NOT change database variables and enable maintenance mode in the same deployment. Enforce and verify maintenance mode first (Phase 1) before altering database connection strings (Phase 2).
+
+#### Step 8: Phase 2 — Update Railway Database Variables to Green & Redeploy
+1. With Maintenance Mode confirmed active, return to **Variables** in **`Labsync-BULSU-Sarmiento-`**.
+2. Update the production database variables and server identity pinning to reference Green:
+   ```env
+   DB_HOST=${{LabSync-Recovery-Sandbox.MYSQLHOST}}
+   DB_PORT=${{LabSync-Recovery-Sandbox.MYSQLPORT}}
+   DB_USER=labsync_app
+   DB_PASSWORD=<YOUR_LABSYNC_APP_PASSWORD>
+   DB_NAME=${{LabSync-Recovery-Sandbox.MYSQLDATABASE}}
+   PROD_SERVER_UUID=df694bff-d6ae-11f1-85d7-a2aaf5f6dd9c
+   MAINTENANCE_MODE=true
+   ```
+   *(Note: `MAINTENANCE_MODE=true` remains configured so the new container starts in shielded cutover mode).*
+3. Review staged changes and click **Deploy**.
+
+#### Step 9: Application Rolling Redeployment
+Railway starts a new application container connected to `LabSync-Recovery-Sandbox`. The original production database (Blue) remains 100% untouched.
+
+#### Step 10: Verify the Recovered Database is Active
+1. Once deployed, open `/api/health/db`: returns `{"status":"ok","database":"connected"}`.
+2. In **Account Settings** → **Backup & Recovery**, click **Verify Promotion Readiness**:
+   - Active Database UUID now displays: `df694bff-d6ae-11f1-85d7-a2aaf5f6dd9c` (Green).
+   - Confirms that the deployed application is running from the recovered database!
+
+#### Step 11: Phase 3 — Manage Cutover Mode & Resuming Normal Operations
+- For a **Read-Only Defense Demonstration**, maintain Maintenance Mode active so no accidental writes occur while presenting.
+- **To Safely Resume Normal Operations After Evaluation**:
+  1. In Railway &rarr; `Labsync-BULSU-Sarmiento-` &rarr; **Variables**, set `MAINTENANCE_MODE=false` (or remove the variable).
+  2. Click **Deploy** to restart the container in normal read-write mode.
+  3. Confirm via `GET /api/admin/backups/maintenance-mode` that `maintenanceMode: false` and `source: 'none'`.
+  > [!NOTE]
+  > When maintenance mode is driven by the Railway environment variable (`MAINTENANCE_MODE=true`), the UI modal toggle cannot override it. Disabling maintenance mode requires setting `MAINTENANCE_MODE=false` in Railway and redeploying.
+
+#### Step 12: Confirm the Deleted Room Appears in Normal Room Management!
+1. Navigate to **Laboratories** (Room Management) in the normal deployed application.
+2. **Show the Professor**:
+   - The previously deleted room (e.g., `Room 301`) is **now visible again** in normal room views!
+   - All schedules, user accounts, and inventory items from that point in time are restored.
+   - The original production database (Blue) was never overwritten or rolled back.
+
+---
+
+## 8. Rollback Limitations and Safe Procedures
+
+Understanding the rollback window and data persistence model is essential for operational safety:
+
+> [!WARNING]
+> **Rollback Limitations: Blue is an Untouched Previous-State Database, Not an Auto-Synchronized Replica.**
+> - Blue does **not** receive writes made to Green after promotion.
+> - Once Green is promoted and accepts new records, switching back to Blue is **lossy** with respect to post-promotion data.
+> - Blue is **not** an immutable replica; it is an untouched point-in-time snapshot that remains safe only because no processes are writing to it.
+
+### Scenario 1: Rollback Before New Writes (100% Lossless)
+- If the administrator promotes Green and discovers an issue **before new data is written to Green** (e.g. during a read-only evaluation period with Maintenance Mode active):
+- **Procedure**: Change Railway variables back to Blue:
+  ```env
+  DB_HOST=${{MySQL.MYSQLHOST}}
+  DB_PORT=${{MySQL.MYSQLPORT}}
+  DB_USER=${{MySQL.MYSQLUSER}}
+  DB_PASSWORD=${{MySQL.MYSQLPASSWORD}}
+  DB_NAME=${{MySQL.MYSQLDATABASE}}
+  PROD_SERVER_UUID=fb252566-c303-11f1-9553-a2aa08ba6a31
+  ```
+- **Outcome**: 100% lossless rollback. Blue was never modified.
+
+### Scenario 2: Rollback After New Writes (Lossy / Stale State)
+- Once Green is active and users create new attendance logs, student reports, or schedule updates on Green, those new writes exist **only in Green**.
+- Blue does **not** automatically synchronize with Green (they are physically independent MySQL containers).
+- Switching back to Blue after new writes will discard any data created on Green between promotion and rollback.
+- **Precaution**: Before attempting any subsequent rollback, generate an export of Green first so that all post-promotion records are preserved.
+
+### State Persistence Note (Audit 3)
+Railway web application containers have ephemeral filesystems with no persistent volume attached. Local files like `data/recovery_state.json` reset across container restarts. All authoritative state—including database identity (`@@server_uuid`), table schemas, record counts, and audit logs—is derived dynamically from live database queries and persisted in MySQL's `audit_logs` table.
+
+### Cross-Version Verification Note (Audit 5)
+While standard InnoDB data types and utf8mb4 collations between MySQL 9.7.4 and MySQL 8.4.13 are compatible, cross-version restoration must be empirically validated on the live `LabSync-Recovery-Sandbox` instance before executing live production promotion.
+
+---
+
+## 9. Data Privacy, Retention, and Cleanup
 
 1. **Restricted Access**: The Online Recovery Sandbox is not exposed to the public; only the backend communicates with it using dedicated server-side environment variables.
 2. **Audit Logging**: Every recovery attempt (success or failure) is permanently recorded in `audit_logs` with the actor's email, timestamp, and target database.

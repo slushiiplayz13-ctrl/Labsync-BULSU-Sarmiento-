@@ -226,32 +226,56 @@ This guide provides step-by-step instructions for demonstrating and verifying al
 
 ---
 
-### #17 Database Backup & Disaster Recovery Controls (RETAIN & LIVE DEMO)
+### #17 Database Backup, Disaster Recovery & Blue-Green Promotion (RETAIN & LIVE DEMO)
 * **Target Interface:** Account Settings → Administrative Tools → Backup & Recovery (IT Dept. Head Only)
 * **Target Endpoints:**
   - `POST /api/admin/backups/create` (5 requests / 1 hour rate limit)
   - `POST /api/admin/backups/recovery/restore` (3 attempts / 1 hour rate limit, password re-auth required)
   - `GET /api/admin/backups/recovery/compare?room=...` (Demonstration Snapshot Isolation Proof)
-* **How to Test for the Professor:**
-  1. Log in as **IT Department Head** on the deployed Railway application.
-  2. Open **Account Settings** (top-right avatar) → **Backup & Recovery**.
-  3. Click **Create Backup**:
-     - System streams a compressed, topologically sorted `.sql.gz` archive.
-     - Displays the authoritative 64-character SHA-256 integrity digest and provides a one-click companion `.sha256` download.
-  4. Navigate to **Laboratory Management** in the deployed application and add a demonstration test room (e.g. Room Number: `999`, Building: `DEMO-BLDG`).
-  5. Return to **Account Settings → Backup & Recovery**:
-     - Upload the previously downloaded `.sql.gz` archive.
-     - Paste or load the SHA-256 checksum from the `.sha256` companion file.
-     - Re-authenticate with your administrator password.
-     - Click **Restore into Online Sandbox**.
-  6. Review the **Recovery Verification Screen**:
-     - Confirms table count and key record counts in the isolated **Online Recovery Sandbox**.
-     - In the **Demonstration Proof: Verify Snapshot Isolation** tool, enter `999` and click **Compare with Production**.
+  - `GET /api/admin/backups/recovery/promotion-status` (Blue-Green Promotion Readiness Assessment)
+  - `POST /api/admin/backups/maintenance-mode` (Cutover Maintenance Mode Toggle: blocks mutating requests with HTTP 503)
+* **How to Test for the Professor (Blue-Green Recovery & Promotion Demonstration):**
+  1. **Create Backup & Download**:
+     - Log in as **IT Department Head** on the deployed application.
+     - Open **Account Settings** (top-right avatar) → **Backup & Recovery**.
+     - Click **Create Backup**: system streams a compressed, topologically sorted `.sql.gz` archive. Download the `.sha256` companion file.
+  2. **Delete Demonstration Room in Live Production**:
+     - Navigate to **Laboratories** (Room Management) in the deployed website.
+     - Note or create a room (e.g. `Room 301`), click **Delete Room**, and confirm. The room is now absent from live production.
+  3. **Restore into Separate Online Recovery Sandbox**:
+     - Return to **Account Settings → Backup & Recovery**.
+     - Select the downloaded archive and companion checksum, re-authenticate with your administrator password, and click **Restore into Online Sandbox**.
+  4. **Verify Recovery in Snapshot**:
+     - Inspect the **Recovery Verification Screen**: confirms table count, record counts, and engine version.
+     - In the demonstration comparison tool, search for the deleted room: it is verified **Present in the Recovery Sandbox**!
+  5. **Prepare for Blue-Green Promotion (Phase 1: Pre-Armed Maintenance Mode Deployment)**:
+     - **Verify Single Replica**: In Railway Settings → Scale, verify exactly 1 replica is active (`Replicas: 1`). The in-memory runtime toggle is process-local and assumes single-replica topology.
+     - Click **Verify Promotion Readiness**: validates core application tables, candidate reachability, and isolation.
+     - **Pre-Arm Runtime Maintenance Mode**: Click **Enable Maintenance** in the Backup modal (or `POST /api/admin/backups/maintenance-mode`). Ordinary mutating requests immediately return `HTTP 503`.
+     - **Verify Cutover Drain State**: Check `GET /api/admin/backups/maintenance-mode` to confirm `cutoverDrained === true` (`mutationRequestsDrained: true` [0 active mutations] AND `backgroundJobsDrained: true` [retention and key reminder workers idle]). Note that client disconnects do NOT automatically decrement active mutations while server-side database writes are still executing; `cutoverDrained` strictly remains `false` until all admitted operations settle. Permitted exempt writes include point-in-time backup export, online sandbox restoration, cutover audit logging, and admin session auth.
+     - *(Optional)* Click **Create Backup** to capture an untainted, frozen logical snapshot of Blue while mutations are locked.
+     - **Enforce Environment Maintenance**: In Railway (`Labsync-BULSU-Sarmiento-` → **Variables**), set `MAINTENANCE_MODE=true` and **Deploy**. Pre-arming ensures the active container remains shielded during Railway's rolling restart overlap (which is configurable and must not be assumed to have a fixed duration; do not assume a healthcheck is pre-configured—inspect actual deployment settings).
+     - Wait until the new deployment is Active and the previous container is removed. Verify the new deployment boots in environment-driven maintenance mode. (Note: In-memory sessions reset upon container restart; log in again as IT Department Head to proceed).
+  6. **Execute Railway Connection Switch (Phase 2: Database Switch Deployment)**:
+     - In Railway (`Labsync-BULSU-Sarmiento-` → **Variables**), update the production database references and server identity pinning to target the recovered database:
+       ```env
+       DB_HOST=${{LabSync-Recovery-Sandbox.MYSQLHOST}}
+       DB_PORT=${{LabSync-Recovery-Sandbox.MYSQLPORT}}
+       DB_USER=labsync_app
+       DB_PASSWORD=<YOUR_LABSYNC_APP_PASSWORD>
+       DB_NAME=${{LabSync-Recovery-Sandbox.MYSQLDATABASE}}
+       PROD_SERVER_UUID=df694bff-d6ae-11f1-85d7-a2aaf5f6dd9c
+       MAINTENANCE_MODE=true
+       ```
+     - Click **Deploy**. Railway initiates a rolling restart with the recovered database as active production, initializing immediately in maintenance mode.
+  7. **Inspect Normal Room Management**:
+     - Navigate to **Laboratories** in normal LabSync: **The previously deleted room reappears!**
+     - The original production database (Blue) was never overwritten or rolled back.
 * **Expected Result:**
-  * **Current Production Database:** Room `999` exists (Found).
-  * **Online Recovery Sandbox:** Room `999` is absent (Snapshot Verified).
-  * System demonstrates point-in-time recovery into an isolated environment without overwriting live production!
-* **What to say:** *"LabSync implements defense-in-depth disaster recovery: logical MySQL 9.7.2 backups are verified cryptographically via SHA-256 and topologically sorted to preserve foreign keys. In accordance with security governance, direct restoration to the live production database is permanently locked out (HTTP 403). Instead, disaster recovery testing executes against a dedicated, isolated Online Recovery Sandbox, allowing us to empirically prove point-in-time recovery while live production continues operating without risk of data loss."*
+  * Logical backup, snapshot recovery, and database promotion execute cleanly.
+  * Deleted room reappears in normal Room Management after promotion.
+  * Original production database (Blue) remains intact as an untouched previous-state rollback copy.
+* **What to say:** *"LabSync implements enterprise Blue-Green disaster recovery. The original MySQL 9.7.4 production database (Blue) is never overwritten or rolled back. Instead, verified backups are restored into a physically separate MySQL 8.4.13 recovery service (Green). After pre-promotion verification and maintenance mode activation, the deployed application is pointed to Green, cleanly restoring earlier records in normal application views while Blue remains completely preserved as an untouched previous-state rollback copy."*
 
 ---
 

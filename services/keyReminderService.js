@@ -21,6 +21,7 @@ const keyReminderRepository = require('../repositories/key-reminder.repository')
 const emailService = require('./email/email.service');
 const auditService = require('./auditService');
 const AcademicTerm = require('../js/utils/academic-term');
+const { isMaintenanceModeActive } = require('../middleware/maintenanceMode');
 
 const CHECK_INTERVAL_MS = 60 * 1000; // 1 minute
 const GRACE_PERIOD_MINUTES = 15;
@@ -120,6 +121,10 @@ function calculateReminderDeadline(occurrenceDate, endTime, startTime = null) {
  * @returns {Promise<{ checked: number, sent: number, skipped: number, errors: number }>}
  */
 async function checkAndSendKeyReminders(options = {}) {
+    if (isMaintenanceModeActive()) {
+        return { checked: 0, sent: 0, skipped: 0, errors: 0, maintenanceMode: true, message: 'Key reminders skipped because Maintenance Mode is active.' };
+    }
+
     if (_isChecking) {
         return { checked: 0, sent: 0, skipped: 0, errors: 0, message: 'Check already in progress' };
     }
@@ -148,6 +153,10 @@ async function checkAndSendKeyReminders(options = {}) {
         );
 
         for (const candidate of candidates) {
+            if (isMaintenanceModeActive()) {
+                console.log('[KeyReminder] Candidate loop safely interrupted: Cutover Maintenance Mode activated.');
+                break;
+            }
             checked++;
 
             // 1. Calculate schedule end time and 15-minute deadline
@@ -410,6 +419,7 @@ module.exports = {
     getPhilippineTimeString,
     calculateReminderDeadline,
     checkAndSendKeyReminders,
+    isKeyReminderChecking: () => _isChecking,
     initKeyReturnReminderSchedule,
     stopKeyReturnReminderSchedule,
     CHECK_INTERVAL_MS,

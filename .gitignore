@@ -17,6 +17,14 @@ tests/temp-*
 tests/*.png
 *temp-chrome*
 
+# Runtime ephemeral recovery state
+data/recovery_state.json
+
+# Test audit generated screenshots
+tests/audit-screenshots/*
+!tests/audit-screenshots/report_*.png
+!tests/audit-screenshots/verify_*.png
+
 # IDEs and editors
 .vscode/
 .idea/

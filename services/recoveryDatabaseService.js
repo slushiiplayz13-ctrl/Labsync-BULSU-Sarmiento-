@@ -17,14 +17,42 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 const zlib = require('zlib');
 const mysql = require('mysql2/promise');
 const restoreService = require('./restoreService');
 const auditService = require('./auditService');
 const pool = require('../database/connection');
 
-// In-memory cache for latest online recovery verification summary
-let latestRecoverySummary = null;
+// Persistent state storage path (preserves recovery verification across application restarts)
+const STATE_FILE_PATH = path.join(__dirname, '../data/recovery_state.json');
+
+function loadPersistedRecoveryState() {
+    try {
+        if (fs.existsSync(STATE_FILE_PATH)) {
+            const raw = fs.readFileSync(STATE_FILE_PATH, 'utf8');
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') {
+                return parsed;
+            }
+        }
+    } catch (_) {}
+    return { latestRecoverySummary: null, promotionHistory: [] };
+}
+
+function savePersistedRecoveryState(state) {
+    try {
+        const dir = path.dirname(STATE_FILE_PATH);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.writeFileSync(STATE_FILE_PATH, JSON.stringify(state, null, 2), 'utf8');
+    } catch (_) {}
+}
+
+const persistedState = loadPersistedRecoveryState();
+let latestRecoverySummary = persistedState.latestRecoverySummary || null;
+let promotionHistory = persistedState.promotionHistory || [];
 let isRecoveryInProgress = false;
 
 // Canonical RFC 4122 UUID v1 format used by MySQL @@server_uuid (e.g. 8-4-4-4-12 hex chars)
@@ -155,10 +183,18 @@ async function createRecoveryConnection(overrideConfig = null) {
  * Guarantees that restoration CANNOT target or overwrite the live production database.
  *
  * @param {object} [testConfig] Optional config for testing isolation logic
+ * @param {object} [options] Optional execution options (e.g. { isDestructive: true })
  * @returns {Promise<{ isolated: boolean, database: string, host: string, engine: string, version: string }>}
  */
-async function verifyRecoveryIsolation(testConfig = null) {
-    const config = testConfig || getRecoveryConfig();
+async function verifyRecoveryIsolation(testConfig = null, options = {}) {
+    let config = testConfig;
+    let opts = options;
+    if (testConfig && typeof testConfig === 'object' && !testConfig.host && ('isDestructive' in testConfig)) {
+        opts = testConfig;
+        config = null;
+    }
+    const isDestructive = Boolean(opts && opts.isDestructive);
+    config = config || getRecoveryConfig();
 
     const prodHost = process.env.DB_HOST || 'localhost';
     const prodPort = parseInt(process.env.DB_PORT || '3306', 10);
@@ -221,26 +257,47 @@ async function verifyRecoveryIsolation(testConfig = null) {
             throw err;
         }
 
-        // Compare server_uuid against pinned or active production server identity
-        let prodServerUuid = pinnedProductionServerUuid;
-        if (!prodServerUuid) {
-            try {
-                const [prodIdRows] = await pool.query('SELECT @@server_uuid AS server_uuid');
-                if (prodIdRows && prodIdRows[0] && prodIdRows[0].server_uuid) {
-                    const raw = String(prodIdRows[0].server_uuid).trim().toLowerCase();
-                    if (isValidServerUuid(raw)) {
-                        prodServerUuid = raw;
-                        pinnedProductionServerUuid = prodServerUuid;
-                    }
+        // Compare server_uuid against live active production pool or pinned server identity
+        let liveProdServerUuid = null;
+        let poolConnectionError = false;
+        try {
+            const [prodIdRows] = await pool.query('SELECT @@server_uuid AS server_uuid');
+            if (prodIdRows && prodIdRows[0] && prodIdRows[0].server_uuid) {
+                const raw = String(prodIdRows[0].server_uuid).trim().toLowerCase();
+                if (isValidServerUuid(raw)) {
+                    liveProdServerUuid = raw;
                 }
-            } catch (_) {
-                // Production pool unreachable (e.g. disaster scenario)
+            }
+        } catch (poolErr) {
+            // Treat connection failures (ECONNREFUSED, ETIMEDOUT, etc.) as unverified identity
+            // MariaDB throws ER_UNKNOWN_SYSTEM_VARIABLE (expected locally)
+            if (poolErr && poolErr.code !== 'ER_UNKNOWN_SYSTEM_VARIABLE') {
+                poolConnectionError = true;
             }
         }
 
-        if (recoveryServerUuid && prodServerUuid) {
-            if (recoveryServerUuid.toLowerCase() === prodServerUuid.toLowerCase()) {
-                const err = new Error(`ISOLATION_VIOLATION: Recovery database connection resolved to the production MySQL server instance (matching @@server_uuid: ${recoveryServerUuid}). Recovery sandbox must run on an independent MySQL service.`);
+        // FAIL-CLOSED AUDIT 1 RULE:
+        // When active database identity cannot be established safely during destructive recovery
+        // (due to an active pool connection failure or unverified production pool), reject immediately.
+        if (isDestructive && (poolConnectionError || (restoreService.isProductionEnvironment() && !liveProdServerUuid))) {
+            const err = new Error('ISOLATION_VERIFICATION_FAILED: Active production database identity could not be established because the active database pool is unreachable. Destructive recovery operations are rejected to prevent accidental data loss.');
+            err.code = 'ISOLATION_VERIFICATION_FAILED';
+            throw err;
+        }
+
+        // 1. Check recovery target UUID against live active production identity
+        if (recoveryServerUuid && liveProdServerUuid) {
+            if (recoveryServerUuid.toLowerCase() === liveProdServerUuid.toLowerCase()) {
+                const err = new Error(`ISOLATION_VIOLATION: Recovery database connection resolved to the active production MySQL server instance (matching live @@server_uuid: ${recoveryServerUuid}). Recovery sandbox must run on an independent MySQL service.`);
+                err.code = 'RECOVERY_TARGETS_PRODUCTION';
+                throw err;
+            }
+        }
+
+        // 2. Also check recovery target UUID against pinned production identity (if configured)
+        if (recoveryServerUuid && pinnedProductionServerUuid) {
+            if (recoveryServerUuid.toLowerCase() === pinnedProductionServerUuid.toLowerCase()) {
+                const err = new Error(`ISOLATION_VIOLATION: Recovery database connection resolved to the pinned production MySQL server instance (matching pinned @@server_uuid: ${recoveryServerUuid}). Recovery sandbox must run on an independent MySQL service.`);
                 err.code = 'RECOVERY_TARGETS_PRODUCTION';
                 throw err;
             }
@@ -573,8 +630,8 @@ async function executeOnlineRecovery(archivePath, expectedChecksum, options = {}
             allowMySQL9Collations: true
         });
 
-        // 2. Verify runtime isolation
-        const isolation = await verifyRecoveryIsolation();
+        // 2. Verify runtime isolation (destructive operation fails closed if active identity cannot be confirmed)
+        const isolation = await verifyRecoveryIsolation(null, { isDestructive: true });
 
         // 3. Decompress SQL archive
         const decompressedSql = await new Promise((resolve, reject) => {
@@ -637,6 +694,7 @@ async function executeOnlineRecovery(archivePath, expectedChecksum, options = {}
             };
 
             latestRecoverySummary = summary;
+            savePersistedRecoveryState({ latestRecoverySummary, promotionHistory });
 
             await auditService.logSecurityEvent({
                 actorEmail,
@@ -664,6 +722,7 @@ async function executeOnlineRecovery(archivePath, expectedChecksum, options = {}
                 filename,
                 error: err.message
             };
+            savePersistedRecoveryState({ latestRecoverySummary, promotionHistory });
 
             await auditService.logSecurityEvent({
                 actorEmail,
@@ -876,6 +935,7 @@ async function getRecoveryStatus() {
 
     return {
         configured,
+        isolated: Boolean(configured && reachable),
         isProduction: isProd,
         targetLabel,
         databaseName,
@@ -897,6 +957,237 @@ function getPinnedProductionServerUuid() {
     return pinnedProductionServerUuid;
 }
 
+/**
+ * Assesses the readiness of the restored recovery sandbox for Blue-Green promotion.
+ * Evaluates restoration status, database connectivity, table integrity, schema compatibility,
+ * and runtime account configuration.
+ *
+ * @returns {Promise<object>} Promotion readiness report
+ */
+async function verifyPromotionReadiness() {
+    const isProd = restoreService.isProductionEnvironment();
+    const configured = isRecoveryConfigured();
+
+    if (!configured) {
+        return {
+            ready: false,
+            reason: 'NOT_CONFIGURED',
+            message: 'Online Recovery Sandbox is not configured.',
+            checks: { configured: false }
+        };
+    }
+
+    // 1. Probe Active Production Database
+    const activeDbInfo = {
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '3306', 10),
+        database: process.env.DB_NAME || 'labsync',
+        serverUuid: null,
+        engine: 'Unknown',
+        isOnline: false
+    };
+
+    try {
+        const [activeRows] = await pool.query('SELECT VERSION() AS ver, @@server_uuid AS server_uuid');
+        if (activeRows && activeRows[0]) {
+            activeDbInfo.engine = activeRows[0].ver || 'MySQL';
+            activeDbInfo.serverUuid = activeRows[0].server_uuid || null;
+            activeDbInfo.isOnline = true;
+        }
+    } catch (err) {
+        activeDbInfo.isOnline = false;
+    }
+
+    // 2. Probe Candidate Recovery Database
+    const candidateDbInfo = {
+        host: process.env.RECOVERY_DB_HOST,
+        port: parseInt(process.env.RECOVERY_DB_PORT || '3306', 10),
+        database: process.env.RECOVERY_DB_NAME,
+        serverUuid: null,
+        engine: 'Unknown',
+        isOnline: false,
+        tableCount: 0,
+        tables: []
+    };
+
+    let conn = null;
+    try {
+        conn = await module.exports.createRecoveryConnection();
+        const [candRows] = await conn.query('SELECT VERSION() AS ver, @@server_uuid AS server_uuid');
+        if (candRows && candRows[0]) {
+            candidateDbInfo.engine = candRows[0].ver || 'MySQL';
+            candidateDbInfo.serverUuid = candRows[0].server_uuid || null;
+            candidateDbInfo.isOnline = true;
+        }
+
+        // Query tables in candidate database
+        const [tblRows] = await conn.query(
+            "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME ASC",
+            [candidateDbInfo.database]
+        );
+        candidateDbInfo.tables = (tblRows || []).map(r => r.TABLE_NAME);
+        candidateDbInfo.tableCount = candidateDbInfo.tables.length;
+    } catch (err) {
+        candidateDbInfo.isOnline = false;
+        return {
+            ready: false,
+            reason: 'CANDIDATE_UNREACHABLE',
+            message: `Unable to connect to recovery database: ${err.message}`,
+            activeDatabase: activeDbInfo,
+            candidateDatabase: candidateDbInfo,
+            checks: { candidateReachable: false }
+        };
+    } finally {
+        if (conn) {
+            try { await conn.end(); } catch (_) {}
+        }
+    }
+
+    // 3. Prevent self-promotion if Candidate is ALREADY the Active Database
+    const isAlreadyActive = Boolean(
+        activeDbInfo.serverUuid && candidateDbInfo.serverUuid &&
+        (activeDbInfo.serverUuid.toLowerCase() === candidateDbInfo.serverUuid.toLowerCase())
+    );
+
+    if (isAlreadyActive) {
+        return {
+            ready: false,
+            alreadyPromoted: true,
+            reason: 'ALREADY_ACTIVE',
+            message: 'The recovered database is already the active production database. Promotion has already taken place.',
+            activeDatabase: activeDbInfo,
+            candidateDatabase: candidateDbInfo,
+            checks: {
+                distinctInstances: false,
+                alreadyPromoted: true
+            }
+        };
+    }
+
+    // 4. Verify Essential Core Application Tables
+    const REQUIRED_CORE_TABLES = [
+        'users',
+        'laboratories',
+        'lab_units',
+        'schedules',
+        'maintenance_issues',
+        'audit_logs',
+        'backup_history'
+    ];
+    const missingTables = REQUIRED_CORE_TABLES.filter(tbl => !candidateDbInfo.tables.includes(tbl));
+    const tablesPresent = missingTables.length === 0;
+
+    // 5. Inspect Latest Recovery Summary
+    const hasSuccessfulRestoration = Boolean(
+        latestRecoverySummary &&
+        latestRecoverySummary.status === 'SUCCESS' &&
+        latestRecoverySummary.checksumSha256
+    );
+
+    // 6. Maintenance Mode Status & In-Flight / Background Drain Check
+    const { isMaintenanceModeActive, getMaintenanceModeStatus } = require('../middleware/maintenanceMode');
+    const { isRetentionRunning } = require('./activityRetentionService');
+    const { isKeyReminderChecking } = require('./keyReminderService');
+    const maintStatus = getMaintenanceModeStatus();
+    const maintenanceActive = maintStatus.active;
+    const backgroundJobsIdle = !isRetentionRunning() && !isKeyReminderChecking();
+    const activeMutations = typeof maintStatus.activeMutationRequests === 'number'
+        ? maintStatus.activeMutationRequests
+        : 0;
+    const unresolvedOps = typeof maintStatus.unresolvedOperations === 'number'
+        ? maintStatus.unresolvedOperations
+        : 0;
+    const mutationRequestsDrained = activeMutations === 0 && unresolvedOps === 0;
+    const cutoverDrained = backgroundJobsIdle && mutationRequestsDrained;
+
+    // 7. Overall Readiness Calculation
+    const ready = candidateDbInfo.isOnline &&
+        tablesPresent &&
+        !isAlreadyActive &&
+        (hasSuccessfulRestoration || candidateDbInfo.tableCount >= REQUIRED_CORE_TABLES.length);
+
+    const warnings = [];
+    if (!maintenanceActive) {
+        warnings.push('Maintenance Mode is currently OFF. It is strongly recommended to enable Maintenance Mode before switching database connections in Railway to prevent concurrent writes.');
+    }
+    if (!cutoverDrained) {
+        warnings.push('Operations are not yet fully drained. Wait until cutoverDrained is true before proceeding with database cutover.');
+    }
+    warnings.push('The original production database (Blue) will remain untouched as a point-in-time copy.');
+    warnings.push('Once the recovered database (Green) becomes active, post-promotion writes will not automatically synchronize back to the original database.');
+
+    return {
+        ready,
+        activeDatabase: activeDbInfo,
+        candidateDatabase: candidateDbInfo,
+        checks: {
+            candidateReachable: candidateDbInfo.isOnline,
+            tablesPresent,
+            missingTables,
+            restorationSuccess: hasSuccessfulRestoration,
+            distinctInstances: !isAlreadyActive,
+            maintenanceModeActive: maintenanceActive,
+            maintenanceSource: maintStatus.source,
+            isEnvironmentDriven: maintStatus.isEnvironmentDriven,
+            activeMutationRequests: activeMutations,
+            unresolvedOperations: unresolvedOps,
+            backgroundJobsIdle,
+            backgroundJobsDrained: backgroundJobsIdle,
+            mutationRequestsDrained,
+            cutoverDrained
+        },
+        latestRecovery: latestRecoverySummary,
+        warnings,
+        switchInstructions: {
+            serviceName: 'LabSync-Recovery-Sandbox',
+            targetHost: candidateDbInfo.host,
+            targetPort: candidateDbInfo.port,
+            targetDatabase: candidateDbInfo.database,
+            requiredUser: 'labsync_app',
+            sampleVariables: {
+                DB_HOST: '${{LabSync-Recovery-Sandbox.MYSQLHOST}}',
+                DB_PORT: '${{LabSync-Recovery-Sandbox.MYSQLPORT}}',
+                DB_USER: 'labsync_app',
+                DB_PASSWORD: '<PRIVATE_RUNTIME_PASSWORD>',
+                DB_NAME: '${{LabSync-Recovery-Sandbox.MYSQLDATABASE}}',
+                PROD_SERVER_UUID: candidateDbInfo.serverUuid || 'df694bff-d6ae-11f1-85d7-a2aaf5f6dd9c',
+                MAINTENANCE_MODE: 'true'
+            }
+        }
+    };
+}
+
+/**
+ * Records that a promotion cutover was completed.
+ * @param {object} details
+ * @returns {object}
+ */
+function recordPromotionEvent(details) {
+    const entry = {
+        promotedAt: new Date().toISOString(),
+        actorEmail: details.actorEmail || null,
+        originalServerUuid: details.originalServerUuid || null,
+        promotedServerUuid: details.promotedServerUuid || null,
+        backupFilename: details.backupFilename || null,
+        checksumSha256: details.checksumSha256 || null,
+        verified: Boolean(details.verified)
+    };
+    promotionHistory.unshift(entry);
+    savePersistedRecoveryState({
+        latestRecoverySummary,
+        promotionHistory
+    });
+    return entry;
+}
+
+/**
+ * Retrieves the promotion history log.
+ * @returns {Array<object>}
+ */
+function getPromotionHistory() {
+    return [...promotionHistory];
+}
+
 module.exports = {
     isRecoveryConfigured,
     getRecoveryConfig,
@@ -911,6 +1202,9 @@ module.exports = {
     getRecoveryStatus,
     setPinnedProductionServerUuid,
     getPinnedProductionServerUuid,
-    isValidServerUuid
+    isValidServerUuid,
+    verifyPromotionReadiness,
+    recordPromotionEvent,
+    getPromotionHistory
 };
 

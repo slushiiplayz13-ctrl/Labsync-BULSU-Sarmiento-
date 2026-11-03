@@ -88,4 +88,34 @@ router.post(
     backupController.compareDemonstrationRecord
 );
 
+// ─── Blue-Green Database Recovery & Promotion Controls (Exclusively IT Dept Head) ──
+
+// GET /api/admin/backups/recovery/promotion-status — Candidate database promotion readiness
+router.get(
+    '/recovery/promotion-status',
+    requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES),
+    backupController.getPromotionStatus
+);
+
+// POST /api/admin/backups/recovery/record-promotion — Record completed promotion cutover
+router.post(
+    '/recovery/record-promotion',
+    requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES),
+    backupController.recordPromotion
+);
+
+// GET /api/admin/backups/maintenance-mode — Inspect current cutover maintenance mode status
+router.get(
+    '/maintenance-mode',
+    requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES),
+    backupController.getMaintenanceMode
+);
+
+// POST /api/admin/backups/maintenance-mode — Toggle cutover maintenance mode (enable/disable writes)
+router.post(
+    '/maintenance-mode',
+    requireRole(IT_DEPT_HEAD_EXCLUSIVE_ROLES),
+    backupController.toggleMaintenanceMode
+);
+
 module.exports = router;

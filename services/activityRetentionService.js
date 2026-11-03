@@ -18,11 +18,13 @@
  */
 
 const occupancyRepository = require('../repositories/occupancy.repository');
+const { isMaintenanceModeActive } = require('../middleware/maintenanceMode');
 
 // Default cleanup interval: Daily (24 hours in milliseconds)
 const CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 let _retentionTimer = null;
+let _isCleaning = false;
 
 /**
  * Calculates the exact one-calendar-year cutoff date relative to baseDate.
@@ -75,6 +77,21 @@ function formatDateTimeForSql(date) {
  * @returns {Promise<{ success: boolean, deletedCount: number, cutoffDate: string, durationMs: number, error?: string }>}
  */
 async function runRetentionCleanup(options = {}) {
+    if (isMaintenanceModeActive()) {
+        console.log('[ActivityRetention] Skipped scheduled retention cleanup: Cutover Maintenance Mode is active.');
+        return {
+            success: true,
+            deletedCount: 0,
+            maintenanceMode: true,
+            message: 'Retention cleanup skipped because Maintenance Mode is active.'
+        };
+    }
+
+    if (_isCleaning) {
+        return { success: true, deletedCount: 0, message: 'Retention cleanup already in progress' };
+    }
+
+    _isCleaning = true;
     const startTime = Date.now();
     const cutoffDate = options.customCutoff || calculateOneCalendarYearCutoff(options.baseDate || new Date());
     const sqlCutoff = formatDateTimeForSql(cutoffDate);
@@ -106,6 +123,8 @@ async function runRetentionCleanup(options = {}) {
             durationMs,
             error: err.message
         };
+    } finally {
+        _isCleaning = false;
     }
 }
 
@@ -164,6 +183,7 @@ module.exports = {
     calculateOneCalendarYearCutoff,
     formatDateTimeForSql,
     runRetentionCleanup,
+    isRetentionRunning: () => _isCleaning,
     initActivityLogRetention,
     stopRetentionSchedule,
     CLEANUP_INTERVAL_MS

@@ -1095,6 +1095,48 @@
           <!-- Comparison Result Output -->
           <div id="recovery-demo-comparison-result" style="margin-top: 10px;"></div>
         </div>
+
+        <!-- Blue-Green Production Database Promotion Section -->
+        <div style="border-top: 1.5px dashed var(--border-light, #E2E8F0); padding-top: 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(30, 187, 215, 0.12); display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="server" style="width: 16px; height: 16px; color: var(--primary-teal, #1EBBD7);"></i>
+              </div>
+              <div>
+                <h4 style="margin: 0; font-size: 13.5px; font-weight: 700; color: var(--text-dark, #0F172A);">
+                  Blue-Green Production Database Promotion
+                </h4>
+                <div style="font-size: 11.5px; color: var(--text-mid, #64748B);">
+                  Promote the verified recovered database (Green) to active production without modifying the original (Blue).
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              id="btn-check-promotion-readiness"
+              style="
+                padding: 7px 14px;
+                background: #FFFFFF;
+                border: 1.5px solid var(--border-light, #E2E8F0);
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--text-dark, #0F172A);
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+              "
+            >
+              <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #10B981;"></i>
+              <span>Verify Promotion Readiness</span>
+            </button>
+          </div>
+
+          <!-- Promotion Readiness Output Container -->
+          <div id="promotion-readiness-container" style="display: none; margin-top: 12px;"></div>
+        </div>
       </div>
     `;
 
@@ -1193,6 +1235,194 @@
           compareBtn.innerHTML = `<i data-lucide="search" style="width: 14px; height: 14px;"></i><span>Compare with Production</span>`;
           if (global.lucide && typeof global.lucide.createIcons === 'function') {
             global.lucide.createIcons({ root: compareBtn });
+          }
+        }
+      });
+    }
+
+    // Attach listener to Promotion Readiness button
+    const promoCheckBtn = panel.querySelector('#btn-check-promotion-readiness');
+    const promoContainer = panel.querySelector('#promotion-readiness-container');
+
+    if (promoCheckBtn && promoContainer) {
+      promoCheckBtn.addEventListener('click', async () => {
+        promoCheckBtn.disabled = true;
+        promoCheckBtn.innerHTML = `<span>Checking readiness...</span>`;
+
+        try {
+          const res = await fetch('/api/admin/backups/recovery/promotion-status', {
+            method: 'GET',
+            credentials: 'include'
+          });
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok) {
+            throw new Error(data.error || `Readiness check failed with HTTP ${res.status}`);
+          }
+
+          promoContainer.style.display = 'block';
+
+          const ready = Boolean(data.ready);
+          const active = data.activeDatabase || {};
+          const cand = data.candidateDatabase || {};
+          const checks = data.checks || {};
+          const isMaint = Boolean(checks.maintenanceModeActive);
+          const isEnvDriven = Boolean(checks.isEnvironmentDriven);
+
+          promoContainer.innerHTML = `
+            <div style="background: #FFFFFF; border: 1.5px solid ${ready ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="${ready ? 'check-circle' : 'alert-triangle'}" style="width: 18px; height: 18px; color: ${ready ? '#10B981' : '#F59E0B'};"></i>
+                  <strong style="font-size: 13.5px; color: var(--text-dark, #0F172A);">
+                    ${ready ? 'Ready for Blue-Green Promotion' : 'Promotion Pre-Checks Pending'}
+                  </strong>
+                </div>
+                <span style="font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: ${ready ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; color: ${ready ? '#059669' : '#DC2626'};">
+                  ${ready ? 'PRE-CHECKS PASSED' : (data.reason || 'ACTION REQUIRED')}
+                </span>
+              </div>
+
+              <!-- Blue vs Green Identity Cards -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="background: var(--bg-card, #F8FAFC); border: 1px solid var(--border-light, #E2E8F0); border-radius: 8px; padding: 10px 12px;">
+                  <div style="font-size: 11px; font-weight: 700; color: #3B82F6; text-transform: uppercase;">
+                    Blue (Current Active Production)
+                  </div>
+                  <div style="font-size: 12px; color: var(--text-dark, #0F172A); margin-top: 4px;">
+                    Engine: <strong>${escapeHtml(active.engine || 'MySQL')}</strong><br/>
+                    Database: <code>${escapeHtml(active.database || 'railway')}</code><br/>
+                    <span style="font-family: ui-monospace, monospace; font-size: 10.5px; color: var(--text-mid, #64748B);">UUID: ${escapeHtml(active.serverUuid || 'Unknown')}</span>
+                  </div>
+                  <div style="margin-top: 6px; font-size: 11px; color: #15803D; font-weight: 600;">
+                    ✓ Remains untouched as fallback
+                  </div>
+                </div>
+
+                <div style="background: var(--bg-card, #F8FAFC); border: 1px solid var(--border-light, #E2E8F0); border-radius: 8px; padding: 10px 12px;">
+                  <div style="font-size: 11px; font-weight: 700; color: #10B981; text-transform: uppercase;">
+                    Green (Recovered Candidate)
+                  </div>
+                  <div style="font-size: 12px; color: var(--text-dark, #0F172A); margin-top: 4px;">
+                    Engine: <strong>${escapeHtml(cand.engine || 'MySQL 8.4')}</strong><br/>
+                    Tables: <strong>${escapeHtml(String(cand.tableCount || 0))} verified</strong><br/>
+                    <span style="font-family: ui-monospace, monospace; font-size: 10.5px; color: var(--text-mid, #64748B);">UUID: ${escapeHtml(cand.serverUuid || 'Unknown')}</span>
+                  </div>
+                  <div style="margin-top: 6px; font-size: 11px; color: #0284C7; font-weight: 600;">
+                    ✓ Restored snapshot ready
+                  </div>
+                </div>
+              </div>
+
+              <!-- Maintenance Mode Cutover Banner & Toggle -->
+              <div style="background: ${isMaint ? 'rgba(245, 158, 11, 0.1)' : 'rgba(241, 245, 249, 0.7)'}; border: 1px solid ${isMaint ? 'rgba(245, 158, 11, 0.3)' : 'var(--border-light, #E2E8F0)'}; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                <div>
+                  <div style="font-size: 12px; font-weight: 700; color: ${isMaint ? '#B45309' : 'var(--text-dark, #0F172A)'};">
+                    Cutover Maintenance Mode: ${isMaint ? (isEnvDriven ? 'ACTIVE (Railway Environment Enforced)' : 'ACTIVE (Runtime Writes Blocked)') : 'INACTIVE (Writes Allowed)'}
+                  </div>
+                  <div style="font-size: 11.5px; color: var(--text-mid, #64748B); margin-top: 2px;">
+                    ${isEnvDriven
+                      ? 'Enforced by Railway Variable (MAINTENANCE_MODE=true). Mutating requests blocked (503). To resume ordinary operations, set MAINTENANCE_MODE=false in Railway and redeploy.'
+                      : (isMaint ? 'All modifying HTTP requests are currently blocked with HTTP 503 to ensure zero data divergence.' : 'Enable maintenance mode before switching Railway variables to prevent concurrent writes.')}
+                  </div>
+                  <div style="font-size: 11px; margin-top: 4px; color: ${checks.cutoverDrained !== false ? '#15803D' : '#D97706'}; font-weight: 600;">
+                    ${checks.cutoverDrained !== false
+                      ? '✓ All operations drained &amp; idle (0 active requests, workers idle)'
+                      : `⏳ Draining operations (${checks.activeMutationRequests || 0} active mutation requests, workers ${checks.backgroundJobsDrained !== false ? 'idle' : 'running'})...`}
+                  </div>
+                </div>
+                ${isEnvDriven ? `
+                <div style="font-size: 11px; font-weight: 700; color: #B45309; background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 6px; padding: 4px 8px; white-space: nowrap;">
+                  Controlled by Railway
+                </div>
+                ` : `
+                <button
+                  type="button"
+                  id="btn-toggle-cutover-maintenance"
+                  style="
+                    padding: 6px 14px;
+                    background: ${isMaint ? '#DC2626' : '#D97706'};
+                    color: #FFFFFF;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 11.5px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    white-space: nowrap;
+                  "
+                >
+                  ${isMaint ? 'Disable Maintenance' : 'Enable Maintenance'}
+                </button>
+                `}
+              </div>
+
+              <!-- Manual Connection Switch Instructions -->
+              <div style="border-top: 1px solid var(--border-light, #E2E8F0); padding-top: 10px;">
+                <div style="font-size: 12px; font-weight: 700; color: var(--text-dark, #0F172A); margin-bottom: 4px;">
+                  Railway Service Connection Switch Procedure:
+                </div>
+                <p style="margin: 0 0 8px 0; font-size: 11.5px; color: var(--text-mid, #64748B); line-height: 1.4;">
+                  In Railway &rarr; <strong>Labsync-BULSU-Sarmiento-</strong> &rarr; <strong>Variables</strong>, update the production database references:
+                </p>
+                <pre style="background: #0F172A; color: #38BDF8; padding: 10px 12px; border-radius: 8px; font-size: 11px; margin: 0; overflow-x: auto; font-family: ui-monospace, monospace;">DB_HOST=\${{LabSync-Recovery-Sandbox.MYSQLHOST}}
+DB_PORT=\${{LabSync-Recovery-Sandbox.MYSQLPORT}}
+DB_USER=labsync_app
+DB_PASSWORD=&lt;PRIVATE_RUNTIME_PASSWORD&gt;
+DB_NAME=\${{LabSync-Recovery-Sandbox.MYSQLDATABASE}}
+PROD_SERVER_UUID=df694bff-d6ae-11f1-85d7-a2aaf5f6dd9c
+MAINTENANCE_MODE=true</pre>
+                <div style="margin-top: 8px; font-size: 11.5px; color: var(--text-mid, #64748B); line-height: 1.4;">
+                  <strong>Safety Note:</strong> Rollback before new writes is 100% lossless by changing references back to the Blue MySQL service. For your demonstration, maintain Maintenance Mode active so the restored records can be viewed in Room Management without post-promotion writes.
+                </div>
+              </div>
+            </div>
+          `;
+
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons({ root: promoContainer });
+          }
+
+          // Attach listener to maintenance toggle button
+          const maintToggleBtn = promoContainer.querySelector('#btn-toggle-cutover-maintenance');
+          if (maintToggleBtn) {
+            maintToggleBtn.addEventListener('click', async () => {
+              maintToggleBtn.disabled = true;
+              try {
+                const toggleRes = await fetch('/api/admin/backups/maintenance-mode', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ enabled: !isMaint })
+                });
+                const toggleData = await toggleRes.json().catch(() => ({}));
+                if (!toggleRes.ok) {
+                  throw new Error(toggleData.error || 'Failed to toggle maintenance mode');
+                }
+                if (global.showToast) {
+                  global.showToast(toggleData.message || 'Maintenance mode updated', 'info');
+                }
+                // Refresh readiness view
+                promoCheckBtn.click();
+              } catch (toggleErr) {
+                if (global.showToast) {
+                  global.showToast(toggleErr.message, 'error');
+                }
+                maintToggleBtn.disabled = false;
+              }
+            });
+          }
+        } catch (err) {
+          promoContainer.style.display = 'block';
+          promoContainer.innerHTML = `
+            <div style="color: #EF4444; font-size: 12px; padding: 8px;">
+              Readiness check error: ${escapeHtml(err.message)}
+            </div>
+          `;
+        } finally {
+          promoCheckBtn.disabled = false;
+          promoCheckBtn.innerHTML = `<i data-lucide="shield-check" style="width: 14px; height: 14px; color: #10B981;"></i><span>Verify Promotion Readiness</span>`;
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons({ root: promoCheckBtn });
           }
         }
       });

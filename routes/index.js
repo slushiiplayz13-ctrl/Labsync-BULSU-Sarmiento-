@@ -37,6 +37,10 @@ const keysRoutes = require('./keys.routes');
 const ojtRoutes = require('./ojt.routes');
 const misRoutes = require('./mis.routes');
 const backupRoutes = require('./backup.routes');
+const { maintenanceModeMiddleware } = require('../middleware/maintenanceMode');
+
+// ─── 0. CUTOVER MAINTENANCE MODE GATE ─────────────────────────────────────────
+router.use(maintenanceModeMiddleware);
 
 // ─── 1. MOUNT MODULAR DOMAIN ROUTERS ──────────────────────────────────────────
 router.use('/auth', authRoutes);
